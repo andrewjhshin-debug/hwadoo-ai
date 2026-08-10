@@ -17,7 +17,8 @@ export type Session = {
 export type Store = {
   current: Session | null; // 지금 들고 있는 화두
   history: Session[]; // 회향을 마친 화두들
-  received: number; // 지금까지 받은 화두 수 (다음 화두 선정용)
+  received: number; // 지금까지 받은 화두 수
+  defaultDays?: number; // 설정 — 참구 기간 기본값 (없으면 3)
 };
 
 const KEY = "hwadoo-store-v1";
@@ -34,6 +35,8 @@ export function loadStore(): Store {
       current: parsed.current ?? null,
       history: Array.isArray(parsed.history) ? parsed.history : [],
       received: typeof parsed.received === "number" ? parsed.received : 0,
+      defaultDays:
+        typeof parsed.defaultDays === "number" ? parsed.defaultDays : undefined,
     };
   } catch {
     return EMPTY;
@@ -67,10 +70,27 @@ export function isUnlocked(session: Session, now = Date.now()): boolean {
 
 // 참구 기간 한글 이름
 export function durationLabel(days: number): string {
+  if (days === 0) return "스스로 정한 때";
   if (days === 1) return "하루";
+  if (days === 2) return "이틀";
   if (days === 3) return "사흘";
+  if (days === 5) return "닷새";
   if (days === 7) return "이레";
-  return "스스로 정한 때";
+  return `${days}일`;
+}
+
+// 초 단위 카운트다운 — "2일 13시간 05분 42초"
+export function formatCountdown(ms: number): string {
+  if (ms <= 0) return "";
+  const totalSec = Math.floor(ms / 1000);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  if (d > 0) return `${d}일 ${pad(h)}시간 ${pad(m)}분 ${pad(s)}초`;
+  if (h > 0) return `${h}시간 ${pad(m)}분 ${pad(s)}초`;
+  return `${m}분 ${pad(s)}초`;
 }
 
 // "1일 4시간" 같은 남은 시간 표현
