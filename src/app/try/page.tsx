@@ -21,35 +21,36 @@ import { SLOGAN } from "@/lib/config";
 
 const MAX_ANSWER = 500;
 const DAY_OPTIONS = [1, 3, 7, 21, 108];
+const DAY_NOTE: Record<number, string> = {
+  1: "하루 — 첫걸음",
+  3: "사흘 — 삼일기도의 리듬",
+  7: "이레 — 칠일 용맹정진",
+  21: "삼칠일 — 세 이레, 회향의 단위",
+  108: "백팔일 — 백팔번뇌를 마주하는 가장 깊은 참구",
+};
 
 type Step = "choose" | "received" | "pondering" | "ripened" | "writing" | "done";
 
-// 아래 안내바 — 걸음마다 다른 말과 다음 버튼
-const GUIDE: Record<Step, { text: string; action: string }> = {
-  choose: {
-    text: "먼저 누구의 화두를 받을지 고르고, 화두를 받아 보십시오.",
-    action: "",
-  },
-  received: {
-    text: "화두를 받았습니다. 본래는 이대로 며칠이 흘러야 합니다 — 체험에서는 눌러서 건너뜁니다.",
-    action: "사유의 시간을 갖다",
-  },
-  pondering: {
-    text: "사유의 시간입니다. 떠오르는 것은 사유의 방에 적어 둡니다.",
-    action: "시간이 흘렀다",
-  },
-  ripened: {
-    text: "달이 찼습니다. 이제 붓을 들어 그대의 답을 씁니다.",
-    action: "붓을 들다",
-  },
-  writing: {
-    text: "정답은 없습니다. 지금 보이는 만큼만 쓰십시오.",
-    action: "",
-  },
-  done: { text: "한 바퀴를 돌았습니다.", action: "" },
+// 걸음마다 뜨는 체험 안내 — 남은 시간 바로 아래에 놓인다
+const GUIDE: Record<Step, string> = {
+  choose: "먼저 누구의 화두를 받을지 고르고, 화두를 받아 보십시오.",
+  received:
+    "화두를 받았습니다. 본래는 이대로 며칠이 흘러야 합니다 — 체험에서는 눌러서 건너뜁니다.",
+  pondering: "사유의 시간입니다. 떠오르는 것은 사유의 방에 적어 둡니다.",
+  ripened: "달이 찼습니다. 이제 붓을 들어 그대의 답을 씁니다.",
+  writing: "정답은 없습니다. 지금 보이는 만큼만 쓰십시오.",
+  done: "한 바퀴를 돌았습니다.",
 };
 
 const STEPS = ["화두를 받다", "사유하다", "달이 차오르다", "회향하다"];
+
+// 앞뒤로 오가는 걸음 이름
+const NAV: Partial<Record<Step, { prev: string; next: string }>> = {
+  received: { prev: "화두 다시 받기", next: "사유의 시간을 갖다" },
+  pondering: { prev: "화두를 받다", next: "시간이 흘렀다" },
+  ripened: { prev: "사유하다", next: "붓을 들다" },
+  writing: { prev: "달이 차오르다", next: "" },
+};
 
 export default function TryPage() {
   const [step, setStep] = useState<Step>("choose");
@@ -57,6 +58,7 @@ export default function TryPage() {
   const [hwadu, setHwadu] = useState<Hwadu | null>(null);
   const [days, setDays] = useState(3);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [memo, setMemo] = useState("");
   const [answer, setAnswer] = useState("");
   const [startedAt] = useState(() => Date.now());
@@ -78,6 +80,14 @@ export default function TryPage() {
       setNotesOpen(false);
       setStep("ripened");
     } else if (step === "ripened") setStep("writing");
+  };
+
+  // 앞 걸음으로 — 되돌아가며 다시 볼 수 있게
+  const prev = () => {
+    if (step === "received") setStep("choose");
+    else if (step === "pondering") setStep("received");
+    else if (step === "ripened") setStep("pondering");
+    else if (step === "writing") setStep("ripened");
   };
 
   // 회향 — 지난 화두에 남긴다
@@ -118,7 +128,7 @@ export default function TryPage() {
     "cursor-default border border-ink-3 px-5 py-2.5 text-xs tracking-[0.15em] text-hanji-faint opacity-60";
 
   return (
-    <div className="relative flex flex-1 flex-col items-center px-6 pb-44 pt-10 text-center">
+    <div className="relative flex flex-1 flex-col items-center px-6 pb-20 pt-10 text-center">
       {/* ── 늘 위에 있는 체험 표시 ── */}
       <div className="w-full max-w-2xl">
         <p className="text-center text-[11px] tracking-[0.4em] text-gold-soft">
@@ -296,7 +306,13 @@ export default function TryPage() {
                   {answer.length} / {MAX_ANSWER}
                 </p>
                 {/* 회향하다 — 글자수 아래 */}
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex items-center justify-between">
+                  <button
+                    onClick={prev}
+                    className="border border-ink-3 px-5 py-2.5 text-[12.5px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                  >
+                    ← {NAV.writing!.prev}
+                  </button>
                   <button
                     onClick={finish}
                     disabled={!answer.trim()}
@@ -341,7 +357,7 @@ export default function TryPage() {
                 <span className="mr-1.5 text-[11px] tracking-[0.2em]">
                   체험 ·
                 </span>
-                {GUIDE[step].text}
+                {GUIDE[step]}
               </p>
 
               <p className="mt-4 text-xs leading-6 tracking-[0.04em] text-hanji-faint">
@@ -350,6 +366,24 @@ export default function TryPage() {
                 생각으로 찾아낸 것은 답이 아닙니다. 생각하기보다 끝까지 하는
                 힘이 중요합니다.
               </p>
+
+              {/* 걸음 옮기기 — 앞뒤로 오갈 수 있게 */}
+              {NAV[step] && (
+                <div className="mt-6 flex items-center justify-center gap-3">
+                  <button
+                    onClick={prev}
+                    className="border border-ink-3 px-5 py-2.5 text-[12.5px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                  >
+                    ← {NAV[step]!.prev}
+                  </button>
+                  <button
+                    onClick={next}
+                    className="btn-obang px-7 py-2.5 text-[12.5px] tracking-[0.15em] text-hanji transition-opacity hover:opacity-90"
+                  >
+                    {NAV[step]!.next} →
+                  </button>
+                </div>
+              )}
 
               {/* 오늘의 참구법 */}
               {step !== "ripened" && (
@@ -363,22 +397,38 @@ export default function TryPage() {
                 </div>
               )}
 
-              {/* 기간 바꾸기 — 눌러 볼 수 있게 */}
+              {/* 기간 바꾸기 — 실제 화두와 같은 포맷 */}
               {step !== "ripened" && (
-                <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
-                  {DAY_OPTIONS.map((d) => (
+                <div className="mt-7">
+                  {showSettings ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="flex flex-wrap items-center justify-center gap-2.5">
+                        {DAY_OPTIONS.map((d) => (
+                          <button
+                            key={d}
+                            onClick={() => setDays(d)}
+                            className={`border px-4 py-2 text-xs tracking-[0.15em] transition-colors ${
+                              days === d
+                                ? "border-gold/60 text-gold"
+                                : "border-ink-3 text-hanji-dim hover:text-hanji"
+                            }`}
+                          >
+                            {durationLabel(d)}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-[11px] tracking-wide text-hanji-faint">
+                        {DAY_NOTE[days] ?? ""}
+                      </p>
+                    </div>
+                  ) : (
                     <button
-                      key={d}
-                      onClick={() => setDays(d)}
-                      className={`border px-4 py-2 text-xs tracking-[0.15em] transition-colors ${
-                        days === d
-                          ? "border-gold/60 text-gold"
-                          : "border-ink-3 text-hanji-dim hover:text-hanji"
-                      }`}
+                      onClick={() => setShowSettings(true)}
+                      className="text-xs tracking-widest text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji-dim"
                     >
-                      {durationLabel(d)}
+                      기간 바꾸기
                     </button>
-                  ))}
+                  )}
                 </div>
               )}
 
@@ -418,20 +468,6 @@ export default function TryPage() {
             </>
           )}
         </section>
-      )}
-
-      {/* ── 아래 안내바 — 다음 걸음 ── */}
-      {GUIDE[step].action && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gold/25 bg-ink-2/95 px-6 py-4 backdrop-blur">
-          <div className="mx-auto flex max-w-2xl items-center justify-center">
-            <button
-              onClick={next}
-              className="btn-obang px-8 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
-            >
-              {GUIDE[step].action} →
-            </button>
-          </div>
-        </div>
       )}
 
       {/* ── 사유의 방 서랍 (체험 전용 — 진짜 기록과 무관) ── */}
