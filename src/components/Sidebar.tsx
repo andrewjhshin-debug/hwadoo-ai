@@ -216,7 +216,7 @@ export default function Sidebar() {
           }`}
         >
           <Lotus className="h-[17px] w-[17px]" stroke="#D9B45B" />
-          {!slim && "뜰로"}
+          {!slim && "뜰"}
         </Link>
 
         {/* 체험하기 — 기한 없이 전 과정 한 바퀴 */}

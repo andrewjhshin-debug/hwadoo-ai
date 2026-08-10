@@ -18,6 +18,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { anonName } from "./anonName";
 
 export type Post = {
   id: string;
@@ -58,7 +59,7 @@ export async function createPost(title: string, body: string) {
   return addDoc(collection(db, "posts"), {
     title,
     body,
-    authorName: u.displayName ?? "수행자",
+    authorName: anonName(u.uid), // 익명 — 불교 낱말 이름
     authorUid: u.uid,
     hapjang: 0,
     commentCount: 0,
@@ -88,7 +89,7 @@ export async function addComment(postId: string, body: string) {
   if (!u) throw new Error("로그인이 필요합니다");
   await addDoc(collection(db, "posts", postId, "comments"), {
     body,
-    authorName: u.displayName ?? "수행자",
+    authorName: anonName(u.uid), // 익명 — 불교 낱말 이름
     authorUid: u.uid,
     createdAt: serverTimestamp(),
   });

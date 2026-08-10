@@ -67,20 +67,27 @@ async function startSync(uid: string) {
 
   // 2) 이후의 변화를 계정으로 (디바운스)
   //    — 다른 기기에서 온 변화(remote)는 다시 올리지 않는다 (메아리 방지)
+  //    — 내 변화가 아직 서버에 반영되기 전에는 원격 갱신을 막는다 (경쟁 상태 방지)
   stopPushing();
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let pendingLocal = false; // 내 변화가 서버에 확정될 때까지 true
   const handler = (e: Event) => {
     const source = (e as CustomEvent).detail?.source;
     if (source === "remote") return;
+    pendingLocal = true;
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
       setDoc(
         ref,
         { store: clean(loadStore()), updatedAt: serverTimestamp() },
         { merge: true }
-      ).catch(() => {
-        /* 오프라인 등 — 다음 변화 때 다시 시도된다 */
-      });
+      )
+        .then(() => {
+          pendingLocal = false;
+        })
+        .catch(() => {
+          pendingLocal = false; // 실패해도 잠금은 풀어 준다
+        });
     }, 800);
   };
   window.addEventListener("hwadoo-store-updated", handler);
@@ -89,6 +96,7 @@ async function startSync(uid: string) {
   //    (폰에서 화두를 받으면, PC 화면에도 곧바로 나타난다)
   const unsubscribeSnapshot = onSnapshot(ref, (snap) => {
     if (snap.metadata.hasPendingWrites) return; // 내가 방금 쓴 것의 메아리
+    if (pendingLocal) return; // 내 변화가 아직 안 올라감 — 덮어쓰지 않는다
     const remote = snap.exists() ? ((snap.data().store as Store) ?? null) : null;
     if (!remote) return;
     if (JSON.stringify(remote) === JSON.stringify(loadStore())) return;

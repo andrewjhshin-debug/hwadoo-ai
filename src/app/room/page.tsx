@@ -39,6 +39,7 @@ export default function RoomPage() {
   const [store, setStore] = useState<Store | null>(null);
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState(false);
+  const [savedAt, setSavedAt] = useState<string>("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -47,16 +48,30 @@ export default function RoomPage() {
     setNotes(s.current?.notes ?? "");
   }, []);
 
+  const persist = (value: string) => {
+    const latest = loadStore();
+    if (!latest.current) return;
+    saveStore({ ...latest, current: { ...latest.current, notes: value } });
+    setSaved(true);
+    setSavedAt(
+      new Date().toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    );
+  };
+
   const onChange = (value: string) => {
     setNotes(value);
     setSaved(false);
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      const latest = loadStore();
-      if (!latest.current) return;
-      saveStore({ ...latest, current: { ...latest.current, notes: value } });
-      setSaved(true);
-    }, 600);
+    timer.current = setTimeout(() => persist(value), 600);
+  };
+
+  // 임시 저장 — 지금 곧바로 저장
+  const saveNow = () => {
+    if (timer.current) clearTimeout(timer.current);
+    persist(notes);
   };
 
   if (!store) return null;
@@ -112,9 +127,21 @@ export default function RoomPage() {
           placeholder="오늘 문득 —"
           className="journal-area mt-4 flex-1"
         />
-        <p className="mt-3 text-right text-[11px] text-hanji-faint">
-          {saved ? "저절로 저장되었습니다" : "쓰는 대로 저장됩니다"}
-        </p>
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-[11px] text-hanji-faint">
+            {savedAt
+              ? `임시 저장됨 · ${savedAt}`
+              : saved
+                ? "저장되었습니다"
+                : "쓰는 대로 저절로 저장됩니다"}
+          </span>
+          <button
+            onClick={saveNow}
+            className="border border-ink-3 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          >
+            임시 저장
+          </button>
+        </div>
       </div>
 
       {/* 지난 화두들의 단상 — 화두별로 남는다 */}

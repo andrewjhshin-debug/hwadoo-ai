@@ -232,14 +232,28 @@ function PostCard({
 
   return (
     <article className="border-t border-ink-3 pt-7">
-      <button onClick={onToggle} className="w-full text-left">
-        <h2 className="font-serif text-[16px] text-hanji">{post.title}</h2>
-        <p className="mt-1 text-[11px] tracking-wider text-hanji-faint">
-          {post.authorName}
-          {post.createdAt && ` · ${formatDate(post.createdAt.seconds * 1000)}`}
-          {` · 합장 ${post.hapjang} · 댓글 ${post.commentCount}`}
-        </p>
-      </button>
+      <div className="flex items-start justify-between gap-3">
+        <button onClick={onToggle} className="flex-1 text-left">
+          <h2 className="font-serif text-[16px] text-hanji">{post.title}</h2>
+          <p className="mt-1 text-[11px] tracking-wider text-hanji-faint">
+            {post.authorName}
+            {post.createdAt && ` · ${formatDate(post.createdAt.seconds * 1000)}`}
+            {` · 합장 ${post.hapjang} · 댓글 ${post.commentCount}`}
+          </p>
+        </button>
+        {(isAdmin || user?.uid === post.authorUid) && (
+          <button
+            onClick={async () => {
+              if (!window.confirm("이 글을 삭제하시겠습니까?")) return;
+              await deletePost(post.id);
+              onDeleted();
+            }}
+            className="shrink-0 pt-1 text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-vermilion"
+          >
+            삭제하기
+          </button>
+        )}
+      </div>
 
       {open && (
         <div className="mt-4">
@@ -259,18 +273,6 @@ function PostCard({
             >
               🙏 합장 {post.hapjang > 0 && post.hapjang}
             </button>
-            {(isAdmin || user?.uid === post.authorUid) && (
-              <button
-                onClick={async () => {
-                  if (!window.confirm("이 글을 내리시겠습니까?")) return;
-                  await deletePost(post.id);
-                  onDeleted();
-                }}
-                className="text-[11px] tracking-widest text-hanji-faint hover:text-vermilion"
-              >
-                내리기
-              </button>
-            )}
           </div>
 
           {/* 댓글 */}

@@ -46,19 +46,23 @@ export default function NotesDrawer({
     return () => window.removeEventListener("hwadoo-store-updated", sync);
   }, [open]);
 
+  const persist = (value: string) => {
+    const latest = loadStore();
+    if (!latest.current) return;
+    saveStore({ ...latest, current: { ...latest.current, notes: value } });
+    setSaved(true);
+  };
+
   const onChange = (value: string) => {
     setNotes(value);
     setSaved(false);
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      const latest = loadStore();
-      if (!latest.current) return;
-      saveStore({
-        ...latest,
-        current: { ...latest.current, notes: value },
-      });
-      setSaved(true);
-    }, 600);
+    timer.current = setTimeout(() => persist(value), 600);
+  };
+
+  const saveNow = () => {
+    if (timer.current) clearTimeout(timer.current);
+    persist(notes);
   };
 
   return (
@@ -124,9 +128,17 @@ export default function NotesDrawer({
             placeholder="오늘 문득 —"
             className="journal-area mt-4 flex-1"
           />
-          <p className="mt-3 text-right text-[11px] text-hanji-faint">
-            {saved ? "저절로 저장되었습니다" : "쓰는 대로 저장됩니다"}
-          </p>
+          <div className="mt-3 flex items-center justify-between">
+            <span className="text-[11px] text-hanji-faint">
+              {saved ? "저장되었습니다" : "쓰는 대로 저절로 저장됩니다"}
+            </span>
+            <button
+              onClick={saveNow}
+              className="border border-ink-3 px-4 py-1.5 text-[11px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+            >
+              임시 저장
+            </button>
+          </div>
         </div>
       </aside>
     </>
