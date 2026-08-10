@@ -1,7 +1,12 @@
 "use client";
 
-// 왼쪽 탭 — 시안의 사이드바.
-// 새 화두 받기 / 메뉴 / 지난 화두 / 로그인(준비 중)
+// ─────────────────────────────────────────────────────────────
+// 왼쪽 탭 — 도량의 회랑.
+// · 뜰(홈) / 새 화두 받기 / 여섯 방 (전부 불교 문양)
+// · 데스크톱: 접기(아이콘만) ↔ 펴기, 상태 기억
+// · 모바일: 햄버거 서랍
+// ─────────────────────────────────────────────────────────────
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,46 +16,45 @@ import { sessionTitle } from "@/lib/hwadu";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import { ADMIN_UID } from "@/lib/config";
 import {
+  Banga,
   Book,
-  Brush,
   Dharmachakra,
+  Gate,
+  Jukbi,
+  Lantern,
   Lotus,
-  People,
+  Moktak,
   Person,
-  Question,
-  Quote,
-  Toss,
+  Teacup,
 } from "./icons";
 
 const NAV = [
-  { href: "/ganhwaseon", label: "간화선이란?", Icon: Question },
-  { href: "/masters", label: "선지식의 한마디", Icon: Quote },
-  { href: "/room", label: "사유의 방", Icon: Brush },
-  { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Toss },
-  { href: "/community", label: "커뮤니티", Icon: People, badge: "곧" },
+  { href: "/ganhwaseon", label: "간화선이란?", Icon: Dharmachakra },
+  { href: "/masters", label: "선지식의 한마디", Icon: Moktak },
+  { href: "/room", label: "사유의 방", Icon: Banga },
+  { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
+  { href: "/tea", label: "차 한 잔", Icon: Teacup },
+  { href: "/community", label: "커뮤니티", Icon: Lantern, badge: "곧" },
 ];
+
+const COLLAPSE_KEY = "hwadoo-sidebar-collapsed";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false); // 모바일 서랍
+  const [collapsed, setCollapsed] = useState(false); // 데스크톱 접힘
   const [history, setHistory] = useState<Session[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loginBusy, setLoginBusy] = useState(false);
 
-  // 로그인 상태 감시 — 로그인되면 기록 동기화가 자동으로 시작된다
   useEffect(() => {
-    return watchAuth(setUser);
+    setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
   }, []);
 
-  const handleLogin = async () => {
-    setLoginBusy(true);
-    try {
-      await loginWithGoogle();
-    } catch {
-      // 팝업 닫힘 등 — 조용히 넘어간다
-    } finally {
-      setLoginBusy(false);
-    }
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
   };
 
   useEffect(() => {
@@ -64,10 +68,28 @@ export default function Sidebar() {
     };
   }, []);
 
+  useEffect(() => {
+    return watchAuth(setUser);
+  }, []);
+
   // 페이지를 이동하면 모바일 서랍을 닫는다
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  const handleLogin = async () => {
+    setLoginBusy(true);
+    try {
+      await loginWithGoogle();
+    } catch {
+      // 팝업 닫힘 등 — 조용히 넘어간다
+    } finally {
+      setLoginBusy(false);
+    }
+  };
+
+  // 데스크톱에서 접혔을 때는 아이콘만 (모바일 서랍이 열리면 항상 펼침)
+  const slim = collapsed && !open;
 
   return (
     <>
@@ -104,41 +126,76 @@ export default function Sidebar() {
 
       {/* 사이드바 본체 */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-[264px] shrink-0 flex-col border-r border-ink-3 bg-ink-2 px-4 pb-4 pt-[4.5rem] transition-transform duration-300 md:static md:z-auto md:translate-x-0 md:pt-6 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 flex shrink-0 flex-col border-r border-ink-3 bg-ink-2 pb-4 pt-[4.5rem] transition-all duration-300 md:static md:z-auto md:translate-x-0 md:pt-6 ${
+          slim ? "w-[68px] px-2" : "w-[264px] px-4"
+        } ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
-        {/* 브랜드 */}
-        <Link href="/" className="mb-5 hidden items-center gap-2.5 px-2 md:flex">
-          <Dharmachakra className="h-[26px] w-[26px]" stroke="#D9B45B" />
-          <span className="text-gold-grad font-serif text-lg font-semibold tracking-[0.35em]">
-            화두
-          </span>
+        {/* 브랜드 + 접기 */}
+        <div
+          className={`mb-5 hidden items-center md:flex ${slim ? "justify-center" : "justify-between px-2"}`}
+        >
+          {!slim && (
+            <Link href="/" className="flex items-center gap-2.5">
+              <Dharmachakra className="h-[26px] w-[26px]" stroke="#D9B45B" />
+              <span className="text-gold-grad font-serif text-lg font-semibold tracking-[0.35em]">
+                화두
+              </span>
+            </Link>
+          )}
+          <button
+            onClick={toggleCollapsed}
+            title={slim ? "펼치기" : "접기"}
+            aria-label={slim ? "사이드바 펼치기" : "사이드바 접기"}
+            className="p-1.5 text-hanji-faint transition-colors hover:text-hanji-dim"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4">
+              {slim ? <path d="M9 5l7 7-7 7" /> : <path d="M15 5l-7 7 7 7" />}
+            </svg>
+          </button>
+        </div>
+
+        {/* 뜰 — 홈 */}
+        <Link
+          href="/"
+          title="뜰"
+          className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-2.5 text-[13.5px] transition-colors ${
+            pathname === "/"
+              ? "bg-gold/10 text-hanji"
+              : "text-hanji-dim hover:bg-gold/5 hover:text-hanji"
+          } ${slim ? "justify-center" : ""}`}
+        >
+          <Gate className="h-[16px] w-[16px] opacity-75" />
+          {!slim && <span>뜰</span>}
         </Link>
 
         {/* 새 화두 받기 */}
         <Link
           href="/"
-          className="btn-obang flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-hanji transition-opacity hover:opacity-90"
+          title="새 화두 받기"
+          className={`btn-obang mt-2 flex items-center gap-2.5 py-3 text-sm font-medium text-hanji transition-opacity hover:opacity-90 ${
+            slim ? "justify-center px-0" : "px-4"
+          }`}
         >
-          <Lotus className="h-[17px] w-[17px]" stroke="#D9B45B" />새 화두 받기
+          <Lotus className="h-[17px] w-[17px]" stroke="#D9B45B" />
+          {!slim && "새 화두 받기"}
         </Link>
 
-        {/* 메뉴 */}
+        {/* 여섯 방 */}
         <nav className="mt-6 flex flex-col gap-0.5">
           {NAV.map(({ href, label, Icon, badge }) => (
             <Link
               key={href}
               href={href}
+              title={label}
               className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-2.5 text-[13.5px] transition-colors ${
                 pathname === href
                   ? "bg-gold/10 text-hanji"
                   : "text-hanji-dim hover:bg-gold/5 hover:text-hanji"
-              }`}
+              } ${slim ? "justify-center" : ""}`}
             >
-              <Icon className="h-[15px] w-[15px] opacity-75" />
-              <span>{label}</span>
-              {badge && (
+              <Icon className="h-[16px] w-[16px] shrink-0 opacity-75" />
+              {!slim && <span>{label}</span>}
+              {!slim && badge && (
                 <span className="ml-auto rounded-full border border-ink-3 px-2 py-0.5 text-[10px] text-hanji-faint">
                   {badge}
                 </span>
@@ -147,82 +204,102 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        {/* 지난 화두 */}
-        <div className="mt-7 px-2.5 text-[11.5px] tracking-[0.18em] text-hanji-faint">
-          지난 화두
-        </div>
-        <nav className="mt-2 flex flex-1 flex-col gap-0.5 overflow-y-auto">
-          {history.length === 0 ? (
-            <p className="px-2.5 py-2 text-xs leading-6 text-hanji-faint">
-              아직 회향한 화두가 없습니다
-            </p>
-          ) : (
-            <>
-              {history.slice(0, 8).map((s) => (
-                <Link
-                  key={`${s.hwaduId}-${s.receivedAt}`}
-                  href="/archive"
-                  className="flex items-center gap-2.5 overflow-hidden rounded-[10px] px-2.5 py-2.5 text-[13.5px] text-hanji-dim transition-colors hover:bg-gold/5 hover:text-hanji"
-                >
-                  <Book className="h-[15px] w-[15px] shrink-0 opacity-75" />
-                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-                    {sessionTitle(s)}
-                  </span>
-                </Link>
-              ))}
-              <Link
-                href="/archive"
-                className="px-2.5 py-2 text-xs text-hanji-faint transition-colors hover:text-hanji-dim"
-              >
-                기록 모두 보기 →
-              </Link>
-            </>
-          )}
-        </nav>
+        {/* 지난 화두 — 접힘 상태에서는 숨김 */}
+        {!slim && (
+          <>
+            <div className="mt-7 px-2.5 text-[11.5px] tracking-[0.18em] text-hanji-faint">
+              지난 화두
+            </div>
+            <nav className="mt-2 flex flex-1 flex-col gap-0.5 overflow-y-auto">
+              {history.length === 0 ? (
+                <p className="px-2.5 py-2 text-xs leading-6 text-hanji-faint">
+                  아직 회향한 화두가 없습니다
+                </p>
+              ) : (
+                <>
+                  {history.slice(0, 8).map((s) => (
+                    <Link
+                      key={`${s.hwaduId}-${s.receivedAt}`}
+                      href="/archive"
+                      className="flex items-center gap-2.5 overflow-hidden rounded-[10px] px-2.5 py-2.5 text-[13.5px] text-hanji-dim transition-colors hover:bg-gold/5 hover:text-hanji"
+                    >
+                      <Book className="h-[15px] w-[15px] shrink-0 opacity-75" />
+                      <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        {sessionTitle(s)}
+                      </span>
+                    </Link>
+                  ))}
+                  <Link
+                    href="/archive"
+                    className="px-2.5 py-2 text-xs text-hanji-faint transition-colors hover:text-hanji-dim"
+                  >
+                    기록 모두 보기 →
+                  </Link>
+                </>
+              )}
+            </nav>
+          </>
+        )}
+        {slim && <div className="flex-1" />}
 
         {/* 아래 — 로그인 */}
         <div className="mt-auto border-t border-ink-3 pt-3.5">
           {user ? (
-            <div className="px-1">
-              <p className="flex items-center gap-2.5 text-[13px] text-hanji-dim">
-                <Person className="h-4 w-4 shrink-0" />
-                <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-                  {user.displayName ?? "수행자"}님
-                </span>
-              </p>
-              <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
-                기록이 계정에 모이고 있습니다
-              </p>
-              <div className="mt-2 flex items-center gap-4">
-                {user.uid === ADMIN_UID && (
-                  <Link
-                    href="/admin"
-                    className="text-[11px] tracking-widest text-gold-soft transition-colors hover:text-gold"
+            slim ? (
+              <button
+                onClick={logout}
+                title={`${user.displayName ?? "수행자"}님 · 로그아웃`}
+                className="flex w-full justify-center rounded-[10px] border border-ink-3 px-0 py-2.5 text-hanji-dim transition-colors hover:text-hanji"
+              >
+                <Person className="h-4 w-4" />
+              </button>
+            ) : (
+              <div className="px-1">
+                <p className="flex items-center gap-2.5 text-[13px] text-hanji-dim">
+                  <Person className="h-4 w-4 shrink-0" />
+                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                    {user.displayName ?? "수행자"}님
+                  </span>
+                </p>
+                <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
+                  기록이 계정에 모이고 있습니다
+                </p>
+                <div className="mt-2 flex items-center gap-4">
+                  {user.uid === ADMIN_UID && (
+                    <Link
+                      href="/admin"
+                      className="text-[11px] tracking-widest text-gold-soft transition-colors hover:text-gold"
+                    >
+                      뒷방(관리)
+                    </Link>
+                  )}
+                  <button
+                    onClick={logout}
+                    className="text-[11px] tracking-widest text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji-dim"
                   >
-                    뒷방(관리)
-                  </Link>
-                )}
-                <button
-                  onClick={logout}
-                  className="text-[11px] tracking-widest text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji-dim"
-                >
-                  로그아웃
-                </button>
+                    로그아웃
+                  </button>
+                </div>
               </div>
-            </div>
+            )
           ) : (
             <>
               <button
                 onClick={handleLogin}
                 disabled={loginBusy}
-                className="flex w-full items-center gap-2.5 rounded-[10px] border border-ink-3 px-3 py-2.5 text-[13.5px] text-hanji-dim transition-colors hover:text-hanji disabled:opacity-50"
+                title="구글로 로그인"
+                className={`flex w-full items-center gap-2.5 rounded-[10px] border border-ink-3 py-2.5 text-[13.5px] text-hanji-dim transition-colors hover:text-hanji disabled:opacity-50 ${
+                  slim ? "justify-center px-0" : "px-3"
+                }`}
               >
                 <Person className="h-4 w-4" />
-                {loginBusy ? "여는 중…" : "구글로 로그인"}
+                {!slim && (loginBusy ? "여는 중…" : "구글로 로그인")}
               </button>
-              <p className="mt-2 px-1 text-[11px] leading-5 text-hanji-faint">
-                로그인하면 지난 화두들이 계정에 모입니다 — 기기가 바뀌어도.
-              </p>
+              {!slim && (
+                <p className="mt-2 px-1 text-[11px] leading-5 text-hanji-faint">
+                  로그인하면 지난 화두들이 계정에 모입니다 — 기기가 바뀌어도.
+                </p>
+              )}
             </>
           )}
         </div>

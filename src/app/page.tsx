@@ -10,7 +10,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Enso from "@/components/Enso";
 import Donation from "@/components/Donation";
-import { Dharmachakra } from "@/components/icons";
+import NotesDrawer from "@/components/NotesDrawer";
+import { Banga, Dharmachakra } from "@/components/icons";
 import { getHwadu, pickRandomHwadu, sessionQuestion } from "@/lib/hwadu";
 import { fetchPublicHwadu, type PublicHwadu } from "@/lib/thrown";
 import {
@@ -31,6 +32,7 @@ export default function Home() {
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState("");
   const [showSettings, setShowSettings] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
   const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
   const [, setTick] = useState(0);
 
@@ -344,9 +346,18 @@ export default function Home() {
           </button>
         )}
 
+        {/* 사유의 방 — 화두를 둔 채 오른쪽에 메모가 열린다 */}
+        <button
+          onClick={() => setNotesOpen(true)}
+          className={`${unlocked ? "mt-5" : "mt-10"} flex items-center gap-2.5 border border-gold/40 px-7 py-3 text-[13px] tracking-[0.2em] text-hanji transition-colors hover:bg-gold/10`}
+        >
+          <Banga className="h-[17px] w-[17px] text-gold-soft" />
+          사유의 방 — 떠오르는 것을 적다
+        </button>
+
         {/* 기다리는 동안 — 갈 곳 */}
         {!unlocked && (
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-4 text-xs">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-xs">
             <Link
               href="/masters"
               className="border border-ink-3 px-5 py-2.5 tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
@@ -370,6 +381,9 @@ export default function Home() {
           이 화두를 내려놓다
         </button>
       </section>
+
+      {/* 사유의 방 서랍 */}
+      <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
     </div>
   );
 }

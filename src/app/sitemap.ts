@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/ganhwaseon",
     "/masters",
     "/my-hwadu",
+    "/tea",
     "/about",
     "/community",
     "/archive",

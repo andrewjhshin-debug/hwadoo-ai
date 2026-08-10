@@ -1,7 +1,8 @@
-// 도량의 문양들 — 법륜(法輪), 연꽃, 그 밖의 선 아이콘
+// 도량의 문양들 — 전부 불교적 상징으로.
+// 법륜·연꽃·목탁·반가사유상·죽비·연등·찻잔·일주문
 type IconProps = { className?: string; stroke?: string };
 
-// 법륜 — 여덟 바퀴살의 수레바퀴
+// 법륜(法輪) — 여덟 바퀴살의 수레바퀴 · 간화선이란?
 export function Dharmachakra({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.3" className={className}>
@@ -12,7 +13,7 @@ export function Dharmachakra({ className = "w-5 h-5", stroke = "currentColor" }:
   );
 }
 
-// 연꽃
+// 연꽃 — 새 화두 받기
 export function Lotus({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
   return (
     <svg
@@ -30,11 +31,90 @@ export function Lotus({ className = "w-5 h-5", stroke = "currentColor" }: IconPr
   );
 }
 
-// 책 — 지난 화두
-export function Book({ className = "w-4 h-4" }: IconProps) {
+// 목탁(木鐸) — 선지식의 한마디
+export function Moktak({ className = "w-4 h-4" }: IconProps) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className={className}>
-      <path d="M4 19V5a2 2 0 012-2h12v18H6a2 2 0 01-2-2zm0 0a2 2 0 012-2h12" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
+      {/* 둥근 몸통 */}
+      <path d="M12 4.5c4.6 0 8 3 8 7.2 0 4.3-3.4 7.3-8 7.3s-8-3-8-7.3c0-4.2 3.4-7.2 8-7.2z" />
+      {/* 울림 홈 */}
+      <path d="M7.5 13.5c1.2 1.6 2.8 2.4 4.5 2.4s3.3-.8 4.5-2.4" />
+      {/* 손잡이 채 */}
+      <path d="M17.8 5.8l3-3" />
+    </svg>
+  );
+}
+
+// 반가사유상(半跏思惟像) — 사유의 방
+export function Banga({ className = "w-4 h-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {/* 갸웃한 머리 */}
+      <circle cx="13.6" cy="5" r="2.2" />
+      {/* 뺨에 댄 손 — 사유의 손가락 */}
+      <path d="M15.2 7.2c.9 1 1 2.2.2 3.1" />
+      <path d="M15.4 10.3c-1.1.4-2 .1-2.5-.6" />
+      {/* 기운 몸 */}
+      <path d="M12 7.6c-1.6 1.2-2.4 2.8-2.4 4.9v2.6" />
+      {/* 반가부좌 — 걸친 다리와 내린 다리 */}
+      <path d="M9.6 15.1h6.2c1.4 0 2.4.9 2.6 2.3" />
+      <path d="M9.6 15.1c-1.8.4-3 1.5-3.4 3.2" />
+    </svg>
+  );
+}
+
+// 죽비(竹篦) — 내가 던지는 화두
+export function Jukbi({ className = "w-4 h-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
+      {/* 몸체 — 비스듬한 대나무 채 */}
+      <path d="M5 19L16.5 7.5" />
+      {/* 갈라진 머리 */}
+      <path d="M16.5 7.5L20 4M16.5 7.5L19 9.5" />
+      {/* 마디 */}
+      <path d="M9.5 14.5l1.5 1.5M13 11l1.5 1.5" />
+    </svg>
+  );
+}
+
+// 연등(燃燈) — 커뮤니티
+export function Lantern({ className = "w-4 h-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
+      {/* 고리 */}
+      <path d="M12 2.5v1.8" />
+      {/* 연꽃 몸통 */}
+      <path d="M12 4.3c3.2 0 5.4 2 5.4 4.9 0 2.9-2.2 5-5.4 5s-5.4-2.1-5.4-5c0-2.9 2.2-4.9 5.4-4.9z" />
+      <path d="M8.5 8.2c1-.9 2.2-1.4 3.5-1.4s2.5.5 3.5 1.4" />
+      {/* 술 */}
+      <path d="M12 14.2v3M10.3 17.2v2.3M13.7 17.2v2.3M12 17.2v4" />
+    </svg>
+  );
+}
+
+// 찻잔 — 차 한 잔
+export function Teacup({ className = "w-4 h-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
+      {/* 다완 */}
+      <path d="M5 11h14c0 4.4-3.1 7.5-7 7.5S5 15.4 5 11z" />
+      {/* 받침 */}
+      <path d="M9 21h6" />
+      {/* 김 두 줄기 */}
+      <path d="M10 8c-.6-1 .6-1.7 0-2.7M14 8c-.6-1 .6-1.7 0-2.7" />
+    </svg>
+  );
+}
+
+// 일주문(一柱門) — 뜰(홈)
+export function Gate({ className = "w-4 h-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
+      {/* 처마 — 살짝 들린 지붕 */}
+      <path d="M3 8c3-1.6 6-2.4 9-2.4s6 .8 9 2.4" />
+      <path d="M5 8.2C7.3 7 9.6 6.4 12 6.4s4.7.6 7 1.8" />
+      {/* 두 기둥 */}
+      <path d="M7.5 8.5V19M16.5 8.5V19" />
     </svg>
   );
 }
@@ -49,53 +129,11 @@ export function Person({ className = "w-4 h-4" }: IconProps) {
   );
 }
 
-// 붓 — 사유의 방
-export function Brush({ className = "w-4 h-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
-      <path d="M15 4l5 5-9.5 9.5a3 3 0 01-1.6.8l-4.4.7.7-4.4a3 3 0 01.8-1.6L15 4z" />
-      <path d="M13 6l5 5" />
-    </svg>
-  );
-}
-
-// 말풍선 따옴표 — 선지식의 한마디
-export function Quote({ className = "w-4 h-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
-      <path d="M8 11c0-3 1.5-5.5 4-7-1 2-1.5 3.5-1.5 5H13v7H6v-5h2zM17 11c0-3 1.5-5.5 4-7-1 2-1.5 3.5-1.5 5H22v7h-7v-5h2z" transform="scale(0.85) translate(1.5 1.5)" />
-    </svg>
-  );
-}
-
-// 물음표 — 간화선이란
-export function Question({ className = "w-4 h-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className={className}>
-      <path d="M9 9a3 3 0 115.2 2c-.9.9-2.2 1.4-2.2 3" />
-      <circle cx="12" cy="18" r="0.6" fill="currentColor" />
-    </svg>
-  );
-}
-
-// 여럿 — 커뮤니티
-export function People({ className = "w-4 h-4" }: IconProps) {
+// 책 — 지난 화두
+export function Book({ className = "w-4 h-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className={className}>
-      <circle cx="9" cy="9" r="2.8" />
-      <path d="M3.5 19c.6-2.8 2.8-4.3 5.5-4.3s4.9 1.5 5.5 4.3" />
-      <circle cx="16.5" cy="8" r="2.2" />
-      <path d="M15.5 14.3c2.6.1 4.5 1.5 5 4" />
-    </svg>
-  );
-}
-
-// 던지는 손 — 내가 던지는 화두
-export function Toss({ className = "w-4 h-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
-      <circle cx="17" cy="5" r="2" />
-      <path d="M4 21c1-4 2.5-7 6-9M6 13c2-3 5-4.5 8-4.5" />
+      <path d="M4 19V5a2 2 0 012-2h12v18H6a2 2 0 01-2-2zm0 0a2 2 0 012-2h12" />
     </svg>
   );
 }

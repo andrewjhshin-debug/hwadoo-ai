@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Donation from "@/components/Donation";
 import { CONTACT_EMAIL, SLOGAN } from "@/lib/config";
 
 export const metadata: Metadata = {
@@ -27,10 +26,6 @@ export default function AboutPage() {
         기록은 그대의 브라우저에만 남습니다.
         <br />이 도량은 특정 종단과 무관합니다.
       </p>
-
-      <div className="rise rise-d3 mt-14">
-        <Donation />
-      </div>
 
       <p className="rise rise-d3 mt-10 text-center text-xs text-hanji-faint">
         문의 —{" "}

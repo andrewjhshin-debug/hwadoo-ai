@@ -15,8 +15,8 @@ export const SITE_TAGLINE = "AI는 답하지 않습니다. 당신에게 묻습�
 // null 이면 "찻자리를 마련하고 있습니다"로 표시된다.
 export const DONATION_URL: string | null = "https://qr.kakaopay.com/Fdo2KqicH";
 
-// 문의 이메일
-export const CONTACT_EMAIL = "jshin2@numbers.co.kr";
+// 문의·광고 이메일 (하이웍스 정리 전까지 gmail로 통일)
+export const CONTACT_EMAIL = "andrewjhshin@gmail.com";
 
 // 관리자 계정 UID — 이 계정으로 로그인해야만 /admin 이 열린다.
 // (UID는 이름표일 뿐, 공개되어도 권한과 무관 — 권한은 Firestore 규칙이 지킨다)
