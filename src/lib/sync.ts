@@ -12,9 +12,21 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  onSnapshot,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
 import { auth, db } from "./firebase";
-import { loadStore, saveStore, type Session, type Store } from "./store";
+import {
+  applyRemoteStore,
+  loadStore,
+  saveStore,
+  type Session,
+  type Store,
+} from "./store";
 
 // Firestore는 undefined 값을 거부한다 — JSON 왕복으로 걷어낸다
 function clean<T>(value: T): T {
@@ -53,9 +65,12 @@ async function startSync(uid: string) {
   );
 
   // 2) 이후의 변화를 계정으로 (디바운스)
+  //    — 다른 기기에서 온 변화(remote)는 다시 올리지 않는다 (메아리 방지)
   stopPushing();
   let timer: ReturnType<typeof setTimeout> | null = null;
-  const handler = () => {
+  const handler = (e: Event) => {
+    const source = (e as CustomEvent).detail?.source;
+    if (source === "remote") return;
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
       setDoc(
@@ -68,9 +83,21 @@ async function startSync(uid: string) {
     }, 800);
   };
   window.addEventListener("hwadoo-store-updated", handler);
+
+  // 3) 다른 기기의 변화를 실시간으로 받는다
+  //    (폰에서 화두를 받으면, PC 화면에도 곧바로 나타난다)
+  const unsubscribeSnapshot = onSnapshot(ref, (snap) => {
+    if (snap.metadata.hasPendingWrites) return; // 내가 방금 쓴 것의 메아리
+    const remote = snap.exists() ? ((snap.data().store as Store) ?? null) : null;
+    if (!remote) return;
+    if (JSON.stringify(remote) === JSON.stringify(loadStore())) return;
+    applyRemoteStore(remote);
+  });
+
   stopPush = () => {
     if (timer) clearTimeout(timer);
     window.removeEventListener("hwadoo-store-updated", handler);
+    unsubscribeSnapshot();
   };
 }
 

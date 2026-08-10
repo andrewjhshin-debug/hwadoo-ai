@@ -49,7 +49,20 @@ export function saveStore(store: Store) {
   // 사이드바 등 다른 화면이 즉시 갱신되도록 알림
   // (렌더링 도중 상태 갱신을 피하려고 한 박자 늦춰서 보낸다)
   window.setTimeout(() => {
-    window.dispatchEvent(new Event("hwadoo-store-updated"));
+    window.dispatchEvent(
+      new CustomEvent("hwadoo-store-updated", { detail: { source: "local" } })
+    );
+  }, 0);
+}
+
+// 다른 기기에서 온 기록을 적용한다 — 서버 동기화 전용
+export function applyRemoteStore(store: Store) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(KEY, JSON.stringify(store));
+  window.setTimeout(() => {
+    window.dispatchEvent(
+      new CustomEvent("hwadoo-store-updated", { detail: { source: "remote" } })
+    );
   }, 0);
 }
 

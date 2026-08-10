@@ -42,6 +42,17 @@ export default function Home() {
     fetchPublicHwadu().then(setPublicPool).catch(() => {});
   }, []);
 
+  // 다른 기기에서 온 변화(로그인 동기화)를 화면에 즉시 반영
+  useEffect(() => {
+    const onRemote = (e: Event) => {
+      if ((e as CustomEvent).detail?.source === "remote") {
+        setStore(loadStore());
+      }
+    };
+    window.addEventListener("hwadoo-store-updated", onRemote);
+    return () => window.removeEventListener("hwadoo-store-updated", onRemote);
+  }, []);
+
   // 카운트다운 — 1초마다 갱신
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 1000);
