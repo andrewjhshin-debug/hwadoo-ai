@@ -21,7 +21,7 @@ const MAX_ANSWER = 500;
 
 // 체험 대표 화두 — 성인은 '이뭣고(是甚麼)', 학생·어린이는 '나는 누구인가'
 const TRY_ADULT_ID = "simsima";
-const TRY_STUDENT_ID = "who-am-i";
+const TRY_STUDENT_ID = "st-lie";
 
 type Step = "choose" | "received" | "pondering" | "ripened" | "writing" | "done";
 
