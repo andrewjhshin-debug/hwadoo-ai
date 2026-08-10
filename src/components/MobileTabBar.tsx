@@ -3,20 +3,20 @@
 // ────────────────────────────────────────────────────────────────
 // 모바일 전용 — 화면 하단에 고정되는 주요 탭 5개 + 사유의 방 FAB.
 // 스크롤과 무관하게 늘 같은 자리에 머문다(fixed). md 이상에서는 숨김.
-// 5개 탭: 간화선 · 선지식 · 뜰(홈) · 지난 화두 · 연지원
+// 5개 탭: 간화선 · 선지식 · 뜰(홈) · 내 도량 · 연지원
 // ────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import NotesDrawer from "@/components/NotesDrawer";
-import { Dharmachakra, SeonMaster, Book, Lotus, Lantern, Banga } from "./icons";
+import { Dharmachakra, SeonMaster, Person, Lotus, Lantern, Banga } from "./icons";
 
 const TABS = [
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/masters", label: "선지식", Icon: SeonMaster },
   { href: "/", label: "뜰", Icon: Lotus },
-  { href: "/archive", label: "지난 화두", Icon: Book },
+  { href: "/settings", label: "내 도량", Icon: Person },
   { href: "/community", label: "연지원", Icon: Lantern },
 ];
 

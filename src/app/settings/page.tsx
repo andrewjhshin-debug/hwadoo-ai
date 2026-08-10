@@ -1,8 +1,8 @@
 "use client";
 
 // ────────────────────────────────────────────────────────────────
-// 설정 — 로그인 정보 · 색상 모드 · 로그아웃. 웹·모바일 공통.
-// 사이드바(또는 모바일 메뉴)에서 내 이름을 누르면 이 화면으로 온다.
+// 내 도량(道場) — 나의 걸음 · 로그인 정보 · 색상 모드 · 바로가기 · 로그아웃.
+// 웹·모바일 공통. 사이드바/하단 탭의 '내 도량'을 누르면 이 화면으로 온다.
 // ────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
@@ -10,17 +10,34 @@ import Link from "next/link";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import { ADMIN_UID } from "@/lib/config";
-import { Person } from "@/components/icons";
+import { loadStore } from "@/lib/store";
+import { Person, Teacup, Book } from "@/components/icons";
 
 const THEME_KEY = "hwadoo-theme";
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [light, setLight] = useState(false);
+  const [received, setReceived] = useState(0);
+  const [dayseWith, setDaysWith] = useState(0);
 
   useEffect(() => watchAuth(setUser), []);
   useEffect(() => {
     setLight(document.documentElement.dataset.theme === "light");
+
+    // 나의 걸음 — 받은 화두 수, 화두와 함께한 날수
+    const s = loadStore();
+    setReceived(s.received);
+    const times = [
+      ...s.history.map((h) => h.receivedAt),
+      ...(s.current ? [s.current.receivedAt] : []),
+    ];
+    if (times.length > 0) {
+      const first = Math.min(...times);
+      const days =
+        Math.floor((Date.now() - first) / (24 * 60 * 60 * 1000)) + 1;
+      setDaysWith(days);
+    }
   }, []);
 
   const setTheme = (toLight: boolean) => {
@@ -37,15 +54,37 @@ export default function SettingsPage() {
         道場 · 내 도량
       </h1>
 
+      {/* ── 나의 걸음 — 화두 수 · 함께한 날 ── */}
+      <section className="rise mt-9">
+        <div className="flex gap-4">
+          <div className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center">
+            <p className="font-serif text-[40px] font-light leading-none text-gold">
+              {received}
+            </p>
+            <p className="mt-2.5 text-[11px] tracking-[0.2em] text-hanji-faint">
+              받은 화두
+            </p>
+          </div>
+          <div className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center">
+            <p className="font-serif text-[40px] font-light leading-none text-gold">
+              {dayseWith}
+              <span className="ml-1 text-[18px] text-hanji-dim">일</span>
+            </p>
+            <p className="mt-2.5 text-[11px] tracking-[0.2em] text-hanji-faint">
+              화두와 함께
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ── 로그인 정보 ── */}
-      <section className="rise mt-10">
+      <section className="rise rise-d1 mt-10">
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
           로그인 정보
         </p>
 
         {user ? (
           <div className="mt-4 flex items-center gap-4 border-t border-ink-3 pt-5">
-            {/* 프로필 */}
             <div className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/30 text-hanji-dim">
               <Person className="h-6 w-6" />
             </div>
@@ -100,6 +139,27 @@ export default function SettingsPage() {
           >
             낮 — 한지 위의 먹
           </button>
+        </div>
+      </section>
+
+      {/* ── 바로가기 — 차 한 잔 · 지난 화두 보기 ── */}
+      <section className="rise rise-d2 mt-12">
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">바로가기</p>
+        <div className="mt-4 flex flex-col gap-3 border-t border-ink-3 pt-5">
+          <Link
+            href="/tea"
+            className="flex items-center gap-3 rounded-[10px] border border-ink-3 px-5 py-3.5 text-[14px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          >
+            <Teacup className="h-[18px] w-[18px] text-gold-soft" />
+            차 한 잔
+          </Link>
+          <Link
+            href="/archive"
+            className="flex items-center gap-3 rounded-[10px] border border-ink-3 px-5 py-3.5 text-[14px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          >
+            <Book className="h-[18px] w-[18px] text-gold-soft" />
+            지난 화두 보기
+          </Link>
         </div>
       </section>
 
