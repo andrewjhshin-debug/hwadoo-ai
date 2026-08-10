@@ -89,7 +89,7 @@ export default function MyHwaduPage() {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               rows={4}
-              placeholder="예 — 우리는 왜 서두르는가."
+              placeholder=""
               className="journal-area"
             />
           </div>

@@ -51,8 +51,7 @@ export default function GanhwaseonPage() {
             <span className="text-hanji">일상으로 살아 있는 나라는 사실상
             한국뿐</span>입니다. 지금 이 순간에도 전국 선원에서 수백 명의
             수행자가 화두 하나를 들고 앉아 있습니다. 고려의 지눌 스님이 뿌리를
-            내렸고, 그 맥이 끊기지 않고 오늘까지 왔습니다. 케이팝보다 훨씬
-            오래된, 한국의 오리지널입니다.
+            내렸고, 그 맥이 끊기지 않고 오늘까지 왔습니다.
           </p>
         </section>
 
@@ -66,7 +65,7 @@ export default function GanhwaseonPage() {
               {
                 n: "一",
                 title: "질문을 하나 받는다",
-                desc: "이것을 '화두'라 부릅니다. 예 — 나는 누구인가.",
+                desc: "이것을 '화두'라 부릅니다.",
               },
               {
                 n: "二",
@@ -76,7 +75,7 @@ export default function GanhwaseonPage() {
               {
                 n: "三",
                 title: "그냥 자주 떠올린다",
-                desc: "설거지하다가, 지하철에서, 자기 전에 — \"...그래서, 나는 누구지?\"",
+                desc: "설거지하다가, 지하철에서, 자기 전에 — 문득 다시 떠올립니다.",
               },
               {
                 n: "四",

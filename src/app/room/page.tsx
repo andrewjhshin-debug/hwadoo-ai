@@ -124,7 +124,7 @@ export default function RoomPage() {
           value={notes}
           onChange={(e) => onChange(e.target.value)}
           rows={7}
-          placeholder="오늘 문득 —"
+          placeholder=""
           className="journal-area mt-4 h-[30vh] min-h-[160px]"
         />
         <div className="mt-3 flex items-center justify-end gap-3">

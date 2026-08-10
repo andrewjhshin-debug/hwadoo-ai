@@ -533,7 +533,7 @@ export default function TryPage() {
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            placeholder="오늘 문득 —"
+            placeholder=""
             className="journal-area mt-4 h-[34vh] min-h-[180px]"
           />
           <p className="mt-3 text-right text-[11px] text-hanji-faint">
