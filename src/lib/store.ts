@@ -39,7 +39,15 @@ export function loadStore(): Store {
       received: typeof parsed.received === "number" ? parsed.received : 0,
       defaultDays:
         typeof parsed.defaultDays === "number" ? parsed.defaultDays : undefined,
-      audience: parsed.audience === "student" ? "student" : undefined,
+      // "adult"도 반드시 보존한다.
+      // (예전엔 adult를 undefined로 지워, 서버에 남은 student가 늘 이겨서
+      //  성인을 눌러도 학생으로 되돌아가는 버그가 있었다)
+      audience:
+        parsed.audience === "student"
+          ? "student"
+          : parsed.audience === "adult"
+            ? "adult"
+            : undefined,
     };
   } catch {
     return EMPTY;
