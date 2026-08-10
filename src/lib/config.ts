@@ -11,8 +11,8 @@ export const SITE_URL = "https://www.hwa-du.com";
 export const SLOGAN = "모두가 AI에게 묻는 시대, 화두는 당신에게 묻는다.";
 export const SITE_TAGLINE = "AI는 답하지 않습니다. 당신에게 묻습니다.";
 
-// 복전함 — 후원 링크. 토스 익명송금 / Buy Me a Coffee 등 주소가 정해지면 여기만 바꾸면 된다.
-// null 이면 복전함 버튼이 "준비 중" 상태로 표시된다.
+// 차 한 잔(후원) 링크 — 토스 송금 링크 등 주소가 정해지면 여기만 바꾸면 된다.
+// null 이면 "찻자리를 마련하고 있습니다"로 표시된다.
 export const DONATION_URL: string | null = null;
 
 // 문의 이메일

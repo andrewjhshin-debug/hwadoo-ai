@@ -4,13 +4,13 @@
 // 사유의 방 — 화두를 실제로 '드는' 곳.
 // · 참구 중: 단상(斷想)을 적어 둔다 — 자동 임시저장
 // · 때가 되면: 붓을 들어 그대의 답(회향)을 쓴다
-// · 회향 후: 옛 스승들의 답이 열린다 (피드백) + 복전함
+// · 회향 후: 옛 스승들의 답이 열린다 (피드백) + 차 한 잔(후원)
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Bokjeonham from "@/components/Bokjeonham";
+import Donation from "@/components/Donation";
 import { getHwadu, sessionQuestion } from "@/lib/hwadu";
 import {
   dayCount,
@@ -172,7 +172,7 @@ export default function RoomPage() {
         )}
 
         <div className="rise rise-d4 mt-14">
-          <Bokjeonham />
+          <Donation />
         </div>
 
         <p className="mt-12 text-center">

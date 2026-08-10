@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Bokjeonham from "@/components/Bokjeonham";
+import Donation from "@/components/Donation";
 import { CONTACT_EMAIL, SLOGAN } from "@/lib/config";
 
 export const metadata: Metadata = {
@@ -77,7 +77,7 @@ export default function AboutPage() {
       </div>
 
       <div className="rise rise-d4 mt-12">
-        <Bokjeonham />
+        <Donation />
       </div>
 
       <p className="rise rise-d4 mt-10 text-center text-xs text-hanji-faint">

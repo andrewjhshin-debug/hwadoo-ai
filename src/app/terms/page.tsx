@@ -57,7 +57,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-[15px] text-gold-soft">5. 이용료와 후원</h2>
           <p className="mt-3">
-            서비스는 무료로 제공됩니다. 복전함(후원)은 전적으로 자발적인 것이며,
+            서비스는 무료로 제공됩니다. 후원("차 한 잔")은 전적으로 자발적인 것이며,
             후원 여부가 서비스 이용에 어떤 차등도 만들지 않습니다.
           </p>
         </section>
