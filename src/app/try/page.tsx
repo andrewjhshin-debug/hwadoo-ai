@@ -116,7 +116,7 @@ export default function TryPage() {
     "cursor-default border border-ink-3 px-5 py-2.5 text-xs tracking-[0.15em] text-hanji-faint opacity-60";
 
   return (
-    <div className="relative flex flex-1 flex-col items-center px-6 pb-20 pt-10 text-center">
+    <div className="relative flex flex-1 flex-col items-center px-6 pb-16 pt-6 text-center">
       {/* ── 늘 위에 있는 체험 표시 ── */}
       <div className="w-full max-w-2xl">
         <p className="text-center text-[11px] tracking-[0.4em] text-gold-soft">
@@ -256,17 +256,17 @@ export default function TryPage() {
 
       {/* ── 2·3·4. 화두를 들고 있는 화면 — 실제와 똑같이 ── */}
       {hwadu && step !== "choose" && step !== "done" && (
-        <section className="rise mt-10 flex w-full max-w-2xl flex-col items-center">
+        <section className="rise mt-6 flex w-full max-w-2xl flex-col items-center">
           {hwadu.hanja && (
             <p className="text-xs tracking-[0.6em] text-hanji-faint">
               {hwadu.hanja}
             </p>
           )}
-          <div className="question-glow mt-7 w-full">
-            <Question text={hwadu.question} className="text-hanji" />
+          <div className="question-glow mt-4 w-full">
+            <Question text={hwadu.question} max={42} className="text-hanji" />
           </div>
           {hwadu.context && (
-            <p className="mt-7 text-xs tracking-wider text-hanji-faint">
+            <p className="mt-4 text-xs tracking-wider text-hanji-faint">
               {hwadu.context}
             </p>
           )}
@@ -314,12 +314,12 @@ export default function TryPage() {
           ) : (
             <>
               {/* 함께 드는 이들 */}
-              <p className="mt-5 text-[12px] tracking-wide text-gold-soft">
+              <p className="mt-4 text-[12px] tracking-wide text-gold-soft">
                 이 물음을 든 사람은, 지금 그대뿐입니다
               </p>
 
               {/* 달 + 카운트다운 — 문구 고정(흔들리지 않게) */}
-              <div className="mt-12 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-[13.5px] font-light tracking-wide text-hanji-dim">
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-[13.5px] font-light tracking-wide text-hanji-dim">
                 <span className="moon" />
                 {step === "ripened" ? (
                   <span>달이 차올랐습니다. 이제 답을 쓸 수 있습니다</span>
@@ -336,14 +336,14 @@ export default function TryPage() {
               </div>
 
               {/* 체험 안내 — 남은 시간 바로 아래. 두 줄 고정 높이 */}
-              <p className="mt-4 flex min-h-[2.75rem] max-w-md items-start justify-center break-keep text-[12.5px] leading-6 text-gold-soft">
+              <p className="mt-3 flex min-h-[2.75rem] max-w-md items-start justify-center break-keep text-[12.5px] leading-6 text-gold-soft">
                 <span className="mr-1.5 shrink-0 text-[11px] tracking-[0.2em]">
                   체험 ·
                 </span>
                 <span>{GUIDE[step]}</span>
               </p>
 
-              <p className="mt-4 text-xs leading-6 tracking-[0.04em] text-hanji-faint">
+              <p className="mt-2 text-xs leading-6 tracking-[0.04em] text-hanji-faint">
                 서두르지 마십시오. 질문에는 정답이 없습니다.
                 <br />
                 생각으로 찾아낸 것은 답이 아닙니다. 생각하기보다 끝까지 하는
@@ -352,7 +352,7 @@ export default function TryPage() {
 
               {/* 걸음 옮기기 — 앞뒤로 오갈 수 있게 */}
               {NAV[step] && (
-                <div className="mt-6 flex items-center justify-center gap-3">
+                <div className="mt-5 flex items-center justify-center gap-3">
                   <button
                     onClick={prev}
                     className="border border-ink-3 px-5 py-2.5 text-[12.5px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
