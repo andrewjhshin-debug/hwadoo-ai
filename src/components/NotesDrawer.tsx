@@ -126,15 +126,15 @@ export default function NotesDrawer({
             value={notes}
             onChange={(e) => onChange(e.target.value)}
             placeholder="오늘 문득 —"
-            className="journal-area mt-4 flex-1"
+            className="journal-area mt-4 h-[34vh] min-h-[180px]"
           />
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-[11px] text-hanji-faint">
-              {saved ? "저장되었습니다" : "쓰는 대로 저절로 저장됩니다"}
-            </span>
+          <div className="mt-3 flex items-center justify-end gap-3">
+            {saved && (
+              <span className="text-[11px] text-hanji-faint">저장되었습니다</span>
+            )}
             <button
               onClick={saveNow}
-              className="border border-ink-3 px-4 py-1.5 text-[11px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+              className="border border-ink-3 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
             >
               임시 저장
             </button>

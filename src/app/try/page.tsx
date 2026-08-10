@@ -523,13 +523,10 @@ export default function TryPage() {
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
             placeholder="오늘 문득 —"
-            className="journal-area mt-4 flex-1"
+            className="journal-area mt-4 h-[34vh] min-h-[180px]"
           />
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-[11px] text-hanji-faint">
-              쓰는 대로 저절로 저장됩니다
-            </span>
-            <span className="cursor-default border border-ink-3 px-4 py-1.5 text-[11px] tracking-[0.2em] text-hanji-faint opacity-60">
+          <div className="mt-3 flex items-center justify-end">
+            <span className="cursor-default border border-ink-3 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji-faint opacity-60">
               임시 저장
             </span>
           </div>

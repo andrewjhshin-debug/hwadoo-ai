@@ -123,18 +123,16 @@ export default function RoomPage() {
         <textarea
           value={notes}
           onChange={(e) => onChange(e.target.value)}
-          rows={10}
+          rows={7}
           placeholder="오늘 문득 —"
-          className="journal-area mt-4 flex-1"
+          className="journal-area mt-4 h-[30vh] min-h-[160px]"
         />
-        <div className="mt-3 flex items-center justify-between">
-          <span className="text-[11px] text-hanji-faint">
-            {savedAt
-              ? `임시 저장됨 · ${savedAt}`
-              : saved
-                ? "저장되었습니다"
-                : "쓰는 대로 저절로 저장됩니다"}
-          </span>
+        <div className="mt-3 flex items-center justify-end gap-3">
+          {savedAt && (
+            <span className="text-[11px] text-hanji-faint">
+              임시 저장됨 · {savedAt}
+            </span>
+          )}
           <button
             onClick={saveNow}
             className="border border-ink-3 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
