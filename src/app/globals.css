@@ -145,6 +145,15 @@ body {
   animation: breathe 8s ease-in-out infinite;
 }
 
+/* 움직임을 줄여 달라는 사용자 설정 존중 — 애니메이션 없이 바로 보여준다 */
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .rise-slow,
+  .breathe {
+    animation: none;
+  }
+}
+
 /* ─── 글쓰기 영역 — 한지에 붓 ─── */
 .journal-area {
   background: transparent;
