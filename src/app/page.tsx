@@ -12,6 +12,7 @@ import Enso from "@/components/Enso";
 import Donation from "@/components/Donation";
 import { Dharmachakra } from "@/components/icons";
 import { getHwadu, pickRandomHwadu, sessionQuestion } from "@/lib/hwadu";
+import { fetchPublicHwadu, type PublicHwadu } from "@/lib/thrown";
 import {
   durationLabel,
   formatCountdown,
@@ -30,10 +31,13 @@ export default function Home() {
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState("");
   const [showSettings, setShowSettings] = useState(false);
+  const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
   const [, setTick] = useState(0);
 
   useEffect(() => {
     setStore(loadStore());
+    // 승인된 '던져진 화두'들을 랜덤 풀에 합류시킨다 (실패해도 기본 30칙으로 동작)
+    fetchPublicHwadu().then(setPublicPool).catch(() => {});
   }, []);
 
   // 카운트다운 — 1초마다 갱신
@@ -47,22 +51,41 @@ export default function Home() {
     saveStore(next);
   };
 
-  // 화두를 받는다 — 랜덤, 지나온 것은 피해서
+  // 화두를 받는다 — 랜덤. 기본 30칙 + 승인된 던져진 화두. 지나온 것은 피해서.
   const receive = (base: Store) => {
     const exclude = [
       ...base.history.map((s) => s.hwaduId),
       ...(base.current ? [base.current.hwaduId] : []),
     ];
-    const hwadu = pickRandomHwadu(exclude);
-    update({
-      ...base,
-      current: {
-        hwaduId: hwadu.id,
-        receivedAt: Date.now(),
-        durationDays: base.defaultDays ?? 3,
-      },
-      received: base.received + 1,
-    });
+    const freshPublic = publicPool.filter(
+      (p) => !exclude.includes(`thrown:${p.id}`)
+    );
+    // 던져진 화두는 풀 크기에 비례해 자연스럽게 섞인다
+    const total = 30 + freshPublic.length;
+    if (freshPublic.length > 0 && Math.random() < freshPublic.length / total) {
+      const p = freshPublic[Math.floor(Math.random() * freshPublic.length)];
+      update({
+        ...base,
+        current: {
+          hwaduId: `thrown:${p.id}`,
+          customQuestion: p.question,
+          receivedAt: Date.now(),
+          durationDays: base.defaultDays ?? 3,
+        },
+        received: base.received + 1,
+      });
+    } else {
+      const hwadu = pickRandomHwadu(exclude);
+      update({
+        ...base,
+        current: {
+          hwaduId: hwadu.id,
+          receivedAt: Date.now(),
+          durationDays: base.defaultDays ?? 3,
+        },
+        received: base.received + 1,
+      });
+    }
     setWriting(false);
     setDraft("");
   };
@@ -159,7 +182,9 @@ export default function Home() {
 
           <div className="mt-12 w-full border-t border-ink-3 pt-10">
             <p className="text-xs tracking-[0.4em] text-hanji-faint">
-              옛 스승들은 이렇게 일렀습니다
+              {current.hwaduId.startsWith("thrown:")
+                ? "이 물음에 대하여"
+                : "옛 스승들은 이렇게 일렀습니다"}
             </p>
           </div>
           <div className="mt-8 flex w-full max-w-xl flex-col gap-8 text-left">
@@ -176,8 +201,9 @@ export default function Home() {
             ))}
           </div>
           <p className="mt-8 text-xs leading-6 text-hanji-faint">
-            정답은 없습니다. 다만 천 년 전에도 같은 물음을 품은 이들이
-            있었습니다.
+            {current.hwaduId.startsWith("thrown:")
+              ? "이 화두는 어느 낯선 이가 던진 것 — 스승의 답은 없습니다. 그대의 답이 첫 답입니다."
+              : "정답은 없습니다. 다만 천 년 전에도 같은 물음을 품은 이들이 있었습니다."}
           </p>
 
           <div className="mt-12 w-full">

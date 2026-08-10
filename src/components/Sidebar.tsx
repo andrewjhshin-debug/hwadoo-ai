@@ -9,6 +9,7 @@ import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
 import { sessionTitle } from "@/lib/hwadu";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
+import { ADMIN_UID } from "@/lib/config";
 import {
   Book,
   Brush,
@@ -192,12 +193,22 @@ export default function Sidebar() {
               <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
                 기록이 계정에 모이고 있습니다
               </p>
-              <button
-                onClick={logout}
-                className="mt-2 text-[11px] tracking-widest text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji-dim"
-              >
-                로그아웃
-              </button>
+              <div className="mt-2 flex items-center gap-4">
+                {user.uid === ADMIN_UID && (
+                  <Link
+                    href="/admin"
+                    className="text-[11px] tracking-widest text-gold-soft transition-colors hover:text-gold"
+                  >
+                    뒷방(관리)
+                  </Link>
+                )}
+                <button
+                  onClick={logout}
+                  className="text-[11px] tracking-widest text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji-dim"
+                >
+                  로그아웃
+                </button>
+              </div>
             </div>
           ) : (
             <>
