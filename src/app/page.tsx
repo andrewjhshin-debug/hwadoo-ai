@@ -14,6 +14,7 @@ import NotesDrawer from "@/components/NotesDrawer";
 import { Banga, Dharmachakra } from "@/components/icons";
 import { getHwadu, pickRandomHwadu, sessionQuestion } from "@/lib/hwadu";
 import { fetchPublicHwadu, type PublicHwadu } from "@/lib/thrown";
+import { sharePost } from "@/lib/community";
 import {
   durationLabel,
   formatCountdown,
@@ -34,6 +35,7 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
+  const [shareState, setShareState] = useState<"idle" | "busy" | "done">("idle");
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -106,6 +108,19 @@ export default function Home() {
   const nextHwadu = () => {
     if (!store?.current) return;
     receive({ ...store, history: [...store.history, store.current], current: null });
+    setShareState("idle");
+  };
+
+  // 회향을 선방에 건다 — 익명
+  const shareToHall = async () => {
+    if (!store?.current?.journal || shareState !== "idle") return;
+    setShareState("busy");
+    try {
+      await sharePost(sessionQuestion(store.current), store.current.journal);
+      setShareState("done");
+    } catch {
+      setShareState("idle");
+    }
   };
 
   const saveJournal = () => {
@@ -219,7 +234,33 @@ export default function Home() {
               : "정답은 없습니다. 다만 천 년 전에도 같은 물음을 품은 이들이 있었습니다."}
           </p>
 
-          <div className="mt-12 w-full">
+          {/* 선방에 걸기 — 익명 공유 */}
+          <div className="mt-10 flex flex-col items-center gap-2">
+            {shareState === "done" ? (
+              <p className="text-[13px] text-gold-soft">
+                선방에 걸렸습니다 — 어느 낯선 이가 그대의 답 앞에 합장할지도
+                모릅니다.{" "}
+                <Link href="/community" className="underline decoration-gold/30 underline-offset-4">
+                  보러 가기
+                </Link>
+              </p>
+            ) : (
+              <>
+                <button
+                  onClick={shareToHall}
+                  disabled={shareState === "busy"}
+                  className="flex items-center gap-2.5 border border-ink-3 px-7 py-2.5 text-[13px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji disabled:opacity-40"
+                >
+                  🏮 {shareState === "busy" ? "거는 중…" : "이 답을 선방에 걸다 (익명)"}
+                </button>
+                <p className="text-[11px] text-hanji-faint">
+                  걸지 않으면 아무도 읽지 못합니다 — 기록은 그대의 것
+                </p>
+              </>
+            )}
+          </div>
+
+          <div className="mt-10 w-full">
             <Donation />
           </div>
 

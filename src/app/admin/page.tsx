@@ -19,12 +19,14 @@ import {
   type PublicHwadu,
   type ThrownItem,
 } from "@/lib/thrown";
+import { adminDeletePost, fetchPosts, type Post } from "@/lib/community";
 import { HWADU_BANK } from "@/lib/hwadu";
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined); // undefined = 확인 중
   const [thrown, setThrown] = useState<ThrownItem[]>([]);
   const [publicList, setPublicList] = useState<PublicHwadu[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,9 +36,14 @@ export default function AdminPage() {
 
   const refresh = useCallback(async () => {
     try {
-      const [t, p] = await Promise.all([fetchThrown(), fetchPublicHwadu()]);
+      const [t, p, ps] = await Promise.all([
+        fetchThrown(),
+        fetchPublicHwadu(),
+        fetchPosts(),
+      ]);
       setThrown(t);
       setPublicList(p);
+      setPosts(ps);
       setError(null);
     } catch {
       setError("불러오지 못했습니다 — Firestore 규칙이 갱신되었는지 확인하세요.");
@@ -157,6 +164,44 @@ export default function AdminPage() {
                   onClick={() =>
                     act(p.id, () => deletePublicHwadu(p.id))
                   }
+                  className="shrink-0 text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-vermilion disabled:opacity-40"
+                >
+                  내리기
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* 선방 관리 */}
+      <section className="mt-14 border-t border-ink-3 pt-10">
+        <h2 className="text-xs tracking-[0.4em] text-hanji-faint">
+          선방에 걸린 회향 ({posts.length})
+        </h2>
+        {posts.length === 0 ? (
+          <p className="mt-4 text-sm text-hanji-faint">아직 없습니다.</p>
+        ) : (
+          <ul className="mt-5 space-y-5">
+            {posts.map((p) => (
+              <li
+                key={p.id}
+                className="flex items-start justify-between gap-4 border-l border-gold/25 pl-4"
+              >
+                <div>
+                  <p className="text-[12px] leading-6 text-gold-soft">
+                    {p.question.replace(/\s+/g, " ").slice(0, 40)}
+                  </p>
+                  <p className="mt-1 whitespace-pre-line text-sm font-light leading-7 text-hanji-dim">
+                    {p.answer}
+                  </p>
+                  <p className="mt-1 text-[11px] text-hanji-faint">
+                    합장 {p.hapjang}
+                  </p>
+                </div>
+                <button
+                  disabled={busy === p.id}
+                  onClick={() => act(p.id, () => adminDeletePost(p.id))}
                   className="shrink-0 text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-vermilion disabled:opacity-40"
                 >
                   내리기
