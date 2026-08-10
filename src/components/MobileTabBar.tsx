@@ -15,7 +15,7 @@ import { Dharmachakra, SeonMaster, Book, Jukbi, Lantern, Banga } from "./icons";
 const TABS = [
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/masters", label: "선지식", Icon: SeonMaster },
-  { href: "/archive", label: "내 화두", Icon: Book },
+  { href: "/archive", label: "지난 화두", Icon: Book },
   { href: "/my-hwadu", label: "화두 던지기", Icon: Jukbi },
   { href: "/community", label: "연지원", Icon: Lantern },
 ];

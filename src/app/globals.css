@@ -28,9 +28,9 @@ html[data-theme="light"] {
   --color-ink: #fbf9f5; /* 종이 — 거의 흰색 */
   --color-ink-2: #f4f1ea; /* 패널 */
   --color-ink-3: rgba(90, 18, 12, 0.24); /* 경계선 — 짙은 붉은 기 */
-  --color-hanji: #1e150d; /* 먹 — 본문 글 */
-  --color-hanji-dim: #574a3f; /* 옅은 먹 */
-  --color-hanji-faint: #9a8c80; /* 아주 옅은 먹 */
+  --color-hanji: #0f0b06; /* 먹 — 본문 글 (더 검게) */
+  --color-hanji-dim: #3a332b; /* 옅은 먹 (검은 쪽으로) */
+  --color-hanji-faint: #7c7266; /* 아주 옅은 먹 */
   --color-gold: #6e1710; /* 포인트 — 석간주(石間硃)의 깊은 붉음 */
   --color-gold-soft: #4f0f0a; /* 더 짙은 자적(紫赤) */
   --color-vermilion: #8a2318;
@@ -42,13 +42,13 @@ html[data-theme="light"] .question-glow {
 
 /* 낮의 로고 — 단청 석간주의 깊은 붉은 그라데이션 */
 html[data-theme="light"] .text-obang {
-  background: linear-gradient(100deg, #8a2318 0%, #5e120c 48%, #380a07 100%);
+  background: linear-gradient(100deg, #6e1008 0%, #4a0a04 48%, #2a0603 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 html[data-theme="light"] .text-gold-grad {
-  background: linear-gradient(100deg, #7a1a12, #470d09);
+  background: linear-gradient(100deg, #5e0f08, #380805);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -58,7 +58,7 @@ html[data-theme="light"] .text-gold-grad {
 html[data-theme="light"] .btn-obang {
   background: linear-gradient(var(--color-ink-2), var(--color-ink-2))
       padding-box,
-    linear-gradient(120deg, #8a2318, #5e120c, #380a07) border-box;
+    linear-gradient(120deg, #6e1008, #4a0a04, #2a0603) border-box;
 }
 
 /* 낮에는 금색으로 그려진 문양들을 짙은 붉은색으로 바꾼다

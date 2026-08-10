@@ -72,16 +72,12 @@ export function Banga({ className = "w-4 h-4" }: IconProps) {
 export function Jukbi({ className = "w-4 h-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      {/* 손잡이 — 가늘고 곧은 자루 */}
-      <path d="M5 20.5l6-6" />
-      {/* 자루의 대나무 마디 */}
-      <path d="M7.3 18.2l1.2 1.2M9.6 15.9l1.2 1.2" opacity="0.6" />
-      {/* 죽비 머리 — 대나무를 쪼개 넓적하게 벌어진 판, 활처럼 살짝 휨 */}
-      <path d="M11 14.5c1.4-3 3.6-6 7-8 1.4 3.4 1 7-1.6 10.2-2 2.4-4.4 2.6-5.4-.2z" />
-      {/* 쪼갠 결 — 머리를 세로로 가르는 틈 */}
-      <path d="M13.4 12.6c1.5-1.9 3-3.4 4.6-4.5" opacity="0.55" />
-      {/* 손잡이와 머리를 잇는 결속끈 */}
-      <path d="M10.4 15.1l1.6-1.6" opacity="0.8" />
+      {/* 죽비 — 곧은 막대 하나. 위쪽 끝이 살짝 넓다. */}
+      <path d="M6 19L16.5 6.5" />
+      {/* 넓적한 머리 */}
+      <path d="M14.5 5.2l3.8 3.2" />
+      {/* 마디 하나 */}
+      <path d="M10.4 13.2l1.6 1.4" opacity="0.55" />
     </svg>
   );
 }

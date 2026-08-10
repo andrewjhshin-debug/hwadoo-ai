@@ -13,7 +13,7 @@ import { usePathname } from "next/navigation";
 import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
 import { sessionTitle } from "@/lib/hwadu";
-import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
+import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { ADMIN_UID } from "@/lib/config";
 import {
   Banga,
@@ -176,7 +176,7 @@ export default function Sidebar() {
 
       {/* 사이드바 본체 */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex shrink-0 flex-col border-r border-ink-3 bg-ink-2 pb-4 pt-[4.5rem] transition-all duration-300 md:static md:z-auto md:translate-x-0 md:pt-6 ${
+        className={`fixed inset-y-0 left-0 z-40 flex shrink-0 flex-col border-r border-ink-3 bg-ink-2 pb-7 pt-[5rem] transition-all duration-300 md:static md:z-auto md:translate-x-0 md:pb-4 md:pt-6 ${
           slim ? "w-[68px] px-2" : "w-[264px] px-4"
         } ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
@@ -211,7 +211,7 @@ export default function Sidebar() {
         <Link
           href="/"
           title="새 화두 받기"
-          className={`btn-obang flex items-center gap-2.5 py-3 text-sm font-medium text-hanji transition-opacity hover:opacity-90 ${
+          className={`btn-obang flex items-center gap-2.5 py-3.5 text-[16px] font-medium text-hanji transition-opacity hover:opacity-90 sm:py-3 sm:text-sm ${
             slim ? "justify-center px-0" : "px-4"
           }`}
         >
@@ -223,7 +223,7 @@ export default function Sidebar() {
         <Link
           href="/try"
           title="체험하기"
-          className={`mt-2 flex items-center gap-2.5 rounded-[10px] border py-2.5 text-[13px] transition-colors ${
+          className={`mt-2 flex items-center gap-2.5 rounded-[10px] border py-3 text-[15px] transition-colors sm:py-2.5 sm:text-[13px] ${
             pathname === "/try"
               ? "border-gold/40 bg-gold/10 text-hanji"
               : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
@@ -240,7 +240,7 @@ export default function Sidebar() {
               key={href}
               href={href}
               title={label}
-              className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-2.5 text-[13.5px] transition-colors ${
+              className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-3 text-[16px] transition-colors sm:py-2.5 sm:text-[13.5px] ${
                 pathname === href
                   ? "bg-gold/10 text-hanji"
                   : "text-hanji-dim hover:bg-gold/5 hover:text-hanji"
@@ -291,44 +291,43 @@ export default function Sidebar() {
         {slim && <div className="flex-1" />}
 
         {/* 아래 — 로그인 */}
-        <div className="mt-auto border-t border-ink-3 pt-3.5">
+        <div className="mt-auto shrink-0 border-t border-ink-3 pt-3.5">
           {user ? (
             slim ? (
-              <button
-                onClick={logout}
-                title={`${user.displayName ?? "수행자"}님 · 로그아웃`}
+              <Link
+                href="/settings"
+                title={`${user.displayName ?? "수행자"}님 · 설정`}
                 className="flex w-full justify-center rounded-[10px] border border-ink-3 px-0 py-2.5 text-hanji-dim transition-colors hover:text-hanji"
               >
                 <Person className="h-4 w-4" />
-              </button>
+              </Link>
             ) : (
-              <div className="px-1">
-                <p className="flex items-center gap-2.5 text-[13px] text-hanji-dim">
-                  <Person className="h-4 w-4 shrink-0" />
-                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+              <Link
+                href="/settings"
+                title="설정 — 내 정보"
+                className="flex items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 transition-colors hover:bg-gold/5"
+              >
+                {user.photoURL ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.photoURL}
+                    alt="프로필"
+                    className="h-8 w-8 shrink-0 rounded-full border border-gold/30 object-cover"
+                  />
+                ) : (
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/30 text-hanji-dim">
+                    <Person className="h-4 w-4" />
+                  </span>
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[14px] text-hanji">
                     {user.displayName ?? "수행자"}님
                   </span>
-                </p>
-                <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
-                  기록이 계정에 모이고 있습니다
-                </p>
-                <div className="mt-2 flex items-center gap-4">
-                  {user.uid === ADMIN_UID && (
-                    <Link
-                      href="/admin"
-                      className="text-[11px] tracking-widest text-gold-soft transition-colors hover:text-gold"
-                    >
-                      뒷방(관리)
-                    </Link>
-                  )}
-                  <button
-                    onClick={logout}
-                    className="text-[11px] tracking-widest text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji-dim"
-                  >
-                    로그아웃
-                  </button>
-                </div>
-              </div>
+                  <span className="block text-[11px] text-hanji-faint">
+                    설정 · 내 정보
+                  </span>
+                </span>
+              </Link>
             )
           ) : (
             <>
