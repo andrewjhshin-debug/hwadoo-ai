@@ -3,6 +3,7 @@ import { Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import Sidebar from "@/components/Sidebar";
+import MobileTabBar from "@/components/MobileTabBar";
 import { CONTACT_EMAIL, SITE_NAME, SITE_URL, SLOGAN } from "@/lib/config";
 import "./globals.css";
 
@@ -62,7 +63,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
         <Sidebar />
-        <div className="obang-aura flex flex-1 flex-col overflow-y-auto pt-14 md:pt-0">
+        <div className="obang-aura flex flex-1 flex-col overflow-y-auto pt-14 pb-16 md:pb-0 md:pt-0">
           <main className="flex flex-1 flex-col">{children}</main>
           <footer className="border-t border-ink-3 px-6 py-5">
             <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11.5px] text-hanji-faint">
@@ -91,6 +92,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </p>
           </footer>
         </div>
+        <MobileTabBar />
         <Analytics />
       </body>
     </html>
