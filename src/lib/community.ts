@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
-// 선방(禪房) — 회향을 마친 이들이 익명으로 답을 걸어두는 곳.
-// 서로 평가하지 않는다. 다만 합장을 보낼 수 있다.
+// 연지원(蓮池院) — 수행자들이 글을 쓰고 이야기를 나누는 뜰.
+// 글쓰기·댓글은 로그인한 사람만 (익명 악플 방지). 관리자는 무엇이든 내릴 수 있다.
 // ─────────────────────────────────────────────────────────────
 
 import {
@@ -8,6 +8,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   increment,
   limit,
@@ -20,36 +21,81 @@ import { auth, db } from "./firebase";
 
 export type Post = {
   id: string;
-  question: string;
-  answer: string;
+  title: string;
+  body: string;
+  authorName: string;
+  authorUid: string;
   hapjang: number;
+  commentCount: number;
   createdAt?: { seconds: number };
 };
 
-// 회향을 선방에 건다 — 익명 (uid는 관리용으로만 저장, 화면에 안 나감)
-export async function sharePost(question: string, answer: string) {
-  await addDoc(collection(db, "posts"), {
-    question,
-    answer,
-    hapjang: 0,
-    uid: auth.currentUser?.uid ?? null,
-    createdAt: serverTimestamp(),
-  });
-}
+export type Comment = {
+  id: string;
+  body: string;
+  authorName: string;
+  authorUid: string;
+  createdAt?: { seconds: number };
+};
+
+// ── 글 ──────────────────────────────────────────────────
 
 export async function fetchPosts(): Promise<Post[]> {
   const snap = await getDocs(
-    query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50))
+    query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(60))
   );
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Post);
 }
 
-// 합장 — 좋아요가 아니라 절. 하나만 올릴 수 있다(규칙이 +1만 허용).
+export async function fetchPost(id: string): Promise<Post | null> {
+  const snap = await getDoc(doc(db, "posts", id));
+  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Post) : null;
+}
+
+export async function createPost(title: string, body: string) {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요합니다");
+  return addDoc(collection(db, "posts"), {
+    title,
+    body,
+    authorName: u.displayName ?? "수행자",
+    authorUid: u.uid,
+    hapjang: 0,
+    commentCount: 0,
+    createdAt: serverTimestamp(),
+  });
+}
+
 export async function bowToPost(id: string) {
   await updateDoc(doc(db, "posts", id), { hapjang: increment(1) });
 }
 
-// 관리자 — 내리기
-export async function adminDeletePost(id: string) {
+export async function deletePost(id: string) {
   await deleteDoc(doc(db, "posts", id));
+}
+
+// ── 댓글 ────────────────────────────────────────────────
+
+export async function fetchComments(postId: string): Promise<Comment[]> {
+  const snap = await getDocs(
+    query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc"))
+  );
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Comment);
+}
+
+export async function addComment(postId: string, body: string) {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요합니다");
+  await addDoc(collection(db, "posts", postId, "comments"), {
+    body,
+    authorName: u.displayName ?? "수행자",
+    authorUid: u.uid,
+    createdAt: serverTimestamp(),
+  });
+  await updateDoc(doc(db, "posts", postId), { commentCount: increment(1) });
+}
+
+export async function deleteComment(postId: string, commentId: string) {
+  await deleteDoc(doc(db, "posts", postId, "comments", commentId));
+  await updateDoc(doc(db, "posts", postId), { commentCount: increment(-1) });
 }

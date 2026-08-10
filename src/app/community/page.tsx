@@ -1,54 +1,88 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 선방(禪房) — 익명의 회향들이 걸린 방.
-// 평가도 댓글도 없다. 다만 합장을 보낼 수 있다.
+// 연지원(蓮池院) — 수행자들의 뜰.
+// 글을 쓰고, 합장하고, 댓글로 이야기를 나눈다. 글·댓글은 로그인 필요.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import type { User } from "firebase/auth";
 import { Lantern } from "@/components/icons";
-import { bowToPost, fetchPosts, type Post } from "@/lib/community";
+import { ADMIN_UID } from "@/lib/config";
+import { loginWithGoogle, watchAuth } from "@/lib/sync";
+import {
+  addComment,
+  bowToPost,
+  createPost,
+  deleteComment,
+  deletePost,
+  fetchComments,
+  fetchPosts,
+  type Comment,
+  type Post,
+} from "@/lib/community";
 import { formatDate } from "@/lib/store";
 
-const BOWED_KEY = "hwadoo-bowed-v1"; // 내가 합장한 글들 (중복 방지)
-
-function loadBowed(): string[] {
-  try {
-    return JSON.parse(window.sessionStorage.getItem(BOWED_KEY) ?? "[]");
-  } catch {
-    return [];
-  }
-}
+const BOWED_KEY = "hwadoo-bowed-v1";
 
 export default function CommunityPage() {
+  const [user, setUser] = useState<User | null | undefined>(undefined);
   const [posts, setPosts] = useState<Post[] | null>(null);
-  const [bowed, setBowed] = useState<string[]>([]);
   const [failed, setFailed] = useState(false);
+  const [writing, setWriting] = useState(false);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [bowed, setBowed] = useState<string[]>([]);
+
+  useEffect(() => watchAuth(setUser), []);
+
+  const refresh = useCallback(async () => {
+    try {
+      setPosts(await fetchPosts());
+      setFailed(false);
+    } catch {
+      setFailed(true);
+    }
+  }, []);
 
   useEffect(() => {
-    setBowed(loadBowed());
-    fetchPosts()
-      .then(setPosts)
-      .catch(() => setFailed(true));
-  }, []);
+    try {
+      setBowed(JSON.parse(window.sessionStorage.getItem(BOWED_KEY) ?? "[]"));
+    } catch {}
+    refresh();
+  }, [refresh]);
+
+  const isAdmin = user?.uid === ADMIN_UID;
+
+  const submit = async () => {
+    if (!title.trim() || !body.trim() || busy) return;
+    setBusy(true);
+    try {
+      await createPost(title.trim(), body.trim());
+      setTitle("");
+      setBody("");
+      setWriting(false);
+      await refresh();
+    } catch {
+      setFailed(true);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const bow = async (id: string) => {
     if (bowed.includes(id)) return;
     const next = [...bowed, id];
     setBowed(next);
     window.sessionStorage.setItem(BOWED_KEY, JSON.stringify(next));
-    setPosts(
-      (prev) =>
-        prev?.map((p) =>
-          p.id === id ? { ...p, hapjang: p.hapjang + 1 } : p
-        ) ?? null
+    setPosts((p) =>
+      p?.map((x) => (x.id === id ? { ...x, hapjang: x.hapjang + 1 } : x)) ?? null
     );
     try {
       await bowToPost(id);
-    } catch {
-      /* 조용히 — 화면 숫자는 이미 올라갔고, 큰일 아니다 */
-    }
+    } catch {}
   };
 
   return (
@@ -56,71 +90,248 @@ export default function CommunityPage() {
       <div className="rise flex flex-col items-center text-center">
         <Lantern className="h-8 w-8 text-gold-soft opacity-80" />
         <h1 className="mt-5 text-xs tracking-[0.5em] text-gold-soft">
-          禪房 · 선방
+          蓮池院 · 연지원
         </h1>
         <p className="mt-6 font-serif text-lg font-light leading-9 text-hanji">
-          같은 물음을 지나온 이들의 답이 걸려 있습니다.
+          수행자들이 모여 이야기를 나누는 뜰입니다.
         </p>
         <p className="mt-2 text-xs leading-6 text-hanji-faint">
-          모두 익명입니다. 평가하지 않고, 다만 합장할 뿐입니다.
-          <br />
-          회향을 마치면 그대의 답도 이곳에 걸 수 있습니다.
+          화두를 품으며 겪은 것을 나누고, 서로의 글에 합장하십시오.
         </p>
       </div>
 
+      {/* 글쓰기 */}
+      <div className="rise rise-d1 mt-10">
+        {user === null ? (
+          <div className="border border-ink-3 bg-ink-2/50 px-6 py-5 text-center">
+            <p className="text-[13px] text-hanji-dim">
+              글과 댓글은 로그인한 분만 남길 수 있습니다.
+            </p>
+            <button
+              onClick={() => loginWithGoogle().catch(() => {})}
+              className="mt-4 border border-ink-3 px-6 py-2.5 text-xs tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+            >
+              구글로 로그인
+            </button>
+          </div>
+        ) : writing ? (
+          <div className="border border-ink-3 bg-ink-2/50 p-5">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value.slice(0, 60))}
+              placeholder="제목"
+              className="w-full border-b border-ink-3 bg-transparent pb-2 text-sm text-hanji outline-none placeholder:text-hanji-faint"
+            />
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value.slice(0, 2000))}
+              rows={6}
+              placeholder="나누고 싶은 이야기를 적어 주십시오."
+              className="journal-area mt-4 !text-sm"
+            />
+            <div className="mt-3 flex items-center justify-between">
+              <button
+                onClick={() => setWriting(false)}
+                className="text-xs tracking-widest text-hanji-faint hover:text-hanji-dim"
+              >
+                취소
+              </button>
+              <button
+                onClick={submit}
+                disabled={!title.trim() || !body.trim() || busy}
+                className="btn-obang px-7 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
+              >
+                {busy ? "올리는 중…" : "글 올리기"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          user && (
+            <button
+              onClick={() => setWriting(true)}
+              className="btn-obang w-full py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
+            >
+              글 쓰기
+            </button>
+          )
+        )}
+      </div>
+
+      {/* 글 목록 */}
       {failed ? (
-        <p className="mt-16 text-center text-sm text-hanji-faint">
-          선방 문이 잠시 닫혀 있습니다. 잠시 후 다시 들러 주세요.
+        <p className="mt-14 text-center text-sm text-hanji-faint">
+          연지원 문이 잠시 닫혀 있습니다. 잠시 후 다시 들러 주세요.
         </p>
       ) : posts === null ? null : posts.length === 0 ? (
-        <div className="rise rise-d1 mt-16 text-center">
-          <p className="text-sm leading-8 text-hanji-dim">
-            아직 걸린 회향이 없습니다.
-          </p>
-          <p className="mt-1 text-xs text-hanji-faint">
-            첫 답을 거는 사람이 이 방의 문을 여는 셈입니다.
-          </p>
-          <Link
-            href="/"
-            className="btn-obang mt-8 inline-block px-8 py-3 text-xs tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
-          >
-            화두를 받으러 가다
-          </Link>
-        </div>
+        <p className="mt-14 text-center text-sm text-hanji-faint">
+          아직 걸린 글이 없습니다. 첫 이야기를 남겨 보십시오.
+        </p>
       ) : (
-        <div className="mt-12 flex flex-col gap-10">
-          {posts.map((p, i) => (
-            <article
+        <div className="mt-12 flex flex-col gap-8">
+          {posts.map((p) => (
+            <PostCard
               key={p.id}
-              className={`rise border-t border-ink-3 pt-7 ${i < 3 ? `rise-d${i + 1}` : ""}`}
-            >
-              <p className="whitespace-pre-line text-[13px] leading-7 text-gold-soft">
-                {p.question}
-              </p>
-              <blockquote className="mt-4 whitespace-pre-line font-serif text-[15px] font-light leading-9 text-hanji">
-                {p.answer}
-              </blockquote>
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-[11px] tracking-wider text-hanji-faint">
-                  {p.createdAt ? formatDate(p.createdAt.seconds * 1000) : ""} ·
-                  어느 수행자
-                </span>
-                <button
-                  onClick={() => bow(p.id)}
-                  disabled={bowed.includes(p.id)}
-                  className={`flex items-center gap-2 border px-4 py-1.5 text-xs tracking-[0.15em] transition-colors ${
-                    bowed.includes(p.id)
-                      ? "border-gold/40 text-gold"
-                      : "border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji"
-                  }`}
-                >
-                  🙏 합장 {p.hapjang > 0 && p.hapjang}
-                </button>
-              </div>
-            </article>
+              post={p}
+              open={openId === p.id}
+              onToggle={() => setOpenId(openId === p.id ? null : p.id)}
+              onBow={() => bow(p.id)}
+              bowed={bowed.includes(p.id)}
+              user={user ?? null}
+              isAdmin={isAdmin}
+              onDeleted={refresh}
+            />
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+// ── 글 카드 (펼치면 본문 + 댓글) ──────────────────────────
+function PostCard({
+  post,
+  open,
+  onToggle,
+  onBow,
+  bowed,
+  user,
+  isAdmin,
+  onDeleted,
+}: {
+  post: Post;
+  open: boolean;
+  onToggle: () => void;
+  onBow: () => void;
+  bowed: boolean;
+  user: User | null;
+  isAdmin: boolean;
+  onDeleted: () => void;
+}) {
+  const [comments, setComments] = useState<Comment[] | null>(null);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const loadComments = useCallback(async () => {
+    setComments(await fetchComments(post.id));
+  }, [post.id]);
+
+  useEffect(() => {
+    if (open) loadComments();
+  }, [open, loadComments]);
+
+  const send = async () => {
+    if (!text.trim() || busy) return;
+    setBusy(true);
+    try {
+      await addComment(post.id, text.trim());
+      setText("");
+      await loadComments();
+    } catch {}
+    setBusy(false);
+  };
+
+  return (
+    <article className="border-t border-ink-3 pt-7">
+      <button onClick={onToggle} className="w-full text-left">
+        <h2 className="font-serif text-[16px] text-hanji">{post.title}</h2>
+        <p className="mt-1 text-[11px] tracking-wider text-hanji-faint">
+          {post.authorName}
+          {post.createdAt && ` · ${formatDate(post.createdAt.seconds * 1000)}`}
+          {` · 합장 ${post.hapjang} · 댓글 ${post.commentCount}`}
+        </p>
+      </button>
+
+      {open && (
+        <div className="mt-4">
+          <p className="whitespace-pre-line text-[14px] font-light leading-8 text-hanji-dim">
+            {post.body}
+          </p>
+
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              onClick={onBow}
+              disabled={bowed}
+              className={`border px-4 py-1.5 text-xs tracking-[0.15em] transition-colors ${
+                bowed
+                  ? "border-gold/40 text-gold"
+                  : "border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji"
+              }`}
+            >
+              🙏 합장 {post.hapjang > 0 && post.hapjang}
+            </button>
+            {(isAdmin || user?.uid === post.authorUid) && (
+              <button
+                onClick={async () => {
+                  if (!window.confirm("이 글을 내리시겠습니까?")) return;
+                  await deletePost(post.id);
+                  onDeleted();
+                }}
+                className="text-[11px] tracking-widest text-hanji-faint hover:text-vermilion"
+              >
+                내리기
+              </button>
+            )}
+          </div>
+
+          {/* 댓글 */}
+          <div className="mt-6 border-t border-ink-3 pt-5">
+            {comments === null ? (
+              <p className="text-[11px] text-hanji-faint">불러오는 중…</p>
+            ) : comments.length === 0 ? (
+              <p className="text-[11px] text-hanji-faint">
+                아직 댓글이 없습니다.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-4">
+                {comments.map((c) => (
+                  <li key={c.id} className="border-l border-gold/20 pl-3">
+                    <p className="whitespace-pre-line text-[13px] leading-6 text-hanji-dim">
+                      {c.body}
+                    </p>
+                    <p className="mt-1 text-[10px] tracking-wider text-hanji-faint">
+                      {c.authorName}
+                      {(isAdmin || user?.uid === c.authorUid) && (
+                        <button
+                          onClick={async () => {
+                            await deleteComment(post.id, c.id);
+                            await loadComments();
+                          }}
+                          className="ml-3 hover:text-vermilion"
+                        >
+                          지우기
+                        </button>
+                      )}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {user ? (
+              <div className="mt-4 flex gap-2">
+                <input
+                  value={text}
+                  onChange={(e) => setText(e.target.value.slice(0, 500))}
+                  placeholder="댓글 남기기"
+                  onKeyDown={(e) => e.key === "Enter" && send()}
+                  className="flex-1 border-b border-ink-3 bg-transparent pb-1.5 text-[13px] text-hanji outline-none placeholder:text-hanji-faint"
+                />
+                <button
+                  onClick={send}
+                  disabled={!text.trim() || busy}
+                  className="text-xs tracking-widest text-gold-soft hover:text-gold disabled:opacity-30"
+                >
+                  달기
+                </button>
+              </div>
+            ) : (
+              <p className="mt-4 text-[11px] text-hanji-faint">
+                댓글은 로그인 후 남길 수 있습니다.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </article>
   );
 }

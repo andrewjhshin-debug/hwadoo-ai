@@ -156,9 +156,55 @@ export default function TryPage() {
     );
   }
 
+  // 튜토리얼 단계 (1~4)
+  const stepNo =
+    step === "received" ? 1 : step === "pondering" ? 2 : step === "ripened" || step === "writing" ? 3 : 4;
+  const STEPS = ["화두를 받다", "사유하다", "답을 쓰다", "스승을 듣다"];
+
   // ── 홈과 똑같은 화면 ──
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center px-6 pb-40 pt-14 text-center">
+      {/* 튜토리얼 단계 표시 — 여기가 체험임을 알린다 */}
+      <div className="mb-10 w-full max-w-2xl">
+        <p className="text-center text-[11px] tracking-[0.4em] text-gold-soft">
+          體驗 · 체험하기
+        </p>
+        <div className="mt-4 flex items-center justify-center gap-2 sm:gap-3">
+          {STEPS.map((label, i) => {
+            const n = i + 1;
+            const done = n < stepNo;
+            const now = n === stepNo;
+            return (
+              <div key={label} className="flex items-center gap-2 sm:gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
+                      now
+                        ? "bg-gold/25 font-medium text-gold"
+                        : done
+                          ? "bg-gold/10 text-gold-soft"
+                          : "border border-ink-3 text-hanji-faint"
+                    }`}
+                  >
+                    {n}
+                  </span>
+                  <span
+                    className={`text-[11px] tracking-wide ${
+                      now ? "text-hanji" : "text-hanji-faint"
+                    }`}
+                  >
+                    {label}
+                  </span>
+                </div>
+                {n < STEPS.length && (
+                  <span className="text-hanji-faint">·</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <section className="rise flex w-full max-w-2xl flex-col items-center">
         {hwadu.hanja && (
           <p className="text-xs tracking-[0.6em] text-hanji-faint">

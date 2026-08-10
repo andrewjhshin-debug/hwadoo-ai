@@ -87,6 +87,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "original-face",
     title: "본래면목",
     hanja: "本來面目",
+    context: "육조단경 · 혜능과 혜명의 문답.",
     question: "부모에게서 태어나기 전,\n그대의 본래 얼굴은 무엇인가.",
     masters: [
       {
@@ -119,6 +120,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "tea",
     title: "끽다거",
     hanja: "喫茶去",
+    context: "조주록 — 조주 종심의 끽다거.",
     question: "처음 온 이에게도, 왔던 이에게도,\n조주는 같은 말을 건넸다.\n\n— 차나 마시게.\n\n무엇을 건넨 것인가.",
     masters: [
       {
@@ -156,6 +158,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "life-death",
     title: "생사",
     hanja: "生死",
+    context: "전등록 — 도오와 점원의 문답.",
     question: "사람이 죽으면,\n어디로 가는가.",
     masters: [
       {
@@ -174,6 +177,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "mountain-water",
     title: "산은 산, 물은 물",
     hanja: "山是山",
+    context: "전등록 · 청원 유신의 상당법어.",
     question: "산은 산이요, 물은 물이다.\n\n이 말이 왜 법문이 되는가.",
     masters: [
       {
@@ -205,6 +209,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "one-hand",
     title: "한 손바닥의 소리",
     hanja: "隻手音聲",
+    context: "백은 혜학의 척수음성(隻手音聲).",
     question: "한 손바닥의 소리를\n들어 보라.",
     masters: [
       {
@@ -219,6 +224,7 @@ export const HWADU_BANK: Hwadu[] = [
     forStudent: true,
     title: "고통",
     hanja: "苦",
+    context: "잡아함경 — 두 번째 화살의 비유.",
     question: "아픔과 괴로움은\n같은 것인가, 다른 것인가.",
     masters: [
       {
@@ -270,6 +276,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "what-is-buddha",
     title: "부처란 무엇인가",
     hanja: "如何是佛",
+    context: "무문관 제18칙 · 동산 수초 마삼근(麻三斤).",
     question: "부처란 무엇인가.\n\n동산은 답했다 — 삼베 세 근.",
     masters: [
       {
@@ -338,6 +345,7 @@ export const HWADU_BANK: Hwadu[] = [
     forStudent: true,
     title: "달과 손가락",
     hanja: "指月",
+    context: "능엄경 — 달을 가리키는 손가락의 비유.",
     question: "달을 보았다면,\n손가락은 무엇인가.",
     masters: [
       {
@@ -351,6 +359,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "silver-mountain",
     title: "은산철벽",
     hanja: "銀山鐵壁",
+    context: "선가(禪家)의 오랜 비유 — 은산철벽.",
     question: "물러설 수도 없고,\n나아갈 수도 없다.\n\n그때 어찌하겠는가.",
     masters: [
       {
@@ -364,6 +373,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "no-string",
     title: "줄 없는 거문고",
     hanja: "沒絃琴",
+    context: "도연명의 무현금(無絃琴) 고사에서.",
     question: "줄 없는 거문고로,\n한 곡 타 보라.",
     masters: [
       {
@@ -404,6 +414,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "bell-sound",
     forStudent: true,
     title: "종소리",
+    context: "능엄경 — 종소리와 듣는 성품(聞性).",
     question: "종이 울린다.\n\n소리는 종에 있는가,\n귀에 있는가.",
     masters: [
       {
@@ -417,6 +428,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "gateless",
     title: "문 없는 문",
     hanja: "無門關",
+    context: "무문관 서(序) — 대도무문(大道無門).",
     question: "문 없는 문을,\n어떻게 지나는가.",
     masters: [
       {
@@ -458,6 +470,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "now",
     forStudent: true,
     title: "지금",
+    context: "금강경 — 과거·현재·미래의 마음은 얻을 수 없다.",
     question: "'지금'이라 말하는 순간,\n지금은 어디로 갔는가.",
     masters: [
       {
