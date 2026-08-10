@@ -213,12 +213,7 @@ export default function Sidebar() {
               aria-label="내 도량"
               className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
             >
-              {user?.photoURL ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.photoURL} alt="" className="h-[18px] w-[18px] rounded-full border border-gold/30 object-cover" />
-              ) : (
-                <Person className="h-4 w-4" />
-              )}
+              <Person className="h-4 w-4" />
             </Link>
             <ThemeToggle />
             <button
@@ -341,18 +336,9 @@ export default function Sidebar() {
                 title="내 도량"
                 className="flex items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 transition-colors hover:bg-gold/5"
               >
-                {user.photoURL ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={user.photoURL}
-                    alt="프로필"
-                    className="h-8 w-8 shrink-0 rounded-full border border-gold/30 object-cover"
-                  />
-                ) : (
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/30 text-hanji-dim">
-                    <Person className="h-4 w-4" />
-                  </span>
-                )}
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/30 text-hanji-dim">
+                  <Person className="h-4 w-4" />
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[14px] text-hanji">
                     {user.displayName ?? "수행자"}님
