@@ -20,6 +20,8 @@ import {
   fetchHoldingCount,
   incrementHolding,
 } from "@/lib/holding";
+import { todayGuide } from "@/lib/guidance";
+import { dayCount } from "@/lib/store";
 import {
   durationLabel,
   formatCountdown,
@@ -88,10 +90,12 @@ export default function Home() {
       ...base.history.map((s) => s.hwaduId),
       ...(base.current ? [base.current.hwaduId] : []),
     ];
-    const freshPublic = publicPool.filter(
-      (p) => !exclude.includes(`thrown:${p.id}`)
-    );
-    // 서버 화두는 풀 크기에 비례해 자연스럽게 섞인다
+    const audience = base.audience ?? "adult";
+    // 서버 화두(던져진 것·관리자 추가)는 어른 모드에만 섞인다
+    const freshPublic =
+      audience === "adult"
+        ? publicPool.filter((p) => !exclude.includes(`thrown:${p.id}`))
+        : [];
     const total = 30 + freshPublic.length;
     let newId: string;
     if (freshPublic.length > 0 && Math.random() < freshPublic.length / total) {
@@ -109,7 +113,7 @@ export default function Home() {
         received: base.received + 1,
       });
     } else {
-      const hwadu = pickRandomHwadu(exclude);
+      const hwadu = pickRandomHwadu(exclude, audience);
       newId = hwadu.id;
       update({
         ...base,
@@ -206,6 +210,30 @@ export default function Home() {
         >
           새 화두 받기
         </button>
+
+        {/* 누구의 화두인가 — 어른 / 학생·어린이 */}
+        <div className="rise rise-d3 mt-7 flex items-center gap-3 text-xs">
+          {(
+            [
+              { key: "adult", label: "어른의 화두" },
+              { key: "student", label: "학생·어린이의 화두" },
+            ] as const
+          ).map((o) => (
+            <button
+              key={o.key}
+              onClick={() =>
+                store && update({ ...store, audience: o.key })
+              }
+              className={`border px-4 py-2 tracking-[0.12em] transition-colors ${
+                (store?.audience ?? "adult") === o.key
+                  ? "border-gold/50 text-gold"
+                  : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
         <div className="mt-14 flex gap-2.5 opacity-60">
           <i className="h-[5px] w-[5px] rounded-full bg-obang-blue" />
           <i className="h-[5px] w-[5px] rounded-full bg-vermilion" />
@@ -390,6 +418,18 @@ export default function Home() {
           생각으로 찾아낸 것은 답이 아닙니다. 생각하기보다 끝까지 하는 힘이
           중요합니다.
         </p>
+
+        {/* 오늘의 참구법 — 날마다 다른 사유의 길 */}
+        {!unlocked && (
+          <div className="mt-8 w-full max-w-md border border-ink-3 bg-ink-2/50 px-6 py-5">
+            <p className="text-[11px] tracking-[0.34em] text-gold-soft">
+              오늘의 참구법 · {dayCount(current)}일째
+            </p>
+            <p className="mt-3 text-[13.5px] font-light leading-7 text-hanji-dim">
+              {todayGuide(dayCount(current))}
+            </p>
+          </div>
+        )}
 
         {/* 기간 바꾸기 */}
         {!unlocked && (

@@ -162,7 +162,7 @@ export default function Sidebar() {
           }`}
         >
           <Lotus className="h-[17px] w-[17px]" stroke="#D9B45B" />
-          {!slim && "새 화두 받기"}
+          {!slim && "뜰 : 새 화두 받기"}
         </Link>
 
         {/* 여섯 방 */}

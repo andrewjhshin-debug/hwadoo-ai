@@ -20,11 +20,14 @@ export type Hwadu = {
   question: string; // 화두 본문 — 화면 한가운데, 짧게
   context?: string; // 배경 한 줄
   masters: Master[]; // 옛 스승들의 답
+  audience?: "student"; // 학생 전용 화두
+  forStudent?: boolean; // 고전이지만 학생에게도 좋은 화두
 };
 
 export const HWADU_BANK: Hwadu[] = [
   {
     id: "simsima",
+    forStudent: true,
     title: "이 뭣고",
     hanja: "是甚麼",
     question: "지금 이것을 보고 있는\n이것은 무엇인가.",
@@ -132,6 +135,7 @@ export const HWADU_BANK: Hwadu[] = [
   },
   {
     id: "who-am-i",
+    forStudent: true,
     title: "나는 누구인가",
     question: "나는 누구인가.",
     context: "천 가지 물음이 끝내 돌아오는 자리.",
@@ -212,6 +216,7 @@ export const HWADU_BANK: Hwadu[] = [
   },
   {
     id: "suffering",
+    forStudent: true,
     title: "고통",
     hanja: "苦",
     question: "아픔과 괴로움은\n같은 것인가, 다른 것인가.",
@@ -281,6 +286,7 @@ export const HWADU_BANK: Hwadu[] = [
   },
   {
     id: "good-day",
+    forStudent: true,
     title: "일일시호일",
     hanja: "日日是好日",
     question: "어찌하여,\n날마다 좋은 날인가.",
@@ -295,6 +301,7 @@ export const HWADU_BANK: Hwadu[] = [
   },
   {
     id: "wind-flag",
+    forStudent: true,
     title: "바람인가, 깃발인가",
     hanja: "非風非幡",
     question: "깃발이 펄럭인다.\n\n바람이 움직이는가,\n깃발이 움직이는가.",
@@ -328,6 +335,7 @@ export const HWADU_BANK: Hwadu[] = [
   },
   {
     id: "finger-moon",
+    forStudent: true,
     title: "달과 손가락",
     hanja: "指月",
     question: "달을 보았다면,\n손가락은 무엇인가.",
@@ -394,6 +402,7 @@ export const HWADU_BANK: Hwadu[] = [
   },
   {
     id: "bell-sound",
+    forStudent: true,
     title: "종소리",
     question: "종이 울린다.\n\n소리는 종에 있는가,\n귀에 있는가.",
     masters: [
@@ -419,6 +428,7 @@ export const HWADU_BANK: Hwadu[] = [
   },
   {
     id: "snow",
+    forStudent: true,
     title: "눈송이",
     question: "송이송이 내리는 눈은,\n어디에 떨어지는가.",
     context: "방거사가 눈을 보며 말했다 — 「좋은 눈이로다. 송이송이, 딴 곳에 떨어지지 않는구나.」",
@@ -446,6 +456,7 @@ export const HWADU_BANK: Hwadu[] = [
   },
   {
     id: "now",
+    forStudent: true,
     title: "지금",
     question: "'지금'이라 말하는 순간,\n지금은 어디로 갔는가.",
     masters: [
@@ -472,6 +483,7 @@ export const HWADU_BANK: Hwadu[] = [
   },
   {
     id: "breath",
+    forStudent: true,
     title: "숨",
     question: "지금 이 숨을,\n누가 쉬고 있는가.",
     masters: [
@@ -482,13 +494,153 @@ export const HWADU_BANK: Hwadu[] = [
       },
     ],
   },
+
+  // ── 학생·어린이의 화두 — 쉬운 말, 깊은 물음 ──────────────
+  {
+    id: "st-friend",
+    audience: "student",
+    title: "친구란 무엇인가",
+    question: "친구란 무엇인가.\n같이 노는 사람은 다 친구인가.",
+    masters: [
+      {
+        name: "풀이",
+        era: "",
+        text: "같이 있으면 즐거운 사람과, 힘들 때 생각나는 사람은 같은 사람인가. 목록을 만들어 보면 뜻밖의 이름이 남는다.",
+      },
+    ],
+  },
+  {
+    id: "st-study",
+    audience: "student",
+    title: "왜 공부하는가",
+    question: "나는 왜 공부를 하는가.\n시험이 없어도, 공부할 것인가.",
+    masters: [
+      {
+        name: "풀이",
+        era: "",
+        text: "'해야 해서'라는 답이 나오면 한 번 더 물어보라. 누가 하라고 했는가. 그 사람은 왜 하라고 했는가.",
+      },
+    ],
+  },
+  {
+    id: "st-same-me",
+    audience: "student",
+    title: "어제의 나",
+    question: "나는 어제의 나와\n같은 사람인가.",
+    masters: [
+      {
+        name: "풀이",
+        era: "",
+        text: "몸의 세포는 바뀌고, 생각도 바뀐다. 그런데도 '나'라고 부를 수 있는 것은 무엇이 남아 있어서인가.",
+      },
+    ],
+  },
+  {
+    id: "st-fun",
+    audience: "student",
+    title: "재미란 무엇인가",
+    question: "게임은 왜 재미있고,\n공부는 왜 재미없는가.\n\n정말 그런가.",
+    masters: [
+      {
+        name: "풀이",
+        era: "",
+        text: "게임도 숙제로 내주면 재미없어진다는 말이 있다. 그렇다면 재미는 일 안에 있는가, 내 마음 안에 있는가.",
+      },
+    ],
+  },
+  {
+    id: "st-grownup",
+    audience: "student",
+    title: "어른이 된다는 것",
+    question: "어른이 된다는 것은\n무엇이 달라지는 것인가.\n키인가, 나이인가, 다른 무엇인가.",
+    masters: [
+      {
+        name: "풀이",
+        era: "",
+        text: "나이만 먹은 어른도 있고, 어린 나이에 어른스러운 사람도 있다. 그 차이는 어디서 오는가.",
+      },
+    ],
+  },
+  {
+    id: "st-fair",
+    audience: "student",
+    title: "공평함",
+    question: "공평하다는 것은\n모두에게 똑같이 나누는 것인가.",
+    masters: [
+      {
+        name: "풀이",
+        era: "",
+        text: "발 큰 사람과 발 작은 사람에게 같은 신발을 주면 공평한가. 같음과 공평함은 언제 갈라지는가.",
+      },
+    ],
+  },
+  {
+    id: "st-anger",
+    audience: "student",
+    title: "화는 어디서 오는가",
+    question: "화가 날 때,\n화는 어디에서 오는가.\n그 사람에게서인가, 내 안에서인가.",
+    masters: [
+      {
+        name: "풀이",
+        era: "",
+        text: "같은 말을 들어도 어떤 날은 웃어넘기고 어떤 날은 화가 난다. 말은 같은데 무엇이 달랐는가.",
+      },
+    ],
+  },
+  {
+    id: "st-lie",
+    audience: "student",
+    title: "아무도 모르는 거짓말",
+    question: "아무도 모르는 거짓말은,\n그래도 나쁜가.",
+    masters: [
+      {
+        name: "풀이",
+        era: "",
+        text: "정말 아무도 모르는가 — 한 사람은 안다. 그 한 사람 앞에서 그대는 어떤 사람이 되어 가는가.",
+      },
+    ],
+  },
+  {
+    id: "st-habit",
+    audience: "student",
+    title: "습관과 나",
+    question: "생각 없이 습관대로 한 일은,\n내가 한 일인가.",
+    masters: [
+      {
+        name: "풀이",
+        era: "",
+        text: "습관은 내가 만들었지만, 지금은 습관이 나를 움직인다. 그렇다면 지금 주인은 누구인가.",
+      },
+    ],
+  },
+  {
+    id: "st-time",
+    audience: "student",
+    title: "시간의 빠르기",
+    question: "즐거운 날은 빨리 가고,\n지루한 날은 느리게 간다.\n\n시간은 정말 똑같이 흐르는가.",
+    masters: [
+      {
+        name: "풀이",
+        era: "",
+        text: "시계는 늘 같은 속도로 돈다. 그런데 다르게 느껴진다면 — 흐르는 것은 시간인가, 마음인가.",
+      },
+    ],
+  },
 ];
 
 // 랜덤으로 건넨다 — 이미 지나온 화두(기록·현재)는 피한다.
-// 다 돌았으면 처음부터 다시 섞는다.
-export function pickRandomHwadu(excludeIds: string[]): Hwadu {
-  const pool = HWADU_BANK.filter((h) => !excludeIds.includes(h.id));
-  const source = pool.length > 0 ? pool : HWADU_BANK;
+// 어른: 고전 화두 전체. 학생: 학생 화두 + 학생에게도 좋은 고전.
+export function pickRandomHwadu(
+  excludeIds: string[],
+  audience: "adult" | "student" = "adult"
+): Hwadu {
+  const byAudience = HWADU_BANK.filter((h) =>
+    audience === "student"
+      ? h.audience === "student" || h.forStudent
+      : h.audience !== "student"
+  );
+  const pool = byAudience.filter((h) => !excludeIds.includes(h.id));
+  const source = pool.length > 0 ? pool : byAudience;
   return source[Math.floor(Math.random() * source.length)];
 }
 

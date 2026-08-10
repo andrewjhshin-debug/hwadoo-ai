@@ -20,6 +20,7 @@ export type Store = {
   history: Session[]; // 회향을 마친 화두들
   received: number; // 지금까지 받은 화두 수
   defaultDays?: number; // 설정 — 참구 기간 기본값 (없으면 3)
+  audience?: "adult" | "student"; // 설정 — 누구의 화두인가 (없으면 어른)
 };
 
 const KEY = "hwadoo-store-v1";
@@ -38,6 +39,7 @@ export function loadStore(): Store {
       received: typeof parsed.received === "number" ? parsed.received : 0,
       defaultDays:
         typeof parsed.defaultDays === "number" ? parsed.defaultDays : undefined,
+      audience: parsed.audience === "student" ? "student" : undefined,
     };
   } catch {
     return EMPTY;
