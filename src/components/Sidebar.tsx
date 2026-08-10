@@ -182,7 +182,7 @@ export default function Sidebar() {
 
         {/* 여섯 방 */}
         <nav className="mt-6 flex flex-col gap-0.5">
-          {NAV.map(({ href, label, Icon, badge }) => (
+          {NAV.map(({ href, label, Icon }) => (
             <Link
               key={href}
               href={href}
@@ -195,11 +195,6 @@ export default function Sidebar() {
             >
               <Icon className="h-[16px] w-[16px] shrink-0 opacity-75" />
               {!slim && <span>{label}</span>}
-              {!slim && badge && (
-                <span className="ml-auto rounded-full border border-ink-3 px-2 py-0.5 text-[10px] text-hanji-faint">
-                  {badge}
-                </span>
-              )}
             </Link>
           ))}
         </nav>
