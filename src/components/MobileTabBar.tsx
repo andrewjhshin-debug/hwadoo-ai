@@ -10,7 +10,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import NotesDrawer from "@/components/NotesDrawer";
-import { Dharmachakra, SeonMaster, Book, Jukbi, Lantern, Banga } from "./icons";
+import { Dharmachakra, SeonMaster, Book, Jukbi, Lantern } from "./icons";
 
 const TABS = [
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
@@ -30,9 +30,9 @@ export default function MobileTabBar() {
       <button
         onClick={() => setNotesOpen(true)}
         aria-label="사유의 방 열기"
-        className="btn-obang fixed bottom-[76px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:hidden"
+        className="btn-obang fixed bottom-[80px] right-4 z-40 flex items-center justify-center px-5 py-3 font-serif text-[13px] tracking-[0.2em] text-hanji shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:hidden"
       >
-        <Banga className="h-6 w-6 text-gold-soft" />
+        사유의 방
       </button>
 
       {/* 하단 고정 탭 바 */}
