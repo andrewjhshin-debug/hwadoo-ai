@@ -37,18 +37,20 @@ export default function NotesDrawer({
     }
   }, [open]);
 
-  // 열려 있을 때 뒤로가기(back)를 누르면 서랍만 닫는다 — 페이지를 벗어나지 않게
+  // 열려 있을 때 뒤로가기(back)를 누르면 서랍만 닫는다 — 페이지를 벗어나지 않게.
+  // onClose를 ref로 잡아, 함수 재생성으로 effect가 다시 도는 부작용(열자마자 닫힘)을 막는다.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     if (!open) return;
     window.history.pushState({ notes: true }, "");
-    const onPop = () => onClose();
+    const onPop = () => closeRef.current();
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
-      // 코드로 닫힌 경우, 우리가 쌓아 둔 히스토리 항목을 되돌린다
       if (window.history.state?.notes) window.history.back();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   // 다른 곳(/room 등)에서 단상이 바뀌면 서랍도 따라 갱신
   useEffect(() => {
