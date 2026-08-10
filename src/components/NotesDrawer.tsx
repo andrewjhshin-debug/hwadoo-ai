@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { loadStore, saveStore } from "@/lib/store";
 import { sessionQuestion, sessionTitle } from "@/lib/hwadu";
 import { Banga } from "./icons";
@@ -19,6 +20,7 @@ export default function NotesDrawer({
   onClose: () => void;
 }) {
   const [notes, setNotes] = useState("");
+  const router = useRouter();
   const [question, setQuestion] = useState("");
   const [title, setTitle] = useState("");
   const [saved, setSaved] = useState(false);
@@ -34,6 +36,19 @@ export default function NotesDrawer({
       setSaved(false);
     }
   }, [open]);
+
+  // 열려 있을 때 뒤로가기(back)를 누르면 서랍만 닫는다 — 페이지를 벗어나지 않게
+  useEffect(() => {
+    if (!open) return;
+    window.history.pushState({ notes: true }, "");
+    const onPop = () => onClose();
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      // 코드로 닫힌 경우, 우리가 쌓아 둔 히스토리 항목을 되돌린다
+      if (window.history.state?.notes) window.history.back();
+    };
+  }, [open, onClose]);
 
   // 다른 곳(/room 등)에서 단상이 바뀌면 서랍도 따라 갱신
   useEffect(() => {
@@ -88,15 +103,22 @@ export default function NotesDrawer({
           }`}
       >
         <header className="flex items-start justify-between border-b border-ink-3 px-6 py-5">
-          <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              onClose();
+              router.push("/");
+            }}
+            aria-label="뜰로"
+            className="flex items-center gap-3 transition-opacity hover:opacity-80"
+          >
             <Banga className="h-6 w-6 text-gold-soft" />
-            <div>
+            <div className="text-left">
               <p className="text-[10px] tracking-[0.4em] text-hanji-faint">
                 思惟之房
               </p>
               <h2 className="text-sm tracking-[0.2em] text-hanji">사유의 방</h2>
             </div>
-          </div>
+          </button>
           <button
             onClick={onClose}
             aria-label="닫기"

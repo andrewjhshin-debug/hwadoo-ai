@@ -8,7 +8,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import NotesDrawer from "@/components/NotesDrawer";
 import { Dharmachakra, SeonMaster, Book, Lotus, Lantern, Banga } from "./icons";
 
@@ -22,7 +22,15 @@ const TABS = [
 
 export default function MobileTabBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [notesOpen, setNotesOpen] = useState(false);
+
+  // 눌린 대로 그 화면을 연다 — 같은 경로여도 새로 그린다
+  const go = (href: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (pathname === href) router.refresh();
+    else router.push(href);
+  };
 
   return (
     <>
@@ -43,6 +51,7 @@ export default function MobileTabBar() {
             <Link
               key={href}
               href={href}
+              onClick={go(href)}
               className={`flex flex-1 flex-col items-center justify-center gap-1 text-[10px] tracking-wide transition-colors ${
                 active ? "text-gold" : "text-hanji-faint hover:text-hanji-dim"
               }`}

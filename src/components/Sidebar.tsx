@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
 import { sessionTitle } from "@/lib/hwadu";
@@ -79,6 +79,7 @@ function ThemeToggle({ className = "" }: { className?: string }) {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false); // 모바일 서랍
   const [collapsed, setCollapsed] = useState(false); // 데스크톱 접힘
   const [history, setHistory] = useState<Session[]>([]);
@@ -126,6 +127,17 @@ export default function Sidebar() {
     }
   };
 
+  // 눌린 대로 그 화면을 연다 — 모바일 서랍은 항상 닫고, 같은 경로여도 이동한다
+  const go = (href: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setOpen(false);
+    if (pathname === href) {
+      router.refresh(); // 이미 그 페이지면 새로 그린다 (멈추지 않게)
+    } else {
+      router.push(href);
+    }
+  };
+
   // 데스크톱에서 접혔을 때는 아이콘만 (모바일 서랍이 열리면 항상 펼침)
   const slim = collapsed && !open;
 
@@ -152,6 +164,7 @@ export default function Sidebar() {
         {/* 가운데 — 법륜 + 화두 로고 */}
         <Link
           href="/"
+          onClick={go("/")}
           className="flex flex-1 items-center justify-center gap-2.5"
         >
           <Dharmachakra className="h-7 w-7" stroke="#D9B45B" />
@@ -184,7 +197,7 @@ export default function Sidebar() {
           className={`mb-5 hidden items-center md:flex ${slim ? "justify-center" : "justify-between px-2"}`}
         >
           {!slim && (
-            <Link href="/" className="flex items-center gap-2.5">
+            <Link href="/" onClick={go("/")} className="flex items-center gap-2.5">
               <Dharmachakra className="h-[26px] w-[26px]" stroke="#D9B45B" />
               <span className="text-gold-grad font-serif text-lg font-semibold tracking-[0.35em]">
                 화두
@@ -195,8 +208,9 @@ export default function Sidebar() {
             {/* 마이 페이지 · 내 도량 — 오른쪽 위 */}
             <Link
               href={user ? "/settings" : "/settings"}
-              title="마이 페이지 · 내 도량"
-              aria-label="마이 페이지"
+              onClick={go("/settings")}
+              title="내 도량"
+              aria-label="내 도량"
               className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
             >
               {user?.photoURL ? (
@@ -223,6 +237,7 @@ export default function Sidebar() {
         {/* 새 화두 받기 — 홈 */}
         <Link
           href="/"
+          onClick={go("/")}
           title="새 화두 받기"
           className={`btn-obang flex items-center gap-2.5 py-3.5 text-[16px] font-medium text-hanji transition-opacity hover:opacity-90 sm:py-2.5 sm:text-[13px] ${
             slim ? "justify-center px-0" : "px-4"
@@ -235,6 +250,7 @@ export default function Sidebar() {
         {/* 체험하기 — 기한 없이 전 과정 한 바퀴 */}
         <Link
           href="/try"
+          onClick={go("/try")}
           title="체험하기"
           className={`mt-2 flex items-center gap-2.5 rounded-[10px] border py-3 text-[15px] transition-colors sm:py-2 sm:text-[12.5px] ${
             pathname === "/try"
@@ -252,6 +268,7 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={go(href)}
               title={label}
               className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-3 text-[16px] transition-colors sm:py-2 sm:text-[12.5px] ${
                 pathname === href
@@ -282,6 +299,7 @@ export default function Sidebar() {
                     <Link
                       key={`${s.hwaduId}-${s.receivedAt}`}
                       href="/archive"
+                      onClick={go("/archive")}
                       className="flex items-center gap-2.5 overflow-hidden rounded-[10px] px-2.5 py-2.5 text-[13.5px] text-hanji-dim transition-colors hover:bg-gold/5 hover:text-hanji"
                     >
                       <Book className="h-[15px] w-[15px] shrink-0 opacity-75" />
@@ -292,6 +310,7 @@ export default function Sidebar() {
                   ))}
                   <Link
                     href="/archive"
+                    onClick={go("/archive")}
                     className="px-2.5 py-2 text-xs text-hanji-faint transition-colors hover:text-hanji-dim"
                   >
                     기록 모두 보기 →
@@ -309,7 +328,8 @@ export default function Sidebar() {
             slim ? (
               <Link
                 href="/settings"
-                title={`${user.displayName ?? "수행자"}님 · 설정`}
+                onClick={go("/settings")}
+                title={`${user.displayName ?? "수행자"}님 · 내 도량`}
                 className="flex w-full justify-center rounded-[10px] border border-ink-3 px-0 py-2.5 text-hanji-dim transition-colors hover:text-hanji"
               >
                 <Person className="h-4 w-4" />
@@ -317,7 +337,8 @@ export default function Sidebar() {
             ) : (
               <Link
                 href="/settings"
-                title="설정 — 내 정보"
+                onClick={go("/settings")}
+                title="내 도량"
                 className="flex items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 transition-colors hover:bg-gold/5"
               >
                 {user.photoURL ? (
@@ -337,7 +358,7 @@ export default function Sidebar() {
                     {user.displayName ?? "수행자"}님
                   </span>
                   <span className="block text-[11px] text-hanji-faint">
-                    마이 페이지 · 내 도량
+                    내 도량
                   </span>
                 </span>
               </Link>

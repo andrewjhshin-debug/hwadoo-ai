@@ -34,7 +34,7 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto w-full max-w-xl flex-1 px-6 py-12">
       <h1 className="text-center text-xs tracking-[0.5em] text-gold-soft">
-        設定 · 설정
+        道場 · 내 도량
       </h1>
 
       {/* ── 로그인 정보 ── */}

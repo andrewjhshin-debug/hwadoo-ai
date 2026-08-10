@@ -163,40 +163,49 @@ export default function TryPage() {
 
       {/* ── 1. 화두 받기 전 — 홈과 같은 화면 ── */}
       {step === "choose" && (
-        <section className="rise mt-4 flex flex-col items-center">
-          <Enso size={116} />
-          <h1 className="text-obang mt-4 font-serif text-[38px] font-semibold leading-none tracking-[0.5em] [text-indent:0.5em]">
+        <section className="rise mt-6 flex flex-col items-center">
+          <Enso size={140} />
+          <h1 className="text-obang rise rise-d1 mt-6 font-serif text-[42px] font-semibold leading-none tracking-[0.5em] [text-indent:0.5em]">
             화두
           </h1>
-          <p className="mt-2 text-[10px] tracking-[0.6em] text-gold-soft">
+          <p className="rise rise-d1 mt-2.5 text-[10px] tracking-[0.6em] text-gold-soft">
             HWADU
           </p>
-          <p className="mt-3 text-[12.5px] font-light tracking-[0.1em] text-hanji-dim">
+          <p className="rise rise-d1 mt-6 text-[13.5px] font-light tracking-[0.1em] text-hanji-dim">
             &ldquo;{SLOGAN}&rdquo;
           </p>
-          <p className="mt-3 max-w-sm break-keep text-[12.5px] font-light leading-6 tracking-[0.05em] text-hanji-faint">
-            {audience === "student"
-              ? "학생·어린이의 첫 화두 ‘나는 누구인가’로 함께 걷습니다."
-              : "가장 오래된 입문 화두 ‘이뭣고’ 하나로 함께 걷습니다."}
-          </p>
+          <div className="rise rise-d2 my-10 flex items-center gap-3.5 opacity-80">
+            <div className="h-px w-[110px] bg-gradient-to-r from-transparent to-gold/45" />
+            <Dharmachakra className="h-[18px] w-[18px]" stroke="#B99A54" />
+            <div className="h-px w-[110px] bg-gradient-to-r from-gold/45 to-transparent" />
+          </div>
+          <button
+            onClick={receive}
+            className="btn-obang rise rise-d2 inline-flex items-center gap-2.5 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
+          >
+            <Lotus className="h-[18px] w-[18px]" stroke="#D9B45B" />
+            <span>새 화두 받기</span>
+          </button>
 
-          {/* 누구의 화두인가 — 성인 / 학생·어린이 */}
-          <div className="mt-4 flex items-center gap-3 text-xs">
+          {/* 누구의 화두인가 — 성인 / 학생·어린이 (홈과 같은 알약 스위치) */}
+          <div className="rise rise-d3 mt-7 inline-flex rounded-full border border-ink-3 bg-ink-2 p-1 text-xs">
             {(
               [
                 { key: "adult", label: "성인의 화두" },
-                { key: "student", label: "학생·어린이의 화두" },
+                { key: "student", label: "학생·어린이" },
               ] as const
             ).map((o) => {
               const active = audience === o.key;
               return (
                 <button
                   key={o.key}
+                  type="button"
+                  aria-pressed={active}
                   onClick={() => setAudience(o.key)}
-                  className={`rounded-full border px-4 py-2 tracking-[0.1em] transition-colors ${
+                  className={`rounded-full px-5 py-2 tracking-[0.1em] transition-colors ${
                     active
-                      ? "border-gold/60 text-gold"
-                      : "border-ink-3 text-hanji-dim hover:text-hanji"
+                      ? "bg-gold font-medium text-ink"
+                      : "bg-transparent text-hanji-faint"
                   }`}
                 >
                   {o.label}
@@ -204,19 +213,6 @@ export default function TryPage() {
               );
             })}
           </div>
-
-          <div className="my-6 flex items-center gap-3.5 opacity-80">
-            <div className="h-px w-[100px] bg-gradient-to-r from-transparent to-gold/45" />
-            <Dharmachakra className="h-[18px] w-[18px]" stroke="#B99A54" />
-            <div className="h-px w-[100px] bg-gradient-to-r from-gold/45 to-transparent" />
-          </div>
-          <button
-            onClick={receive}
-            className="btn-obang flex items-center gap-2.5 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
-          >
-            <Lotus className="h-[18px] w-[18px]" stroke="#D9B45B" />
-            <span>새 화두 받기</span>
-          </button>
         </section>
       )}
 

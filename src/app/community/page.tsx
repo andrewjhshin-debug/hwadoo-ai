@@ -87,7 +87,7 @@ export default function CommunityPage() {
 
   return (
     <div className="mx-auto w-full max-w-xl flex-1 px-6 py-14">
-      <div className="rise flex flex-col items-center text-center">
+      <div className="rise hidden flex-col items-center text-center sm:flex">
         <Lantern className="h-8 w-8 text-gold-soft opacity-80" />
         <h1 className="mt-5 text-xs tracking-[0.5em] text-gold-soft">
           蓮池院 · 연지원
@@ -101,7 +101,7 @@ export default function CommunityPage() {
       </div>
 
       {/* 글쓰기 */}
-      <div className="rise rise-d1 mt-10">
+      <div className="rise rise-d1 mt-0 sm:mt-10">
         {user === null ? (
           <div className="border border-ink-3 bg-ink-2/50 px-6 py-5 text-center">
             <p className="text-[13px] text-hanji-dim">

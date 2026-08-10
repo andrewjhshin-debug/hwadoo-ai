@@ -53,6 +53,7 @@ export default function Home() {
   const [store, setStore] = useState<Store | null>(null);
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
   const [holdingCount, setHoldingCount] = useState<number | null>(null);
@@ -174,6 +175,7 @@ export default function Home() {
       defaultDays: days,
       current: store.current ? { ...store.current, durationDays: days } : null,
     });
+    setShowSettings(false);
   };
 
   const current = store?.current ?? null;
@@ -413,7 +415,8 @@ export default function Home() {
         {/* 기간 바꾸기 */}
         {!unlocked && (
           <div className="mt-7">
-            <div className="flex flex-col items-center gap-3">
+            {showSettings ? (
+              <div className="flex flex-col items-center gap-3">
                 <div className="flex flex-wrap items-center justify-center gap-2.5">
                   {DAY_OPTIONS.map((d) => (
                     <button
@@ -432,7 +435,15 @@ export default function Home() {
                 <p className="text-[11px] tracking-wide text-hanji-faint">
                   {DAY_NOTE[current.durationDays] ?? ""}
                 </p>
-            </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowSettings(true)}
+                className="text-xs tracking-widest text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji-dim"
+              >
+                기간 바꾸기
+              </button>
+            )}
           </div>
         )}
 
