@@ -136,7 +136,7 @@ export default function NotesDrawer({
               onClick={saveNow}
               className="border border-ink-3 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
             >
-              임시 저장
+              저장
             </button>
           </div>
         </div>
