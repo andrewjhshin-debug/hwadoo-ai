@@ -3,7 +3,8 @@
 // ─────────────────────────────────────────────────────────────
 
 export const SITE_NAME = "화두";
-export const SITE_NAME_EN = "HWADOO";
+export const SITE_NAME_EN = "HWADU"; // 영문 표기는 hwadu로 통일
+export const SITE_URL = "https://hwa-du.com";
 
 // 슬로건 — 서비스의 얼굴
 export const SLOGAN = "모두가 AI에게 묻는 시대, 화두는 당신에게 묻는다.";
