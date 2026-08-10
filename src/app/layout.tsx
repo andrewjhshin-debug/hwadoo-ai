@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
   description: `${SLOGAN} 하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 그대의 답을 씁니다. 옛 선사들의 화두를 받아 참구하고 기록하는 도량.`,
   keywords: ["화두", "명상", "선", "불교", "간화선", "참선", "koan", "사유"],
+  verification: {
+    google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",
+  },
   openGraph: {
     title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
     description:
