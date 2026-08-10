@@ -185,7 +185,7 @@ export default function Home() {
   // ── 화두가 없다 — 브랜드 얼굴 ──────────────────────────
   if (store !== null && !current) {
     return (
-      <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
+      <div className="relative flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-8 text-center sm:justify-center sm:py-14">
         <div className="rise">
           <Enso size={140} />
         </div>
@@ -350,7 +350,7 @@ export default function Home() {
 
   // ── 화두를 들고 있다 — 질문이 주인공 ────────────────────
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
+    <div className="relative flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-6 text-center sm:justify-center sm:py-14">
       <section className="rise flex w-full max-w-2xl flex-col items-center">
         {/* 질문 — 눈높이, 화면의 주인공 */}
         {hwadu?.hanja && (

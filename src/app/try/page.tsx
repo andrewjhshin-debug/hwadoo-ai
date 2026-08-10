@@ -18,8 +18,9 @@ import { durationLabel, loadStore, saveStore } from "@/lib/store";
 
 const MAX_ANSWER = 500;
 
-// 체험은 언제나 이 화두 하나로 — '이뭣고(是甚麼)'
-const TRY_HWADU_ID = "simsima";
+// 체험 대표 화두 — 성인은 '이뭣고(是甚麼)', 학생·어린이는 '나는 누구인가'
+const TRY_ADULT_ID = "simsima";
+const TRY_STUDENT_ID = "who-am-i";
 
 type Step = "choose" | "received" | "pondering" | "ripened" | "writing" | "done";
 
@@ -47,14 +48,16 @@ const NAV: Partial<Record<Step, { prev: string; next: string }>> = {
 export default function TryPage() {
   const [step, setStep] = useState<Step>("choose");
   const [hwadu, setHwadu] = useState<Hwadu | null>(null);
+  const [audience, setAudience] = useState<"adult" | "student">("adult");
   const [days, setDays] = useState(3);
   const [notesOpen, setNotesOpen] = useState(false);
   const [memo, setMemo] = useState("");
   const [answer, setAnswer] = useState("");
 
-  // 화두를 받는다 — 언제나 '이뭣고'
+  // 화두를 받는다 — 성인은 이뭣고, 학생·어린이는 '나는 누구인가'
   const receive = () => {
-    setHwadu(getHwadu(TRY_HWADU_ID) ?? null);
+    const id = audience === "student" ? TRY_STUDENT_ID : TRY_ADULT_ID;
+    setHwadu(getHwadu(id) ?? null);
     setStep("received");
   };
 
@@ -154,12 +157,12 @@ export default function TryPage() {
             );
           })}
         </div>
-        <div className="mt-6 h-px w-full bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
+        <div className="mt-3 h-px w-full bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
       </div>
 
       {/* ── 1. 화두 받기 전 — 홈과 같은 화면 ── */}
       {step === "choose" && (
-        <section className="rise mt-10 flex flex-col items-center">
+        <section className="rise mt-5 flex flex-col items-center">
           <Enso size={130} />
           <h1 className="text-obang mt-6 font-serif text-[40px] font-semibold leading-none tracking-[0.5em] [text-indent:0.5em]">
             화두
@@ -168,8 +171,36 @@ export default function TryPage() {
             HWADU
           </p>
           <p className="mt-6 max-w-sm break-keep text-[13.5px] font-light leading-7 tracking-[0.05em] text-hanji-dim">
-            체험은 가장 오래된 입문 화두 &lsquo;이뭣고&rsquo; 하나로 함께 걷습니다.
+            {audience === "student"
+              ? "학생·어린이의 첫 화두 ‘나는 누구인가’로 함께 걷습니다."
+              : "가장 오래된 입문 화두 ‘이뭣고’ 하나로 함께 걷습니다."}
           </p>
+
+          {/* 누구의 화두인가 — 성인 / 학생·어린이 */}
+          <div className="mt-6 flex items-center gap-3 text-xs">
+            {(
+              [
+                { key: "adult", label: "성인의 화두" },
+                { key: "student", label: "학생·어린이의 화두" },
+              ] as const
+            ).map((o) => {
+              const active = audience === o.key;
+              return (
+                <button
+                  key={o.key}
+                  onClick={() => setAudience(o.key)}
+                  className={`rounded-full border px-4 py-2 tracking-[0.1em] transition-colors ${
+                    active
+                      ? "border-gold/60 text-gold"
+                      : "border-ink-3 text-hanji-dim hover:text-hanji"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="my-9 flex items-center gap-3.5 opacity-80">
             <div className="h-px w-[100px] bg-gradient-to-r from-transparent to-gold/45" />
             <Dharmachakra className="h-[18px] w-[18px]" stroke="#B99A54" />
@@ -256,7 +287,7 @@ export default function TryPage() {
 
       {/* ── 2·3·4. 화두를 들고 있는 화면 — 실제와 똑같이 ── */}
       {hwadu && step !== "choose" && step !== "done" && (
-        <section className="rise mt-6 flex w-full max-w-2xl flex-col items-center">
+        <section className="rise mt-3 flex w-full max-w-2xl flex-col items-center">
           {hwadu.hanja && (
             <p className="text-xs tracking-[0.6em] text-hanji-faint">
               {hwadu.hanja}
@@ -328,7 +359,7 @@ export default function TryPage() {
                     달이 차오르는 {durationLabel(days)} 뒤, 답을 쓸 수 있습니다
                     ·{" "}
                     <span className="tabular-nums text-hanji">
-                      2일 23시간 59분 12초
+                      {days}일 00시간 00분 00초
                     </span>{" "}
                     남음
                   </span>
