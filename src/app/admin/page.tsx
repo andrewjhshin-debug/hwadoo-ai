@@ -40,6 +40,26 @@ function BankRow({ h, i }: { h: Hwadu; i: number }) {
   );
 }
 
+// 추가된(선방·관리자) 화두 열람 줄 — title/hanja가 없어 질문 본문으로 보여준다
+function PublicRow({ p, i }: { p: PublicHwadu; i: number }) {
+  return (
+    <li className="border-l border-gold/30 pl-3">
+      <p className="text-[12.5px] text-hanji-dim">
+        <span className="text-hanji-faint">{i + 1}.</span>{" "}
+        {p.question.replace(/\s+/g, " ").slice(0, 22)}
+        {p.question.length > 22 && "…"}
+        <span className="ml-1.5 text-[10px] tracking-wider text-gold-soft">
+          {p.origin === "admin" ? "· 관리자" : "· 선방"}
+        </span>
+      </p>
+      <p className="mt-0.5 whitespace-pre-line text-[11.5px] leading-5 text-hanji-faint">
+        {p.question}
+        {p.source && <span className="text-hanji-faint"> — {p.source}</span>}
+      </p>
+    </li>
+  );
+}
+
 export default function AdminPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>("pending");
@@ -172,11 +192,26 @@ export default function AdminPage() {
               어록이 붙어 있어 코드에 삽니다. 추가·수정은 Claude에게 말하면
               됩니다.
             </p>
+            <h3 className="mt-5 text-[11px] tracking-[0.3em] text-hanji-faint">
+              기본 화두 · {adultBank.length}
+            </h3>
             <ul className="mt-4 space-y-4">
               {adultBank.map((h, i) => (
                 <BankRow key={h.id} h={h} i={i} />
               ))}
             </ul>
+            {publicAdult.length > 0 && (
+              <>
+                <h3 className="mt-8 text-[11px] tracking-[0.3em] text-gold-soft">
+                  내가·선방이 더한 화두 · {publicAdult.length}
+                </h3>
+                <ul className="mt-3 space-y-4">
+                  {publicAdult.map((p, i) => (
+                    <PublicRow key={p.id} p={p} i={adultBank.length + i} />
+                  ))}
+                </ul>
+              </>
+            )}
           </section>
         )}
 
@@ -199,6 +234,18 @@ export default function AdminPage() {
                 <BankRow key={h.id} h={h} i={i} />
               ))}
             </ul>
+            {publicStudent.length > 0 && (
+              <>
+                <h3 className="mt-8 text-[11px] tracking-[0.3em] text-gold-soft">
+                  더한 학생·어린이 화두 · {publicStudent.length}
+                </h3>
+                <ul className="mt-3 space-y-4">
+                  {publicStudent.map((p, i) => (
+                    <PublicRow key={p.id} p={p} i={i} />
+                  ))}
+                </ul>
+              </>
+            )}
           </section>
         )}
 
