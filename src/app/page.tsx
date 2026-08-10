@@ -11,8 +11,13 @@ import Link from "next/link";
 import Enso from "@/components/Enso";
 import Donation from "@/components/Donation";
 import NotesDrawer from "@/components/NotesDrawer";
-import { Banga, Dharmachakra } from "@/components/icons";
-import { getHwadu, pickRandomHwadu, sessionQuestion } from "@/lib/hwadu";
+import { Banga, Dharmachakra, Lotus } from "@/components/icons";
+import {
+  flatQuestion,
+  getHwadu,
+  pickRandomHwadu,
+  sessionQuestion,
+} from "@/lib/hwadu";
 import { fetchPublicHwadu, type PublicHwadu } from "@/lib/thrown";
 import { sharePost } from "@/lib/community";
 import {
@@ -33,8 +38,15 @@ import {
 } from "@/lib/store";
 import { SLOGAN } from "@/lib/config";
 
-// 불교 전통의 리듬 — 하루, 삼일기도, 칠일 정진, 삼칠일(3×7일)
-const DAY_OPTIONS = [1, 3, 7, 21];
+// 불교 전통의 리듬 — 하루, 삼일기도, 칠일 정진, 삼칠일(3×7일), 백팔일(108 번뇌)
+const DAY_OPTIONS = [1, 3, 7, 21, 108];
+const DAY_NOTE: Record<number, string> = {
+  1: "하루 — 첫걸음",
+  3: "사흘 — 삼일기도의 리듬",
+  7: "이레 — 칠일 용맹정진",
+  21: "삼칠일 — 세 이레, 회향의 단위",
+  108: "백팔일 — 백팔번뇌를 마주하는 가장 깊은 참구",
+};
 
 export default function Home() {
   const [store, setStore] = useState<Store | null>(null);
@@ -207,9 +219,10 @@ export default function Home() {
         </div>
         <button
           onClick={() => store && receive(store)}
-          className="btn-obang rise rise-d2 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
+          className="btn-obang rise rise-d2 inline-flex items-center gap-2.5 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
         >
-          새 화두 받기
+          <Lotus className="h-[18px] w-[18px]" stroke="#B99A54" />
+          <span>새 화두 받기</span>
         </button>
 
         {/* 누구의 화두인가 — 성인 / 학생·어린이 (클릭으로만 바뀜) */}
@@ -336,8 +349,8 @@ export default function Home() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-14">
         <section className="rise flex w-full max-w-xl flex-col">
-          <p className="whitespace-pre-line text-center font-serif text-sm font-light leading-8 text-hanji-dim">
-            {sessionQuestion(current)}
+          <p className="text-center font-serif text-sm font-light leading-8 text-hanji-dim">
+            {flatQuestion(sessionQuestion(current))}
           </p>
           <div className="mt-9 border-t border-ink-3 pt-7">
             <textarea
@@ -386,8 +399,8 @@ export default function Home() {
             {hwadu.hanja}
           </p>
         )}
-        <h1 className="question-glow mt-7 whitespace-pre-line font-serif text-[23px] font-light leading-[1.7] sm:text-[29px] sm:leading-[1.7]">
-          {sessionQuestion(current)}
+        <h1 className="question-glow mt-7 font-serif text-[38px] font-light leading-[1.5] sm:text-[52px] sm:leading-[1.45]">
+          {flatQuestion(sessionQuestion(current))}
         </h1>
         {(hwadu?.context || current.customSource) && (
           <p className="mt-7 text-xs tracking-wider text-hanji-faint">
@@ -444,20 +457,25 @@ export default function Home() {
         {!unlocked && (
           <div className="mt-7">
             {showSettings ? (
-              <div className="flex items-center gap-3">
-                {DAY_OPTIONS.map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => setDays(d)}
-                    className={`border px-4 py-2 text-xs tracking-[0.15em] transition-colors ${
-                      current.durationDays === d
-                        ? "border-gold/60 text-gold"
-                        : "border-ink-3 text-hanji-dim hover:text-hanji"
-                    }`}
-                  >
-                    {durationLabel(d)}
-                  </button>
-                ))}
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-wrap items-center justify-center gap-2.5">
+                  {DAY_OPTIONS.map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setDays(d)}
+                      className={`border px-4 py-2 text-xs tracking-[0.15em] transition-colors ${
+                        current.durationDays === d
+                          ? "border-gold/60 text-gold"
+                          : "border-ink-3 text-hanji-dim hover:text-hanji"
+                      }`}
+                    >
+                      {durationLabel(d)}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] tracking-wide text-hanji-faint">
+                  {DAY_NOTE[current.durationDays] ?? ""}
+                </p>
               </div>
             ) : (
               <button

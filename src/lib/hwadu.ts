@@ -661,3 +661,8 @@ export function sessionTitle(session: Session): string {
 export function sessionQuestion(session: Session): string {
   return session.customQuestion ?? getHwadu(session.hwaduId)?.question ?? "";
 }
+
+// 화두를 한 줄로 — 줄바꿈을 공백으로 (제목·본문 렌더용)
+export function flatQuestion(text: string): string {
+  return text.replace(/\s*\n\s*/g, " ").trim();
+}

@@ -19,18 +19,18 @@ import {
   Banga,
   Book,
   Dharmachakra,
-  Gate,
+  Elephant,
   Jukbi,
   Lantern,
   Lotus,
-  Moktak,
+  SeonMaster,
   Person,
   Teacup,
 } from "./icons";
 
 const NAV = [
   { href: "/ganhwaseon", label: "간화선이란?", Icon: Dharmachakra },
-  { href: "/masters", label: "선지식의 한마디", Icon: Moktak },
+  { href: "/masters", label: "선지식의 한마디", Icon: SeonMaster },
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
@@ -221,7 +221,7 @@ export default function Sidebar() {
               : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
           } ${slim ? "justify-center px-0" : "px-3"}`}
         >
-          <Gate className="h-[15px] w-[15px] opacity-75" />
+          <Elephant className="h-[16px] w-[16px] opacity-75" />
           {!slim && <span>체험하기</span>}
         </Link>
 

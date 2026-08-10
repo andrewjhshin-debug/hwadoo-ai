@@ -119,6 +119,20 @@ export function Gate({ className = "w-4 h-4" }: IconProps) {
   );
 }
 
+// 불족(佛足) — 발자국. 체험하기 = 첫걸음.
+export function Footprint({ className = "w-4 h-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {/* 발바닥 */}
+      <path d="M10 21c-2.2 0-3.6-1.6-3.6-3.8 0-3 1.2-5.4 1.2-8C7.6 6.2 8.9 4 11 4c2 0 3.2 1.9 3.2 4.6 0 2.8-1.4 5-1.4 8.2 0 2.4-.9 4.2-2.8 4.2z" />
+      {/* 발가락 다섯 */}
+      <circle cx="16.4" cy="5.2" r="0.9" />
+      <circle cx="18.3" cy="7.6" r="0.8" />
+      <circle cx="19.2" cy="10.3" r="0.7" />
+    </svg>
+  );
+}
+
 // 사람 — 로그인
 export function Person({ className = "w-4 h-4" }: IconProps) {
   return (
@@ -134,6 +148,39 @@ export function Book({ className = "w-4 h-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className={className}>
       <path d="M4 19V5a2 2 0 012-2h12v18H6a2 2 0 01-2-2zm0 0a2 2 0 012-2h12" />
+    </svg>
+  );
+}
+
+// 코끼리(象) — 흰 코끼리는 보현보살의 상징. 체험하기 = 크고 온순한 첫걸음.
+export function Elephant({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {/* 둥근 머리와 등 */}
+      <path d="M4 15c0-4 2.8-7 6.8-7 3.6 0 6.2 2.4 6.6 5.8" />
+      {/* 귀 */}
+      <path d="M7.4 11.2c-1.8-.3-3 .6-3.2 2.2" />
+      {/* 앞다리 · 뒷다리 */}
+      <path d="M7 15.4V19M17 14.6V19" />
+      {/* 코 — 아래로 말린 곡선 */}
+      <path d="M17.4 12.6c1 .3 1.7 1.1 1.7 2.2 0 1.1-.8 1.9-1.8 1.9-.9 0-1.5-.6-1.5-1.4" />
+    </svg>
+  );
+}
+
+// 선사(禪師) — 수염난 노스님. 선지식의 한마디.
+export function SeonMaster({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {/* 민머리 두상 */}
+      <path d="M8 9.5c0-2.4 1.8-4.2 4-4.2s4 1.8 4 4.2" />
+      {/* 눈 — 지그시 감은 */}
+      <path d="M9.6 10.2c.5.4 1.1.4 1.6 0M12.8 10.2c.5.4 1.1.4 1.6 0" />
+      {/* 긴 눈썹 */}
+      <path d="M9.4 8.4c-.7-.1-1.3.1-1.7.6M14.6 8.4c.7-.1 1.3.1 1.7.6" />
+      {/* 콧수염 · 흘러내린 긴 수염 */}
+      <path d="M10.4 12.2c.5.5 1.1.7 1.6.7s1.1-.2 1.6-.7" />
+      <path d="M9.2 12.4c-.6 2.6-1 5-1 7.1M14.8 12.4c.6 2.6 1 5 1 7.1M12 13.4V21" />
     </svg>
   );
 }
