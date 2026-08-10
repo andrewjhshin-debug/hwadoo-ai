@@ -59,7 +59,7 @@ export async function createPost(title: string, body: string) {
   return addDoc(collection(db, "posts"), {
     title,
     body,
-    authorName: anonName(u.uid), // 익명 — 불교 낱말 이름
+    authorName: anonName(), // 익명 — 쓸 때마다 무작위 낱말 이름
     authorUid: u.uid,
     hapjang: 0,
     commentCount: 0,
@@ -89,7 +89,7 @@ export async function addComment(postId: string, body: string) {
   if (!u) throw new Error("로그인이 필요합니다");
   await addDoc(collection(db, "posts", postId, "comments"), {
     body,
-    authorName: anonName(u.uid), // 익명 — 불교 낱말 이름
+    authorName: anonName(), // 익명 — 쓸 때마다 무작위 낱말 이름
     authorUid: u.uid,
     createdAt: serverTimestamp(),
   });

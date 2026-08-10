@@ -3,7 +3,7 @@
 // 기록 — 회향을 마친 화두들의 서고(書庫). 답은 고쳐 쓰거나 지울 수 있다.
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { flatQuestion, sessionQuestion, sessionTitle } from "@/lib/hwadu";
+import { flatQuestion, getHwadu, sessionQuestion, sessionTitle } from "@/lib/hwadu";
 import { formatDate, loadStore, saveStore, type Session } from "@/lib/store";
 
 const MAX_ANSWER = 500;
@@ -162,6 +162,32 @@ export default function ArchivePage() {
                     </p>
                   </details>
                 )}
+
+                {/* 옛 스승들은 이렇게 일렀습니다 — 접었다 펼치기 */}
+                {(() => {
+                  const masters = getHwadu(s.hwaduId)?.masters ?? [];
+                  if (masters.length === 0 || editing) return null;
+                  return (
+                    <details className="mt-3">
+                      <summary className="cursor-pointer text-[11px] tracking-widest text-gold-soft transition-colors hover:text-gold">
+                        옛 스승들은 이렇게 일렀습니다
+                      </summary>
+                      <div className="mt-4 flex flex-col gap-6 border-l border-gold/25 pl-5">
+                        {masters.map((m, mi) => (
+                          <figure key={m.name + mi}>
+                            <blockquote className="whitespace-pre-line break-keep font-serif text-[13.5px] font-light leading-8 text-hanji-dim">
+                              {m.text}
+                            </blockquote>
+                            <figcaption className="mt-2 text-right text-[11px] tracking-widest text-hanji-faint">
+                              — {m.name}
+                              {m.era && <span> · {m.era}</span>}
+                            </figcaption>
+                          </figure>
+                        ))}
+                      </div>
+                    </details>
+                  );
+                })()}
               </article>
             );
           })}
