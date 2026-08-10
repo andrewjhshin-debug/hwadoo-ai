@@ -114,12 +114,19 @@ export default function AdminPage() {
   const adminHwadu = publicList.filter((p) => p.origin === "admin");
   const approvedThrown = publicList.filter((p) => p.origin !== "admin");
 
+  // 실제 랜덤 풀에 섞이는 성인/학생 총계 — 기본 화두(HWADU_BANK) + 추가된 화두(publicList)
+  const publicAdult = publicList.filter((p) => (p.audience ?? "adult") === "adult");
+  const publicStudent = publicList.filter((p) => p.audience === "student");
+  const adultTotal = adultBank.length + publicAdult.length;
+  const studentTotal =
+    studentOnly.length + studentClassics.length + publicStudent.length;
+
   const TABS: { key: Tab; label: string; count: number }[] = [
-    { key: "adult", label: "성인 화두", count: adultBank.length },
+    { key: "adult", label: "성인 화두", count: adultTotal },
     {
       key: "student",
       label: "학생·어린이 화두",
-      count: studentOnly.length + studentClassics.length,
+      count: studentTotal,
     },
     { key: "mine", label: "내가 더한 화두", count: adminHwadu.length },
     { key: "pending", label: "승인 대기", count: pending.length },
@@ -134,8 +141,7 @@ export default function AdminPage() {
         道場 뒷방 · 관리자
       </h1>
       <p className="mt-3 text-center text-xs text-hanji-faint">
-        랜덤 풀 — 성인 {adultBank.length + publicList.length}칙 · 학생{" "}
-        {studentOnly.length + studentClassics.length}칙
+        랜덤 풀 — 성인 {adultTotal}칙 · 학생 {studentTotal}칙
       </p>
       {error && (
         <p className="mt-3 text-center text-xs text-vermilion">{error}</p>

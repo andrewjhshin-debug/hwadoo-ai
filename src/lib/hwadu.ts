@@ -672,6 +672,15 @@ export function pickRandomHwadu(
   return source[Math.floor(Math.random() * source.length)];
 }
 
+// 대상별 기본 화두(HWADU_BANK) 개수 — 하드코딩 대신 실제로 센다
+export function bankCount(audience: "adult" | "student" = "adult"): number {
+  return HWADU_BANK.filter((h) =>
+    audience === "student"
+      ? h.audience === "student" || h.forStudent
+      : h.audience !== "student"
+  ).length;
+}
+
 export function getHwadu(id: string): Hwadu | undefined {
   return HWADU_BANK.find((h) => h.id === id);
 }

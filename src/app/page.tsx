@@ -14,6 +14,7 @@ import NotesDrawer from "@/components/NotesDrawer";
 import { Banga, Dharmachakra, Lotus } from "@/components/icons";
 import {
   flatQuestion,
+  bankCount,
   getHwadu,
   pickRandomHwadu,
   sessionQuestion,
@@ -107,7 +108,7 @@ export default function Home() {
     const freshPublic = publicPool.filter(
       (p) => (p.audience ?? "adult") === audience && !exclude.includes(`thrown:${p.id}`)
     );
-    const total = 30 + freshPublic.length;
+    const total = bankCount(audience) + freshPublic.length;
     let newId: string;
     if (freshPublic.length > 0 && Math.random() < freshPublic.length / total) {
       const p = freshPublic[Math.floor(Math.random() * freshPublic.length)];
