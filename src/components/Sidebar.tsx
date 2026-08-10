@@ -132,27 +132,35 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* 모바일 상단 바 */}
-      <div className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-ink-3 bg-ink-2/95 px-4 backdrop-blur md:hidden">
-        <Link href="/" className="flex items-center gap-2.5">
+      {/* 모바일 상단 바 — 로고 가운데, 메뉴 오른쪽 */}
+      <div className="fixed inset-x-0 top-0 z-50 flex h-14 items-center border-b border-ink-3 bg-ink-2/95 px-2 backdrop-blur md:hidden">
+        {/* 왼쪽 — 테마 토글 (로고를 정확히 가운데 두기 위한 좌측 균형추) */}
+        <div className="flex w-12 justify-start">
+          <ThemeToggle />
+        </div>
+        {/* 가운데 — 법륜 + 화두 로고 */}
+        <Link
+          href="/"
+          className="flex flex-1 items-center justify-center gap-2.5"
+        >
           <Dharmachakra className="h-5 w-5" stroke="#D9B45B" />
           <span className="text-gold-grad font-serif text-base font-semibold tracking-[0.35em]">
             화두
           </span>
         </Link>
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
+        {/* 오른쪽 — 삼선 메뉴 */}
+        <div className="flex w-12 justify-end">
           <button
             onClick={() => setOpen(!open)}
             aria-label="메뉴 열기"
             className="p-2 text-hanji-dim"
           >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5">
-            {open ? (
-              <path d="M6 6l12 12M18 6L6 18" />
-            ) : (
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            )}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5">
+              {open ? (
+                <path d="M6 6l12 12M18 6L6 18" />
+              ) : (
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              )}
             </svg>
           </button>
         </div>
