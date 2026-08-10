@@ -211,7 +211,7 @@ export default function TryPage() {
             {hwadu.hanja}
           </p>
         )}
-        <h1 className="question-glow mt-7 font-serif text-[38px] font-light leading-[1.5] sm:text-[52px] sm:leading-[1.45]">
+        <h1 className="question-glow mt-7 break-keep font-serif text-[38px] font-light leading-[1.5] sm:text-[52px] sm:leading-[1.45]">
           {flatQuestion(hwadu.question)}
         </h1>
         {hwadu.context && (

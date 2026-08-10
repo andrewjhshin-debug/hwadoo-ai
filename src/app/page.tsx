@@ -210,11 +210,8 @@ export default function Home() {
           <span>새 화두 받기</span>
         </button>
 
-        {/* 누구의 화두인가 — 하나로 붙은 스위치 (클릭으로만 바뀜) */}
-        <div
-          role="tablist"
-          className="rise rise-d3 mt-7 inline-flex rounded-full border border-ink-3 p-1 text-xs"
-        >
+        {/* 누구의 화두인가 — 채워진 알약 스위치 (클릭으로만 바뀜) */}
+        <div className="rise rise-d3 mt-7 inline-flex rounded-full border border-ink-3 bg-ink-2 p-1 text-xs">
           {(
             [
               { key: "adult", label: "성인의 화두" },
@@ -226,13 +223,12 @@ export default function Home() {
               <button
                 key={o.key}
                 type="button"
-                role="tab"
-                aria-selected={active}
+                aria-pressed={active}
                 onClick={() => store && update({ ...store, audience: o.key })}
                 className={`rounded-full px-5 py-2 tracking-[0.1em] transition-colors ${
                   active
-                    ? "bg-gold/20 font-medium text-gold"
-                    : "text-hanji-faint"
+                    ? "bg-gold font-medium text-ink"
+                    : "bg-transparent text-hanji-faint"
                 }`}
               >
                 {o.label}
@@ -361,7 +357,7 @@ export default function Home() {
             {hwadu.hanja}
           </p>
         )}
-        <h1 className="question-glow mt-7 font-serif text-[38px] font-light leading-[1.5] sm:text-[52px] sm:leading-[1.45]">
+        <h1 className="question-glow mt-7 break-keep font-serif text-[38px] font-light leading-[1.5] sm:text-[52px] sm:leading-[1.45]">
           {flatQuestion(sessionQuestion(current))}
         </h1>
         {(hwadu?.context || current.customSource) && (

@@ -45,6 +45,7 @@ function mergeStores(local: Store, cloud: Store | null): Store {
     history,
     received: Math.max(local.received, cloud.received, history.length),
     defaultDays: local.defaultDays ?? cloud.defaultDays,
+    audience: local.audience ?? cloud.audience,
   };
 }
 
