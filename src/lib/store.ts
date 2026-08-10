@@ -5,8 +5,9 @@
 // ─────────────────────────────────────────────────────────────
 
 export type Session = {
-  hwaduId: string; // 화두 은행의 id. 직접 던진 화두면 "custom"
-  customQuestion?: string; // 내가 던지는 화두 — 직접 쓴 물음
+  hwaduId: string; // 화두 은행의 id. 서버 화두면 "thrown:문서id"
+  customQuestion?: string; // 서버 화두의 물음 본문
+  customSource?: string; // 서버 화두의 출처 (있으면 질문 아래 표시)
   receivedAt: number; // 화두를 받은 시각 (epoch ms)
   durationDays: number; // 참구 기간 (1 | 3 | 7), 0 = 스스로 정함(수동)
   notes?: string; // 참구 중의 단상 — 임시저장 메모

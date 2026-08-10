@@ -19,7 +19,6 @@ import {
   Banga,
   Book,
   Dharmachakra,
-  Gate,
   Jukbi,
   Lantern,
   Lotus,
@@ -154,25 +153,11 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* 뜰 — 홈. 테두리를 둘러 문(門)답게 */}
-        <Link
-          href="/"
-          title="뜰"
-          className={`flex items-center gap-2.5 rounded-[10px] border py-2.5 text-[13.5px] transition-colors ${
-            pathname === "/"
-              ? "border-gold/40 bg-gold/10 text-hanji"
-              : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:bg-gold/5 hover:text-hanji"
-          } ${slim ? "justify-center px-0" : "px-3"}`}
-        >
-          <Gate className="h-[16px] w-[16px] opacity-75" />
-          {!slim && <span className="tracking-[0.2em]">뜰</span>}
-        </Link>
-
-        {/* 새 화두 받기 */}
+        {/* 새 화두 받기 — 홈 */}
         <Link
           href="/"
           title="새 화두 받기"
-          className={`btn-obang mt-2 flex items-center gap-2.5 py-3 text-sm font-medium text-hanji transition-opacity hover:opacity-90 ${
+          className={`btn-obang flex items-center gap-2.5 py-3 text-sm font-medium text-hanji transition-opacity hover:opacity-90 ${
             slim ? "justify-center px-0" : "px-4"
           }`}
         >

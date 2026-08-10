@@ -119,12 +119,31 @@ export default function MyHwaduPage() {
             {thrown.map((t) => (
               <li
                 key={t.thrownAt}
-                className="border-l border-gold/25 pl-4 text-sm font-light leading-7 text-hanji-dim"
+                className="flex items-start justify-between gap-4 border-l border-gold/25 pl-4"
               >
-                {t.question}
+                <span className="text-sm font-light leading-7 text-hanji-dim">
+                  {t.question}
+                </span>
+                <button
+                  onClick={() => {
+                    const next = thrown.filter(
+                      (x) => x.thrownAt !== t.thrownAt
+                    );
+                    window.localStorage.setItem(KEY, JSON.stringify(next));
+                    setThrown(next);
+                  }}
+                  aria-label="이 목록에서 지우기"
+                  className="shrink-0 pt-1 text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-vermilion"
+                >
+                  지우기
+                </button>
               </li>
             ))}
           </ul>
+          <p className="mt-4 text-[11px] leading-5 text-hanji-faint">
+            여기서 지워도 이미 시위를 떠난 물음은 돌아오지 않습니다 — 도량에
+            닿은 것은 도량이 거둡니다.
+          </p>
         </div>
       )}
     </div>

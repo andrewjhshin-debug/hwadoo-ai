@@ -16,6 +16,11 @@ import { getHwadu, pickRandomHwadu, sessionQuestion } from "@/lib/hwadu";
 import { fetchPublicHwadu, type PublicHwadu } from "@/lib/thrown";
 import { sharePost } from "@/lib/community";
 import {
+  decrementHolding,
+  fetchHoldingCount,
+  incrementHolding,
+} from "@/lib/holding";
+import {
   durationLabel,
   formatCountdown,
   isUnlocked,
@@ -36,6 +41,7 @@ export default function Home() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
   const [shareState, setShareState] = useState<"idle" | "busy" | "done">("idle");
+  const [holdingCount, setHoldingCount] = useState<number | null>(null);
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -43,6 +49,16 @@ export default function Home() {
     // 승인된 '던져진 화두'들을 랜덤 풀에 합류시킨다 (실패해도 기본 30칙으로 동작)
     fetchPublicHwadu().then(setPublicPool).catch(() => {});
   }, []);
+
+  // 지금 이 물음을 몇 명이 들고 있는가
+  useEffect(() => {
+    const id = store?.current?.hwaduId;
+    if (!id) {
+      setHoldingCount(null);
+      return;
+    }
+    fetchHoldingCount(id).then(setHoldingCount);
+  }, [store?.current?.hwaduId]);
 
   // 다른 기기에서 온 변화(로그인 동기화)를 화면에 즉시 반영
   useEffect(() => {
@@ -75,15 +91,18 @@ export default function Home() {
     const freshPublic = publicPool.filter(
       (p) => !exclude.includes(`thrown:${p.id}`)
     );
-    // 던져진 화두는 풀 크기에 비례해 자연스럽게 섞인다
+    // 서버 화두는 풀 크기에 비례해 자연스럽게 섞인다
     const total = 30 + freshPublic.length;
+    let newId: string;
     if (freshPublic.length > 0 && Math.random() < freshPublic.length / total) {
       const p = freshPublic[Math.floor(Math.random() * freshPublic.length)];
+      newId = `thrown:${p.id}`;
       update({
         ...base,
         current: {
-          hwaduId: `thrown:${p.id}`,
+          hwaduId: newId,
           customQuestion: p.question,
+          customSource: p.source,
           receivedAt: Date.now(),
           durationDays: base.defaultDays ?? 3,
         },
@@ -91,22 +110,25 @@ export default function Home() {
       });
     } else {
       const hwadu = pickRandomHwadu(exclude);
+      newId = hwadu.id;
       update({
         ...base,
         current: {
-          hwaduId: hwadu.id,
+          hwaduId: newId,
           receivedAt: Date.now(),
           durationDays: base.defaultDays ?? 3,
         },
         received: base.received + 1,
       });
     }
+    incrementHolding(newId); // 함께 들고 있는 수 +1
     setWriting(false);
     setDraft("");
   };
 
   const nextHwadu = () => {
     if (!store?.current) return;
+    decrementHolding(store.current.hwaduId); // 이 물음은 내려놓았다
     receive({ ...store, history: [...store.history, store.current], current: null });
     setShareState("idle");
   };
@@ -137,6 +159,7 @@ export default function Home() {
     if (!store?.current) return;
     if (!window.confirm("이 화두를 내려놓으시겠습니까?\n기록 없이 사라집니다."))
       return;
+    decrementHolding(store.current.hwaduId);
     update({ ...store, current: null });
     setWriting(false);
   };
@@ -329,9 +352,18 @@ export default function Home() {
         <h1 className="question-glow mt-7 whitespace-pre-line font-serif text-[28px] font-light leading-[1.85] sm:text-4xl sm:leading-[1.85]">
           {sessionQuestion(current)}
         </h1>
-        {hwadu?.context && (
+        {(hwadu?.context || current.customSource) && (
           <p className="mt-7 text-xs tracking-wider text-hanji-faint">
-            {hwadu.context}
+            {hwadu?.context ?? current.customSource}
+          </p>
+        )}
+
+        {/* 함께 드는 이들 */}
+        {holdingCount !== null && (
+          <p className="mt-5 text-[12px] tracking-wide text-gold-soft">
+            {holdingCount >= 2
+              ? `지금 이 물음을 ${holdingCount}명이 함께 들고 있습니다`
+              : "이 물음을 든 사람은, 지금 그대뿐입니다"}
           </p>
         )}
 
@@ -414,7 +446,7 @@ export default function Home() {
               href="/masters"
               className="border border-ink-3 px-5 py-2.5 tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
             >
-              선지식의 한마디 듣기
+              선지식의 한마디
             </Link>
             <Link
               href="/my-hwadu"
