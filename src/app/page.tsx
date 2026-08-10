@@ -33,7 +33,8 @@ import {
 } from "@/lib/store";
 import { SLOGAN } from "@/lib/config";
 
-const DAY_OPTIONS = [1, 3, 5, 7];
+// 불교 전통의 리듬 — 하루, 삼일기도, 칠일 정진, 삼칠일(3×7일)
+const DAY_OPTIONS = [1, 3, 7, 21];
 
 export default function Home() {
   const [store, setStore] = useState<Store | null>(null);
@@ -211,28 +212,32 @@ export default function Home() {
           새 화두 받기
         </button>
 
-        {/* 누구의 화두인가 — 어른 / 학생·어린이 */}
+        {/* 누구의 화두인가 — 성인 / 학생·어린이 (클릭으로만 바뀜) */}
         <div className="rise rise-d3 mt-7 flex items-center gap-3 text-xs">
           {(
             [
-              { key: "adult", label: "어른의 화두" },
+              { key: "adult", label: "성인의 화두" },
               { key: "student", label: "학생·어린이의 화두" },
             ] as const
-          ).map((o) => (
-            <button
-              key={o.key}
-              onClick={() =>
-                store && update({ ...store, audience: o.key })
-              }
-              className={`border px-4 py-2 tracking-[0.12em] transition-colors ${
-                (store?.audience ?? "adult") === o.key
-                  ? "border-gold/50 text-gold"
-                  : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
+          ).map((o) => {
+            const active = (store?.audience ?? "adult") === o.key;
+            return (
+              <button
+                key={o.key}
+                type="button"
+                aria-pressed={active}
+                onClick={() => store && update({ ...store, audience: o.key })}
+                className={`border px-4 py-2 tracking-[0.12em] transition-colors ${
+                  active
+                    ? "border-gold/70 bg-gold/15 font-medium text-gold"
+                    : "border-ink-3 text-hanji-faint hover:border-ink-3 hover:text-hanji-faint"
+                }`}
+              >
+                {active && "✓ "}
+                {o.label}
+              </button>
+            );
+          })}
         </div>
         <div className="mt-14 flex gap-2.5 opacity-60">
           <i className="h-[5px] w-[5px] rounded-full bg-obang-blue" />
@@ -381,7 +386,7 @@ export default function Home() {
             {hwadu.hanja}
           </p>
         )}
-        <h1 className="question-glow mt-7 whitespace-pre-line font-serif text-lg font-light leading-[1.65] sm:text-[22px] sm:leading-[1.65]">
+        <h1 className="question-glow mt-7 whitespace-pre-line font-serif text-[23px] font-light leading-[1.7] sm:text-[29px] sm:leading-[1.7]">
           {sessionQuestion(current)}
         </h1>
         {(hwadu?.context || current.customSource) && (

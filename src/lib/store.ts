@@ -92,6 +92,7 @@ export function durationLabel(days: number): string {
   if (days === 3) return "사흘";
   if (days === 5) return "닷새";
   if (days === 7) return "이레";
+  if (days === 21) return "삼칠일";
   return `${days}일`;
 }
 
