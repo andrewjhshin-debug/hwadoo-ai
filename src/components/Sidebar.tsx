@@ -14,7 +14,6 @@ import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
 import { sessionTitle } from "@/lib/hwadu";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
-import { ADMIN_UID } from "@/lib/config";
 import {
   Banga,
   Book,
@@ -169,14 +168,14 @@ export default function Sidebar() {
       {/* 모바일 배경 가림막 */}
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/60 md:hidden"
+          className="fixed inset-0 z-[46] bg-black/60 md:hidden"
           onClick={() => setOpen(false)}
         />
       )}
 
       {/* 사이드바 본체 */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex shrink-0 flex-col border-r border-ink-3 bg-ink-2 pb-7 pt-[5rem] transition-all duration-300 md:static md:z-auto md:translate-x-0 md:pb-4 md:pt-6 ${
+        className={`fixed inset-y-0 left-0 z-[47] flex shrink-0 flex-col border-r border-ink-3 bg-ink-2 pb-7 pt-[5rem] transition-all duration-300 md:static md:z-auto md:translate-x-0 md:pb-4 md:pt-6 ${
           slim ? "w-[68px] px-2" : "w-[264px] px-4"
         } ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
@@ -193,6 +192,20 @@ export default function Sidebar() {
             </Link>
           )}
           <div className={`flex items-center ${slim ? "flex-col gap-1" : "gap-0.5"}`}>
+            {/* 마이 페이지 · 내 도량 — 오른쪽 위 */}
+            <Link
+              href={user ? "/settings" : "/settings"}
+              title="마이 페이지 · 내 도량"
+              aria-label="마이 페이지"
+              className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
+            >
+              {user?.photoURL ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.photoURL} alt="" className="h-[18px] w-[18px] rounded-full border border-gold/30 object-cover" />
+              ) : (
+                <Person className="h-4 w-4" />
+              )}
+            </Link>
             <ThemeToggle />
             <button
               onClick={toggleCollapsed}
@@ -211,7 +224,7 @@ export default function Sidebar() {
         <Link
           href="/"
           title="새 화두 받기"
-          className={`btn-obang flex items-center gap-2.5 py-3.5 text-[16px] font-medium text-hanji transition-opacity hover:opacity-90 sm:py-3 sm:text-sm ${
+          className={`btn-obang flex items-center gap-2.5 py-3.5 text-[16px] font-medium text-hanji transition-opacity hover:opacity-90 sm:py-2.5 sm:text-[13px] ${
             slim ? "justify-center px-0" : "px-4"
           }`}
         >
@@ -223,7 +236,7 @@ export default function Sidebar() {
         <Link
           href="/try"
           title="체험하기"
-          className={`mt-2 flex items-center gap-2.5 rounded-[10px] border py-3 text-[15px] transition-colors sm:py-2.5 sm:text-[13px] ${
+          className={`mt-2 flex items-center gap-2.5 rounded-[10px] border py-3 text-[15px] transition-colors sm:py-2 sm:text-[12.5px] ${
             pathname === "/try"
               ? "border-gold/40 bg-gold/10 text-hanji"
               : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
@@ -240,7 +253,7 @@ export default function Sidebar() {
               key={href}
               href={href}
               title={label}
-              className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-3 text-[16px] transition-colors sm:py-2.5 sm:text-[13.5px] ${
+              className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-3 text-[16px] transition-colors sm:py-2 sm:text-[12.5px] ${
                 pathname === href
                   ? "bg-gold/10 text-hanji"
                   : "text-hanji-dim hover:bg-gold/5 hover:text-hanji"
@@ -291,7 +304,7 @@ export default function Sidebar() {
         {slim && <div className="flex-1" />}
 
         {/* 아래 — 로그인 */}
-        <div className="mt-auto shrink-0 border-t border-ink-3 pt-3.5">
+        <div className="mt-auto shrink-0 border-t border-ink-3 pt-3.5 md:hidden">
           {user ? (
             slim ? (
               <Link
@@ -324,7 +337,7 @@ export default function Sidebar() {
                     {user.displayName ?? "수행자"}님
                   </span>
                   <span className="block text-[11px] text-hanji-faint">
-                    설정 · 내 정보
+                    마이 페이지 · 내 도량
                   </span>
                 </span>
               </Link>
