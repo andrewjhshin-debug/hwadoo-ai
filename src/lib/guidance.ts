@@ -14,7 +14,8 @@ export const GUIDES: string[] = [
   "떠오른 답이 있거든 사유의 방에 적어 두고, 그 답에게 다시 물으십시오 — 정말 그런가.",
 ];
 
-// 함께한 날수(1일째부터)에 맞는 안내
+// 함께한 날수(1일째부터)에 맞는 안내.
+// 첫날에는 언제나 첫 가르침(화두를 바꾸지 마십시오)이 뜨도록 0번을 고정.
 export function todayGuide(dayCount: number): string {
   return GUIDES[(Math.max(1, dayCount) - 1) % GUIDES.length];
 }

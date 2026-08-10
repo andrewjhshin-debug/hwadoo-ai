@@ -45,34 +45,42 @@ export function Moktak({ className = "w-4 h-4" }: IconProps) {
   );
 }
 
-// 반가사유상(半跏思惟像) — 사유의 방
+// 반가사유상(半跏思惟像) — 사유의 방.
+// 오른 다리를 왼 무릎 위에 걸치고, 오른손 손가락을 뺨에 살짝 댄 자세.
 export function Banga({ className = "w-4 h-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      {/* 갸웃한 머리 */}
-      <circle cx="13.6" cy="5" r="2.2" />
-      {/* 뺨에 댄 손 — 사유의 손가락 */}
-      <path d="M15.2 7.2c.9 1 1 2.2.2 3.1" />
-      <path d="M15.4 10.3c-1.1.4-2 .1-2.5-.6" />
-      {/* 기운 몸 */}
-      <path d="M12 7.6c-1.6 1.2-2.4 2.8-2.4 4.9v2.6" />
-      {/* 반가부좌 — 걸친 다리와 내린 다리 */}
-      <path d="M9.6 15.1h6.2c1.4 0 2.4.9 2.6 2.3" />
-      <path d="M9.6 15.1c-1.8.4-3 1.5-3.4 3.2" />
+      {/* 살짝 기운 머리 */}
+      <circle cx="11.5" cy="5" r="2.3" />
+      {/* 몸통 — 앉은 자세 */}
+      <path d="M11 7.2c-1.4.7-2.3 2-2.5 3.6" />
+      {/* 오른팔 — 무릎에 팔꿈치 괴고 손끝이 뺨으로 */}
+      <path d="M13 14.5c1.1-.2 1.8-1 1.8-2.2 0-1.4-.7-2.3.2-3.4.5-.6 1-.9 1-1.6" />
+      {/* 손끝이 뺨에 닿음 */}
+      <path d="M13.4 5.6c-.3.6-.3 1.2 0 1.6" />
+      {/* 반가부좌 — 걸친 다리(위)와 내린 다리 */}
+      <path d="M6.5 14.6c1.6-1.2 3.6-1.6 6.5-1.6" />
+      <path d="M7 14.6c-.4 1.6-.3 3 .2 4.4" />
+      {/* 대좌 */}
+      <path d="M5.5 20.5h9" opacity="0.55" />
     </svg>
   );
 }
 
-// 죽비(竹篦) — 내가 던지는 화두
+// 죽비(竹篦) — 내가 던지는 화두.
+// 손잡이 + 위쪽이 둘로 쪼개진 대나무 — 마주치면 '딱' 소리가 난다.
 export function Jukbi({ className = "w-4 h-4" }: IconProps) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
-      {/* 몸체 — 비스듬한 대나무 채 */}
-      <path d="M5 19L16.5 7.5" />
-      {/* 갈라진 머리 */}
-      <path d="M16.5 7.5L20 4M16.5 7.5L19 9.5" />
-      {/* 마디 */}
-      <path d="M9.5 14.5l1.5 1.5M13 11l1.5 1.5" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {/* 손잡이 — 비스듬한 자루 */}
+      <path d="M6 20L13.5 9.5" />
+      {/* 쪼개진 머리 — 두 갈래로 벌어진 대 */}
+      <path d="M13.5 9.5C15 7.4 16.2 5 16.4 3.4" />
+      <path d="M13.5 9.5c1.6-.6 3.7-1 5.4-.8" />
+      {/* 두 갈래를 잇는 결속 */}
+      <path d="M14.7 7.8c1 .1 1.9.3 2.6.7" opacity="0.6" />
+      {/* 대나무 마디 */}
+      <path d="M9.2 15.6l1.3 1M11.4 12.6l1.3 1" opacity="0.75" />
     </svg>
   );
 }
@@ -168,19 +176,19 @@ export function Elephant({ className = "w-4 h-4", stroke = "currentColor" }: Ico
   );
 }
 
-// 선사(禪師) — 수염난 노스님. 선지식의 한마디.
+// 선사(禪師) — 가사를 두르고 앉은 노스님. 선지식의 한마디.
 export function SeonMaster({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      {/* 민머리 두상 */}
-      <path d="M8 9.5c0-2.4 1.8-4.2 4-4.2s4 1.8 4 4.2" />
-      {/* 눈 — 지그시 감은 */}
-      <path d="M9.6 10.2c.5.4 1.1.4 1.6 0M12.8 10.2c.5.4 1.1.4 1.6 0" />
-      {/* 긴 눈썹 */}
-      <path d="M9.4 8.4c-.7-.1-1.3.1-1.7.6M14.6 8.4c.7-.1 1.3.1 1.7.6" />
-      {/* 콧수염 · 흘러내린 긴 수염 */}
-      <path d="M10.4 12.2c.5.5 1.1.7 1.6.7s1.1-.2 1.6-.7" />
-      <path d="M9.2 12.4c-.6 2.6-1 5-1 7.1M14.8 12.4c.6 2.6 1 5 1 7.1M12 13.4V21" />
+      {/* 민머리 */}
+      <circle cx="12" cy="5.4" r="2.4" />
+      {/* 어깨에서 무릎으로 흘러내린 가사(장삼) — 삼각의 앉은 실루엣 */}
+      <path d="M12 8c-3.2 0-5.6 2.8-6.2 6.4-.2 1.2.1 2 .9 2.4" />
+      <path d="M12 8c3.2 0 5.6 2.8 6.2 6.4.2 1.2-.1 2-.9 2.4" />
+      {/* 무릎선(가부좌) */}
+      <path d="M6.7 16.8c1.8.9 3.6 1.3 5.3 1.3s3.5-.4 5.3-1.3" />
+      {/* 가슴 앞 여민 옷깃 */}
+      <path d="M12 8.5v4" opacity="0.6" />
     </svg>
   );
 }
