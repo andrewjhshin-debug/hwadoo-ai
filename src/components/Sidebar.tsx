@@ -20,9 +20,9 @@ import {
 } from "./icons";
 
 const NAV = [
-  { href: "/room", label: "사유의 방", Icon: Brush },
+  { href: "/ganhwaseon", label: "간화선이란?", Icon: Question },
   { href: "/masters", label: "선지식의 한마디", Icon: Quote },
-  { href: "/ganhwaseon", label: "간화선이란", Icon: Question },
+  { href: "/room", label: "사유의 방", Icon: Brush },
   { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Toss },
   { href: "/community", label: "커뮤니티", Icon: People, badge: "곧" },
 ];

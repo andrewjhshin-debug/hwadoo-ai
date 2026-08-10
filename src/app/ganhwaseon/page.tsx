@@ -2,102 +2,142 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "간화선이란 — 화두",
+  title: "간화선이란? — 화두",
   description:
-    "화두(話頭)와 간화선(看話禪)이 무엇인지, 천 년의 수행 전통을 짧게 풀어 설명합니다.",
+    "간화선(看話禪)을 아주 쉽게 — 질문 하나를 품고 사는 한국 고유의 수행법. 구체적인 방법까지.",
 };
 
-// 간화선이란 — 화두 수행의 전통을 풀어 설명하는 자리
+// 간화선이란? — 아주 아주 쉽게 풀어 쓴 설명 + 방법론 도해
 export default function GanhwaseonPage() {
   return (
     <div className="mx-auto w-full max-w-xl flex-1 px-6 py-14">
       <h1 className="rise text-center text-xs tracking-[0.5em] text-gold-soft">
-        看話禪 · 간화선이란
+        看話禪 · 간화선이란?
       </h1>
 
-      <div className="rise rise-d1 mt-12 space-y-9 text-[15px] font-light leading-9 text-hanji">
+      {/* 한 문장 정의 */}
+      <p className="question-glow rise rise-d1 mt-12 text-center font-serif text-xl font-light leading-[1.9] text-hanji sm:text-2xl">
+        질문 하나를 품고 사는 것.
+        <br />
+        그게 전부입니다.
+      </p>
+
+      <div className="rise rise-d2 mt-12 space-y-10 text-[15px] font-light leading-9 text-hanji-dim">
+        {/* 아주 쉽게 */}
         <section>
           <h2 className="font-serif text-lg text-gold-soft">
-            화두(話頭) — 말의 머리
+            명상과 무엇이 다른가
           </h2>
-          <p className="mt-4 text-hanji-dim">
-            화두는 풀라고 주어지는 문제가 아닙니다. 이치로는 뚫리지 않는 물음
-            하나를 받아, 온몸으로 품는 것입니다. 「개에게도 불성이 있는가 —
-            무(無)」, 「이 뭣고」, 「뜰 앞의 잣나무」 — 천칠백 개의 화두가
-            천 년을 건너 전해집니다.
+          <p className="mt-4">
+            흔히 아는 명상은 <span className="text-hanji">마음을 비우는</span>{" "}
+            연습입니다. 간화선은 반대로{" "}
+            <span className="text-hanji">질문 하나를 채우는</span> 연습입니다.
+          </p>
+          <p className="mt-3">
+            &ldquo;나는 누구인가.&rdquo; 이런 질문을 하나 받아서, 풀지 않고,
+            검색하지 않고, 그냥 <span className="text-hanji">품고 삽니다</span>.
+            밥 먹을 때도, 걸을 때도, 잠들기 전에도 그 질문이 마음 한구석에
+            있는 상태 — 그게 간화선입니다.
           </p>
         </section>
 
+        {/* 한국 특유 */}
         <section>
           <h2 className="font-serif text-lg text-gold-soft">
-            간화선(看話禪) — 화두를 보는 선
+            지금은 한국에만 남은 수행
           </h2>
-          <p className="mt-4 text-hanji-dim">
-            간(看)은 '본다', 화(話)는 '화두'. 화두를 들고 의심을 일으켜 참구하는
-            수행법입니다. 송나라의 대혜 종고가 크게 일으켰고, 고려의 보조
-            지눌과 태고 보우를 거쳐 한국 불교의 중심 수행법이 되었습니다.
-            지금도 한국의 선원에서는 스님들이 화두 하나를 들고 몇 해씩
-            정진합니다.
+          <p className="mt-4">
+            천 년 전 중국에서 시작됐지만, 오늘날 이 수행이{" "}
+            <span className="text-hanji">일상으로 살아 있는 나라는 사실상
+            한국뿐</span>입니다. 지금 이 순간에도 전국 선원에서 수백 명의
+            수행자가 화두 하나를 들고 앉아 있습니다. 고려의 지눌 스님이 뿌리를
+            내렸고, 그 맥이 끊기지 않고 오늘까지 왔습니다. 케이팝보다 훨씬
+            오래된, 한국의 오리지널입니다.
           </p>
         </section>
 
+        {/* 방법론 — 도해 */}
         <section>
           <h2 className="font-serif text-lg text-gold-soft">
-            의심 — 공부의 심장
+            하는 법 — 여섯 걸음
           </h2>
-          <p className="mt-4 text-hanji-dim">
-            간화선의 핵심은 답이 아니라{" "}
-            <span className="text-hanji">의심(疑心)</span>입니다. 옛 스승들은
-            「큰 의심 아래 반드시 큰 깨달음이 있다(大疑之下 必有大悟)」
-            하였습니다. 화두가 곧장 풀리지 않아 답답한 것 — 그 답답함이
-            잘못된 것이 아니라, 그것이 바로 공부입니다.
-          </p>
+          <div className="mt-6 flex flex-col items-stretch gap-0">
+            {[
+              {
+                n: "一",
+                title: "질문을 하나 받는다",
+                desc: "이것을 '화두'라 부릅니다. 예 — 나는 누구인가.",
+              },
+              {
+                n: "二",
+                title: "답을 찾지 않는다",
+                desc: "검색 금지. 책 금지. 남에게 묻기 금지. 이 질문의 답은 밖에 없습니다.",
+              },
+              {
+                n: "三",
+                title: "그냥 자주 떠올린다",
+                desc: "설거지하다가, 지하철에서, 자기 전에 — \"...그래서, 나는 누구지?\"",
+              },
+              {
+                n: "四",
+                title: "떠오른 답을 붙잡지 않는다",
+                desc: "그럴듯한 답이 떠오르면 놓아줍니다. 생각으로 찾아낸 것은 답이 아닙니다.",
+              },
+              {
+                n: "五",
+                title: "궁금함이 커지게 둔다",
+                desc: "풀리지 않아 답답한 것 — 그게 잘못이 아니라 그게 공부입니다. 옛 스승들은 이것을 '의심 덩어리'라 불렀습니다.",
+              },
+              {
+                n: "六",
+                title: "끝까지 든다",
+                desc: "하루, 사흘, 몇 해. 어느 날 생각이 아닌 곳에서 무언가 열립니다.",
+              },
+            ].map((step, i) => (
+              <div key={step.n} className="flex flex-col items-center">
+                {i > 0 && (
+                  <div className="h-6 w-px bg-gradient-to-b from-gold/40 to-gold/10" />
+                )}
+                <div className="w-full border border-ink-3 bg-ink-2/60 px-6 py-5">
+                  <p className="flex items-baseline gap-3">
+                    <span className="font-serif text-gold-soft">{step.n}</span>
+                    <span className="text-hanji">{step.title}</span>
+                  </p>
+                  <p className="mt-2 text-sm leading-7">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
+        {/* 이게 왜 좋은가 */}
         <section>
           <h2 className="font-serif text-lg text-gold-soft">
-            이 도량에서는
+            왜 이걸 하는가
           </h2>
-          <ol className="mt-4 space-y-4 text-hanji-dim">
-            <li>
-              <span className="text-gold-soft">하나.</span> 화두를 받고, 물음과
-              함께할 시간을 정합니다 — 하루, 사흘, 이레, 혹은 스스로.
-            </li>
-            <li>
-              <span className="text-gold-soft">둘.</span> 그 시간 동안 답을 쓸
-              수 없습니다. 검색하지 말고, 묻지 말고, 품고 지내십시오. 스치는
-              생각은{" "}
-              <Link href="/room" className="text-hanji underline decoration-gold/30 underline-offset-4">
-                사유의 방
-              </Link>
-              에 단상으로 적어 둘 수 있습니다.
-            </li>
-            <li>
-              <span className="text-gold-soft">셋.</span> 때가 되면 붓을 들어
-              그대의 답을 씁니다. 이를 회향(回向)이라 부릅니다.
-            </li>
-            <li>
-              <span className="text-gold-soft">넷.</span> 그 뒤에야 옛 스승들의
-              답이 열립니다. 견주되, 정답으로 삼지 마십시오 — 정답은 없습니다.
-            </li>
-          </ol>
+          <p className="mt-4">
+            질문 하나가 마음에 자리 잡으면, 잡념이 들어올 자리가 줄어듭니다.
+            남의 답 — 검색 결과, 알고리즘, AI — 에 기대는 버릇이 멈추고,{" "}
+            <span className="text-hanji">스스로 겪어서 아는 힘</span>이
+            자랍니다. 천 년 동안 이 수행이 살아남은 이유입니다.
+          </p>
         </section>
 
         <section className="border-t border-ink-3 pt-8">
           <p className="text-sm leading-8 text-hanji-faint">
             이 도량은 특정 종단과 무관하며, 전통 수행의 형식을 빌린 사유의
-            공간입니다. 본격적인 참선 수행을 원하시면 가까운 선원이나
-            템플스테이를 찾아보시기를 권합니다.
+            공간입니다. 본격적인 참선은 가까운 선원이나 템플스테이에서 경험할
+            수 있습니다.
           </p>
         </section>
       </div>
 
-      <p className="rise rise-d2 mt-12 text-center">
+      <p className="rise rise-d3 mt-12 text-center">
         <Link
           href="/"
           className="btn-obang inline-block px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
         >
-          화두 받기
+          새 화두 받기
         </Link>
       </p>
     </div>
