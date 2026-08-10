@@ -14,7 +14,7 @@ import Enso from "@/components/Enso";
 import Question from "@/components/Question";
 import { Banga, Dharmachakra } from "@/components/icons";
 import { getHwadu, type Hwadu } from "@/lib/hwadu";
-import { durationLabel } from "@/lib/store";
+import { durationLabel, loadStore, saveStore } from "@/lib/store";
 
 const MAX_ANSWER = 500;
 
@@ -77,6 +77,26 @@ export default function TryPage() {
   // 회향 — 체험은 기록에 남기지 않는다 (튜토리얼)
   const finish = () => {
     if (!hwadu || !answer.trim()) return;
+    // 첫 체험의 답은 지난 화두에 남긴다 — 단, 이뭣고 체험 기록이 이미 있으면 중복 저장하지 않는다
+    const s = loadStore();
+    const already = s.history.some((h) => h.hwaduId === hwadu.id);
+    if (!already) {
+      saveStore({
+        ...s,
+        history: [
+          ...s.history,
+          {
+            hwaduId: hwadu.id,
+            receivedAt: Date.now(),
+            durationDays: days,
+            notes: memo.trim() || undefined,
+            journal: answer.trim(),
+            journalAt: Date.now(),
+          },
+        ],
+        received: s.received + 1,
+      });
+    }
     setStep("done");
   };
 
@@ -167,6 +187,17 @@ export default function TryPage() {
       {/* ── 회향을 마쳤다 ── */}
       {step === "done" && hwadu && (
         <section className="rise mt-10 flex w-full max-w-2xl flex-col items-center">
+          {/* 화두 — 그대의 답 위에 */}
+          {hwadu.hanja && (
+            <p className="text-xs tracking-[0.6em] text-hanji-faint">
+              {hwadu.hanja}
+            </p>
+          )}
+          <div className="question-glow mt-5 w-full">
+            <Question text={hwadu.question} className="text-hanji" />
+          </div>
+
+          <div className="mt-10 w-full border-t border-ink-3 pt-8" />
           <p className="text-xs tracking-[0.4em] text-gold-soft">
             回向 · 그대의 답
           </p>
