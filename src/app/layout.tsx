@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   keywords: ["화두", "명상", "선", "불교", "간화선", "참선", "koan", "사유"],
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",
+    other: {
+      "naver-site-verification": "e3edd090a8e5cfcaab987a6d90d5b0a6f8774189",
+    },
   },
   openGraph: {
     title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
