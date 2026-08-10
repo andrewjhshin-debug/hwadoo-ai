@@ -154,18 +154,18 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* 뜰 — 홈 */}
+        {/* 뜰 — 홈. 테두리를 둘러 문(門)답게 */}
         <Link
           href="/"
           title="뜰"
-          className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-2.5 text-[13.5px] transition-colors ${
+          className={`flex items-center gap-2.5 rounded-[10px] border py-2.5 text-[13.5px] transition-colors ${
             pathname === "/"
-              ? "bg-gold/10 text-hanji"
-              : "text-hanji-dim hover:bg-gold/5 hover:text-hanji"
-          } ${slim ? "justify-center" : ""}`}
+              ? "border-gold/40 bg-gold/10 text-hanji"
+              : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:bg-gold/5 hover:text-hanji"
+          } ${slim ? "justify-center px-0" : "px-3"}`}
         >
           <Gate className="h-[16px] w-[16px] opacity-75" />
-          {!slim && <span>뜰</span>}
+          {!slim && <span className="tracking-[0.2em]">뜰</span>}
         </Link>
 
         {/* 새 화두 받기 */}

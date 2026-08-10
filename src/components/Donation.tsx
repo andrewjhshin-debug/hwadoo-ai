@@ -1,8 +1,12 @@
-import { DONATION_URL } from "@/lib/config";
+"use client";
 
 // 차 한 잔(喫茶去) — 후원 상자.
-// 조주의 '차나 마시게'에서 빌린 이름. 강요 없이, 조용히 놓여만 있다.
-// DONATION_URL이 정해지면 lib/config.ts 에서 주소만 바꾸면 된다.
+// 카카오페이 링크는 모바일 전용이라:
+// · 폰에서는 버튼을 누르면 바로 카카오페이가 열리고
+// · PC에서는 QR코드를 보여줘 폰 카메라로 찍게 한다.
+import { QRCodeSVG } from "qrcode.react";
+import { DONATION_URL } from "@/lib/config";
+
 export default function Donation() {
   return (
     <section className="mx-auto w-full max-w-md border border-ink-3 bg-ink-2/60 px-8 py-7 text-center">
@@ -14,15 +18,36 @@ export default function Donation() {
         이 도량이 마음에 머물렀다면,
         <br />차 한 잔 값으로 등불을 보태 주실 수 있습니다.
       </p>
+
       {DONATION_URL ? (
-        <a
-          href={DONATION_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-6 inline-block border border-gold/50 px-8 py-2.5 text-sm tracking-[0.3em] text-hanji transition-colors duration-500 hover:bg-gold/10"
-        >
-          차 한 잔 보내기
-        </a>
+        <>
+          {/* 모바일 — 바로 카카오페이로 */}
+          <a
+            href={DONATION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-block border border-gold/50 px-8 py-2.5 text-sm tracking-[0.3em] text-hanji transition-colors duration-500 hover:bg-gold/10 sm:hidden"
+          >
+            차 한 잔 보내기
+          </a>
+          {/* PC — 폰 카메라로 찍는 QR */}
+          <div className="mt-6 hidden flex-col items-center sm:flex">
+            <div className="rounded-sm bg-[#EDE6D4] p-3">
+              <QRCodeSVG
+                value={DONATION_URL}
+                size={116}
+                bgColor="#EDE6D4"
+                fgColor="#14110D"
+                level="M"
+              />
+            </div>
+            <p className="mt-3 text-[11px] leading-5 text-hanji-faint">
+              휴대폰 카메라로 비추면
+              <br />
+              카카오페이가 열립니다
+            </p>
+          </div>
+        </>
       ) : (
         <p className="mt-6 text-xs tracking-widest text-hanji-faint">
           찻자리를 마련하고 있습니다
