@@ -133,15 +133,15 @@ export default function Sidebar() {
   return (
     <>
       {/* 모바일 상단 바 — 로고 가운데, 메뉴 왼쪽·테마 오른쪽 */}
-      <div className="fixed inset-x-0 top-0 z-50 flex h-14 items-center border-b border-ink-3 bg-ink-2/95 px-2 backdrop-blur md:hidden">
+      <div className="fixed inset-x-0 top-0 z-50 flex h-16 items-center border-b border-ink-3 bg-ink-2/95 px-2 backdrop-blur md:hidden">
         {/* 왼쪽 — 삼선 메뉴 */}
-        <div className="flex w-12 justify-start">
+        <div className="flex w-14 justify-start">
           <button
             onClick={() => setOpen(!open)}
             aria-label="메뉴 열기"
             className="p-2 text-hanji-dim"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-7 w-7">
               {open ? (
                 <path d="M6 6l12 12M18 6L6 18" />
               ) : (
@@ -155,14 +155,14 @@ export default function Sidebar() {
           href="/"
           className="flex flex-1 items-center justify-center gap-2.5"
         >
-          <Dharmachakra className="h-5 w-5" stroke="#D9B45B" />
-          <span className="text-gold-grad font-serif text-base font-semibold tracking-[0.35em]">
+          <Dharmachakra className="h-7 w-7" stroke="#D9B45B" />
+          <span className="text-gold-grad font-serif text-xl font-semibold tracking-[0.35em]">
             화두
           </span>
         </Link>
         {/* 오른쪽 — 테마 토글 */}
-        <div className="flex w-12 justify-end">
-          <ThemeToggle />
+        <div className="flex w-14 justify-end">
+          <ThemeToggle className="[&_svg]:h-6 [&_svg]:w-6" />
         </div>
       </div>
 
