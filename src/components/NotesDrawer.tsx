@@ -67,18 +67,25 @@ export default function NotesDrawer({
 
   return (
     <>
-      {/* 모바일에서만 배경 가림막 */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 sm:hidden"
-          onClick={onClose}
-        />
-      )}
+      {/* 배경 가림막 — 모바일은 팝업 뒤 딤, 데스크톱은 서랍 뒤 옅은 딤 */}
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 sm:bg-black/30 ${
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
       <aside
         aria-hidden={!open}
-        className={`fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-ink-3 bg-ink-2/95 backdrop-blur transition-transform duration-300 sm:w-[380px] ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`notes-panel fixed z-50 flex flex-col overflow-hidden bg-ink-2/95 backdrop-blur transition-all duration-300
+          /* 모바일 — 화면 가운데 팝업 카드 */
+          inset-x-4 top-1/2 max-h-[82vh] -translate-y-1/2 rounded-2xl
+          /* 데스크톱 — 오른쪽 전체 높이 서랍 */
+          sm:inset-x-auto sm:inset-y-0 sm:right-0 sm:top-0 sm:max-h-none sm:w-[380px] sm:translate-y-0 sm:rounded-none
+          ${
+            open
+              ? "scale-100 opacity-100 sm:translate-x-0"
+              : "pointer-events-none scale-95 opacity-0 sm:translate-x-full sm:scale-100 sm:opacity-100"
+          }`}
       >
         <header className="flex items-start justify-between border-b border-ink-3 px-6 py-5">
           <div className="flex items-center gap-3">
@@ -113,7 +120,7 @@ export default function NotesDrawer({
           </div>
         )}
 
-        <div className="flex flex-1 flex-col px-6 py-5">
+        <div className="flex flex-1 flex-col overflow-y-auto px-6 py-5">
           <p className="text-xs leading-6 text-hanji-faint">
             떠오르는 것을 적어 두십시오. 답이 아니라 발자국입니다.
             {title && (
@@ -126,7 +133,7 @@ export default function NotesDrawer({
             value={notes}
             onChange={(e) => onChange(e.target.value)}
             placeholder="오늘 문득 —"
-            className="journal-area mt-4 h-[34vh] min-h-[180px]"
+            className="journal-area mt-4 h-[30vh] min-h-[150px]"
           />
           <div className="mt-3 flex items-center justify-end gap-3">
             {saved && (
