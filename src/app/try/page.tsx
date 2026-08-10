@@ -12,9 +12,10 @@ import { useState } from "react";
 import Link from "next/link";
 import Enso from "@/components/Enso";
 import Question from "@/components/Question";
-import { Banga, Dharmachakra } from "@/components/icons";
+import { Banga, Dharmachakra, Lotus } from "@/components/icons";
 import { getHwadu, type Hwadu } from "@/lib/hwadu";
 import { durationLabel, loadStore, saveStore } from "@/lib/store";
+import { SLOGAN } from "@/lib/config";
 
 const MAX_ANSWER = 500;
 
@@ -119,13 +120,13 @@ export default function TryPage() {
     "cursor-default border border-ink-3 px-5 py-2.5 text-xs tracking-[0.15em] text-hanji-faint opacity-60";
 
   return (
-    <div className="relative flex flex-1 flex-col items-center px-6 pb-16 pt-6 text-center">
+    <div className="relative flex flex-1 flex-col items-center px-6 pb-16 pt-4 text-center">
       {/* ── 늘 위에 있는 체험 표시 ── */}
       <div className="w-full max-w-2xl">
         <p className="text-center text-[11px] tracking-[0.4em] text-gold-soft">
           體驗 · 체험하기
         </p>
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
           {STEPS.map((label, i) => {
             const n = i + 1;
             const done = n < stepNo;
@@ -162,22 +163,25 @@ export default function TryPage() {
 
       {/* ── 1. 화두 받기 전 — 홈과 같은 화면 ── */}
       {step === "choose" && (
-        <section className="rise mt-5 flex flex-col items-center">
-          <Enso size={130} />
-          <h1 className="text-obang mt-6 font-serif text-[40px] font-semibold leading-none tracking-[0.5em] [text-indent:0.5em]">
+        <section className="rise mt-4 flex flex-col items-center">
+          <Enso size={116} />
+          <h1 className="text-obang mt-4 font-serif text-[38px] font-semibold leading-none tracking-[0.5em] [text-indent:0.5em]">
             화두
           </h1>
-          <p className="mt-2.5 text-[10px] tracking-[0.6em] text-gold-soft">
+          <p className="mt-2 text-[10px] tracking-[0.6em] text-gold-soft">
             HWADU
           </p>
-          <p className="mt-6 max-w-sm break-keep text-[13.5px] font-light leading-7 tracking-[0.05em] text-hanji-dim">
+          <p className="mt-3 text-[12.5px] font-light tracking-[0.1em] text-hanji-dim">
+            &ldquo;{SLOGAN}&rdquo;
+          </p>
+          <p className="mt-3 max-w-sm break-keep text-[12.5px] font-light leading-6 tracking-[0.05em] text-hanji-faint">
             {audience === "student"
               ? "학생·어린이의 첫 화두 ‘나는 누구인가’로 함께 걷습니다."
               : "가장 오래된 입문 화두 ‘이뭣고’ 하나로 함께 걷습니다."}
           </p>
 
           {/* 누구의 화두인가 — 성인 / 학생·어린이 */}
-          <div className="mt-6 flex items-center gap-3 text-xs">
+          <div className="mt-4 flex items-center gap-3 text-xs">
             {(
               [
                 { key: "adult", label: "성인의 화두" },
@@ -201,16 +205,17 @@ export default function TryPage() {
             })}
           </div>
 
-          <div className="my-9 flex items-center gap-3.5 opacity-80">
+          <div className="my-6 flex items-center gap-3.5 opacity-80">
             <div className="h-px w-[100px] bg-gradient-to-r from-transparent to-gold/45" />
             <Dharmachakra className="h-[18px] w-[18px]" stroke="#B99A54" />
             <div className="h-px w-[100px] bg-gradient-to-r from-gold/45 to-transparent" />
           </div>
           <button
             onClick={receive}
-            className="btn-obang px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
+            className="btn-obang flex items-center gap-2.5 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
           >
-            화두를 받다
+            <Lotus className="h-[18px] w-[18px]" stroke="#D9B45B" />
+            <span>새 화두 받기</span>
           </button>
         </section>
       )}
