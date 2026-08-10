@@ -3,15 +3,13 @@ import { SLOGAN } from "@/lib/config";
 
 // ────────────────────────────────────────────────────────────────
 // OG 카드 — 카톡·SNS에 링크를 공유하면 뜨는 미리보기 이미지.
-// 빌드 시점에 자동 생성된다. 한글 글꼴은 필요한 글자만 구글 폰트에서 받아온다.
-// 왼쪽: 일원상(一圓相) + 풍성한 연꽃 / 오른쪽: 화두 + 슬로건 + 도메인
+// 앱의 실제 로고(Enso: 일원상 + 연꽃)를 그대로 사용한다.
 // ────────────────────────────────────────────────────────────────
 
 export const alt = `화두 話頭 — ${SLOGAN}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// 이미지에 실제로 쓰이는 글자들만 부분집합으로 요청 (용량 절약)
 const USED_TEXT = `화두話頭 ${SLOGAN} hwa-du.com HWADU`;
 
 async function loadGoogleFont(weight: number): Promise<ArrayBuffer> {
@@ -46,19 +44,20 @@ export default async function OgImage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 70,
-          padding: "0 90px",
-          backgroundColor: "#0D0B09",
+          gap: 80,
+          padding: "0 100px",
+          backgroundColor: "#1A1512",
           backgroundImage:
-            "radial-gradient(560px 340px at 30% 40%, rgba(217,180,91,0.16), transparent 65%), radial-gradient(520px 380px at 12% 88%, rgba(193,85,59,0.12), transparent 65%), radial-gradient(520px 380px at 90% 78%, rgba(94,127,178,0.11), transparent 65%)",
+            "radial-gradient(600px 400px at 30% 45%, rgba(217,180,91,0.15), transparent 62%), radial-gradient(520px 380px at 12% 88%, rgba(193,85,59,0.10), transparent 62%), radial-gradient(520px 380px at 88% 82%, rgba(94,127,178,0.10), transparent 62%)",
           fontFamily: "NotoSerifKR",
         }}
       >
-        {/* 일원상 + 풍성한 연꽃 */}
+        {/* 일원상 + 연꽃 — 앱의 실제 로고(Enso) 그대로 */}
         <div
           style={{
-            width: 300,
-            height: 300,
+            width: 320,
+            height: 320,
+            flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -66,14 +65,14 @@ export default async function OgImage() {
           }}
         >
           <svg
-            width="300"
-            height="300"
+            width="320"
+            height="320"
             viewBox="0 0 150 150"
             fill="none"
-            style={{ transform: "rotate(-80deg)" }}
+            style={{ position: "absolute", transform: "rotate(-80deg)" }}
           >
             <defs>
-              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <linearGradient id="enso-g" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0" stopColor="#E9CD82" />
                 <stop offset="0.5" stopColor="#C1553B" />
                 <stop offset="1" stopColor="#5E7FB2" />
@@ -83,94 +82,78 @@ export default async function OgImage() {
               cx="75"
               cy="75"
               r="66"
-              stroke="url(#g)"
-              strokeWidth="2.6"
+              stroke="url(#enso-g)"
+              strokeWidth="2.4"
               strokeLinecap="round"
               strokeDasharray="382 33"
             />
           </svg>
           <svg
-            width="132"
-            height="132"
-            viewBox="0 0 48 48"
+            width="205"
+            height="205"
+            viewBox="0 0 100 100"
             fill="none"
             stroke="#D9B45B"
-            strokeWidth="1.7"
+            strokeWidth="2.1"
             strokeLinecap="round"
             strokeLinejoin="round"
             style={{ position: "absolute" }}
           >
-            <path d="M24 11c3 3.8 4.5 7.2 4.5 10.4 0 3.4-2 6-4.5 7.6-2.5-1.6-4.5-4.2-4.5-7.6C19.5 18.2 21 14.8 24 11z" />
-            <path d="M24 29c-2.7-1.4-5.6-4.2-7-7.7-.6-1.6-.8-3.3-.7-5 2 .8 4.3 2.6 5.7 4.9 1.5 2.4 2.2 5 2 7.8z" />
-            <path d="M24 29c2.7-1.4 5.6-4.2 7-7.7.6-1.6.8-3.3.7-5-2 .8-4.3 2.6-5.7 4.9-1.5 2.4-2.2 5-2 7.8z" />
-            <path d="M24 29.5c-3.3-.6-7-2.4-9.7-5.4-1.2-1.4-2.1-3-2.6-4.8 2.5.1 5.5 1.4 8 3.8 2.1 2 3.7 4.4 4.3 6.4z" />
-            <path d="M24 29.5c3.3-.6 7-2.4 9.7-5.4 1.2-1.4 2.1-3 2.6-4.8-2.5.1-5.5 1.4-8 3.8-2.1 2-3.7 4.4-4.3 6.4z" />
-            <path
-              d="M13.5 32.5c3 1.7 6.7 2.6 10.5 2.6s7.5-.9 10.5-2.6"
-              opacity="0.5"
-            />
+            <path d="M50 24c6 8 9 15 9 22 0 8-4 14-9 18-5-4-9-10-9-18 0-7 3-14 9-22z" />
+            <path d="M50 64c-4-6-11-9-18-8-1 8 3 15 10 18" />
+            <path d="M50 64c4-6 11-9 18-8 1 8-3 15-10 18" />
+            <path d="M41 66c-6-5-15-6-23-2 1 8 8 14 17 14" opacity="0.85" />
+            <path d="M59 66c6-5 15-6 23-2-1 8-8 14-17 14" opacity="0.85" />
+            <path d="M30 82c6 3 13 4 20 4s14-1 20-4" opacity="0.5" />
           </svg>
         </div>
 
-        {/* 화두 + 슬로건 + 도메인 */}
+        {/* 화두 + HWADU + 슬로건 + 도메인 */}
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div
             style={{
-              fontSize: 30,
-              color: "#B99A54",
-              letterSpacing: "0.5em",
-              fontWeight: 300,
-            }}
-          >
-            話頭
-          </div>
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 132,
+              fontSize: 120,
               fontWeight: 600,
               color: "#D9B45B",
-              letterSpacing: "0.32em",
-              textIndent: "0.32em",
+              letterSpacing: "0.3em",
+              textIndent: "0.3em",
               lineHeight: 1,
-              textShadow: "0 0 60px rgba(217,180,91,0.35)",
+              textShadow: "0 0 50px rgba(217,180,91,0.3)",
             }}
           >
             화두
           </div>
           <div
             style={{
-              marginTop: 34,
-              fontSize: 33,
+              marginTop: 20,
+              fontSize: 30,
+              fontWeight: 300,
+              color: "#9A8C7A",
+              letterSpacing: "0.55em",
+              textIndent: "0.55em",
+            }}
+          >
+            HWADU
+          </div>
+          <div
+            style={{
+              marginTop: 40,
+              fontSize: 30,
               fontWeight: 300,
               color: "#EDE6D4",
               letterSpacing: "0.04em",
-              lineHeight: 1.5,
+              lineHeight: 1.55,
             }}
           >
             {SLOGAN}
           </div>
-          <div style={{ marginTop: 34, display: "flex", gap: 13 }}>
-            {["#5E7FB2", "#C1553B", "#D9B45B", "#E8E2D2", "#494340"].map((c) => (
-              <div
-                key={c}
-                style={{
-                  width: 9,
-                  height: 9,
-                  borderRadius: 99,
-                  backgroundColor: c,
-                  opacity: 0.8,
-                }}
-              />
-            ))}
-          </div>
           <div
             style={{
-              marginTop: 26,
-              fontSize: 23,
+              marginTop: 24,
+              fontSize: 22,
               fontWeight: 300,
               color: "#8A8271",
-              letterSpacing: "0.25em",
+              letterSpacing: "0.22em",
             }}
           >
             hwa-du.com
