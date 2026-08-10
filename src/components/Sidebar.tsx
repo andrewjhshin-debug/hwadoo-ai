@@ -5,8 +5,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
 import { sessionTitle } from "@/lib/hwadu";
+import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
   Book,
   Brush,
@@ -31,7 +33,24 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false); // 모바일 서랍
   const [history, setHistory] = useState<Session[]>([]);
-  const [loginNote, setLoginNote] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loginBusy, setLoginBusy] = useState(false);
+
+  // 로그인 상태 감시 — 로그인되면 기록 동기화가 자동으로 시작된다
+  useEffect(() => {
+    return watchAuth(setUser);
+  }, []);
+
+  const handleLogin = async () => {
+    setLoginBusy(true);
+    try {
+      await loginWithGoogle();
+    } catch {
+      // 팝업 닫힘 등 — 조용히 넘어간다
+    } finally {
+      setLoginBusy(false);
+    }
+  };
 
   useEffect(() => {
     const refresh = () => setHistory([...loadStore().history].reverse());
@@ -162,18 +181,38 @@ export default function Sidebar() {
 
         {/* 아래 — 로그인 */}
         <div className="mt-auto border-t border-ink-3 pt-3.5">
-          <button
-            onClick={() => setLoginNote(!loginNote)}
-            className="flex w-full items-center gap-2.5 rounded-[10px] border border-ink-3 px-3 py-2.5 text-[13.5px] text-hanji-dim transition-colors hover:text-hanji"
-          >
-            <Person className="h-4 w-4" />
-            로그인
-          </button>
-          {loginNote && (
-            <p className="mt-2 px-1 text-[11px] leading-5 text-hanji-faint">
-              로그인은 곧 열립니다. 지금도 기록은 이 브라우저에 안전히
-              남습니다.
-            </p>
+          {user ? (
+            <div className="px-1">
+              <p className="flex items-center gap-2.5 text-[13px] text-hanji-dim">
+                <Person className="h-4 w-4 shrink-0" />
+                <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                  {user.displayName ?? "수행자"}님
+                </span>
+              </p>
+              <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
+                기록이 계정에 모이고 있습니다
+              </p>
+              <button
+                onClick={logout}
+                className="mt-2 text-[11px] tracking-widest text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji-dim"
+              >
+                로그아웃
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={handleLogin}
+                disabled={loginBusy}
+                className="flex w-full items-center gap-2.5 rounded-[10px] border border-ink-3 px-3 py-2.5 text-[13.5px] text-hanji-dim transition-colors hover:text-hanji disabled:opacity-50"
+              >
+                <Person className="h-4 w-4" />
+                {loginBusy ? "여는 중…" : "구글로 로그인"}
+              </button>
+              <p className="mt-2 px-1 text-[11px] leading-5 text-hanji-faint">
+                로그인하면 지난 화두들이 계정에 모입니다 — 기기가 바뀌어도.
+              </p>
+            </>
           )}
         </div>
       </aside>
