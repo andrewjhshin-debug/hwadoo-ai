@@ -55,6 +55,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${serifKR.variable} ${sansKR.variable} h-full antialiased`}
     >
       <body className="flex h-dvh overflow-hidden">
+        {/* 저장된 테마를 첫 화면 그리기 전에 적용 (깜빡임 방지) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem('hwadoo-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}`,
+          }}
+        />
         <Sidebar />
         <div className="obang-aura flex flex-1 flex-col overflow-y-auto pt-14 md:pt-0">
           <main className="flex flex-1 flex-col">{children}</main>

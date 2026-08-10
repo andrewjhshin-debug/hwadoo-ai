@@ -7,8 +7,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { sessionQuestion } from "@/lib/hwadu";
-import { loadStore, saveStore, type Store } from "@/lib/store";
+import { sessionQuestion, sessionTitle } from "@/lib/hwadu";
+import { formatDate, loadStore, saveStore, type Store } from "@/lib/store";
 
 // 반가사유상 — 크게, 미니멀하게
 function BangaLarge() {
@@ -102,6 +102,8 @@ export default function RoomPage() {
       <div className="rise rise-d2 mt-9 flex flex-1 flex-col border-t border-ink-3 pt-7">
         <p className="text-xs leading-6 text-hanji-faint">
           떠오르는 것을 적어 두십시오. 답이 아니라 발자국입니다.
+          <br />이 단상은 「{sessionTitle(store.current)}」 화두에 묶여
+          저장됩니다.
         </p>
         <textarea
           value={notes}
@@ -114,6 +116,33 @@ export default function RoomPage() {
           {saved ? "저절로 저장되었습니다" : "쓰는 대로 저장됩니다"}
         </p>
       </div>
+
+      {/* 지난 화두들의 단상 — 화두별로 남는다 */}
+      {store.history.some((s) => s.notes) && (
+        <div className="rise rise-d3 mt-10 border-t border-ink-3 pt-7">
+          <p className="text-xs tracking-[0.4em] text-hanji-faint">
+            지난 화두의 단상
+          </p>
+          <div className="mt-4 flex flex-col gap-3">
+            {[...store.history]
+              .reverse()
+              .filter((s) => s.notes)
+              .map((s) => (
+                <details key={`${s.hwaduId}-${s.receivedAt}`}>
+                  <summary className="cursor-pointer text-[13px] text-hanji-dim transition-colors hover:text-hanji">
+                    「{sessionTitle(s)}」{" "}
+                    <span className="text-[11px] text-hanji-faint">
+                      · {formatDate(s.receivedAt)}
+                    </span>
+                  </summary>
+                  <p className="mt-2 whitespace-pre-line border-l border-gold/25 pl-4 text-[13px] leading-7 text-hanji-faint">
+                    {s.notes}
+                  </p>
+                </details>
+              ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

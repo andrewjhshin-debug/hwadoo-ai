@@ -87,7 +87,82 @@ export const SAYINGS: Saying[] = [
     era: "당나라",
     source: "임제록",
   },
+  {
+    text: "그대는 열두 시간에게 부림을 당하고, 나는 열두 시간을 부린다.",
+    name: "조주 종심",
+    era: "당나라",
+    source: "조주록",
+  },
+  {
+    text: "제 집의 보물창고를 버려두고, 어디를 그리 헤매는가.",
+    name: "마조 도일",
+    era: "당나라",
+  },
+  {
+    text: "지난해 가난은 가난이 아니었네. 올해 가난이 비로소 가난일세. 지난해엔 송곳 꽂을 땅이 없더니, 올해는 그 송곳마저 없다네.",
+    name: "향엄 지한",
+    era: "당나라",
+  },
+  {
+    text: "추울 때는 추위가 그대가 되게 하고, 더울 때는 더위가 그대가 되게 하라.",
+    name: "동산 양개",
+    era: "당나라",
+  },
+  {
+    text: "아침죽은 먹었는가. 그렇다면 발우를 씻게.",
+    name: "조주 종심",
+    era: "당나라",
+    source: "무문관",
+  },
+  {
+    text: "마음달이 홀로 둥글어, 그 빛이 만상을 삼킨다(心月孤圓 光呑萬象).",
+    name: "반산 보적",
+    era: "당나라",
+  },
+  {
+    text: "고요함 속에서만 얻은 힘은, 시끄러움 앞에서 무너진다. 시장 한복판에서 공부하라.",
+    name: "대혜 종고",
+    era: "송나라",
+    source: "서장",
+  },
+  {
+    text: "일 없는 사람이 가장 귀한 사람이다(無事是貴人). 다만 꾸미지 마라.",
+    name: "임제 의현",
+    era: "당나라",
+    source: "임제록",
+  },
+  {
+    text: "청산은 나를 보고 말없이 살라 하고, 창공은 나를 보고 티 없이 살라 하네.",
+    name: "나옹 혜근 (전승)",
+    era: "고려",
+  },
+  {
+    text: "내 마음은 가을달 같아, 푸른 못에 희고 깨끗하다. 무엇에도 견줄 수 없으니, 어떻게 말해 주랴.",
+    name: "한산",
+    era: "당나라",
+    source: "한산시",
+  },
+  {
+    text: "마음이 일어나면 온갖 것이 일어나고, 마음이 사라지면 온갖 것이 사라진다(心生則種種法生).",
+    name: "원효",
+    era: "신라",
+    source: "대승기신론소",
+  },
+  {
+    text: "땅에서 넘어진 자, 땅을 짚고 일어난다(因地而倒 因地而起).",
+    name: "보조 지눌",
+    era: "고려",
+    source: "권수정혜결사문",
+  },
 ];
+
+// 아무 한마디나 하나 — 직전 것과는 겹치지 않게
+export function randomSaying(excludeText?: string): Saying {
+  const pool = excludeText
+    ? SAYINGS.filter((s) => s.text !== excludeText)
+    : SAYINGS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 
 // 오늘의 한마디 — 날짜에 따라 하루 하나씩 돈다
 export function todaySaying(now = new Date()): Saying {

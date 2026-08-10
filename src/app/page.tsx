@@ -338,11 +338,15 @@ export default function Home() {
             <textarea
               autoFocus
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => setDraft(e.target.value.slice(0, 500))}
               rows={9}
+              maxLength={500}
               placeholder="며칠을 품고 계셨습니다. 무엇이 보였습니까."
               className="journal-area"
             />
+            <p className="mt-2 text-right text-[11px] text-hanji-faint">
+              {draft.length} / 500
+            </p>
           </div>
           <div className="mt-5 flex items-center justify-between">
             <button
@@ -377,7 +381,7 @@ export default function Home() {
             {hwadu.hanja}
           </p>
         )}
-        <h1 className="question-glow mt-7 whitespace-pre-line font-serif text-[28px] font-light leading-[1.85] sm:text-4xl sm:leading-[1.85]">
+        <h1 className="question-glow mt-7 whitespace-pre-line font-serif text-lg font-light leading-[1.65] sm:text-[22px] sm:leading-[1.65]">
           {sessionQuestion(current)}
         </h1>
         {(hwadu?.context || current.customSource) && (

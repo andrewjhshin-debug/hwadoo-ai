@@ -7,14 +7,13 @@
 
 import { useEffect, useState } from "react";
 import { Dharmachakra } from "@/components/icons";
-import { SAYINGS, todaySaying, type Saying } from "@/lib/sayings";
+import { randomSaying, SAYINGS, type Saying } from "@/lib/sayings";
 
 export default function MastersPage() {
-  // 날짜 기반이라 서버/클라이언트가 어긋나지 않도록 마운트 후 계산
-  const [today, setToday] = useState<Saying | null>(null);
+  const [saying, setSaying] = useState<Saying | null>(null);
 
   useEffect(() => {
-    setToday(todaySaying());
+    setSaying(randomSaying());
   }, []);
 
   return (
@@ -23,22 +22,27 @@ export default function MastersPage() {
         善知識 · 선지식의 한마디
       </h1>
 
-      {/* 오늘의 한마디 */}
-      {today && (
+      {/* 한마디 — 누를 때마다 다른 말 */}
+      {saying && (
         <section className="rise rise-d1 mt-12 text-center">
-          <p className="text-[11px] tracking-[0.34em] text-hanji-faint">
-            오늘의 한마디
-          </p>
-          <blockquote className="question-glow mt-6 font-serif text-xl font-light leading-[1.9] text-hanji sm:text-2xl">
-            {today.text}
+          <blockquote className="question-glow font-serif text-lg font-light leading-[1.8] text-hanji sm:text-xl">
+            {saying.text}
           </blockquote>
           <p className="mt-5 text-xs tracking-widest text-hanji-dim">
-            — {today.name}
-            {today.era && <span className="text-hanji-faint"> · {today.era}</span>}
-            {today.source && (
-              <span className="text-hanji-faint"> · 『{today.source}』</span>
+            — {saying.name}
+            {saying.era && (
+              <span className="text-hanji-faint"> · {saying.era}</span>
+            )}
+            {saying.source && (
+              <span className="text-hanji-faint"> · 『{saying.source}』</span>
             )}
           </p>
+          <button
+            onClick={() => setSaying(randomSaying(saying.text))}
+            className="mt-7 border border-ink-3 px-6 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          >
+            다른 한마디
+          </button>
         </section>
       )}
 

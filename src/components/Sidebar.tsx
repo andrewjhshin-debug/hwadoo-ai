@@ -19,6 +19,7 @@ import {
   Banga,
   Book,
   Dharmachakra,
+  Gate,
   Jukbi,
   Lantern,
   Lotus,
@@ -37,6 +38,45 @@ const NAV = [
 ];
 
 const COLLAPSE_KEY = "hwadoo-sidebar-collapsed";
+const THEME_KEY = "hwadoo-theme";
+
+// 해/달 토글 — 낮 모드 ↔ 밤 모드
+function ThemeToggle({ className = "" }: { className?: string }) {
+  const [light, setLight] = useState(false);
+
+  useEffect(() => {
+    setLight(document.documentElement.dataset.theme === "light");
+  }, []);
+
+  const toggle = () => {
+    const next = !light;
+    setLight(next);
+    document.documentElement.dataset.theme = next ? "light" : "";
+    window.localStorage.setItem(THEME_KEY, next ? "light" : "dark");
+  };
+
+  return (
+    <button
+      onClick={toggle}
+      title={light ? "밤 모드로" : "낮 모드로"}
+      aria-label={light ? "밤 모드로 전환" : "낮 모드로 전환"}
+      className={`p-1.5 text-hanji-faint transition-colors hover:text-gold-soft ${className}`}
+    >
+      {light ? (
+        // 달 — 밤으로
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className="h-4 w-4">
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 7.5 7.5 0 1 0 20 14.5z" />
+        </svg>
+      ) : (
+        // 해 — 낮으로
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className="h-4 w-4">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
+        </svg>
+      )}
+    </button>
+  );
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -100,19 +140,22 @@ export default function Sidebar() {
             화두
           </span>
         </Link>
-        <button
-          onClick={() => setOpen(!open)}
-          aria-label="메뉴 열기"
-          className="p-2 text-hanji-dim"
-        >
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <button
+            onClick={() => setOpen(!open)}
+            aria-label="메뉴 열기"
+            className="p-2 text-hanji-dim"
+          >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5">
             {open ? (
               <path d="M6 6l12 12M18 6L6 18" />
             ) : (
               <path d="M4 7h16M4 12h16M4 17h16" />
             )}
-          </svg>
-        </button>
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* 모바일 배경 가림막 */}
@@ -141,16 +184,19 @@ export default function Sidebar() {
               </span>
             </Link>
           )}
-          <button
-            onClick={toggleCollapsed}
-            title={slim ? "펼치기" : "접기"}
-            aria-label={slim ? "사이드바 펼치기" : "사이드바 접기"}
-            className="p-1.5 text-hanji-faint transition-colors hover:text-hanji-dim"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4">
-              {slim ? <path d="M9 5l7 7-7 7" /> : <path d="M15 5l-7 7 7 7" />}
-            </svg>
-          </button>
+          <div className={`flex items-center ${slim ? "flex-col gap-1" : "gap-0.5"}`}>
+            <ThemeToggle />
+            <button
+              onClick={toggleCollapsed}
+              title={slim ? "펼치기" : "접기"}
+              aria-label={slim ? "사이드바 펼치기" : "사이드바 접기"}
+              className="p-1.5 text-hanji-faint transition-colors hover:text-hanji-dim"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4">
+                {slim ? <path d="M9 5l7 7-7 7" /> : <path d="M15 5l-7 7 7 7" />}
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* 새 화두 받기 — 홈 */}
@@ -163,6 +209,20 @@ export default function Sidebar() {
         >
           <Lotus className="h-[17px] w-[17px]" stroke="#D9B45B" />
           {!slim && "뜰 : 새 화두 받기"}
+        </Link>
+
+        {/* 체험하기 — 기한 없이 전 과정 한 바퀴 */}
+        <Link
+          href="/try"
+          title="체험하기"
+          className={`mt-2 flex items-center gap-2.5 rounded-[10px] border py-2.5 text-[13px] transition-colors ${
+            pathname === "/try"
+              ? "border-gold/40 bg-gold/10 text-hanji"
+              : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
+          } ${slim ? "justify-center px-0" : "px-3"}`}
+        >
+          <Gate className="h-[15px] w-[15px] opacity-75" />
+          {!slim && <span>체험하기</span>}
         </Link>
 
         {/* 여섯 방 */}

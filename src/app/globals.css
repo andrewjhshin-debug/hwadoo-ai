@@ -23,6 +23,40 @@ html {
   background: var(--color-ink);
 }
 
+/* ─── 낮(데이) 모드 — 한지 위에 먹 글씨 ─── */
+html[data-theme="light"] {
+  --color-ink: #f3ecdc; /* 한지 — 바탕 */
+  --color-ink-2: #ebe1cb; /* 옅은 한지 — 패널 */
+  --color-ink-3: rgba(122, 96, 52, 0.22); /* 경계선 */
+  --color-hanji: #2b241a; /* 먹 — 본문 글 */
+  --color-hanji-dim: #6a5f4a; /* 옅은 먹 */
+  --color-hanji-faint: #a2947a; /* 아주 옅은 먹 */
+  --color-gold: #a67c24; /* 낮의 금 — 종이 위에서도 읽히게 진하게 */
+  --color-gold-soft: #8a6f33;
+}
+
+html[data-theme="light"] .question-glow {
+  text-shadow: none;
+}
+
+html[data-theme="light"] .obang-aura {
+  background: radial-gradient(
+      560px 340px at 50% 30%,
+      rgba(217, 180, 91, 0.18),
+      transparent 65%
+    ),
+    radial-gradient(
+      520px 380px at 18% 82%,
+      rgba(193, 85, 59, 0.08),
+      transparent 65%
+    ),
+    radial-gradient(
+      520px 380px at 84% 76%,
+      rgba(94, 127, 178, 0.07),
+      transparent 65%
+    );
+}
+
 body {
   background: var(--color-ink);
   color: var(--color-hanji);
