@@ -31,6 +31,7 @@ export type PublicHwadu = {
   question: string;
   source?: string; // 출처 (관리자 화두)
   origin?: "thrown" | "admin";
+  audience?: "adult" | "student"; // 어느 랜덤 풀에 뿌릴지 (없으면 성인)
 };
 
 // 화두를 던진다 — 로그인 없어도 가능
@@ -53,6 +54,7 @@ export async function fetchPublicHwadu(): Promise<PublicHwadu[]> {
       question: data.question as string,
       source: (data.source as string) || undefined,
       origin: (data.origin as "thrown" | "admin") || "thrown",
+      audience: data.audience === "student" ? "student" : "adult",
     };
   });
 }
@@ -79,12 +81,17 @@ export async function rejectThrown(id: string) {
   await updateDoc(doc(db, "thrown", id), { status: "rejected" });
 }
 
-// 관리자가 직접 화두를 더한다 (화두 + 출처)
-export async function adminAddHwadu(question: string, source: string) {
+// 관리자가 직접 화두를 더한다 (화두 + 출처 + 어느 풀에 뿌릴지)
+export async function adminAddHwadu(
+  question: string,
+  source: string,
+  audience: "adult" | "student"
+) {
   await addDoc(collection(db, "public-hwadu"), {
     question,
     source: source || null,
     origin: "admin",
+    audience,
     createdAt: serverTimestamp(),
   });
 }

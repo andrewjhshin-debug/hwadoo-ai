@@ -18,6 +18,7 @@ import {
   pickRandomHwadu,
   sessionQuestion,
 } from "@/lib/hwadu";
+import Question from "@/components/Question";
 import { fetchPublicHwadu, type PublicHwadu } from "@/lib/thrown";
 import {
   decrementHolding,
@@ -102,11 +103,10 @@ export default function Home() {
       ...(base.current ? [base.current.hwaduId] : []),
     ];
     const audience = base.audience ?? "adult";
-    // 서버 화두(던져진 것·관리자 추가)는 어른 모드에만 섞인다
-    const freshPublic =
-      audience === "adult"
-        ? publicPool.filter((p) => !exclude.includes(`thrown:${p.id}`))
-        : [];
+    // 서버 화두 — 지금 대상(성인/학생)에 맞는 것만 섞는다
+    const freshPublic = publicPool.filter(
+      (p) => (p.audience ?? "adult") === audience && !exclude.includes(`thrown:${p.id}`)
+    );
     const total = 30 + freshPublic.length;
     let newId: string;
     if (freshPublic.length > 0 && Math.random() < freshPublic.length / total) {
@@ -357,9 +357,9 @@ export default function Home() {
             {hwadu.hanja}
           </p>
         )}
-        <h1 className="question-glow mt-7 break-keep font-serif text-[38px] font-light leading-[1.5] sm:text-[52px] sm:leading-[1.45]">
-          {flatQuestion(sessionQuestion(current))}
-        </h1>
+        <div className="question-glow mt-7 w-full">
+          <Question text={sessionQuestion(current)} className="text-hanji" />
+        </div>
         {(hwadu?.context || current.customSource) && (
           <p className="mt-7 text-xs tracking-wider text-hanji-faint">
             {hwadu?.context ?? current.customSource}

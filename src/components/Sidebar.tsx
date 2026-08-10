@@ -34,7 +34,7 @@ const NAV = [
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
-  { href: "/community", label: "연지원 — 뜰의 이야기", Icon: Lantern },
+  { href: "/community", label: "연지원 — 커뮤니티", Icon: Lantern },
 ];
 
 const COLLAPSE_KEY = "hwadoo-sidebar-collapsed";

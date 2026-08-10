@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { Dharmachakra } from "@/components/icons";
-import { randomSaying, SAYINGS, type Saying } from "@/lib/sayings";
+import { randomSaying, SAYINGS, splitSentences, type Saying } from "@/lib/sayings";
 
 export default function MastersPage() {
   const [saying, setSaying] = useState<Saying | null>(null);
@@ -25,8 +25,12 @@ export default function MastersPage() {
       {/* 한마디 — 누를 때마다 다른 말 */}
       {saying && (
         <section className="rise rise-d1 mt-12 text-center">
-          <blockquote className="question-glow font-serif text-lg font-light leading-[1.8] text-hanji sm:text-xl">
-            {saying.text}
+          <blockquote className="question-glow break-keep font-serif text-lg font-light leading-[1.8] text-hanji sm:text-xl">
+            {splitSentences(saying.text).map((line, i) => (
+              <span key={i} className="block">
+                {line}
+              </span>
+            ))}
           </blockquote>
           <p className="mt-5 text-xs tracking-widest text-hanji-dim">
             — {saying.name}
@@ -60,8 +64,12 @@ export default function MastersPage() {
         <div className="mt-8 flex flex-col gap-8">
           {SAYINGS.map((s, i) => (
             <figure key={i} className="border-l border-gold/25 pl-5">
-              <blockquote className="font-serif text-[15px] font-light leading-8 text-hanji-dim">
-                {s.text}
+              <blockquote className="break-keep font-serif text-[15px] font-light leading-8 text-hanji-dim">
+                {splitSentences(s.text).map((line, j) => (
+                  <span key={j} className="block">
+                    {line}
+                  </span>
+                ))}
               </blockquote>
               <figcaption className="mt-2 text-xs tracking-widest text-hanji-faint">
                 — {s.name}

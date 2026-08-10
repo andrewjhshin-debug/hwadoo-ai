@@ -51,6 +51,7 @@ export default function AdminPage() {
   // 추가/수정 폼
   const [newQ, setNewQ] = useState("");
   const [newSrc, setNewSrc] = useState("");
+  const [newAudience, setNewAudience] = useState<"adult" | "student">("adult");
   const [editId, setEditId] = useState<string | null>(null);
   const [editQ, setEditQ] = useState("");
   const [editSrc, setEditSrc] = useState("");
@@ -212,22 +213,42 @@ export default function AdminPage() {
                 placeholder="출처 (선택) — 예: 벽암록 제6칙"
                 className="mt-2 w-full border-b border-ink-3 bg-transparent pb-1.5 text-[12px] text-hanji-dim outline-none placeholder:text-hanji-faint"
               />
-              <button
-                disabled={!newQ.trim() || busy === "add"}
-                onClick={() =>
-                  act("add", async () => {
-                    await adminAddHwadu(newQ.trim(), newSrc.trim());
-                    setNewQ("");
-                    setNewSrc("");
-                  })
-                }
-                className={`${smallBtn} mt-3 border-gold/50 text-gold hover:bg-gold/10`}
-              >
-                풀에 더하기
-              </button>
-              <p className="mt-2 text-[11px] text-hanji-faint">
-                성인 랜덤 풀에 섞입니다 (학생 모드에는 안 나감)
-              </p>
+              {/* 어느 랜덤 풀에 뿌릴지 */}
+              <div className="mt-3 inline-flex rounded-full border border-ink-3 p-1 text-[11px]">
+                {(
+                  [
+                    { key: "adult", label: "성인 랜덤" },
+                    { key: "student", label: "학생·어린이 랜덤" },
+                  ] as const
+                ).map((o) => (
+                  <button
+                    key={o.key}
+                    onClick={() => setNewAudience(o.key)}
+                    className={`rounded-full px-3.5 py-1.5 tracking-wide transition-colors ${
+                      newAudience === o.key
+                        ? "bg-gold font-medium text-ink"
+                        : "text-hanji-faint"
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <button
+                  disabled={!newQ.trim() || busy === "add"}
+                  onClick={() =>
+                    act("add", async () => {
+                      await adminAddHwadu(newQ.trim(), newSrc.trim(), newAudience);
+                      setNewQ("");
+                      setNewSrc("");
+                    })
+                  }
+                  className={`${smallBtn} mt-3 border-gold/50 text-gold hover:bg-gold/10`}
+                >
+                  {newAudience === "student" ? "학생·어린이" : "성인"} 풀에 더하기
+                </button>
+              </div>
             </div>
             <ul className="mt-6 space-y-5">
               {adminHwadu.map((p) => (
@@ -274,6 +295,9 @@ export default function AdminPage() {
                   ) : (
                     <>
                       <p className="whitespace-pre-line text-[13px] leading-6 text-hanji-dim">
+                        <span className="mr-2 rounded-full border border-ink-3 px-2 py-0.5 text-[10px] text-gold-soft">
+                          {p.audience === "student" ? "학생·어린이" : "성인"}
+                        </span>
                         {p.question}
                       </p>
                       {p.source && (

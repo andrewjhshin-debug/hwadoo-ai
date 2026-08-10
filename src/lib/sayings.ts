@@ -156,6 +156,15 @@ export const SAYINGS: Saying[] = [
   },
 ];
 
+// 문장(마침표) 단위로 줄을 나눈다 — 어이없이 끊기지 않게.
+// "가. 나." → "가.\n나." (괄호 안의 온점 등은 건드리지 않도록 마침표+공백 기준)
+export function splitSentences(text: string): string[] {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 // 아무 한마디나 하나 — 직전 것과는 겹치지 않게
 export function randomSaying(excludeText?: string): Saying {
   const pool = excludeText
