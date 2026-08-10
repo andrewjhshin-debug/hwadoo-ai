@@ -1,0 +1,98 @@
+// ─────────────────────────────────────────────────────────────
+// 저장소 — 지금은 브라우저(localStorage)에만 기록을 남긴다.
+// 로그인이 없어도 쓸 수 있고, 기록은 이 기기를 떠나지 않는다.
+// 나중에 Firebase 로그인 + 동기화를 붙일 때 이 파일만 확장하면 된다.
+// ─────────────────────────────────────────────────────────────
+
+export type Session = {
+  hwaduId: string; // 화두 은행의 id. 직접 던진 화두면 "custom"
+  customQuestion?: string; // 내가 던지는 화두 — 직접 쓴 물음
+  receivedAt: number; // 화두를 받은 시각 (epoch ms)
+  durationDays: number; // 참구 기간 (1 | 3 | 7), 0 = 스스로 정함(수동)
+  notes?: string; // 참구 중의 단상 — 임시저장 메모
+  journal?: string; // 회향 — 깨달은 바의 기록
+  journalAt?: number; // 기록한 시각
+};
+
+export type Store = {
+  current: Session | null; // 지금 들고 있는 화두
+  history: Session[]; // 회향을 마친 화두들
+  received: number; // 지금까지 받은 화두 수 (다음 화두 선정용)
+};
+
+const KEY = "hwadoo-store-v1";
+
+const EMPTY: Store = { current: null, history: [], received: 0 };
+
+export function loadStore(): Store {
+  if (typeof window === "undefined") return EMPTY;
+  try {
+    const raw = window.localStorage.getItem(KEY);
+    if (!raw) return EMPTY;
+    const parsed = JSON.parse(raw) as Store;
+    return {
+      current: parsed.current ?? null,
+      history: Array.isArray(parsed.history) ? parsed.history : [],
+      received: typeof parsed.received === "number" ? parsed.received : 0,
+    };
+  } catch {
+    return EMPTY;
+  }
+}
+
+export function saveStore(store: Store) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(KEY, JSON.stringify(store));
+  // 사이드바 등 다른 화면이 즉시 갱신되도록 알림
+  // (렌더링 도중 상태 갱신을 피하려고 한 박자 늦춰서 보낸다)
+  window.setTimeout(() => {
+    window.dispatchEvent(new Event("hwadoo-store-updated"));
+  }, 0);
+}
+
+// 스스로 정함(수동) 모드인가
+export function isManual(session: Session): boolean {
+  return session.durationDays === 0;
+}
+
+// 붓을 들 수 있는 시각 — 화두 받은 시각 + 참구 기간
+export function unlockAt(session: Session): number {
+  return session.receivedAt + session.durationDays * 24 * 60 * 60 * 1000;
+}
+
+export function isUnlocked(session: Session, now = Date.now()): boolean {
+  if (isManual(session)) return true; // 수동 — 마음이 무르익으면 언제든
+  return now >= unlockAt(session);
+}
+
+// 참구 기간 한글 이름
+export function durationLabel(days: number): string {
+  if (days === 1) return "하루";
+  if (days === 3) return "사흘";
+  if (days === 7) return "이레";
+  return "스스로 정한 때";
+}
+
+// "1일 4시간" 같은 남은 시간 표현
+export function formatRemaining(ms: number): string {
+  if (ms <= 0) return "";
+  const hours = Math.ceil(ms / (60 * 60 * 1000));
+  const d = Math.floor(hours / 24);
+  const h = hours % 24;
+  if (d > 0 && h > 0) return `${d}일 ${h}시간`;
+  if (d > 0) return `${d}일`;
+  return `${h}시간`;
+}
+
+// 화두와 함께한 지 며칠째인지 (받은 날 = 1일째)
+export function dayCount(session: Session, now = Date.now()): number {
+  return Math.floor((now - session.receivedAt) / (24 * 60 * 60 * 1000)) + 1;
+}
+
+export function formatDate(ms: number): string {
+  return new Date(ms).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}

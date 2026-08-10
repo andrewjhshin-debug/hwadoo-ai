@@ -1,26 +1,169 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ─────────────────────────────────────────────
+   화두 디자인 토큰 — 시안(hwadu-home-dark) 기준
+   먹빛 위에 금(金)·단청 적(赤)·오방 청(靑)·한지(韓紙)
+   ───────────────────────────────────────────── */
+@theme {
+  --color-ink: #0d0b09; /* 먹빛 — 바탕 */
+  --color-ink-2: #12100d; /* 옅은 먹 — 패널 */
+  --color-ink-3: rgba(217, 180, 91, 0.14); /* 금빛 경계선 */
+  --color-hanji: #ede6d4; /* 한지 — 본문 글 */
+  --color-hanji-dim: #8a8271; /* 바랜 한지 */
+  --color-hanji-faint: #5c564a; /* 아주 바랜 */
+  --color-gold: #d9b45b; /* 금 */
+  --color-gold-soft: #b99a54; /* 묵은 금 */
+  --color-vermilion: #c1553b; /* 단청 적 */
+  --color-obang-blue: #5e7fb2; /* 오방 청 */
+  --font-serif: var(--font-noto-serif-kr), "Noto Serif KR", serif;
+  --font-sans: var(--font-noto-sans-kr), "Noto Sans KR", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink);
+  color: var(--color-hanji);
+  font-family: var(--font-sans);
+  letter-spacing: 0.01em;
+}
+
+/* 오방색 오라 — 금·적·청의 옅은 빛 무리 */
+.obang-aura {
+  background: radial-gradient(
+      560px 340px at 50% 30%,
+      rgba(217, 180, 91, 0.13),
+      transparent 65%
+    ),
+    radial-gradient(
+      520px 380px at 18% 82%,
+      rgba(193, 85, 59, 0.1),
+      transparent 65%
+    ),
+    radial-gradient(
+      520px 380px at 84% 76%,
+      rgba(94, 127, 178, 0.09),
+      transparent 65%
+    );
+}
+
+::selection {
+  background: rgba(217, 180, 91, 0.3);
+  color: var(--color-hanji);
+}
+
+/* ─── 그라데이션 글자 ─── */
+.text-obang {
+  background: linear-gradient(
+    100deg,
+    #e9cd82 0%,
+    #d9b45b 30%,
+    #c1553b 62%,
+    #5e7fb2 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gold-grad {
+  background: linear-gradient(100deg, #d9b45b, #e8cfa0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ─── 오방색 테두리 알약 버튼 ─── */
+.btn-obang {
+  background: linear-gradient(var(--color-ink-2), var(--color-ink-2))
+      padding-box,
+    linear-gradient(120deg, #d9b45b, #c1553b, #5e7fb2) border-box;
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+
+/* ─── 달 ─── */
+.moon {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 66% 40%,
+    #e8cfa0 0 44%,
+    rgba(232, 207, 160, 0.14) 46% 100%
+  );
+  box-shadow: 0 0 10px rgba(217, 180, 91, 0.35);
+}
+
+/* ─── 향 연기처럼 — 느린 등장 ─── */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 1.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.rise-slow {
+  animation: rise 2.4s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.rise-d1 {
+  animation-delay: 0.4s;
+}
+.rise-d2 {
+  animation-delay: 0.9s;
+}
+.rise-d3 {
+  animation-delay: 1.4s;
+}
+.rise-d4 {
+  animation-delay: 1.9s;
+}
+
+/* ─── 일원상의 숨 ─── */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.012);
+  }
+}
+
+.breathe {
+  animation: breathe 8s ease-in-out infinite;
+}
+
+/* ─── 글쓰기 영역 — 한지에 붓 ─── */
+.journal-area {
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  width: 100%;
+  color: var(--color-hanji);
+  line-height: 2.1;
+  font-size: 1.02rem;
+  font-family: var(--font-serif);
+  caret-color: var(--color-gold);
+}
+
+.journal-area::placeholder {
+  color: var(--color-hanji-faint);
+}
+
+/* 질문 글자의 은은한 금빛 그림자 */
+.question-glow {
+  text-shadow: 0 0 44px rgba(217, 180, 91, 0.16);
 }
