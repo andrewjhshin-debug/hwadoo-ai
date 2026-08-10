@@ -130,14 +130,14 @@ export default function RoomPage() {
         <div className="mt-3 flex items-center justify-end gap-3">
           {savedAt && (
             <span className="text-[11px] text-hanji-faint">
-              임시 저장됨 · {savedAt}
+              저장됨 · {savedAt}
             </span>
           )}
           <button
             onClick={saveNow}
             className="border border-ink-3 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
           >
-            임시 저장
+            저장
           </button>
         </div>
       </div>

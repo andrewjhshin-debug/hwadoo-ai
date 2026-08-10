@@ -1,39 +1,31 @@
 "use client";
 
-// ─────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // 체험하기 — 실제 화면과 똑같이, 다만 시간이 클릭으로 흐른다.
-// · 위에는 늘 "체험하기 · 1 2 3 4" 단계가 있어 튜토리얼임을 알린다
-// · 화두 받기 전 화면부터 시작해 성인/학생을 고르고 받는다
-// · 사유의 방·기간 바꾸기는 실제로 작동(단, 진짜 기록과는 무관)
-// · 선지식·화두 던지기·내려놓다는 자리만 (헷갈리지 않게 눌러도 안 움직임)
-// · 회향을 마치면 지난 화두에 한 편이 남는다
-// ─────────────────────────────────────────────────────────────
+// · 화두는 언제나 '이뭣고' 하나로 고정 (가장 유명한 입문 화두)
+// · 튜토리얼이므로 지난 화두에는 저장되지 않는다
+// · 사유의 방 메모도 여기서 함께 써 보고, 회향 시 답과 같이 남는다(안내만)
+// · 카운트다운 문구는 단계가 바뀌어도 고정 — 화면이 흔들리지 않게
+// ────────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Enso from "@/components/Enso";
 import Question from "@/components/Question";
 import { Banga, Dharmachakra } from "@/components/icons";
-import { HWADU_BANK, type Hwadu } from "@/lib/hwadu";
-import { durationLabel, loadStore, saveStore } from "@/lib/store";
-import { todayGuide } from "@/lib/guidance";
-import { SLOGAN } from "@/lib/config";
+import { getHwadu, type Hwadu } from "@/lib/hwadu";
+import { durationLabel } from "@/lib/store";
 
 const MAX_ANSWER = 500;
-const DAY_OPTIONS = [1, 3, 7, 21, 108];
-const DAY_NOTE: Record<number, string> = {
-  1: "하루 — 첫걸음",
-  3: "사흘 — 삼일기도의 리듬",
-  7: "이레 — 칠일 용맹정진",
-  21: "삼칠일 — 세 이레, 회향의 단위",
-  108: "백팔일 — 백팔번뇌를 마주하는 가장 깊은 참구",
-};
+
+// 체험은 언제나 이 화두 하나로 — '이뭣고(是甚麼)'
+const TRY_HWADU_ID = "simsima";
 
 type Step = "choose" | "received" | "pondering" | "ripened" | "writing" | "done";
 
-// 걸음마다 뜨는 체험 안내 — 남은 시간 바로 아래에 놓인다
+// 걸음마다 뜨는 체험 안내
 const GUIDE: Record<Step, string> = {
-  choose: "먼저 누구의 화두를 받을지 고르고, 화두를 받아 보십시오.",
+  choose: "먼저 화두를 받아 보십시오.",
   received:
     "화두를 받았습니다. 본래는 이대로 며칠이 흘러야 합니다 — 체험에서는 눌러서 건너뜁니다.",
   pondering: "사유의 시간입니다. 떠오르는 것은 사유의 방에 적어 둡니다.",
@@ -46,7 +38,7 @@ const STEPS = ["화두를 받다", "사유하다", "달이 차오르다", "회�
 
 // 앞뒤로 오가는 걸음 이름
 const NAV: Partial<Record<Step, { prev: string; next: string }>> = {
-  received: { prev: "화두 다시 받기", next: "사유의 시간을 갖다" },
+  received: { prev: "처음으로", next: "사유의 시간을 갖다" },
   pondering: { prev: "화두를 받다", next: "시간이 흘렀다" },
   ripened: { prev: "사유하다", next: "붓을 들다" },
   writing: { prev: "달이 차오르다", next: "" },
@@ -54,23 +46,15 @@ const NAV: Partial<Record<Step, { prev: string; next: string }>> = {
 
 export default function TryPage() {
   const [step, setStep] = useState<Step>("choose");
-  const [audience, setAudience] = useState<"adult" | "student">("adult");
   const [hwadu, setHwadu] = useState<Hwadu | null>(null);
   const [days, setDays] = useState(3);
   const [notesOpen, setNotesOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [memo, setMemo] = useState("");
   const [answer, setAnswer] = useState("");
-  const [startedAt] = useState(() => Date.now());
 
-  // 화면 크기에 따라 몸이 흔들리지 않도록, 받을 때 한 번만 고른다
+  // 화두를 받는다 — 언제나 '이뭣고'
   const receive = () => {
-    const pool = HWADU_BANK.filter((h) =>
-      audience === "student"
-        ? h.audience === "student" || h.forStudent
-        : h.audience !== "student"
-    );
-    setHwadu(pool[Math.floor(Math.random() * pool.length)]);
+    setHwadu(getHwadu(TRY_HWADU_ID) ?? null);
     setStep("received");
   };
 
@@ -82,7 +66,7 @@ export default function TryPage() {
     } else if (step === "ripened") setStep("writing");
   };
 
-  // 앞 걸음으로 — 되돌아가며 다시 볼 수 있게
+  // 앞 걸음으로
   const prev = () => {
     if (step === "received") setStep("choose");
     else if (step === "pondering") setStep("received");
@@ -90,25 +74,9 @@ export default function TryPage() {
     else if (step === "writing") setStep("ripened");
   };
 
-  // 회향 — 지난 화두에 남긴다
+  // 회향 — 체험은 기록에 남기지 않는다 (튜토리얼)
   const finish = () => {
     if (!hwadu || !answer.trim()) return;
-    const s = loadStore();
-    saveStore({
-      ...s,
-      history: [
-        ...s.history,
-        {
-          hwaduId: hwadu.id,
-          receivedAt: startedAt,
-          durationDays: days,
-          notes: memo.trim() || undefined,
-          journal: answer.trim(),
-          journalAt: Date.now(),
-        },
-      ],
-      received: s.received + 1,
-    });
     setStep("done");
   };
 
@@ -169,7 +137,7 @@ export default function TryPage() {
         <div className="mt-6 h-px w-full bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
       </div>
 
-      {/* ── 1. 화두 받기 전 — 뜰과 같은 화면 ── */}
+      {/* ── 1. 화두 받기 전 — 홈과 같은 화면 ── */}
       {step === "choose" && (
         <section className="rise mt-10 flex flex-col items-center">
           <Enso size={130} />
@@ -179,8 +147,8 @@ export default function TryPage() {
           <p className="mt-2.5 text-[10px] tracking-[0.6em] text-gold-soft">
             HWADU
           </p>
-          <p className="mt-6 text-[13.5px] font-light tracking-[0.1em] text-hanji-dim">
-            &ldquo;{SLOGAN}&rdquo;
+          <p className="mt-6 max-w-sm break-keep text-[13.5px] font-light leading-7 tracking-[0.05em] text-hanji-dim">
+            체험은 가장 오래된 입문 화두 &lsquo;이뭣고&rsquo; 하나로 함께 걷습니다.
           </p>
           <div className="my-9 flex items-center gap-3.5 opacity-80">
             <div className="h-px w-[100px] bg-gradient-to-r from-transparent to-gold/45" />
@@ -191,28 +159,8 @@ export default function TryPage() {
             onClick={receive}
             className="btn-obang px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
           >
-            새 화두 받기
+            화두를 받다
           </button>
-          <div className="mt-7 inline-flex rounded-full border border-ink-3 bg-ink-2 p-1 text-xs">
-            {(
-              [
-                { key: "adult", label: "성인의 화두" },
-                { key: "student", label: "학생·어린이" },
-              ] as const
-            ).map((o) => (
-              <button
-                key={o.key}
-                onClick={() => setAudience(o.key)}
-                className={`rounded-full px-5 py-2 tracking-[0.1em] transition-colors ${
-                  audience === o.key
-                    ? "bg-gold font-medium text-ink"
-                    : "bg-transparent text-hanji-faint"
-                }`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
         </section>
       )}
 
@@ -225,6 +173,18 @@ export default function TryPage() {
           <p className="mt-5 whitespace-pre-line font-serif text-[15px] font-light leading-9 text-hanji">
             {answer}
           </p>
+
+          {/* 사유의 방에 적어 둔 단상도 함께 */}
+          {memo.trim() && (
+            <div className="mt-8 w-full max-w-xl border-t border-ink-3 pt-6 text-left">
+              <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+                사유의 방에 적어 둔 단상
+              </p>
+              <p className="mt-3 whitespace-pre-line break-keep text-[13.5px] font-light leading-7 text-hanji-dim">
+                {memo}
+              </p>
+            </div>
+          )}
 
           <div className="mt-12 w-full border-t border-ink-3 pt-10">
             <p className="text-xs tracking-[0.4em] text-hanji-faint">
@@ -247,24 +207,17 @@ export default function TryPage() {
 
           <div className="mt-12 w-full border-t border-ink-3 pt-8">
             <p className="text-[13px] leading-7 text-hanji-dim">
-              이 회향은{" "}
-              <Link
-                href="/archive"
-                className="text-gold-soft underline decoration-gold/30 underline-offset-4"
-              >
-                지난 화두
-              </Link>
-              에 기록으로 남았습니다.
+              체험은 여기까지입니다. 이 답은 기록에 남지 않습니다.
+              <br />본래의 화두는 며칠을 품은 뒤에야 붓을 들 수 있습니다.
             </p>
             <p className="mt-3 text-xs leading-6 text-hanji-faint">
-              본래의 화두는 며칠을 품은 뒤에야 붓을 들 수 있습니다.
-              <br />그 기다림이 이 도량의 전부입니다.
+              그때 사유의 방에 적어 둔 단상도 회향과 함께 지난 화두에 남습니다.
             </p>
             <Link
               href="/"
               className="btn-obang mt-8 inline-block px-10 py-3.5 font-serif text-[15px] tracking-[0.25em] text-hanji transition-opacity hover:opacity-90"
             >
-              진짜 화두 받기
+              새 화두 받기
             </Link>
           </div>
         </section>
@@ -321,8 +274,9 @@ export default function TryPage() {
                     회향하다
                   </button>
                 </div>
-                <p className="mt-3 text-left text-[11px] text-hanji-faint">
-                  기록은 이 브라우저에만 남습니다.
+                <p className="mt-3 text-left text-[11px] leading-5 text-hanji-faint">
+                  실제 화두에서는 회향할 때, 사유의 방에 적어 둔 단상도
+                  <br />그대의 답과 함께 지난 화두에 저장됩니다.
                 </p>
               </div>
             </div>
@@ -333,7 +287,7 @@ export default function TryPage() {
                 이 물음을 든 사람은, 지금 그대뿐입니다
               </p>
 
-              {/* 달 + 카운트다운 */}
+              {/* 달 + 카운트다운 — 문구 고정(흔들리지 않게) */}
               <div className="mt-12 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-[13.5px] font-light tracking-wide text-hanji-dim">
                 <span className="moon" />
                 {step === "ripened" ? (
@@ -343,21 +297,19 @@ export default function TryPage() {
                     달이 차오르는 {durationLabel(days)} 뒤, 답을 쓸 수 있습니다
                     ·{" "}
                     <span className="tabular-nums text-hanji">
-                      {step === "received"
-                        ? "2일 23시간 59분 12초"
-                        : "1일 04시간 21분 08초"}
+                      2일 23시간 59분 12초
                     </span>{" "}
                     남음
                   </span>
                 )}
               </div>
 
-              {/* 체험 안내 — 남은 시간 바로 아래 */}
-              <p className="mt-4 max-w-md break-keep text-[12.5px] leading-6 text-gold-soft">
-                <span className="mr-1.5 text-[11px] tracking-[0.2em]">
+              {/* 체험 안내 — 남은 시간 바로 아래. 두 줄 고정 높이 */}
+              <p className="mt-4 flex min-h-[2.75rem] max-w-md items-start justify-center break-keep text-[12.5px] leading-6 text-gold-soft">
+                <span className="mr-1.5 shrink-0 text-[11px] tracking-[0.2em]">
                   체험 ·
                 </span>
-                {GUIDE[step]}
+                <span>{GUIDE[step]}</span>
               </p>
 
               <p className="mt-4 text-xs leading-6 tracking-[0.04em] text-hanji-faint">
@@ -385,61 +337,38 @@ export default function TryPage() {
                 </div>
               )}
 
-              {/* 오늘의 참구법 */}
-              {step !== "ripened" && (
+              {/* 오늘의 참구법 — 사유 단계에서만 */}
+              {step === "pondering" && (
                 <div className="mt-8 w-full max-w-md border border-ink-3 bg-ink-2/50 px-6 py-5">
                   <p className="text-[11px] tracking-[0.34em] text-gold-soft">
                     오늘의 참구법 · {dayNo}일째
                   </p>
                   <p className="mt-3 break-keep text-[13.5px] font-light leading-7 text-hanji-dim">
-                    {todayGuide(dayNo)}
+                    떠오르는 생각을 좇지 말고, 오직 &lsquo;이뭣고&rsquo; 한
+                    마디로 돌아오십시오.
                   </p>
                 </div>
               )}
 
-              {/* 기간 바꾸기 — 실제 화두와 같은 포맷 */}
-              {step !== "ripened" && (
+              {/* 기간 바꾸기 — 사유 단계에서만 */}
+              {step === "pondering" && (
                 <div className="mt-7">
-                  {showSettings ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="flex flex-wrap items-center justify-center gap-2.5">
-                        {DAY_OPTIONS.map((d) => (
-                          <button
-                            key={d}
-                            onClick={() => setDays(d)}
-                            className={`border px-4 py-2 text-xs tracking-[0.15em] transition-colors ${
-                              days === d
-                                ? "border-gold/60 text-gold"
-                                : "border-ink-3 text-hanji-dim hover:text-hanji"
-                            }`}
-                          >
-                            {durationLabel(d)}
-                          </button>
-                        ))}
-                      </div>
-                      <p className="text-[11px] tracking-wide text-hanji-faint">
-                        {DAY_NOTE[days] ?? ""}
-                      </p>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowSettings(true)}
-                      className="text-xs tracking-widest text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji-dim"
-                    >
-                      기간 바꾸기
-                    </button>
-                  )}
+                  <div className="flex flex-wrap items-center justify-center gap-2.5">
+                    {[1, 3, 7, 21, 108].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setDays(d)}
+                        className={`border px-4 py-2 text-xs tracking-[0.15em] transition-colors ${
+                          days === d
+                            ? "border-gold/60 text-gold"
+                            : "border-ink-3 text-hanji-dim hover:text-hanji"
+                        }`}
+                      >
+                        {durationLabel(d)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
-
-              {/* 붓을 들다 — 달이 찬 뒤에만 */}
-              {step === "ripened" && (
-                <button
-                  onClick={() => setStep("writing")}
-                  className="btn-obang mt-9 px-10 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
-                >
-                  붓을 들다
-                </button>
               )}
 
               {/* 사유의 방 — 접었다 폈다 (체험 전용) */}
@@ -459,12 +388,30 @@ export default function TryPage() {
                 </button>
               )}
 
-              {/* 자리만 있는 버튼들 */}
+              {/* 자리만 있는 버튼들 + 내려놓다(활성) */}
               <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                 <span className={dead}>선지식의 한마디</span>
                 <span className={dead}>나도 화두 던지기</span>
               </div>
-              <span className={`${dead} mt-10 px-7`}>이 화두를 내려놓다</span>
+              <button
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "이 화두를 내려놓으시겠습니까?\n체험이 처음으로 돌아갑니다."
+                    )
+                  ) {
+                    setHwadu(null);
+                    setNotesOpen(false);
+                    setMemo("");
+                    setAnswer("");
+                    setDays(3);
+                    setStep("choose");
+                  }
+                }}
+                className="mt-10 border border-ink-3 px-7 py-2.5 text-xs tracking-[0.15em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion"
+              >
+                이 화두를 내려놓다
+              </button>
             </>
           )}
         </section>
@@ -518,6 +465,7 @@ export default function TryPage() {
         <div className="flex flex-1 flex-col px-6 py-5 text-left">
           <p className="text-xs leading-6 text-hanji-faint">
             떠오르는 것을 적어 두십시오. 답이 아니라 발자국입니다.
+            <br />여기 적은 단상은 회향할 때 답과 함께 남습니다.
           </p>
           <textarea
             value={memo}
@@ -525,11 +473,9 @@ export default function TryPage() {
             placeholder="오늘 문득 —"
             className="journal-area mt-4 h-[34vh] min-h-[180px]"
           />
-          <div className="mt-3 flex items-center justify-end">
-            <span className="cursor-default border border-ink-3 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji-faint opacity-60">
-              임시 저장
-            </span>
-          </div>
+          <p className="mt-3 text-right text-[11px] text-hanji-faint">
+            적는 대로 저장됩니다
+          </p>
         </div>
       </aside>
     </div>
