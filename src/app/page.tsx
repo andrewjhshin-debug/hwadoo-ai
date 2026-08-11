@@ -428,17 +428,20 @@ export default function Home() {
         )}
 
         {/* 달 + 카운트다운 */}
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-[13.5px] font-light tracking-wide text-hanji-dim">
-          <span className="moon" />
+        <div className="mt-12 flex flex-col items-center gap-3 text-hanji-dim">
+          {/* 달 — 가운데 위 */}
+          <span className="moon !h-[26px] !w-[26px]" />
           {unlocked ? (
-            <span>달이 차올랐습니다. 이제 답을 쓸 수 있습니다</span>
+            <span className="text-[17px] font-light tracking-wide">
+              달이 차올랐습니다. 이제 답을 쓸 수 있습니다
+            </span>
           ) : (
-            <span className="flex flex-col items-center gap-1">
-              <span>
+            <span className="flex flex-col items-center gap-1.5">
+              <span className="text-[16px] font-light leading-snug tracking-wide">
                 달이 차오르는 {durationLabel(current.durationDays)} 뒤, 답을 쓸 수
                 있습니다
               </span>
-              <span>
+              <span className="text-[19px] font-light">
                 <span className="tabular-nums text-hanji">
                   {formatCountdown(unlockAt(current) - Date.now())}
                 </span>{" "}
