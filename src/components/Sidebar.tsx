@@ -12,7 +12,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
-import { sessionTitle } from "@/lib/hwadu";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import {
   Banga,
@@ -279,44 +278,27 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        {/* 지난 화두 — 접힘 상태에서는 숨김 */}
+        {/* 지난 화두 — 목록 없이 기록 보기 링크만 (스크롤바 방지) */}
         {!slim && (
-          <>
-            <div className="mt-7 px-2.5 text-[11.5px] tracking-[0.18em] text-hanji-faint">
+          <div className="mt-6 flex-1">
+            <div className="px-2.5 text-[11.5px] tracking-[0.18em] text-hanji-faint">
               지난 화두
             </div>
-            <nav className="mt-2 flex flex-1 flex-col gap-0.5 overflow-y-auto">
-              {history.length === 0 ? (
-                <p className="px-2.5 py-2 text-xs leading-6 text-hanji-faint">
-                  아직 회향한 화두가 없습니다
-                </p>
-              ) : (
-                <>
-                  {history.slice(0, 8).map((s) => (
-                    <Link
-                      key={`${s.hwaduId}-${s.receivedAt}`}
-                      href="/archive"
-                      onClick={go("/archive")}
-                      className="flex items-center gap-2.5 overflow-hidden rounded-[10px] px-2.5 py-2.5 text-[13.5px] text-hanji-dim transition-colors hover:bg-gold/5 hover:text-hanji"
-                    >
-                      <Book className="h-[15px] w-[15px] shrink-0 opacity-75" />
-                      <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-                        {sessionTitle(s)}
-                      </span>
-                    </Link>
-                  ))}
-                  <Link
-                    href="/archive"
-                    onClick={go("/archive")}
-                    className="px-2.5 py-2 text-xs text-hanji-faint transition-colors hover:text-hanji-dim"
-                  >
-                    기록 모두 보기 →
-                  </Link>
-                </>
-              )}
-            </nav>
-          </>
+            <Link
+              href="/archive"
+              onClick={go("/archive")}
+              className="mt-2 flex items-center gap-2.5 rounded-[10px] px-2.5 py-2.5 text-[13.5px] text-hanji-dim transition-colors hover:bg-gold/5 hover:text-hanji"
+            >
+              <Book className="h-[15px] w-[15px] shrink-0 opacity-75" />
+              <span>
+                {history.length === 0
+                  ? "아직 회향한 화두가 없습니다"
+                  : `기록 보기 · ${history.length}`}
+              </span>
+            </Link>
+          </div>
         )}
+
         {slim && <div className="flex-1" />}
 
         {/* 아래 — 로그인 */}

@@ -7,7 +7,7 @@
 // 다 채운 뒤 '비우기' — 모래 만다라처럼 색이 모래알로 흩어져 사라진다.
 // ────────────────────────────────────────────────────────────────
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 // 다양한 색 — 오방색 + 파스텔·중간톤
@@ -178,10 +178,59 @@ const TEMPLATE_NAMES = ["겹연꽃", "큰 꽃", "별꽃", "촘촘 연꽃", "나�
 export default function MandalaPage() {
   const [tpl, setTpl] = useState(0);
   const [color, setColor] = useState(PALETTE[0]);
-  const [fills, setFills] = useState<Record<string, string>>({});
+  // 탭별 색칠을 따로 보관 — { 만다라번호: { 조각id: 색 } }
+  const [allFills, setAllFills] = useState<Record<number, Record<string, string>>>({});
   const [scattering, setScattering] = useState(false);
+  const [restored, setRestored] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const svgWrapRef = useRef<HTMLDivElement>(null);
+
+  const STORAGE_KEY = "hwadu.mandala.v1";
+
+  // 새로고침·탭이동에도 유지되도록 임시저장 복원
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as {
+          tpl?: number;
+          allFills?: Record<number, Record<string, string>>;
+        };
+        if (saved.allFills) setAllFills(saved.allFills);
+        if (typeof saved.tpl === "number") setTpl(saved.tpl);
+      }
+    } catch {
+      /* 저장된 값이 깨졌으면 무시 */
+    }
+    setRestored(true);
+  }, []);
+
+  // 색칠이 바뀔 때마다 자동 임시저장
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ tpl, allFills }));
+    } catch {
+      /* 용량 초과 등은 무시 */
+    }
+  }, [tpl, allFills, restored]);
+
+  // 현재 탭의 색칠 (파생값)
+  const fills = allFills[tpl] ?? {};
+
+  // 기존 코드가 쓰던 setFills 인터페이스 유지 — 현재 탭에만 반영
+  const setFills = (
+    updater:
+      | Record<string, string>
+      | ((prev: Record<string, string>) => Record<string, string>)
+  ) => {
+    setAllFills((prev) => {
+      const cur = prev[tpl] ?? {};
+      const nextForTpl =
+        typeof updater === "function" ? updater(cur) : updater;
+      return { ...prev, [tpl]: nextForTpl };
+    });
+  };
 
   const regions = useMemo(() => buildTemplate(tpl), [tpl]);
 
@@ -200,10 +249,10 @@ export default function MandalaPage() {
     });
   };
 
+  // 탭 이동 — 지우지 않고 그 탭에 저장된 색칠을 그대로 보여줌
   const chooseTemplate = (i: number) => {
     if (scattering) return;
     setTpl(i);
-    setFills({});
   };
 
   // 모래 흩어지는 이펙트
