@@ -291,22 +291,21 @@ export default function MandalaPage() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center px-6 py-12">
+    <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center px-6 py-6">
       <h1 className="rise text-center text-xs tracking-[0.5em] text-gold-soft">
         曼陀羅 · 만다라 색칠
       </h1>
-      <p className="rise rise-d1 mt-3 text-center text-[12px] leading-6 text-hanji-faint">
-        화두를 기다리는 동안, 한 잎씩 색을 채웁니다.
-        <br />다 채운 뒤에는 — 비웁니다. 채움도 비움도 수행입니다.
+      <p className="rise rise-d1 mt-2 text-center text-[11px] leading-5 text-hanji-faint">
+        화두를 기다리는 동안, 한 잎씩 색을 채웁니다. 다 채운 뒤에는 — 비웁니다.
       </p>
 
       {/* 만다라 고르기 */}
-      <div className="rise rise-d1 mt-6 flex flex-wrap items-center justify-center gap-2">
+      <div className="rise rise-d1 mt-4 flex flex-wrap items-center justify-center gap-2">
         {TEMPLATE_NAMES.map((name, i) => (
           <button
             key={name}
             onClick={() => chooseTemplate(i)}
-            className={`rounded-full border px-3.5 py-1.5 text-xs tracking-widest transition-colors ${
+            className={`rounded-full border px-3 py-1 text-xs tracking-widest transition-colors ${
               tpl === i
                 ? "border-gold/60 text-gold"
                 : "border-ink-3 text-hanji-dim hover:text-hanji"
@@ -317,10 +316,10 @@ export default function MandalaPage() {
         ))}
       </div>
 
-      {/* 본체 — 만다라(왼쪽) + 색 팔레트(오른쪽) */}
-      <div className="rise rise-d2 mt-8 flex w-full flex-col items-center gap-7 sm:flex-row sm:items-start sm:justify-center">
+      {/* 본체 — 만다라(왼쪽) + 조작부(오른쪽). 한 화면에 다 담기도록 */}
+      <div className="rise rise-d2 mt-5 flex w-full flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-center">
         {/* 만다라 */}
-        <div ref={svgWrapRef} className="relative w-full max-w-[440px]">
+        <div ref={svgWrapRef} className="relative w-full max-w-[min(58vh,440px)]">
           <svg
             viewBox="0 0 200 200"
             className="h-auto w-full select-none rounded-full border border-ink-3 bg-ink-2/40"
@@ -344,16 +343,16 @@ export default function MandalaPage() {
           <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
         </div>
 
-        {/* 색 팔레트 — 오른쪽 */}
-        <div className="flex flex-col items-center sm:pt-2">
-          <p className="mb-3 text-[10px] tracking-[0.3em] text-hanji-faint">색</p>
-          <div className="grid grid-cols-7 gap-2 sm:grid-cols-3">
+        {/* 조작부 — 색 → 진행 → 비우기, 세로로. 오른쪽 배치 */}
+        <div className="flex w-full max-w-[220px] flex-col items-center">
+          <p className="mb-2 text-[10px] tracking-[0.3em] text-hanji-faint">색</p>
+          <div className="grid grid-cols-7 gap-2 sm:grid-cols-5">
             {PALETTE.map((c) => (
               <button
                 key={c}
                 onClick={() => setColor(c)}
                 aria-label={c === "transparent" ? "지움" : c}
-                className={`h-8 w-8 rounded-full border-2 transition-transform ${
+                className={`h-7 w-7 rounded-full border-2 transition-transform ${
                   color === c
                     ? "scale-110 border-hanji"
                     : "border-transparent hover:scale-105"
@@ -369,49 +368,43 @@ export default function MandalaPage() {
               />
             ))}
           </div>
+
+          {/* 진행 */}
+          <p className="mt-5 text-center text-[11px] tracking-wide text-hanji-faint">
+            {done ? (
+              <span className="text-gold-soft">다 채우셨습니다 — 이제 비울 때</span>
+            ) : (
+              <>
+                {filledCount} / {regions.length} 잎 채움
+              </>
+            )}
+          </p>
+
+          {/* 비우기 — 색 바로 밑 */}
+          <button
+            onClick={clear}
+            disabled={scattering}
+            className={`mt-3 w-full rounded-[10px] border px-6 py-2.5 text-[13px] tracking-[0.2em] transition-colors disabled:opacity-50 ${
+              done
+                ? "btn-obang text-hanji hover:opacity-90"
+                : "border-ink-3 text-hanji-dim hover:border-vermilion/50 hover:text-vermilion"
+            }`}
+          >
+            {scattering ? "흩어지는 중…" : "비우기"}
+          </button>
+
+          <p className="mt-4 text-center text-[10px] leading-5 text-hanji-faint">
+            모래로 쌓은 만다라는 완성되는 순간 쓸려 나갑니다.
+            <br />채움에 매이지 않는 연습.
+          </p>
+
+          <Link
+            href="/"
+            className="mt-4 text-xs tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
+          >
+            ← 화두로 돌아가기
+          </Link>
         </div>
-      </div>
-
-      {/* 진행 */}
-      <p className="rise rise-d3 mt-7 text-[12px] tracking-wide text-hanji-faint">
-        {done ? (
-          <span className="text-gold-soft">
-            만다라를 다 채우셨습니다 — 이제 비울 때입니다
-          </span>
-        ) : (
-          <>
-            {filledCount} / {regions.length} 잎 채움
-          </>
-        )}
-      </p>
-
-      {/* 비우기 */}
-      <div className="rise rise-d3 mt-6">
-        <button
-          onClick={clear}
-          disabled={scattering}
-          className={`rounded-[10px] border px-8 py-3 text-[13px] tracking-[0.2em] transition-colors disabled:opacity-50 ${
-            done
-              ? "btn-obang text-hanji hover:opacity-90"
-              : "border-ink-3 text-hanji-dim hover:border-vermilion/50 hover:text-vermilion"
-          }`}
-        >
-          {scattering ? "흩어지는 중…" : "비우기"}
-        </button>
-      </div>
-
-      <p className="rise rise-d3 mt-10 text-center text-[11px] leading-6 text-hanji-faint">
-        모래로 쌓은 만다라는 완성되는 순간 쓸려 나갑니다.
-        <br />채움에 매이지 않는 연습 — 그것이 이 놀이의 뜻입니다.
-      </p>
-
-      <div className="mt-10 text-center">
-        <Link
-          href="/"
-          className="text-xs tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
-        >
-          ← 화두로 돌아가기
-        </Link>
       </div>
     </div>
   );
