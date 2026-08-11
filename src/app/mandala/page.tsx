@@ -45,16 +45,6 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
   return `M${x1} ${y1} A${r2} ${r2} 0 ${large} 1 ${x2} ${y2} L${x3} ${y3} A${r1} ${r1} 0 ${large} 0 ${x4} ${y4} Z`;
 }
 
-// 꽃잎
-function petal(r1: number, r2: number, aC: number, spread: number): string {
-  const [bx1, by1] = pt(r1, aC - spread);
-  const [bx2, by2] = pt(r1, aC + spread);
-  const [tx, ty] = pt(r2, aC);
-  const [cx1, cy1] = pt((r1 + r2) / 2, aC - spread * 0.7);
-  const [cx2, cy2] = pt((r1 + r2) / 2, aC + spread * 0.7);
-  return `M${bx1} ${by1} Q${cx1} ${cy1} ${tx} ${ty} Q${cx2} ${cy2} ${bx2} ${by2} Z`;
-}
-
 type Region = { id: string; d: string; cx: number; cy: number };
 
 function buildTemplate(kind: number): Region[] {
@@ -64,104 +54,92 @@ function buildTemplate(kind: number): Region[] {
     out.push({ id, d, cx, cy });
   };
 
-  if (kind === 0) {
-    // ① 겹연꽃 — 여섯 겹, 촘촘한 꽃잎
-    add("core", `M${C} ${C} m-7 0 a7 7 0 1 0 14 0 a7 7 0 1 0 -14 0`, 0, 0);
-    const rings = [
-      { n: 8, r1: 7, r2: 22, sp: 22 },
-      { n: 12, r1: 22, r2: 38, sp: 15 },
-      { n: 16, r1: 38, r2: 54, sp: 11 },
-      { n: 24, r1: 54, r2: 70, sp: 7.5 },
-      { n: 32, r1: 70, r2: 84, sp: 5.6 },
-      { n: 40, r1: 84, r2: 96, sp: 4.5 },
-    ];
-    rings.forEach((ring, ri) => {
-      const off = ri % 2 ? 360 / ring.n / 2 : 0;
-      for (let i = 0; i < ring.n; i++) {
-        const a = (360 / ring.n) * i - 90 + off;
-        add(`p${ri}-${i}`, petal(ring.r1, ring.r2, a, ring.sp), (ring.r1 + ring.r2) / 2, a);
-      }
-    });
-  } else if (kind === 1) {
-    // ② 수레바퀴 — 여섯 겹 고리, 아주 촘촘한 조각
-    const rings = [
-      { n: 8, r1: 6, r2: 20 },
+  // 한 겹(ring)을 빈틈없는 조각으로 가득 채운다 — 색칠 안 되는 공간이 없도록
+  const fillRing = (
+    key: string,
+    n: number,
+    r1: number,
+    r2: number,
+    offset = 0
+  ) => {
+    const step = 360 / n;
+    for (let i = 0; i < n; i++) {
+      const a1 = step * i - 90 + offset;
+      // gap=0 → 조각끼리 딱 붙어 빈틈이 없다 (경계선은 stroke로만 보인다)
+      add(`${key}-${i}`, sector(r1, r2, a1, a1 + step), (r1 + r2) / 2, a1 + step / 2);
+    }
+  };
+
+  // 다섯 폭 — 겹 수와 조각 수만 다르게, 모두 빈틈없이 꽉 찬다
+  const LAYOUTS: { n: number; r1: number; r2: number }[][] = [
+    // ① 겹연꽃 결
+    [
+      { n: 1, r1: 0, r2: 8 },
+      { n: 8, r1: 8, r2: 22 },
+      { n: 12, r1: 22, r2: 38 },
+      { n: 16, r1: 38, r2: 54 },
+      { n: 24, r1: 54, r2: 70 },
+      { n: 32, r1: 70, r2: 84 },
+      { n: 40, r1: 84, r2: 98 },
+    ],
+    // ② 수레바퀴
+    [
+      { n: 1, r1: 0, r2: 7 },
+      { n: 8, r1: 7, r2: 20 },
       { n: 16, r1: 20, r2: 34 },
       { n: 24, r1: 34, r2: 50 },
       { n: 32, r1: 50, r2: 66 },
       { n: 40, r1: 66, r2: 82 },
-      { n: 48, r1: 82, r2: 96 },
-    ];
-    rings.forEach((ring, ri) => {
-      const step = 360 / ring.n;
-      for (let i = 0; i < ring.n; i++) {
-        const a1 = step * i - 90;
-        add(`s${ri}-${i}`, sector(ring.r1, ring.r2, a1 + 0.8, a1 + step - 0.8), (ring.r1 + ring.r2) / 2, a1 + step / 2);
-      }
-    });
-  } else if (kind === 2) {
-    // ③ 별+꽃 교차 — 조각과 꽃잎이 층층이
-    add("core", `M${C} ${C} m-6 0 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0`, 0, 0);
-    for (let i = 0; i < 12; i++) {
-      const a = 30 * i - 90;
-      add(`c1-${i}`, petal(6, 26, a, 13), 16, a);
-    }
-    let step = 360 / 24;
-    for (let i = 0; i < 24; i++) {
-      const a1 = step * i - 90;
-      add(`r1-${i}`, sector(26, 42, a1 + 1, a1 + step - 1), 34, a1 + step / 2);
-    }
-    for (let i = 0; i < 16; i++) {
-      const a = (360 / 16) * i - 90;
-      add(`c2-${i}`, petal(42, 64, a, 9), 53, a);
-    }
-    step = 360 / 36;
-    for (let i = 0; i < 36; i++) {
-      const a1 = step * i - 90;
-      add(`r2-${i}`, sector(64, 80, a1 + 0.8, a1 + step - 0.8), 72, a1 + step / 2);
-    }
-    for (let i = 0; i < 24; i++) {
-      const a = (360 / 24) * i - 90;
-      add(`c3-${i}`, petal(80, 96, a, 6), 88, a);
-    }
-  } else if (kind === 3) {
-    // ④ 만다라 격자 — 조각·꽃잎 규칙적 반복, 다층
-    const rings = [
+      { n: 48, r1: 82, r2: 98 },
+    ],
+    // ③ 별꽃 — 촘촘
+    [
+      { n: 1, r1: 0, r2: 6 },
+      { n: 12, r1: 6, r2: 22 },
+      { n: 12, r1: 22, r2: 38 },
+      { n: 24, r1: 38, r2: 56 },
+      { n: 24, r1: 56, r2: 74 },
+      { n: 36, r1: 74, r2: 88 },
+      { n: 36, r1: 88, r2: 98 },
+    ],
+    // ④ 격자
+    [
+      { n: 1, r1: 0, r2: 8 },
       { n: 6, r1: 8, r2: 24 },
       { n: 12, r1: 24, r2: 40 },
       { n: 18, r1: 40, r2: 56 },
       { n: 24, r1: 56, r2: 72 },
       { n: 30, r1: 72, r2: 86 },
-    ];
-    rings.forEach((ring, ri) => {
-      const step = 360 / ring.n;
-      for (let i = 0; i < ring.n; i++) {
-        const a1 = step * i - 90;
-        add(`g${ri}-${i}`, sector(ring.r1, ring.r2, a1 + 1.2, a1 + step - 1.2), (ring.r1 + ring.r2) / 2, a1 + step / 2);
-      }
-    });
-    for (let i = 0; i < 30; i++) {
-      const a = (360 / 30) * i - 90;
-      add(`tip-${i}`, petal(86, 97, a, 5), 92, a);
+      { n: 36, r1: 86, r2: 98 },
+    ],
+    // ⑤ 나선 — 겹마다 각도를 살짝 틀어 소용돌이
+    [
+      { n: 1, r1: 0, r2: 7 },
+      { n: 10, r1: 7, r2: 24 },
+      { n: 15, r1: 24, r2: 42 },
+      { n: 20, r1: 42, r2: 60 },
+      { n: 30, r1: 60, r2: 78 },
+      { n: 40, r1: 78, r2: 98 },
+    ],
+  ];
+
+  const layout = LAYOUTS[kind] ?? LAYOUTS[0];
+  layout.forEach((ring, ri) => {
+    if (ring.n === 1) {
+      // 중심 원판
+      add(`${kind}-core`, `M${C} ${C} m-${ring.r2} 0 a${ring.r2} ${ring.r2} 0 1 0 ${ring.r2 * 2} 0 a${ring.r2} ${ring.r2} 0 1 0 -${ring.r2 * 2} 0`, 0, 0);
+      return;
     }
-  } else {
-    // ⑤ 나선 연꽃 — 꽃잎이 촘촘히 회전하며 커진다
-    add("core", `M${C} ${C} m-6 0 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0`, 0, 0);
-    const rings = [
-      { n: 10, r1: 6, r2: 24, sp: 17 },
-      { n: 15, r1: 24, r2: 42, sp: 11 },
-      { n: 20, r1: 42, r2: 60, sp: 8.5 },
-      { n: 30, r1: 60, r2: 78, sp: 5.8 },
-      { n: 40, r1: 78, r2: 96, sp: 4.4 },
-    ];
-    rings.forEach((ring, ri) => {
-      const off = (ri * 360) / ring.n / 3;
-      for (let i = 0; i < ring.n; i++) {
-        const a = (360 / ring.n) * i - 90 + off;
-        add(`n${ri}-${i}`, petal(ring.r1, ring.r2, a, ring.sp), (ring.r1 + ring.r2) / 2, a);
-      }
-    });
-  }
+    // 나선(kind 4)은 겹마다 각도 오프셋, 그 외는 교차 오프셋
+    const offset =
+      kind === 4
+        ? (ri * 360) / ring.n / 3
+        : ri % 2
+          ? 360 / ring.n / 2
+          : 0;
+    fillRing(`${kind}-r${ri}`, ring.n, ring.r1, ring.r2, offset);
+  });
+
   return out;
 }
 
