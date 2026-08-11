@@ -24,7 +24,37 @@ const pt = (r: number, aDeg: number): [number, number] => {
   return [C + r * Math.cos(a), C + r * Math.sin(a)];
 };
 
-// 곡선 연꽃잎 — 밑동은 안쪽 호(arc), 양옆은 볼록한 곡선, 끝은 뾰족/둥근 팁
+type Region = { id: string; d: string; cx: number; cy: number };
+
+// ── 문양 조각들 ────────────────────────────────────────────────
+// 고리 조각 (부채꼴)
+function sector(r1: number, r2: number, a1: number, a2: number): string {
+  const [x1, y1] = pt(r2, a1);
+  const [x2, y2] = pt(r2, a2);
+  const [x3, y3] = pt(r1, a2);
+  const [x4, y4] = pt(r1, a1);
+  const large = a2 - a1 > 180 ? 1 : 0;
+  return `M${x1} ${y1} A${r2} ${r2} 0 ${large} 1 ${x2} ${y2} L${x3} ${y3} A${r1} ${r1} 0 ${large} 0 ${x4} ${y4} Z`;
+}
+
+// 마름모 (다이아)
+function diamond(r1: number, r2: number, aC: number, half: number): string {
+  const [ox, oy] = pt(r1, aC);
+  const [tx, ty] = pt(r2, aC);
+  const [lx, ly] = pt((r1 + r2) / 2, aC - half);
+  const [rx, ry] = pt((r1 + r2) / 2, aC + half);
+  return `M${ox} ${oy} L${lx} ${ly} L${tx} ${ty} L${rx} ${ry} Z`;
+}
+
+// 삼각 톱니 (바깥으로 뾰족)
+function triangle(r1: number, r2: number, aC: number, half: number): string {
+  const [b1x, b1y] = pt(r1, aC - half);
+  const [b2x, b2y] = pt(r1, aC + half);
+  const [tx, ty] = pt(r2, aC);
+  return `M${b1x} ${b1y} L${tx} ${ty} L${b2x} ${b2y} Z`;
+}
+
+// 곡선 연꽃잎
 function petal(r1: number, r2: number, aC: number, half: number): string {
   const [bx1, by1] = pt(r1, aC - half);
   const [bx2, by2] = pt(r1, aC + half);
@@ -34,36 +64,46 @@ function petal(r1: number, r2: number, aC: number, half: number): string {
   return `M${bx1} ${by1} Q${c1x} ${c1y} ${tx} ${ty} Q${c2x} ${c2y} ${bx2} ${by2} A${r1} ${r1} 0 0 0 ${bx1} ${by1} Z`;
 }
 
-type Region = { id: string; d: string; cx: number; cy: number };
+// 작은 원 점 (구슬)
+function dot(r: number, aC: number, rad: number): string {
+  const [x, y] = pt(r, aC);
+  return `M${x - rad} ${y} a${rad} ${rad} 0 1 0 ${rad * 2} 0 a${rad} ${rad} 0 1 0 -${rad * 2} 0`;
+}
 
-// 한 겹을 주 꽃잎 + 사이(반 칸 어긋난) 꽃잎으로 채운다 → 빈틈없이 꽃처럼
-function petalRing(
+type RingKind = "petal" | "sector" | "diamond" | "triangle" | "dots";
+
+// 한 겹을 지정한 문양으로 채운다 (빈틈없이)
+function fillRing(
   out: Region[],
   key: string,
   n: number,
   r1: number,
   r2: number,
+  ringKind: RingKind,
   baseAngle = 0
 ) {
   const step = 360 / n;
   const half = step / 2;
-  // 사이 꽃잎(뒤층) 먼저 — 반 칸 어긋나고 살짝 짧게
-  for (let i = 0; i < n; i++) {
-    const a = step * i - 90 + baseAngle + half;
-    const [cx, cy] = pt((r1 + r2) / 2, a);
-    out.push({ id: `${key}-b${i}`, d: petal(r1, r1 + (r2 - r1) * 0.82, a, half), cx, cy });
-  }
-  // 주 꽃잎(앞층)
   for (let i = 0; i < n; i++) {
     const a = step * i - 90 + baseAngle;
     const [cx, cy] = pt((r1 + r2) / 2, a);
-    out.push({ id: `${key}-f${i}`, d: petal(r1, r2, a, half), cx, cy });
+    let d: string;
+    if (ringKind === "sector") d = sector(r1, r2, a - half, a + half);
+    else if (ringKind === "diamond") d = diamond(r1, r2, a, half * 0.9);
+    else if (ringKind === "triangle") d = triangle(r1, r2, a, half * 0.85);
+    else if (ringKind === "dots") d = dot((r1 + r2) / 2, a, Math.min((r2 - r1) / 2.4, (step * Math.PI * ((r1 + r2) / 2)) / 360 / 1.6));
+    else {
+      // petal — 사이 꽃잎(뒷겹)도 함께
+      const [bcx, bcy] = pt((r1 + r2) / 2, a + half);
+      out.push({ id: `${key}-b${i}`, d: petal(r1, r1 + (r2 - r1) * 0.82, a + half, half), cx: bcx, cy: bcy });
+      d = petal(r1, r2, a, half);
+    }
+    out.push({ id: `${key}-f${i}`, d, cx, cy });
   }
 }
 
 function buildTemplate(kind: number): Region[] {
   const out: Region[] = [];
-  // 중심 원판
   const coreR = 8;
   out.push({
     id: `${kind}-core`,
@@ -72,53 +112,62 @@ function buildTemplate(kind: number): Region[] {
     cy: C,
   });
 
-  const LAYOUTS: { n: number; r1: number; r2: number }[][] = [
-    // ① 겹연꽃 — 부드럽게 커지는 여섯 겹
+  // 각 폭은 문양을 섞어 촘촘하게 — 꽃잎만이 아니라 조각·마름모·톱니·구슬을 층층이
+  const LAYOUTS: { n: number; r1: number; r2: number; kind: RingKind }[][] = [
+    // ① 연꽃 + 고리 + 구슬 + 톱니
     [
-      { n: 8, r1: 8, r2: 26 },
-      { n: 12, r1: 24, r2: 44 },
-      { n: 16, r1: 42, r2: 62 },
-      { n: 20, r1: 60, r2: 80 },
-      { n: 28, r1: 78, r2: 98 },
+      { n: 8, r1: 8, r2: 26, kind: "petal" },
+      { n: 16, r1: 25, r2: 36, kind: "sector" },
+      { n: 16, r1: 36, r2: 40, kind: "dots" },
+      { n: 14, r1: 40, r2: 62, kind: "petal" },
+      { n: 28, r1: 61, r2: 74, kind: "diamond" },
+      { n: 36, r1: 73, r2: 88, kind: "sector" },
+      { n: 44, r1: 88, r2: 98, kind: "triangle" },
     ],
-    // ② 큰 꽃 한 송이 — 넓은 꽃잎 중심 + 촘촘한 바깥
+    // ② 큰 꽃 + 마름모 띠 + 고리
     [
-      { n: 6, r1: 8, r2: 34 },
-      { n: 12, r1: 32, r2: 58 },
-      { n: 18, r1: 56, r2: 80 },
-      { n: 24, r1: 78, r2: 98 },
+      { n: 6, r1: 8, r2: 36, kind: "petal" },
+      { n: 24, r1: 35, r2: 46, kind: "diamond" },
+      { n: 18, r1: 46, r2: 68, kind: "petal" },
+      { n: 30, r1: 67, r2: 80, kind: "sector" },
+      { n: 30, r1: 80, r2: 84, kind: "dots" },
+      { n: 40, r1: 84, r2: 98, kind: "triangle" },
     ],
-    // ③ 별꽃 — 층마다 방향 어긋나게
+    // ③ 별(톱니) 중심 + 고리 + 마름모
     [
-      { n: 10, r1: 8, r2: 28 },
-      { n: 10, r1: 26, r2: 48 },
-      { n: 20, r1: 46, r2: 68 },
-      { n: 20, r1: 66, r2: 86 },
-      { n: 30, r1: 84, r2: 98 },
+      { n: 12, r1: 8, r2: 30, kind: "triangle" },
+      { n: 12, r1: 29, r2: 34, kind: "dots" },
+      { n: 20, r1: 34, r2: 54, kind: "petal" },
+      { n: 30, r1: 53, r2: 66, kind: "diamond" },
+      { n: 30, r1: 66, r2: 82, kind: "sector" },
+      { n: 40, r1: 82, r2: 98, kind: "triangle" },
     ],
-    // ④ 촘촘 연꽃 — 겹 많고 잔잔
+    // ④ 촘촘 — 겹 많고 문양 교차
     [
-      { n: 8, r1: 8, r2: 22 },
-      { n: 12, r1: 20, r2: 36 },
-      { n: 16, r1: 34, r2: 52 },
-      { n: 22, r1: 50, r2: 68 },
-      { n: 28, r1: 66, r2: 84 },
-      { n: 36, r1: 82, r2: 98 },
+      { n: 8, r1: 8, r2: 22, kind: "petal" },
+      { n: 16, r1: 21, r2: 30, kind: "sector" },
+      { n: 16, r1: 30, r2: 34, kind: "dots" },
+      { n: 16, r1: 34, r2: 52, kind: "petal" },
+      { n: 24, r1: 51, r2: 62, kind: "diamond" },
+      { n: 28, r1: 62, r2: 76, kind: "sector" },
+      { n: 36, r1: 76, r2: 88, kind: "petal" },
+      { n: 48, r1: 88, r2: 98, kind: "triangle" },
     ],
-    // ⑤ 나선 연꽃 — 겹마다 각도를 틀어 소용돌이
+    // ⑤ 나선 — 각도를 틀며 문양 교차
     [
-      { n: 9, r1: 8, r2: 28 },
-      { n: 14, r1: 26, r2: 48 },
-      { n: 18, r1: 46, r2: 68 },
-      { n: 26, r1: 66, r2: 88 },
-      { n: 34, r1: 86, r2: 98 },
+      { n: 9, r1: 8, r2: 28, kind: "petal" },
+      { n: 18, r1: 27, r2: 40, kind: "diamond" },
+      { n: 18, r1: 46, r2: 60, kind: "petal" },
+      { n: 30, r1: 59, r2: 72, kind: "sector" },
+      { n: 30, r1: 72, r2: 76, kind: "dots" },
+      { n: 40, r1: 76, r2: 98, kind: "triangle" },
     ],
   ];
 
   const layout = LAYOUTS[kind] ?? LAYOUTS[0];
   layout.forEach((ring, ri) => {
-    const baseAngle = kind === 4 ? (ri * 14) : ri % 2 ? 360 / ring.n / 2 : 0;
-    petalRing(out, `${kind}-r${ri}`, ring.n, ring.r1, ring.r2, baseAngle);
+    const baseAngle = kind === 4 ? ri * 11 : ri % 2 ? 360 / ring.n / 2 : 0;
+    fillRing(out, `${kind}-r${ri}`, ring.n, ring.r1, ring.r2, ring.kind, baseAngle);
   });
 
   return out;
