@@ -278,14 +278,14 @@ export default function MandalaPage() {
       if (!c || c === "transparent") continue;
       const px = reg.cx * scale;
       const py = reg.cy * scale;
-      const count = 4 + Math.floor(Math.random() * 4);
+      const count = 10 + Math.floor(Math.random() * 8);
       for (let k = 0; k < count; k++) {
         parts.push({
           x: px + (Math.random() - 0.5) * 6,
           y: py + (Math.random() - 0.5) * 6,
-          vx: (Math.random() - 0.5) * 0.8,
-          vy: 0.3 + Math.random() * 1.1,
-          r: 0.8 + Math.random() * 1.6,
+          vx: -(0.6 + Math.random() * 1.8),
+          vy: (Math.random() - 0.5) * 0.5,
+          r: 0.35 + Math.random() * 0.9,
           color: c,
         });
       }
@@ -302,8 +302,9 @@ export default function MandalaPage() {
       const t = now - start;
       ctx.clearRect(0, 0, size, size);
       for (const p of parts) {
-        p.vy += 0.05;
-        p.vx += (Math.random() - 0.5) * 0.06;
+        // 왼쪽으로 계속 밀리고(바람), 위아래로 잔잔히 떨린다 — 가루가 옆으로 흩날리듯
+        p.vx -= 0.04;
+        p.vy += (Math.random() - 0.5) * 0.12;
         p.x += p.vx;
         p.y += p.vy;
         ctx.globalAlpha = Math.max(0, 1 - t / DURATION) * 0.9;

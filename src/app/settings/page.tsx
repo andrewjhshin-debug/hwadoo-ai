@@ -22,6 +22,7 @@ export default function SettingsPage() {
   const [light, setLight] = useState(false);
   const [received, setReceived] = useState(0);
   const [daysWith, setDaysWith] = useState(0);
+  const [teaOpen, setTeaOpen] = useState(false);
 
   useEffect(() => watchAuth(setUser), []);
   useEffect(() => {
@@ -119,6 +120,16 @@ export default function SettingsPage() {
             <br />차 한 잔 값으로 등불을 보태 주실 수 있습니다.
           </p>
           {DONATION_URL ? (
+            !teaOpen ? (
+              // 펼치기 전 — 담백한 버튼만 (QR을 바로 드러내지 않는다)
+              <button
+                onClick={() => setTeaOpen(true)}
+                className="mt-5 inline-flex items-center gap-2.5 rounded-[10px] border border-ink-3 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+              >
+                <Teacup className="h-4 w-4 text-gold-soft" />
+                차 한 잔 보태기
+              </button>
+            ) : (
             <>
               {/* 모바일 — 누르면 바로 카카오페이 */}
               <a
@@ -146,6 +157,7 @@ export default function SettingsPage() {
                 </p>
               </div>
             </>
+            )
           ) : (
             <p className="mt-5 text-xs tracking-widest text-hanji-faint">
               찻자리를 마련하고 있습니다
