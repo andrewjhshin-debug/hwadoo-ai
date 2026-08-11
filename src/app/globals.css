@@ -329,3 +329,8 @@ html[data-theme="light"] .notes-panel {
     0 24px 60px rgba(90, 18, 12, 0.22),
     0 0 34px rgba(110, 23, 16, 0.12);
 }
+
+/* 답을 쓰는 동안에는 사유의 방 떠 있는 단추를 감춘다 — 입력창과 겹치지 않게 */
+body[data-writing] .notes-fab {
+  display: none;
+}

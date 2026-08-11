@@ -38,7 +38,7 @@ export default function MobileTabBar() {
       <button
         onClick={() => setNotesOpen(true)}
         aria-label="사유의 방 열기"
-        className="btn-obang fixed bottom-[76px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:hidden"
+        className="notes-fab btn-obang fixed bottom-[76px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:hidden"
       >
         <Banga className="h-6 w-6 text-gold-soft" />
       </button>

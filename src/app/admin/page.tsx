@@ -21,9 +21,16 @@ import {
   type PublicHwadu,
   type ThrownItem,
 } from "@/lib/thrown";
-import { HWADU_BANK, type Hwadu } from "@/lib/hwadu";
+import {
+  approveSharedAnswer,
+  deleteSharedAnswer,
+  fetchAllSharedAnswers,
+  rejectSharedAnswer,
+  type SharedAnswer,
+} from "@/lib/community";
+import { HWADU_BANK, getHwadu, type Hwadu } from "@/lib/hwadu";
 
-type Tab = "adult" | "student" | "mine" | "pending";
+type Tab = "adult" | "student" | "mine" | "pending" | "shared";
 
 // 기본 화두 열람 줄
 function BankRow({ h, i }: { h: Hwadu; i: number }) {
@@ -65,6 +72,7 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("pending");
   const [thrown, setThrown] = useState<ThrownItem[]>([]);
   const [publicList, setPublicList] = useState<PublicHwadu[]>([]);
+  const [shared, setShared] = useState<SharedAnswer[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,9 +89,14 @@ export default function AdminPage() {
 
   const refresh = useCallback(async () => {
     try {
-      const [t, p] = await Promise.all([fetchThrown(), fetchPublicHwadu()]);
+      const [t, p, s] = await Promise.all([
+        fetchThrown(),
+        fetchPublicHwadu(),
+        fetchAllSharedAnswers().catch(() => [] as SharedAnswer[]),
+      ]);
       setThrown(t);
       setPublicList(p);
+      setShared(s);
       setError(null);
     } catch {
       setError("불러오지 못했습니다 — Firestore 규칙을 확인하세요.");
@@ -141,6 +154,10 @@ export default function AdminPage() {
   const studentTotal =
     studentOnly.length + studentClassics.length + publicStudent.length;
 
+  // 나눔에 부쳐진 회향 — 검수 대기 / 처리된 것
+  const sharedPending = shared.filter((s) => (s.status ?? "pending") === "pending");
+  const sharedHandled = shared.filter((s) => (s.status ?? "pending") !== "pending");
+
   const TABS: { key: Tab; label: string; count: number }[] = [
     { key: "adult", label: "성인 화두", count: adultTotal },
     {
@@ -150,6 +167,7 @@ export default function AdminPage() {
     },
     { key: "mine", label: "내가 더한 화두", count: adminHwadu.length },
     { key: "pending", label: "승인 대기", count: pending.length },
+    { key: "shared", label: "나눔 답 검수", count: sharedPending.length },
   ];
 
   const smallBtn =
@@ -473,6 +491,97 @@ export default function AdminPage() {
                       </span>{" "}
                       {t.question.replace(/\s+/g, " ").slice(0, 30)}
                       {t.question.length > 30 && "…"}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
+        )}
+
+        {/* ── 나눔 답 검수 — 동의한 회향만 여기 온다 ── */}
+        {tab === "shared" && (
+          <section>
+            <p className="text-[11px] leading-5 text-hanji-faint">
+              다른 수행자에게 보여도 좋다고 동의한 답들입니다. 승인해야만 그
+              화두를 회향한 이들에게 열립니다.
+            </p>
+
+            {sharedPending.length === 0 ? (
+              <p className="mt-5 text-sm text-hanji-faint">
+                검수를 기다리는 답이 없습니다.
+              </p>
+            ) : (
+              <ul className="mt-5 space-y-4">
+                {sharedPending.map((s) => (
+                  <li key={s.id} className="border border-ink-3 bg-ink-2/60 p-4">
+                    <p className="text-[11px] tracking-wide text-gold-soft">
+                      {getHwadu(s.hwaduId)?.title ?? s.hwaduId} · {s.authorName}
+                    </p>
+                    <p className="mt-2 whitespace-pre-line break-keep text-[13.5px] font-light leading-7 text-hanji">
+                      {s.answer}
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        disabled={busy === s.id}
+                        onClick={() =>
+                          act(s.id, () => approveSharedAnswer(s.id))
+                        }
+                        className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
+                      >
+                        승인 — 다른 이에게 열기
+                      </button>
+                      <button
+                        disabled={busy === s.id}
+                        onClick={() => act(s.id, () => rejectSharedAnswer(s.id))}
+                        className={`${smallBtn} border-ink-3 text-hanji-dim hover:border-vermilion/50 hover:text-hanji`}
+                      >
+                        거절
+                      </button>
+                      <button
+                        disabled={busy === s.id}
+                        onClick={() => act(s.id, () => deleteSharedAnswer(s.id))}
+                        className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {sharedHandled.length > 0 && (
+              <>
+                <h3 className="mt-9 text-[11px] tracking-[0.3em] text-hanji-faint">
+                  처리 내역 · {sharedHandled.length}
+                </h3>
+                <ul className="mt-3 space-y-2">
+                  {sharedHandled.map((s) => (
+                    <li
+                      key={s.id}
+                      className="flex items-start justify-between gap-3 text-[11px] leading-5 text-hanji-faint"
+                    >
+                      <span>
+                        <span
+                          className={
+                            s.status === "approved"
+                              ? "text-gold-soft"
+                              : "text-vermilion/70"
+                          }
+                        >
+                          [{s.status === "approved" ? "열림" : "거절"}]
+                        </span>{" "}
+                        {s.answer.replace(/\s+/g, " ").slice(0, 34)}
+                        {s.answer.length > 34 && "…"}
+                      </span>
+                      <button
+                        disabled={busy === s.id}
+                        onClick={() => act(s.id, () => deleteSharedAnswer(s.id))}
+                        className="shrink-0 transition-colors hover:text-vermilion"
+                      >
+                        삭제
+                      </button>
                     </li>
                   ))}
                 </ul>

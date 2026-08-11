@@ -9,7 +9,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Enso from "@/components/Enso";
-import Donation from "@/components/Donation";
 import NotesDrawer from "@/components/NotesDrawer";
 import { Banga, Dharmachakra, Lotus } from "@/components/icons";
 import {
@@ -65,6 +64,21 @@ export default function Home() {
   const [holdingCount, setHoldingCount] = useState<number | null>(null);
   const [, setTick] = useState(0);
   const [sharedAnswers, setSharedAnswers] = useState<SharedAnswer[]>([]);
+  // 회향 직후 — 다른 수행자에게 보여줄지 묻는 자리
+  const [askShare, setAskShare] = useState<{
+    hwaduId: string;
+    answer: string;
+  } | null>(null);
+  const [shareDone, setShareDone] = useState(false);
+
+  // 답을 쓰는 동안에는 사유의 방 떠 있는 단추를 감춘다 (입력창과 겹치지 않게)
+  useEffect(() => {
+    if (writing) document.body.dataset.writing = "true";
+    else delete document.body.dataset.writing;
+    return () => {
+      delete document.body.dataset.writing;
+    };
+  }, [writing]);
 
   // 화두 로고를 누르면 — 어떤 상태(화두만 보기 등)에서도 뜰 화면으로
   useEffect(() => {
@@ -187,14 +201,9 @@ export default function Home() {
     });
     setDraft("");
     setWriting(false);
-    // 동의를 받아 다른 수행자에게도 보여준다 (익명)
-    if (
-      window.confirm(
-        "그대의 답을, 같은 화두를 든 다른 수행자에게도 보여드려도 괜찮겠습니까?\n\n이름 없이 — 낱말 이름으로만 남습니다."
-      )
-    ) {
-      shareAnswer(hwaduId, answer).catch(() => {});
-    }
+    // 나눔 여부는 회향 화면에서 조용히 묻는다 (브라우저 팝업 대신)
+    setAskShare({ hwaduId, answer });
+    setShareDone(false);
   };
 
   const layDown = () => {
@@ -301,7 +310,57 @@ export default function Home() {
             {current.journal}
           </p>
 
-          {/* 다른 수행자들은 이렇게 답했습니다 — 동의를 받아 공유된 회향 */}
+          {/* 참구하며 남긴 단상 — 답과 함께 남는다 */}
+          {current.notes && (
+            <details className="mt-6 w-full max-w-xl text-left">
+              <summary className="cursor-pointer text-[11px] tracking-[0.3em] text-hanji-faint transition-colors hover:text-hanji-dim">
+                사유의 방에 남긴 단상 함께 보기
+              </summary>
+              <p className="mt-3 whitespace-pre-line border-l border-gold/25 pl-4 text-[13px] leading-7 text-hanji-faint">
+                {current.notes}
+              </p>
+            </details>
+          )}
+
+          {/* 나눔을 묻는다 — 브라우저 팝업 대신 이 자리에서 조용히 */}
+          {askShare && !shareDone && (
+            <div className="mt-8 w-full max-w-md border border-gold/30 bg-ink-2/50 px-6 py-5">
+              <p className="text-[13px] leading-7 text-hanji">
+                그대의 답을, 같은 화두를 든 다른 수행자에게도 보여드려도
+                괜찮겠습니까?
+              </p>
+              <p className="mt-2 text-[11px] leading-5 text-hanji-faint">
+                이름 없이 — 낱말 이름으로만 남습니다. 도량에서 한 번 살펴본 뒤
+                열립니다.
+              </p>
+              <div className="mt-5 flex items-center justify-center gap-3">
+                <button
+                  onClick={() => {
+                    shareAnswer(askShare.hwaduId, askShare.answer).catch(
+                      () => {}
+                    );
+                    setShareDone(true);
+                  }}
+                  className="btn-obang px-7 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
+                >
+                  네, 나누겠습니다
+                </button>
+                <button
+                  onClick={() => setAskShare(null)}
+                  className="border border-ink-3 px-6 py-2.5 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                >
+                  아니오
+                </button>
+              </div>
+            </div>
+          )}
+          {shareDone && (
+            <p className="mt-8 text-[12.5px] leading-6 text-gold-soft">
+              나눔에 부쳤습니다. 도량에서 살펴본 뒤 다른 수행자에게 열립니다.
+            </p>
+          )}
+
+          {/* 다른 수행자들은 이렇게 답했습니다 — 검수를 통과한 회향 */}
           {sharedAnswers.length > 0 && (
             <>
               <div className="mt-12 w-full border-t border-ink-3 pt-10">
@@ -350,10 +409,6 @@ export default function Home() {
               : "정답은 없습니다. 다만 천 년 전에도 같은 물음을 품은 이들이 있었습니다."}
           </p>
 
-          <div className="mt-12 w-full">
-            <Donation />
-          </div>
-
           <button
             onClick={nextHwadu}
             className="btn-obang mt-12 px-9 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
@@ -393,10 +448,27 @@ export default function Home() {
                 </p>
               </div>
             </div>
+
+            {/* 사유의 방에 남긴 단상 — 답을 쓰는 동안 곁에 둔다 */}
+            {current.notes && (
+              <div className="flex flex-col items-start">
+                <span className="mb-1.5 text-[10px] tracking-[0.3em] text-gold-soft">
+                  사유의 방에 남긴 단상
+                </span>
+                <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-gold/25 bg-ink-2/40 px-4 py-3">
+                  <p className="whitespace-pre-line break-keep text-[13px] leading-7 text-hanji-dim">
+                    {current.notes}
+                  </p>
+                </div>
+                <span className="mt-1.5 text-[10px] text-hanji-faint">
+                  이 단상은 회향과 함께 기록에 남습니다
+                </span>
+              </div>
+            )}
           </div>
         </div>
-        {/* 하단 고정 입력창 — AI 채팅처럼 */}
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-3 bg-ink/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur md:absolute">
+        {/* 하단 고정 입력창 — 모바일에서는 탭 바(h-16) 위에 앉는다 */}
+        <div className="fixed inset-x-0 bottom-16 z-30 border-t border-ink-3 bg-ink/95 px-4 pb-3 pt-3 backdrop-blur md:absolute md:bottom-0 md:pb-[calc(env(safe-area-inset-bottom)+12px)]">
           <div className="mx-auto flex w-full max-w-xl items-end gap-2">
             <button
               onClick={() => setWriting(false)}

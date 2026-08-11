@@ -61,9 +61,14 @@ export default function NotesDrawer({
     return () => window.removeEventListener("hwadoo-store-updated", sync);
   }, [open]);
 
+  // 늘 최신 글을 가리키는 손잡이 (주기 저장에서 쓴다)
+  const notesRef = useRef("");
+  notesRef.current = notes;
+
   const persist = (value: string) => {
     const latest = loadStore();
     if (!latest.current) return;
+    if ((latest.current.notes ?? "") === value) return; // 바뀐 게 없으면 그대로
     saveStore({ ...latest, current: { ...latest.current, notes: value } });
     setSaved(true);
   };
@@ -79,6 +84,22 @@ export default function NotesDrawer({
     if (timer.current) clearTimeout(timer.current);
     persist(notes);
   };
+
+  // 안전망 — 열려 있는 동안 20초마다, 그리고 창을 덮거나 떠날 때 한 번 더
+  useEffect(() => {
+    if (!open) return;
+    const tick = setInterval(() => persist(notesRef.current), 20_000);
+    const onLeave = () => persist(notesRef.current);
+    window.addEventListener("visibilitychange", onLeave);
+    window.addEventListener("pagehide", onLeave);
+    return () => {
+      clearInterval(tick);
+      window.removeEventListener("visibilitychange", onLeave);
+      window.removeEventListener("pagehide", onLeave);
+      persist(notesRef.current); // 서랍을 닫을 때도 저장
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   return (
     <>

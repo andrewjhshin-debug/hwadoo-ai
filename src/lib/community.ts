@@ -120,10 +120,12 @@ export type SharedAnswer = {
   hwaduId: string;
   answer: string;
   authorName: string;
+  status?: "pending" | "approved" | "rejected";
   createdAt?: { seconds: number };
 };
 
-// 회향한 답을 다른 수행자에게 공유한다 (동의 시에만 호출)
+// 회향한 답을 나눔에 부친다 (동의 시에만 호출).
+// 곧바로 남에게 보이지 않는다 — 뒷방에서 한 번 걸러진 뒤에야 열린다.
 export async function shareAnswer(hwaduId: string, answer: string) {
   const trimmed = answer.trim();
   if (!trimmed) return;
@@ -132,11 +134,12 @@ export async function shareAnswer(hwaduId: string, answer: string) {
     answer: trimmed.slice(0, 500),
     authorName: anonName(), // 익명 — 낱말 이름
     authorUid: auth.currentUser?.uid ?? null,
+    status: "pending", // 검수 대기
     createdAt: serverTimestamp(),
   });
 }
 
-// 이 화두에 다른 수행자들이 남긴 답을 불러온다
+// 이 화두에 다른 수행자들이 남긴 답 — 검수를 통과한 것만
 export async function fetchSharedAnswers(
   hwaduId: string
 ): Promise<SharedAnswer[]> {
@@ -145,6 +148,7 @@ export async function fetchSharedAnswers(
       query(
         collection(db, "shared-answers"),
         where("hwaduId", "==", hwaduId),
+        where("status", "==", "approved"),
         orderBy("createdAt", "desc"),
         limit(12)
       )
@@ -153,4 +157,25 @@ export async function fetchSharedAnswers(
   } catch {
     return [];
   }
+}
+
+// ── 뒷방 전용 — 나눔에 부쳐진 답의 검수 ──────────────────────────
+
+export async function fetchAllSharedAnswers(): Promise<SharedAnswer[]> {
+  const snap = await getDocs(
+    query(collection(db, "shared-answers"), orderBy("createdAt", "desc"), limit(200))
+  );
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as SharedAnswer);
+}
+
+export async function approveSharedAnswer(id: string) {
+  await updateDoc(doc(db, "shared-answers", id), { status: "approved" });
+}
+
+export async function rejectSharedAnswer(id: string) {
+  await updateDoc(doc(db, "shared-answers", id), { status: "rejected" });
+}
+
+export async function deleteSharedAnswer(id: string) {
+  await deleteDoc(doc(db, "shared-answers", id));
 }
