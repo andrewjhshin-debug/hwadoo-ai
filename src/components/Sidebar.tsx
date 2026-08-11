@@ -134,7 +134,9 @@ export default function Sidebar() {
     e.preventDefault();
     setOpen(false);
     if (pathname === href) {
-      router.refresh(); // 이미 그 페이지면 새로 그린다 (멈추지 않게)
+      // 이미 그 페이지면 — 화면 안 상태(화두만 보기 등)를 초기화하도록 알림
+      window.dispatchEvent(new CustomEvent("hwadoo-nav-home"));
+      router.refresh();
     } else {
       router.push(href);
     }

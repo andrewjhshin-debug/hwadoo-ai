@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { loadStore, saveStore } from "@/lib/store";
-import { sessionQuestion, sessionTitle } from "@/lib/hwadu";
+import { sessionQuestion } from "@/lib/hwadu";
 import { Banga } from "./icons";
 
 export default function NotesDrawer({
@@ -22,7 +22,6 @@ export default function NotesDrawer({
   const [notes, setNotes] = useState("");
   const router = useRouter();
   const [question, setQuestion] = useState("");
-  const [title, setTitle] = useState("");
   const [saved, setSaved] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -32,7 +31,6 @@ export default function NotesDrawer({
       const s = loadStore();
       setNotes(s.current?.notes ?? "");
       setQuestion(s.current ? sessionQuestion(s.current) : "");
-      setTitle(s.current ? sessionTitle(s.current) : "");
       setSaved(false);
     }
   }, [open]);
@@ -95,9 +93,9 @@ export default function NotesDrawer({
         aria-hidden={!open}
         className={`notes-panel fixed z-50 flex flex-col overflow-hidden bg-ink-2/95 backdrop-blur transition-all duration-300
           /* 모바일 — 화면 가운데 팝업 카드 */
-          inset-x-4 top-1/2 max-h-[82vh] -translate-y-1/2 rounded-2xl
+          inset-x-3 bottom-3 top-3 rounded-2xl
           /* 데스크톱 — 오른쪽 전체 높이 서랍 */
-          sm:inset-x-auto sm:inset-y-0 sm:right-0 sm:top-0 sm:max-h-none sm:w-[380px] sm:translate-y-0 sm:rounded-none
+          sm:inset-x-auto sm:inset-y-0 sm:bottom-0 sm:right-0 sm:top-0 sm:w-[380px] sm:rounded-none
           ${
             open
               ? "scale-100 opacity-100 sm:translate-x-0"
@@ -144,28 +142,25 @@ export default function NotesDrawer({
           </div>
         )}
 
-        <div className="flex flex-1 flex-col overflow-y-auto px-6 py-5">
-          <p className="text-xs leading-6 text-hanji-faint">
+        <div className="flex min-h-0 flex-1 flex-col px-6 pt-4">
+          <p className="shrink-0 text-xs leading-6 text-hanji-faint">
             떠오르는 것을 적어 두십시오. 답이 아니라 발자국입니다.
-            {title && (
-              <>
-                <br />이 단상은 「{title}」에 묶여 남습니다.
-              </>
-            )}
           </p>
+          {/* 메모 — 남은 공간을 모두 차지, 스스로 스크롤 */}
           <textarea
             value={notes}
             onChange={(e) => onChange(e.target.value)}
-            placeholder=""
-            className="journal-area mt-4 h-[30vh] min-h-[150px]"
+            placeholder="여기에 적으십시오…"
+            className="mt-3 min-h-0 w-full flex-1 resize-none rounded-xl border border-gold/30 bg-ink/40 p-4 text-[14px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/60"
           />
-          <div className="mt-3 flex items-center justify-end gap-3">
+          {/* 저장 — 하단 고정(키보드가 올라와도 밀리지 않음) */}
+          <div className="flex shrink-0 items-center justify-end gap-3 py-3">
             {saved && (
               <span className="text-[11px] text-hanji-faint">저장되었습니다</span>
             )}
             <button
               onClick={saveNow}
-              className="border border-ink-3 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+              className="btn-obang px-6 py-2 text-[12px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
             >
               저장
             </button>

@@ -66,6 +66,16 @@ export default function Home() {
   const [, setTick] = useState(0);
   const [sharedAnswers, setSharedAnswers] = useState<SharedAnswer[]>([]);
 
+  // 화두 로고를 누르면 — 어떤 상태(화두만 보기 등)에서도 뜰 화면으로
+  useEffect(() => {
+    const toHome = () => {
+      setFocusMode(false);
+      setWriting(false);
+    };
+    window.addEventListener("hwadoo-nav-home", toHome);
+    return () => window.removeEventListener("hwadoo-nav-home", toHome);
+  }, []);
+
   useEffect(() => {
     setStore(loadStore());
     // 승인된 '던져진 화두'들을 랜덤 풀에 합류시킨다 (실패해도 기본 30칙으로 동작)
@@ -464,6 +474,14 @@ export default function Home() {
           </p>
         )}
 
+        {/* 화두만 보기 — 질문 바로 아래, 위쪽에 */}
+        <button
+          onClick={() => setFocusMode(true)}
+          className="mt-6 border border-gold/40 px-6 py-2 text-[11px] tracking-[0.25em] text-gold-soft transition-colors hover:bg-gold/10 hover:text-gold"
+        >
+          화두만 보기
+        </button>
+
         {/* 함께 드는 이들 */}
         {holdingCount !== null && (
           <p className="mt-5 text-[12px] tracking-wide text-gold-soft">
@@ -594,14 +612,8 @@ export default function Home() {
 
         {/* 내려놓기 — 또렷하게 */}
         <button
-          onClick={() => setFocusMode(true)}
-          className="mt-10 border border-gold/40 px-7 py-2.5 text-xs tracking-[0.25em] text-gold-soft transition-colors hover:bg-gold/10 hover:text-gold"
-        >
-          화두만 보기
-        </button>
-        <button
           onClick={layDown}
-          className="mt-3 border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-hanji"
+          className="mt-10 border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-hanji"
         >
           이 화두를 내려놓다
         </button>
