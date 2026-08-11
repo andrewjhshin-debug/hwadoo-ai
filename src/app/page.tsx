@@ -357,51 +357,80 @@ export default function Home() {
   // ── 붓을 들었다 — 답 쓰기 ─────────────────────────────
   if (writing && unlocked) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-14">
-        <section className="rise flex w-full max-w-xl flex-col">
-          <p className="text-center font-serif text-sm font-light leading-8 text-hanji-dim">
-            {flatQuestion(sessionQuestion(current))}
-          </p>
-          <div className="mt-9 border-t border-ink-3 pt-7">
+      <div className="flex flex-1 flex-col">
+        {/* 채팅형 회향 — 위: 화두(물음), 가운데: 대화, 아래 고정: 입력창 */}
+        <div className="flex flex-1 flex-col overflow-y-auto px-5 pb-40 pt-6 sm:px-6">
+          <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
+            {/* 화두 — 스승의 물음처럼 왼쪽 말풍선 */}
+            <div className="flex flex-col items-start">
+              <span className="mb-1.5 text-[10px] tracking-[0.3em] text-hanji-faint">
+                화두
+              </span>
+              <div className="max-w-[85%] rounded-2xl rounded-tl-sm border border-ink-3 bg-ink-2/60 px-4 py-3">
+                <p className="whitespace-pre-line break-keep font-serif text-[15px] font-light leading-8 text-hanji">
+                  {flatQuestion(sessionQuestion(current))}
+                </p>
+              </div>
+            </div>
+            {/* 안내 말풍선 */}
+            <div className="flex flex-col items-start">
+              <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-ink-2/40 px-4 py-3">
+                <p className="text-[12.5px] leading-6 text-hanji-dim">
+                  며칠을 품고 계셨습니다. 무엇이 보였습니까.
+                  <br />
+                  아래에 그대의 답을 적어, 회향하십시오.
+                </p>
+              </div>
+            </div>
+            {/* 내가 지금 쓰고 있는 답 — 오른쪽 말풍선 미리보기 */}
+            {draft.trim() && (
+              <div className="flex flex-col items-end">
+                <div className="max-w-[85%] rounded-2xl rounded-br-sm border border-gold/40 bg-gold/10 px-4 py-3">
+                  <p className="whitespace-pre-line break-keep text-[14px] leading-7 text-hanji">
+                    {draft}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        {/* 하단 고정 입력창 — AI 채팅처럼 */}
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-3 bg-ink/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur md:absolute">
+          <div className="mx-auto flex w-full max-w-xl items-end gap-2">
+            <button
+              onClick={() => setWriting(false)}
+              className="shrink-0 pb-2 text-[11px] tracking-wider text-hanji-faint transition-colors hover:text-hanji-dim"
+            >
+              나가기
+            </button>
             <textarea
               autoFocus
               value={draft}
               onChange={(e) => setDraft(e.target.value.slice(0, 500))}
-              rows={9}
+              rows={1}
               maxLength={500}
-              placeholder="며칠을 품고 계셨습니다. 무엇이 보였습니까."
-              className="journal-area"
+              placeholder="그대의 답을 적으십시오…"
+              className="max-h-32 min-h-[44px] flex-1 resize-none rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-2.5 text-[14px] text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
             />
-            <p className="mt-2 text-right text-[11px] text-hanji-faint">
-              {draft.length} / 500
-            </p>
-          </div>
-          <div className="mt-5 flex items-center justify-between">
-            <button
-              onClick={() => setWriting(false)}
-              className="text-xs tracking-widest text-hanji-faint transition-colors hover:text-hanji-dim"
-            >
-              ← 조금 더 품고 있겠다
-            </button>
             <button
               onClick={saveJournal}
               disabled={!draft.trim()}
-              className="btn-obang px-8 py-2.5 text-[13px] tracking-[0.3em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
+              className="btn-obang shrink-0 rounded-full px-5 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
             >
-              회향하다
+              회향
             </button>
           </div>
-          <p className="mt-4 text-[11px] text-hanji-faint">
-            기록은 이 브라우저에만 남습니다. 우리는 그대의 답을 읽지 않습니다.
+          <p className="mx-auto mt-1.5 max-w-xl text-center text-[10px] text-hanji-faint">
+            기록은 이 브라우저에만 남습니다 · {draft.length}/500
           </p>
-        </section>
+        </div>
       </div>
     );
   }
 
   // ── 화두를 들고 있다 — 질문이 주인공 ────────────────────
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-6 text-center sm:justify-center sm:py-14">
+    <div className="relative flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-2 text-center sm:justify-center sm:py-14">
       <section className="rise flex w-full max-w-2xl flex-col items-center">
         {/* 질문 — 눈높이, 화면의 주인공 */}
         {hwadu?.hanja && (

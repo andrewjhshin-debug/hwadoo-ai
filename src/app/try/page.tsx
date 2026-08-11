@@ -304,44 +304,55 @@ export default function TryPage() {
           )}
 
           {step === "writing" ? (
-            /* 답을 쓰다 */
-            <div className="mt-10 w-full max-w-xl">
-              <div className="border-t border-ink-3 pt-7">
+            /* 답을 쓰다 — AI 채팅 포맷 */
+            <div className="mt-8 w-full max-w-xl">
+              {/* 안내 말풍선 */}
+              <div className="flex flex-col items-start">
+                <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-ink-2/40 px-4 py-3">
+                  <p className="text-left text-[12.5px] leading-6 text-hanji-dim">
+                    며칠을 품고 계셨습니다. 무엇이 보였습니까.
+                    <br />아래에 그대의 답을 적어, 회향하십시오.
+                  </p>
+                </div>
+              </div>
+              {/* 내 답 미리보기 — 오른쪽 말풍선 */}
+              {answer.trim() && (
+                <div className="mt-4 flex flex-col items-end">
+                  <div className="max-w-[85%] rounded-2xl rounded-br-sm border border-gold/40 bg-gold/10 px-4 py-3">
+                    <p className="whitespace-pre-line break-keep text-left text-[14px] leading-7 text-hanji">
+                      {answer}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {/* 하단 입력줄 — 채팅처럼 */}
+              <div className="mt-6 flex items-end gap-2">
+                <button
+                  onClick={prev}
+                  className="shrink-0 pb-2 text-[11px] tracking-wider text-hanji-faint transition-colors hover:text-hanji-dim"
+                >
+                  ←
+                </button>
                 <textarea
                   autoFocus
                   value={answer}
-                  onChange={(e) =>
-                    setAnswer(e.target.value.slice(0, MAX_ANSWER))
-                  }
-                  rows={8}
+                  onChange={(e) => setAnswer(e.target.value.slice(0, MAX_ANSWER))}
+                  rows={1}
                   maxLength={MAX_ANSWER}
-                  placeholder="며칠을 품고 계셨습니다. 무엇이 보였습니까."
-                  className="journal-area"
+                  placeholder="그대의 답을 적으십시오…"
+                  className="max-h-32 min-h-[44px] flex-1 resize-none rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-2.5 text-left text-[14px] text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
                 />
-                <p className="mt-2 text-right text-[11px] text-hanji-faint">
-                  {answer.length} / {MAX_ANSWER}
-                </p>
-                {/* 회향하다 — 글자수 아래 */}
-                <div className="mt-4 flex items-center justify-between">
-                  <button
-                    onClick={prev}
-                    className="border border-ink-3 px-5 py-2.5 text-[12.5px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-                  >
-                    ← {NAV.writing!.prev}
-                  </button>
-                  <button
-                    onClick={finish}
-                    disabled={!answer.trim()}
-                    className="btn-obang px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
-                  >
-                    회향하다
-                  </button>
-                </div>
-                <p className="mt-3 text-left text-[11px] leading-5 text-hanji-faint">
-                  실제 화두에서는 회향할 때, 사유의 방에 적어 둔 단상도
-                  <br />그대의 답과 함께 지난 화두에 저장됩니다.
-                </p>
+                <button
+                  onClick={finish}
+                  disabled={!answer.trim()}
+                  className="btn-obang shrink-0 rounded-full px-5 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
+                >
+                  회향
+                </button>
               </div>
+              <p className="mt-2 text-right text-[10px] text-hanji-faint">
+                {answer.length} / {MAX_ANSWER} · 실제 화두에서는 사유의 방 단상도 함께 저장됩니다
+              </p>
             </div>
           ) : (
             <>
