@@ -1,13 +1,14 @@
 "use client";
 
-// ─────────────────────────────────────────────────────────────
-// 연지원(蓮池院) — 수행자들의 뜰.
-// 글을 쓰고, 합장하고, 댓글로 이야기를 나눈다. 글·댓글은 로그인 필요.
-// ─────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
+// 연지원(蓮池院) — 수행자들의 게시판.
+// 디시 갤러리처럼 번호·제목·글쓴이·날짜·합장의 게시판형 목록.
+// 광고·이미지 없이 글에만 집중. 제목을 누르면 그 자리에서 본문·댓글이 펼쳐진다.
+// 우리 도량의 먹빛·금·한지 톤은 그대로.
+// ────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "firebase/auth";
-import { Lantern } from "@/components/icons";
 import { ADMIN_UID } from "@/lib/config";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import {
@@ -24,6 +25,21 @@ import {
 import { formatDate } from "@/lib/store";
 
 const BOWED_KEY = "hwadoo-bowed-v1";
+
+// 날짜를 게시판식으로 짧게 — 오늘이면 시:분, 아니면 MM.DD
+function shortDate(sec?: number): string {
+  if (!sec) return "-";
+  const d = new Date(sec * 1000);
+  const now = new Date();
+  const sameDay =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return sameDay
+    ? `${p(d.getHours())}:${p(d.getMinutes())}`
+    : `${p(d.getMonth() + 1)}.${p(d.getDate())}`;
+}
 
 export default function CommunityPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -86,110 +102,124 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-xl flex-1 px-6 py-14">
-      <div className="rise hidden flex-col items-center text-center sm:flex">
-        <Lantern className="h-8 w-8 text-gold-soft opacity-80" />
-        <h1 className="mt-5 text-xs tracking-[0.5em] text-gold-soft">
-          蓮池院 · 연지원
-        </h1>
-        <p className="mt-6 font-serif text-lg font-light leading-9 text-hanji">
-          수행자들이 모여 이야기를 나누는 뜰입니다.
-        </p>
-        <p className="mt-2 text-xs leading-6 text-hanji-faint">
-          화두를 품으며 겪은 것을 나누고, 서로의 글에 합장하십시오.
-        </p>
-      </div>
-
-      {/* 글쓰기 */}
-      <div className="rise rise-d1 mt-0 sm:mt-10">
-        {user === null ? (
-          <div className="border border-ink-3 bg-ink-2/50 px-6 py-5 text-center">
-            <p className="text-[13px] text-hanji-dim">
-              글과 댓글은 로그인한 분만 남길 수 있습니다.
-            </p>
-            <button
-              onClick={() => loginWithGoogle().catch(() => {})}
-              className="mt-4 border border-ink-3 px-6 py-2.5 text-xs tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-            >
-              구글로 로그인
-            </button>
-          </div>
-        ) : writing ? (
-          <div className="border border-ink-3 bg-ink-2/50 p-5">
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value.slice(0, 60))}
-              placeholder="제목"
-              className="w-full border-b border-ink-3 bg-transparent pb-2 text-sm text-hanji outline-none placeholder:text-hanji-faint"
-            />
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value.slice(0, 2000))}
-              rows={6}
-              placeholder="나누고 싶은 이야기를 적어 주십시오."
-              className="journal-area mt-4 !text-sm"
-            />
-            <div className="mt-3 flex items-center justify-between">
-              <button
-                onClick={() => setWriting(false)}
-                className="text-xs tracking-widest text-hanji-faint hover:text-hanji-dim"
-              >
-                취소
-              </button>
-              <button
-                onClick={submit}
-                disabled={!title.trim() || !body.trim() || busy}
-                className="btn-obang px-7 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
-              >
-                {busy ? "올리는 중…" : "글 올리기"}
-              </button>
-            </div>
-          </div>
-        ) : (
-          user && (
-            <button
-              onClick={() => setWriting(true)}
-              className="btn-obang w-full py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
-            >
-              글 쓰기
-            </button>
-          )
+    <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6 sm:py-10">
+      {/* 머리말 — 얇게 */}
+      <div className="flex items-end justify-between border-b border-gold/30 pb-3">
+        <div>
+          <h1 className="text-sm tracking-[0.35em] text-gold-soft">
+            蓮池院 · 연지원
+          </h1>
+          <p className="mt-1 hidden text-[11px] text-hanji-faint sm:block">
+            수행자들의 게시판 — 글로 나누는 도량
+          </p>
+        </div>
+        {user && !writing && (
+          <button
+            onClick={() => setWriting(true)}
+            className="btn-obang shrink-0 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
+          >
+            글쓰기
+          </button>
         )}
       </div>
 
-      {/* 글 목록 */}
+      {/* 글쓰기 폼 */}
+      {user === null && (
+        <div className="mt-4 border border-ink-3 bg-ink-2/50 px-5 py-4 text-center">
+          <p className="text-[13px] text-hanji-dim">
+            글과 댓글은 로그인한 분만 남길 수 있습니다.
+          </p>
+          <button
+            onClick={() => loginWithGoogle().catch(() => {})}
+            className="mt-3 border border-ink-3 px-6 py-2 text-xs tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          >
+            구글로 로그인
+          </button>
+        </div>
+      )}
+      {writing && (
+        <div className="mt-4 border border-ink-3 bg-ink-2/50 p-4">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value.slice(0, 60))}
+            placeholder="제목"
+            className="w-full border-b border-ink-3 bg-transparent pb-2 text-sm text-hanji outline-none placeholder:text-hanji-faint"
+          />
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value.slice(0, 2000))}
+            rows={6}
+            placeholder="나누고 싶은 이야기를 적어 주십시오."
+            className="journal-area mt-3 !text-sm"
+          />
+          <div className="mt-3 flex items-center justify-between">
+            <button
+              onClick={() => setWriting(false)}
+              className="text-xs tracking-widest text-hanji-faint hover:text-hanji-dim"
+            >
+              취소
+            </button>
+            <button
+              onClick={submit}
+              disabled={!title.trim() || !body.trim() || busy}
+              className="btn-obang px-6 py-2 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
+            >
+              {busy ? "올리는 중…" : "글 올리기"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 게시판 목록 */}
       {failed ? (
         <p className="mt-14 text-center text-sm text-hanji-faint">
           연지원 문이 잠시 닫혀 있습니다. 잠시 후 다시 들러 주세요.
         </p>
-      ) : posts === null ? null : posts.length === 0 ? (
+      ) : posts === null ? (
+        <p className="mt-14 text-center text-sm text-hanji-faint">
+          불러오는 중…
+        </p>
+      ) : posts.length === 0 ? (
         <p className="mt-14 text-center text-sm text-hanji-faint">
           아직 걸린 글이 없습니다. 첫 이야기를 남겨 보십시오.
         </p>
       ) : (
-        <div className="mt-12 flex flex-col gap-8">
-          {posts.map((p) => (
-            <PostCard
-              key={p.id}
-              post={p}
-              open={openId === p.id}
-              onToggle={() => setOpenId(openId === p.id ? null : p.id)}
-              onBow={() => bow(p.id)}
-              bowed={bowed.includes(p.id)}
-              user={user ?? null}
-              isAdmin={isAdmin}
-              onDeleted={refresh}
-            />
-          ))}
+        <div className="mt-4">
+          {/* 컬럼 헤더 — 디시식 */}
+          <div className="flex items-center gap-2 border-b border-ink-3 px-2 py-2 text-[11px] tracking-wider text-hanji-faint">
+            <span className="hidden w-10 shrink-0 text-center sm:block">번호</span>
+            <span className="flex-1">제목</span>
+            <span className="w-20 shrink-0 text-center sm:w-24">글쓴이</span>
+            <span className="w-12 shrink-0 text-center">날짜</span>
+            <span className="w-10 shrink-0 text-center">합장</span>
+          </div>
+
+          <ul>
+            {posts.map((p, i) => (
+              <PostRow
+                key={p.id}
+                post={p}
+                no={posts.length - i}
+                open={openId === p.id}
+                onToggle={() => setOpenId(openId === p.id ? null : p.id)}
+                onBow={() => bow(p.id)}
+                bowed={bowed.includes(p.id)}
+                user={user ?? null}
+                isAdmin={isAdmin}
+                onDeleted={refresh}
+              />
+            ))}
+          </ul>
         </div>
       )}
     </div>
   );
 }
 
-// ── 글 카드 (펼치면 본문 + 댓글) ──────────────────────────
-function PostCard({
+// ── 게시판 한 줄 (제목 누르면 그 자리에서 본문+댓글 펼침) ──────────────
+function PostRow({
   post,
+  no,
   open,
   onToggle,
   onBow,
@@ -199,6 +229,7 @@ function PostCard({
   onDeleted,
 }: {
   post: Post;
+  no: number;
   open: boolean;
   onToggle: () => void;
   onBow: () => void;
@@ -231,35 +262,56 @@ function PostCard({
   };
 
   return (
-    <article className="border-t border-ink-3 pt-7">
-      <div className="flex items-start justify-between gap-3">
-        <button onClick={onToggle} className="flex-1 text-left">
-          <h2 className="font-serif text-[16px] text-hanji">{post.title}</h2>
-          <p className="mt-1 text-[11px] tracking-wider text-hanji-faint">
-            {post.authorName}
-            {post.createdAt && ` · ${formatDate(post.createdAt.seconds * 1000)}`}
-            {` · 합장 ${post.hapjang} · 댓글 ${post.commentCount}`}
-          </p>
-        </button>
-        {(isAdmin || user?.uid === post.authorUid) && (
-          <button
-            onClick={async () => {
-              if (!window.confirm("이 글을 삭제하시겠습니까?")) return;
-              await deletePost(post.id);
-              onDeleted();
-            }}
-            className="shrink-0 pt-1 text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-vermilion"
-          >
-            삭제하기
-          </button>
-        )}
-      </div>
+    <li className="border-b border-ink-3/70">
+      {/* 목록 줄 */}
+      <button
+        onClick={onToggle}
+        className={`flex w-full items-center gap-2 px-2 py-2.5 text-left transition-colors hover:bg-gold/5 ${
+          open ? "bg-gold/5" : ""
+        }`}
+      >
+        <span className="hidden w-10 shrink-0 text-center text-[12px] tabular-nums text-hanji-faint sm:block">
+          {no}
+        </span>
+        <span className="flex-1 truncate text-[13.5px] text-hanji">
+          {post.title}
+          {post.commentCount > 0 && (
+            <span className="ml-1.5 text-[11px] text-gold-soft">
+              [{post.commentCount}]
+            </span>
+          )}
+        </span>
+        <span className="w-20 shrink-0 truncate text-center text-[11px] text-hanji-dim sm:w-24">
+          {post.authorName}
+        </span>
+        <span className="w-12 shrink-0 text-center text-[11px] tabular-nums text-hanji-faint">
+          {shortDate(post.createdAt?.seconds)}
+        </span>
+        <span className="w-10 shrink-0 text-center text-[11px] tabular-nums text-gold-soft">
+          {post.hapjang || "-"}
+        </span>
+      </button>
 
+      {/* 펼친 본문 + 합장 + 댓글 */}
       {open && (
-        <div className="mt-4">
-          <p className="whitespace-pre-line text-[14px] font-light leading-8 text-hanji-dim">
-            {post.body}
-          </p>
+        <div className="border-t border-ink-3/50 bg-ink-2/30 px-3 py-5 sm:px-4">
+          <div className="flex items-start justify-between gap-3">
+            <p className="whitespace-pre-line break-keep text-[14px] font-light leading-8 text-hanji-dim">
+              {post.body}
+            </p>
+            {(isAdmin || user?.uid === post.authorUid) && (
+              <button
+                onClick={async () => {
+                  if (!window.confirm("이 글을 삭제하시겠습니까?")) return;
+                  await deletePost(post.id);
+                  onDeleted();
+                }}
+                className="shrink-0 text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-vermilion"
+              >
+                삭제
+              </button>
+            )}
+          </div>
 
           <div className="mt-4 flex items-center gap-3">
             <button
@@ -276,18 +328,16 @@ function PostCard({
           </div>
 
           {/* 댓글 */}
-          <div className="mt-6 border-t border-ink-3 pt-5">
+          <div className="mt-5 border-t border-ink-3 pt-4">
             {comments === null ? (
               <p className="text-[11px] text-hanji-faint">불러오는 중…</p>
             ) : comments.length === 0 ? (
-              <p className="text-[11px] text-hanji-faint">
-                아직 댓글이 없습니다.
-              </p>
+              <p className="text-[11px] text-hanji-faint">아직 댓글이 없습니다.</p>
             ) : (
-              <ul className="flex flex-col gap-4">
+              <ul className="flex flex-col gap-3">
                 {comments.map((c) => (
                   <li key={c.id} className="border-l border-gold/20 pl-3">
-                    <p className="whitespace-pre-line text-[13px] leading-6 text-hanji-dim">
+                    <p className="whitespace-pre-line break-keep text-[13px] leading-6 text-hanji-dim">
                       {c.body}
                     </p>
                     <p className="mt-1 text-[10px] tracking-wider text-hanji-faint">
@@ -334,6 +384,6 @@ function PostCard({
           </div>
         </div>
       )}
-    </article>
+    </li>
   );
 }

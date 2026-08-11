@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import { ADMIN_UID, DONATION_URL } from "@/lib/config";
@@ -118,15 +119,33 @@ export default function SettingsPage() {
             <br />차 한 잔 값으로 등불을 보태 주실 수 있습니다.
           </p>
           {DONATION_URL ? (
-            <a
-              href={DONATION_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-obang mt-5 inline-flex items-center gap-2.5 px-7 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
-            >
-              <Teacup className="h-4 w-4 text-gold-soft" />
-              차 한 잔 보내기
-            </a>
+            <>
+              {/* 모바일 — 누르면 바로 카카오페이 */}
+              <a
+                href={DONATION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-obang mt-5 inline-flex items-center gap-2.5 px-7 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90 sm:hidden"
+              >
+                <Teacup className="h-4 w-4 text-gold-soft" />
+                차 한 잔 보내기
+              </a>
+              {/* PC — 폰 카메라로 찍는 QR (카카오페이 링크는 웹에서 바로 안 열림) */}
+              <div className="mt-5 hidden flex-col items-start gap-3 sm:flex">
+                <div className="rounded-md bg-[#EDE6D4] p-3">
+                  <QRCodeSVG
+                    value={DONATION_URL}
+                    size={116}
+                    bgColor="#EDE6D4"
+                    fgColor="#14110D"
+                    level="M"
+                  />
+                </div>
+                <p className="text-[11px] leading-5 text-hanji-faint">
+                  휴대폰 카메라로 QR을 비추면 카카오페이가 열립니다.
+                </p>
+              </div>
+            </>
           ) : (
             <p className="mt-5 text-xs tracking-widest text-hanji-faint">
               찻자리를 마련하고 있습니다
