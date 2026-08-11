@@ -21,6 +21,7 @@ import {
   Elephant,
   Jukbi,
   Lantern,
+  Mandala,
   Lotus,
   SeonMaster,
   Person,
@@ -32,6 +33,7 @@ const NAV = [
   { href: "/masters", label: "선지식의 한마디", Icon: SeonMaster },
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
+  { href: "/mandala", label: "만다라", Icon: Mandala },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
   { href: "/community", label: "연지원 — 커뮤니티", Icon: Lantern },
 ];

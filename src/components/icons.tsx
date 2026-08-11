@@ -148,6 +148,18 @@ export function Person({ className = "w-4 h-4" }: IconProps) {
   );
 }
 
+// 만다라 — 동심원 + 여덟 갈래
+export function Mandala({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.3" strokeLinecap="round" className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r="1.4" />
+      <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" />
+    </svg>
+  );
+}
+
 // 책 — 지난 화두
 export function Book({ className = "w-4 h-4" }: IconProps) {
   return (

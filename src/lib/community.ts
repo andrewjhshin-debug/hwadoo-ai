@@ -16,6 +16,7 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { anonName } from "./anonName";
@@ -99,4 +100,47 @@ export async function addComment(postId: string, body: string) {
 export async function deleteComment(postId: string, commentId: string) {
   await deleteDoc(doc(db, "posts", postId, "comments", commentId));
   await updateDoc(doc(db, "posts", postId), { commentCount: increment(-1) });
+}
+
+// ── 다른 수행자들의 답 (동의를 받아 공유된 회향) ──────────────────────
+// 화두별로, 동의한 이들의 답만 모은다. 익명(낱말 이름)으로만 남는다.
+
+export type SharedAnswer = {
+  id: string;
+  hwaduId: string;
+  answer: string;
+  authorName: string;
+  createdAt?: { seconds: number };
+};
+
+// 회향한 답을 다른 수행자에게 공유한다 (동의 시에만 호출)
+export async function shareAnswer(hwaduId: string, answer: string) {
+  const trimmed = answer.trim();
+  if (!trimmed) return;
+  await addDoc(collection(db, "shared-answers"), {
+    hwaduId,
+    answer: trimmed.slice(0, 500),
+    authorName: anonName(), // 익명 — 낱말 이름
+    authorUid: auth.currentUser?.uid ?? null,
+    createdAt: serverTimestamp(),
+  });
+}
+
+// 이 화두에 다른 수행자들이 남긴 답을 불러온다
+export async function fetchSharedAnswers(
+  hwaduId: string
+): Promise<SharedAnswer[]> {
+  try {
+    const snap = await getDocs(
+      query(
+        collection(db, "shared-answers"),
+        where("hwaduId", "==", hwaduId),
+        orderBy("createdAt", "desc"),
+        limit(12)
+      )
+    );
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as SharedAnswer);
+  } catch {
+    return [];
+  }
 }

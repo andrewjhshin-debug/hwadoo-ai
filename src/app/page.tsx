@@ -38,6 +38,11 @@ import {
   type Store,
 } from "@/lib/store";
 import { SLOGAN } from "@/lib/config";
+import {
+  shareAnswer,
+  fetchSharedAnswers,
+  type SharedAnswer,
+} from "@/lib/community";
 
 // 불교 전통의 리듬 — 하루, 삼일기도, 칠일 정진, 삼칠일(3×7일), 백팔일(108 번뇌)
 const DAY_OPTIONS = [1, 3, 7, 21, 108];
@@ -58,6 +63,7 @@ export default function Home() {
   const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
   const [holdingCount, setHoldingCount] = useState<number | null>(null);
   const [, setTick] = useState(0);
+  const [sharedAnswers, setSharedAnswers] = useState<SharedAnswer[]>([]);
 
   useEffect(() => {
     setStore(loadStore());
@@ -91,6 +97,18 @@ export default function Home() {
     const t = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(t);
   }, []);
+
+  // 회향을 마치면, 같은 화두에 다른 수행자들이 남긴 답을 불러온다
+  useEffect(() => {
+    const cur = store?.current;
+    if (cur?.journal && cur.hwaduId) {
+      fetchSharedAnswers(cur.hwaduId)
+        .then(setSharedAnswers)
+        .catch(() => setSharedAnswers([]));
+    } else {
+      setSharedAnswers([]);
+    }
+  }, [store?.current?.journal, store?.current?.hwaduId]);
 
   const update = (next: Store) => {
     setStore(next);
@@ -150,12 +168,22 @@ export default function Home() {
 
   const saveJournal = () => {
     if (!store?.current || !draft.trim()) return;
+    const answer = draft.trim();
+    const hwaduId = store.current.hwaduId;
     update({
       ...store,
-      current: { ...store.current, journal: draft.trim(), journalAt: Date.now() },
+      current: { ...store.current, journal: answer, journalAt: Date.now() },
     });
     setDraft("");
     setWriting(false);
+    // 동의를 받아 다른 수행자에게도 보여준다 (익명)
+    if (
+      window.confirm(
+        "그대의 답을, 같은 화두를 든 다른 수행자에게도 보여드려도 괜찮겠습니까?\n\n이름 없이 — 낱말 이름으로만 남습니다."
+      )
+    ) {
+      shareAnswer(hwaduId, answer).catch(() => {});
+    }
   };
 
   const layDown = () => {
@@ -261,6 +289,29 @@ export default function Home() {
           <p className="mt-5 whitespace-pre-line font-serif text-[15px] font-light leading-9 text-hanji">
             {current.journal}
           </p>
+
+          {/* 다른 수행자들은 이렇게 답했습니다 — 동의를 받아 공유된 회향 */}
+          {sharedAnswers.length > 0 && (
+            <>
+              <div className="mt-12 w-full border-t border-ink-3 pt-10">
+                <p className="text-xs tracking-[0.4em] text-hanji-faint">
+                  다른 수행자들은 이렇게 답했습니다
+                </p>
+              </div>
+              <div className="mt-8 flex w-full max-w-xl flex-col gap-8 text-left">
+                {sharedAnswers.map((a) => (
+                  <figure key={a.id}>
+                    <blockquote className="whitespace-pre-line break-keep font-serif text-[15px] font-light leading-9 text-hanji-dim">
+                      {a.answer}
+                    </blockquote>
+                    <figcaption className="mt-3 text-right text-xs tracking-widest text-hanji-faint">
+                      — {a.authorName}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </>
+          )}
 
           <div className="mt-12 w-full border-t border-ink-3 pt-10">
             <p className="text-xs tracking-[0.4em] text-hanji-faint">

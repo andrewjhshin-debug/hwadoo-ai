@@ -263,6 +263,33 @@ body {
   text-shadow: 0 0 44px rgba(217, 180, 91, 0.16);
 }
 
+/* ─── 만다라 붓 굵기 슬라이더 ─── */
+.mandala-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(217, 180, 91, 0.3);
+  outline: none;
+}
+.mandala-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #d9b45b;
+  cursor: pointer;
+}
+.mandala-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: #d9b45b;
+  cursor: pointer;
+}
+
 /* ─── 사유의 방 패널 — 오방색 그라데이션 테두리 (웹·모바일 공통) ─── */
 .notes-panel {
   border: 1px solid transparent;
