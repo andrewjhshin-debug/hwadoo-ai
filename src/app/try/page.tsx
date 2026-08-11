@@ -326,11 +326,15 @@ export default function TryPage() {
                 <textarea
                   autoFocus
                   value={answer}
-                  onChange={(e) => setAnswer(e.target.value.slice(0, MAX_ANSWER))}
-                  rows={4}
+                  onChange={(e) => {
+                    setAnswer(e.target.value.slice(0, MAX_ANSWER));
+                    e.target.style.height = "auto";
+                    e.target.style.height = `${e.target.scrollHeight}px`;
+                  }}
+                  rows={3}
                   maxLength={MAX_ANSWER}
                   placeholder="그대의 답을 적으십시오…"
-                  className="min-h-[120px] flex-1 resize-y rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-3 text-left text-[15px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
+                  className="max-h-[60vh] min-h-[96px] flex-1 resize-none overflow-hidden rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-3 text-left text-[15px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
                 />
                 <button
                   onClick={finish}

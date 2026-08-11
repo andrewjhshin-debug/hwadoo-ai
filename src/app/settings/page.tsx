@@ -23,6 +23,7 @@ import {
   Jukbi,
   Mandala,
   Lantern,
+  Lotus,
 } from "@/components/icons";
 
 const THEME_KEY = "hwadoo-theme";
@@ -96,7 +97,7 @@ export default function SettingsPage() {
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">서비스</p>
         <div className="mt-4 grid grid-cols-4 gap-2 border-t border-ink-3 pt-5">
           {[
-            { href: "/", label: "뜰", Icon: Dharmachakra },
+            { href: "/", label: "뜰", Icon: Lotus },
             { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
             { href: "/masters", label: "선지식", Icon: SeonMaster },
             { href: "/room", label: "사유의 방", Icon: Banga },

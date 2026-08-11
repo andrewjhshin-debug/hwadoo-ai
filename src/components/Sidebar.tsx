@@ -34,6 +34,7 @@ const NAV = [
   { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
   { href: "/mandala", label: "만다라", Icon: Mandala },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
+  { href: "/gathering", label: "명상 모임", Icon: Person },
   { href: "/community", label: "연지원 — 커뮤니티", Icon: Lantern },
 ];
 
@@ -259,14 +260,14 @@ export default function Sidebar() {
         </Link>
 
         {/* 여섯 방 */}
-        <nav className="mt-6 flex flex-col gap-0.5">
+        <nav className="mt-4 flex flex-col gap-0.5">
           {NAV.map(({ href, label, Icon }) => (
             <Link
               key={href}
               href={href}
               onClick={go(href)}
               title={label}
-              className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-3 text-[16px] transition-colors sm:py-2 sm:text-[12.5px] ${
+              className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-[15px] transition-colors sm:py-1.5 sm:text-[12.5px] ${
                 pathname === href
                   ? "bg-gold/10 text-hanji"
                   : "text-hanji-dim hover:bg-gold/5 hover:text-hanji"
