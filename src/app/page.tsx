@@ -60,6 +60,7 @@ export default function Home() {
   const [draft, setDraft] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
   const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
   const [holdingCount, setHoldingCount] = useState<number | null>(null);
   const [, setTick] = useState(0);
@@ -382,16 +383,6 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            {/* 내가 지금 쓰고 있는 답 — 오른쪽 말풍선 미리보기 */}
-            {draft.trim() && (
-              <div className="flex flex-col items-end">
-                <div className="max-w-[85%] rounded-2xl rounded-br-sm border border-gold/40 bg-gold/10 px-4 py-3">
-                  <p className="whitespace-pre-line break-keep text-[14px] leading-7 text-hanji">
-                    {draft}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
         {/* 하단 고정 입력창 — AI 채팅처럼 */}
@@ -429,6 +420,28 @@ export default function Home() {
   }
 
   // ── 화두를 들고 있다 — 질문이 주인공 ────────────────────
+  // 화두만 보기 — 오직 화두 하나만, 되돌아가기 버튼과 함께
+  if (focusMode) {
+    return (
+      <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+        {hwadu?.hanja && (
+          <p className="text-xs tracking-[0.6em] text-hanji-faint">
+            {hwadu.hanja}
+          </p>
+        )}
+        <div className="question-glow mt-8 w-full max-w-2xl">
+          <Question text={sessionQuestion(current)} className="text-hanji" />
+        </div>
+        <button
+          onClick={() => setFocusMode(false)}
+          className="mt-16 border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+        >
+          되돌아가기
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-2 text-center sm:justify-center sm:py-14">
       <section className="rise flex w-full max-w-2xl flex-col items-center">
@@ -577,8 +590,14 @@ export default function Home() {
 
         {/* 내려놓기 — 또렷하게 */}
         <button
+          onClick={() => setFocusMode(true)}
+          className="mt-10 border border-gold/40 px-7 py-2.5 text-xs tracking-[0.25em] text-gold-soft transition-colors hover:bg-gold/10 hover:text-gold"
+        >
+          화두만 보기
+        </button>
+        <button
           onClick={layDown}
-          className="mt-10 border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-hanji"
+          className="mt-3 border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-hanji"
         >
           이 화두를 내려놓다
         </button>

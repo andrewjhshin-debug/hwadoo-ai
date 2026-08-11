@@ -64,12 +64,6 @@ function petal(r1: number, r2: number, aC: number, half: number): string {
   return `M${bx1} ${by1} Q${c1x} ${c1y} ${tx} ${ty} Q${c2x} ${c2y} ${bx2} ${by2} A${r1} ${r1} 0 0 0 ${bx1} ${by1} Z`;
 }
 
-// 작은 원 점 (구슬)
-function dot(r: number, aC: number, rad: number): string {
-  const [x, y] = pt(r, aC);
-  return `M${x - rad} ${y} a${rad} ${rad} 0 1 0 ${rad * 2} 0 a${rad} ${rad} 0 1 0 -${rad * 2} 0`;
-}
-
 type RingKind = "petal" | "sector" | "diamond" | "triangle" | "dots";
 
 // 한 겹을 지정한 문양으로 채운다 (빈틈없이)
@@ -87,16 +81,21 @@ function fillRing(
   for (let i = 0; i < n; i++) {
     const a = step * i - 90 + baseAngle;
     const [cx, cy] = pt((r1 + r2) / 2, a);
+    // 어떤 문양이든, 그 칸 전체(부채꼴)를 빈틈없이 채운다 — 색칠 안 되는 공간이 없도록.
+    // 모양은 조금씩 다르게 하되 서로 맞물려 원판을 가득 메운다.
     let d: string;
-    if (ringKind === "sector") d = sector(r1, r2, a - half, a + half);
-    else if (ringKind === "diamond") d = diamond(r1, r2, a, half * 0.9);
-    else if (ringKind === "triangle") d = triangle(r1, r2, a, half * 0.85);
-    else if (ringKind === "dots") d = dot((r1 + r2) / 2, a, Math.min((r2 - r1) / 2.4, (step * Math.PI * ((r1 + r2) / 2)) / 360 / 1.6));
-    else {
-      // petal — 사이 꽃잎(뒷겹)도 함께
-      const [bcx, bcy] = pt((r1 + r2) / 2, a + half);
-      out.push({ id: `${key}-b${i}`, d: petal(r1, r1 + (r2 - r1) * 0.82, a + half, half), cx: bcx, cy: bcy });
+    if (ringKind === "diamond") {
+      // 마름모 — 밑변을 칸 폭만큼 넓혀 옆칸과 맞물리게
+      d = diamond(r1, r2, a, half);
+    } else if (ringKind === "triangle") {
+      // 톱니 — 밑변을 칸 폭만큼 (교대로 안/밖 방향이면 지그재그로 꽉 참)
+      d = i % 2 === 0 ? triangle(r1, r2, a, half) : triangle(r2, r1, a, half);
+    } else if (ringKind === "petal") {
+      // 연꽃잎 — 밑동을 칸 폭만큼 넓혀 옆 잎과 맞물리게
       d = petal(r1, r2, a, half);
+    } else {
+      // 기본 — 꽉 찬 부채꼴 (sector, dots 대체)
+      d = sector(r1, r2, a - half, a + half);
     }
     out.push({ id: `${key}-f${i}`, d, cx, cy });
   }
@@ -278,14 +277,14 @@ export default function MandalaPage() {
       if (!c || c === "transparent") continue;
       const px = reg.cx * scale;
       const py = reg.cy * scale;
-      const count = 10 + Math.floor(Math.random() * 8);
+      const count = 14 + Math.floor(Math.random() * 10);
       for (let k = 0; k < count; k++) {
         parts.push({
           x: px + (Math.random() - 0.5) * 6,
           y: py + (Math.random() - 0.5) * 6,
-          vx: -(0.6 + Math.random() * 1.8),
-          vy: (Math.random() - 0.5) * 0.5,
-          r: 0.35 + Math.random() * 0.9,
+          vx: -(0.15 + Math.random() * 0.7),
+          vy: (Math.random() - 0.5) * 0.35,
+          r: 0.3 + Math.random() * 0.75,
           color: c,
         });
       }
@@ -297,17 +296,19 @@ export default function MandalaPage() {
 
     let raf = 0;
     const start = performance.now();
-    const DURATION = 1700;
+    const DURATION = 2400;
     const tick = (now: number) => {
       const t = now - start;
       ctx.clearRect(0, 0, size, size);
       for (const p of parts) {
         // 왼쪽으로 계속 밀리고(바람), 위아래로 잔잔히 떨린다 — 가루가 옆으로 흩날리듯
-        p.vx -= 0.04;
-        p.vy += (Math.random() - 0.5) * 0.12;
+        // 왼쪽으로 서서히 가속(바람이 실리듯), 위아래로 잔잔히 부유
+        p.vx -= 0.025;
+        p.vy += (Math.random() - 0.5) * 0.08;
+        p.vy *= 0.98; // 세로 흔들림은 금세 잦아든다
         p.x += p.vx;
         p.y += p.vy;
-        ctx.globalAlpha = Math.max(0, 1 - t / DURATION) * 0.9;
+        ctx.globalAlpha = Math.max(0, 1 - (t / DURATION) ** 1.6) * 0.92;
         ctx.fillStyle = p.color;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);

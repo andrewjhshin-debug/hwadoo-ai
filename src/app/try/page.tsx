@@ -315,16 +315,6 @@ export default function TryPage() {
                   </p>
                 </div>
               </div>
-              {/* 내 답 미리보기 — 오른쪽 말풍선 */}
-              {answer.trim() && (
-                <div className="mt-4 flex flex-col items-end">
-                  <div className="max-w-[85%] rounded-2xl rounded-br-sm border border-gold/40 bg-gold/10 px-4 py-3">
-                    <p className="whitespace-pre-line break-keep text-left text-[14px] leading-7 text-hanji">
-                      {answer}
-                    </p>
-                  </div>
-                </div>
-              )}
               {/* 하단 입력줄 — 채팅처럼 */}
               <div className="mt-6 flex items-end gap-2">
                 <button
