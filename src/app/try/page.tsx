@@ -327,10 +327,10 @@ export default function TryPage() {
                   autoFocus
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value.slice(0, MAX_ANSWER))}
-                  rows={1}
+                  rows={4}
                   maxLength={MAX_ANSWER}
                   placeholder="그대의 답을 적으십시오…"
-                  className="max-h-32 min-h-[44px] flex-1 resize-none rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-2.5 text-left text-[14px] text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
+                  className="min-h-[120px] flex-1 resize-y rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-3 text-left text-[15px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
                 />
                 <button
                   onClick={finish}

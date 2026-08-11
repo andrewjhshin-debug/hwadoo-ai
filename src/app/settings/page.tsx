@@ -13,7 +13,17 @@ import type { User } from "firebase/auth";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import { ADMIN_UID, DONATION_URL } from "@/lib/config";
 import { loadStore } from "@/lib/store";
-import { Person, Teacup, Book } from "@/components/icons";
+import {
+  Person,
+  Teacup,
+  Book,
+  Dharmachakra,
+  SeonMaster,
+  Banga,
+  Jukbi,
+  Mandala,
+  Lantern,
+} from "@/components/icons";
 
 const THEME_KEY = "hwadoo-theme";
 
@@ -78,6 +88,38 @@ export default function SettingsPage() {
               화두와 함께
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* ── 서비스 — 당근처럼 도량의 모든 것 한눈에 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">서비스</p>
+        <div className="mt-4 grid grid-cols-4 gap-2 border-t border-ink-3 pt-5">
+          {[
+            { href: "/", label: "뜰", Icon: Dharmachakra },
+            { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
+            { href: "/masters", label: "선지식", Icon: SeonMaster },
+            { href: "/room", label: "사유의 방", Icon: Banga },
+            { href: "/my-hwadu", label: "화두 던지기", Icon: Jukbi },
+            { href: "/mandala", label: "만다라", Icon: Mandala },
+            { href: "/gathering", label: "명상 모임", Icon: Person },
+            { href: "/community", label: "연지원", Icon: Lantern },
+            { href: "/archive", label: "지난 화두", Icon: Book },
+            { href: "/tea", label: "차 한 잔", Icon: Teacup },
+          ].map((s) => (
+            <Link
+              key={s.href + s.label}
+              href={s.href}
+              className="flex flex-col items-center gap-2 rounded-[12px] px-1 py-3 text-center transition-colors hover:bg-gold/5"
+            >
+              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-ink-3 bg-ink-2/50">
+                <s.Icon className="h-5 w-5 text-gold-soft" />
+              </span>
+              <span className="text-[11px] leading-tight text-hanji-dim">
+                {s.label}
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 

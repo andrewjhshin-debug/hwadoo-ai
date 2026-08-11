@@ -84,13 +84,16 @@ export default function MyHwaduPage() {
         </div>
       ) : (
         <>
-          <div className="rise rise-d2 mt-10 border-t border-ink-3 pt-8">
+          <div className="rise rise-d2 mt-8">
+            <p className="mb-2 text-[11px] tracking-[0.2em] text-hanji-faint">
+              여기에 그대의 물음을 적으십시오
+            </p>
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              rows={4}
-              placeholder=""
-              className="journal-area"
+              rows={5}
+              placeholder="예 — 나는 지금 무엇을 두려워하는가."
+              className="w-full resize-none rounded-xl border border-gold/30 bg-ink-2/50 p-4 text-[15px] leading-8 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/60"
             />
           </div>
           <div className="rise rise-d3 mt-8 flex items-center justify-between">

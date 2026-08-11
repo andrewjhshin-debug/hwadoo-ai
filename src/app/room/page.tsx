@@ -100,42 +100,38 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-6 py-12">
-      <div className="rise flex flex-col items-center">
-        <div className="breathe opacity-80">
-          <BangaLarge />
-        </div>
-        <h1 className="mt-4 text-xs tracking-[0.5em] text-gold-soft">
-          思惟之房 · 사유의 방
-        </h1>
-      </div>
-
-      <p className="rise rise-d1 mt-8 whitespace-pre-line text-center font-serif text-base font-light leading-8 text-hanji-dim">
+    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-6 pb-10 pt-5">
+      {/* 상단 — 제목 + 화두, 콤팩트하게 위로 */}
+      <h1 className="rise text-center text-[11px] tracking-[0.4em] text-gold-soft">
+        思惟之房 · 사유의 방
+      </h1>
+      <p className="rise rise-d1 mt-2 whitespace-pre-line text-center font-serif text-[13px] font-light leading-6 text-hanji-dim">
         {sessionQuestion(store.current)}
       </p>
 
-      <div className="rise rise-d2 mt-9 flex flex-1 flex-col border-t border-ink-3 pt-7">
-        <p className="text-xs leading-6 text-hanji-faint">
-          떠오르는 것을 적어 두십시오. 답이 아니라 발자국입니다.
-          <br />이 단상은 「{sessionTitle(store.current)}」 화두에 묶여
-          저장됩니다.
-        </p>
-        <textarea
-          value={notes}
-          onChange={(e) => onChange(e.target.value)}
-          rows={7}
-          placeholder=""
-          className="journal-area mt-4 h-[30vh] min-h-[160px]"
-        />
-        <div className="mt-3 flex items-center justify-end gap-3">
+      {/* 메모 — 박스로 또렷이 구분, 넓게 */}
+      <div className="rise rise-d2 mt-5 flex flex-1 flex-col">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-[11px] leading-5 text-hanji-faint">
+            떠오르는 것을 적어 두십시오 — 답이 아니라 발자국입니다.
+          </p>
           {savedAt && (
-            <span className="text-[11px] text-hanji-faint">
+            <span className="shrink-0 text-[10px] text-hanji-faint">
               저장됨 · {savedAt}
             </span>
           )}
+        </div>
+        <textarea
+          value={notes}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="여기에 적으십시오…"
+          className="w-full flex-1 resize-none rounded-xl border border-gold/30 bg-ink-2/50 p-4 text-[14px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/60"
+          style={{ minHeight: "48vh" }}
+        />
+        <div className="mt-3 flex justify-end">
           <button
             onClick={saveNow}
-            className="border border-ink-3 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+            className="btn-obang px-6 py-2 text-[12px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
           >
             저장
           </button>

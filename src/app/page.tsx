@@ -398,10 +398,10 @@ export default function Home() {
               autoFocus
               value={draft}
               onChange={(e) => setDraft(e.target.value.slice(0, 500))}
-              rows={1}
+              rows={4}
               maxLength={500}
               placeholder="그대의 답을 적으십시오…"
-              className="max-h-32 min-h-[44px] flex-1 resize-none rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-2.5 text-[14px] text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
+              className="min-h-[120px] flex-1 resize-y rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-3 text-[15px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
             />
             <button
               onClick={saveJournal}

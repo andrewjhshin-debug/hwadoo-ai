@@ -21,6 +21,9 @@ import {
 import { auth, db } from "./firebase";
 import { anonName } from "./anonName";
 
+// 게시판 종류 — 연지원(community, 기본) / 명상 모임(gathering)
+export type Board = "community" | "gathering";
+
 export type Post = {
   id: string;
   title: string;
@@ -29,6 +32,7 @@ export type Post = {
   authorUid: string;
   hapjang: number;
   commentCount: number;
+  board?: Board;
   createdAt?: { seconds: number };
 };
 
@@ -42,11 +46,16 @@ export type Comment = {
 
 // ── 글 ──────────────────────────────────────────────────
 
-export async function fetchPosts(): Promise<Post[]> {
+export async function fetchPosts(board: Board = "community"): Promise<Post[]> {
+  // 복합 인덱스 없이: 최신순으로 넉넉히 받아 board는 클라이언트에서 거른다.
+  // (board 필드가 없는 기존 글은 연지원으로 취급)
   const snap = await getDocs(
-    query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(60))
+    query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(200))
   );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Post);
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as Post)
+    .filter((p) => (p.board ?? "community") === board)
+    .slice(0, 60);
 }
 
 export async function fetchPost(id: string): Promise<Post | null> {
@@ -54,7 +63,7 @@ export async function fetchPost(id: string): Promise<Post | null> {
   return snap.exists() ? ({ id: snap.id, ...snap.data() } as Post) : null;
 }
 
-export async function createPost(title: string, body: string) {
+export async function createPost(title: string, body: string, board: Board = "community") {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   return addDoc(collection(db, "posts"), {
@@ -64,6 +73,7 @@ export async function createPost(title: string, body: string) {
     authorUid: u.uid,
     hapjang: 0,
     commentCount: 0,
+    board,
     createdAt: serverTimestamp(),
   });
 }
