@@ -17,7 +17,7 @@ const TABS = [
   { href: "/masters", label: "선지식", Icon: SeonMaster },
   { href: "/", label: "뜰", Icon: Lotus },
   { href: "/settings", label: "내 도량", Icon: Person },
-  { href: "/community", label: "연지원", Icon: Lantern },
+  { href: "/mandala", label: "만다라", Icon: Lantern },
 ];
 
 export default function MobileTabBar() {
@@ -28,6 +28,8 @@ export default function MobileTabBar() {
   // 눌린 대로 그 화면을 연다 — 같은 경로여도 새로 그린다
   const go = (href: string) => (e: React.MouseEvent) => {
     e.preventDefault();
+    // 뜰을 누르면 — 뜰 화면에 '집으로 돌아왔다'고 알린다
+    if (href === "/") window.dispatchEvent(new CustomEvent("hwadoo-nav-home"));
     if (pathname === href) router.refresh();
     else router.push(href);
   };

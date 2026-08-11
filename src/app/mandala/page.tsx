@@ -9,6 +9,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useConfirm } from "@/components/Confirm";
 
 // 다양한 색 — 오방색 + 파스텔·중간톤
 const PALETTE = [
@@ -175,6 +176,7 @@ function buildTemplate(kind: number): Region[] {
 const TEMPLATE_NAMES = ["겹연꽃", "큰 꽃", "별꽃", "촘촘 연꽃", "나선"];
 
 export default function MandalaPage() {
+  const confirm = useConfirm();
   const [tpl, setTpl] = useState(0);
   const [color, setColor] = useState(PALETTE[0]);
   // 탭별 색칠을 따로 보관 — { 만다라번호: { 조각id: 색 } }
@@ -326,19 +328,18 @@ export default function MandalaPage() {
     raf = requestAnimationFrame(tick);
   };
 
-  const clear = () => {
+  const clear = async () => {
     if (scattering) return;
     if (filledCount === 0) {
       setFills({});
       return;
     }
-    if (
-      window.confirm(
-        "공들여 채운 만다라를 비우시겠습니까?\n\n모래 만다라처럼 — 이룬 것을 흩어 없애는 것도 수행입니다."
-      )
-    ) {
-      runSandEffect();
-    }
+    const ok = await confirm(
+      "공들여 채운 만다라를 비우시겠습니까?",
+      "모래 만다라처럼 — 이룬 것을 흩어 없애는 것도 수행입니다.",
+      { confirm: "흩다", cancel: "두다" }
+    );
+    if (ok) runSandEffect();
   };
 
   return (

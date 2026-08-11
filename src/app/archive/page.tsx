@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { flatQuestion, getHwadu, sessionQuestion, sessionTitle } from "@/lib/hwadu";
 import { formatDate, loadStore, saveStore, type Session } from "@/lib/store";
+import { useConfirm } from "@/components/Confirm";
 
 const MAX_ANSWER = 500;
 
 export default function ArchivePage() {
+  const confirm = useConfirm();
   const [history, setHistory] = useState<Session[] | null>(null);
   const [editKey, setEditKey] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -33,13 +35,13 @@ export default function ArchivePage() {
   };
 
   // 기록을 지운다
-  const remove = (s: Session) => {
-    if (
-      !window.confirm(
-        "이 기록을 지우시겠습니까?\n답과 단상이 함께 사라집니다."
-      )
-    )
-      return;
+  const remove = async (s: Session) => {
+    const ok = await confirm(
+      "이 기록을 지우시겠습니까?",
+      "답과 단상이 함께 사라집니다.",
+      { confirm: "지우다", cancel: "두다" }
+    );
+    if (!ok) return;
     const latest = loadStore();
     const next = latest.history.filter((h) => keyOf(h) !== keyOf(s));
     saveStore({ ...latest, history: next });

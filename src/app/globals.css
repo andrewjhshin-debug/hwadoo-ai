@@ -334,3 +334,24 @@ html[data-theme="light"] .notes-panel {
 body[data-writing] .notes-fab {
   display: none;
 }
+
+/* 도량의 물음창 — 먹빛 바탕에 금빛 테두리 */
+.confirm-panel {
+  background:
+    linear-gradient(var(--color-ink-2), var(--color-ink-2)) padding-box,
+    linear-gradient(140deg, #d9b45b, #c1553b 55%, #5e7fb2) border-box;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow:
+    0 26px 70px rgba(0, 0, 0, 0.6),
+    0 0 36px rgba(217, 180, 91, 0.08);
+}
+
+html[data-theme="light"] .confirm-panel {
+  background:
+    linear-gradient(var(--color-ink-2), var(--color-ink-2)) padding-box,
+    linear-gradient(140deg, #8a2318, #5e120c 55%, #2d3f5e) border-box;
+  box-shadow:
+    0 26px 70px rgba(90, 18, 12, 0.24),
+    0 0 36px rgba(110, 23, 16, 0.1);
+}

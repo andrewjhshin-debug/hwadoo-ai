@@ -107,14 +107,20 @@ export default function SettingsPage() {
             { href: "/community", label: "연지원", Icon: Lantern },
             { href: "/archive", label: "지난 화두", Icon: Book },
             { href: "/tea", label: "차 한 잔", Icon: Teacup },
+            { href: "/breath", label: "호흡 명상", Icon: Lotus, soon: true },
           ].map((s) => (
             <Link
               key={s.href + s.label}
               href={s.href}
-              className="flex flex-col items-center gap-2 rounded-[12px] px-1 py-3 text-center transition-colors hover:bg-gold/5"
+              className="relative flex flex-col items-center gap-2 rounded-[12px] px-1 py-3 text-center transition-colors hover:bg-gold/5"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-ink-3 bg-ink-2/50">
+              <span className="relative flex h-11 w-11 items-center justify-center rounded-full border border-ink-3 bg-ink-2/50">
                 <s.Icon className="h-5 w-5 text-gold-soft" />
+                {s.soon && (
+                  <span className="absolute -right-1.5 -top-1 rounded-full border border-gold/40 bg-ink px-1.5 py-px text-[9px] leading-tight text-gold-soft">
+                    곧
+                  </span>
+                )}
               </span>
               <span className="text-[11px] leading-tight text-hanji-dim">
                 {s.label}

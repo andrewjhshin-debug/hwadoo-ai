@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Enso from "@/components/Enso";
 import NotesDrawer from "@/components/NotesDrawer";
+import { useConfirm } from "@/components/Confirm";
 import { Banga, Dharmachakra, Lotus } from "@/components/icons";
 import {
   flatQuestion,
@@ -54,6 +55,7 @@ const DAY_NOTE: Record<number, string> = {
 };
 
 export default function Home() {
+  const confirm = useConfirm();
   const [store, setStore] = useState<Store | null>(null);
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState("");
@@ -80,21 +82,45 @@ export default function Home() {
     };
   }, [writing]);
 
-  // 화두 로고를 누르면 — 어떤 상태(화두만 보기 등)에서도 뜰 화면으로
+  // 뜰로 돌아오면 — 회향을 마친 화두는 서고로 보내고 '새 화두 받기'로.
+  // (화두만 보기는 그대로 둔다 — 되돌아가기를 눌러야 풀린다)
   useEffect(() => {
     const toHome = () => {
-      setFocusMode(false);
       setWriting(false);
+      const latest = loadStore();
+      if (latest.current?.journal) archiveCurrent(latest);
     };
     window.addEventListener("hwadoo-nav-home", toHome);
     return () => window.removeEventListener("hwadoo-nav-home", toHome);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    setStore(loadStore());
+    const loaded = loadStore();
+    // 다른 화면을 거쳐 돌아왔다면, 마친 화두는 서고로 보낸다
+    if (loaded.current?.journal) {
+      decrementHolding(loaded.current.hwaduId);
+      const next: Store = {
+        ...loaded,
+        history: [...loaded.history, loaded.current],
+        current: null,
+      };
+      saveStore(next);
+      setStore(next);
+    } else {
+      setStore(loaded);
+    }
+    // 화두만 보기 — 되돌아가기 전까지 이어진다
+    setFocusMode(window.localStorage.getItem("hwadoo-focus") === "1");
     // 승인된 '던져진 화두'들을 랜덤 풀에 합류시킨다 (실패해도 기본 30칙으로 동작)
     fetchPublicHwadu().then(setPublicPool).catch(() => {});
   }, []);
+
+  // 화두만 보기 상태를 기억한다
+  useEffect(() => {
+    if (focusMode) window.localStorage.setItem("hwadoo-focus", "1");
+    else window.localStorage.removeItem("hwadoo-focus");
+  }, [focusMode]);
 
   // 지금 이 물음을 몇 명이 들고 있는가
   useEffect(() => {
@@ -185,10 +211,27 @@ export default function Home() {
     setDraft("");
   };
 
+  // 회향을 마친 화두를 서고로 보낸다 — 화면은 '새 화두 받기'로 돌아간다
+  const archiveCurrent = (base: Store) => {
+    if (!base.current) return base;
+    decrementHolding(base.current.hwaduId);
+    const next: Store = {
+      ...base,
+      history: [...base.history, base.current],
+      current: null,
+    };
+    update(next);
+    setAskShare(null);
+    setShareDone(false);
+    setSharedAnswers([]);
+    setWriting(false);
+    setDraft("");
+    return next;
+  };
+
   const nextHwadu = () => {
     if (!store?.current) return;
-    decrementHolding(store.current.hwaduId); // 이 물음은 내려놓았다
-    receive({ ...store, history: [...store.history, store.current], current: null });
+    archiveCurrent(store); // 곧바로 새 화두를 주지 않고, 받는 화면으로
   };
 
   const saveJournal = () => {
@@ -206,10 +249,14 @@ export default function Home() {
     setShareDone(false);
   };
 
-  const layDown = () => {
+  const layDown = async () => {
     if (!store?.current) return;
-    if (!window.confirm("이 화두를 내려놓으시겠습니까?\n기록 없이 사라집니다."))
-      return;
+    const ok = await confirm(
+      "이 화두를 내려놓으시겠습니까?",
+      "기록 없이 사라집니다.",
+      { confirm: "내려놓다", cancel: "머무르다" }
+    );
+    if (!ok) return;
     decrementHolding(store.current.hwaduId);
     update({ ...store, current: null });
     setWriting(false);

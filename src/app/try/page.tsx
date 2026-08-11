@@ -15,6 +15,7 @@ import Question from "@/components/Question";
 import { Banga, Dharmachakra, Lotus } from "@/components/icons";
 import { getHwadu, type Hwadu } from "@/lib/hwadu";
 import { durationLabel, loadStore, saveStore } from "@/lib/store";
+import { useConfirm } from "@/components/Confirm";
 import { SLOGAN } from "@/lib/config";
 
 const MAX_ANSWER = 500;
@@ -49,6 +50,7 @@ const NAV: Partial<Record<Step, { prev: string; next: string }>> = {
 };
 
 export default function TryPage() {
+  const confirm = useConfirm();
   const [step, setStep] = useState<Step>("choose");
   const [hwadu, setHwadu] = useState<Hwadu | null>(null);
   const [audience, setAudience] = useState<"adult" | "student">("adult");
@@ -464,12 +466,13 @@ export default function TryPage() {
                 <span className={dead}>나도 화두 던지기</span>
               </div>
               <button
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "이 화두를 내려놓으시겠습니까?\n체험이 처음으로 돌아갑니다."
-                    )
-                  ) {
+                onClick={async () => {
+                  const ok = await confirm(
+                    "이 화두를 내려놓으시겠습니까?",
+                    "체험이 처음으로 돌아갑니다.",
+                    { confirm: "내려놓다", cancel: "머무르다" }
+                  );
+                  if (ok) {
                     setHwadu(null);
                     setNotesOpen(false);
                     setMemo("");

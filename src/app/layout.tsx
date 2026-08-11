@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
+import ConfirmProvider from "@/components/Confirm";
 import { CONTACT_EMAIL, SITE_NAME, SITE_URL, SLOGAN } from "@/lib/config";
 import "./globals.css";
 
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             __html: `try{if(localStorage.getItem('hwadoo-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}`,
           }}
         />
+        <ConfirmProvider>
         <Sidebar />
         <div className="obang-aura flex flex-1 flex-col overflow-x-hidden overflow-y-auto pt-16 pb-16 md:pb-0 md:pt-0">
           <main className="flex flex-1 flex-col">{children}</main>
@@ -93,6 +95,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </footer>
         </div>
         <MobileTabBar />
+        </ConfirmProvider>
         <Analytics />
       </body>
     </html>

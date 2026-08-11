@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import { ADMIN_UID } from "@/lib/config";
+import { useConfirm } from "@/components/Confirm";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import {
   addComment,
@@ -237,6 +238,7 @@ function PostRow({
   isAdmin: boolean;
   onDeleted: () => void;
 }) {
+  const confirm = useConfirm();
   const [comments, setComments] = useState<Comment[] | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -301,7 +303,8 @@ function PostRow({
             {(isAdmin || user?.uid === post.authorUid) && (
               <button
                 onClick={async () => {
-                  if (!window.confirm("이 글을 삭제하시겠습니까?")) return;
+                  const ok = await confirm("이 글을 삭제하시겠습니까?", undefined, { confirm: "삭제하다", cancel: "두다" });
+                  if (!ok) return;
                   await deletePost(post.id);
                   onDeleted();
                 }}

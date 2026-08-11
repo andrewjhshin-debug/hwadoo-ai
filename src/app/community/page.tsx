@@ -23,6 +23,7 @@ import {
   type Post,
 } from "@/lib/community";
 import { formatDate } from "@/lib/store";
+import { useConfirm } from "@/components/Confirm";
 
 const BOWED_KEY = "hwadoo-bowed-v1";
 
@@ -238,6 +239,7 @@ function PostRow({
   isAdmin: boolean;
   onDeleted: () => void;
 }) {
+  const confirm = useConfirm();
   const [comments, setComments] = useState<Comment[] | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -302,7 +304,8 @@ function PostRow({
             {(isAdmin || user?.uid === post.authorUid) && (
               <button
                 onClick={async () => {
-                  if (!window.confirm("이 글을 삭제하시겠습니까?")) return;
+                  const ok = await confirm("이 글을 삭제하시겠습니까?", undefined, { confirm: "삭제하다", cancel: "두다" });
+                  if (!ok) return;
                   await deletePost(post.id);
                   onDeleted();
                 }}
