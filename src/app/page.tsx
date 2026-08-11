@@ -433,13 +433,17 @@ export default function Home() {
           {unlocked ? (
             <span>달이 차올랐습니다. 이제 답을 쓸 수 있습니다</span>
           ) : (
-            <span>
-              달이 차오르는 {durationLabel(current.durationDays)} 뒤, 답을 쓸 수
-              있습니다 ·{" "}
-              <span className="tabular-nums text-hanji">
-                {formatCountdown(unlockAt(current) - Date.now())}
-              </span>{" "}
-              남음
+            <span className="flex flex-col items-center gap-1">
+              <span>
+                달이 차오르는 {durationLabel(current.durationDays)} 뒤, 답을 쓸 수
+                있습니다
+              </span>
+              <span>
+                <span className="tabular-nums text-hanji">
+                  {formatCountdown(unlockAt(current) - Date.now())}
+                </span>{" "}
+                남음
+              </span>
             </span>
           )}
         </div>
