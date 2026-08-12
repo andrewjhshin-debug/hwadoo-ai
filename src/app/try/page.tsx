@@ -3,8 +3,10 @@
 // ────────────────────────────────────────────────────────────────
 // 체험하기 — 실제 화면과 똑같이, 다만 시간이 클릭으로 흐른다.
 // · 화두는 언제나 '이뭣고' 하나로 고정 (가장 유명한 입문 화두)
-// · 튜토리얼이므로 지난 화두에는 저장되지 않는다
-// · 사유의 방 메모도 여기서 함께 써 보고, 회향 시 답과 같이 남는다(안내만)
+// · 회향을 마치면 이 한 편도 지난 화두에 남는다
+// · 다만 id 앞에 try: 를 붙인다 — 실제 화두 뽑기의 '지나온 화두 제외'와
+//   섞이지 않게. 체험 한 번으로 '이뭣고'를 영영 못 받으면 안 된다.
+// · 사유의 방 메모도 여기서 함께 써 보고, 회향 시 답과 같이 남는다
 // · 카운트다운 문구는 단계가 바뀌어도 고정 — 화면이 흔들리지 않게
 // ────────────────────────────────────────────────────────────────
 
@@ -82,29 +84,28 @@ export default function TryPage() {
     else if (step === "writing") setStep("ripened");
   };
 
-  // 회향 — 체험은 기록에 남기지 않는다 (튜토리얼)
+  // 회향 — 체험도 한 편으로 지난 화두에 남긴다.
+  // id 는 `try:이뭣고` 처럼 접두를 붙여, 실제 화두 뽑기가 이 화두를 지나온 것으로
+  // 여기지 않게 한다. 물음 본문은 customQuestion 에 함께 담아 서고에서 그대로 읽힌다.
   const finish = () => {
     if (!hwadu || !answer.trim()) return;
-    // 첫 체험의 답은 지난 화두에 남긴다 — 단, 이뭣고 체험 기록이 이미 있으면 중복 저장하지 않는다
     const s = loadStore();
-    const already = s.history.some((h) => h.hwaduId === hwadu.id);
-    if (!already) {
-      saveStore({
-        ...s,
-        history: [
-          ...s.history,
-          {
-            hwaduId: hwadu.id,
-            receivedAt: Date.now(),
-            durationDays: days,
-            notes: memo.trim() || undefined,
-            journal: answer.trim(),
-            journalAt: Date.now(),
-          },
-        ],
-        received: s.received + 1,
-      });
-    }
+    saveStore({
+      ...s,
+      history: [
+        ...s.history,
+        {
+          hwaduId: `try:${hwadu.id}`,
+          customQuestion: hwadu.question,
+          receivedAt: Date.now(),
+          durationDays: days,
+          notes: memo.trim() || undefined,
+          journal: answer.trim(),
+          journalAt: Date.now(),
+        },
+      ],
+      received: s.received + 1,
+    });
     setStep("done");
   };
 
@@ -124,7 +125,7 @@ export default function TryPage() {
     "cursor-default border border-ink-3 px-5 py-2.5 text-xs tracking-[0.15em] text-hanji-faint opacity-60";
 
   return (
-    <div className="relative flex flex-1 flex-col items-center px-6 pb-16 pt-4 text-center">
+    <div className="relative flex flex-1 flex-col items-center px-6 pb-16 pt-4 text-center md:pb-10 md:pt-12">
       {/* ── 늘 위에 있는 체험 표시 ── */}
       <div className="w-full max-w-2xl">
         <p className="text-center text-[11px] tracking-[0.4em] text-gold-soft">
@@ -274,11 +275,13 @@ export default function TryPage() {
 
           <div className="mt-12 w-full border-t border-ink-3 pt-8">
             <p className="text-[13px] leading-7 text-hanji-dim">
-              체험은 여기까지입니다. 이 답은 기록에 남지 않습니다.
+              체험은 여기까지입니다. 이 한 편은 지난 화두에 남습니다.
               <br />본래의 화두는 며칠을 품은 뒤에야 붓을 들 수 있습니다.
             </p>
             <p className="mt-3 text-xs leading-6 text-hanji-faint">
-              그때 사유의 방에 적어 둔 단상도 회향과 함께 지난 화두에 남습니다.
+              {memo.trim()
+                ? "사유의 방에 적어 둔 단상도 답과 함께 남았습니다."
+                : "사유의 방에 적어 둔 단상도 회향과 함께 남습니다."}
             </p>
             <Link
               href="/"
@@ -349,7 +352,7 @@ export default function TryPage() {
                 </button>
               </div>
               <p className="mt-2 text-right text-[10px] text-hanji-faint">
-                {answer.length} / {MAX_ANSWER} · 실제 화두에서는 사유의 방 단상도 함께 저장됩니다
+                {answer.length} / {MAX_ANSWER} · 사유의 방에 남긴 단상도 함께 남습니다
               </p>
             </div>
           ) : (
@@ -490,13 +493,15 @@ export default function TryPage() {
         </section>
       )}
 
-      {/* ── 사유의 방 서랍 (체험 전용 — 진짜 기록과 무관) ── */}
-      {notesOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 sm:hidden"
-          onClick={() => setNotesOpen(false)}
-        />
-      )}
+      {/* ── 사유의 방 서랍 (체험 전용 — 회향할 때 답과 함께 남는다) ── */}
+      {/* 배경 가림막 — 사유의 방(NotesDrawer)과 같은 톤. 데스크톱에서도 깔아
+          바깥을 누르면 닫히게 한다 */}
+      <div
+        onClick={() => setNotesOpen(false)}
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 sm:bg-black/30 ${
+          notesOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
       <aside
         aria-hidden={!notesOpen}
         className={`fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-ink-3 bg-ink-2/95 backdrop-blur transition-transform duration-300 sm:w-[380px] ${

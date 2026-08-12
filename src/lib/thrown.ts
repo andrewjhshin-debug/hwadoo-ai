@@ -54,7 +54,13 @@ export async function fetchPublicHwadu(): Promise<PublicHwadu[]> {
       question: data.question as string,
       source: (data.source as string) || undefined,
       origin: (data.origin as "thrown" | "admin") || "thrown",
-      audience: data.audience === "student" ? "student" : "adult",
+      // 대상이 적히지 않은 것(예전에 승인된 던져진 화두)은 undefined 그대로 둔다
+      audience:
+        data.audience === "student"
+          ? "student"
+          : data.audience === "adult"
+            ? "adult"
+            : undefined,
     };
   });
 }
@@ -68,10 +74,15 @@ export async function fetchThrown(): Promise<ThrownItem[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ThrownItem);
 }
 
-export async function approveThrown(item: ThrownItem) {
+// 승인 — 어느 랜덤 풀에 뿌릴지 함께 정한다 (고르지 않으면 성인)
+export async function approveThrown(
+  item: ThrownItem,
+  audience: "adult" | "student" = "adult"
+) {
   await addDoc(collection(db, "public-hwadu"), {
     question: item.question,
     origin: "thrown",
+    audience,
     createdAt: serverTimestamp(),
   });
   await updateDoc(doc(db, "thrown", item.id), { status: "approved" });

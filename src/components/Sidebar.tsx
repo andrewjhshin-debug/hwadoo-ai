@@ -2,7 +2,7 @@
 
 // ─────────────────────────────────────────────────────────────
 // 왼쪽 탭 — 도량의 회랑.
-// · 뜰(홈) / 새 화두 받기 / 여섯 방 (전부 불교 문양)
+// · 뜰(홈) / 체험하기 / 아홉 방 (전부 불교 문양) / 지난 화두 / 로그인
 // · 데스크톱: 접기(아이콘만) ↔ 펴기, 상태 기억
 // · 모바일: 햄버거 서랍
 // ─────────────────────────────────────────────────────────────
@@ -12,7 +12,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
-import { loginWithGoogle, watchAuth } from "@/lib/sync";
+import { ADMIN_UID } from "@/lib/config";
+import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
   Banga,
   Book,
@@ -212,7 +213,7 @@ export default function Sidebar() {
           <div className={`flex items-center ${slim ? "flex-col gap-1" : "gap-0.5"}`}>
             {/* 마이 페이지 · 내 도량 — 오른쪽 위 */}
             <Link
-              href={user ? "/settings" : "/settings"}
+              href="/settings"
               onClick={go("/settings")}
               title="내 도량"
               aria-label="내 도량"
@@ -262,7 +263,7 @@ export default function Sidebar() {
           {!slim && <span>체험하기</span>}
         </Link>
 
-        {/* 여섯 방 */}
+        {/* 아홉 방 */}
         <nav className="mt-4 flex flex-col gap-0.5">
           {NAV.map(({ href, label, Icon, soon }) => (
             <Link
@@ -310,8 +311,8 @@ export default function Sidebar() {
 
         {slim && <div className="flex-1" />}
 
-        {/* 아래 — 로그인 */}
-        <div className="mt-auto shrink-0 border-t border-ink-3 pt-3.5 md:hidden">
+        {/* 아래 — 로그인 (데스크톱·모바일 모두, 접혔을 때는 아이콘만) */}
+        <div className="mt-auto shrink-0 border-t border-ink-3 pt-3.5">
           {user ? (
             slim ? (
               <Link
@@ -323,24 +324,43 @@ export default function Sidebar() {
                 <Person className="h-4 w-4" />
               </Link>
             ) : (
-              <Link
-                href="/settings"
-                onClick={go("/settings")}
-                title="내 도량"
-                className="flex items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 transition-colors hover:bg-gold/5"
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/30 text-hanji-dim">
-                  <Person className="h-4 w-4" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[14px] text-hanji">
-                    {user.displayName ?? "수행자"}님
+              <>
+                <Link
+                  href="/settings"
+                  onClick={go("/settings")}
+                  title="내 도량"
+                  className="flex items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 transition-colors hover:bg-gold/5"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/30 text-hanji-dim">
+                    <Person className="h-4 w-4" />
                   </span>
-                  <span className="block text-[11px] text-hanji-faint">
-                    내 도량
+                  <span className="min-w-0 flex-1">
+                    <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[14px] text-hanji">
+                      {user.displayName ?? "수행자"}님
+                    </span>
+                    <span className="block text-[11px] text-hanji-faint">
+                      내 도량
+                    </span>
                   </span>
-                </span>
-              </Link>
+                </Link>
+                <div className="mt-1.5 flex items-center gap-4 px-1.5">
+                  {user.uid === ADMIN_UID && (
+                    <Link
+                      href="/admin"
+                      onClick={go("/admin")}
+                      className="text-[11px] tracking-widest text-gold-soft transition-colors hover:text-gold"
+                    >
+                      뒷방(관리)
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => logout()}
+                    className="text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-vermilion"
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              </>
             )
           ) : (
             <>

@@ -6,7 +6,7 @@
 // 화두를 들고 있을 때: 질문이 화면의 주인공. 로고는 물러난다.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Enso from "@/components/Enso";
 import NotesDrawer from "@/components/NotesDrawer";
@@ -35,6 +35,7 @@ import {
   loadStore,
   saveStore,
   unlockAt,
+  type Session,
   type Store,
 } from "@/lib/store";
 import { SLOGAN } from "@/lib/config";
@@ -54,6 +55,35 @@ const DAY_NOTE: Record<number, string> = {
   108: "백팔일 — 백팔번뇌를 마주하는 가장 깊은 참구",
 };
 
+// 쓰다 만 답을 잠시 맡아 두는 자리 — 화두마다 따로.
+// 답을 적다가 화면을 떠나도 글이 사라지지 않게 한다.
+const draftKey = (hwaduId: string) => `hwadoo-draft-${hwaduId}`;
+
+function loadDraft(hwaduId: string): string {
+  try {
+    return window.localStorage.getItem(draftKey(hwaduId)) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function keepDraft(hwaduId: string, value: string) {
+  try {
+    if (value.trim()) window.localStorage.setItem(draftKey(hwaduId), value);
+    else window.localStorage.removeItem(draftKey(hwaduId));
+  } catch {
+    // 저장할 자리가 없어도 쓰던 글은 화면에 그대로 남는다
+  }
+}
+
+function dropDraft(hwaduId: string) {
+  try {
+    window.localStorage.removeItem(draftKey(hwaduId));
+  } catch {
+    // 지우지 못해도 다음 화두에는 영향이 없다
+  }
+}
+
 export default function Home() {
   const confirm = useConfirm();
   const [store, setStore] = useState<Store | null>(null);
@@ -64,10 +94,38 @@ export default function Home() {
   const [focusMode, setFocusMode] = useState(false);
   const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
   const [holdingCount, setHoldingCount] = useState<number | null>(null);
-  const [, setTick] = useState(0);
+  const [remaining, setRemaining] = useState(0);
   const [sharedAnswers, setSharedAnswers] = useState<SharedAnswer[]>([]);
   // 나눔에 부쳤는지 — 회향 화면에 조용히 알린다
   const [shareDone, setShareDone] = useState(false);
+  const draftRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // 저장은 언제나 '지금 저장되어 있는 것' 위에 병합한다.
+  // 화면이 들고 있는 옛 상태로 통째로 덮어쓰면, 그 사이 사유의 방이 적은
+  // 단상 같은 글이 소리 없이 사라진다.
+  const update = useCallback((merge: (base: Store) => Store) => {
+    const next = merge(loadStore());
+    setStore(next);
+    saveStore(next);
+    return next;
+  }, []);
+
+  // 회향을 마친 화두를 서고로 보낸다 — 화면은 '새 화두 받기'로 돌아간다
+  const archiveCurrent = useCallback(() => {
+    const done = loadStore().current;
+    if (!done) return;
+    update((base) =>
+      base.current
+        ? { ...base, history: [...base.history, base.current], current: null }
+        : base
+    );
+    decrementHolding(done.hwaduId);
+    dropDraft(done.hwaduId);
+    setShareDone(false);
+    setSharedAnswers([]);
+    setWriting(false);
+    setDraft("");
+  }, [update]);
 
   // 답을 쓰는 동안에는 사유의 방 떠 있는 단추를 감춘다 (입력창과 겹치지 않게)
   useEffect(() => {
@@ -83,34 +141,22 @@ export default function Home() {
   useEffect(() => {
     const toHome = () => {
       setWriting(false);
-      const latest = loadStore();
-      if (latest.current?.journal) archiveCurrent(latest);
+      if (loadStore().current?.journal) archiveCurrent();
     };
     window.addEventListener("hwadoo-nav-home", toHome);
     return () => window.removeEventListener("hwadoo-nav-home", toHome);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [archiveCurrent]);
 
   useEffect(() => {
     const loaded = loadStore();
     // 다른 화면을 거쳐 돌아왔다면, 마친 화두는 서고로 보낸다
-    if (loaded.current?.journal) {
-      decrementHolding(loaded.current.hwaduId);
-      const next: Store = {
-        ...loaded,
-        history: [...loaded.history, loaded.current],
-        current: null,
-      };
-      saveStore(next);
-      setStore(next);
-    } else {
-      setStore(loaded);
-    }
+    if (loaded.current?.journal) archiveCurrent();
+    else setStore(loaded);
     // 화두만 보기 — 되돌아가기 전까지 이어진다
     setFocusMode(window.localStorage.getItem("hwadoo-focus") === "1");
     // 승인된 '던져진 화두'들을 랜덤 풀에 합류시킨다 (실패해도 기본 30칙으로 동작)
     fetchPublicHwadu().then(setPublicPool).catch(() => {});
-  }, []);
+  }, [archiveCurrent]);
 
   // 화두만 보기 상태를 기억한다
   useEffect(() => {
@@ -128,21 +174,16 @@ export default function Home() {
     fetchHoldingCount(id).then(setHoldingCount);
   }, [store?.current?.hwaduId]);
 
-  // 다른 기기에서 온 변화(로그인 동기화)를 화면에 즉시 반영
+  // 저장소가 바뀌면 화면도 곧바로 따라간다.
+  // 다른 기기(동기화)·다른 창(storage)·같은 창의 다른 화면(사유의 방) 모두.
   useEffect(() => {
-    const onRemote = (e: Event) => {
-      if ((e as CustomEvent).detail?.source === "remote") {
-        setStore(loadStore());
-      }
+    const refresh = () => setStore(loadStore());
+    window.addEventListener("hwadoo-store-updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("hwadoo-store-updated", refresh);
+      window.removeEventListener("storage", refresh);
     };
-    window.addEventListener("hwadoo-store-updated", onRemote);
-    return () => window.removeEventListener("hwadoo-store-updated", onRemote);
-  }, []);
-
-  // 카운트다운 — 1초마다 갱신
-  useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 1000);
-    return () => clearInterval(t);
   }, []);
 
   // 회향을 마치면, 같은 화두에 다른 수행자들이 남긴 답을 불러온다
@@ -157,13 +198,9 @@ export default function Home() {
     }
   }, [store?.current?.journal, store?.current?.hwaduId]);
 
-  const update = (next: Store) => {
-    setStore(next);
-    saveStore(next);
-  };
-
   // 화두를 받는다 — 랜덤. 기본 30칙 + 승인된 던져진 화두. 지나온 것은 피해서.
-  const receive = (base: Store) => {
+  const receive = () => {
+    const base = loadStore();
     const exclude = [
       ...base.history.map((s) => s.hwaduId),
       ...(base.current ? [base.current.hwaduId] : []),
@@ -174,69 +211,52 @@ export default function Home() {
       (p) => (p.audience ?? "adult") === audience && !exclude.includes(`thrown:${p.id}`)
     );
     const total = bankCount(audience) + freshPublic.length;
-    let newId: string;
+    const days = base.defaultDays ?? 3;
+    let session: Session;
     if (freshPublic.length > 0 && Math.random() < freshPublic.length / total) {
       const p = freshPublic[Math.floor(Math.random() * freshPublic.length)];
-      newId = `thrown:${p.id}`;
-      update({
-        ...base,
-        current: {
-          hwaduId: newId,
-          customQuestion: p.question,
-          customSource: p.source,
-          receivedAt: Date.now(),
-          durationDays: base.defaultDays ?? 3,
-        },
-        received: base.received + 1,
-      });
+      session = {
+        hwaduId: `thrown:${p.id}`,
+        customQuestion: p.question,
+        customSource: p.source,
+        receivedAt: Date.now(),
+        durationDays: days,
+      };
     } else {
-      const hwadu = pickRandomHwadu(exclude, audience);
-      newId = hwadu.id;
-      update({
-        ...base,
-        current: {
-          hwaduId: newId,
-          receivedAt: Date.now(),
-          durationDays: base.defaultDays ?? 3,
-        },
-        received: base.received + 1,
-      });
+      session = {
+        hwaduId: pickRandomHwadu(exclude, audience).id,
+        receivedAt: Date.now(),
+        durationDays: days,
+      };
     }
-    incrementHolding(newId); // 함께 들고 있는 수 +1
+    update((latest) => ({
+      ...latest,
+      current: session,
+      received: latest.received + 1,
+    }));
+    incrementHolding(session.hwaduId); // 함께 들고 있는 수 +1
     setWriting(false);
     setDraft("");
-  };
-
-  // 회향을 마친 화두를 서고로 보낸다 — 화면은 '새 화두 받기'로 돌아간다
-  const archiveCurrent = (base: Store) => {
-    if (!base.current) return base;
-    decrementHolding(base.current.hwaduId);
-    const next: Store = {
-      ...base,
-      history: [...base.history, base.current],
-      current: null,
-    };
-    update(next);
-    setShareDone(false);
-    setSharedAnswers([]);
-    setWriting(false);
-    setDraft("");
-    return next;
-  };
-
-  const nextHwadu = () => {
-    if (!store?.current) return;
-    archiveCurrent(store); // 곧바로 새 화두를 주지 않고, 받는 화면으로
   };
 
   const saveJournal = async () => {
-    if (!store?.current || !draft.trim()) return;
     const answer = draft.trim();
-    const hwaduId = store.current.hwaduId;
-    update({
-      ...store,
-      current: { ...store.current, journal: answer, journalAt: Date.now() },
-    });
+    const cur = loadStore().current;
+    if (!cur || !answer) return;
+    const hwaduId = cur.hwaduId;
+    update((latest) =>
+      latest.current
+        ? {
+            ...latest,
+            current: {
+              ...latest.current,
+              journal: answer,
+              journalAt: Date.now(),
+            },
+          }
+        : latest
+    );
+    dropDraft(hwaduId);
     setDraft("");
     setWriting(false);
     setShareDone(false);
@@ -253,32 +273,53 @@ export default function Home() {
   };
 
   const layDown = async () => {
-    if (!store?.current) return;
+    const cur = loadStore().current;
+    if (!cur) return;
     const ok = await confirm(
       "이 화두를 내려놓으시겠습니까?",
       "기록 없이 사라집니다.",
       { confirm: "내려놓다", cancel: "머무르다" }
     );
     if (!ok) return;
-    decrementHolding(store.current.hwaduId);
-    update({ ...store, current: null });
+    decrementHolding(cur.hwaduId);
+    dropDraft(cur.hwaduId);
+    update((base) => ({ ...base, current: null }));
     setWriting(false);
   };
 
   // 참구 기간 변경 — 지금 화두와 앞으로의 기본값 모두에 적용
   const setDays = (days: number) => {
-    if (!store) return;
-    update({
-      ...store,
+    update((base) => ({
+      ...base,
       defaultDays: days,
-      current: store.current ? { ...store.current, durationDays: days } : null,
-    });
+      current: base.current ? { ...base.current, durationDays: days } : null,
+    }));
     setShowSettings(false);
   };
 
   const current = store?.current ?? null;
   const hwadu = current ? getHwadu(current.hwaduId) : null;
   const unlocked = current ? isUnlocked(current) : false;
+
+  // 카운트다운 — 달이 차오르기를 기다리는 그 화면에서만 1초마다 센다.
+  // (다른 화면에서까지 돌면 아무도 보지 않는 시계가 배터리만 축낸다)
+  const needsCountdown =
+    !!current && !current.journal && !writing && !focusMode && !unlocked;
+  useEffect(() => {
+    if (!needsCountdown || !current) return;
+    const tick = () => setRemaining(unlockAt(current) - Date.now());
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [needsCountdown, current]);
+
+  // 되살린 초안이 한 줄로 눌리지 않게, 붓을 들 때 글칸 높이를 글에 맞춘다
+  useEffect(() => {
+    const el = draftRef.current;
+    if (!writing || !el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [writing]);
 
   // ── 화두가 없다 — 브랜드 얼굴 ──────────────────────────
   if (store !== null && !current) {
@@ -302,7 +343,7 @@ export default function Home() {
           <div className="h-px w-[110px] bg-gradient-to-r from-gold/45 to-transparent" />
         </div>
         <button
-          onClick={() => store && receive(store)}
+          onClick={receive}
           className="btn-obang rise rise-d2 inline-flex items-center gap-2.5 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
         >
           <Lotus className="h-[18px] w-[18px]" stroke="#B99A54" />
@@ -323,7 +364,7 @@ export default function Home() {
                 key={o.key}
                 type="button"
                 aria-pressed={active}
-                onClick={() => store && update({ ...store, audience: o.key })}
+                onClick={() => update((base) => ({ ...base, audience: o.key }))}
                 className={`rounded-full px-5 py-2 tracking-[0.1em] transition-colors ${
                   active
                     ? "bg-gold font-medium text-ink"
@@ -428,7 +469,7 @@ export default function Home() {
           </p>
 
           <button
-            onClick={nextHwadu}
+            onClick={archiveCurrent}
             className="btn-obang mt-12 px-9 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
           >
             다음 화두를 받다
@@ -441,9 +482,10 @@ export default function Home() {
   // ── 붓을 들었다 — 답 쓰기 ─────────────────────────────
   if (writing && unlocked) {
     return (
-      <div className="flex flex-1 flex-col">
-        {/* 채팅형 회향 — 위: 화두(물음), 가운데: 대화, 아래 고정: 입력창 */}
-        <div className="flex flex-1 flex-col overflow-y-auto px-5 pb-40 pt-6 sm:px-6">
+      <div className="flex min-h-0 flex-1 flex-col">
+        {/* 채팅형 회향 — 위: 화두(물음)와 대화, 아래: 입력창.
+            입력창은 흐름 안의 형제라 화면을 덮지 않고, 위 대화는 스스로 스크롤한다. */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-6 sm:px-6">
           <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
             {/* 화두 — 스승의 물음처럼 왼쪽 말풍선 */}
             <div className="flex flex-col items-start">
@@ -485,15 +527,18 @@ export default function Home() {
             )}
           </div>
         </div>
-        {/* 하단 고정 입력창 — 모바일에서는 탭 바(h-16) 위에 앉는다 */}
-        <div className="fixed inset-x-0 bottom-16 z-30 border-t border-ink-3 bg-ink/95 px-4 pb-3 pt-3 backdrop-blur md:absolute md:bottom-0 md:pb-[calc(env(safe-area-inset-bottom)+12px)]">
+        {/* 아래 입력창 — 화면 아래에 앉되, 대화를 덮지 않는다 */}
+        <div className="shrink-0 border-t border-ink-3 bg-ink/95 px-4 pb-3 pt-3 backdrop-blur md:pb-[calc(env(safe-area-inset-bottom)+12px)]">
           <div className="mx-auto w-full max-w-xl">
             {/* 글칸은 늘 한 줄을 다 쓴다 — 좁게 눌리지 않도록 */}
             <textarea
               autoFocus
+              ref={draftRef}
               value={draft}
               onChange={(e) => {
-                setDraft(e.target.value.slice(0, 500));
+                const value = e.target.value.slice(0, 500);
+                setDraft(value);
+                keepDraft(current.hwaduId, value); // 떠나도 잃지 않게 한 자씩 맡겨 둔다
                 e.target.style.height = "auto";
                 e.target.style.height = `${e.target.scrollHeight}px`;
               }}
@@ -599,12 +644,14 @@ export default function Home() {
                 달이 차오르는 {durationLabel(current.durationDays)} 뒤, 답을 쓸 수
                 있습니다
               </span>
-              <span className="text-[19px] font-light">
-                <span className="tabular-nums text-hanji">
-                  {formatCountdown(unlockAt(current) - Date.now())}
-                </span>{" "}
-                남음
-              </span>
+              {remaining > 0 && (
+                <span className="text-[19px] font-light">
+                  <span className="tabular-nums text-hanji">
+                    {formatCountdown(remaining)}
+                  </span>{" "}
+                  남음
+                </span>
+              )}
             </span>
           )}
         </div>
@@ -665,7 +712,11 @@ export default function Home() {
 
         {unlocked && (
           <button
-            onClick={() => setWriting(true)}
+            onClick={() => {
+              // 쓰다 만 답이 있으면 그 자리에서 이어 쓴다
+              setDraft((d) => d || loadDraft(current.hwaduId));
+              setWriting(true);
+            }}
             className="btn-obang mt-9 px-10 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
           >
             붓을 들다

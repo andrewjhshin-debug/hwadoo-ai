@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
@@ -50,6 +50,14 @@ export const metadata: Metadata = {
   },
 };
 
+// 노치·홈바가 있는 기기에서도 화면 끝까지 그리되, 안전 영역을 알 수 있게 한다
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0d0b09",
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -66,7 +74,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ConfirmProvider>
         <Sidebar />
         <div className="obang-aura flex flex-1 flex-col overflow-x-hidden overflow-y-auto pt-16 pb-16 md:pb-0 md:pt-0">
-          <main className="flex flex-1 flex-col">{children}</main>
+          {/* min-h-0 — 이게 없으면 안쪽에서 스크롤이 성립하지 않는다 */}
+          <main className="flex min-h-0 flex-1 flex-col">{children}</main>
           {/* 아래 띠 — 손안에서는 하단 탭 바와 겹쳐 잘려 보이므로 감춘다.
               같은 내용은 '내 도량 → 도량 안내'에 모아 두었다. */}
           <footer className="hidden border-t border-ink-3 px-6 py-5 md:block">

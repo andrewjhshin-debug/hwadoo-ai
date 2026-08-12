@@ -21,17 +21,21 @@ export type Store = {
   received: number; // 지금까지 받은 화두 수
   defaultDays?: number; // 설정 — 참구 기간 기본값 (없으면 3)
   audience?: "adult" | "student"; // 설정 — 누구의 화두인가 (없으면 어른)
+  ownerUid?: string; // 이 기록의 주인 (로그인 전이면 없음)
 };
 
 const KEY = "hwadoo-store-v1";
 
-const EMPTY: Store = { current: null, history: [], received: 0 };
+// 빈 기록 — 늘 새 객체로 준다 (실수로 고쳐 쓰이지 않도록)
+export function emptyStore(): Store {
+  return { current: null, history: [], received: 0 };
+}
 
 export function loadStore(): Store {
-  if (typeof window === "undefined") return EMPTY;
+  if (typeof window === "undefined") return emptyStore();
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return EMPTY;
+    if (!raw) return emptyStore();
     const parsed = JSON.parse(raw) as Store;
     return {
       current: parsed.current ?? null,
@@ -39,6 +43,8 @@ export function loadStore(): Store {
       received: typeof parsed.received === "number" ? parsed.received : 0,
       defaultDays:
         typeof parsed.defaultDays === "number" ? parsed.defaultDays : undefined,
+      ownerUid:
+        typeof parsed.ownerUid === "string" ? parsed.ownerUid : undefined,
       // "adult"도 반드시 보존한다.
       // (예전엔 adult를 undefined로 지워, 서버에 남은 student가 늘 이겨서
       //  성인을 눌러도 학생으로 되돌아가는 버그가 있었다)
@@ -50,13 +56,19 @@ export function loadStore(): Store {
             : undefined,
     };
   } catch {
-    return EMPTY;
+    return emptyStore();
   }
 }
 
 export function saveStore(store: Store) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(store));
+  // 주인 표시는 화면 상태가 조금 오래되어도 잃지 않는다
+  // (주인을 잃으면 다음에 로그인한 사람이 이 기록을 제 것으로 주워 담는다)
+  const next: Store =
+    store.ownerUid === undefined
+      ? { ...store, ownerUid: loadStore().ownerUid }
+      : store;
+  window.localStorage.setItem(KEY, JSON.stringify(next));
   // 사이드바 등 다른 화면이 즉시 갱신되도록 알림
   // (렌더링 도중 상태 갱신을 피하려고 한 박자 늦춰서 보낸다)
   window.setTimeout(() => {
@@ -75,6 +87,12 @@ export function applyRemoteStore(store: Store) {
       new CustomEvent("hwadoo-store-updated", { detail: { source: "remote" } })
     );
   }, 0);
+}
+
+// 이 브라우저의 기록을 비운다 — 계정에 모인 기록을 두고 로그아웃할 때.
+// (다음 사람이 앞사람의 기록을 이어받지 않게 한다. 기록은 계정에 그대로 있다)
+export function clearStore() {
+  applyRemoteStore(emptyStore());
 }
 
 // 스스로 정함(수동) 모드인가

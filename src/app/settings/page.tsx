@@ -31,17 +31,25 @@ const THEME_KEY = "hwadoo-theme";
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [light, setLight] = useState(false);
-  const [received, setReceived] = useState(0);
+  const [receivedCount, setReceivedCount] = useState(0);
+  const [journalCount, setJournalCount] = useState(0);
   const [daysWith, setDaysWith] = useState(0);
   const [teaOpen, setTeaOpen] = useState(false);
+  const [loginBusy, setLoginBusy] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
   useEffect(() => watchAuth(setUser), []);
   useEffect(() => {
     setLight(document.documentElement.dataset.theme === "light");
 
-    // 나의 걸음 — 시간을 다 보내고 지난 화두에 남은 개수, 화두와 함께한 날수
+    // 나의 걸음 — 받은 화두 수(지금 든 것·내려놓은 것까지),
+    // 회향해 지난 화두에 남은 수, 화두와 함께한 날수
     const s = loadStore();
-    setReceived(s.history.length);
+    const past = s.history.length;
+    setJournalCount(past);
+    // store.received 가 참값이지만, 이 값이 없던 시절의 기록도 있어
+    // 눈에 보이는 수보다 작아지지 않게 받쳐 준다
+    setReceivedCount(Math.max(s.received, past + (s.current ? 1 : 0)));
     const times = [
       ...s.history.map((h) => h.receivedAt),
       ...(s.current ? [s.current.receivedAt] : []),
@@ -59,7 +67,30 @@ export default function SettingsPage() {
     window.localStorage.setItem(THEME_KEY, toLight ? "light" : "dark");
   };
 
-  if (user === undefined) return null;
+  // 구글 로그인 — 팝업이 막히거나 닫히면 그 까닭을 알린다
+  const handleLogin = async () => {
+    setLoginBusy(true);
+    setLoginError("");
+    try {
+      await loginWithGoogle();
+    } catch (e) {
+      const code = (e as { code?: string })?.code ?? "";
+      if (code === "auth/popup-blocked") {
+        setLoginError(
+          "팝업이 막혔습니다. 브라우저에서 팝업을 허용하거나, 기본 브라우저로 열어 주십시오."
+        );
+      } else if (
+        code === "auth/popup-closed-by-user" ||
+        code === "auth/cancelled-popup-request"
+      ) {
+        setLoginError("로그인 창이 닫혔습니다. 다시 시도해 주십시오.");
+      } else {
+        setLoginError("로그인하지 못했습니다. 잠시 뒤 다시 시도해 주십시오.");
+      }
+    } finally {
+      setLoginBusy(false);
+    }
+  };
 
   const sectionGap = "mt-11";
 
@@ -74,7 +105,7 @@ export default function SettingsPage() {
         <div className="flex gap-4">
           <div className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center">
             <p className="font-serif text-[40px] font-light leading-none text-gold">
-              {received}
+              {receivedCount}
             </p>
             <p className="mt-2.5 text-[11px] tracking-[0.2em] text-hanji-faint">
               받은 화두
@@ -230,7 +261,7 @@ export default function SettingsPage() {
             className="mt-5 inline-flex items-center gap-2.5 rounded-[10px] border border-ink-3 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
           >
             <Book className="h-4 w-4 text-gold-soft" />
-            지난 화두 보기 · {received}
+            지난 화두 보기 · {journalCount}
           </Link>
         </div>
       </section>
@@ -241,7 +272,14 @@ export default function SettingsPage() {
           로그인 정보
         </p>
 
-        {user ? (
+        {user === undefined ? (
+          // 인증이 확정될 때까지 — 이 구획만 기다린다 (화면 전체를 비우지 않는다)
+          <div className="mt-4 border-t border-ink-3 pt-5">
+            <p className="text-[13px] leading-6 text-hanji-faint">
+              불러오는 중…
+            </p>
+          </div>
+        ) : user ? (
           <>
             <div className="mt-4 flex items-center gap-4 border-t border-ink-3 pt-5">
               <div className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/30 text-hanji-dim">
@@ -281,12 +319,18 @@ export default function SettingsPage() {
               로그인하면 지난 화두들이 계정에 모여 — 기기가 바뀌어도 이어집니다.
             </p>
             <button
-              onClick={() => loginWithGoogle().catch(() => {})}
-              className="btn-obang mt-5 flex items-center gap-2.5 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
+              onClick={handleLogin}
+              disabled={loginBusy}
+              className="btn-obang mt-5 flex items-center gap-2.5 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               <Person className="h-4 w-4" />
-              구글로 로그인
+              {loginBusy ? "여는 중…" : "구글로 로그인"}
             </button>
+            {loginError && (
+              <p className="mt-3 text-[12px] leading-6 text-vermilion">
+                {loginError}
+              </p>
+            )}
           </div>
         )}
       </section>

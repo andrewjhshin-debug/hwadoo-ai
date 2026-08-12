@@ -17,6 +17,7 @@ import {
   serverTimestamp,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { anonName } from "./anonName";
@@ -46,16 +47,48 @@ export type Comment = {
 
 // ── 글 ──────────────────────────────────────────────────
 
+// 한 번에 보여 주는 글 수
+const PAGE = 60;
+
 export async function fetchPosts(board: Board = "community"): Promise<Post[]> {
-  // 복합 인덱스 없이: 최신순으로 넉넉히 받아 board는 클라이언트에서 거른다.
-  // (board 필드가 없는 기존 글은 연지원으로 취급)
+  let posts: Post[];
+  try {
+    // board는 서버에서 거른다. 한쪽 게시판에 글이 몰려도 다른 쪽이 밀려나지 않는다.
+    // ※ Firestore 복합 색인 필요 — posts: board(오름) + createdAt(내림).
+    const snap = await getDocs(
+      query(
+        collection(db, "posts"),
+        where("board", "==", board),
+        orderBy("createdAt", "desc"),
+        limit(PAGE)
+      )
+    );
+    posts = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Post);
+  } catch {
+    // 색인이 아직 없으면 예전 방식으로 물러선다 — 글이 하나도 안 보이는 일은 없게.
+    return sweepLegacy(board, []);
+  }
+
+  // board 필드가 붙기 전의 옛 글은 연지원 소속인데 where로는 잡히지 않는다.
+  // 옛 글은 모두 board가 붙은 글보다 오래되었으므로, 목록이 덜 찼을 때만 훑어 합친다.
+  // (옛 글에 board: "community"를 채워 넣는 일회성 정리가 끝나면 이 갈래는 지워도 된다)
+  if (board === "community" && posts.length < PAGE) return sweepLegacy(board, posts);
+  return posts.slice(0, PAGE);
+}
+
+// 최신 200개를 받아 board로 거른 뒤 이미 받은 글과 합친다 (board 없는 옛 글 포함)
+async function sweepLegacy(board: Board, found: Post[]): Promise<Post[]> {
   const snap = await getDocs(
     query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(200))
   );
-  return snap.docs
-    .map((d) => ({ id: d.id, ...d.data() }) as Post)
-    .filter((p) => (p.board ?? "community") === board)
-    .slice(0, 60);
+  const posts = [...found];
+  const seen = new Set(posts.map((p) => p.id));
+  for (const d of snap.docs) {
+    const p = { id: d.id, ...d.data() } as Post;
+    if ((p.board ?? "community") === board && !seen.has(p.id)) posts.push(p);
+  }
+  posts.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+  return posts.slice(0, PAGE);
 }
 
 export async function fetchPost(id: string): Promise<Post | null> {
@@ -83,6 +116,16 @@ export async function bowToPost(id: string) {
 }
 
 export async function deletePost(id: string) {
+  // Firestore는 문서를 지워도 하위 컬렉션을 남긴다 — 댓글부터 거둔다.
+  // 댓글을 못 거두더라도(권한·연결) 글 삭제는 그대로 진행한다.
+  try {
+    const snap = await getDocs(collection(db, "posts", id, "comments"));
+    for (let i = 0; i < snap.docs.length; i += 400) {
+      const batch = writeBatch(db);
+      snap.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    }
+  } catch {}
   await deleteDoc(doc(db, "posts", id));
 }
 

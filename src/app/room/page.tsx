@@ -41,6 +41,8 @@ export default function RoomPage() {
   const [saved, setSaved] = useState(false);
   const [savedAt, setSavedAt] = useState<string>("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notesRef = useRef("");
+  const lastWrote = useRef<string | null>(null);
 
   useEffect(() => {
     const s = loadStore();
@@ -48,10 +50,18 @@ export default function RoomPage() {
     setNotes(s.current?.notes ?? "");
   }, []);
 
+  // 늘 최신 글을 가리키는 손잡이 (떠날 때 마저 저장하는 데 쓴다)
+  useEffect(() => {
+    notesRef.current = notes;
+  });
+
   const persist = (value: string) => {
     const latest = loadStore();
     if (!latest.current) return;
-    saveStore({ ...latest, current: { ...latest.current, notes: value } });
+    lastWrote.current = value;
+    if ((latest.current.notes ?? "") !== value) {
+      saveStore({ ...latest, current: { ...latest.current, notes: value } });
+    }
     setSaved(true);
     setSavedAt(
       new Date().toLocaleTimeString("ko-KR", {
@@ -65,14 +75,53 @@ export default function RoomPage() {
     setNotes(value);
     setSaved(false);
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => persist(value), 600);
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      persist(value);
+    }, 600);
   };
 
   // 임시 저장 — 지금 곧바로 저장
   const saveNow = () => {
     if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
     persist(notes);
   };
+
+  // 같은 단상을 보는 다른 창(하단 FAB의 사유의 방 서랍, 다른 탭)이 글을 바꾸면
+  // 이 화면도 따라간다 — 두 곳이 서로의 글을 덮어쓰지 않게.
+  // 아직 저장 대기 중이거나 방금 우리가 쓴 값이면 건드리지 않는다.
+  useEffect(() => {
+    const sync = () => {
+      if (timer.current) return;
+      const latest = loadStore().current?.notes ?? "";
+      if (latest === lastWrote.current) return;
+      setNotes((cur) => (cur === latest ? cur : latest));
+    };
+    window.addEventListener("hwadoo-store-updated", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("hwadoo-store-updated", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  // 안전망 — 창을 덮거나 이 화면을 떠날 때, 기다리던 저장을 마저 끝낸다
+  useEffect(() => {
+    const flush = () => {
+      if (!timer.current) return;
+      clearTimeout(timer.current);
+      timer.current = null;
+      persist(notesRef.current);
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", flush);
+      flush();
+    };
+  }, []);
 
   if (!store) return null;
 
@@ -100,7 +149,7 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-6 pb-10 pt-5">
+    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-6 pb-10 pt-5 md:pt-12">
       {/* 상단 — 제목 + 화두, 콤팩트하게 위로 */}
       <h1 className="rise text-center text-[11px] tracking-[0.4em] text-gold-soft">
         思惟之房 · 사유의 방
@@ -117,7 +166,7 @@ export default function RoomPage() {
           </p>
           {savedAt && (
             <span className="shrink-0 text-[10px] text-hanji-faint">
-              저장됨 · {savedAt}
+              {saved ? `저장됨 · ${savedAt}` : "적는 중…"}
             </span>
           )}
         </div>

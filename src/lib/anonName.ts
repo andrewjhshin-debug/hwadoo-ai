@@ -3,6 +3,8 @@
 // 같은 사람은 늘 같은 이름을 얻는다(uid 기반). 로그인 안 한 경우엔 무작위.
 // ─────────────────────────────────────────────────────────────
 
+import { auth } from "./firebase";
+
 export const ANON_NAMES: string[] = [
   "흰 코끼리",
   "연꽃",
@@ -66,8 +68,11 @@ function hash(s: string): number {
   return Math.abs(h);
 }
 
-// uid가 있으면 결정적으로, 없으면 무작위로 이름을 준다
+// uid가 있으면 결정적으로, 없으면 무작위로 이름을 준다.
+// 호출부가 uid를 넘기지 않아도 로그인한 사람의 uid를 쓴다 —
+// 그래야 한 사람의 글과 댓글이 같은 이름으로 이어진다.
 export function anonName(uid?: string | null): string {
-  if (uid) return ANON_NAMES[hash(uid) % ANON_NAMES.length];
+  const id = uid ?? auth.currentUser?.uid;
+  if (id) return ANON_NAMES[hash(id) % ANON_NAMES.length];
   return ANON_NAMES[Math.floor(Math.random() * ANON_NAMES.length)];
 }
