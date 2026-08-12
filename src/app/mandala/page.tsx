@@ -60,90 +60,73 @@ type Layer =
 // 겹을 더 촘촘히 — 칠할 칸을 대폭 늘렸다 (원형 유지)
 const TEMPLATES: { name: string; layers: Layer[] }[] = [
   {
+    // 중심에 겹꽃, 바깥은 부채꼴 링으로 원 전체를 빈틈없이 채운다.
     name: "겹연꽃",
     layers: [
-      { t: "core", r: 6 },
-      { t: "petals", n: 8, r1: 0, r2: 20, w: 11 },
-      { t: "petals", n: 8, r1: 6, r2: 26, w: 8, off: 22.5 },
-      { t: "sectors", n: 16, r1: 26, r2: 33 },
-      { t: "dots", n: 16, r: 36, rr: 1.8 },
-      { t: "petals", n: 16, r1: 33, r2: 50, w: 7 },
-      { t: "petals", n: 16, r1: 38, r2: 54, w: 5, off: 11.25 },
-      { t: "sectors", n: 24, r1: 54, r2: 61 },
-      { t: "dots", n: 24, r: 64, rr: 1.6 },
-      { t: "petals", n: 24, r1: 63, r2: 79, w: 5, off: 7.5 },
-      { t: "sectors", n: 32, r1: 79, r2: 86 },
-      { t: "petals", n: 32, r1: 85, r2: 96, w: 4 },
-      { t: "dots", n: 16, r: 99, rr: 1.4 },
+      { t: "core", r: 10 },
+      { t: "petals", n: 8, r1: 8, r2: 28, w: 20 },
+      { t: "petals", n: 8, r1: 8, r2: 22, w: 15, off: 22.5 },
+      { t: "sectors", n: 12, r1: 28, r2: 42 },
+      { t: "sectors", n: 12, r1: 42, r2: 55, off: 15 },
+      { t: "sectors", n: 18, r1: 55, r2: 68 },
+      { t: "sectors", n: 18, r1: 68, r2: 82, off: 10 },
+      { t: "sectors", n: 24, r1: 82, r2: 92 },
+      { t: "sectors", n: 24, r1: 92, r2: 99, off: 7.5 },
     ],
   },
   {
     name: "수레바퀴",
     layers: [
-      { t: "core", r: 7 },
-      { t: "dots", n: 8, r: 14, rr: 2.6 },
-      { t: "sectors", n: 12, r1: 19, r2: 33 },
-      { t: "petals", n: 12, r1: 20, r2: 36, w: 6, off: 15 },
-      { t: "sectors", n: 24, r1: 36, r2: 50 },
-      { t: "dots", n: 24, r: 43, rr: 1.7 },
-      { t: "sectors", n: 24, r1: 50, r2: 62 },
-      { t: "petals", n: 24, r1: 52, r2: 68, w: 5 },
-      { t: "sectors", n: 36, r1: 68, r2: 80 },
-      { t: "dots", n: 36, r: 74, rr: 1.4 },
-      { t: "petals", n: 36, r1: 80, r2: 93, w: 4 },
-      { t: "sectors", n: 48, r1: 93, r2: 99 },
+      { t: "core", r: 11 },
+      { t: "sectors", n: 8, r1: 11, r2: 26 },
+      { t: "sectors", n: 8, r1: 26, r2: 42, off: 22.5 },
+      { t: "sectors", n: 16, r1: 42, r2: 57 },
+      { t: "sectors", n: 16, r1: 57, r2: 72, off: 11.25 },
+      { t: "sectors", n: 24, r1: 72, r2: 86 },
+      { t: "sectors", n: 24, r1: 86, r2: 99, off: 7.5 },
     ],
   },
   {
     name: "별꽃",
     layers: [
-      { t: "core", r: 6 },
-      { t: "petals", n: 12, r1: 0, r2: 26, w: 6 },
-      { t: "petals", n: 12, r1: 0, r2: 19, w: 11, off: 15 },
-      { t: "dots", n: 12, r: 30, rr: 2 },
-      { t: "sectors", n: 24, r1: 32, r2: 40 },
-      { t: "petals", n: 24, r1: 40, r2: 58, w: 5 },
-      { t: "petals", n: 24, r1: 40, r2: 51, w: 8, off: 7.5 },
-      { t: "dots", n: 24, r: 62, rr: 1.6 },
-      { t: "petals", n: 36, r1: 64, r2: 82, w: 3.5 },
-      { t: "sectors", n: 36, r1: 82, r2: 89 },
-      { t: "petals", n: 36, r1: 89, r2: 99, w: 3.2 },
+      { t: "core", r: 9 },
+      { t: "petals", n: 6, r1: 7, r2: 30, w: 24 },
+      { t: "petals", n: 6, r1: 7, r2: 21, w: 16, off: 30 },
+      { t: "sectors", n: 12, r1: 30, r2: 44 },
+      { t: "sectors", n: 12, r1: 44, r2: 57, off: 15 },
+      { t: "petals", n: 12, r1: 57, r2: 74, w: 12 },
+      { t: "sectors", n: 18, r1: 74, r2: 88, off: 10 },
+      { t: "sectors", n: 24, r1: 88, r2: 99 },
     ],
   },
   {
     name: "촘촘꽃",
     layers: [
-      { t: "core", r: 6 },
-      { t: "petals", n: 6, r1: 0, r2: 20, w: 13 },
-      { t: "petals", n: 12, r1: 12, r2: 32, w: 7, off: 15 },
-      { t: "sectors", n: 18, r1: 32, r2: 41 },
-      { t: "dots", n: 18, r: 44, rr: 1.7 },
-      { t: "petals", n: 18, r1: 41, r2: 56, w: 6 },
-      { t: "petals", n: 18, r1: 45, r2: 60, w: 4, off: 10 },
-      { t: "sectors", n: 24, r1: 60, r2: 69 },
-      { t: "petals", n: 30, r1: 69, r2: 84, w: 4 },
-      { t: "dots", n: 30, r: 87, rr: 1.4 },
-      { t: "petals", n: 30, r1: 87, r2: 99, w: 3.6, off: 6 },
+      { t: "core", r: 9 },
+      { t: "petals", n: 6, r1: 7, r2: 24, w: 26 },
+      { t: "petals", n: 12, r1: 12, r2: 36, w: 13, off: 15 },
+      { t: "sectors", n: 12, r1: 36, r2: 49 },
+      { t: "sectors", n: 18, r1: 49, r2: 62, off: 10 },
+      { t: "sectors", n: 18, r1: 62, r2: 76 },
+      { t: "sectors", n: 24, r1: 76, r2: 88, off: 7.5 },
+      { t: "sectors", n: 30, r1: 88, r2: 99 },
     ],
   },
   {
     name: "원무늬",
     layers: [
-      { t: "core", r: 7 },
-      { t: "petals", n: 8, r1: 0, r2: 28, w: 9 },
-      { t: "dots", n: 8, r: 20, rr: 3 },
-      { t: "sectors", n: 16, r1: 30, r2: 40 },
-      { t: "dots", n: 8, r: 45, rr: 5 },
-      { t: "dots", n: 16, r: 45, rr: 2, off: 11.25 },
-      { t: "petals", n: 16, r1: 51, r2: 71, w: 6, off: 11.25 },
-      { t: "sectors", n: 24, r1: 71, r2: 81 },
-      { t: "dots", n: 24, r: 86, rr: 2.4 },
-      { t: "petals", n: 32, r1: 90, r2: 99, w: 3.4 },
+      { t: "core", r: 12 },
+      { t: "petals", n: 8, r1: 10, r2: 32, w: 18 },
+      { t: "sectors", n: 12, r1: 32, r2: 45, off: 15 },
+      { t: "sectors", n: 16, r1: 45, r2: 58 },
+      { t: "petals", n: 16, r1: 58, r2: 76, w: 10, off: 11.25 },
+      { t: "sectors", n: 24, r1: 76, r2: 90 },
+      { t: "sectors", n: 24, r1: 90, r2: 99, off: 7.5 },
     ],
   },
 ];
 
-function buildTemplate(kind: number): Cell[] {
+\nfunction buildTemplate(kind: number): Cell[] {
   const out: Cell[] = [];
   const tpl = TEMPLATES[kind] ?? TEMPLATES[0];
   tpl.layers.forEach((L, li) => {
@@ -376,6 +359,10 @@ function ColorMode({ color }: { color: string }) {
   const painting = useRef(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [panMode, setPanMode] = useState(false);
+  const view = useRef({ scale: 1, x: 0, y: 0 });
+  const pinch = useRef({ active: false, dist: 0, cx: 0, cy: 0 });
   const cells = useMemo(() => buildTemplate(tpl), [tpl]);
   const fills = fillsAll[String(tpl)] ?? {};
 
@@ -421,6 +408,59 @@ function ColorMode({ color }: { color: string }) {
   );
 
   const filledCount = Object.keys(fills).filter((k) => fills[k]).length;
+
+  const applyTransform = () => {
+    const inner = innerRef.current;
+    if (!inner) return;
+    const v = view.current;
+    inner.style.transform = "translate(" + v.x + "px, " + v.y + "px) scale(" + v.scale + ")";
+  };
+  const resetView = () => {
+    view.current = { scale: 1, x: 0, y: 0 };
+    applyTransform();
+  };
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) return;
+    painting.current = false;
+    const [a, b] = [e.touches[0], e.touches[1]];
+    pinch.current = {
+      active: true,
+      dist: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+      cx: (a.clientX + b.clientX) / 2,
+      cy: (a.clientY + b.clientY) / 2,
+    };
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!pinch.current.active || e.touches.length < 2) return;
+    const [a, b] = [e.touches[0], e.touches[1]];
+    const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const cx = (a.clientX + b.clientX) / 2;
+    const cy = (a.clientY + b.clientY) / 2;
+    view.current.scale = Math.min(4, Math.max(0.5, view.current.scale * (dist / pinch.current.dist)));
+    view.current.x += cx - pinch.current.cx;
+    view.current.y += cy - pinch.current.cy;
+    pinch.current.dist = dist;
+    pinch.current.cx = cx;
+    pinch.current.cy = cy;
+    applyTransform();
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) pinch.current.active = false;
+  };
+  const onPanDown = (e: React.PointerEvent) => {
+    if (!panMode) return;
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    pinch.current = { ...pinch.current, active: true, cx: e.clientX - view.current.x, cy: e.clientY - view.current.y };
+  };
+  const onPanMove = (e: React.PointerEvent) => {
+    if (!panMode || !pinch.current.active) return;
+    view.current.x = e.clientX - pinch.current.cx;
+    view.current.y = e.clientY - pinch.current.cy;
+    applyTransform();
+  };
+  const onPanUp = () => {
+    if (panMode) pinch.current.active = false;
+  };
 
   const doScatter = () => {
     setConfirmOpen(false);
@@ -488,20 +528,33 @@ function ColorMode({ color }: { color: string }) {
         ))}
       </div>
 
-      <div ref={wrapRef} className="relative mt-5 w-full max-w-[460px]">
-        <svg
-          viewBox="0 0 200 200"
-          className="h-auto w-full touch-none select-none rounded-full border border-ink-3 bg-ink-2/40"
-          onPointerUp={() => (painting.current = false)}
-          onPointerLeave={() => (painting.current = false)}
-          onContextMenu={(e) => e.preventDefault()}
-        >
+      <div
+        ref={wrapRef}
+        className="relative mt-5 aspect-square w-full max-w-[460px] overflow-hidden rounded-full border border-ink-3 bg-ink-2/40"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onPointerDown={onPanDown}
+        onPointerMove={onPanMove}
+        onPointerUp={() => {
+          painting.current = false;
+          onPanUp();
+        }}
+        onPointerLeave={() => {
+          painting.current = false;
+          onPanUp();
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <div ref={innerRef} className="h-full w-full origin-center will-change-transform">
+        <svg viewBox="0 0 200 200" className="h-full w-full touch-none select-none">
           <circle cx="100" cy="100" r="98.5" fill="none" stroke="rgba(217,180,91,0.14)" />
           {cells.map((c) => (
             <path
               key={c.id}
               d={c.d}
               onPointerDown={(e) => {
+                if (panMode) return;
                 if (e.button === 2) {
                   apply(c.id, true);
                   return;
@@ -519,7 +572,34 @@ function ColorMode({ color }: { color: string }) {
             />
           ))}
         </svg>
+        </div>
         <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
+      </div>
+
+      {/* 모바일 전용 — 칠하기 / 손으로 옮기기 / 원위치 (두 손가락 확대는 항상 가능) */}
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2 sm:hidden">
+        <button
+          onClick={() => setPanMode(false)}
+          className={`rounded-full border px-4 py-2 text-xs tracking-[0.1em] transition-colors ${
+            !panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim"
+          }`}
+        >
+          🎨 칠하기
+        </button>
+        <button
+          onClick={() => setPanMode(true)}
+          className={`rounded-full border px-4 py-2 text-xs tracking-[0.1em] transition-colors ${
+            panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim"
+          }`}
+        >
+          ✋ 손으로 옮기기
+        </button>
+        <button
+          onClick={resetView}
+          className="rounded-full border border-ink-3 px-4 py-2 text-xs tracking-[0.1em] text-hanji-faint transition-colors hover:text-hanji"
+        >
+          ⊙ 원위치
+        </button>
       </div>
 
       <p className="mt-4 text-[12px] tracking-[0.25em] text-hanji-faint">
@@ -850,6 +930,8 @@ function DrawMode({ color }: { color: string }) {
             style={{ cursor: panMode ? "grab" : "crosshair" }}
           />
         </div>
+        {/* 흩날림 전용 오버레이 — wrap 변형과 무관하게 화면 전체를 덮는다 */}
+        <canvas ref={scatterRef} className="pointer-events-none absolute inset-0 h-full w-full" />
       </div>
 
       {/* 되돌아가기 (웹·모바일 공통) */}
