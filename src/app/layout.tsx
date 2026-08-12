@@ -67,7 +67,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Sidebar />
         <div className="obang-aura flex flex-1 flex-col overflow-x-hidden overflow-y-auto pt-16 pb-16 md:pb-0 md:pt-0">
           <main className="flex flex-1 flex-col">{children}</main>
-          <footer className="border-t border-ink-3 px-6 py-5">
+          {/* 아래 띠 — 손안에서는 하단 탭 바와 겹쳐 잘려 보이므로 감춘다.
+              같은 내용은 '내 도량 → 도량 안내'에 모아 두었다. */}
+          <footer className="hidden border-t border-ink-3 px-6 py-5 md:block">
             <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11.5px] text-hanji-faint">
               <Link href="/about" className="transition-colors hover:text-hanji-dim">
                 서비스 소개

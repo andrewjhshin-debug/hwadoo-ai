@@ -11,7 +11,7 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
-import { ADMIN_UID, DONATION_URL } from "@/lib/config";
+import { ADMIN_UID, CONTACT_EMAIL, DONATION_URL } from "@/lib/config";
 import { loadStore } from "@/lib/store";
 import {
   Person,
@@ -291,7 +291,41 @@ export default function SettingsPage() {
         )}
       </section>
 
-      <div className="mt-14 text-center">
+      {/* ── 도량 안내 — 손안에서는 아래 띠가 없으므로 여기에 모아 둔다 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+          도량 안내
+        </p>
+        <div className="mt-4 flex flex-col border-t border-ink-3 pt-3">
+          {[
+            { href: "/about", label: "서비스 소개" },
+            { href: "/ganhwaseon", label: "간화선이란?" },
+            { href: "/terms", label: "이용약관" },
+            { href: "/privacy", label: "개인정보처리방침" },
+          ].map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="flex items-center justify-between rounded-[10px] px-2 py-3 text-[13px] text-hanji-dim transition-colors hover:bg-gold/5 hover:text-hanji"
+            >
+              {l.label}
+              <span className="text-hanji-faint">›</span>
+            </Link>
+          ))}
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="flex items-center justify-between rounded-[10px] px-2 py-3 text-[13px] text-hanji-dim transition-colors hover:bg-gold/5 hover:text-hanji"
+          >
+            문의
+            <span className="text-[11px] text-hanji-faint">{CONTACT_EMAIL}</span>
+          </a>
+        </div>
+        <p className="mt-3 px-2 text-[10px] tracking-widest text-hanji-faint">
+          © {new Date().getFullYear()} 화두 · 물음은 오래된 것, 답은 그대의 것
+        </p>
+      </section>
+
+      <div className="mt-12 text-center">
         <Link
           href="/"
           className="text-xs tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
