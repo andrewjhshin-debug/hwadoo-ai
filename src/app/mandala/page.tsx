@@ -563,7 +563,7 @@ function DrawMode({ color }: { color: string }) {
 
   const view = useRef({ scale: 1, x: 0, y: 0 });
   const stroke = useRef({ active: false, last: null as null | { x: number; y: number } });
-  const pinch = useRef({ active: false, dist: 0 });
+  const pinch = useRef({ active: false, dist: 0, cx: 0, cy: 0 });
   const pan = useRef({ active: false, x: 0, y: 0 });
   const dirty = useRef(false);
   const undoStack = useRef<ImageData[]>([]); // 되돌아가기 스냅샷
@@ -742,19 +742,36 @@ function DrawMode({ color }: { color: string }) {
   };
   const onTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length < 2) return;
+    // 두 손가락이 닿으면 — 그리던 획을 즉시 멈추고 확대·이동 모드로
+    stroke.current.active = false;
+    stroke.current.last = null;
     const [a, b] = [e.touches[0], e.touches[1]];
-    pinch.current = { active: true, dist: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) };
+    pinch.current = {
+      active: true,
+      dist: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+      cx: (a.clientX + b.clientX) / 2,
+      cy: (a.clientY + b.clientY) / 2,
+    };
   };
   const onTouchMove = (e: React.TouchEvent) => {
     if (!pinch.current.active || e.touches.length < 2) return;
+    e.preventDefault();
     const [a, b] = [e.touches[0], e.touches[1]];
     const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const cx = (a.clientX + b.clientX) / 2;
+    const cy = (a.clientY + b.clientY) / 2;
+    // 확대
     view.current.scale = Math.min(4, Math.max(0.5, view.current.scale * (dist / pinch.current.dist)));
+    // 두 손가락 중심 이동만큼 함께 이동
+    view.current.x += cx - pinch.current.cx;
+    view.current.y += cy - pinch.current.cy;
     pinch.current.dist = dist;
+    pinch.current.cx = cx;
+    pinch.current.cy = cy;
     applyTransform();
   };
-  const onTouchEnd = () => {
-    pinch.current.active = false;
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) pinch.current.active = false;
   };
 
   const doScatter = () => {
@@ -782,9 +799,16 @@ function DrawMode({ color }: { color: string }) {
           r: 0.3 + Math.random() * 0.7,
           color: `rgb(${r},${g},${b})`,
         });
-        if (parts.length > 2800) break;
       }
-      if (parts.length > 2800) break;
+    }
+    // 상한 없이 전체를 담은 뒤, 너무 많으면 그림 전반에서 골고루 무작위로 솎아낸다
+    const MAX = 3200;
+    if (parts.length > MAX) {
+      for (let i = parts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [parts[i], parts[j]] = [parts[j], parts[i]];
+      }
+      parts.length = MAX;
     }
     src.clearRect(0, 0, SIZE, SIZE);
     dirty.current = false;
