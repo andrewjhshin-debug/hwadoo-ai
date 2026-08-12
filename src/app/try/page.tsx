@@ -38,7 +38,7 @@ const GUIDE: Record<Step, string> = {
   ripened: "달이 찼습니다. 이제 붓을 들어 그대의 답을 씁니다.",
   writing:
     "정답은 없습니다. 지금 보이는 만큼만 쓰십시오 — 사유의 방에 남긴 단상도 함께 저장됩니다.",
-  done: "한 바퀴를 돌았습니다.",
+  done: "한 바퀴를 돌았습니다 — 이 체험은 지난 화두에 첫 기록으로 남습니다.",
 };
 
 const STEPS = ["화두를 받다", "사유하다", "달이 차오르다", "회향하다"];
@@ -275,7 +275,14 @@ export default function TryPage() {
 
           <div className="mt-12 w-full border-t border-ink-3 pt-8">
             <p className="text-[13px] leading-7 text-hanji-dim">
-              체험은 여기까지입니다. 이 한 편은 지난 화두에 남습니다.
+              체험하기 화두는{" "}
+              <Link
+                href="/archive"
+                className="text-gold-soft underline decoration-gold/30 underline-offset-4"
+              >
+                지난 화두
+              </Link>
+              에 첫 기록으로 남습니다.
               <br />본래의 화두는 며칠을 품은 뒤에야 붓을 들 수 있습니다.
             </p>
             <p className="mt-3 text-xs leading-6 text-hanji-faint">
