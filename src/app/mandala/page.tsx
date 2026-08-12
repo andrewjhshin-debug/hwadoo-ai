@@ -4,10 +4,11 @@
 // 만다라 — 화두를 기다리는 동안의 수행. 두 갈래.
 //  ① 색칠하기: 겹겹의 꽃잎·잎·원으로 짜인 정교한 도안을 색으로 채운다.
 //     · 좌클릭 = 한 칸  · 드래그 = 연달아  · 우클릭 = 그 칸 비우기
-//     · '빈칸' 색을 고르면 눌러서 지울 수 있다.
+//     · '빈칸' 색을 고르면 눌러서 지운다.
 //  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제.
+//     · 가이드(갈래선)와 그림은 별개 층 — 갈래·붓을 바꿔도 그리던 그림은 그대로.
 //     · 웹은 그리기가 기본  · 모바일은 '연달아 그리기' 토글 + 두 손가락 확대
-// 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 흩어져 사라진다.
+// 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 바람에 흩어진다.
 // 하던 만다라는 자동 임시저장되어, 다른 일 하다 돌아와도 그대로 떠 있다.
 // ────────────────────────────────────────────────────────────────
 
@@ -36,7 +37,6 @@ function sectorPath(r1: number, r2: number, a1: number, a2: number): string {
   const large = a2 - a1 > 180 ? 1 : 0;
   return `M${x1} ${y1} A${r2} ${r2} 0 ${large} 1 ${x2} ${y2} L${x3} ${y3} A${r1} ${r1} 0 ${large} 0 ${x4} ${y4} Z`;
 }
-// 뾰족한 꽃잎(렌즈) — 안(r1)에서 바깥(r2)으로, 양옆이 halfW만큼 부푼다
 function petalPath(r1: number, r2: number, aC: number, halfW: number): string {
   const [ix, iy] = P(r1, aC);
   const [ox, oy] = P(r2, aC);
@@ -57,7 +57,6 @@ type Layer =
   | { t: "petals"; n: number; r1: number; r2: number; w: number; off?: number }
   | { t: "dots"; n: number; r: number; rr: number; off?: number };
 
-// 겹겹의 정교한 도안 다섯 — 이미지처럼 꽃잎·잎·원이 켜켜이 쌓인다
 const TEMPLATES: { name: string; layers: Layer[] }[] = [
   {
     name: "겹연꽃",
@@ -157,7 +156,7 @@ type Saved = {
   mode: "color" | "draw";
   tpl: number;
   color: string;
-  fills: Record<string, Record<string, string>>; // tplIndex -> {cellId: color}
+  fills: Record<string, Record<string, string>>;
   drawURL?: string;
 };
 function loadSaved(): Saved | null {
@@ -169,30 +168,75 @@ function loadSaved(): Saved | null {
     return null;
   }
 }
+function patchSaved(patch: Partial<Saved>) {
+  if (typeof window === "undefined") return;
+  const s = loadSaved() ?? { mode: "color", tpl: 0, color: PALETTE[0], fills: {} };
+  try {
+    window.localStorage.setItem(MKEY, JSON.stringify({ ...s, ...patch }));
+  } catch {}
+}
+
+// ══════════════ 가루 흩날림 (오른쪽→왼쪽 + 난수 바람) ══════════════
+type Grain = { x: number; y: number; vx: number; vy: number; r: number; color: string };
+function runScatter(
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  parts: Grain[],
+  onDone: () => void
+) {
+  let raf = 0;
+  const start = performance.now();
+  const DURATION = 2600;
+  let gust = 0;
+  const tick = (now: number) => {
+    const t = now - start;
+    // 전체를 훑는 바람 — 시간에 따라 세기가 출렁인다(난수 돌풍)
+    gust += (Math.random() - 0.5) * 0.06;
+    gust = Math.max(-0.25, Math.min(0.25, gust));
+    ctx.clearRect(0, 0, size, size);
+    for (const p of parts) {
+      p.vx -= 0.03 + Math.random() * 0.02; // 왼쪽으로 가속
+      p.vy += gust + (Math.random() - 0.5) * 0.12; // 위아래로 휘날림
+      p.vy *= 0.97;
+      p.x += p.vx;
+      p.y += p.vy;
+      ctx.globalAlpha = Math.max(0, 1 - (t / DURATION) ** 1.7) * 0.92;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (t < DURATION) raf = requestAnimationFrame(tick);
+    else {
+      ctx.clearRect(0, 0, size, size);
+      cancelAnimationFrame(raf);
+      onDone();
+    }
+  };
+  raf = requestAnimationFrame(tick);
+}
 
 // ══════════════ 페이지 ══════════════
 export default function MandalaPage() {
-  const [ready, setReady] = useState(false);
+  // 저장분은 마운트 직후 즉시 반영 (두둥 버퍼 없이)
   const [mode, setMode] = useState<"color" | "draw">("color");
   const [color, setColor] = useState<string>(PALETTE[0]);
 
   useEffect(() => {
     const s = loadSaved();
-    if (s) {
-      if (s.mode) setMode(s.mode);
-      if (s.color) setColor(s.color);
-    }
-    setReady(true);
+    if (s?.mode) setMode(s.mode);
+    if (s?.color) setColor(s.color);
   }, []);
 
-  // mode/color 변경 저장
-  useEffect(() => {
-    if (!ready) return;
-    const s = loadSaved() ?? { mode, tpl: 0, color, fills: {} };
-    try {
-      window.localStorage.setItem(MKEY, JSON.stringify({ ...s, mode, color }));
-    } catch {}
-  }, [mode, color, ready]);
+  const changeMode = (m: "color" | "draw") => {
+    setMode(m);
+    patchSaved({ mode: m });
+  };
+  const changeColor = (c: string) => {
+    setColor(c);
+    patchSaved({ color: c });
+  };
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-4 py-6">
@@ -200,7 +244,7 @@ export default function MandalaPage() {
 
       <div className="rise rise-d1 mt-4 flex items-center gap-2">
         <button
-          onClick={() => setMode("color")}
+          onClick={() => changeMode("color")}
           className={`rounded-full border px-4 py-2 text-xs tracking-[0.1em] transition-colors ${
             mode === "color" ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
           }`}
@@ -208,7 +252,7 @@ export default function MandalaPage() {
           🎨 색칠하기
         </button>
         <button
-          onClick={() => setMode("draw")}
+          onClick={() => changeMode("draw")}
           className={`rounded-full border px-4 py-2 text-xs tracking-[0.1em] transition-colors ${
             mode === "draw" ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
           }`}
@@ -222,7 +266,7 @@ export default function MandalaPage() {
         {PALETTE.map((c) => (
           <button
             key={c}
-            onClick={() => setColor(c)}
+            onClick={() => changeColor(c)}
             aria-label={c}
             className={`h-7 w-7 rounded-full border-2 transition-transform ${
               color === c ? "scale-110 border-hanji" : "border-transparent hover:scale-105"
@@ -230,9 +274,8 @@ export default function MandalaPage() {
             style={{ backgroundColor: c }}
           />
         ))}
-        {/* 빈칸(지우개) */}
         <button
-          onClick={() => setColor(ERASE)}
+          onClick={() => changeColor(ERASE)}
           aria-label="빈칸"
           title="빈칸 — 칠한 색을 지웁니다"
           className={`relative h-7 w-7 overflow-hidden rounded-full border-2 bg-ink-2 transition-transform ${
@@ -243,8 +286,8 @@ export default function MandalaPage() {
         </button>
       </div>
 
-      {ready &&
-        (mode === "color" ? <ColorMode color={color} /> : <DrawMode color={color} />)}
+      {/* 모드 콘텐츠 — 전환 애니메이션 없이 즉시 표시 */}
+      {mode === "color" ? <ColorMode color={color} /> : <DrawMode color={color} />}
 
       <div className="mt-10 text-center">
         <Link href="/" className="text-xs tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim">
@@ -272,7 +315,6 @@ function ColorMode({ color }: { color: string }) {
     return m;
   }, [cells]);
 
-  // 최초 로드 + 다른 탭과 실시간 연동
   useEffect(() => {
     const s = loadSaved();
     if (s) {
@@ -291,13 +333,9 @@ function ColorMode({ color }: { color: string }) {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // 변경 저장 (임시저장)
   useEffect(() => {
-    const s = loadSaved() ?? { mode: "color", tpl, color, fills: {} };
-    try {
-      window.localStorage.setItem(MKEY, JSON.stringify({ ...s, mode: "color", tpl, fills: fillsAll }));
-    } catch {}
-  }, [fillsAll, tpl, color]);
+    patchSaved({ mode: "color", tpl, fills: fillsAll });
+  }, [fillsAll, tpl]);
 
   const apply = useCallback(
     (id: string, erase: boolean) => {
@@ -312,14 +350,8 @@ function ColorMode({ color }: { color: string }) {
     [color, tpl, scattering]
   );
 
-  const chooseTpl = (i: number) => {
-    if (scattering) return;
-    setTpl(i);
-  };
-
   const filledCount = Object.keys(fills).filter((k) => fills[k]).length;
 
-  // 미세한 가루로 흩어지며 비우기
   const scatterClear = () => {
     const ids = Object.keys(fills).filter((k) => fills[k]);
     if (ids.length === 0) return;
@@ -343,8 +375,7 @@ function ColorMode({ color }: { color: string }) {
     }
     ctx.scale(dpr, dpr);
     const scale = size / 200;
-    type Pt = { x: number; y: number; vx: number; vy: number; r: number; color: string };
-    const parts: Pt[] = [];
+    const parts: Grain[] = [];
     for (const id of ids) {
       const cell = cellById[id];
       if (!cell) continue;
@@ -355,8 +386,8 @@ function ColorMode({ color }: { color: string }) {
         parts.push({
           x: px + (Math.random() - 0.5) * 6,
           y: py + (Math.random() - 0.5) * 6,
-          vx: -(0.15 + Math.random() * 0.7),
-          vy: (Math.random() - 0.5) * 0.35,
+          vx: -(0.1 + Math.random() * 0.5),
+          vy: (Math.random() - 0.5) * 0.3,
           r: 0.3 + Math.random() * 0.75,
           color: fills[id],
         });
@@ -364,42 +395,16 @@ function ColorMode({ color }: { color: string }) {
     }
     setScattering(true);
     setFillsAll((p) => ({ ...p, [String(tpl)]: {} }));
-    let raf = 0;
-    const start = performance.now();
-    const DURATION = 2400;
-    const tick = (now: number) => {
-      const t = now - start;
-      ctx.clearRect(0, 0, size, size);
-      for (const p of parts) {
-        p.vx -= 0.025;
-        p.vy += (Math.random() - 0.5) * 0.08;
-        p.vy *= 0.98;
-        p.x += p.vx;
-        p.y += p.vy;
-        ctx.globalAlpha = Math.max(0, 1 - (t / DURATION) ** 1.6) * 0.9;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      if (t < DURATION) raf = requestAnimationFrame(tick);
-      else {
-        ctx.clearRect(0, 0, size, size);
-        cancelAnimationFrame(raf);
-        setScattering(false);
-      }
-    };
-    raf = requestAnimationFrame(tick);
+    runScatter(ctx, size, parts, () => setScattering(false));
   };
 
   return (
     <>
-      <div className="rise rise-d2 mt-5 flex flex-wrap items-center justify-center gap-2">
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
         {TEMPLATES.map((t, i) => (
           <button
             key={t.name}
-            onClick={() => chooseTpl(i)}
+            onClick={() => !scattering && setTpl(i)}
             className={`rounded-full border px-3.5 py-1.5 text-xs tracking-widest transition-colors ${
               tpl === i ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
             }`}
@@ -409,7 +414,7 @@ function ColorMode({ color }: { color: string }) {
         ))}
       </div>
 
-      <div ref={wrapRef} className="rise rise-d3 relative mt-5 w-full max-w-[460px]">
+      <div ref={wrapRef} className="relative mt-5 w-full max-w-[460px]">
         <svg
           viewBox="0 0 200 200"
           className="h-auto w-full touch-none select-none rounded-full border border-ink-3 bg-ink-2/40"
@@ -424,7 +429,7 @@ function ColorMode({ color }: { color: string }) {
               d={c.d}
               onPointerDown={(e) => {
                 if (e.button === 2) {
-                  apply(c.id, true); // 우클릭 = 비우기
+                  apply(c.id, true);
                   return;
                 }
                 painting.current = true;
@@ -443,12 +448,11 @@ function ColorMode({ color }: { color: string }) {
         <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
       </div>
 
-      {/* 진행 카운터 (안내 문구 없음) */}
-      <p className="rise rise-d3 mt-4 text-[12px] tracking-[0.25em] text-hanji-faint">
+      <p className="mt-4 text-[12px] tracking-[0.25em] text-hanji-faint">
         {filledCount} / {cells.length} 칸
       </p>
 
-      <div className="rise rise-d3 mt-3">
+      <div className="mt-3">
         <button
           onClick={scatterClear}
           disabled={scattering}
@@ -463,7 +467,8 @@ function ColorMode({ color }: { color: string }) {
 
 // ── 그리기 모드 ──────────────────────────────────────────
 function DrawMode({ color }: { color: string }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const bgRef = useRef<HTMLCanvasElement>(null); // 가이드(갈래선) 층
+  const canvasRef = useRef<HTMLCanvasElement>(null); // 그림 층 (지워지지 않음)
   const scatterRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [segments, setSegments] = useState(12);
@@ -477,16 +482,18 @@ function DrawMode({ color }: { color: string }) {
   const pinch = useRef({ active: false, dist: 0 });
   const pan = useRef({ active: false, x: 0, y: 0 });
   const dirty = useRef(false);
-  const restored = useRef(false);
   const SIZE = 1000;
 
   const getCtx = () => canvasRef.current?.getContext("2d") ?? null;
+  const getBg = () => bgRef.current?.getContext("2d") ?? null;
 
-  const guides = useCallback(() => {
-    const ctx = getCtx();
+  // 가이드는 배경 층에만 — 그림 층은 건드리지 않는다
+  const drawGuides = useCallback(() => {
+    const ctx = getBg();
     if (!ctx) return;
+    ctx.clearRect(0, 0, SIZE, SIZE);
     ctx.save();
-    ctx.strokeStyle = "rgba(217,180,91,0.1)";
+    ctx.strokeStyle = "rgba(217,180,91,0.12)";
     ctx.lineWidth = 1;
     const c = SIZE / 2;
     for (let r = 70; r < c; r += 80) {
@@ -504,41 +511,46 @@ function DrawMode({ color }: { color: string }) {
     ctx.restore();
   }, [segments]);
 
-  // 캔버스 준비 + 저장분 복원
+  // 마운트: 두 캔버스 크기 지정 + 저장분 복원 (단 한 번)
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const bg = bgRef.current;
+    if (!canvas || !bg) return;
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = SIZE * dpr;
-    canvas.height = SIZE * dpr;
+    for (const cv of [canvas, bg]) {
+      cv.width = SIZE * dpr;
+      cv.height = SIZE * dpr;
+    }
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const bgc = bg.getContext("2d");
+    if (!ctx || !bgc) return;
     ctx.scale(dpr, dpr);
+    bgc.scale(dpr, dpr);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    guides();
-    if (!restored.current) {
-      restored.current = true;
-      const s = loadSaved();
-      if (s?.drawURL) {
-        const img = new Image();
-        img.onload = () => {
-          ctx.drawImage(img, 0, 0, SIZE, SIZE);
-          dirty.current = true;
-        };
-        img.src = s.drawURL;
-      }
+    drawGuides();
+    const s = loadSaved();
+    if (s?.drawURL) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, SIZE, SIZE);
+        dirty.current = true;
+      };
+      img.src = s.drawURL;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [segments]);
+  }, []);
+
+  // 갈래가 바뀌면 가이드만 다시 그린다 — 그림 층은 그대로 유지
+  useEffect(() => {
+    drawGuides();
+  }, [drawGuides]);
 
   const persist = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     try {
-      const url = canvas.toDataURL("image/png");
-      const s = loadSaved() ?? { mode: "draw", tpl: 0, color, fills: {} };
-      window.localStorage.setItem(MKEY, JSON.stringify({ ...s, mode: "draw", drawURL: url }));
+      patchSaved({ mode: "draw", drawURL: canvas.toDataURL("image/png") });
     } catch {}
   };
 
@@ -552,9 +564,11 @@ function DrawMode({ color }: { color: string }) {
     const ctx = getCtx();
     if (!ctx) return;
     const c = SIZE / 2;
-    ctx.strokeStyle = color === ERASE ? "#0D0B09" : color;
-    ctx.lineWidth = brush;
-    ctx.globalAlpha = color === ERASE ? 1 : 0.92;
+    const erasing = color === ERASE;
+    ctx.globalCompositeOperation = erasing ? "destination-out" : "source-over";
+    ctx.strokeStyle = erasing ? "rgba(0,0,0,1)" : color;
+    ctx.lineWidth = erasing ? brush + 4 : brush;
+    ctx.globalAlpha = erasing ? 1 : 0.92;
     const fx = from.x - c, fy = from.y - c, tx = to.x - c, ty = to.y - c;
     for (let i = 0; i < segments; i++) {
       const ang = (Math.PI * 2 * i) / segments;
@@ -574,6 +588,7 @@ function DrawMode({ color }: { color: string }) {
       }
     }
     ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
     dirty.current = true;
   };
 
@@ -634,45 +649,34 @@ function DrawMode({ color }: { color: string }) {
     const sc = scatterRef.current;
     const wrap = wrapRef.current;
     if (!canvas || !sc || !wrap) return;
-    if (!dirty.current) {
-      const ctx = getCtx();
-      if (ctx) {
-        ctx.clearRect(0, 0, SIZE, SIZE);
-        guides();
-      }
-      return;
-    }
+    const src = getCtx();
+    if (!src) return;
+    if (!dirty.current) return;
     if (!window.confirm("만다라를 비우시겠습니까?\n\n만다라는 간직하지 않습니다 — 이렇게 비우는 것도 수행입니다.")) return;
     const size = wrap.clientWidth;
     const dpr = window.devicePixelRatio || 1;
-    const src = getCtx();
-    if (!src) return;
     const img = src.getImageData(0, 0, SIZE * dpr, SIZE * dpr);
-    type Pt = { x: number; y: number; vx: number; vy: number; r: number; color: string };
-    const parts: Pt[] = [];
-    const step = Math.max(6, Math.floor((SIZE * dpr) / 180));
+    const parts: Grain[] = [];
+    const step = Math.max(6, Math.floor((SIZE * dpr) / 190));
     for (let y = 0; y < SIZE * dpr; y += step) {
       for (let x = 0; x < SIZE * dpr; x += step) {
         const idx = (y * SIZE * dpr + x) * 4;
-        const alpha = img.data[idx + 3];
-        if (alpha < 40) continue;
+        if (img.data[idx + 3] < 40) continue; // 투명(그리지 않은 곳) 건너뜀
         const r = img.data[idx], g = img.data[idx + 1], b = img.data[idx + 2];
-        // 가이드선(옅은 금)만 있는 배경은 대충 건너뛴다
-        if (r > 40 && r < 90 && g > 30 && g < 70 && b < 45) continue;
         parts.push({
           x: (x / (SIZE * dpr)) * size,
           y: (y / (SIZE * dpr)) * size,
-          vx: -(0.15 + Math.random() * 0.7),
-          vy: (Math.random() - 0.5) * 0.35,
+          vx: -(0.1 + Math.random() * 0.5),
+          vy: (Math.random() - 0.5) * 0.3,
           r: 0.3 + Math.random() * 0.75,
           color: `rgb(${r},${g},${b})`,
         });
-        if (parts.length > 2600) break;
+        if (parts.length > 2800) break;
       }
-      if (parts.length > 2600) break;
+      if (parts.length > 2800) break;
     }
+    // 그림 층만 비운다 (가이드 배경은 그대로)
     src.clearRect(0, 0, SIZE, SIZE);
-    guides();
     dirty.current = false;
     persist();
     if (parts.length === 0) return;
@@ -684,44 +688,19 @@ function DrawMode({ color }: { color: string }) {
     if (!ctx) return;
     ctx.scale(dpr, dpr);
     setScattering(true);
-    let raf = 0;
-    const start = performance.now();
-    const DURATION = 2400;
-    const tick = (now: number) => {
-      const t = now - start;
-      ctx.clearRect(0, 0, size, size);
-      for (const p of parts) {
-        p.vx -= 0.025;
-        p.vy += (Math.random() - 0.5) * 0.08;
-        p.vy *= 0.98;
-        p.x += p.vx;
-        p.y += p.vy;
-        ctx.globalAlpha = Math.max(0, 1 - (t / DURATION) ** 1.6) * 0.9;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      if (t < DURATION) raf = requestAnimationFrame(tick);
-      else {
-        ctx.clearRect(0, 0, size, size);
-        cancelAnimationFrame(raf);
-        setScattering(false);
-      }
-    };
-    raf = requestAnimationFrame(tick);
+    runScatter(ctx, size, parts, () => setScattering(false));
   };
 
   return (
     <>
-      <p className="rise rise-d2 mt-4 text-center text-[12px] leading-6 text-hanji-faint">
+      <p className="mt-4 text-center text-[12px] leading-6 text-hanji-faint">
         손끝으로 그으면, 여러 갈래로 함께 피어납니다.
         <span className="hidden sm:inline"> (모바일에선 두 손가락으로 확대)</span>
       </p>
 
-      <div className="rise rise-d2 relative mt-4 aspect-square w-full max-w-[460px] overflow-hidden rounded-full border border-ink-3 bg-ink-2/40">
-        <div ref={wrapRef} className="h-full w-full origin-center will-change-transform">
+      <div className="relative mt-4 aspect-square w-full max-w-[460px] overflow-hidden rounded-full border border-ink-3 bg-ink-2/40">
+        <div ref={wrapRef} className="relative h-full w-full origin-center will-change-transform">
+          <canvas ref={bgRef} className="pointer-events-none absolute inset-0 h-full w-full" />
           <canvas
             ref={canvasRef}
             onPointerDown={onDown}
@@ -731,14 +710,15 @@ function DrawMode({ color }: { color: string }) {
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
-            className="h-full w-full touch-none"
+            className="absolute inset-0 h-full w-full touch-none"
             style={{ cursor: panMode ? "grab" : "crosshair" }}
           />
         </div>
         <canvas ref={scatterRef} className="pointer-events-none absolute inset-0" />
       </div>
 
-      <div className="rise rise-d3 mt-5 flex items-center gap-2 sm:hidden">
+      {/* 모바일 전용 토글 — 웹은 그리기가 기본 */}
+      <div className="mt-5 flex items-center gap-2 sm:hidden">
         <button
           onClick={() => setPanMode(false)}
           className={`rounded-full border px-4 py-2 text-xs tracking-[0.1em] transition-colors ${
@@ -757,7 +737,7 @@ function DrawMode({ color }: { color: string }) {
         </button>
       </div>
 
-      <div className="rise rise-d3 mt-4 flex flex-wrap items-center justify-center gap-2.5">
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
         <span className="text-[11px] tracking-[0.2em] text-hanji-faint">갈래</span>
         {[6, 8, 12, 16, 24].map((n) => (
           <button
@@ -779,7 +759,7 @@ function DrawMode({ color }: { color: string }) {
           거울
         </button>
       </div>
-      <div className="rise rise-d3 mt-4 flex w-full max-w-[280px] items-center gap-3">
+      <div className="mt-4 flex w-full max-w-[280px] items-center gap-3">
         <span className="text-[11px] tracking-[0.2em] text-hanji-faint">붓</span>
         <input
           type="range"
@@ -792,7 +772,7 @@ function DrawMode({ color }: { color: string }) {
         />
       </div>
 
-      <div className="rise rise-d3 mt-6">
+      <div className="mt-6">
         <button
           onClick={scatterClear}
           disabled={scattering}
