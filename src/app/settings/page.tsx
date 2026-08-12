@@ -14,8 +14,9 @@ import type { User } from "firebase/auth";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import { ADMIN_UID, CONTACT_EMAIL, DONATION_URL } from "@/lib/config";
 import { formatDate, loadStore, type Session } from "@/lib/store";
-import { sessionTitle } from "@/lib/hwadu";
+import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { fetchMyThrownStats, type ThrownStat } from "@/lib/thrown";
+import { loadVisits, visitDayKey } from "@/components/VisitLedger";
 import {
   Person,
   Teacup,
@@ -45,9 +46,17 @@ const BADGES = [
 // 이달의 마음 — 이번 달의 걸음을 로컬 기록으로 센 것
 type MonthReport = {
   returned: number; // 이번 달 회향 수
-  days: number; // 이번 달 화두와 함께한 날수 (고유한 날짜 수)
-  longest: { title: string; days: number } | null; // 가장 오래 품은 화두
+  days: number; // 이번 달 함께한 날수 (접속일 ∪ 화두를 품고 있던 날, 고유한 날짜 수)
   chars: number; // 이번 달 남긴 단상·회향의 글자 수
+};
+
+// 품어온 시간 — 화두마다 받은 날부터 회향(또는 지금)까지 품은 일수
+type HeldItem = {
+  key: string;
+  from: string; // 받은 날, "3.2" 꼴
+  question: string; // 화두 질문 전문 — 줄이지 않는다
+  days: number; // 품은 일수 (최소 1일)
+  current: boolean; // 지금 품는 중인가
 };
 
 // 서비스 격자 — href 가 없는 것은 아직 문이 열리지 않은 자리 (눌러도 이동하지 않는다)
@@ -69,7 +78,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/community", label: "연지원", Icon: Lantern },
   { href: "/archive", label: "지난 화두", Icon: Book },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
-  { label: "다구·향·공양미", Icon: Moktak, soon: true },
+  { label: "굿즈", Icon: Moktak, soon: true },
   { href: "/breath", label: "호흡 명상", Icon: Lotus, soon: true },
 ];
 
@@ -83,6 +92,7 @@ export default function SettingsPage() {
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [report, setReport] = useState<MonthReport | null>(null);
+  const [held, setHeld] = useState<HeldItem[]>([]);
   const [myThrown, setMyThrown] = useState<MyThrown[] | null>(null);
   const [thrownStats, setThrownStats] = useState<Map<
     string,
@@ -94,34 +104,42 @@ export default function SettingsPage() {
     setLight(document.documentElement.dataset.theme === "light");
 
     // 나의 걸음 — 받은 화두 수(지금 든 것·내려놓은 것까지),
-    // 회향해 지난 화두에 남은 수, 화두와 함께한 날수
+    // 회향해 지난 화두에 남은 수, 함께한 날수
     const s = loadStore();
     const past = s.history.length;
     setJournalCount(past);
     // store.received 가 참값이지만, 이 값이 없던 시절의 기록도 있어
     // 눈에 보이는 수보다 작아지지 않게 받쳐 준다
     setReceivedCount(Math.max(s.received, past + (s.current ? 1 : 0)));
-    const times = [
-      ...s.history.map((h) => h.receivedAt),
-      ...(s.current ? [s.current.receivedAt] : []),
-    ];
-    if (times.length > 0) {
-      const first = Math.min(...times);
-      const days = Math.floor((Date.now() - first) / (24 * 60 * 60 * 1000)) + 1;
-      setDaysWith(days);
-    }
 
-    // ── 이달의 마음 — 이번 달의 걸음을 로컬에서 센다 ──
     const now = Date.now();
-    const base = new Date();
-    const monthStart = new Date(base.getFullYear(), base.getMonth(), 1).getTime();
-    const monthEnd = new Date(base.getFullYear(), base.getMonth() + 1, 1).getTime();
     const DAY = 24 * 60 * 60 * 1000;
-    const inMonth = (t: number) => t >= monthStart && t < monthEnd;
     const sessions: Session[] = [
       ...s.history,
       ...(s.current ? [s.current] : []),
     ];
+    const visits = loadVisits();
+
+    // 구간 [from, to] 의 날짜들을 "YYYY-MM-DD"로 모은다 — 끝날도 빠뜨리지 않는다
+    const addHeldDays = (from: number, to: number, into: Set<string>) => {
+      if (from > to) return;
+      for (let t = from; t <= to; t += DAY) into.add(visitDayKey(t));
+      into.add(visitDayKey(to));
+    };
+
+    // 함께한 날 — 실제 접속일(발자국 장부) ∪ 화두를 품고 있던 날.
+    // 옛날은 방문 기록이 없으니 품은 날수로 보완한다
+    const allDays = new Set<string>(visits);
+    for (const sess of sessions) {
+      addHeldDays(sess.receivedAt, sess.journalAt ?? now, allDays);
+    }
+    setDaysWith(allDays.size);
+
+    // ── 이달의 마음 — 이번 달의 걸음을 로컬에서 센다 ──
+    const base = new Date();
+    const monthStart = new Date(base.getFullYear(), base.getMonth(), 1).getTime();
+    const monthEnd = new Date(base.getFullYear(), base.getMonth() + 1, 1).getTime();
+    const inMonth = (t: number) => t >= monthStart && t < monthEnd;
 
     // 이번 달 회향 수 — 회향 시각이 이번 달인 기록
     // (아주 옛 기록에는 회향 시각이 없어, 받은 시각으로 받쳐 준다)
@@ -129,26 +147,18 @@ export default function SettingsPage() {
       inMonth(h.journalAt ?? h.receivedAt)
     ).length;
 
-    // 함께한 날수 — 이번 달 안에서 화두를 들고 있던 고유한 날짜의 수
-    const dayKeys = new Set<string>();
-    for (const sess of sessions) {
-      const from = Math.max(sess.receivedAt, monthStart);
-      const to = Math.min(sess.journalAt ?? now, monthEnd - 1);
-      for (let t = from; t <= to; t += DAY) {
-        dayKeys.add(new Date(t).toDateString());
-      }
-      if (from <= to) dayKeys.add(new Date(to).toDateString());
+    // 이번 달 함께한 날수 — 이번 달의 접속일 ∪ 이번 달 화두를 품고 있던 날
+    const monthDays = new Set<string>();
+    const monthPrefix = visitDayKey(monthStart).slice(0, 8); // "YYYY-MM-"
+    for (const v of visits) {
+      if (v.startsWith(monthPrefix)) monthDays.add(v);
     }
-
-    // 가장 오래 품은 화두 — 이번 달과 겹치는 것 가운데 가장 긴 것
-    let longest: MonthReport["longest"] = null;
     for (const sess of sessions) {
-      const end = sess.journalAt ?? now;
-      if (sess.receivedAt >= monthEnd || end < monthStart) continue;
-      const held = Math.max(1, Math.floor((end - sess.receivedAt) / DAY) + 1);
-      if (!longest || held > longest.days) {
-        longest = { title: sessionTitle(sess), days: held };
-      }
+      addHeldDays(
+        Math.max(sess.receivedAt, monthStart),
+        Math.min(sess.journalAt ?? now, monthEnd - 1),
+        monthDays
+      );
     }
 
     // 남긴 글자 수 — 이번 달 회향의 글과 단상, 지금 든 화두의 단상
@@ -160,7 +170,26 @@ export default function SettingsPage() {
     }
     if (s.current?.notes) chars += s.current.notes.length;
 
-    setReport({ returned, days: dayKeys.size, longest, chars });
+    setReport({ returned, days: monthDays.size, chars });
+
+    // ── 품어온 시간 — 화두마다 품은 일수, 오래 품은 순(내림차순) ──
+    const toHeld = (sess: Session, isCurrent: boolean): HeldItem => {
+      const end = sess.journalAt ?? now;
+      const d = new Date(sess.receivedAt);
+      return {
+        key: `${sess.hwaduId}-${sess.receivedAt}${isCurrent ? "-now" : ""}`,
+        from: `${d.getMonth() + 1}.${d.getDate()}`,
+        question: flatQuestion(sessionQuestion(sess)),
+        days: Math.max(1, Math.floor((end - sess.receivedAt) / DAY)),
+        current: isCurrent,
+      };
+    };
+    setHeld(
+      [
+        ...s.history.map((h) => toHeld(h, false)),
+        ...(s.current ? [toHeld(s.current, true)] : []),
+      ].sort((a, b) => b.days - a.days)
+    );
   }, []);
 
   // 내가 던진 화두 — 브라우저 서랍을 읽고, 서버에서 걸음(승인·받은 수)을 살핀다
@@ -221,6 +250,19 @@ export default function SettingsPage() {
   };
 
   const sectionGap = "mt-11";
+
+  // 품어온 시간 한 줄 — "3.2~ · {질문 전문} · 108일" (여러 줄 허용, 줄이지 않는다)
+  const heldRow = (h: HeldItem) => (
+    <li key={h.key} className="break-keep text-[12px] leading-6 text-hanji-dim">
+      <span className="text-hanji-faint">{h.from}~</span>
+      {" · "}
+      <span className="text-hanji">{h.question}</span>
+      <span className="text-hanji-faint">
+        {" · "}
+        {h.current ? <>지금 품는 중 · {h.days}일째</> : <>{h.days}일</>}
+      </span>
+    </li>
+  );
 
   return (
     <div className="mx-auto w-full max-w-xl flex-1 px-6 py-12">
@@ -310,7 +352,7 @@ export default function SettingsPage() {
           (report.returned === 0 &&
             report.days === 0 &&
             report.chars === 0 &&
-            !report.longest) ? (
+            held.length === 0) ? (
             <p className="text-[13px] leading-7 text-hanji-dim">
               이번 달의 걸음이 아직 없습니다.
             </p>
@@ -340,15 +382,26 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
-              {report.longest && (
-                <p className="mt-4 text-[12px] leading-6 text-hanji-dim">
-                  가장 오래 품은 화두 —{" "}
-                  <span className="text-hanji">{report.longest.title}</span>
-                  <span className="text-hanji-faint">
-                    {" "}
-                    · {report.longest.days}일
-                  </span>
-                </p>
+              {/* 품어온 시간 — 화두마다 품은 일수, 오래 품은 순. 질문은 전문 그대로 */}
+              {held.length > 0 && (
+                <div className="mt-5">
+                  <p className="text-[11px] tracking-[0.2em] text-hanji-faint">
+                    품어온 시간
+                  </p>
+                  <ul className="mt-2.5 space-y-2">
+                    {held.slice(0, 5).map(heldRow)}
+                  </ul>
+                  {held.length > 5 && (
+                    <details className="mt-2.5">
+                      <summary className="cursor-pointer text-[11px] tracking-wider text-hanji-faint transition-colors hover:text-hanji-dim">
+                        모두 보기 · {held.length - 5}
+                      </summary>
+                      <ul className="mt-2.5 space-y-2">
+                        {held.slice(5).map(heldRow)}
+                      </ul>
+                    </details>
+                  )}
+                </div>
               )}
             </>
           )}

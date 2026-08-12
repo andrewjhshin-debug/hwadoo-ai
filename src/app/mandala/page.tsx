@@ -2,8 +2,10 @@
 
 // ────────────────────────────────────────────────────────────────
 // 만다라 — 화두를 기다리는 동안의 수행. 두 갈래.
-//  ① 색칠하기: lib/mandala 가 짜는 여섯 폭 문양. 물결·별·다각 경계가 겹겹이
-//     맞물려 빈틈이 없다. 한 손가락 드래그 = 연달아 색칠, 우클릭 = 그 칸 비우기.
+//  ① 색칠하기: lib/mandala 가 꽃잎·아치·구슬·마름모를 겹겹이 쌓아 짠 다섯 폭.
+//     칸(data-cell)은 같은 key 를 나눠 가진 여러 path 가 한 붓에 함께 칠해지고,
+//     장식 선(decor)은 칠 위에 늘 얹혀 문양의 밀도를 지킨다.
+//     한 손가락 드래그 = 연달아 색칠, 우클릭 = 그 칸 비우기.
 //     두 손가락 = 확대·이동(1~3배), 더블탭 = 원위치. 확대 중에도 한 손가락은 색칠.
 //  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌아가기 지원.
 // 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 바람에 흩어진다.
@@ -13,10 +15,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { PALETTE, TEMPLATES, buildRegions, type Region } from "@/lib/mandala";
+import { PALETTE, TEMPLATES, buildMandala } from "@/lib/mandala";
 
 const ERASE = "erase";
-const MKEY = "hwadoo-mandala-v1";
+// v3 — 문양 엔진이 바뀌어 칸 key 가 다르다. 옛 저장(fills)과 섞지 않는다.
+const MKEY = "hwadu.mandala.v3";
+const OLD_MKEY = "hwadoo-mandala-v1";
 
 // 만다라 판의 한 변 — 화면폭(-16px)과, 화면높이에서 고정 요소(헤더·칩·도구·색판·
 // 탭바)를 뺀 값 중 작은 쪽. 데스크톱에선 480px 를 넘지 않고,
@@ -44,7 +48,22 @@ function loadSaved(): Saved | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(MKEY);
-    return raw ? (JSON.parse(raw) as Saved) : null;
+    if (raw) return JSON.parse(raw) as Saved;
+    // 옛 저장에서 모드·색·그림(캔버스)만 물려받는다 — 칸 key 가 바뀐 fills 는 버린다
+    const old = window.localStorage.getItem(OLD_MKEY);
+    if (old) {
+      const s = JSON.parse(old) as Saved;
+      const migrated: Saved = {
+        mode: s.mode === "draw" ? "draw" : "color",
+        tpl: 0,
+        color: typeof s.color === "string" ? s.color : PALETTE[0],
+        fills: {},
+        drawURL: s.drawURL,
+      };
+      window.localStorage.setItem(MKEY, JSON.stringify(migrated));
+      return migrated;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -282,14 +301,8 @@ function ColorMode({ color }: { color: string }) {
   const scatterSeq = useRef(0);
 
   const tpl = TEMPLATES[tplIdx] ?? TEMPLATES[0];
-  const cells = useMemo(() => buildRegions(tpl), [tpl]);
+  const built = useMemo(() => buildMandala(tpl), [tpl]);
   const fills = useMemo(() => fillsAll[String(tplIdx)] ?? {}, [fillsAll, tplIdx]);
-
-  const cellById = useMemo(() => {
-    const m: Record<string, Region> = {};
-    cells.forEach((c) => (m[c.id] = c));
-    return m;
-  }, [cells]);
 
   useEffect(() => {
     const s = loadSaved();
@@ -336,8 +349,8 @@ function ColorMode({ color }: { color: string }) {
   );
 
   const filledCount = useMemo(
-    () => cells.reduce((n, c) => n + (fills[c.id] ? 1 : 0), 0),
-    [cells, fills]
+    () => built.cellKeys.reduce((n, k) => n + (fills[k] ? 1 : 0), 0),
+    [built, fills]
   );
 
   // ── 확대·이동 ──
@@ -472,7 +485,7 @@ function ColorMode({ color }: { color: string }) {
     justPainted.current = null;
     resetView();
 
-    const ids = Object.keys(fills).filter((k) => fills[k] && cellById[k]);
+    const ids = built.cellKeys.filter((k) => fills[k] && built.seeds[k]?.length);
     const wrap = wrapRef.current;
     const canvas = canvasRef.current;
     if (ids.length === 0 || !wrap || !canvas) {
@@ -494,19 +507,21 @@ function ColorMode({ color }: { color: string }) {
     const scale = size / 200;
     const parts: Grain[] = [];
     for (const id of ids) {
-      const cell = cellById[id];
-      const px = cell.cx * scale;
-      const py = cell.cy * scale;
-      const count = 9 + Math.floor(Math.random() * 7);
-      for (let k = 0; k < count; k++) {
-        parts.push({
-          x: px + (Math.random() - 0.5) * 6,
-          y: py + (Math.random() - 0.5) * 6,
-          vx: -(0.1 + Math.random() * 0.5),
-          vy: (Math.random() - 0.5) * 0.3,
-          r: 0.3 + Math.random() * 0.7,
-          color: fills[id],
-        });
+      // 한 칸(key)이 여러 조각(구슬 묶음 등)일 수 있다 — 조각마다 가루를 뿌린다
+      for (const [sx, sy] of built.seeds[id]) {
+        const px = sx * scale;
+        const py = sy * scale;
+        const count = 6 + Math.floor(Math.random() * 5);
+        for (let k = 0; k < count; k++) {
+          parts.push({
+            x: px + (Math.random() - 0.5) * 6,
+            y: py + (Math.random() - 0.5) * 6,
+            vx: -(0.1 + Math.random() * 0.5),
+            vy: (Math.random() - 0.5) * 0.3,
+            r: 0.3 + Math.random() * 0.7,
+            color: fills[id],
+          });
+        }
       }
     }
     const seq = ++scatterSeq.current;
@@ -542,22 +557,38 @@ function ColorMode({ color }: { color: string }) {
         <div ref={innerRef} className="h-full w-full origin-center will-change-transform">
           <svg viewBox="0 0 200 200" className="h-full w-full">
             <circle cx="100" cy="100" r="98.5" fill="none" stroke="var(--m-frame)" strokeWidth="0.6" />
-            {cells.map((c) => (
-              <path
-                key={c.id}
-                d={c.d}
-                data-cell={c.id}
-                fill={fills[c.id] ?? "transparent"}
-                stroke="var(--m-line)"
-                strokeWidth="0.32"
-                strokeLinejoin="round"
-                style={{
-                  pointerEvents: "all", // 빈칸은 진짜 투명이되, 짚는 건 잡힌다
-                  transition: "fill 0.08s",
-                  cursor: scattering ? "default" : "pointer",
-                }}
-              />
-            ))}
+            {/* nodes 는 그리는 순서 그대로 — cell 위에 그 겹의 decor 가 얹힌다 */}
+            {built.nodes.map((n, i) =>
+              n.kind === "cell" ? (
+                <path
+                  key={i}
+                  d={n.d}
+                  data-cell={n.key}
+                  fill={fills[n.key] ?? "transparent"}
+                  fillRule={n.fillRule}
+                  stroke="var(--m-line)"
+                  strokeWidth="0.3"
+                  strokeLinejoin="round"
+                  style={{
+                    pointerEvents: "all", // 빈칸은 진짜 투명이되, 짚는 건 잡힌다
+                    transition: "fill 0.08s",
+                    cursor: scattering ? "default" : "pointer",
+                  }}
+                />
+              ) : (
+                <path
+                  key={i}
+                  d={n.d}
+                  fill={n.fill ? "var(--m-line)" : "none"}
+                  stroke={n.fill ? "none" : "var(--m-line)"}
+                  strokeWidth={n.w}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity={n.opacity ?? 0.9}
+                  style={{ pointerEvents: "none" }}
+                />
+              )
+            )}
           </svg>
         </div>
         <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
@@ -586,7 +617,7 @@ function ColorMode({ color }: { color: string }) {
       {/* 진행 · 원위치 · 비우기 */}
       <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
         <p className="text-[11px] tracking-[0.2em] text-hanji-faint">
-          {filledCount} / {cells.length} 칸
+          {filledCount} / {built.cellKeys.length} 칸
         </p>
         <span className="text-[10px] tracking-[0.05em] text-hanji-faint sm:hidden">
           두 손가락 확대 · 더블탭 원위치

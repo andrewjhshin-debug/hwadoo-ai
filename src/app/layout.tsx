@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import ConfirmProvider from "@/components/Confirm";
+import VisitLedger from "@/components/VisitLedger";
 import { CONTACT_EMAIL, SITE_NAME, SITE_URL, SLOGAN } from "@/lib/config";
 import "./globals.css";
 
@@ -72,6 +73,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
         <ConfirmProvider>
+        {/* 발자국 장부 — 화면에 아무것도 그리지 않고, 다녀간 날만 적는다 */}
+        <VisitLedger />
         <Sidebar />
         <div className="obang-aura flex flex-1 flex-col overflow-x-hidden overflow-y-auto pt-16 pb-16 md:pb-0 md:pt-0">
           {/* 본문은 내용만큼 자란다 — 넘치면 바깥(.obang-aura)이 스크롤한다.

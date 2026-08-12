@@ -1,400 +1,442 @@
 // ────────────────────────────────────────────────────────────────
-// 만다라 도형 — 빈틈 없이 맞물리는 문양 만들기.
+// 만다라 문양 엔진 — 모양 원시도형(꽃잎·아치·구슬·마름모·고리·궁)을
+// 회전 대칭으로 겹겹이 쌓아 다섯 폭을 그린다.
 //
-// 핵심 원리: 이웃한 두 조각은 "같은 함수가 만든 같은 점들"로 경계를 나눈다.
-//  · 고리와 고리 사이의 경계(원·물결·별·다각)는 GRID(2.5°)로 나눈 절대 각도
-//    위에만 점을 찍는다 — 안쪽 고리와 바깥 고리의 칸 수·회전이 달라도
-//    두 폴리라인이 정확히 같은 점을 밟는다.
-//  · 조각과 조각 사이의 살(radial edge)은 edgePoints() 하나로만 그린다.
-// 그래서 어떤 모양을 쓰든 틈이나 겹침이 생기지 않는다 — 모든 칸이 칠해진다.
-//
-// 문양을 새로 짤 때의 약속 (어기면 개발 중에 콘솔로 일러 준다)
-//  · 칸 수 n 은 144 의 약수(6·8·9·12·16·18·24·36·48·72), 회전 rot 은 2.5° 배수
-//    — 칸의 경계 각이 GRID 위에 얹혀야 이음매가 정확히 맞는다
-//  · petal 모드는 n 이 짝수여야 마지막 칸과 첫 칸의 살이 이어진다
-//  · 경계의 waves 는 그 경계를 맞물고 있는 고리의 n 을 나눠야 꼭짓점이 살에 얹힌다
+//  · cell  = 색칠할 수 있는 닫힌 도형. 같은 key 를 나눠 가진 여러 path 는
+//            한 붓에 함께 칠해진다 (구슬 묶음, 갈라진 테 등).
+//  · decor = 칠할 수 없는 장식 선 — 꽃잎 속 작은 꽃잎, 잎맥, 점무늬, 밧줄 무늬.
+//            cell 위에 얹혀 문양의 밀도를 낸다 (pointerEvents: none).
+//  · nodes 는 그리는 순서 그대로다 — 뒤에 온 것이 위에 겹친다.
+//    바깥 겹부터 그려 안쪽 겹이 그 위로 피어나게 한다. 겹침은 의도된 것.
 // ────────────────────────────────────────────────────────────────
 
 export const C = 100; // 중심 좌표 (viewBox 200×200)
 
-const GRID = 2.5; // 경계 점을 찍는 절대 각도 격자 (도)
+export type MandalaNode =
+  | { kind: "cell"; key: string; d: string; fillRule?: "evenodd" }
+  | { kind: "decor"; d: string; w: number; fill?: boolean; opacity?: number };
 
-// 경계의 모양
-//  circle  정원
-//  sine    부드러운 물결
-//  star    삼각파 — 꼭짓점이 뾰족한 별
-//  polygon 정다각형 (waves = 변의 수, r = 외접원 반지름)
-export type BoundaryShape = "circle" | "sine" | "star" | "polygon";
-
-// 고리 사이의 경계 — 반지름이 각도에 따라 달라질 수 있다
-export type Boundary = {
-  r: number;
-  shape?: BoundaryShape;
-  waves?: number; // 물결·꼭짓점 개수
-  amp?: number; // 깊이
-  phase?: number; // 위상 (도)
-};
-
-// 조각의 살이 휘는 방식
-export type BowMode = "straight" | "petal" | "swirl";
-
-export type Ring = {
-  n: number; // 조각 수
-  rot?: number; // 시작 각도 (도)
-  bow?: number; // 살이 휘는 정도 (도)
-  bowMode?: BowMode;
+export type Built = {
+  nodes: MandalaNode[];
+  cellKeys: string[]; // 논리 칸의 순서 있는 목록 (진행 표시용)
+  seeds: Record<string, [number, number][]>; // key → 무게중심들 (모래 효과용)
 };
 
 export type Template = {
   key: string;
   name: string;
   hanja: string;
-  core: number; // 한가운데 원의 반지름
-  bounds: Boundary[]; // 경계들 (안→밖), 길이 = rings.length + 1
-  rings: Ring[];
-};
-
-export type Region = {
-  id: string;
-  d: string;
-  cx: number; // 무게중심 (모래 효과용)
-  cy: number;
+  build: (b: Builder) => void;
 };
 
 // ── 좌표 ────────────────────────────────────────────────────────
 
+const rad = (d: number) => (d * Math.PI) / 180;
+const f = (n: number) => {
+  const s = n.toFixed(2);
+  return s === "-0.00" ? "0.00" : s;
+};
+
+// 극좌표 → 화면 좌표
 function P(r: number, aDeg: number): [number, number] {
-  const a = (aDeg * Math.PI) / 180;
+  const a = rad(aDeg);
   return [C + r * Math.cos(a), C + r * Math.sin(a)];
 }
 
-// 경계의 반지름 — 각도에 따라 물결치거나 뾰족해진다.
-// (검증 스크립트가 문양의 빈틈·겹침·칸 크기를 잴 때도 이 함수를 그대로 쓴다)
-export function boundaryR(b: Boundary, aDeg: number): number {
-  const shape: BoundaryShape = b.shape ?? (b.waves && b.amp ? "sine" : "circle");
-  if (shape === "circle") return b.r;
+// 방사 좌표계 — aDeg 방향을 '바깥', 그 수직을 '옆'으로 삼는다 (궁·문에 씀)
+function F(aDeg: number, out: number, side: number): [number, number] {
+  const a = rad(aDeg);
+  const ux = Math.cos(a), uy = Math.sin(a);
+  return [C + ux * out - uy * side, C + uy * out + ux * side];
+}
 
-  const n = b.waves && b.waves > 0 ? b.waves : 6;
-  const amp = b.amp ?? 0;
-  const a = (aDeg * Math.PI) / 180;
-  const ph = ((b.phase ?? 0) * Math.PI) / 180;
+const pp = (p: [number, number]) => `${f(p[0])} ${f(p[1])}`;
 
-  if (shape === "sine") return b.r + amp * Math.sin(n * a + ph);
-  if (shape === "star") {
-    // 삼각파 — sin 과 달리 마루가 뾰족하게 선다
-    return b.r + amp * (2 / Math.PI) * Math.asin(Math.sin(n * a + ph));
+function poly(pts: [number, number][]): string {
+  return pts.map((p, i) => `${i === 0 ? "M" : "L"}${pp(p)}`).join(" ") + " Z";
+}
+
+// ── 원시도형 ─────────────────────────────────────────────────────
+
+// 꽃잎 — 밑동(r0, ±hw)에서 두 베지어가 끝점(r1)에서 만나는 진짜 꽃잎.
+// tip: round = 둥근 잎, sharp = 연꽃처럼 뾰족한 잎. bulge = 허리의 살집.
+export function petalD(
+  a: number, r0: number, r1: number, hw: number,
+  tip: "round" | "sharp" = "round", bulge = 1.18
+): string {
+  const L = r1 - r0;
+  const b1 = P(r0, a - hw), b2 = P(r0, a + hw), t = P(r1, a);
+  const mR = r0 + L * 0.32, mA = hw * bulge;
+  const tR = tip === "round" ? r1 - L * 0.06 : r1 - L * 0.3;
+  const tA = tip === "round" ? hw * 0.6 : hw * 0.22;
+  const c1 = P(mR, a - mA), c2 = P(tR, a - tA);
+  const c3 = P(tR, a + tA), c4 = P(mR, a + mA);
+  return (
+    `M${pp(b1)} C${pp(c1)} ${pp(c2)} ${pp(t)}` +
+    ` C${pp(c3)} ${pp(c4)} ${pp(b2)}` +
+    ` A${f(r0)} ${f(r0)} 0 0 0 ${pp(b1)} Z`
+  );
+}
+
+// 아치(부채) — 안쪽 호 위에 반달처럼 부푼 지붕
+export function archD(a: number, r0: number, r1: number, hw: number): string {
+  const L = r1 - r0;
+  const s1 = P(r0, a - hw), s2 = P(r0, a + hw), t = P(r1, a);
+  const c1 = P(r0 + L * 0.55, a + hw * 1.02), c2 = P(r1, a + hw * 0.55);
+  const c3 = P(r1, a - hw * 0.55), c4 = P(r0 + L * 0.55, a - hw * 1.02);
+  return (
+    `M${pp(s1)} A${f(r0)} ${f(r0)} 0 0 1 ${pp(s2)}` +
+    ` C${pp(c1)} ${pp(c2)} ${pp(t)} C${pp(c3)} ${pp(c4)} ${pp(s1)} Z`
+  );
+}
+
+// 마름모 — 안끝(r0)·바깥끝(r1)·양옆(rm, ±hw) 네 꼭짓점
+export function diamondD(
+  a: number, r0: number, r1: number, hw: number, mid = 0.5
+): string {
+  const rm = r0 + (r1 - r0) * mid;
+  return poly([P(r0, a), P(rm, a - hw), P(r1, a), P(rm, a + hw)]);
+}
+
+// 고리 조각 — a1→a2, r0→r1 의 도넛 조각 (a2-a1 ≤ 180)
+export function ringSegD(a1: number, a2: number, r0: number, r1: number): string {
+  const la = a2 - a1 > 180 ? 1 : 0;
+  return (
+    `M${pp(P(r0, a1))} A${f(r0)} ${f(r0)} 0 ${la} 1 ${pp(P(r0, a2))}` +
+    ` L${pp(P(r1, a2))} A${f(r1)} ${f(r1)} 0 ${la} 0 ${pp(P(r1, a1))} Z`
+  );
+}
+
+// 원
+export function circleD(r: number, cx = C, cy = C): string {
+  return (
+    `M${f(cx - r)} ${f(cy)} A${f(r)} ${f(r)} 0 1 1 ${f(cx + r)} ${f(cy)}` +
+    ` A${f(r)} ${f(r)} 0 1 1 ${f(cx - r)} ${f(cy)} Z`
+  );
+}
+
+// 사각 궁의 한 변 — 바깥 반변 so, 안쪽 반변 si 의 사다리꼴 (45° 이음)
+export function gateSideD(a: number, so: number, si: number): string {
+  return poly([F(a, so, -so), F(a, so, so), F(a, si, si), F(a, si, -si)]);
+}
+
+// 층계문(門) — 변의 한가운데서 밖으로 좁아지며 솟는 계단 문
+export function gateD(a: number, rb: number, hws: number[], hs: number[]): string {
+  const left: [number, number][] = [];
+  const right: [number, number][] = [];
+  let r = rb;
+  for (let i = 0; i < hws.length; i++) {
+    left.push(F(a, r, -hws[i]));
+    right.push(F(a, r, hws[i]));
+    r += hs[i];
+    left.push(F(a, r, -hws[i]));
+    right.push(F(a, r, hws[i]));
   }
-  // 정n각형의 극좌표식 — b.r 은 꼭짓점까지의 거리
-  const seg = (2 * Math.PI) / n;
-  const psi = ((((a + ph) % seg) + seg) % seg) - seg / 2;
-  return (b.r * Math.cos(Math.PI / n)) / Math.cos(psi);
+  return poly([...left, ...right.reverse()]);
 }
 
-// 경계를 따라 a1 → a2 로 가는 점들.
-// 안쪽 고리의 '바깥 경계'와 바깥쪽 고리의 '안쪽 경계'가 이 함수를 함께 쓴다.
-// 중간 점은 오직 GRID 배수 각도에만 찍으므로, 두 고리의 칸 폭이 달라도
-// 겹치는 구간에서 같은 점 좌표가 나온다.
-function boundaryPoints(
-  b: Boundary,
-  a1: number,
-  a2: number
-): [number, number][] {
-  const out: [number, number][] = [P(boundaryR(b, a1), a1)];
-  const first = Math.floor(a1 / GRID) + 1;
-  const last = Math.ceil(a2 / GRID) - 1;
-  for (let i = first; i <= last; i++) {
-    const a = i * GRID;
-    if (a <= a1 + 1e-9 || a >= a2 - 1e-9) continue;
-    out.push(P(boundaryR(b, a), a));
-  }
-  out.push(P(boundaryR(b, a2), a2));
-  return out;
+// 선분 (decor 용)
+function lineD(p1: [number, number], p2: [number, number]): string {
+  return `M${pp(p1)} L${pp(p2)}`;
 }
 
-// 살(조각과 조각 사이의 선) — 안쪽 경계에서 바깥 경계로.
-// 한 조각의 오른쪽 살과 이웃 조각의 왼쪽 살이 이 함수를 함께 쓴다.
-function edgePoints(
-  bi: Boundary,
-  bo: Boundary,
-  aDeg: number,
-  bow: number
-): [number, number][] {
-  const r1 = boundaryR(bi, aDeg);
-  const r2 = boundaryR(bo, aDeg);
-  const steps = bow === 0 ? 1 : 10;
-  const out: [number, number][] = [];
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const r = r1 + (r2 - r1) * t;
-    // 가운데가 가장 많이 휘고, 양 끝은 정확히 경계에 닿는다
-    const da = bow * Math.sin(Math.PI * t);
-    out.push(P(r, aDeg + da));
-  }
-  return out;
-}
+// ── 조립기 ───────────────────────────────────────────────────────
 
-function toPath(points: [number, number][]): string {
-  return points
-    .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`)
-    .join(" ");
-}
+export class Builder {
+  nodes: MandalaNode[] = [];
+  private seedMap: Record<string, [number, number][]> = {};
+  private order: string[] = [];
+  constructor(private tk: string) {}
 
-// 살이 휘는 정도 — 오직 '살의 번호'에만 달려 있어야 이웃과 어긋나지 않는다.
-// 휨이 칸 폭에 비해 크면 잎의 허리가 실오라기처럼 가늘어지므로 칸 폭의 1/4로 묶는다.
-function bowOf(k: number, ring: Ring): number {
-  const raw = ring.bow ?? 0;
-  if (!raw) return 0;
-  const limit = 360 / ring.n / 4;
-  const amount = Math.min(Math.abs(raw), limit) * (raw < 0 ? -1 : 1);
-  switch (ring.bowMode ?? "straight") {
-    case "petal":
-      return k % 2 === 0 ? amount : -amount; // 뾰족잎·둥근잎이 번갈아
-    case "swirl":
-      return amount; // 모두 한쪽으로 — 소용돌이
-    default:
-      return 0;
-  }
-}
-
-// ── 문양 만들기 ──────────────────────────────────────────────────
-
-const warned = new Set<string>();
-
-// 문양이 위의 '약속'을 지키는지 개발 중에만 짚어 본다 (화면은 멈추지 않는다)
-function checkTemplate(tpl: Template) {
-  if (process.env.NODE_ENV === "production" || warned.has(tpl.key)) return;
-  warned.add(tpl.key);
-  const say = (m: string) => console.warn(`[만다라 ${tpl.key}] ${m}`);
-  if (tpl.bounds.length !== tpl.rings.length + 1)
-    say("경계 수가 고리 수 + 1 이 아닙니다");
-  tpl.rings.forEach((ring, ri) => {
-    const step = 360 / ring.n;
-    const rot = ring.rot ?? 0;
-    if (Math.abs(step / GRID - Math.round(step / GRID)) > 1e-9)
-      say(`고리${ri}: n=${ring.n} 은 칸 경계가 ${GRID}° 격자에 얹히지 않습니다`);
-    if (Math.abs(rot / GRID - Math.round(rot / GRID)) > 1e-9)
-      say(`고리${ri}: rot=${rot}° 는 ${GRID}° 배수가 아닙니다`);
-    if (ring.bowMode === "petal" && ring.n % 2 !== 0)
-      say(`고리${ri}: petal 모드는 n 이 짝수여야 이음매가 맞습니다`);
-    for (const b of [tpl.bounds[ri], tpl.bounds[ri + 1]]) {
-      if (b?.waves && b.shape !== "circle" && ring.n % b.waves !== 0)
-        say(`고리${ri}: 경계의 waves=${b.waves} 가 n=${ring.n} 을 나누지 못합니다`);
+  cell(key: string, d: string, seed: [number, number], fillRule?: "evenodd") {
+    const k = `${this.tk}-${key}`;
+    this.nodes.push({ kind: "cell", key: k, d, fillRule });
+    if (!this.seedMap[k]) {
+      this.seedMap[k] = [];
+      this.order.push(k);
     }
-  });
-}
+    this.seedMap[k].push(seed);
+  }
 
-export function buildRegions(tpl: Template): Region[] {
-  checkTemplate(tpl);
-  const out: Region[] = [];
+  decor(d: string, w = 0.3, fill = false, opacity?: number) {
+    this.nodes.push({ kind: "decor", d, w, fill, opacity });
+  }
 
-  // 한가운데 원
-  const cr = tpl.core;
-  out.push({
-    id: `${tpl.key}-core`,
-    d: `M${C - cr} ${C} a${cr} ${cr} 0 1 0 ${cr * 2} 0 a${cr} ${cr} 0 1 0 ${-cr * 2} 0 Z`,
-    cx: C,
-    cy: C,
-  });
+  // 구슬 무늬 — 윤곽 원 + 가운데 점 (decor)
+  bead(x: number, y: number, r: number, dot = true) {
+    this.decor(circleD(r, x, y), 0.28);
+    if (dot) this.decor(circleD(Math.max(0.5, r * 0.32), x, y), 0, true);
+  }
 
-  tpl.rings.forEach((ring, ri) => {
-    const bi = tpl.bounds[ri];
-    const bo = tpl.bounds[ri + 1];
-    const step = 360 / ring.n;
-    const rot = ring.rot ?? 0;
-
-    for (let k = 0; k < ring.n; k++) {
-      const a1 = rot + step * k;
-      const a2 = rot + step * (k + 1);
-      // 이웃과 공유하는 살 — k번 살과 k+1번 살
-      const e1 = edgePoints(bi, bo, a1, bowOf(k, ring));
-      const e2 = edgePoints(bi, bo, a2, bowOf(k + 1, ring));
-      const inner = boundaryPoints(bi, a1, a2);
-      const outer = boundaryPoints(bo, a1, a2);
-
-      // 안쪽 시작점 → 살1 타고 바깥 → 바깥 경계 → 살2 타고 안쪽 → 안쪽 경계로 돌아옴
-      const ring1 = [...e1, ...outer.slice(1), ...[...e2].reverse().slice(1)];
-      const back = [...inner].reverse().slice(1);
-      const d = `${toPath([...ring1, ...back])} Z`;
-
-      const [mx, my] = P(
-        (boundaryR(bi, (a1 + a2) / 2) + boundaryR(bo, (a1 + a2) / 2)) / 2,
-        (a1 + a2) / 2
+  // 고리 띠 — segs 조각을 group 개씩 한 칸으로 묶는다
+  band(
+    keyBase: string, r0: number, r1: number,
+    segs: number, group: number, rot = 0
+  ) {
+    const step = 360 / segs;
+    for (let k = 0; k < segs; k++) {
+      const a1 = rot + k * step;
+      this.cell(
+        `${keyBase}${Math.floor(k / group)}`,
+        ringSegD(a1, a1 + step, r0, r1),
+        P((r0 + r1) / 2, a1 + step / 2)
       );
-      out.push({ id: `${tpl.key}-r${ri}-${k}`, d, cx: mx, cy: my });
     }
-  });
+  }
 
-  return out;
+  // 구슬 점무늬 고리 (decor)
+  beadRing(n: number, r: number, size: number, rot = 0, dot = true) {
+    for (let k = 0; k < n; k++) {
+      const [x, y] = P(r, rot + (k * 360) / n);
+      this.bead(x, y, size, dot);
+    }
+  }
+
+  done(): Built {
+    return { nodes: this.nodes, cellKeys: this.order, seeds: this.seedMap };
+  }
 }
 
-// ── 여섯 폭의 만다라 ────────────────────────────────────────────
-// bounds 는 안에서 밖으로 이어지며, 앞 고리의 바깥 경계가 곧 다음 고리의 안쪽 경계다.
-// (그래서 고리 사이에 칠할 수 없는 빈 띠가 생기지 않는다)
-//
-// 여섯 폭 모두 가운데 원 + 여섯 겹, 도합 일곱 층이다. 안쪽 겹은 6~12칸으로
-// 큼직하게, 바깥으로 갈수록 잘게 나눠 최대 48칸까지 촘촘해진다.
-// 칸은 손가락으로 짚을 수 있어야 하므로 어느 칸도 폭·두께가 viewBox 기준
-// 11 단위(모바일 359px 화면에서 약 20px) 아래로 내려가지 않는다.
-//
-// 물결 진폭을 과감히 쓰면서도 칸이 실오라기가 되지 않게 하는 두 가지 요령:
-//  · 이웃한 두 경계에 같은 waves·phase 를 주면 고리가 물결을 따라 함께 출렁여
-//    두께가 거의 일정하다 — 진폭의 차만큼만 변한다.
-//  · 물결 수를 두 배로 올려 넘어갈 때는 위상을 맞춰(phase_밖 − 2·phase_안 = −90°)
-//    마루가 마루 위에 얹히게 한다 — 골끼리 어긋나 칸이 짓눌리는 일이 없다.
+// n 갈래 회전 반복
+function ring(n: number, rot: number, fn: (a: number, k: number) => void) {
+  for (let k = 0; k < n; k++) fn(rot + (k * 360) / n, k);
+}
+
+// 중심 로제트 — 겹치는 둥근 꽃잎 두 겹 + 심(芯). 다섯 폭이 함께 쓴다.
+function rosette(
+  b: Builder, n: number, r1: number, r2: number, core: number,
+  tip: "round" | "sharp" = "round"
+) {
+  ring(n, 0, (a, k) => {
+    b.cell(`ro${k}`, petalD(a, core * 0.9, r1, 360 / n / 2 * 0.86, tip, 1.28), P((core + r1) / 2, a));
+    b.decor(petalD(a, core * 0.9 + (r1 - core) * 0.16, r1 - (r1 - core) * 0.18, 360 / n / 2 * 0.46, tip, 1.2), 0.26);
+  });
+  ring(n, 180 / n, (a, k) => {
+    b.cell(`ri${k}`, petalD(a, core * 0.7, r2, 360 / n / 2 * 0.72, tip, 1.28), P((core + r2) / 2, a));
+  });
+  b.cell("core", circleD(core), [C, C]);
+  b.decor(circleD(core * 0.62), 0.3);
+  b.decor(circleD(core * 0.2), 0, true);
+}
+
+// ── 다섯 폭 ──────────────────────────────────────────────────────
+
+// 1. 연화 — 가운데 로제트에서 연꽃잎이 겹겹이 밖으로 펼쳐진다
+function buildLotus(b: Builder) {
+  // 맨 바깥 — 뾰족한 잎끝 열여섯
+  ring(16, 0, (a, k) => {
+    b.cell(`o${k}`, petalD(a, 71, 97, 10.5, "sharp", 1.2), P(84, a));
+    b.decor(petalD(a, 74.5, 92.5, 5.6, "sharp", 1.15), 0.26);
+    b.decor(lineD(P(76, a), P(88.5, a)), 0.24);
+  });
+  // 구슬 띠
+  b.band("b", 65.5, 71.5, 16, 2);
+  b.decor(circleD(65.5), 0.3);
+  b.decor(circleD(71.5), 0.3);
+  b.beadRing(32, 68.5, 2.0);
+  // 뒤 연꽃잎 열둘
+  ring(12, 15, (a, k) => {
+    b.cell(`p${k}`, petalD(a, 38, 65.5, 15, "sharp", 1.22), P(53, a));
+    b.decor(petalD(a, 41.5, 61, 8.4, "sharp", 1.18), 0.26);
+    b.decor(lineD(P(43.5, a), P(57, a)), 0.24);
+  });
+  // 잎 사이 구슬
+  ring(12, 0, (a) => {
+    const [x, y] = P(61.5, a);
+    b.decor(circleD(2.1, x, y), 0.26);
+    b.decor(circleD(0.8, x, y), 0, true);
+  });
+  // 앞 연꽃잎 열둘 — 반 칸 돌려 겹친다
+  ring(12, 0, (a, k) => {
+    b.cell(`q${k}`, petalD(a, 35, 57, 15, "round", 1.22), P(46, a));
+    b.decor(petalD(a, 38, 52.5, 8.2, "round", 1.18), 0.26);
+    b.decor(circleD(1.0, ...P(50.5, a)), 0, true);
+  });
+  // 가는 점무늬 띠
+  b.band("t", 32.5, 36.5, 12, 3);
+  b.beadRing(24, 34.5, 0.75, 7.5, false);
+  // 중심 로제트
+  rosette(b, 8, 34, 21.5, 9.5);
+}
+
+// 2. 법륜 — 여덟 살 수레바퀴, 아치 감실과 밧줄 테
+function buildWheel(b: Builder) {
+  // 밧줄 테
+  b.band("r", 90.5, 97, 24, 3);
+  ring(24, 0, (a) => b.decor(lineD(P(90.5, a), P(97, a + 7)), 0.3));
+  // 아치 감실 열여섯
+  ring(16, 11.25, (a, k) => {
+    b.cell(`a${k}`, archD(a, 73.5, 90, 10.2), P(81, a));
+    b.decor(archD(a, 76, 86.5, 6.4), 0.26);
+    b.decor(circleD(0.9, ...P(80, a)), 0, true);
+  });
+  // 구슬 띠
+  b.band("b", 64.5, 73.5, 16, 2);
+  b.decor(circleD(64.5), 0.3);
+  b.beadRing(32, 69, 2.4);
+  // 바퀴 안테
+  b.band("i", 58.5, 64.5, 8, 1, 22.5);
+  // 살 사이 바탕 — 그림자 꽃잎과 구슬로 메운다
+  ring(8, 0, (a, k) => {
+    b.cell(`s${k}`, ringSegD(a, a + 45, 25.5, 58.5), P(43, a + 22.5));
+  });
+  ring(8, 22.5, (a) => {
+    b.decor(petalD(a, 27, 56, 14, "round", 1.18), 0.26);
+    b.decor(petalD(a, 30, 51, 8, "round", 1.14), 0.24);
+    b.decor(circleD(2.6, ...P(43, a)), 0.26);
+    b.decor(circleD(0.9, ...P(43, a)), 0, true);
+  });
+  // 여덟 바퀴살
+  ring(8, 0, (a, k) => {
+    b.cell(`k${k}`, diamondD(a, 22.5, 60.5, 7.5, 0.45), P(40, a));
+    b.decor(diamondD(a, 26.5, 55.5, 4.2, 0.45), 0.26);
+    b.decor(lineD(P(29, a), P(52, a)), 0.24);
+  });
+  // 굴대와 심
+  b.band("h", 17.5, 25.5, 8, 1, 22.5);
+  b.beadRing(16, 21.5, 0.7, 0, false);
+  rosette(b, 8, 20.5, 13.5, 8);
+}
+
+// 3. 백화 — 둥근 꽃잎 로제트가 다중으로 피고 점무늬 고리가 감싼다
+function buildBloom(b: Builder) {
+  // 잔잎 스물넷
+  ring(24, 0, (a, k) => {
+    b.cell(`o${Math.floor(k / 3)}`, petalD(a, 83, 97, 7, "round", 1.2), P(90, a));
+    b.decor(circleD(0.8, ...P(91.5, a)), 0, true);
+  });
+  // 큰 둥근 꽃잎 열여섯
+  ring(16, 0, (a, k) => {
+    b.cell(`p${k}`, petalD(a, 57, 85.5, 10.8, "round", 1.26), P(72, a));
+    b.decor(petalD(a, 60, 81, 6, "round", 1.2), 0.26);
+    b.decor(lineD(P(62, a), P(75, a)), 0.24);
+    b.decor(circleD(1.1, ...P(78.5, a)), 0, true);
+  });
+  // 구슬 띠
+  b.band("b", 51.5, 57.5, 16, 2);
+  b.decor(circleD(51.5), 0.3);
+  b.decor(circleD(57.5), 0.3);
+  b.beadRing(32, 54.5, 1.9);
+  // 가운데 꽃잎 두 겹 — 반 칸씩 어긋나며 겹친다
+  ring(12, 15, (a, k) => {
+    b.cell(`m${k}`, petalD(a, 33, 53.5, 14, "round", 1.26), P(44, a));
+    b.decor(petalD(a, 36, 49, 8, "round", 1.2), 0.26);
+  });
+  ring(12, 0, (a, k) => {
+    b.cell(`n${k}`, petalD(a, 27.5, 45, 14, "round", 1.26), P(36, a));
+    b.decor(petalD(a, 30, 41, 7.6, "round", 1.2), 0.26);
+    b.decor(circleD(0.9, ...P(38.5, a)), 0, true);
+  });
+  // 점무늬 띠
+  b.band("t", 24, 27.8, 12, 3);
+  b.beadRing(24, 25.9, 0.75, 7.5, false);
+  // 중심 로제트
+  rosette(b, 8, 25.5, 17, 8.5);
+}
+
+// 4. 금강 — 여덟 갈래 별이 겹으로 서고 사이에 구슬이 박힌다
+function buildVajra(b: Builder) {
+  // 바깥 테 — 마름모 사슬
+  b.band("r", 88.5, 97, 16, 2);
+  ring(16, 11.25, (a) => b.decor(diamondD(a, 89.5, 96, 4.4), 0.26));
+  // 별 사이 바탕 꽃잎 여덟 — 별 뒤에 깔린다
+  ring(8, 22.5, (a, k) => {
+    b.cell(`f${k}`, petalD(a, 32, 86, 17, "round", 1.16), P(62, a));
+    b.decor(petalD(a, 36, 81, 11, "round", 1.12), 0.26);
+  });
+  // 큰 별 여덟 촉
+  ring(8, 0, (a, k) => {
+    b.cell(`s${k}`, diamondD(a, 28, 88, 10.5, 0.42), P(55, a));
+    b.decor(diamondD(a, 34, 80.5, 6, 0.42), 0.26);
+    b.decor(lineD(P(37, a), P(74, a)), 0.24);
+  });
+  // 버금 별 여덟 촉 — 반 칸 돌림
+  ring(8, 22.5, (a, k) => {
+    b.cell(`t${k}`, diamondD(a, 28, 72, 9.5, 0.45), P(48, a));
+    b.decor(diamondD(a, 33, 65.5, 5.2, 0.45), 0.26);
+  });
+  // 별 사이 구슬 여덟
+  ring(8, 22.5, (a, k) => {
+    const [x, y] = P(77.5, a);
+    b.cell(`j${k}`, circleD(6.2, x, y), [x, y]);
+    b.decor(circleD(3.8, x, y), 0.26);
+    b.decor(circleD(1.2, x, y), 0, true);
+  });
+  // 구슬 띠
+  b.band("b", 33.5, 40, 16, 2);
+  b.beadRing(24, 36.7, 2.2);
+  // 안쪽 마름모 고리
+  ring(8, 22.5, (a, k) => {
+    b.cell(`d${k}`, diamondD(a, 17.5, 32.5, 7, 0.5), P(25, a));
+    b.decor(diamondD(a, 20.5, 29.5, 4, 0.5), 0.26);
+  });
+  // 중심 — 뾰족한 로제트
+  rosette(b, 8, 18, 11.5, 7, "sharp");
+}
+
+// 5. 도량 — 티베트식. 연꽃 테 안에 사각 궁이 서고 네 문이 열린다
+function buildPalace(b: Builder) {
+  // 밧줄 테
+  b.band("r", 91, 97, 24, 3);
+  ring(24, 0, (a) => b.decor(lineD(P(91, a), P(97, a + 7)), 0.3));
+  // 구슬 띠
+  b.band("b", 84.5, 90.5, 16, 2);
+  b.beadRing(36, 87.5, 1.9);
+  // 연꽃잎 고리 열여섯
+  ring(16, 11.25, (a, k) => {
+    b.cell(`l${k}`, petalD(a, 57, 84, 10.5, "sharp", 1.2), P(71, a));
+    b.decor(petalD(a, 60.5, 80, 5.6, "sharp", 1.15), 0.26);
+    b.decor(lineD(P(62.5, a), P(77, a)), 0.24);
+  });
+  // 네 모서리 부채 — 궁 안 대각선
+  ring(4, 45, (a, k) => {
+    b.cell(`f${k}`, petalD(a, 40, 60, 17, "round", 1.2), P(50, a));
+    b.decor(petalD(a, 43, 56, 9.5, "round", 1.16), 0.26);
+  });
+  // 사각 궁 — 네 변
+  ring(4, 0, (a, k) => {
+    b.cell(`w${k}`, gateSideD(a, 54, 45), F(a, 49.5, 0));
+  });
+  {
+    const hs = 49.5;
+    const sq = [P(hs * Math.SQRT2, 45), P(hs * Math.SQRT2, 135), P(hs * Math.SQRT2, 225), P(hs * Math.SQRT2, 315)];
+    b.decor(poly(sq), 0.26);
+  }
+  // 네 문 — 층계로 솟는다
+  ring(4, 0, (a, k) => {
+    b.cell(`g${k}`, gateD(a, 54, [15, 10.5, 5.5], [6, 5.5, 5]), F(a, 61, 0));
+    b.decor(gateD(a, 54.8, [11, 7.2, 3.2], [4.6, 4.4, 4]), 0.24);
+  });
+  // 안뜰 테
+  b.band("c", 41, 45, 8, 2);
+  b.beadRing(16, 43, 0.7, 11.25, false);
+  // 안의 연꽃
+  ring(8, 0, (a, k) => {
+    b.cell(`p${k}`, petalD(a, 12.5, 40.5, 19.5, "round", 1.26), P(27, a));
+    b.decor(petalD(a, 16, 36, 10.5, "round", 1.2), 0.26);
+    b.decor(lineD(P(19, a), P(31, a)), 0.24);
+  });
+  ring(8, 22.5, (a, k) => {
+    b.cell(`q${k}`, petalD(a, 8, 24, 15, "round", 1.26), P(16, a));
+  });
+  b.cell("core", circleD(10), [C, C]);
+  b.decor(circleD(6.5), 0.3);
+  b.decor(circleD(2.0), 0, true);
+}
 
 export const TEMPLATES: Template[] = [
-  {
-    // 겹연꽃 — 가운데 여섯 장의 큰 잎이 펑퍼짐하게 벌고, 물결 경계가
-    // 잎끝을 그리며 여섯 겹으로 피어난다. 바깥 두 겹은 잔잎 스물넷.
-    key: "lotus",
-    name: "연화장",
-    hanja: "蓮華藏",
-    core: 12,
-    bounds: [
-      { r: 12 },
-      { r: 30, shape: "sine", waves: 6, amp: 4, phase: -90 }, // 잎끝이 칸 한가운데
-      { r: 43, shape: "sine", waves: 6, amp: 4, phase: -90 },
-      { r: 56, shape: "sine", waves: 6, amp: 2.5, phase: -90 },
-      { r: 69.5, shape: "sine", waves: 12, amp: 2, phase: 90 },
-      { r: 82, shape: "sine", waves: 12, amp: 2, phase: 90 },
-      { r: 95.5, shape: "sine", waves: 24, amp: 2.2, phase: 90 },
-    ],
-    rings: [
-      { n: 6, bow: 11, bowMode: "petal" }, // 큰 잎 — 허리가 넉넉한 곡선
-      { n: 12, rot: 15, bow: 4, bowMode: "petal" },
-      { n: 12, bow: 6, bowMode: "petal" },
-      { n: 24, rot: 7.5 },
-      { n: 24, bow: 3, bowMode: "petal" },
-      { n: 24, rot: 7.5, bow: 3, bowMode: "petal" },
-    ],
-  },
-  {
-    // 법륜 — 여덟 바퀴살의 굴대에서 삼각파 테가 겹겹이 번져 나가고,
-    // 바깥 테는 마흔여덟 톱니로 잘게 나뉜다.
-    key: "wheel",
-    name: "법륜",
-    hanja: "法輪",
-    core: 13,
-    bounds: [
-      { r: 13 },
-      { r: 28 },
-      { r: 42.5, shape: "star", waves: 8, amp: 3, phase: 90 },
-      { r: 56, shape: "star", waves: 8, amp: 3.5, phase: 90 },
-      { r: 70, shape: "star", waves: 8, amp: 4, phase: 90 },
-      { r: 84, shape: "star", waves: 24, amp: 1.5, phase: 90 },
-      { r: 96.3, shape: "star", waves: 24, amp: 2, phase: 90 },
-    ],
-    rings: [
-      { n: 8 },
-      { n: 8, rot: 22.5 },
-      { n: 16 },
-      { n: 24, rot: 7.5 },
-      { n: 24 },
-      { n: 48 },
-    ],
-  },
-  {
-    // 육각화 — 정육각이 세 겹, 그 위로 십이각 두 겹, 맨 밖은 물결 테.
-    // 안쪽 여섯 잎은 크게 벌어진다.
-    key: "hexa",
-    name: "육각화",
-    hanja: "六角華",
-    core: 12,
-    bounds: [
-      { r: 12 },
-      { r: 30, shape: "polygon", waves: 6 },
-      { r: 44, shape: "polygon", waves: 6 },
-      { r: 58, shape: "polygon", waves: 6 },
-      { r: 72, shape: "polygon", waves: 12 },
-      { r: 86, shape: "polygon", waves: 12 },
-      { r: 96.3, shape: "sine", waves: 12, amp: 2, phase: 90 },
-    ],
-    rings: [
-      { n: 6, bow: 9, bowMode: "petal" },
-      { n: 12, bow: 4, bowMode: "petal" },
-      { n: 18 },
-      { n: 24 },
-      { n: 24, rot: 7.5 },
-      { n: 36 },
-    ],
-  },
-  {
-    // 천불 — 아홉 굽이 물결이 두 배로 갈라지며 번진다. 아홉·아홉·열여덟…
-    // 서른여섯까지, 감실이 촘촘히 늘어서는 구품(九品)의 배치.
-    key: "thousand",
-    name: "천불",
-    hanja: "千佛",
-    core: 11,
-    bounds: [
-      { r: 11 },
-      { r: 26 },
-      { r: 40, shape: "sine", waves: 9, amp: 2.5, phase: -90 },
-      { r: 54, shape: "sine", waves: 9, amp: 2.5, phase: -90 },
-      { r: 68, shape: "sine", waves: 18, amp: 2, phase: 90 },
-      { r: 81, shape: "sine", waves: 18, amp: 2, phase: 90 },
-      { r: 94.5, shape: "sine", waves: 18, amp: 2.8, phase: 90 },
-    ],
-    rings: [
-      { n: 9 },
-      { n: 9, rot: 20 },
-      { n: 18 },
-      { n: 18, rot: 10 },
-      { n: 36 },
-      { n: 36, rot: 5 },
-    ],
-  },
-  {
-    // 소용돌이 — 모든 살이 한쪽으로 휘어 도는 물레. 고리마다 시작각을
-    // 조금씩 밀어 바람개비처럼 감긴다.
-    key: "swirl",
-    name: "소용돌이",
-    hanja: "渦",
-    core: 10,
-    bounds: [
-      { r: 10 },
-      { r: 24 },
-      { r: 38, shape: "sine", waves: 12, amp: 2, phase: -90 },
-      { r: 52, shape: "sine", waves: 12, amp: 2, phase: -90 },
-      { r: 66, shape: "sine", waves: 12, amp: 2.5, phase: -90 },
-      { r: 80, shape: "sine", waves: 12, amp: 2.5, phase: -90 },
-      { r: 94, shape: "sine", waves: 24, amp: 2.5, phase: 90 },
-    ],
-    rings: [
-      { n: 8, bow: 11, bowMode: "swirl" },
-      { n: 12, rot: 5, bow: 7.5, bowMode: "swirl" },
-      { n: 12, rot: 12.5, bow: 7.5, bowMode: "swirl" },
-      { n: 24, bow: 3.75, bowMode: "swirl" },
-      { n: 24, rot: 7.5, bow: 3.75, bowMode: "swirl" },
-      { n: 24, rot: 2.5, bow: 3.75, bowMode: "swirl" },
-    ],
-  },
-  {
-    // 별 — 여덟 갈래 삼각파 빛살이 여섯 겹으로 포개진다. 진폭을 과감히 줘
-    // 뾰족함이 살아 있되, 이웃 경계와 위상을 맞춰 칸 두께는 일정하다.
-    // 위상 90° 는 마루를 0°·45°… 에 세워, 꼭짓점이 칸의 살 위에 얹히게 한다.
-    key: "star",
-    name: "별",
-    hanja: "星",
-    core: 12,
-    bounds: [
-      { r: 12 },
-      { r: 30, shape: "star", waves: 8, amp: 5, phase: 90 },
-      { r: 43, shape: "star", waves: 8, amp: 5, phase: 90 },
-      { r: 56, shape: "star", waves: 8, amp: 5.5, phase: 90 },
-      { r: 69, shape: "star", waves: 8, amp: 5.5, phase: 90 },
-      { r: 82, shape: "star", waves: 8, amp: 5, phase: 90 },
-      { r: 93.8, shape: "star", waves: 8, amp: 4.5, phase: 90 },
-    ],
-    rings: [
-      { n: 8, bow: 6, bowMode: "petal" },
-      { n: 16 },
-      { n: 24, rot: 7.5 },
-      { n: 24 },
-      { n: 24, rot: 7.5, bow: 2.5, bowMode: "petal" },
-      { n: 24 },
-    ],
-  },
+  { key: "lotus", name: "연화", hanja: "蓮華", build: buildLotus },
+  { key: "wheel", name: "법륜", hanja: "法輪", build: buildWheel },
+  { key: "bloom", name: "백화", hanja: "百華", build: buildBloom },
+  { key: "vajra", name: "금강", hanja: "金剛", build: buildVajra },
+  { key: "palace", name: "도량", hanja: "道場", build: buildPalace },
 ];
+
+export function buildMandala(tpl: Template): Built {
+  const b = new Builder(tpl.key);
+  tpl.build(b);
+  return b.done();
+}
 
 // ── 색 ──────────────────────────────────────────────────────────
 // 오방색을 뿌리로, 단청과 자연의 빛깔을 더해 넓게 폈다.

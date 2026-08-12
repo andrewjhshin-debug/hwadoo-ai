@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 // 왼쪽 탭 — 도량의 회랑.
 // · 세 구획으로 묶는다 — 수행 / 말씀 / 나눔 (전부 불교 문양)
-//   수행: 뜰(홈) · 체험하기 · 사유의 방 · 만다라 · 호흡 명상(곧)
+//   수행: 뜰(홈) · 체험하기 · 사유의 방 · 만다라 · 비움 · 호흡 명상(곧)
 //   말씀: 간화선이란? · 선지식의 한마디
 //   나눔: 내가 던지는 화두 · 차담회 · 연지원 · 차 한 잔
 // · 데스크톱: 접기(아이콘만, 구획 제목은 숨김) ↔ 펴기, 상태 기억
@@ -25,6 +25,7 @@ import {
   Jukbi,
   Lantern,
   Mandala,
+  Moktak,
   Lotus,
   SeonMaster,
   Person,
@@ -42,6 +43,8 @@ type NavItem = {
 const NAV_PRACTICE: NavItem[] = [
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/mandala", label: "만다라", Icon: Mandala },
+  // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
+  { href: "/empty", label: "비움", Icon: Moktak },
   { href: "/breath", label: "호흡 명상", Icon: Lotus, soon: true },
 ];
 
