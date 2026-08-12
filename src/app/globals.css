@@ -355,3 +355,8 @@ html[data-theme="light"] .confirm-panel {
     0 26px 70px rgba(90, 18, 12, 0.24),
     0 0 36px rgba(110, 23, 16, 0.1);
 }
+
+/* 색판이 아래에 붙박이일 때도 사유의 방 단추를 감춘다 */
+body[data-palette] .notes-fab {
+  display: none;
+}

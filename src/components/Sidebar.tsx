@@ -33,6 +33,7 @@ const NAV = [
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
   { href: "/mandala", label: "만다라", Icon: Mandala },
+  { href: "/breath", label: "호흡 명상", Icon: Lotus, soon: true },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
   { href: "/gathering", label: "명상 모임", Icon: Person },
   { href: "/community", label: "연지원 — 커뮤니티", Icon: Lantern },
@@ -263,7 +264,7 @@ export default function Sidebar() {
 
         {/* 여섯 방 */}
         <nav className="mt-4 flex flex-col gap-0.5">
-          {NAV.map(({ href, label, Icon }) => (
+          {NAV.map(({ href, label, Icon, soon }) => (
             <Link
               key={href}
               href={href}
@@ -277,6 +278,11 @@ export default function Sidebar() {
             >
               <Icon className="h-[16px] w-[16px] shrink-0 opacity-75" />
               {!slim && <span>{label}</span>}
+              {!slim && soon && (
+                <span className="ml-auto rounded-full border border-gold/30 px-1.5 py-px text-[9px] leading-tight text-gold-soft">
+                  곧
+                </span>
+              )}
             </Link>
           ))}
         </nav>
