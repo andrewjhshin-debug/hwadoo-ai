@@ -10,14 +10,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import NotesDrawer from "@/components/NotesDrawer";
-import { Dharmachakra, SeonMaster, Person, Lotus, Lantern, Banga } from "./icons";
+import { Dharmachakra, SeonMaster, Person, Lotus, Mandala, Banga } from "./icons";
 
 const TABS = [
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/masters", label: "선지식", Icon: SeonMaster },
   { href: "/", label: "뜰", Icon: Lotus },
   { href: "/settings", label: "내 도량", Icon: Person },
-  { href: "/mandala", label: "만다라", Icon: Lantern },
+  { href: "/mandala", label: "만다라", Icon: Mandala },
 ];
 
 export default function MobileTabBar() {

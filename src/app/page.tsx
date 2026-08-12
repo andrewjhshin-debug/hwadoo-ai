@@ -66,11 +66,7 @@ export default function Home() {
   const [holdingCount, setHoldingCount] = useState<number | null>(null);
   const [, setTick] = useState(0);
   const [sharedAnswers, setSharedAnswers] = useState<SharedAnswer[]>([]);
-  // 회향 직후 — 다른 수행자에게 보여줄지 묻는 자리
-  const [askShare, setAskShare] = useState<{
-    hwaduId: string;
-    answer: string;
-  } | null>(null);
+  // 나눔에 부쳤는지 — 회향 화면에 조용히 알린다
   const [shareDone, setShareDone] = useState(false);
 
   // 답을 쓰는 동안에는 사유의 방 떠 있는 단추를 감춘다 (입력창과 겹치지 않게)
@@ -221,7 +217,6 @@ export default function Home() {
       current: null,
     };
     update(next);
-    setAskShare(null);
     setShareDone(false);
     setSharedAnswers([]);
     setWriting(false);
@@ -234,7 +229,7 @@ export default function Home() {
     archiveCurrent(store); // 곧바로 새 화두를 주지 않고, 받는 화면으로
   };
 
-  const saveJournal = () => {
+  const saveJournal = async () => {
     if (!store?.current || !draft.trim()) return;
     const answer = draft.trim();
     const hwaduId = store.current.hwaduId;
@@ -244,9 +239,17 @@ export default function Home() {
     });
     setDraft("");
     setWriting(false);
-    // 나눔 여부는 회향 화면에서 조용히 묻는다 (브라우저 팝업 대신)
-    setAskShare({ hwaduId, answer });
     setShareDone(false);
+    // 회향을 마치자마자 — 나눔의 뜻을 묻는다
+    const ok = await confirm(
+      "그대의 답을 다른 이에게도 보여드려도 괜찮겠습니까?",
+      "이름 없이 — 낱말 이름으로만 남습니다. 도량에서 한 번 살펴본 뒤 열립니다.",
+      { confirm: "네", cancel: "아니오" }
+    );
+    if (ok) {
+      shareAnswer(hwaduId, answer).catch(() => {});
+      setShareDone(true);
+    }
   };
 
   const layDown = async () => {
@@ -369,38 +372,6 @@ export default function Home() {
             </details>
           )}
 
-          {/* 나눔을 묻는다 — 브라우저 팝업 대신 이 자리에서 조용히 */}
-          {askShare && !shareDone && (
-            <div className="mt-8 w-full max-w-md border border-gold/30 bg-ink-2/50 px-6 py-5">
-              <p className="text-[13px] leading-7 text-hanji">
-                그대의 답을, 같은 화두를 든 다른 수행자에게도 보여드려도
-                괜찮겠습니까?
-              </p>
-              <p className="mt-2 text-[11px] leading-5 text-hanji-faint">
-                이름 없이 — 낱말 이름으로만 남습니다. 도량에서 한 번 살펴본 뒤
-                열립니다.
-              </p>
-              <div className="mt-5 flex items-center justify-center gap-3">
-                <button
-                  onClick={() => {
-                    shareAnswer(askShare.hwaduId, askShare.answer).catch(
-                      () => {}
-                    );
-                    setShareDone(true);
-                  }}
-                  className="btn-obang px-7 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
-                >
-                  네, 나누겠습니다
-                </button>
-                <button
-                  onClick={() => setAskShare(null)}
-                  className="border border-ink-3 px-6 py-2.5 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-                >
-                  아니오
-                </button>
-              </div>
-            </div>
-          )}
           {shareDone && (
             <p className="mt-8 text-[12.5px] leading-6 text-gold-soft">
               나눔에 부쳤습니다. 도량에서 살펴본 뒤 다른 수행자에게 열립니다.
