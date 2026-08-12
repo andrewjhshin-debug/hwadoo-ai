@@ -93,7 +93,10 @@ export default function TryPage() {
   const finish = () => {
     if (!hwadu || !answer.trim()) return;
     const s = loadStore();
-    const alreadyTried = s.history.some((h) => h.hwaduId.startsWith("try:"));
+    // 체험은 '이뭣고' 한 판만 남긴다 — 이미 있으면 절대 늘리지 않는다
+    const alreadyTried = s.history.some(
+      (h) => h.hwaduId.startsWith("try:") || h.hwaduId === hwadu.id
+    );
     if (!alreadyTried) {
       saveStore({
         ...s,
@@ -101,7 +104,6 @@ export default function TryPage() {
           ...s.history,
           {
             hwaduId: `try:${hwadu.id}`,
-            customQuestion: hwadu.question,
             receivedAt: Date.now(),
             durationDays: days,
             notes: memo.trim() || undefined,

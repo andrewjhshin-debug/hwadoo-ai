@@ -682,7 +682,9 @@ export function bankCount(audience: "adult" | "student" = "adult"): number {
 }
 
 export function getHwadu(id: string): Hwadu | undefined {
-  return HWADU_BANK.find((h) => h.id === id);
+  // 체험 기록은 "try:이뭣고"처럼 접두어가 붙어 온다 — 벗겨내고 찾는다
+  const realId = id.startsWith("try:") ? id.slice(4) : id;
+  return HWADU_BANK.find((h) => h.id === realId);
 }
 
 // ── 세션(진행 기록)에서 제목/질문 꺼내기 ──

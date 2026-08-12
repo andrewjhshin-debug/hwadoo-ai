@@ -1,623 +1,360 @@
 "use client";
 
 // ────────────────────────────────────────────────────────────────
-// 만다라 색칠하기 — 화두를 기다리는 동안의 수행.
-// 여섯 폭의 문양. 조각들은 빈틈 없이 맞물려, 어느 칸이든 색이 들어간다.
-// 다 채운 뒤 '비우기' — 모래 만다라처럼 색이 흩어져 사라진다.
-//
-// 화면 짜임
-//  · 손안(모바일): 만다라는 화면 폭 가득, 색판은 아래에 붙박이 —
-//    색을 고르러 오르내릴 일이 없다.
-//  · 넓은 화면: 만다라를 크게 두고 색판을 곁에 세로로 둔다.
+// 만다라 — 화두를 기다리는 동안의 사유.
+// · 손가락(마우스): 기본은 확대·축소·이동 (핀치 줌 / 휠 / 드래그 이동)
+// · "연달아 그리기" 버튼을 켜면 — 손을 그으면 여러 갈래로 대칭 복제되어
+//   순식간에 만다라가 피어난다(쉬익쉬익).
+// · 색을 고르고, 갈래 수를 정하고, 다 그리면 비우거나 간직한다.
+// 모두 브라우저 안에서 — 서버도 저장 비용도 없다.
 // ────────────────────────────────────────────────────────────────
 
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useConfirm } from "@/components/Confirm";
-import {
-  buildRegions,
-  PALETTE_GROUPS,
-  TEMPLATES,
-  type Region,
-} from "@/lib/mandala";
 
-const STORAGE_KEY = "hwadu.mandala.v2";
-const ERASER = "transparent";
-const UNDO_MAX = 40;
+const PALETTE = [
+  "#D9B45B", "#E8A33D", "#C1553B", "#E36A6A", "#D98CA6",
+  "#B0587F", "#7A4B6B", "#5E7FB2", "#6FB0C4", "#4E9E86",
+  "#8CA36B", "#C9D66B", "#EDE6D4", "#F4EBD0", "#9A6BB0",
+];
 
-type Fills = Record<string, string>;
-type Board = Record<number, Fills>;
-
-const EMPTY: Fills = {};
-
-// 고른 문양·색·되돌리기 이력을 한 덩어리로 다룬다 —
-// 따로 두면 '비우기' 뒤에도 이력이 남아 흩은 것을 되살린다.
-type State = { tpl: number; fills: Board; undo: Record<number, Fills[]> };
-type Action =
-  | { t: "restore"; fills: Board; tpl: number }
-  | { t: "tpl"; tpl: number }
-  | { t: "paint"; id: string; color: string; remember: boolean }
-  | { t: "undo" }
-  | { t: "clear" };
-
-function reducer(s: State, a: Action): State {
-  if (a.t === "restore") return { tpl: a.tpl, fills: a.fills, undo: {} };
-  if (a.t === "tpl") return a.tpl === s.tpl ? s : { ...s, tpl: a.tpl };
-  const cur = s.fills[s.tpl] ?? EMPTY;
-  const stack = s.undo[s.tpl] ?? [];
-  switch (a.t) {
-    case "paint": {
-      const next = { ...cur };
-      if (a.color === ERASER) {
-        if (!(a.id in cur)) return s; // 이미 비어 있으면 그대로
-        delete next[a.id];
-      } else {
-        if (cur[a.id] === a.color) return s; // 같은 색이면 그대로
-        next[a.id] = a.color;
-      }
-      return {
-        ...s,
-        fills: { ...s.fills, [s.tpl]: next },
-        undo: a.remember
-          ? { ...s.undo, [s.tpl]: [...stack.slice(-(UNDO_MAX - 1)), cur] }
-          : s.undo,
-      };
-    }
-    case "undo": {
-      if (stack.length === 0) return s;
-      return {
-        ...s,
-        fills: { ...s.fills, [s.tpl]: stack[stack.length - 1] },
-        undo: { ...s.undo, [s.tpl]: stack.slice(0, -1) },
-      };
-    }
-    case "clear":
-      // 흩은 뒤에는 되돌릴 수 없다 — 이력도 함께 비운다
-      return {
-        ...s,
-        fills: { ...s.fills, [s.tpl]: EMPTY },
-        undo: { ...s.undo, [s.tpl]: [] },
-      };
-  }
-}
-
-function writeSaved(tpl: number, fills: Board) {
-  // 아직 아무 문양도 손대지 않았다면 적지 않는다 — 저장돼 있던 것을 지우지 않기 위해
-  if (Object.keys(fills).length === 0) return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ tpl, allFills: fills }));
-  } catch {
-    /* 저장 공간이 모자라면 그냥 넘어간다 */
-  }
-}
-
-// 낮 모드에서도 선이 또렷하도록 색을 변수로 빼 둔다.
-// (흰 종이 위의 옅은 금색은 거의 보이지 않는다 — 낮에는 석간주로 바꾼다)
-const SHEET_CSS = `
-.mandala-stage{--mandala-chrome:396px}
-@media (min-width:768px){.mandala-stage{--mandala-chrome:248px}}
-.mandala-sheet{
-  --mandala-line:rgba(217,180,91,0.40);
-  --mandala-empty:rgba(237,230,212,0.025);
-  --mandala-bg:rgba(18,16,13,0.45);
-  background:var(--mandala-bg);
-  border-radius:9999px;
-  touch-action:none;
-}
-html[data-theme="light"] .mandala-sheet{
-  --mandala-line:rgba(122,26,18,0.62);
-  --mandala-empty:rgba(122,26,18,0.035);
-  --mandala-bg:#faf6f0;
-}
-.mandala-sheet path{
-  fill:var(--mandala-empty);
-  stroke:var(--mandala-line);
-  stroke-width:0.9px;
-  vector-effect:non-scaling-stroke;
-  transition:fill .12s;
-  outline:none;
-}
-.mandala-sheet path:focus-visible{stroke:var(--color-gold);stroke-width:2.6px}
-.mandala-eraser{background-image:repeating-linear-gradient(45deg,#2a2520 0 4px,#14110d 4px 8px)}
-html[data-theme="light"] .mandala-eraser{background-image:repeating-linear-gradient(45deg,#e3d9c9 0 4px,#c6b9a5 4px 8px)}
-`;
-
-// ── 색판 — 손안·넓은 화면이 함께 쓴다 ────────────────────────────
-// 컴포넌트 밖에 두어야 칠할 때마다 다시 태어나지 않는다
-// (다시 태어나면 가로로 밀어 둔 색판이 맨 앞으로 되감긴다)
-const Swatches = memo(function Swatches({
-  compact,
-  color,
-  onPick,
-}: {
-  compact?: boolean;
-  color: string;
-  onPick: (c: string) => void;
-}) {
-  return (
-    <div className={compact ? "flex gap-3 overflow-x-auto pb-1" : "flex flex-col gap-3"}>
-      {PALETTE_GROUPS.map((g) => (
-        <div key={g.name} className={compact ? "shrink-0" : ""}>
-          <p className="mb-1 text-[9px] tracking-[0.2em] text-hanji-faint">
-            {g.name}
-          </p>
-          <div
-            className={
-              compact
-                ? "grid grid-flow-col grid-rows-2 gap-1.5"
-                : "grid grid-cols-4 gap-2"
-            }
-          >
-            {g.colors.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => onPick(c)}
-                aria-label={`색 ${c}`}
-                aria-pressed={color === c}
-                className={`h-9 w-9 rounded-full border-2 transition-transform ${
-                  color === c
-                    ? "scale-110 border-hanji"
-                    : "border-transparent hover:scale-105"
-                }`}
-                style={{ backgroundColor: c }}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
-      {/* 지우개 */}
-      <div className={compact ? "shrink-0" : ""}>
-        <p className="mb-1 text-[9px] tracking-[0.2em] text-hanji-faint">지움</p>
-        <button
-          type="button"
-          onClick={() => onPick(ERASER)}
-          aria-label="지우개"
-          aria-pressed={color === ERASER}
-          className={`mandala-eraser h-9 w-9 rounded-full border-2 transition-transform ${
-            color === ERASER
-              ? "scale-110 border-hanji"
-              : "border-ink-3 hover:scale-105"
-          }`}
-        />
-      </div>
-    </div>
-  );
-});
+const SEGMENTS = [6, 8, 12, 16, 24];
 
 export default function MandalaPage() {
-  const confirm = useConfirm();
-  const [color, setColor] = useState(PALETTE_GROUPS[0].colors[0]);
-  const [state, dispatch] = useReducer(reducer, { tpl: 0, fills: {}, undo: {} });
-  const [scattering, setScattering] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const svgWrapRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef(0);
-  const sandTimerRef = useRef(0);
-  const painting = useRef(false);
-  const lastCell = useRef<string | null>(null);
-  const pending = useRef<{ tpl: number; fills: Board } | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
-  const tpl = state.tpl;
-  const template = TEMPLATES[tpl] ?? TEMPLATES[0];
-  const regions: Region[] = useMemo(() => buildRegions(template), [template]);
-  const fills = state.fills[tpl] ?? EMPTY;
-  const undoDepth = (state.undo[tpl] ?? []).length;
+  const [color, setColor] = useState(PALETTE[0]);
+  const [segments, setSegments] = useState(12);
+  const [mirror, setMirror] = useState(true);
+  const [brush, setBrush] = useState(3);
+  const [drawMode, setDrawMode] = useState(true); // true=연달아 그리기, false=확대·이동
+  const [empty, setEmpty] = useState(true);
 
-  // 색판이 아래에 붙박이로 있는 동안에는 사유의 방 단추를 감춘다 (겹치지 않게)
+  // 뷰 변환(줌/이동)
+  const view = useRef({ scale: 1, x: 0, y: 0 });
+  const draw = useRef({ active: false, last: null as null | { x: number; y: number } });
+  const pinch = useRef({ active: false, dist: 0, cx: 0, cy: 0 });
+  const pan = useRef({ active: false, x: 0, y: 0 });
+
+  // 캔버스 초기화 (고정 논리 크기 1000, 화면엔 꽉 차게)
+  const SIZE = 1000;
   useEffect(() => {
-    document.body.dataset.palette = "true";
-    return () => {
-      delete document.body.dataset.palette;
-    };
-  }, []);
-
-  // 새로고침·탭 이동에도 남도록 되살린다
-  const restored = useRef(false);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const saved = JSON.parse(raw) as { tpl?: number; allFills?: Board };
-        const savedTpl =
-          typeof saved.tpl === "number" && TEMPLATES[saved.tpl] ? saved.tpl : 0;
-        if (saved.allFills)
-          dispatch({ t: "restore", fills: saved.allFills, tpl: savedTpl });
-        else dispatch({ t: "tpl", tpl: savedTpl });
-      }
-    } catch {
-      /* 저장된 값이 깨졌으면 새로 시작한다 */
-    }
-    restored.current = true;
-  }, []);
-
-  // 붓질 한 획에 수십 번 쓰지 않도록 잠깐 미뤄 두고 한 번만 적는다.
-  // 미뤄 둔 것은 화면을 떠날 때 반드시 적어 넣는다 — 칠한 것이 사라지면 안 된다.
-  useEffect(() => {
-    if (!restored.current) return;
-    pending.current = { tpl, fills: state.fills };
-    const write = () => {
-      const p = pending.current;
-      if (!p) return;
-      pending.current = null;
-      writeSaved(p.tpl, p.fills);
-    };
-    const h = setTimeout(write, 400);
-    window.addEventListener("pagehide", write);
-    return () => {
-      clearTimeout(h);
-      window.removeEventListener("pagehide", write);
-    };
-  }, [tpl, state.fills]);
-
-  // 떠나는 길에 미뤄 둔 저장을 마저 한다
-  useEffect(
-    () => () => {
-      const p = pending.current;
-      if (p) writeSaved(p.tpl, p.fills);
-    },
-    []
-  );
-
-  const paint = useCallback(
-    (id: string, remember = true) => {
-      if (scattering) return;
-      dispatch({ t: "paint", id, color, remember });
-    },
-    [color, scattering]
-  );
-
-  const undo = () => {
-    if (scattering) return;
-    dispatch({ t: "undo" });
-  };
-
-  const filledCount = useMemo(
-    () => regions.reduce((n, r) => n + (fills[r.id] ? 1 : 0), 0),
-    [regions, fills]
-  );
-  const total = regions.length;
-  const done = filledCount >= Math.floor(total * 0.9);
-
-  // ── 붓질 ──────────────────────────────────────────────────
-  // 터치에서는 브라우저가 처음 누른 조각에 포인터를 묶어 버려(암묵적 캡처)
-  // 이웃 조각에는 pointerenter 가 오지 않는다. 캡처를 풀고 좌표로 칸을 찾는다.
-  const hitPaint = useCallback(
-    (x: number, y: number, remember: boolean) => {
-      const el = document.elementFromPoint(x, y);
-      const id = el?.getAttribute("data-cell");
-      if (!id || id === lastCell.current) return;
-      lastCell.current = id;
-      paint(id, remember);
-    },
-    [paint]
-  );
-
-  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (scattering) return;
-    const t = e.target as Element;
-    if (t.hasPointerCapture?.(e.pointerId)) t.releasePointerCapture(e.pointerId);
-    painting.current = true;
-    lastCell.current = null;
-    hitPaint(e.clientX, e.clientY, true);
-  };
-
-  const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (!painting.current || scattering) return;
-    // 빠르게 그은 획에서도 칸이 빠지지 않도록 합쳐진 이벤트까지 훑는다
-    const native = e.nativeEvent;
-    const coalesced = native.getCoalescedEvents?.() ?? [];
-    const list = coalesced.length > 0 ? coalesced : [native];
-    for (const ev of list) hitPaint(ev.clientX, ev.clientY, false);
-  };
-
-  const onCellKeyDown = (e: React.KeyboardEvent<SVGPathElement>, id: string) => {
-    if (e.key !== "Enter" && e.key !== " ") return;
-    e.preventDefault();
-    lastCell.current = null;
-    paint(id);
-  };
-
-  useEffect(() => {
-    const stop = () => {
-      painting.current = false;
-      lastCell.current = null;
-    };
-    window.addEventListener("pointerup", stop);
-    window.addEventListener("pointercancel", stop);
-    return () => {
-      window.removeEventListener("pointerup", stop);
-      window.removeEventListener("pointercancel", stop);
-    };
-  }, []);
-
-  // ── 모래처럼 흩어지기 ──────────────────────────────────────
-  useEffect(
-    () => () => {
-      cancelAnimationFrame(rafRef.current);
-      clearTimeout(sandTimerRef.current);
-    },
-    []
-  );
-
-  const runSandEffect = () => {
-    const wrap = svgWrapRef.current;
     const canvas = canvasRef.current;
-    if (!wrap || !canvas) return;
-    const size = wrap.clientWidth;
+    if (!canvas) return;
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${size}px`;
+    canvas.width = SIZE * dpr;
+    canvas.height = SIZE * dpr;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.scale(dpr, dpr);
-    const scale = size / 200;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    drawGuides();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segments]);
 
-    type P = {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      r: number;
-      color: string;
-    };
-    const parts: P[] = [];
-    for (const reg of regions) {
-      const c = fills[reg.id];
-      if (!c) continue;
-      const px = reg.cx * scale;
-      const py = reg.cy * scale;
-      const count = 10 + Math.floor(Math.random() * 8);
-      for (let k = 0; k < count; k++) {
-        parts.push({
-          x: px + (Math.random() - 0.5) * 6,
-          y: py + (Math.random() - 0.5) * 6,
-          vx: -(0.15 + Math.random() * 0.7),
-          vy: (Math.random() - 0.5) * 0.35,
-          r: 0.3 + Math.random() * 0.75,
-          color: c,
-        });
+  const getCtx = () => canvasRef.current?.getContext("2d") ?? null;
+
+  // 은은한 가이드(동심원 + 방사선) — 어디를 그릴지 안내
+  const drawGuides = () => {
+    const ctx = getCtx();
+    if (!ctx) return;
+    // 그림은 지우지 않고 가이드만: 별도 오프스크린이 이상적이나, 최초/비우기 때만 호출
+    ctx.save();
+    ctx.strokeStyle = "rgba(217,180,91,0.10)";
+    ctx.lineWidth = 1;
+    const c = SIZE / 2;
+    for (let r = 60; r < c; r += 70) {
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    for (let i = 0; i < segments; i++) {
+      const a = (Math.PI * 2 * i) / segments;
+      ctx.beginPath();
+      ctx.moveTo(c, c);
+      ctx.lineTo(c + Math.cos(a) * c, c + Math.sin(a) * c);
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
+
+  const clearAll = () => {
+    const ctx = getCtx();
+    const canvas = canvasRef.current;
+    if (!ctx || !canvas) return;
+    ctx.clearRect(0, 0, SIZE, SIZE);
+    drawGuides();
+    setEmpty(true);
+  };
+
+  // 화면 좌표 → 캔버스 논리 좌표 (뷰 변환 역산)
+  const toCanvas = (clientX: number, clientY: number) => {
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    // 화면상 캔버스는 CSS로 rect 크기, transform(scale/translate)은 wrap에 적용
+    const px = ((clientX - rect.left) / rect.width) * SIZE;
+    const py = ((clientY - rect.top) / rect.height) * SIZE;
+    return { x: px, y: py };
+  };
+
+  const strokeSym = (from: { x: number; y: number }, to: { x: number; y: number }) => {
+    const ctx = getCtx();
+    if (!ctx) return;
+    const c = SIZE / 2;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = brush;
+    ctx.globalAlpha = 0.92;
+    const fx = from.x - c, fy = from.y - c, tx = to.x - c, ty = to.y - c;
+    for (let i = 0; i < segments; i++) {
+      const ang = (Math.PI * 2 * i) / segments;
+      const cos = Math.cos(ang), sin = Math.sin(ang);
+      const rot = (px: number, py: number) => ({ x: c + px * cos - py * sin, y: c + px * sin + py * cos });
+      const a = rot(fx, fy), b = rot(tx, ty);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+      if (mirror) {
+        const am = rot(-fx, fy), bm = rot(-tx, ty);
+        ctx.beginPath();
+        ctx.moveTo(am.x, am.y);
+        ctx.lineTo(bm.x, bm.y);
+        ctx.stroke();
       }
     }
-    if (parts.length === 0) return;
-
-    setScattering(true);
-    dispatch({ t: "clear" });
-
-    const finish = () => {
-      cancelAnimationFrame(rafRef.current);
-      clearTimeout(sandTimerRef.current);
-      rafRef.current = 0;
-      ctx.clearRect(0, 0, size, size);
-      setScattering(false);
-    };
-    // 다른 탭에 가 있으면 프레임이 오지 않는다 — 그래도 흩어짐은 끝나야 한다
-    sandTimerRef.current = window.setTimeout(finish, 3200);
-
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = (now - start) / 2200;
-      if (t < 1) {
-        ctx.clearRect(0, 0, size, size);
-        for (const p of parts) {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vy += 0.004;
-          ctx.globalAlpha = Math.max(0, 1 - t * 1.15);
-          ctx.fillStyle = p.color;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        rafRef.current = requestAnimationFrame(tick);
-      } else {
-        finish();
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
+    ctx.globalAlpha = 1;
   };
 
-  const clear = async () => {
-    if (scattering) return;
-    if (filledCount === 0) return;
-    const ok = await confirm(
-      "공들여 채운 만다라를 비우시겠습니까?",
-      "모래 만다라처럼 — 이룬 것을 흩어 없애는 것도 수행입니다.",
-      { confirm: "흩다", cancel: "두다" }
-    );
-    if (ok) runSandEffect();
+  const applyTransform = () => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const v = view.current;
+    wrap.style.transform = `translate(${v.x}px, ${v.y}px) scale(${v.scale})`;
   };
 
-  const toolBtn =
-    "rounded-[10px] border border-ink-3 px-4 py-2 text-[12px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji disabled:opacity-40";
+  // ── 포인터 이벤트 ──
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    if (drawMode) {
+      draw.current.active = true;
+      draw.current.last = toCanvas(e.clientX, e.clientY);
+      if (empty) setEmpty(false);
+    } else {
+      pan.current = { active: true, x: e.clientX - view.current.x, y: e.clientY - view.current.y };
+    }
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (drawMode && draw.current.active && draw.current.last) {
+      const p = toCanvas(e.clientX, e.clientY);
+      strokeSym(draw.current.last, p);
+      draw.current.last = p;
+    } else if (!drawMode && pan.current.active) {
+      view.current.x = e.clientX - pan.current.x;
+      view.current.y = e.clientY - pan.current.y;
+      applyTransform();
+    }
+  };
+
+  const onPointerUp = () => {
+    draw.current.active = false;
+    draw.current.last = null;
+    pan.current.active = false;
+  };
+
+  // 휠 줌 (데스크톱)
+  const onWheel = (e: React.WheelEvent) => {
+    if (drawMode) return;
+    e.preventDefault();
+    const v = view.current;
+    const delta = e.deltaY < 0 ? 1.1 : 0.9;
+    v.scale = Math.min(4, Math.max(0.5, v.scale * delta));
+    applyTransform();
+  };
+
+  // 핀치 줌 (모바일) — 확대·이동 모드일 때
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (drawMode || e.touches.length < 2) return;
+    const [a, b] = [e.touches[0], e.touches[1]];
+    pinch.current.active = true;
+    pinch.current.dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (drawMode || !pinch.current.active || e.touches.length < 2) return;
+    e.preventDefault();
+    const [a, b] = [e.touches[0], e.touches[1]];
+    const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const v = view.current;
+    v.scale = Math.min(4, Math.max(0.5, v.scale * (dist / pinch.current.dist)));
+    pinch.current.dist = dist;
+    applyTransform();
+  };
+  const onTouchEnd = () => {
+    pinch.current.active = false;
+  };
+
+  const resetView = () => {
+    view.current = { scale: 1, x: 0, y: 0 };
+    applyTransform();
+  };
+
+  const save = () => {
+    const c = canvasRef.current;
+    if (!c) return;
+    const out = document.createElement("canvas");
+    out.width = c.width;
+    out.height = c.height;
+    const ctx = out.getContext("2d");
+    if (!ctx) return;
+    ctx.fillStyle = "#0D0B09";
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(c, 0, 0);
+    const link = document.createElement("a");
+    link.download = `mandala-${Date.now()}.png`;
+    link.href = out.toDataURL("image/png");
+    link.click();
+  };
 
   return (
-    <div className="mandala-stage mx-auto flex w-full max-w-6xl flex-1 flex-col px-2 pb-[164px] pt-4 md:px-6 md:pb-8 md:pt-6">
-      <style dangerouslySetInnerHTML={{ __html: SHEET_CSS }} />
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-4 py-6">
+      <h1 className="rise text-center text-xs tracking-[0.5em] text-gold-soft">
+        曼陀羅 · 만다라
+      </h1>
+      <p className="rise rise-d1 mt-2 text-center text-[12px] leading-6 text-hanji-faint">
+        {drawMode
+          ? "손끝으로 그으면, 여러 갈래로 함께 피어납니다."
+          : "손가락으로 늘리고 좁혀 — 확대·축소·이동합니다."}
+      </p>
 
-      {/* 머리말 */}
-      <div className="text-center">
-        <h1 className="text-[11px] tracking-[0.5em] text-gold-soft">
-          曼陀羅 · 만다라
-        </h1>
-        <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
-          한 잎씩 색을 채웁니다. 다 채운 뒤에는 — 비웁니다.
+      {/* 캔버스 무대 */}
+      <div className="rise rise-d2 mt-5 aspect-square w-full max-w-[460px] overflow-hidden rounded-full border border-ink-3 bg-ink-2/40">
+        <div ref={wrapRef} className="h-full w-full origin-center will-change-transform">
+          <canvas
+            ref={canvasRef}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerLeave={onPointerUp}
+            onWheel={onWheel}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            className="h-full w-full touch-none"
+            style={{ cursor: drawMode ? "crosshair" : "grab" }}
+          />
+        </div>
+      </div>
+      {empty && (
+        <p className="pointer-events-none -mt-[52%] mb-[calc(52%-1rem)] text-center text-[12px] tracking-wide text-hanji-faint">
+          가운데에서 바깥으로<br />그어 보십시오
         </p>
+      )}
+
+      {/* 모드 전환 — 연달아 그리기 / 확대·이동 */}
+      <div className="rise rise-d3 mt-6 flex items-center gap-2">
+        <button
+          onClick={() => setDrawMode(true)}
+          className={`rounded-full border px-4 py-2 text-xs tracking-[0.1em] transition-colors ${
+            drawMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
+          }`}
+        >
+          ✍ 연달아 그리기
+        </button>
+        <button
+          onClick={() => setDrawMode(false)}
+          className={`rounded-full border px-4 py-2 text-xs tracking-[0.1em] transition-colors ${
+            !drawMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
+          }`}
+        >
+          🔍 확대·이동
+        </button>
+        {!drawMode && (
+          <button
+            onClick={resetView}
+            className="rounded-full border border-ink-3 px-3 py-2 text-xs text-hanji-faint hover:text-hanji"
+          >
+            원위치
+          </button>
+        )}
       </div>
 
-      {/* 문양 고르기 */}
-      <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1 md:justify-center">
-        {TEMPLATES.map((t, i) => (
+      {/* 색 */}
+      <div className="rise rise-d3 mt-5 flex max-w-[420px] flex-wrap items-center justify-center gap-2.5">
+        {PALETTE.map((c) => (
           <button
-            key={t.key}
-            type="button"
-            onClick={() => !scattering && dispatch({ t: "tpl", tpl: i })}
-            aria-pressed={tpl === i}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-[11.5px] tracking-wide transition-colors ${
-              tpl === i
-                ? "border-gold/60 bg-gold/10 text-gold"
-                : "border-ink-3 text-hanji-dim hover:text-hanji"
+            key={c}
+            onClick={() => setColor(c)}
+            aria-label={c}
+            className={`h-7 w-7 rounded-full border-2 transition-transform ${
+              color === c ? "scale-110 border-hanji" : "border-transparent hover:scale-105"
             }`}
-          >
-            {t.name}
-          </button>
+            style={{ backgroundColor: c }}
+          />
         ))}
       </div>
 
-      {/* 본체 */}
-      <div className="mt-3 flex flex-1 flex-col items-center gap-6 md:flex-row md:items-start md:justify-center">
-        {/* 만다라 — 손안에서는 폭 가득, 넓은 화면에서는 남는 높이만큼 크게 */}
-        <div
-          ref={svgWrapRef}
-          className="relative w-full"
-          style={{ maxWidth: "min(100%, calc(100dvh - var(--mandala-chrome)))" }}
-        >
-          <svg
-            viewBox="0 0 200 200"
-            className="mandala-sheet h-auto w-full select-none"
-            role="group"
-            aria-label={`${template.name} 만다라 — ${total}칸 가운데 ${filledCount}칸 채움`}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            style={{ cursor: scattering ? "default" : "pointer" }}
+      {/* 갈래 + 거울 + 붓 */}
+      <div className="rise rise-d3 mt-5 flex flex-wrap items-center justify-center gap-2.5">
+        <span className="text-[11px] tracking-[0.2em] text-hanji-faint">갈래</span>
+        {SEGMENTS.map((n) => (
+          <button
+            key={n}
+            onClick={() => setSegments(n)}
+            className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+              segments === n ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
+            }`}
           >
-            {regions.map((r, i) => (
-              <path
-                key={r.id}
-                d={r.d}
-                data-cell={r.id}
-                role="button"
-                tabIndex={0}
-                aria-label={`${i + 1}번 칸`}
-                aria-pressed={!!fills[r.id]}
-                onKeyDown={(e) => onCellKeyDown(e, r.id)}
-                style={fills[r.id] ? { fill: fills[r.id] } : undefined}
-              />
-            ))}
-          </svg>
-          <canvas
-            ref={canvasRef}
-            className="pointer-events-none absolute inset-0"
-          />
-        </div>
-
-        {/* 넓은 화면 — 곁에 세운 색판 */}
-        <div className="hidden w-[228px] shrink-0 flex-col md:flex">
-          <div className="sticky top-4">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] tracking-[0.3em] text-hanji-faint">색</p>
-              <span
-                className={`h-5 w-5 rounded-full border border-ink-3 ${
-                  color === ERASER ? "mandala-eraser" : ""
-                }`}
-                style={
-                  color === ERASER ? undefined : { backgroundColor: color }
-                }
-              />
-            </div>
-            <div className="mt-2">
-              <Swatches color={color} onPick={setColor} />
-            </div>
-
-            <p className="mt-4 text-[11px] tracking-wide text-hanji-faint">
-              {done ? (
-                <span className="text-gold-soft">
-                  다 채우셨습니다 — 이제 비울 때
-                </span>
-              ) : (
-                <>
-                  {filledCount} / {total} 칸
-                </>
-              )}
-            </p>
-
-            <div className="mt-2 flex gap-2">
-              <button
-                type="button"
-                onClick={undo}
-                disabled={scattering || undoDepth === 0}
-                className={toolBtn}
-              >
-                되돌리기
-              </button>
-              <button
-                type="button"
-                onClick={clear}
-                disabled={scattering || filledCount === 0}
-                className={`flex-1 rounded-[10px] border px-4 py-2 text-[12px] tracking-[0.15em] transition-colors disabled:opacity-40 ${
-                  done
-                    ? "btn-obang text-hanji hover:opacity-90"
-                    : "border-ink-3 text-hanji-dim hover:border-vermilion/50 hover:text-vermilion"
-                }`}
-              >
-                {scattering ? "흩어지는 중…" : "비우기"}
-              </button>
-            </div>
-
-            <p className="mt-4 text-[10px] leading-5 text-hanji-faint">
-              모래로 쌓은 만다라는 완성되는 순간 쓸려 나갑니다.
-              <br />
-              채움에 매이지 않는 연습.
-            </p>
-
-            <Link
-              href="/"
-              className="mt-4 inline-block text-[11px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
-            >
-              ← 화두로 돌아가기
-            </Link>
-          </div>
-        </div>
+            {n}
+          </button>
+        ))}
+        <button
+          onClick={() => setMirror((v) => !v)}
+          className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+            mirror ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
+          }`}
+        >
+          거울
+        </button>
+      </div>
+      <div className="rise rise-d3 mt-4 flex w-full max-w-[280px] items-center gap-3">
+        <span className="text-[11px] tracking-[0.2em] text-hanji-faint">붓</span>
+        <input
+          type="range"
+          min={1}
+          max={10}
+          step={0.5}
+          value={brush}
+          onChange={(e) => setBrush(Number(e.target.value))}
+          className="mandala-range flex-1"
+        />
       </div>
 
-      {/* 손안 — 아래에 붙박이 색판 (탭 바 위에 앉는다) */}
-      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-ink-3 bg-ink/95 px-3 pb-2 pt-2 backdrop-blur md:hidden">
-        <div className="mb-1.5 flex items-center justify-between">
-          <span className="flex items-center gap-2 text-[10px] text-hanji-faint">
-            <span
-              className={`h-4 w-4 rounded-full border border-ink-3 ${
-                color === ERASER ? "mandala-eraser" : ""
-              }`}
-              style={color === ERASER ? undefined : { backgroundColor: color }}
-            />
-            {done ? (
-              <span className="text-gold-soft">다 채움 — 비울 때</span>
-            ) : (
-              <>
-                {filledCount} / {total} 칸
-              </>
-            )}
-          </span>
-          <span className="flex gap-1.5">
-            <button
-              type="button"
-              onClick={undo}
-              disabled={scattering || undoDepth === 0}
-              className="rounded-[8px] border border-ink-3 px-3 py-1 text-[11px] text-hanji-dim disabled:opacity-40"
-            >
-              되돌리기
-            </button>
-            <button
-              type="button"
-              onClick={clear}
-              disabled={scattering || filledCount === 0}
-              className="rounded-[8px] border border-ink-3 px-3 py-1 text-[11px] text-hanji-dim disabled:opacity-40"
-            >
-              {scattering ? "흩는 중" : "비우기"}
-            </button>
-          </span>
-        </div>
-        <Swatches compact color={color} onPick={setColor} />
+      {/* 비우기 · 간직하기 */}
+      <div className="rise rise-d3 mt-7 flex items-center gap-3">
+        <button
+          onClick={clearAll}
+          className="rounded-[10px] border border-ink-3 px-6 py-2.5 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion"
+        >
+          비우기
+        </button>
+        <button
+          onClick={save}
+          disabled={empty}
+          className="btn-obang px-7 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
+        >
+          만다라 간직하기
+        </button>
+      </div>
+
+      <div className="mt-10 text-center">
+        <Link
+          href="/"
+          className="text-xs tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
+        >
+          ← 화두로 돌아가기
+        </Link>
       </div>
     </div>
   );

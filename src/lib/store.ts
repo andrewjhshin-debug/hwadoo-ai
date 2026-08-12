@@ -37,9 +37,29 @@ export function loadStore(): Store {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return emptyStore();
     const parsed = JSON.parse(raw) as Store;
+    // 체험(try:) 기록은 딱 한 판만 남긴다 — 예전 버그로 여러 개 쌓인 것을 청소
+    const rawHistory = Array.isArray(parsed.history) ? parsed.history : [];
+    let seenTry = false;
+    const history = rawHistory.filter((h) => {
+      const isTry =
+        typeof h?.hwaduId === "string" && h.hwaduId.startsWith("try:");
+      if (!isTry) return true;
+      if (seenTry) return false; // 두 번째부터는 버린다
+      seenTry = true;
+      return true;
+    });
+    // 청소가 일어났으면(예전에 쌓인 중복 제거) 즉시 저장해 영구 반영
+    if (history.length !== rawHistory.length) {
+      try {
+        window.localStorage.setItem(
+          KEY,
+          JSON.stringify({ ...parsed, history })
+        );
+      } catch {}
+    }
     return {
       current: parsed.current ?? null,
-      history: Array.isArray(parsed.history) ? parsed.history : [],
+      history,
       received: typeof parsed.received === "number" ? parsed.received : 0,
       defaultDays:
         typeof parsed.defaultDays === "number" ? parsed.defaultDays : undefined,

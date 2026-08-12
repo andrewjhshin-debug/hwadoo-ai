@@ -12,14 +12,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import NotesDrawer from "@/components/NotesDrawer";
-import { Dharmachakra, Elephant, Person, Lotus, Lantern, Banga } from "./icons";
+import { Dharmachakra, Elephant, Person, Lotus, Mandala, Banga } from "./icons";
 
 const TABS = [
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/try", label: "체험하기", Icon: Elephant },
   { href: "/", label: "뜰", Icon: Lotus },
-  { href: "/community", label: "연지원", Icon: Lantern },
   { href: "/settings", label: "내 도량", Icon: Person },
+  { href: "/mandala", label: "만다라", Icon: Mandala },
 ];
 
 // 이 화면들은 사유의 방을 화면 안에 이미 두고 있다 —

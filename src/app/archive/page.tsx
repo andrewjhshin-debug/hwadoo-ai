@@ -83,7 +83,11 @@ export default function ArchivePage() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-[11px] tracking-[0.25em] text-gold-soft">
-                    {s.customQuestion ? "그대가 던진 화두" : sessionTitle(s)}
+                    {s.hwaduId.startsWith("try:")
+                      ? `체험 · ${sessionTitle(s)}`
+                      : s.customQuestion
+                        ? "그대가 던진 화두"
+                        : sessionTitle(s)}
                   </p>
                   <div className="flex shrink-0 gap-3">
                     {!editing && (
