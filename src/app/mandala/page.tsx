@@ -2,12 +2,12 @@
 
 // ────────────────────────────────────────────────────────────────
 // 만다라 — 화두를 기다리는 동안의 수행. 두 갈래.
-//  ① 색칠하기: 겹겹의 꽃잎·잎·원으로 짜인 정교한 도안을 색으로 채운다.
+//  ① 색칠하기: 겹겹의 꽃잎·잎·원으로 짜인 정교한 도안. 칠할 칸이 아주 많다.
 //     · 좌클릭 = 한 칸  · 드래그 = 연달아  · 우클릭 = 그 칸 비우기
-//     · '빈칸' 색을 고르면 눌러서 지운다.
-//  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제.
-//     · 가이드(갈래선)와 그림은 별개 층 — 갈래·붓을 바꿔도 그리던 그림은 그대로.
-//     · 웹은 그리기가 기본  · 모바일은 '연달아 그리기' 토글 + 두 손가락 확대
+//     · '빈칸' 색으로 지운다.
+//  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌아가기 지원.
+//     · 가이드(갈래선)와 그림은 별개 층 — 갈래·붓을 바꿔도 그림은 그대로.
+//     · 웹/모바일 모두 그리기가 기본. 모바일은 두 손가락 확대 + 손으로 옮기기 토글 + 원위치.
 // 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 바람에 흩어진다.
 // 하던 만다라는 자동 임시저장되어, 다른 일 하다 돌아와도 그대로 떠 있다.
 // ────────────────────────────────────────────────────────────────
@@ -57,68 +57,88 @@ type Layer =
   | { t: "petals"; n: number; r1: number; r2: number; w: number; off?: number }
   | { t: "dots"; n: number; r: number; rr: number; off?: number };
 
+// 겹을 더 촘촘히 — 칠할 칸을 대폭 늘렸다 (원형 유지)
 const TEMPLATES: { name: string; layers: Layer[] }[] = [
   {
     name: "겹연꽃",
     layers: [
-      { t: "core", r: 8 },
-      { t: "petals", n: 8, r1: 0, r2: 27, w: 11 },
-      { t: "sectors", n: 16, r1: 27, r2: 34 },
-      { t: "petals", n: 16, r1: 30, r2: 53, w: 7 },
-      { t: "dots", n: 16, r: 57, rr: 2.4 },
-      { t: "petals", n: 24, r1: 59, r2: 81, w: 5, off: 7.5 },
-      { t: "sectors", n: 24, r1: 81, r2: 90 },
-      { t: "petals", n: 12, r1: 88, r2: 99, w: 6 },
+      { t: "core", r: 6 },
+      { t: "petals", n: 8, r1: 0, r2: 20, w: 11 },
+      { t: "petals", n: 8, r1: 6, r2: 26, w: 8, off: 22.5 },
+      { t: "sectors", n: 16, r1: 26, r2: 33 },
+      { t: "dots", n: 16, r: 36, rr: 1.8 },
+      { t: "petals", n: 16, r1: 33, r2: 50, w: 7 },
+      { t: "petals", n: 16, r1: 38, r2: 54, w: 5, off: 11.25 },
+      { t: "sectors", n: 24, r1: 54, r2: 61 },
+      { t: "dots", n: 24, r: 64, rr: 1.6 },
+      { t: "petals", n: 24, r1: 63, r2: 79, w: 5, off: 7.5 },
+      { t: "sectors", n: 32, r1: 79, r2: 86 },
+      { t: "petals", n: 32, r1: 85, r2: 96, w: 4 },
+      { t: "dots", n: 16, r: 99, rr: 1.4 },
     ],
   },
   {
     name: "수레바퀴",
     layers: [
-      { t: "core", r: 9 },
-      { t: "dots", n: 6, r: 17, rr: 3 },
-      { t: "sectors", n: 12, r1: 22, r2: 42 },
-      { t: "petals", n: 12, r1: 24, r2: 45, w: 6, off: 15 },
-      { t: "sectors", n: 24, r1: 45, r2: 64 },
-      { t: "dots", n: 24, r: 54, rr: 2 },
-      { t: "petals", n: 24, r1: 66, r2: 88, w: 5 },
-      { t: "sectors", n: 48, r1: 88, r2: 98 },
+      { t: "core", r: 7 },
+      { t: "dots", n: 8, r: 14, rr: 2.6 },
+      { t: "sectors", n: 12, r1: 19, r2: 33 },
+      { t: "petals", n: 12, r1: 20, r2: 36, w: 6, off: 15 },
+      { t: "sectors", n: 24, r1: 36, r2: 50 },
+      { t: "dots", n: 24, r: 43, rr: 1.7 },
+      { t: "sectors", n: 24, r1: 50, r2: 62 },
+      { t: "petals", n: 24, r1: 52, r2: 68, w: 5 },
+      { t: "sectors", n: 36, r1: 68, r2: 80 },
+      { t: "dots", n: 36, r: 74, rr: 1.4 },
+      { t: "petals", n: 36, r1: 80, r2: 93, w: 4 },
+      { t: "sectors", n: 48, r1: 93, r2: 99 },
     ],
   },
   {
     name: "별꽃",
     layers: [
-      { t: "core", r: 7 },
-      { t: "petals", n: 12, r1: 0, r2: 31, w: 7 },
-      { t: "petals", n: 12, r1: 0, r2: 23, w: 12, off: 15 },
-      { t: "dots", n: 12, r: 37, rr: 2.5 },
-      { t: "petals", n: 24, r1: 41, r2: 67, w: 5 },
-      { t: "petals", n: 24, r1: 41, r2: 59, w: 9, off: 7.5 },
-      { t: "dots", n: 24, r: 73, rr: 1.8 },
-      { t: "petals", n: 36, r1: 77, r2: 98, w: 3.5 },
+      { t: "core", r: 6 },
+      { t: "petals", n: 12, r1: 0, r2: 26, w: 6 },
+      { t: "petals", n: 12, r1: 0, r2: 19, w: 11, off: 15 },
+      { t: "dots", n: 12, r: 30, rr: 2 },
+      { t: "sectors", n: 24, r1: 32, r2: 40 },
+      { t: "petals", n: 24, r1: 40, r2: 58, w: 5 },
+      { t: "petals", n: 24, r1: 40, r2: 51, w: 8, off: 7.5 },
+      { t: "dots", n: 24, r: 62, rr: 1.6 },
+      { t: "petals", n: 36, r1: 64, r2: 82, w: 3.5 },
+      { t: "sectors", n: 36, r1: 82, r2: 89 },
+      { t: "petals", n: 36, r1: 89, r2: 99, w: 3.2 },
     ],
   },
   {
     name: "촘촘꽃",
     layers: [
-      { t: "core", r: 8 },
-      { t: "petals", n: 6, r1: 0, r2: 25, w: 14 },
-      { t: "petals", n: 12, r1: 16, r2: 41, w: 7, off: 15 },
-      { t: "sectors", n: 18, r1: 41, r2: 52 },
-      { t: "petals", n: 18, r1: 43, r2: 65, w: 6 },
-      { t: "dots", n: 18, r: 69, rr: 2 },
-      { t: "petals", n: 30, r1: 71, r2: 88, w: 4 },
-      { t: "petals", n: 30, r1: 84, r2: 99, w: 4, off: 6 },
+      { t: "core", r: 6 },
+      { t: "petals", n: 6, r1: 0, r2: 20, w: 13 },
+      { t: "petals", n: 12, r1: 12, r2: 32, w: 7, off: 15 },
+      { t: "sectors", n: 18, r1: 32, r2: 41 },
+      { t: "dots", n: 18, r: 44, rr: 1.7 },
+      { t: "petals", n: 18, r1: 41, r2: 56, w: 6 },
+      { t: "petals", n: 18, r1: 45, r2: 60, w: 4, off: 10 },
+      { t: "sectors", n: 24, r1: 60, r2: 69 },
+      { t: "petals", n: 30, r1: 69, r2: 84, w: 4 },
+      { t: "dots", n: 30, r: 87, rr: 1.4 },
+      { t: "petals", n: 30, r1: 87, r2: 99, w: 3.6, off: 6 },
     ],
   },
   {
     name: "원무늬",
     layers: [
-      { t: "core", r: 9 },
-      { t: "petals", n: 8, r1: 0, r2: 35, w: 9 },
-      { t: "dots", n: 8, r: 45, rr: 6 },
-      { t: "petals", n: 8, r1: 51, r2: 81, w: 8, off: 22.5 },
-      { t: "dots", n: 16, r: 89, rr: 3 },
-      { t: "sectors", n: 32, r1: 92, r2: 99 },
+      { t: "core", r: 7 },
+      { t: "petals", n: 8, r1: 0, r2: 28, w: 9 },
+      { t: "dots", n: 8, r: 20, rr: 3 },
+      { t: "sectors", n: 16, r1: 30, r2: 40 },
+      { t: "dots", n: 8, r: 45, rr: 5 },
+      { t: "dots", n: 16, r: 45, rr: 2, off: 11.25 },
+      { t: "petals", n: 16, r1: 51, r2: 71, w: 6, off: 11.25 },
+      { t: "sectors", n: 24, r1: 71, r2: 81 },
+      { t: "dots", n: 24, r: 86, rr: 2.4 },
+      { t: "petals", n: 32, r1: 90, r2: 99, w: 3.4 },
     ],
   },
 ];
@@ -178,25 +198,19 @@ function patchSaved(patch: Partial<Saved>) {
 
 // ══════════════ 가루 흩날림 (오른쪽→왼쪽 + 난수 바람) ══════════════
 type Grain = { x: number; y: number; vx: number; vy: number; r: number; color: string };
-function runScatter(
-  ctx: CanvasRenderingContext2D,
-  size: number,
-  parts: Grain[],
-  onDone: () => void
-) {
+function runScatter(ctx: CanvasRenderingContext2D, size: number, parts: Grain[], onDone: () => void) {
   let raf = 0;
   const start = performance.now();
   const DURATION = 2600;
   let gust = 0;
   const tick = (now: number) => {
     const t = now - start;
-    // 전체를 훑는 바람 — 시간에 따라 세기가 출렁인다(난수 돌풍)
     gust += (Math.random() - 0.5) * 0.06;
     gust = Math.max(-0.25, Math.min(0.25, gust));
     ctx.clearRect(0, 0, size, size);
     for (const p of parts) {
-      p.vx -= 0.03 + Math.random() * 0.02; // 왼쪽으로 가속
-      p.vy += gust + (Math.random() - 0.5) * 0.12; // 위아래로 휘날림
+      p.vx -= 0.03 + Math.random() * 0.02;
+      p.vy += gust + (Math.random() - 0.5) * 0.12;
       p.vy *= 0.97;
       p.x += p.vx;
       p.y += p.vy;
@@ -217,9 +231,66 @@ function runScatter(
   raf = requestAnimationFrame(tick);
 }
 
+// ══════════════ 먹색·금 그라데이션 확인 팝업 ══════════════
+function ConfirmModal({
+  open,
+  title,
+  body,
+  confirmLabel = "비우기",
+  cancelLabel = "머무르기",
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  body: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-6"
+      style={{ background: "rgba(8,6,5,0.72)", backdropFilter: "blur(3px)" }}
+      onClick={onCancel}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-[340px] overflow-hidden rounded-2xl border border-gold/25 text-center shadow-2xl"
+        style={{
+          background: "linear-gradient(160deg, #14100c 0%, #0d0b09 55%, #1a1510 100%)",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(217,180,91,0.12)",
+        }}
+      >
+        <div className="h-[2px] w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(217,180,91,0.6), transparent)" }} />
+        <div className="px-7 pb-7 pt-6">
+          <p className="text-[13px] tracking-[0.25em] text-gold-soft">{title}</p>
+          <p className="mt-4 whitespace-pre-line text-[12.5px] leading-6 text-hanji-dim">{body}</p>
+          <div className="mt-7 flex items-center justify-center gap-3">
+            <button
+              onClick={onCancel}
+              className="rounded-[10px] border border-ink-3 px-5 py-2.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:text-hanji"
+            >
+              {cancelLabel}
+            </button>
+            <button
+              onClick={onConfirm}
+              className="rounded-[10px] border border-gold/50 px-6 py-2.5 text-[12px] tracking-[0.2em] text-gold transition-colors hover:bg-gold/10"
+              style={{ background: "linear-gradient(160deg, rgba(217,180,91,0.14), rgba(217,180,91,0.04))" }}
+            >
+              {confirmLabel}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ══════════════ 페이지 ══════════════
 export default function MandalaPage() {
-  // 저장분은 마운트 직후 즉시 반영 (두둥 버퍼 없이)
   const [mode, setMode] = useState<"color" | "draw">("color");
   const [color, setColor] = useState<string>(PALETTE[0]);
 
@@ -261,7 +332,6 @@ export default function MandalaPage() {
         </button>
       </div>
 
-      {/* 색 팔레트 (+ 빈칸) */}
       <div className="rise rise-d2 mt-5 flex max-w-[440px] flex-wrap items-center justify-center gap-2.5">
         {PALETTE.map((c) => (
           <button
@@ -286,7 +356,6 @@ export default function MandalaPage() {
         </button>
       </div>
 
-      {/* 모드 콘텐츠 — 전환 애니메이션 없이 즉시 표시 */}
       {mode === "color" ? <ColorMode color={color} /> : <DrawMode color={color} />}
 
       <div className="mt-10 text-center">
@@ -303,6 +372,7 @@ function ColorMode({ color }: { color: string }) {
   const [tpl, setTpl] = useState(0);
   const [fillsAll, setFillsAll] = useState<Record<string, Record<string, string>>>({});
   const [scattering, setScattering] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const painting = useRef(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -352,13 +422,12 @@ function ColorMode({ color }: { color: string }) {
 
   const filledCount = Object.keys(fills).filter((k) => fills[k]).length;
 
-  const scatterClear = () => {
+  const doScatter = () => {
+    setConfirmOpen(false);
     const ids = Object.keys(fills).filter((k) => fills[k]);
-    if (ids.length === 0) return;
-    if (!window.confirm("만다라를 비우시겠습니까?\n\n만다라는 간직하지 않습니다 — 이렇게 비우는 것도 수행입니다.")) return;
     const wrap = wrapRef.current;
     const canvas = canvasRef.current;
-    if (!wrap || !canvas) {
+    if (ids.length === 0 || !wrap || !canvas) {
       setFillsAll((p) => ({ ...p, [String(tpl)]: {} }));
       return;
     }
@@ -381,14 +450,14 @@ function ColorMode({ color }: { color: string }) {
       if (!cell) continue;
       const px = cell.cx * scale;
       const py = cell.cy * scale;
-      const count = 10 + Math.floor(Math.random() * 8);
+      const count = 9 + Math.floor(Math.random() * 7);
       for (let k = 0; k < count; k++) {
         parts.push({
           x: px + (Math.random() - 0.5) * 6,
           y: py + (Math.random() - 0.5) * 6,
           vx: -(0.1 + Math.random() * 0.5),
           vy: (Math.random() - 0.5) * 0.3,
-          r: 0.3 + Math.random() * 0.75,
+          r: 0.3 + Math.random() * 0.7,
           color: fills[id],
         });
       }
@@ -396,6 +465,11 @@ function ColorMode({ color }: { color: string }) {
     setScattering(true);
     setFillsAll((p) => ({ ...p, [String(tpl)]: {} }));
     runScatter(ctx, size, parts, () => setScattering(false));
+  };
+
+  const askClear = () => {
+    if (Object.keys(fills).filter((k) => fills[k]).length === 0) return;
+    setConfirmOpen(true);
   };
 
   return (
@@ -440,7 +514,7 @@ function ColorMode({ color }: { color: string }) {
               }}
               fill={fills[c.id] ?? "transparent"}
               stroke="rgba(217,180,91,0.3)"
-              strokeWidth="0.28"
+              strokeWidth="0.24"
               style={{ cursor: scattering ? "default" : "pointer", transition: "fill 0.08s" }}
             />
           ))}
@@ -454,40 +528,50 @@ function ColorMode({ color }: { color: string }) {
 
       <div className="mt-3">
         <button
-          onClick={scatterClear}
+          onClick={askClear}
           disabled={scattering}
           className="rounded-[10px] border border-ink-3 px-7 py-2.5 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50"
         >
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
       </div>
+
+      <ConfirmModal
+        open={confirmOpen}
+        title="만다라를 비우시겠습니까"
+        body={"만다라는 간직하지 않습니다.\n이렇게 비우는 것 또한 수행입니다."}
+        onConfirm={doScatter}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </>
   );
 }
 
 // ── 그리기 모드 ──────────────────────────────────────────
 function DrawMode({ color }: { color: string }) {
-  const bgRef = useRef<HTMLCanvasElement>(null); // 가이드(갈래선) 층
-  const canvasRef = useRef<HTMLCanvasElement>(null); // 그림 층 (지워지지 않음)
+  const bgRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const scatterRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [segments, setSegments] = useState(12);
   const [mirror, setMirror] = useState(true);
   const [brush, setBrush] = useState(3);
-  const [panMode, setPanMode] = useState(false);
+  const [panMode, setPanMode] = useState(false); // 기본: 연달아 그리기
   const [scattering, setScattering] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [canUndo, setCanUndo] = useState(false);
 
   const view = useRef({ scale: 1, x: 0, y: 0 });
   const stroke = useRef({ active: false, last: null as null | { x: number; y: number } });
   const pinch = useRef({ active: false, dist: 0 });
   const pan = useRef({ active: false, x: 0, y: 0 });
   const dirty = useRef(false);
+  const undoStack = useRef<ImageData[]>([]); // 되돌아가기 스냅샷
   const SIZE = 1000;
 
   const getCtx = () => canvasRef.current?.getContext("2d") ?? null;
   const getBg = () => bgRef.current?.getContext("2d") ?? null;
 
-  // 가이드는 배경 층에만 — 그림 층은 건드리지 않는다
   const drawGuides = useCallback(() => {
     const ctx = getBg();
     if (!ctx) return;
@@ -511,7 +595,6 @@ function DrawMode({ color }: { color: string }) {
     ctx.restore();
   }, [segments]);
 
-  // 마운트: 두 캔버스 크기 지정 + 저장분 복원 (단 한 번)
   useEffect(() => {
     const canvas = canvasRef.current;
     const bg = bgRef.current;
@@ -541,7 +624,6 @@ function DrawMode({ color }: { color: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 갈래가 바뀌면 가이드만 다시 그린다 — 그림 층은 그대로 유지
   useEffect(() => {
     drawGuides();
   }, [drawGuides]);
@@ -552,6 +634,32 @@ function DrawMode({ color }: { color: string }) {
     try {
       patchSaved({ mode: "draw", drawURL: canvas.toDataURL("image/png") });
     } catch {}
+  };
+
+  // 스트로크 시작 전 스냅샷 저장 (되돌아가기용)
+  const pushUndo = () => {
+    const canvas = canvasRef.current;
+    const ctx = getCtx();
+    if (!canvas || !ctx) return;
+    try {
+      undoStack.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      if (undoStack.current.length > 25) undoStack.current.shift();
+      setCanUndo(true);
+    } catch {}
+  };
+
+  const undo = () => {
+    const ctx = getCtx();
+    const canvas = canvasRef.current;
+    if (!ctx || !canvas || undoStack.current.length === 0) return;
+    const prev = undoStack.current.pop()!;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // putImageData는 변환 무시하지만 안전하게
+    ctx.putImageData(prev, 0, 0);
+    ctx.restore();
+    setCanUndo(undoStack.current.length > 0);
+    dirty.current = undoStack.current.length > 0 || dirty.current;
+    persist();
   };
 
   const toCanvas = (cx: number, cy: number) => {
@@ -598,6 +706,10 @@ function DrawMode({ color }: { color: string }) {
     const v = view.current;
     wrap.style.transform = `translate(${v.x}px, ${v.y}px) scale(${v.scale})`;
   };
+  const resetView = () => {
+    view.current = { scale: 1, x: 0, y: 0 };
+    applyTransform();
+  };
 
   const onDown = (e: React.PointerEvent) => {
     if (scattering) return;
@@ -605,6 +717,7 @@ function DrawMode({ color }: { color: string }) {
     if (panMode) {
       pan.current = { active: true, x: e.clientX - view.current.x, y: e.clientY - view.current.y };
     } else {
+      pushUndo(); // 그리기 시작 전 스냅샷
       stroke.current.active = true;
       stroke.current.last = toCanvas(e.clientX, e.clientY);
     }
@@ -644,15 +757,13 @@ function DrawMode({ color }: { color: string }) {
     pinch.current.active = false;
   };
 
-  const scatterClear = () => {
+  const doScatter = () => {
+    setConfirmOpen(false);
     const canvas = canvasRef.current;
     const sc = scatterRef.current;
     const wrap = wrapRef.current;
-    if (!canvas || !sc || !wrap) return;
     const src = getCtx();
-    if (!src) return;
-    if (!dirty.current) return;
-    if (!window.confirm("만다라를 비우시겠습니까?\n\n만다라는 간직하지 않습니다 — 이렇게 비우는 것도 수행입니다.")) return;
+    if (!canvas || !sc || !wrap || !src || !dirty.current) return;
     const size = wrap.clientWidth;
     const dpr = window.devicePixelRatio || 1;
     const img = src.getImageData(0, 0, SIZE * dpr, SIZE * dpr);
@@ -661,23 +772,24 @@ function DrawMode({ color }: { color: string }) {
     for (let y = 0; y < SIZE * dpr; y += step) {
       for (let x = 0; x < SIZE * dpr; x += step) {
         const idx = (y * SIZE * dpr + x) * 4;
-        if (img.data[idx + 3] < 40) continue; // 투명(그리지 않은 곳) 건너뜀
+        if (img.data[idx + 3] < 40) continue;
         const r = img.data[idx], g = img.data[idx + 1], b = img.data[idx + 2];
         parts.push({
           x: (x / (SIZE * dpr)) * size,
           y: (y / (SIZE * dpr)) * size,
           vx: -(0.1 + Math.random() * 0.5),
           vy: (Math.random() - 0.5) * 0.3,
-          r: 0.3 + Math.random() * 0.75,
+          r: 0.3 + Math.random() * 0.7,
           color: `rgb(${r},${g},${b})`,
         });
         if (parts.length > 2800) break;
       }
       if (parts.length > 2800) break;
     }
-    // 그림 층만 비운다 (가이드 배경은 그대로)
     src.clearRect(0, 0, SIZE, SIZE);
     dirty.current = false;
+    undoStack.current = [];
+    setCanUndo(false);
     persist();
     if (parts.length === 0) return;
     sc.width = size * dpr;
@@ -714,11 +826,21 @@ function DrawMode({ color }: { color: string }) {
             style={{ cursor: panMode ? "grab" : "crosshair" }}
           />
         </div>
-        <canvas ref={scatterRef} className="pointer-events-none absolute inset-0" />
       </div>
 
-      {/* 모바일 전용 토글 — 웹은 그리기가 기본 */}
-      <div className="mt-5 flex items-center gap-2 sm:hidden">
+      {/* 되돌아가기 (웹·모바일 공통) */}
+      <div className="mt-4 flex items-center gap-2">
+        <button
+          onClick={undo}
+          disabled={!canUndo || scattering}
+          className="rounded-full border border-ink-3 px-4 py-2 text-xs tracking-[0.1em] text-hanji-dim transition-colors enabled:hover:text-hanji disabled:opacity-40"
+        >
+          ↩ 되돌아가기
+        </button>
+      </div>
+
+      {/* 모바일 전용 — 연달아 그리기 / 손으로 옮기기 / 원위치 */}
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:hidden">
         <button
           onClick={() => setPanMode(false)}
           className={`rounded-full border px-4 py-2 text-xs tracking-[0.1em] transition-colors ${
@@ -734,6 +856,12 @@ function DrawMode({ color }: { color: string }) {
           }`}
         >
           ✋ 손으로 옮기기
+        </button>
+        <button
+          onClick={resetView}
+          className="rounded-full border border-ink-3 px-4 py-2 text-xs tracking-[0.1em] text-hanji-faint transition-colors hover:text-hanji"
+        >
+          ⊙ 원위치
         </button>
       </div>
 
@@ -774,13 +902,21 @@ function DrawMode({ color }: { color: string }) {
 
       <div className="mt-6">
         <button
-          onClick={scatterClear}
+          onClick={() => dirty.current && setConfirmOpen(true)}
           disabled={scattering}
           className="rounded-[10px] border border-ink-3 px-7 py-2.5 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50"
         >
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
       </div>
+
+      <ConfirmModal
+        open={confirmOpen}
+        title="만다라를 비우시겠습니까"
+        body={"만다라는 간직하지 않습니다.\n이렇게 비우는 것 또한 수행입니다."}
+        onConfirm={doScatter}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </>
   );
 }
