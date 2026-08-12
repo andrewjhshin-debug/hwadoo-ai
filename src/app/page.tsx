@@ -482,7 +482,9 @@ export default function Home() {
   // ── 붓을 들었다 — 답 쓰기 ─────────────────────────────
   if (writing && unlocked) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col">
+      // 답 쓰는 동안에는 이 화면이 본문 높이를 그대로 쓴다 (h-full).
+      // 아래 띠는 감춰 두므로(globals.css: body[data-writing] footer) 겹칠 것이 없다.
+      <div className="flex h-full min-h-0 flex-1 flex-col">
         {/* 채팅형 회향 — 위: 화두(물음)와 대화, 아래: 입력창.
             입력창은 흐름 안의 형제라 화면을 덮지 않고, 위 대화는 스스로 스크롤한다. */}
         <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-6 sm:px-6">

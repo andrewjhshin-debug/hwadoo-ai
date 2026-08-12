@@ -54,6 +54,8 @@ const NAV: Partial<Record<Step, { prev: string; next: string }>> = {
 export default function TryPage() {
   const confirm = useConfirm();
   const [step, setStep] = useState<Step>("choose");
+  // 이번 회향이 서고에 실제로 남았는지 (체험은 첫 한 편만 남는다)
+  const [kept, setKept] = useState(true);
   const [hwadu, setHwadu] = useState<Hwadu | null>(null);
   const [audience, setAudience] = useState<"adult" | "student">("adult");
   const [days, setDays] = useState(3);
@@ -84,28 +86,33 @@ export default function TryPage() {
     else if (step === "writing") setStep("ripened");
   };
 
-  // 회향 — 체험도 한 편으로 지난 화두에 남긴다.
+  // 회향 — 체험은 '첫 기록' 한 편만 서고에 남긴다.
   // id 는 `try:이뭣고` 처럼 접두를 붙여, 실제 화두 뽑기가 이 화두를 지나온 것으로
   // 여기지 않게 한다. 물음 본문은 customQuestion 에 함께 담아 서고에서 그대로 읽힌다.
+  // 두 번째부터는 몇 번을 더 돌아도 기록이 쌓이지 않는다.
   const finish = () => {
     if (!hwadu || !answer.trim()) return;
     const s = loadStore();
-    saveStore({
-      ...s,
-      history: [
-        ...s.history,
-        {
-          hwaduId: `try:${hwadu.id}`,
-          customQuestion: hwadu.question,
-          receivedAt: Date.now(),
-          durationDays: days,
-          notes: memo.trim() || undefined,
-          journal: answer.trim(),
-          journalAt: Date.now(),
-        },
-      ],
-      received: s.received + 1,
-    });
+    const alreadyTried = s.history.some((h) => h.hwaduId.startsWith("try:"));
+    if (!alreadyTried) {
+      saveStore({
+        ...s,
+        history: [
+          ...s.history,
+          {
+            hwaduId: `try:${hwadu.id}`,
+            customQuestion: hwadu.question,
+            receivedAt: Date.now(),
+            durationDays: days,
+            notes: memo.trim() || undefined,
+            journal: answer.trim(),
+            journalAt: Date.now(),
+          },
+        ],
+        received: s.received + 1,
+      });
+    }
+    setKept(!alreadyTried);
     setStep("done");
   };
 
@@ -275,14 +282,29 @@ export default function TryPage() {
 
           <div className="mt-12 w-full border-t border-ink-3 pt-8">
             <p className="text-[13px] leading-7 text-hanji-dim">
-              체험하기 화두는{" "}
-              <Link
-                href="/archive"
-                className="text-gold-soft underline decoration-gold/30 underline-offset-4"
-              >
-                지난 화두
-              </Link>
-              에 첫 기록으로 남습니다.
+              {kept ? (
+                <>
+                  체험하기 화두는{" "}
+                  <Link
+                    href="/archive"
+                    className="text-gold-soft underline decoration-gold/30 underline-offset-4"
+                  >
+                    지난 화두
+                  </Link>
+                  에 첫 기록으로 남습니다.
+                </>
+              ) : (
+                <>
+                  체험의 첫 기록은 이미{" "}
+                  <Link
+                    href="/archive"
+                    className="text-gold-soft underline decoration-gold/30 underline-offset-4"
+                  >
+                    지난 화두
+                  </Link>
+                  에 있습니다 — 이번 것은 따로 쌓지 않았습니다.
+                </>
+              )}
               <br />본래의 화두는 며칠을 품은 뒤에야 붓을 들 수 있습니다.
             </p>
             <p className="mt-3 text-xs leading-6 text-hanji-faint">

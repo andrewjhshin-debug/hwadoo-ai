@@ -360,3 +360,8 @@ html[data-theme="light"] .confirm-panel {
 body[data-palette] .notes-fab {
   display: none;
 }
+
+/* 답을 쓰는 동안에는 아래 띠를 감춘다 — 입력창이 화면 높이를 온전히 쓰도록 */
+body[data-writing] footer {
+  display: none;
+}

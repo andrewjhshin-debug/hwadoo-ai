@@ -74,8 +74,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ConfirmProvider>
         <Sidebar />
         <div className="obang-aura flex flex-1 flex-col overflow-x-hidden overflow-y-auto pt-16 pb-16 md:pb-0 md:pt-0">
-          {/* min-h-0 — 이게 없으면 안쪽에서 스크롤이 성립하지 않는다 */}
-          <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+          {/* 본문은 내용만큼 자란다 — 넘치면 바깥(.obang-aura)이 스크롤한다.
+              min-h-0 을 주면 본문이 줄어들어 아래 띠 위로 삐져나온다. */}
+          <main className="flex flex-1 flex-col">{children}</main>
           {/* 아래 띠 — 손안에서는 하단 탭 바와 겹쳐 잘려 보이므로 감춘다.
               같은 내용은 '내 도량 → 도량 안내'에 모아 두었다. */}
           <footer className="hidden border-t border-ink-3 px-6 py-5 md:block">
