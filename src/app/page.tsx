@@ -242,8 +242,8 @@ export default function Home() {
     setShareDone(false);
     // 회향을 마치자마자 — 나눔의 뜻을 묻는다
     const ok = await confirm(
-      "그대의 답을 다른 이에게도 보여드려도 괜찮겠습니까?",
-      "이름 없이 — 낱말 이름으로만 남습니다. 도량에서 한 번 살펴본 뒤 열립니다.",
+      "그대의 답을 다른 수행자에게 공유하겠습니까?",
+      "이름 없이 — 다른 수행자의 화두를 돕습니다.",
       { confirm: "네", cancel: "아니오" }
     );
     if (ok) {
@@ -487,13 +487,8 @@ export default function Home() {
         </div>
         {/* 하단 고정 입력창 — 모바일에서는 탭 바(h-16) 위에 앉는다 */}
         <div className="fixed inset-x-0 bottom-16 z-30 border-t border-ink-3 bg-ink/95 px-4 pb-3 pt-3 backdrop-blur md:absolute md:bottom-0 md:pb-[calc(env(safe-area-inset-bottom)+12px)]">
-          <div className="mx-auto flex w-full max-w-xl items-end gap-2">
-            <button
-              onClick={() => setWriting(false)}
-              className="shrink-0 pb-2 text-[11px] tracking-wider text-hanji-faint transition-colors hover:text-hanji-dim"
-            >
-              나가기
-            </button>
+          <div className="mx-auto w-full max-w-xl">
+            {/* 글칸은 늘 한 줄을 다 쓴다 — 좁게 눌리지 않도록 */}
             <textarea
               autoFocus
               value={draft}
@@ -505,19 +500,28 @@ export default function Home() {
               rows={3}
               maxLength={500}
               placeholder="그대의 답을 적으십시오…"
-              className="max-h-[60vh] min-h-[96px] flex-1 resize-none overflow-hidden rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-3 text-[15px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
+              className="max-h-[40vh] min-h-[92px] w-full resize-none overflow-y-auto rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-3 text-[15px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
             />
-            <button
-              onClick={saveJournal}
-              disabled={!draft.trim()}
-              className="btn-obang shrink-0 rounded-full px-5 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
-            >
-              회향
-            </button>
+            {/* 나가기 · 글자수 · 회향 — 글칸 아래 한 줄로 */}
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <button
+                onClick={() => setWriting(false)}
+                className="shrink-0 text-[11px] tracking-wider text-hanji-faint transition-colors hover:text-hanji-dim"
+              >
+                나가기
+              </button>
+              <span className="text-[10px] text-hanji-faint">
+                {draft.length}/500
+              </span>
+              <button
+                onClick={saveJournal}
+                disabled={!draft.trim()}
+                className="btn-obang shrink-0 rounded-full px-6 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
+              >
+                회향
+              </button>
+            </div>
           </div>
-          <p className="mx-auto mt-1.5 max-w-xl text-center text-[10px] text-hanji-faint">
-            기록은 이 브라우저에만 남습니다 · {draft.length}/500
-          </p>
         </div>
       </div>
     );
