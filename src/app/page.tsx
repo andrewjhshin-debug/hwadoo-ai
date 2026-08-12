@@ -20,7 +20,7 @@ import {
   sessionQuestion,
 } from "@/lib/hwadu";
 import Question from "@/components/Question";
-import { fetchPublicHwadu, type PublicHwadu } from "@/lib/thrown";
+import { fetchPublicHwadu, markSeen, type PublicHwadu } from "@/lib/thrown";
 import {
   decrementHolding,
   fetchHoldingCount,
@@ -34,6 +34,7 @@ import {
   isUnlocked,
   loadStore,
   saveStore,
+  sessionKey,
   unlockAt,
   type Session,
   type Store,
@@ -114,11 +115,17 @@ export default function Home() {
   const archiveCurrent = useCallback(() => {
     const done = loadStore().current;
     if (!done) return;
-    update((base) =>
-      base.current
-        ? { ...base, history: [...base.history, base.current], current: null }
-        : base
-    );
+    update((base) => {
+      const cur = base.current;
+      if (!cur) return base;
+      // 같은 판이 이미 서고에 있으면 다시 밀어 넣지 않는다 (중복 이중 방어)
+      const exists = base.history.some((h) => sessionKey(h) === sessionKey(cur));
+      return {
+        ...base,
+        history: exists ? base.history : [...base.history, cur],
+        current: null,
+      };
+    });
     decrementHolding(done.hwaduId);
     dropDraft(done.hwaduId);
     setShareDone(false);
@@ -222,6 +229,8 @@ export default function Home() {
         receivedAt: Date.now(),
         durationDays: days,
       };
+      // 이 물음이 한 수행자에게 닿았다 — 세는 일은 부차, 실패해도 받기는 계속된다
+      void markSeen(p.id);
     } else {
       session = {
         hwaduId: pickRandomHwadu(exclude, audience).id,

@@ -9,7 +9,9 @@
 import { useEffect, useState } from "react";
 import { submitThrown } from "@/lib/thrown";
 
-type Thrown = { question: string; thrownAt: number };
+// id — 서버 thrown 문서의 id. 내 도량에서 이 물음의 걸음(승인·받은 수)을 좇는 실마리.
+// 이 필드가 없던 시절의 옛 항목도 그대로 동작한다.
+type Thrown = { question: string; thrownAt: number; id?: string };
 
 const KEY = "hwadoo-thrown-v1"; // 내가 던진 것들의 목록 (내 브라우저 보관용)
 
@@ -38,8 +40,11 @@ export default function MyHwaduPage() {
     setSending(true);
     setError(false);
     try {
-      await submitThrown(q); // 서버로
-      const next = [{ question: q, thrownAt: Date.now() }, ...(thrown ?? [])];
+      const id = await submitThrown(q); // 서버로 — 문서 id를 받아 둔다
+      const next = [
+        { question: q, thrownAt: Date.now(), id },
+        ...(thrown ?? []),
+      ];
       window.localStorage.setItem(KEY, JSON.stringify(next));
       setThrown(next);
       setQuestion("");

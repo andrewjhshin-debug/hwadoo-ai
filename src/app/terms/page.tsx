@@ -55,10 +55,11 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-[15px] text-gold-soft">5. 이용료와 후원</h2>
+          <h2 className="text-[15px] text-gold-soft">5. 이용료와 차 한 잔</h2>
           <p className="mt-3">
-            서비스는 무료로 제공됩니다. 후원("차 한 잔")은 전적으로 자발적인 것이며,
-            후원 여부가 서비스 이용에 어떤 차등도 만들지 않습니다.
+            서비스는 무료로 제공됩니다. "차 한 잔"은 서비스 유지를 위한
+            자발적 결제이며, 결제 즉시 사용되어 환불되지 않습니다. 차 한 잔을
+            올리는지 여부는 서비스 이용에 어떤 차등도 만들지 않습니다.
           </p>
         </section>
 

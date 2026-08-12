@@ -1,18 +1,21 @@
 "use client";
 
 // ────────────────────────────────────────────────────────────────
-// 내 도량(道場) — 나의 걸음 · 색상 모드 · 차 한 잔 · 지난 화두 · 로그인 정보.
+// 내 도량(道場) — 나의 걸음 · 얻은 자리(뱃지) · 이달의 마음 · 색상 모드
+// · 차 한 잔 · 지난 화두 · 내가 던진 화두 · 로그인 정보.
 // 웹·모바일 공통. 사이드바/하단 탭의 '내 도량'을 누르면 이 화면으로 온다.
 // 각 구획은 균질한 간격으로, 로그인 정보는 맨 아래.
 // ────────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import { ADMIN_UID, CONTACT_EMAIL, DONATION_URL } from "@/lib/config";
-import { loadStore } from "@/lib/store";
+import { formatDate, loadStore, type Session } from "@/lib/store";
+import { sessionTitle } from "@/lib/hwadu";
+import { fetchMyThrownStats, type ThrownStat } from "@/lib/thrown";
 import {
   Person,
   Teacup,
@@ -24,9 +27,51 @@ import {
   Mandala,
   Lantern,
   Lotus,
+  Moktak,
 } from "@/components/icons";
 
 const THEME_KEY = "hwadoo-theme";
+// 내가 던진 화두 — 화두 던지기(my-hwadu) 화면이 남기는 브라우저 서랍과 같은 열쇠
+const THROWN_KEY = "hwadoo-thrown-v1";
+type MyThrown = { question: string; thrownAt: number; id?: string };
+
+// 걸음 — 얻은 자리. 육도(六道)에서 빌린 이름, 회향 수로 오른다.
+const BADGES = [
+  { hanja: "人", name: "인간도", full: "人間道", need: 1, cond: "첫 회향" },
+  { hanja: "修", name: "수라도", full: "修羅道", need: 5, cond: "회향 5 이상" },
+  { hanja: "天", name: "천상도", full: "天上道", need: 15, cond: "회향 15 이상" },
+] as const;
+
+// 이달의 마음 — 이번 달의 걸음을 로컬 기록으로 센 것
+type MonthReport = {
+  returned: number; // 이번 달 회향 수
+  days: number; // 이번 달 화두와 함께한 날수 (고유한 날짜 수)
+  longest: { title: string; days: number } | null; // 가장 오래 품은 화두
+  chars: number; // 이번 달 남긴 단상·회향의 글자 수
+};
+
+// 서비스 격자 — href 가 없는 것은 아직 문이 열리지 않은 자리 (눌러도 이동하지 않는다)
+type ServiceItem = {
+  href?: string;
+  label: string;
+  Icon: ComponentType<{ className?: string }>;
+  soon?: boolean;
+};
+
+const SERVICES: ServiceItem[] = [
+  { href: "/", label: "뜰", Icon: Lotus },
+  { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
+  { href: "/masters", label: "선지식", Icon: SeonMaster },
+  { href: "/room", label: "사유의 방", Icon: Banga },
+  { href: "/my-hwadu", label: "화두 던지기", Icon: Jukbi },
+  { href: "/mandala", label: "만다라", Icon: Mandala },
+  { href: "/gathering", label: "차담회", Icon: Person },
+  { href: "/community", label: "연지원", Icon: Lantern },
+  { href: "/archive", label: "지난 화두", Icon: Book },
+  { href: "/tea", label: "차 한 잔", Icon: Teacup },
+  { label: "다구·향·공양미", Icon: Moktak, soon: true },
+  { href: "/breath", label: "호흡 명상", Icon: Lotus, soon: true },
+];
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -37,6 +82,12 @@ export default function SettingsPage() {
   const [teaOpen, setTeaOpen] = useState(false);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [report, setReport] = useState<MonthReport | null>(null);
+  const [myThrown, setMyThrown] = useState<MyThrown[] | null>(null);
+  const [thrownStats, setThrownStats] = useState<Map<
+    string,
+    ThrownStat
+  > | null>(null);
 
   useEffect(() => watchAuth(setUser), []);
   useEffect(() => {
@@ -59,6 +110,83 @@ export default function SettingsPage() {
       const days = Math.floor((Date.now() - first) / (24 * 60 * 60 * 1000)) + 1;
       setDaysWith(days);
     }
+
+    // ── 이달의 마음 — 이번 달의 걸음을 로컬에서 센다 ──
+    const now = Date.now();
+    const base = new Date();
+    const monthStart = new Date(base.getFullYear(), base.getMonth(), 1).getTime();
+    const monthEnd = new Date(base.getFullYear(), base.getMonth() + 1, 1).getTime();
+    const DAY = 24 * 60 * 60 * 1000;
+    const inMonth = (t: number) => t >= monthStart && t < monthEnd;
+    const sessions: Session[] = [
+      ...s.history,
+      ...(s.current ? [s.current] : []),
+    ];
+
+    // 이번 달 회향 수 — 회향 시각이 이번 달인 기록
+    // (아주 옛 기록에는 회향 시각이 없어, 받은 시각으로 받쳐 준다)
+    const returned = s.history.filter((h) =>
+      inMonth(h.journalAt ?? h.receivedAt)
+    ).length;
+
+    // 함께한 날수 — 이번 달 안에서 화두를 들고 있던 고유한 날짜의 수
+    const dayKeys = new Set<string>();
+    for (const sess of sessions) {
+      const from = Math.max(sess.receivedAt, monthStart);
+      const to = Math.min(sess.journalAt ?? now, monthEnd - 1);
+      for (let t = from; t <= to; t += DAY) {
+        dayKeys.add(new Date(t).toDateString());
+      }
+      if (from <= to) dayKeys.add(new Date(to).toDateString());
+    }
+
+    // 가장 오래 품은 화두 — 이번 달과 겹치는 것 가운데 가장 긴 것
+    let longest: MonthReport["longest"] = null;
+    for (const sess of sessions) {
+      const end = sess.journalAt ?? now;
+      if (sess.receivedAt >= monthEnd || end < monthStart) continue;
+      const held = Math.max(1, Math.floor((end - sess.receivedAt) / DAY) + 1);
+      if (!longest || held > longest.days) {
+        longest = { title: sessionTitle(sess), days: held };
+      }
+    }
+
+    // 남긴 글자 수 — 이번 달 회향의 글과 단상, 지금 든 화두의 단상
+    let chars = 0;
+    for (const h of s.history) {
+      if (inMonth(h.journalAt ?? h.receivedAt)) {
+        chars += (h.journal ?? "").length + (h.notes ?? "").length;
+      }
+    }
+    if (s.current?.notes) chars += s.current.notes.length;
+
+    setReport({ returned, days: dayKeys.size, longest, chars });
+  }, []);
+
+  // 내가 던진 화두 — 브라우저 서랍을 읽고, 서버에서 걸음(승인·받은 수)을 살핀다
+  useEffect(() => {
+    let list: MyThrown[] = [];
+    try {
+      const parsed = JSON.parse(
+        window.localStorage.getItem(THROWN_KEY) ?? "[]"
+      );
+      if (Array.isArray(parsed)) list = parsed;
+    } catch {
+      list = [];
+    }
+    setMyThrown(list);
+
+    const ids = list
+      .map((t) => t.id)
+      .filter((v): v is string => typeof v === "string" && v.length > 0);
+    if (ids.length === 0) return;
+    fetchMyThrownStats(ids)
+      .then((stats) =>
+        setThrownStats(new Map(stats.map((st) => [st.sourceId, st])))
+      )
+      .catch(() => {
+        // 조회 실패 — 걸음 표기 없이 목록만 보인다
+      });
   }, []);
 
   const setTheme = (toLight: boolean) => {
@@ -100,17 +228,20 @@ export default function SettingsPage() {
         道場 · 내 도량
       </h1>
 
-      {/* ── 나의 걸음 — 화두 수 · 함께한 날 ── */}
+      {/* ── 나의 걸음 — 화두 수 · 함께한 날. 받은 화두를 누르면 서고로 ── */}
       <section className="rise mt-9">
         <div className="flex gap-4">
-          <div className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center">
+          <Link
+            href="/archive"
+            className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center transition-colors hover:border-gold/40"
+          >
             <p className="font-serif text-[40px] font-light leading-none text-gold">
               {receivedCount}
             </p>
             <p className="mt-2.5 text-[11px] tracking-[0.2em] text-hanji-faint">
               받은 화두
             </p>
-          </div>
+          </Link>
           <div className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center">
             <p className="font-serif text-[40px] font-light leading-none text-gold">
               {daysWith}
@@ -123,41 +254,144 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* ── 걸음 — 얻은 자리: 육도에서 빌린 이름, 회향이 쌓이면 오른다 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+          걸음 — 얻은 자리
+        </p>
+        <div className="mt-4 grid grid-cols-3 gap-2 border-t border-ink-3 pt-5">
+          {BADGES.map((b) => {
+            const earned = journalCount >= b.need;
+            return (
+              <div
+                key={b.name}
+                className={`flex flex-col items-center gap-2 rounded-[12px] px-1 py-4 text-center ${
+                  earned ? "" : "opacity-40"
+                }`}
+              >
+                <span
+                  className={`flex h-14 w-14 items-center justify-center rounded-full border ${
+                    earned
+                      ? "border-gold/60 bg-gold/5"
+                      : "border-dashed border-ink-3 bg-ink-2/40"
+                  }`}
+                >
+                  <span
+                    className={`font-serif text-[22px] font-light leading-none ${
+                      earned ? "text-gold" : "text-hanji-faint"
+                    }`}
+                  >
+                    {b.hanja}
+                  </span>
+                </span>
+                <span
+                  className={`text-[11px] leading-tight ${
+                    earned ? "text-hanji" : "text-hanji-dim"
+                  }`}
+                >
+                  {b.name}
+                </span>
+                <span className="text-[10px] leading-tight tracking-wider text-hanji-faint">
+                  {earned ? b.full : b.cond}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── 이달의 마음 — 이번 달의 걸음을 로컬 기록으로 센다 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+          이달의 마음
+        </p>
+        <div className="mt-4 border-t border-ink-3 pt-5">
+          {!report ||
+          (report.returned === 0 &&
+            report.days === 0 &&
+            report.chars === 0 &&
+            !report.longest) ? (
+            <p className="text-[13px] leading-7 text-hanji-dim">
+              이번 달의 걸음이 아직 없습니다.
+            </p>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { n: report.returned, unit: "", label: "회향" },
+                  { n: report.days, unit: "일", label: "함께한 날" },
+                  { n: report.chars, unit: "자", label: "남긴 단상" },
+                ].map((c) => (
+                  <div
+                    key={c.label}
+                    className="rounded-[12px] border border-ink-3 bg-ink-2/40 px-2 py-4 text-center"
+                  >
+                    <p className="font-serif text-[24px] font-light leading-none text-gold">
+                      {c.n}
+                      {c.unit && (
+                        <span className="ml-0.5 text-[13px] text-hanji-dim">
+                          {c.unit}
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-2 text-[10px] tracking-[0.15em] text-hanji-faint">
+                      {c.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {report.longest && (
+                <p className="mt-4 text-[12px] leading-6 text-hanji-dim">
+                  가장 오래 품은 화두 —{" "}
+                  <span className="text-hanji">{report.longest.title}</span>
+                  <span className="text-hanji-faint">
+                    {" "}
+                    · {report.longest.days}일
+                  </span>
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      </section>
+
       {/* ── 서비스 — 당근처럼 도량의 모든 것 한눈에 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">서비스</p>
         <div className="mt-4 grid grid-cols-4 gap-2 border-t border-ink-3 pt-5">
-          {[
-            { href: "/", label: "뜰", Icon: Lotus },
-            { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
-            { href: "/masters", label: "선지식", Icon: SeonMaster },
-            { href: "/room", label: "사유의 방", Icon: Banga },
-            { href: "/my-hwadu", label: "화두 던지기", Icon: Jukbi },
-            { href: "/mandala", label: "만다라", Icon: Mandala },
-            { href: "/gathering", label: "명상 모임", Icon: Person },
-            { href: "/community", label: "연지원", Icon: Lantern },
-            { href: "/archive", label: "지난 화두", Icon: Book },
-            { href: "/tea", label: "차 한 잔", Icon: Teacup },
-            { href: "/breath", label: "호흡 명상", Icon: Lotus, soon: true },
-          ].map((s) => (
-            <Link
-              key={s.href + s.label}
-              href={s.href}
-              className="relative flex flex-col items-center gap-2 rounded-[12px] px-1 py-3 text-center transition-colors hover:bg-gold/5"
-            >
-              <span className="relative flex h-11 w-11 items-center justify-center rounded-full border border-ink-3 bg-ink-2/50">
-                <s.Icon className="h-5 w-5 text-gold-soft" />
-                {s.soon && (
-                  <span className="absolute -right-1.5 -top-1 rounded-full border border-gold/40 bg-ink px-1.5 py-px text-[9px] leading-tight text-gold-soft">
-                    곧
-                  </span>
-                )}
-              </span>
-              <span className="text-[11px] leading-tight text-hanji-dim">
-                {s.label}
-              </span>
-            </Link>
-          ))}
+          {SERVICES.map((s) => {
+            const itemCls =
+              "relative flex flex-col items-center gap-2 rounded-[12px] px-1 py-3 text-center transition-colors hover:bg-gold/5";
+            const inner = (
+              <>
+                <span className="relative flex h-11 w-11 items-center justify-center rounded-full border border-ink-3 bg-ink-2/50">
+                  <s.Icon className="h-5 w-5 text-gold-soft" />
+                  {s.soon && (
+                    <span className="absolute -right-1.5 -top-1 rounded-full border border-gold/40 bg-ink px-1.5 py-px text-[9px] leading-tight text-gold-soft">
+                      곧
+                    </span>
+                  )}
+                </span>
+                <span className="text-[11px] leading-tight text-hanji-dim">
+                  {s.label}
+                </span>
+              </>
+            );
+            return s.href ? (
+              <Link key={s.href + s.label} href={s.href} className={itemCls}>
+                {inner}
+              </Link>
+            ) : (
+              // 아직 문이 열리지 않은 자리 — 눌러도 이동하지 않는다
+              <button
+                key={s.label}
+                type="button"
+                className={`${itemCls} cursor-default`}
+              >
+                {inner}
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -265,6 +499,60 @@ export default function SettingsPage() {
           </Link>
         </div>
       </section>
+
+      {/* ── 내가 던진 화두 — 물음의 걸음: 살펴보는 중 / 수행자 N인 ── */}
+      {myThrown !== null && (
+        <section className={`rise rise-d2 ${sectionGap}`}>
+          <p className="flex items-center gap-2 text-[11px] tracking-[0.3em] text-hanji-faint">
+            <Jukbi className="h-[15px] w-[15px] text-gold-soft" />
+            내가 던진 화두
+          </p>
+          <div className="mt-4 border-t border-ink-3 pt-5">
+            {myThrown.length === 0 ? (
+              <>
+                <p className="text-[13px] leading-7 text-hanji-dim">
+                  아직 던진 물음이 없습니다. 이번에는 그대가 물을 차례입니다.
+                </p>
+                <Link
+                  href="/my-hwadu"
+                  className="mt-5 inline-flex items-center gap-2.5 rounded-[10px] border border-ink-3 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                >
+                  <Jukbi className="h-4 w-4 text-gold-soft" />
+                  화두 던지러 가기
+                </Link>
+              </>
+            ) : (
+              <ul className="space-y-5">
+                {myThrown.map((t) => {
+                  const stat = t.id ? thrownStats?.get(t.id) : undefined;
+                  return (
+                    <li
+                      key={t.thrownAt}
+                      className="border-l border-gold/25 pl-4"
+                    >
+                      <p className="break-keep text-sm font-light leading-7 text-hanji-dim">
+                        {t.question}
+                      </p>
+                      <p className="mt-1.5 text-[11px] tracking-wider text-hanji-faint">
+                        {formatDate(t.thrownAt)} 던짐
+                        {t.id &&
+                          (stat?.status === "approved" ? (
+                            <span className="text-gold-soft">
+                              {" "}
+                              · 수행자 {stat.seen}인이 받았습니다
+                            </span>
+                          ) : (
+                            <> · 도량에서 살펴보는 중</>
+                          ))}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ── 로그인 정보 — 맨 아래 ── */}
       <section className={`rise rise-d3 ${sectionGap}`}>

@@ -68,8 +68,9 @@ function P(r: number, aDeg: number): [number, number] {
   return [C + r * Math.cos(a), C + r * Math.sin(a)];
 }
 
-// 경계의 반지름 — 각도에 따라 물결치거나 뾰족해진다
-function boundaryR(b: Boundary, aDeg: number): number {
+// 경계의 반지름 — 각도에 따라 물결치거나 뾰족해진다.
+// (검증 스크립트가 문양의 빈틈·겹침·칸 크기를 잴 때도 이 함수를 그대로 쓴다)
+export function boundaryR(b: Boundary, aDeg: number): number {
   const shape: BoundaryShape = b.shape ?? (b.waves && b.amp ? "sine" : "circle");
   if (shape === "circle") return b.r;
 
@@ -229,117 +230,169 @@ export function buildRegions(tpl: Template): Region[] {
 // ── 여섯 폭의 만다라 ────────────────────────────────────────────
 // bounds 는 안에서 밖으로 이어지며, 앞 고리의 바깥 경계가 곧 다음 고리의 안쪽 경계다.
 // (그래서 고리 사이에 칠할 수 없는 빈 띠가 생기지 않는다)
-// 칸은 손가락으로 짚을 수 있어야 하므로 고리는 다섯 겹 안팎, 한 칸의 폭·두께는
-// viewBox 기준 12 단위(모바일에서 약 22px) 아래로 내려가지 않게 잡았다.
+//
+// 여섯 폭 모두 가운데 원 + 여섯 겹, 도합 일곱 층이다. 안쪽 겹은 6~12칸으로
+// 큼직하게, 바깥으로 갈수록 잘게 나눠 최대 48칸까지 촘촘해진다.
+// 칸은 손가락으로 짚을 수 있어야 하므로 어느 칸도 폭·두께가 viewBox 기준
+// 11 단위(모바일 359px 화면에서 약 20px) 아래로 내려가지 않는다.
+//
+// 물결 진폭을 과감히 쓰면서도 칸이 실오라기가 되지 않게 하는 두 가지 요령:
+//  · 이웃한 두 경계에 같은 waves·phase 를 주면 고리가 물결을 따라 함께 출렁여
+//    두께가 거의 일정하다 — 진폭의 차만큼만 변한다.
+//  · 물결 수를 두 배로 올려 넘어갈 때는 위상을 맞춰(phase_밖 − 2·phase_안 = −90°)
+//    마루가 마루 위에 얹히게 한다 — 골끼리 어긋나 칸이 짓눌리는 일이 없다.
 
 export const TEMPLATES: Template[] = [
   {
+    // 겹연꽃 — 가운데 여섯 장의 큰 잎이 펑퍼짐하게 벌고, 물결 경계가
+    // 잎끝을 그리며 여섯 겹으로 피어난다. 바깥 두 겹은 잔잎 스물넷.
     key: "lotus",
     name: "연화장",
     hanja: "蓮華藏",
-    core: 14,
+    core: 12,
     bounds: [
-      { r: 14 },
-      { r: 32 },
-      { r: 50 },
-      { r: 66 },
-      { r: 82 },
-      { r: 96, waves: 24, amp: 3, phase: -90 }, // 잎끝이 칸 한가운데에 오도록
+      { r: 12 },
+      { r: 30, shape: "sine", waves: 6, amp: 4, phase: -90 }, // 잎끝이 칸 한가운데
+      { r: 43, shape: "sine", waves: 6, amp: 4, phase: -90 },
+      { r: 56, shape: "sine", waves: 6, amp: 2.5, phase: -90 },
+      { r: 69.5, shape: "sine", waves: 12, amp: 2, phase: 90 },
+      { r: 82, shape: "sine", waves: 12, amp: 2, phase: 90 },
+      { r: 95.5, shape: "sine", waves: 24, amp: 2.2, phase: 90 },
     ],
     rings: [
-      { n: 8, bow: 8, bowMode: "petal" },
-      { n: 12, rot: 15 },
-      { n: 16, bow: 5, bowMode: "petal" },
+      { n: 6, bow: 11, bowMode: "petal" }, // 큰 잎 — 허리가 넉넉한 곡선
+      { n: 12, rot: 15, bow: 4, bowMode: "petal" },
+      { n: 12, bow: 6, bowMode: "petal" },
       { n: 24, rot: 7.5 },
-      { n: 24, bow: 4, bowMode: "petal" },
+      { n: 24, bow: 3, bowMode: "petal" },
+      { n: 24, rot: 7.5, bow: 3, bowMode: "petal" },
     ],
   },
   {
+    // 법륜 — 여덟 바퀴살의 굴대에서 삼각파 테가 겹겹이 번져 나가고,
+    // 바깥 테는 마흔여덟 톱니로 잘게 나뉜다.
     key: "wheel",
     name: "법륜",
     hanja: "法輪",
-    core: 12,
-    bounds: [{ r: 12 }, { r: 26 }, { r: 42 }, { r: 58 }, { r: 76 }, { r: 94 }],
+    core: 13,
+    bounds: [
+      { r: 13 },
+      { r: 28 },
+      { r: 42.5, shape: "star", waves: 8, amp: 3, phase: 90 },
+      { r: 56, shape: "star", waves: 8, amp: 3.5, phase: 90 },
+      { r: 70, shape: "star", waves: 8, amp: 4, phase: 90 },
+      { r: 84, shape: "star", waves: 24, amp: 1.5, phase: 90 },
+      { r: 96.3, shape: "star", waves: 24, amp: 2, phase: 90 },
+    ],
     rings: [
       { n: 8 },
       { n: 8, rot: 22.5 },
       { n: 16 },
       { n: 24, rot: 7.5 },
-      { n: 36 },
+      { n: 24 },
+      { n: 48 },
     ],
   },
   {
+    // 육각화 — 정육각이 세 겹, 그 위로 십이각 두 겹, 맨 밖은 물결 테.
+    // 안쪽 여섯 잎은 크게 벌어진다.
     key: "hexa",
     name: "육각화",
     hanja: "六角華",
-    core: 14,
+    core: 12,
     bounds: [
-      { r: 14 },
-      { r: 34, shape: "polygon", waves: 6 },
-      { r: 52, shape: "polygon", waves: 6 },
-      { r: 68, shape: "polygon", waves: 6 },
-      { r: 83, shape: "polygon", waves: 6 },
-      { r: 97, shape: "polygon", waves: 6 },
+      { r: 12 },
+      { r: 30, shape: "polygon", waves: 6 },
+      { r: 44, shape: "polygon", waves: 6 },
+      { r: 58, shape: "polygon", waves: 6 },
+      { r: 72, shape: "polygon", waves: 12 },
+      { r: 86, shape: "polygon", waves: 12 },
+      { r: 96.3, shape: "sine", waves: 12, amp: 2, phase: 90 },
     ],
     rings: [
       { n: 6, bow: 9, bowMode: "petal" },
-      { n: 12 },
+      { n: 12, bow: 4, bowMode: "petal" },
       { n: 18 },
-      { n: 24 },
-      { n: 36 },
-    ],
-  },
-  {
-    key: "thousand",
-    name: "천불",
-    hanja: "千佛",
-    core: 12,
-    bounds: [{ r: 12 }, { r: 32 }, { r: 50 }, { r: 66 }, { r: 82 }, { r: 96 }],
-    rings: [
-      { n: 12 },
-      { n: 18, rot: 10 },
       { n: 24 },
       { n: 24, rot: 7.5 },
       { n: 36 },
     ],
   },
   {
+    // 천불 — 아홉 굽이 물결이 두 배로 갈라지며 번진다. 아홉·아홉·열여덟…
+    // 서른여섯까지, 감실이 촘촘히 늘어서는 구품(九品)의 배치.
+    key: "thousand",
+    name: "천불",
+    hanja: "千佛",
+    core: 11,
+    bounds: [
+      { r: 11 },
+      { r: 26 },
+      { r: 40, shape: "sine", waves: 9, amp: 2.5, phase: -90 },
+      { r: 54, shape: "sine", waves: 9, amp: 2.5, phase: -90 },
+      { r: 68, shape: "sine", waves: 18, amp: 2, phase: 90 },
+      { r: 81, shape: "sine", waves: 18, amp: 2, phase: 90 },
+      { r: 94.5, shape: "sine", waves: 18, amp: 2.8, phase: 90 },
+    ],
+    rings: [
+      { n: 9 },
+      { n: 9, rot: 20 },
+      { n: 18 },
+      { n: 18, rot: 10 },
+      { n: 36 },
+      { n: 36, rot: 5 },
+    ],
+  },
+  {
+    // 소용돌이 — 모든 살이 한쪽으로 휘어 도는 물레. 고리마다 시작각을
+    // 조금씩 밀어 바람개비처럼 감긴다.
     key: "swirl",
     name: "소용돌이",
     hanja: "渦",
     core: 10,
     bounds: [
       { r: 10 },
-      { r: 28 },
-      { r: 46 },
-      { r: 64 },
-      { r: 82 },
-      { r: 96, waves: 18, amp: 3, phase: -90 },
+      { r: 24 },
+      { r: 38, shape: "sine", waves: 12, amp: 2, phase: -90 },
+      { r: 52, shape: "sine", waves: 12, amp: 2, phase: -90 },
+      { r: 66, shape: "sine", waves: 12, amp: 2.5, phase: -90 },
+      { r: 80, shape: "sine", waves: 12, amp: 2.5, phase: -90 },
+      { r: 94, shape: "sine", waves: 24, amp: 2.5, phase: 90 },
     ],
     rings: [
-      { n: 12, bow: 7, bowMode: "swirl" },
-      { n: 12, rot: 15, bow: 7, bowMode: "swirl" },
-      { n: 18, rot: 10, bow: 5, bowMode: "swirl" },
-      { n: 24, rot: 7.5, bow: 3, bowMode: "swirl" },
-      { n: 36, rot: 5, bow: 2, bowMode: "swirl" },
+      { n: 8, bow: 11, bowMode: "swirl" },
+      { n: 12, rot: 5, bow: 7.5, bowMode: "swirl" },
+      { n: 12, rot: 12.5, bow: 7.5, bowMode: "swirl" },
+      { n: 24, bow: 3.75, bowMode: "swirl" },
+      { n: 24, rot: 7.5, bow: 3.75, bowMode: "swirl" },
+      { n: 24, rot: 2.5, bow: 3.75, bowMode: "swirl" },
     ],
   },
   {
+    // 별 — 여덟 갈래 삼각파 빛살이 여섯 겹으로 포개진다. 진폭을 과감히 줘
+    // 뾰족함이 살아 있되, 이웃 경계와 위상을 맞춰 칸 두께는 일정하다.
+    // 위상 90° 는 마루를 0°·45°… 에 세워, 꼭짓점이 칸의 살 위에 얹히게 한다.
     key: "star",
     name: "별",
     hanja: "星",
     core: 12,
-    // 삼각파 경계 — 여덟 갈래의 뾰족한 빛살이 겹겹이 포개진다.
-    // 위상 90° 는 마루를 0°·45°… 에 세워, 꼭짓점이 칸의 살 위에 정확히 얹히게 한다.
     bounds: [
       { r: 12 },
-      { r: 28, shape: "star", waves: 8, amp: 5, phase: 90 },
-      { r: 46, shape: "star", waves: 8, amp: 6, phase: 90 },
-      { r: 64, shape: "star", waves: 8, amp: 6, phase: 90 },
-      { r: 80, shape: "star", waves: 8, amp: 7, phase: 90 },
-      { r: 92, shape: "star", waves: 8, amp: 7, phase: 90 },
+      { r: 30, shape: "star", waves: 8, amp: 5, phase: 90 },
+      { r: 43, shape: "star", waves: 8, amp: 5, phase: 90 },
+      { r: 56, shape: "star", waves: 8, amp: 5.5, phase: 90 },
+      { r: 69, shape: "star", waves: 8, amp: 5.5, phase: 90 },
+      { r: 82, shape: "star", waves: 8, amp: 5, phase: 90 },
+      { r: 93.8, shape: "star", waves: 8, amp: 4.5, phase: 90 },
     ],
-    rings: [{ n: 8 }, { n: 16 }, { n: 16 }, { n: 24 }, { n: 24 }],
+    rings: [
+      { n: 8, bow: 6, bowMode: "petal" },
+      { n: 16 },
+      { n: 24, rot: 7.5 },
+      { n: 24 },
+      { n: 24, rot: 7.5, bow: 2.5, bowMode: "petal" },
+      { n: 24 },
+    ],
   },
 ];
 

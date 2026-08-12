@@ -11,7 +11,7 @@ export const SITE_URL = "https://www.hwa-du.com";
 export const SLOGAN = "모두가 AI에게 묻는 시대, 화두는 당신에게 묻는다.";
 export const SITE_TAGLINE = "AI는 답하지 않습니다. 당신에게 묻습니다.";
 
-// 차 한 잔(후원) 링크 — 토스 송금 링크 등 주소가 정해지면 여기만 바꾸면 된다.
+// 차 한 잔(찻값 결제) 링크 — 주소가 정해지면 여기만 바꾸면 된다.
 // null 이면 "찻자리를 마련하고 있습니다"로 표시된다.
 export const DONATION_URL: string | null = "https://qr.kakaopay.com/Fdo2KqicH";
 

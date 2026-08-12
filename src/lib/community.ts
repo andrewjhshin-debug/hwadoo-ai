@@ -22,7 +22,7 @@ import {
 import { auth, db } from "./firebase";
 import { anonName } from "./anonName";
 
-// 게시판 종류 — 연지원(community, 기본) / 명상 모임(gathering)
+// 게시판 종류 — 연지원(community, 기본) / 차담회(gathering)
 export type Board = "community" | "gathering";
 
 export type Post = {

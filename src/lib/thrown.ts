@@ -12,10 +12,13 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  increment,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
@@ -34,14 +37,71 @@ export type PublicHwadu = {
   audience?: "adult" | "student"; // 어느 랜덤 풀에 뿌릴지 (없으면 성인)
 };
 
-// 화두를 던진다 — 로그인 없어도 가능
-export async function submitThrown(question: string) {
-  await addDoc(collection(db, "thrown"), {
+// 화두를 던진다 — 로그인 없어도 가능.
+// 만들어진 문서 id를 돌려준다 (브라우저가 제 물음의 걸음을 좇을 수 있게).
+export async function submitThrown(question: string): Promise<string> {
+  const ref = await addDoc(collection(db, "thrown"), {
     question,
     uid: auth.currentUser?.uid ?? null,
     status: "pending",
     thrownAt: serverTimestamp(),
   });
+  return ref.id;
+}
+
+// 이 공개 화두가 어느 수행자에게 닿았다 — seen 을 +1.
+// 세는 일은 부차이니, 실패해도 조용히 지나간다 (받는 흐름을 막지 않는다).
+export async function markSeen(publicHwaduId: string) {
+  try {
+    await setDoc(
+      doc(db, "public-hwadu", publicHwaduId),
+      { seen: increment(1) },
+      { merge: true }
+    );
+  } catch {
+    // 조용히 삼킨다
+  }
+}
+
+// 내가 던진 화두의 걸음 — thrown 문서 id 들로 public-hwadu 를 살핀다.
+// 공개 문서에 새겨진 sourceId 로 찾으므로, 찾히면 승인된 것이다.
+export type ThrownStat = {
+  sourceId: string; // thrown 문서 id
+  seen: number; // 이 화두를 받은 수행자 수
+  status: "pending" | "approved";
+};
+
+export async function fetchMyThrownStats(
+  thrownIds: string[]
+): Promise<ThrownStat[]> {
+  const ids = [...new Set(thrownIds.filter((v) => v))];
+  if (ids.length === 0) return [];
+  const found = new Map<string, number>();
+  // Firestore 의 in 조건은 한 번에 열 개까지 — 끊어서 묻는다
+  for (let i = 0; i < ids.length; i += 10) {
+    const chunk = ids.slice(i, i + 10);
+    try {
+      const snap = await getDocs(
+        query(collection(db, "public-hwadu"), where("sourceId", "in", chunk))
+      );
+      snap.docs.forEach((d) => {
+        const data = d.data();
+        if (typeof data.sourceId === "string") {
+          found.set(
+            data.sourceId,
+            typeof data.seen === "number" ? data.seen : 0
+          );
+        }
+      });
+    } catch {
+      // 이 묶음의 조회 실패 — 해당 물음들은 승인 대기처럼 보인다
+    }
+  }
+  return ids.map((id) => ({
+    sourceId: id,
+    seen: found.get(id) ?? 0,
+    status: found.has(id) ? "approved" : "pending",
+  }));
 }
 
 // 승인된 화두 모두 — 홈의 랜덤 풀에 섞인다
@@ -82,6 +142,7 @@ export async function approveThrown(
   await addDoc(collection(db, "public-hwadu"), {
     question: item.question,
     origin: "thrown",
+    sourceId: item.id, // 던진 thrown 문서 — 던진 이가 제 물음의 걸음을 좇는 실마리
     audience,
     createdAt: serverTimestamp(),
   });

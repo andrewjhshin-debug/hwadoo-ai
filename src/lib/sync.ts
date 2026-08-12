@@ -24,9 +24,11 @@ import {
 import { auth, db } from "./firebase";
 import {
   applyRemoteStore,
+  cleanupHistory,
   clearStore,
   emptyStore,
   loadStore,
+  sessionKey,
   type Session,
   type Store,
 } from "./store";
@@ -64,19 +66,18 @@ function normalize(raw: Store | null | undefined): Store | null {
   };
 }
 
-const sessionKey = (s: Session) => `${s.hwaduId}-${s.receivedAt}`;
-
-// 회향 기록은 합집합 — 어느 쪽에만 있는 글도 잃지 않는다
+// 회향 기록은 합집합 — 어느 쪽에만 있는 글도 잃지 않는다 (로그인 순간에만 쓴다)
 function mergeHistory(older: Session[], newer: Session[]): Session[] {
   const map = new Map<string, Session>();
   for (const s of [...older, ...newer]) map.set(sessionKey(s), s);
   return [...map.values()].sort((a, b) => a.receivedAt - b.receivedAt);
 }
 
-// 두 기록을 합친다 — 회향 기록은 합집합, 진행 중인 화두는 이 기기 우선
+// 두 기록을 합친다 — 회향 기록은 합집합, 진행 중인 화두는 이 기기 우선.
+// 합친 뒤 청소를 지나므로, 어느 쪽에 쌓였던 중복·체험 기록도 되살아나지 않는다.
 function mergeStores(local: Store, cloud: Store | null): Store {
   if (!cloud) return local;
-  const history = mergeHistory(cloud.history, local.history);
+  const history = cleanupHistory(mergeHistory(cloud.history, local.history));
   return {
     current: local.current ?? cloud.current ?? null,
     history,
@@ -86,12 +87,14 @@ function mergeStores(local: Store, cloud: Store | null): Store {
   };
 }
 
-// 다른 기기의 기록을 받아들인다 — 진행 중인 화두는 저쪽을 따르되,
-// 회향 기록은 합집합으로 두고 이 기기에서 쓰던 글은 지우지 않는다.
+// 다른 기기의 기록을 받아들인다 — 회향 기록은 원격을 그대로 따른다.
+// 합집합이 아니다: 합치면 지운 기록이 스냅샷마다 부활한다 — 삭제가 이겨야 한다.
+// (pendingLocal 가드가 있어 내 변화가 서버에 확정되기 전에는 이 함수까지
+//  오지 않으므로, 이 기기에만 있던 회향이 유실될 걱정은 없다)
 function adoptRemote(remote: Store, local: Store): Store {
   const next: Store = {
     ...remote,
-    history: mergeHistory(remote.history, local.history),
+    history: cleanupHistory(remote.history),
   };
   const r = remote.current;
   const l = local.current;

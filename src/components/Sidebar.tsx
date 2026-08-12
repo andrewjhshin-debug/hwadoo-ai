@@ -2,8 +2,11 @@
 
 // ─────────────────────────────────────────────────────────────
 // 왼쪽 탭 — 도량의 회랑.
-// · 뜰(홈) / 체험하기 / 아홉 방 (전부 불교 문양) / 지난 화두 / 로그인
-// · 데스크톱: 접기(아이콘만) ↔ 펴기, 상태 기억
+// · 세 구획으로 묶는다 — 수행 / 말씀 / 나눔 (전부 불교 문양)
+//   수행: 뜰(홈) · 체험하기 · 사유의 방 · 만다라 · 호흡 명상(곧)
+//   말씀: 간화선이란? · 선지식의 한마디
+//   나눔: 내가 던지는 화두 · 차담회 · 연지원 · 차 한 잔
+// · 데스크톱: 접기(아이콘만, 구획 제목은 숨김) ↔ 펴기, 상태 기억
 // · 모바일: 햄버거 서랍
 // ─────────────────────────────────────────────────────────────
 
@@ -28,16 +31,38 @@ import {
   Teacup,
 } from "./icons";
 
-const NAV = [
-  { href: "/ganhwaseon", label: "간화선이란?", Icon: Dharmachakra },
-  { href: "/masters", label: "선지식의 한마디", Icon: SeonMaster },
+type NavItem = {
+  href: string;
+  label: string;
+  Icon: React.ComponentType<{ className?: string; stroke?: string }>;
+  soon?: boolean;
+};
+
+// 수행 — 매일 앉아 익히는 방들 (뜰·체험하기는 위의 붙박이 단추가 맡는다)
+const NAV_PRACTICE: NavItem[] = [
   { href: "/room", label: "사유의 방", Icon: Banga },
-  { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
   { href: "/mandala", label: "만다라", Icon: Mandala },
   { href: "/breath", label: "호흡 명상", Icon: Lotus, soon: true },
-  { href: "/tea", label: "차 한 잔", Icon: Teacup },
-  { href: "/gathering", label: "명상 모임", Icon: Person },
-  { href: "/community", label: "연지원 — 커뮤니티", Icon: Lantern },
+];
+
+// 말씀 · 나눔 — 구획 제목과 함께 아래에 잇는다
+const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
+  {
+    title: "말씀",
+    items: [
+      { href: "/ganhwaseon", label: "간화선이란?", Icon: Dharmachakra },
+      { href: "/masters", label: "선지식의 한마디", Icon: SeonMaster },
+    ],
+  },
+  {
+    title: "나눔",
+    items: [
+      { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
+      { href: "/gathering", label: "차담회(茶談會)", Icon: Person },
+      { href: "/community", label: "연지원 — 커뮤니티", Icon: Lantern },
+      { href: "/tea", label: "차 한 잔", Icon: Teacup },
+    ],
+  },
 ];
 
 const COLLAPSE_KEY = "hwadoo-sidebar-collapsed";
@@ -147,6 +172,29 @@ export default function Sidebar() {
   // 데스크톱에서 접혔을 때는 아이콘만 (모바일 서랍이 열리면 항상 펼침)
   const slim = collapsed && !open;
 
+  // 나란한 방 하나 — 구획마다 같은 모양으로 그린다
+  const renderItem = ({ href, label, Icon, soon }: NavItem) => (
+    <Link
+      key={href}
+      href={href}
+      onClick={go(href)}
+      title={label}
+      className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-[15px] transition-colors sm:py-1.5 sm:text-[12.5px] ${
+        pathname === href
+          ? "bg-gold/10 text-hanji"
+          : "text-hanji-dim hover:bg-gold/5 hover:text-hanji"
+      } ${slim ? "justify-center" : ""}`}
+    >
+      <Icon className="h-[16px] w-[16px] shrink-0 opacity-75" />
+      {!slim && <span>{label}</span>}
+      {!slim && soon && (
+        <span className="ml-auto rounded-full border border-gold/30 px-1.5 py-px text-[9px] leading-tight text-gold-soft">
+          곧
+        </span>
+      )}
+    </Link>
+  );
+
   return (
     <>
       {/* 모바일 상단 바 — 로고 가운데, 메뉴 왼쪽·테마 오른쪽 */}
@@ -235,6 +283,13 @@ export default function Sidebar() {
           </div>
         </div>
 
+        {/* ── 수행 — 매일 앉는 자리 ── */}
+        {!slim && (
+          <div className="mb-2 px-2.5 text-[11px] tracking-[0.22em] text-hanji-faint">
+            수행
+          </div>
+        )}
+
         {/* 새 화두 받기 — 홈 */}
         <Link
           href="/"
@@ -263,30 +318,22 @@ export default function Sidebar() {
           {!slim && <span>체험하기</span>}
         </Link>
 
-        {/* 아홉 방 */}
-        <nav className="mt-4 flex flex-col gap-0.5">
-          {NAV.map(({ href, label, Icon, soon }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={go(href)}
-              title={label}
-              className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-[15px] transition-colors sm:py-1.5 sm:text-[12.5px] ${
-                pathname === href
-                  ? "bg-gold/10 text-hanji"
-                  : "text-hanji-dim hover:bg-gold/5 hover:text-hanji"
-              } ${slim ? "justify-center" : ""}`}
-            >
-              <Icon className="h-[16px] w-[16px] shrink-0 opacity-75" />
-              {!slim && <span>{label}</span>}
-              {!slim && soon && (
-                <span className="ml-auto rounded-full border border-gold/30 px-1.5 py-px text-[9px] leading-tight text-gold-soft">
-                  곧
-                </span>
-              )}
-            </Link>
-          ))}
+        {/* 수행의 나머지 방들 */}
+        <nav className="mt-2 flex flex-col gap-0.5">
+          {NAV_PRACTICE.map(renderItem)}
         </nav>
+
+        {/* ── 말씀 · 나눔 ── */}
+        {NAV_GROUPS.map(({ title, items }) => (
+          <div key={title} className={slim ? "mt-3 border-t border-ink-3 pt-3" : "mt-5"}>
+            {!slim && (
+              <div className="mb-1.5 px-2.5 text-[11px] tracking-[0.22em] text-hanji-faint">
+                {title}
+              </div>
+            )}
+            <nav className="flex flex-col gap-0.5">{items.map(renderItem)}</nav>
+          </div>
+        ))}
 
         {/* 지난 화두 — 목록 없이 기록 보기 링크만 (스크롤바 방지) */}
         {!slim && (

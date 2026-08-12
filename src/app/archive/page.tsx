@@ -72,7 +72,15 @@ export default function ArchivePage() {
           </Link>
         </div>
       ) : (
-        <div className="mt-12 flex flex-col gap-11">
+        <>
+          {/* 연등(프리미엄) 예고 — 안내만 한다. 기록을 잠그거나 지우지 않는다 */}
+          {history.length > 5 && (
+            <p className="rise rise-d1 mt-10 text-center text-[11.5px] leading-6 tracking-wide text-hanji-faint">
+              기록이 다섯을 넘었습니다 — 무제한 보관은 ‘연등’(준비 중)에서
+              열립니다. 지금은 모두 무료로 보관됩니다.
+            </p>
+          )}
+          <div className="mt-12 flex flex-col gap-11">
           {[...history].reverse().map((s, i) => {
             const k = keyOf(s);
             const editing = editKey === k;
@@ -83,10 +91,12 @@ export default function ArchivePage() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-[11px] tracking-[0.25em] text-gold-soft">
+                    {/* thrown: 은 낯선 이가 던진 물음을 '받은' 것 —
+                        customQuestion 만 남은 옛 데이터도 같다 */}
                     {s.hwaduId.startsWith("try:")
                       ? `체험 · ${sessionTitle(s)}`
-                      : s.customQuestion
-                        ? "그대가 던진 화두"
+                      : s.hwaduId.startsWith("thrown:") || s.customQuestion
+                        ? "받은 화두"
                         : sessionTitle(s)}
                   </p>
                   <div className="flex shrink-0 gap-3">
@@ -197,7 +207,8 @@ export default function ArchivePage() {
               </article>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

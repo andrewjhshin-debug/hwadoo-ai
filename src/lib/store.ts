@@ -31,23 +31,43 @@ export function emptyStore(): Store {
   return { current: null, history: [], received: 0 };
 }
 
+// 세션을 한 판으로 구별하는 열쇠 — 같은 화두라도 받은 시각이 다르면 다른 판이다
+export function sessionKey(s: Session): string {
+  return `${s.hwaduId}-${s.receivedAt}`;
+}
+
+// 회향 기록 청소 — 예전 동기화 합집합 버그로 불어난 기록을 걷어낸다.
+// · 같은 판(sessionKey)의 중복은 하나만 남긴다 (나중 것이 이긴다 — 고쳐 쓴 답 보존)
+// · 체험(try:) 기록은 receivedAt 이 가장 이른 한 판만 남긴다
+// loadStore 가 돌려주기 전에 늘 지나므로, 오염된 옛 데이터도 저절로 맑아진다.
+export function cleanupHistory(history: Session[]): Session[] {
+  const map = new Map<string, Session>();
+  for (const s of Array.isArray(history) ? history : []) {
+    if (!s || typeof s.hwaduId !== "string") continue;
+    map.set(sessionKey(s), s);
+  }
+  let firstTry: Session | null = null;
+  const rest: Session[] = [];
+  for (const s of map.values()) {
+    if (s.hwaduId.startsWith("try:")) {
+      if (!firstTry || s.receivedAt < firstTry.receivedAt) firstTry = s;
+    } else {
+      rest.push(s);
+    }
+  }
+  if (firstTry) rest.push(firstTry);
+  return rest.sort((a, b) => a.receivedAt - b.receivedAt);
+}
+
 export function loadStore(): Store {
   if (typeof window === "undefined") return emptyStore();
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return emptyStore();
     const parsed = JSON.parse(raw) as Store;
-    // 체험(try:) 기록은 딱 한 판만 남긴다 — 예전 버그로 여러 개 쌓인 것을 청소
+    // 돌려주기 전에 늘 청소한다 — 중복 판과 불어난 체험(try:) 기록을 걷어낸다
     const rawHistory = Array.isArray(parsed.history) ? parsed.history : [];
-    let seenTry = false;
-    const history = rawHistory.filter((h) => {
-      const isTry =
-        typeof h?.hwaduId === "string" && h.hwaduId.startsWith("try:");
-      if (!isTry) return true;
-      if (seenTry) return false; // 두 번째부터는 버린다
-      seenTry = true;
-      return true;
-    });
+    const history = cleanupHistory(rawHistory);
     // 청소가 일어났으면(예전에 쌓인 중복 제거) 즉시 저장해 영구 반영
     if (history.length !== rawHistory.length) {
       try {

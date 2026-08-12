@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "이 도량이 마음에 머물렀다면, 차 한 잔.",
 };
 
-// 차 한 잔 — 후원의 방. 조주의 끽다거에서 빌린 이름.
+// 차 한 잔 — 도량에 차 한 잔을 올리는 찻자리. 조주의 끽다거에서 빌린 이름.
 export default function TeaPage() {
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-6 py-14">
@@ -23,7 +23,9 @@ export default function TeaPage() {
       <p className="rise rise-d2 mt-8 text-center text-[13px] leading-8 text-hanji-dim">
         이 도량은 무료이며, 앞으로도 그렇습니다.
         <br />
-        다만 이곳이 마음에 머물렀다면, 차 한 잔 값을 보태 주실 수 있습니다.
+        다만 이곳이 마음에 머물렀다면, 도량에 차 한 잔을 올려 주실 수 있습니다.
+        <br />
+        찻값은 이 도량을 잇는 데 쓰입니다.
       </p>
       <div className="rise rise-d3 mt-10">
         <Donation />
