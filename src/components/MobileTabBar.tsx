@@ -24,7 +24,8 @@ const TABS = [
 
 // 이 화면들은 사유의 방을 화면 안에 이미 두고 있다 —
 // FAB와 서랍을 두 벌 띄우지 않도록 여기서는 접는다.
-const OWN_NOTES = ["/", "/room", "/try"];
+// 만다라는 색칠 공간이 좁아 떠 있는 단추가 자꾸 겹친다 — 아예 띄우지 않는다.
+const OWN_NOTES = ["/", "/room", "/try", "/mandala"];
 
 export default function MobileTabBar() {
   const pathname = usePathname();

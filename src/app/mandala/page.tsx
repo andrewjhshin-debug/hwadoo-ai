@@ -13,8 +13,12 @@
 //  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌리기·붓 굵기 지원.
 // 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 흩어진다.
 // 하던 만다라는 자동 임시저장되어, 다른 일 하다 돌아와도 그대로 떠 있다.
-// 배치 — 왼쪽 위 모서리에 세로 스택 [원위치(더블탭) → 되돌리기 → (그리기만) 손으로
-//  옮기기], 오른쪽 위엔 비우기 — 작고 조용한 톤으로 판 위에 겹쳐 앉는다.
+// 배치 — 모바일: 왼쪽 위 모서리에 세로 스택 [원위치(더블탭) → 되돌리기 → (그리기만)
+//  손으로 옮기기], 오른쪽 위엔 비우기 — 작고 조용한 톤으로 판 위에 겹쳐 앉는다.
+//  데스크톱(sm+): 좌우에 자리가 넉넉하니 같은 버튼들이 판 바깥으로 나앉는다 —
+//  왼쪽 묶음은 판 왼쪽 바깥 세로 스택, 비우기는 판 오른쪽 바깥(둘 다 16px 간격).
+//  원 테두리를 조금도 가리지 않는다. 데스크톱 마우스: 휠 = 커서 자리 기준
+//  확대/축소(1~3배, 핀치와 같은 클램프), 꾹 눌러 끌면 팬 — 로직은 터치와 한 몸.
 //  색칠: [토글 → 만다라 → N/M칸 → 문양 칩(가운데) → 색판]
 //  그리기: [토글 → 만다라 → 갈래·거울·붓 → 색판]
 // 가 스크롤 없이 한 화면에 들어온다.
@@ -354,6 +358,38 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     applyView();
   };
 
+  // 데스크톱 — 마우스 휠 줌: 커서 자리를 붙들고 확대/축소, 핀치와 같은 1~3 클램프.
+  // React 의 onWheel 은 passive 라 preventDefault 가 안 먹는다 —
+  // ref 에 { passive: false } 로 직접 붙여 페이지 스크롤과 충돌하지 않게 한다.
+  const scatteringRef = useRef(false);
+  useEffect(() => {
+    scatteringRef.current = scattering;
+  }, [scattering]);
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault(); // 판 위에선 페이지를 굴리지 않는다
+      if (scatteringRef.current) return;
+      const v = view.current;
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 120 : 1; // 줄·쪽 단위 휠도 픽셀로
+      const ns = Math.min(3, Math.max(1, v.scale * Math.exp(-e.deltaY * unit * 0.0015)));
+      const rect = wrap.getBoundingClientRect();
+      // 커서가 짚은 문양 자리가 확대 후에도 커서 밑에 남도록 이동을 함께 푼다
+      const mx = e.clientX - rect.left - rect.width / 2;
+      const my = e.clientY - rect.top - rect.height / 2;
+      const k = v.scale > 0 ? ns / v.scale : 1;
+      v.x = mx - (mx - v.x) * k;
+      v.y = my - (my - v.y) * k;
+      v.scale = ns;
+      applyView(); // 핀치와 같은 위치 클램프 — 배율은 그대로 남는다
+    };
+    wrap.addEventListener("wheel", onWheel, { passive: false });
+    return () => wrap.removeEventListener("wheel", onWheel);
+    // applyView 는 ref 와 안정된 setState 만 만진다 — 첫 렌더의 것을 붙들어도 안전
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // 화면 좌표 → 칸 id (확대·이동이 걸려 있어도 그대로 맞는다)
   const cellAt = (x: number, y: number): string | null => {
     const el = document.elementFromPoint(x, y);
@@ -598,8 +634,9 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
         </div>
         {/* 판 왼쪽 위 — 세로 스택: 원위치(더블탭) · 되돌리기.
-            모서리에 바짝(-4px), 판은 둥글어 이 자리가 비니 가림이 적다 */}
-        <div className="absolute -left-1 -top-1 z-10 flex flex-col items-start gap-1">
+            모바일: 모서리에 바짝(-4px), 판은 둥글어 이 자리가 비니 가림이 적다.
+            데스크톱(sm+): 판 왼쪽 바깥으로 나앉는다(16px 간격) — 원을 가리지 않는다 */}
+        <div className="absolute -left-1 -top-1 z-10 flex flex-col items-start gap-1 sm:left-auto sm:right-full sm:top-0 sm:mr-4 sm:items-end sm:whitespace-nowrap">
           <button
             onClick={resetView}
             aria-label="원위치(더블탭)"
@@ -618,12 +655,12 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
             ↩ 되돌리기
           </button>
         </div>
-        {/* 판 오른쪽 위 — 비우기 */}
+        {/* 판 오른쪽 위 — 비우기. 데스크톱(sm+)은 판 오른쪽 바깥(16px 간격) */}
         <button
           onClick={askClear}
           disabled={scattering}
           aria-label="비우기"
-          className={`absolute right-0 top-0 z-10 rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 ${PRESS_WARM}`}
+          className={`absolute right-0 top-0 z-10 rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 sm:left-full sm:right-auto sm:ml-4 sm:whitespace-nowrap ${PRESS_WARM}`}
         >
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
@@ -841,6 +878,38 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
     applyTransform();
   };
 
+  // 데스크톱 — 마우스 휠 줌: 커서 자리를 붙들고 확대/축소 (색칠 모드와 같은 결).
+  // React 의 onWheel 은 passive 라 preventDefault 가 안 먹는다 —
+  // ref 에 { passive: false } 로 직접 붙여 페이지 스크롤과 충돌하지 않게 한다.
+  const scatteringRef = useRef(false);
+  useEffect(() => {
+    scatteringRef.current = scattering;
+  }, [scattering]);
+  useEffect(() => {
+    const board = boardRef.current;
+    if (!board) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault(); // 판 위에선 페이지를 굴리지 않는다
+      if (scatteringRef.current) return;
+      const v = view.current;
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 120 : 1; // 줄·쪽 단위 휠도 픽셀로
+      const ns = Math.min(3, Math.max(1, v.scale * Math.exp(-e.deltaY * unit * 0.0015)));
+      const rect = board.getBoundingClientRect();
+      // 커서가 짚은 자리가 확대 후에도 커서 밑에 남도록 이동을 함께 푼다
+      const mx = e.clientX - rect.left - rect.width / 2;
+      const my = e.clientY - rect.top - rect.height / 2;
+      const k = v.scale > 0 ? ns / v.scale : 1;
+      v.x = mx - (mx - v.x) * k;
+      v.y = my - (my - v.y) * k;
+      v.scale = ns;
+      applyTransform();
+    };
+    board.addEventListener("wheel", onWheel, { passive: false });
+    return () => board.removeEventListener("wheel", onWheel);
+    // applyTransform 은 ref 만 만진다 — 첫 렌더의 것을 붙들어도 안전
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const onDown = (e: React.PointerEvent) => {
     if (scattering) return;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -1024,8 +1093,9 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
           <canvas ref={scatterRef} className="pointer-events-none absolute inset-0 h-full w-full" />
         </div>
         {/* 판 왼쪽 위 — 세로 스택: 원위치(더블탭) · 되돌리기 · 손으로 옮기기.
-            모서리에 바짝(-4px), 판은 둥글어 이 자리가 비니 가림이 적다 */}
-        <div className="absolute -left-1 -top-1 z-10 flex flex-col items-start gap-1">
+            모바일: 모서리에 바짝(-4px), 판은 둥글어 이 자리가 비니 가림이 적다.
+            데스크톱(sm+): 판 왼쪽 바깥으로 나앉는다(16px 간격) — 원을 가리지 않는다 */}
+        <div className="absolute -left-1 -top-1 z-10 flex flex-col items-start gap-1 sm:left-auto sm:right-full sm:top-0 sm:mr-4 sm:items-end sm:whitespace-nowrap">
           <button
             onClick={resetView}
             aria-label="원위치(더블탭)"
@@ -1051,12 +1121,12 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
             ✋ 손으로 옮기기
           </button>
         </div>
-        {/* 판 오른쪽 위 — 비우기 */}
+        {/* 판 오른쪽 위 — 비우기. 데스크톱(sm+)은 판 오른쪽 바깥(16px 간격) */}
         <button
           onClick={askClear}
           disabled={scattering}
           aria-label="비우기"
-          className={`absolute right-0 top-0 z-10 rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 ${PRESS_WARM}`}
+          className={`absolute right-0 top-0 z-10 rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 sm:left-full sm:right-auto sm:ml-4 sm:whitespace-nowrap ${PRESS_WARM}`}
         >
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
