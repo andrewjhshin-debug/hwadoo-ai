@@ -530,7 +530,7 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ── 알림: 매일 아침 8시, 물음이 찾아온다.
+      {/* ── 알림: 매일 아침 9시(사시불공의 때), 물음이 찾아온다.
           버튼은 언제나 살아 있다 — 차단돼 있으면 푸는 방법을 바로 아래에 편다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">알림</p>
@@ -565,7 +565,7 @@ export default function SettingsPage() {
             /* off · denied — 버튼은 언제나 눌린다. 차단이면 아래에 푸는 법을 편다 */
             <>
               <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-                매일 아침 8시, 오늘의 물음이 문안드립니다.
+                매일 아침 9시 — 사시불공의 때에, 오늘의 물음이 문안드립니다.
               </p>
               <button
                 onClick={handlePushOn}
