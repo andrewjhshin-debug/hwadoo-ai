@@ -12,7 +12,7 @@ export default function GatheringPage() {
       board="gathering"
       bowedKey="hwadoo-bowed-gathering-v1"
       texts={{
-        heading: "차담회(茶談會)",
+        heading: "차담회 · 모임",
         sub: "차 한 잔을 사이에 두고 함께 앉는 자리 — 차담회를 열고, 함께할 이를 만나다",
         write: "차담회 열기",
         submit: "차담회 열기",

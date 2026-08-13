@@ -3,8 +3,8 @@
 // ────────────────────────────────────────────────────────────────
 // 모바일 전용 — 화면 하단에 고정되는 주요 탭 5개 + 사유의 방 FAB.
 // 스크롤과 무관하게 늘 같은 자리에 머문다(fixed). md 이상에서는 숨김.
-// 5개 탭: 간화선 · 체험하기 · 뜰(홈) · 내 도량 · 만다라
-// 나머지 방(선지식·사유의 방·차 한 잔·차담회·화두 던지기·연지원)은
+// 5개 탭: 간화선 · 선지식 · 뜰(홈) · 내 도량 · 만다라
+// 나머지 방(체험하기·사유의 방·차 한 잔·차담회·화두 던지기·연지원)은
 // 햄버거 서랍과 내 도량의 서비스 그리드에서 닿는다.
 // ────────────────────────────────────────────────────────────────
 
@@ -12,12 +12,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import NotesDrawer from "@/components/NotesDrawer";
-import { Dharmachakra, Person, Lotus, Mandala, Banga, Elephant } from "./icons";
+import { Dharmachakra, Person, Garden, Mandala, Banga, SeonMaster } from "./icons";
 
 const TABS = [
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
-  { href: "/try", label: "체험하기", Icon: Elephant },
-  { href: "/", label: "뜰", Icon: Lotus },
+  { href: "/masters", label: "선지식", Icon: SeonMaster },
+  { href: "/", label: "뜰", Icon: Garden },
   { href: "/settings", label: "내 도량", Icon: Person },
   { href: "/mandala", label: "만다라", Icon: Mandala },
 ];

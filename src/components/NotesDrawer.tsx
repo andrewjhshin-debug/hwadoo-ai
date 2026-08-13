@@ -276,6 +276,16 @@ export default function NotesDrawer({
                   </span>
                 )
               )}
+              {/* 닫기 — 자동 저장 구조이므로, 지금 글을 저장하고 서랍을 닫는다 */}
+              <button
+                onClick={() => {
+                  saveNow();
+                  onClose();
+                }}
+                className="rounded-full border border-ink-3 px-5 py-2 text-[12px] tracking-[0.2em] text-hanji-faint transition-colors hover:border-gold/30 hover:text-hanji-dim"
+              >
+                닫기
+              </button>
               <button
                 onClick={saveNow}
                 className="btn-obang px-6 py-2 text-[12px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"

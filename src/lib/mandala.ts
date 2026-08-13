@@ -2,24 +2,26 @@
 // 만다라 문양 엔진 — 모양 원시도형(꽃잎·아치·구슬·마름모·고리·궁)을
 // 회전 대칭으로 겹겹이 쌓아 다섯 폭을 그린다.
 //
-//  · cell  = 색칠할 수 있는 닫힌 도형. 같은 key 를 나눠 가진 여러 path 는
-//            한 붓에 함께 칠해진다 (구슬 묶음, 갈라진 테 등).
-//  · decor = 칠할 수 없는 장식 선 — 꽃잎 속 작은 꽃잎, 잎맥, 점무늬, 밧줄 무늬.
-//            cell 위에 얹혀 문양의 밀도를 낸다 (pointerEvents: none).
+//  · 눈에 보이는 모든 닫힌 구역이 저마다 한 칸이다. 꽃잎 속 작은 꽃잎이면
+//    바깥 테(고리 모양 구역)와 안쪽 꽃잎이 서로 다른 칸이고,
+//    구슬 한 알 한 알도 제 칸이다. 묶음 색칠은 없다 — path 하나에 key 하나.
+//  · 테(고리) 구역은 겉 윤곽과 속 윤곽을 한 path 에 담아 evenodd 로 구멍을
+//    낸다. 구멍 자리는 짚어도 그 칸에 잡히지 않으므로, 위에 얹힌 안쪽 칸이
+//    제대로 짚인다. 칠할 수 없는 장식 선은 두지 않는다 — 윤곽선(stroke)만 남는다.
+//  · 구슬 등 작은 칸도 지름 4(viewBox 200 기준) 아래로는 만들지 않는다.
+//    핀치 확대가 있으니, 확대해서 하나하나 칠하는 것이 곧 수행이다.
 //  · nodes 는 그리는 순서 그대로다 — 뒤에 온 것이 위에 겹친다.
 //    바깥 겹부터 그려 안쪽 겹이 그 위로 피어나게 한다. 겹침은 의도된 것.
 // ────────────────────────────────────────────────────────────────
 
 export const C = 100; // 중심 좌표 (viewBox 200×200)
 
-export type MandalaNode =
-  | { kind: "cell"; key: string; d: string; fillRule?: "evenodd" }
-  | { kind: "decor"; d: string; w: number; fill?: boolean; opacity?: number };
+export type MandalaNode = { key: string; d: string; fillRule?: "evenodd" };
 
 export type Built = {
   nodes: MandalaNode[];
-  cellKeys: string[]; // 논리 칸의 순서 있는 목록 (진행 표시용)
-  seeds: Record<string, [number, number][]>; // key → 무게중심들 (모래 효과용)
+  cellKeys: string[]; // 칸의 순서 있는 목록 (진행 표시용)
+  seeds: Record<string, [number, number][]>; // key → 칸 속의 표본점들 (모래 효과용)
 };
 
 export type Template = {
@@ -107,6 +109,16 @@ export function ringSegD(a1: number, a2: number, r0: number, r1: number): string
   );
 }
 
+// 밧줄 조각 — 겉 호가 skew 만큼 비스듬히 밀린 도넛 조각. 서로 맞물려 밧줄이 된다.
+export function ropeSegD(
+  a1: number, a2: number, skew: number, r0: number, r1: number
+): string {
+  return (
+    `M${pp(P(r0, a1))} A${f(r0)} ${f(r0)} 0 0 1 ${pp(P(r0, a2))}` +
+    ` L${pp(P(r1, a2 + skew))} A${f(r1)} ${f(r1)} 0 0 0 ${pp(P(r1, a1 + skew))} Z`
+  );
+}
+
 // 원
 export function circleD(r: number, cx = C, cy = C): string {
   return (
@@ -135,60 +147,64 @@ export function gateD(a: number, rb: number, hws: number[], hs: number[]): strin
   return poly([...left, ...right.reverse()]);
 }
 
-// 선분 (decor 용)
-function lineD(p1: [number, number], p2: [number, number]): string {
-  return `M${pp(p1)} L${pp(p2)}`;
-}
-
 // ── 조립기 ───────────────────────────────────────────────────────
 
 export class Builder {
   nodes: MandalaNode[] = [];
   private seedMap: Record<string, [number, number][]> = {};
   private order: string[] = [];
+  private n = 0;
   constructor(private tk: string) {}
 
-  cell(key: string, d: string, seed: [number, number], fillRule?: "evenodd") {
-    const k = `${this.tk}-${key}`;
-    this.nodes.push({ kind: "cell", key: k, d, fillRule });
-    if (!this.seedMap[k]) {
-      this.seedMap[k] = [];
-      this.order.push(k);
+  // 닫힌 구역 하나 = 칸 하나. key 는 만들어지는 순서대로 붙는다.
+  cell(d: string, seeds: [number, number][], fillRule?: "evenodd") {
+    const k = `${this.tk}-${this.n++}`;
+    this.nodes.push({ key: k, d, fillRule });
+    this.order.push(k);
+    this.seedMap[k] = seeds;
+  }
+
+  // 고리 띠 — 조각 하나하나가 제 칸
+  band(r0: number, r1: number, segs: number, rot = 0) {
+    const step = 360 / segs;
+    for (let k = 0; k < segs; k++) {
+      const a1 = rot + k * step;
+      this.cell(ringSegD(a1, a1 + step, r0, r1), [P((r0 + r1) / 2, a1 + step / 2)]);
     }
-    this.seedMap[k].push(seed);
   }
 
-  decor(d: string, w = 0.3, fill = false, opacity?: number) {
-    this.nodes.push({ kind: "decor", d, w, fill, opacity });
-  }
-
-  // 구슬 무늬 — 윤곽 원 + 가운데 점 (decor)
-  bead(x: number, y: number, r: number, dot = true) {
-    this.decor(circleD(r, x, y), 0.28);
-    if (dot) this.decor(circleD(Math.max(0.5, r * 0.32), x, y), 0, true);
-  }
-
-  // 고리 띠 — segs 조각을 group 개씩 한 칸으로 묶는다
-  band(
-    keyBase: string, r0: number, r1: number,
-    segs: number, group: number, rot = 0
-  ) {
+  // 밧줄 테 — 비스듬한 조각들이 맞물린다. 조각마다 제 칸.
+  rope(r0: number, r1: number, segs: number, skew: number, rot = 0) {
     const step = 360 / segs;
     for (let k = 0; k < segs; k++) {
       const a1 = rot + k * step;
       this.cell(
-        `${keyBase}${Math.floor(k / group)}`,
-        ringSegD(a1, a1 + step, r0, r1),
-        P((r0 + r1) / 2, a1 + step / 2)
+        ropeSegD(a1, a1 + step, skew, r0, r1),
+        [P((r0 + r1) / 2, a1 + step / 2 + skew / 2)]
       );
     }
   }
 
-  // 구슬 점무늬 고리 (decor)
-  beadRing(n: number, r: number, size: number, rot = 0, dot = true) {
-    for (let k = 0; k < n; k++) {
-      const [x, y] = P(r, rot + (k * 360) / n);
-      this.bead(x, y, size, dot);
+  // 구슬 띠 — 조각(구슬 자리는 구멍)과 구슬 한 알 한 알이 각각 제 칸.
+  // 구슬은 조각을 perSeg 등분한 각 자리의 한가운데 앉아, 조각을 벗어나지 않는다.
+  beadBand(
+    r0: number, r1: number, segs: number,
+    beadR: number, beadRingR: number, rot = 0, perSeg = 2
+  ) {
+    const step = 360 / segs;
+    for (let k = 0; k < segs; k++) {
+      const a1 = rot + k * step;
+      let d = ringSegD(a1, a1 + step, r0, r1);
+      const beads: [number, number][] = [];
+      for (let j = 0; j < perSeg; j++) {
+        const ba = a1 + (step * (2 * j + 1)) / (2 * perSeg);
+        const [bx, by] = P(beadRingR, ba);
+        d += ` ${circleD(beadR, bx, by)}`;
+        beads.push([bx, by]);
+      }
+      // 조각 칸의 씨앗은 구슬과 구슬 사이 빈 자리에 둔다
+      this.cell(d, [P((r0 + r1) / 2, a1 + step / 2)], "evenodd");
+      for (const [bx, by] of beads) this.cell(circleD(beadR, bx, by), [[bx, by]]);
     }
   }
 
@@ -197,178 +213,230 @@ export class Builder {
   }
 }
 
+// 테+속 두 칸 — 겉 윤곽에 속 윤곽으로 구멍을 내고(evenodd), 속은 제 칸으로 얹는다
+function nest(
+  b: Builder, dOut: string, dIn: string,
+  ringSeeds: [number, number][], innerSeeds: [number, number][]
+) {
+  b.cell(`${dOut} ${dIn}`, ringSeeds, "evenodd");
+  b.cell(dIn, innerSeeds);
+}
+
 // n 갈래 회전 반복
 function ring(n: number, rot: number, fn: (a: number, k: number) => void) {
   for (let k = 0; k < n; k++) fn(rot + (k * 360) / n, k);
 }
 
 // 중심 로제트 — 겹치는 둥근 꽃잎 두 겹 + 심(芯). 다섯 폭이 함께 쓴다.
+// 겉잎은 테와 속잎 두 칸으로 갈라지고, 심도 고리와 속원 두 칸이다.
 function rosette(
   b: Builder, n: number, r1: number, r2: number, core: number,
   tip: "round" | "sharp" = "round"
 ) {
-  ring(n, 0, (a, k) => {
-    b.cell(`ro${k}`, petalD(a, core * 0.9, r1, 360 / n / 2 * 0.86, tip, 1.28), P((core + r1) / 2, a));
-    b.decor(petalD(a, core * 0.9 + (r1 - core) * 0.16, r1 - (r1 - core) * 0.18, 360 / n / 2 * 0.46, tip, 1.2), 0.26);
+  const hwO = (360 / n / 2) * 0.86;
+  const hwI = (360 / n / 2) * 0.46;
+  ring(n, 0, (a) => {
+    const o = petalD(a, core * 0.9, r1, hwO, tip, 1.28);
+    const i = petalD(a, core * 0.9 + (r1 - core) * 0.16, r1 - (r1 - core) * 0.18, hwI, tip, 1.2);
+    nest(b, o, i, [P(r1 - (r1 - core) * 0.09, a)], [P((core + r1) / 2, a)]);
   });
-  ring(n, 180 / n, (a, k) => {
-    b.cell(`ri${k}`, petalD(a, core * 0.7, r2, 360 / n / 2 * 0.72, tip, 1.28), P((core + r2) / 2, a));
+  ring(n, 180 / n, (a) => {
+    b.cell(petalD(a, core * 0.7, r2, (360 / n / 2) * 0.72, tip, 1.28), [P((core + r2) / 2, a)]);
   });
-  b.cell("core", circleD(core), [C, C]);
-  b.decor(circleD(core * 0.62), 0.3);
-  b.decor(circleD(core * 0.2), 0, true);
+  b.cell(
+    `${circleD(core)} ${circleD(core * 0.62)}`,
+    [P(core * 0.81, 45), P(core * 0.81, 225)],
+    "evenodd"
+  );
+  b.cell(circleD(core * 0.62), [[C, C]]);
 }
 
 // ── 다섯 폭 ──────────────────────────────────────────────────────
 
 // 1. 연화 — 가운데 로제트에서 연꽃잎이 겹겹이 밖으로 펼쳐진다
 function buildLotus(b: Builder) {
-  // 맨 바깥 — 뾰족한 잎끝 열여섯
-  ring(16, 0, (a, k) => {
-    b.cell(`o${k}`, petalD(a, 71, 97, 10.5, "sharp", 1.2), P(84, a));
-    b.decor(petalD(a, 74.5, 92.5, 5.6, "sharp", 1.15), 0.26);
-    b.decor(lineD(P(76, a), P(88.5, a)), 0.24);
+  // 맨 바깥 — 뾰족한 잎끝 열여섯, 잎마다 테와 속잎
+  ring(16, 0, (a) => {
+    nest(
+      b,
+      petalD(a, 71, 97, 10.5, "sharp", 1.2),
+      petalD(a, 74.5, 92.5, 5.6, "sharp", 1.15),
+      [P(94.75, a)], [P(83.5, a)]
+    );
   });
-  // 구슬 띠
-  b.band("b", 65.5, 71.5, 16, 2);
-  b.decor(circleD(65.5), 0.3);
-  b.decor(circleD(71.5), 0.3);
-  b.beadRing(32, 68.5, 2.0);
+  // 구슬 띠 — 조각 열여섯 + 구슬 서른둘
+  b.beadBand(65.5, 71.5, 16, 2.0, 68.5);
   // 뒤 연꽃잎 열둘
-  ring(12, 15, (a, k) => {
-    b.cell(`p${k}`, petalD(a, 38, 65.5, 15, "sharp", 1.22), P(53, a));
-    b.decor(petalD(a, 41.5, 61, 8.4, "sharp", 1.18), 0.26);
-    b.decor(lineD(P(43.5, a), P(57, a)), 0.24);
+  ring(12, 15, (a) => {
+    nest(
+      b,
+      petalD(a, 38, 65.5, 15, "sharp", 1.22),
+      petalD(a, 41.5, 61, 8.4, "sharp", 1.18),
+      [P(63.25, a)], [P(59, a)]
+    );
   });
-  // 잎 사이 구슬
+  // 잎 사이 구슬 열둘
   ring(12, 0, (a) => {
     const [x, y] = P(61.5, a);
-    b.decor(circleD(2.1, x, y), 0.26);
-    b.decor(circleD(0.8, x, y), 0, true);
+    b.cell(circleD(2.1, x, y), [[x, y]]);
   });
   // 앞 연꽃잎 열둘 — 반 칸 돌려 겹친다
-  ring(12, 0, (a, k) => {
-    b.cell(`q${k}`, petalD(a, 35, 57, 15, "round", 1.22), P(46, a));
-    b.decor(petalD(a, 38, 52.5, 8.2, "round", 1.18), 0.26);
-    b.decor(circleD(1.0, ...P(50.5, a)), 0, true);
+  ring(12, 0, (a) => {
+    nest(
+      b,
+      petalD(a, 35, 57, 15, "round", 1.22),
+      petalD(a, 38, 52.5, 8.2, "round", 1.18),
+      [P(54.75, a)], [P(45.25, a)]
+    );
   });
-  // 가는 점무늬 띠
-  b.band("t", 32.5, 36.5, 12, 3);
-  b.beadRing(24, 34.5, 0.75, 7.5, false);
+  // 가는 띠 — 조각 열둘
+  b.band(32.5, 36.5, 12);
   // 중심 로제트
   rosette(b, 8, 34, 21.5, 9.5);
 }
 
 // 2. 법륜 — 여덟 살 수레바퀴, 아치 감실과 밧줄 테
 function buildWheel(b: Builder) {
-  // 밧줄 테
-  b.band("r", 90.5, 97, 24, 3);
-  ring(24, 0, (a) => b.decor(lineD(P(90.5, a), P(97, a + 7)), 0.3));
-  // 아치 감실 열여섯
-  ring(16, 11.25, (a, k) => {
-    b.cell(`a${k}`, archD(a, 73.5, 90, 10.2), P(81, a));
-    b.decor(archD(a, 76, 86.5, 6.4), 0.26);
-    b.decor(circleD(0.9, ...P(80, a)), 0, true);
+  // 밧줄 테 — 비스듬한 조각 스물넷
+  b.rope(90.5, 97, 24, 7);
+  // 아치 감실 열여섯 — 테와 속아치
+  ring(16, 11.25, (a) => {
+    nest(
+      b,
+      archD(a, 73.5, 90, 10.2),
+      archD(a, 76, 86.5, 6.4),
+      [P(88.25, a)], [P(81.25, a)]
+    );
   });
   // 구슬 띠
-  b.band("b", 64.5, 73.5, 16, 2);
-  b.decor(circleD(64.5), 0.3);
-  b.beadRing(32, 69, 2.4);
-  // 바퀴 안테
-  b.band("i", 58.5, 64.5, 8, 1, 22.5);
-  // 살 사이 바탕 — 그림자 꽃잎과 구슬로 메운다
-  ring(8, 0, (a, k) => {
-    b.cell(`s${k}`, ringSegD(a, a + 45, 25.5, 58.5), P(43, a + 22.5));
+  b.beadBand(64.5, 73.5, 16, 2.4, 69);
+  // 바퀴 안테 여덟 조각
+  b.band(58.5, 64.5, 8, 22.5);
+  // 살 사이 — 바탕·꽃잎 테·속잎·구슬, 네 겹이 각각 제 칸
+  ring(8, 0, (a) => {
+    const ac = a + 22.5;
+    const seg = ringSegD(a, a + 45, 25.5, 58.5);
+    const p1 = petalD(ac, 27, 56, 14, "round", 1.18);
+    const p2 = petalD(ac, 30, 51, 8, "round", 1.14);
+    const [jx, jy] = P(43, ac);
+    const jd = circleD(2.6, jx, jy);
+    b.cell(`${seg} ${p1}`, [P(57.3, ac), P(26.2, ac)], "evenodd");
+    b.cell(`${p1} ${p2}`, [P(53.5, ac)], "evenodd");
+    b.cell(`${p2} ${jd}`, [P(48, ac)], "evenodd");
+    b.cell(jd, [[jx, jy]]);
   });
-  ring(8, 22.5, (a) => {
-    b.decor(petalD(a, 27, 56, 14, "round", 1.18), 0.26);
-    b.decor(petalD(a, 30, 51, 8, "round", 1.14), 0.24);
-    b.decor(circleD(2.6, ...P(43, a)), 0.26);
-    b.decor(circleD(0.9, ...P(43, a)), 0, true);
+  // 여덟 바퀴살 — 테와 속마름모
+  ring(8, 0, (a) => {
+    nest(
+      b,
+      diamondD(a, 22.5, 60.5, 7.5, 0.45),
+      diamondD(a, 26.5, 55.5, 4.2, 0.45),
+      [P(58, a)], [P(41, a)]
+    );
   });
-  // 여덟 바퀴살
-  ring(8, 0, (a, k) => {
-    b.cell(`k${k}`, diamondD(a, 22.5, 60.5, 7.5, 0.45), P(40, a));
-    b.decor(diamondD(a, 26.5, 55.5, 4.2, 0.45), 0.26);
-    b.decor(lineD(P(29, a), P(52, a)), 0.24);
-  });
-  // 굴대와 심
-  b.band("h", 17.5, 25.5, 8, 1, 22.5);
-  b.beadRing(16, 21.5, 0.7, 0, false);
+  // 굴대
+  b.band(17.5, 25.5, 8, 22.5);
   rosette(b, 8, 20.5, 13.5, 8);
 }
 
-// 3. 백화 — 둥근 꽃잎 로제트가 다중으로 피고 점무늬 고리가 감싼다
+// 3. 백화 — 둥근 꽃잎 로제트가 다중으로 피고 구슬 고리가 감싼다
 function buildBloom(b: Builder) {
-  // 잔잎 스물넷
-  ring(24, 0, (a, k) => {
-    b.cell(`o${Math.floor(k / 3)}`, petalD(a, 83, 97, 7, "round", 1.2), P(90, a));
-    b.decor(circleD(0.8, ...P(91.5, a)), 0, true);
+  // 잔잎 스물넷 — 하나하나 제 칸
+  ring(24, 0, (a) => {
+    b.cell(petalD(a, 83, 97, 7, "round", 1.2), [P(90, a)]);
   });
-  // 큰 둥근 꽃잎 열여섯
-  ring(16, 0, (a, k) => {
-    b.cell(`p${k}`, petalD(a, 57, 85.5, 10.8, "round", 1.26), P(72, a));
-    b.decor(petalD(a, 60, 81, 6, "round", 1.2), 0.26);
-    b.decor(lineD(P(62, a), P(75, a)), 0.24);
-    b.decor(circleD(1.1, ...P(78.5, a)), 0, true);
+  // 큰 둥근 꽃잎 열여섯 — 테와 속잎
+  ring(16, 0, (a) => {
+    nest(
+      b,
+      petalD(a, 57, 85.5, 10.8, "round", 1.26),
+      petalD(a, 60, 81, 6, "round", 1.2),
+      [P(83.25, a)], [P(70.5, a)]
+    );
   });
   // 구슬 띠
-  b.band("b", 51.5, 57.5, 16, 2);
-  b.decor(circleD(51.5), 0.3);
-  b.decor(circleD(57.5), 0.3);
-  b.beadRing(32, 54.5, 1.9);
+  b.beadBand(51.5, 57.5, 16, 2.0, 54.5);
   // 가운데 꽃잎 두 겹 — 반 칸씩 어긋나며 겹친다
-  ring(12, 15, (a, k) => {
-    b.cell(`m${k}`, petalD(a, 33, 53.5, 14, "round", 1.26), P(44, a));
-    b.decor(petalD(a, 36, 49, 8, "round", 1.2), 0.26);
+  ring(12, 15, (a) => {
+    nest(
+      b,
+      petalD(a, 33, 53.5, 14, "round", 1.26),
+      petalD(a, 36, 49, 8, "round", 1.2),
+      [P(51.25, a)], [P(47.5, a)]
+    );
   });
-  ring(12, 0, (a, k) => {
-    b.cell(`n${k}`, petalD(a, 27.5, 45, 14, "round", 1.26), P(36, a));
-    b.decor(petalD(a, 30, 41, 7.6, "round", 1.2), 0.26);
-    b.decor(circleD(0.9, ...P(38.5, a)), 0, true);
+  ring(12, 0, (a) => {
+    nest(
+      b,
+      petalD(a, 27.5, 45, 14, "round", 1.26),
+      petalD(a, 30, 41, 7.6, "round", 1.2),
+      [P(43, a)], [P(35.5, a)]
+    );
   });
-  // 점무늬 띠
-  b.band("t", 24, 27.8, 12, 3);
-  b.beadRing(24, 25.9, 0.75, 7.5, false);
+  // 가는 띠 — 조각 열둘
+  b.band(24, 27.8, 12);
   // 중심 로제트
   rosette(b, 8, 25.5, 17, 8.5);
 }
 
 // 4. 금강 — 여덟 갈래 별이 겹으로 서고 사이에 구슬이 박힌다
 function buildVajra(b: Builder) {
-  // 바깥 테 — 마름모 사슬
-  b.band("r", 88.5, 97, 16, 2);
-  ring(16, 11.25, (a) => b.decor(diamondD(a, 89.5, 96, 4.4), 0.26));
+  // 바깥 테 — 마름모 사슬: 조각(마름모 자리는 구멍)과 마름모가 각각 제 칸
+  {
+    const step = 22.5;
+    for (let k = 0; k < 16; k++) {
+      const a1 = k * step;
+      const dd = diamondD(a1 + step / 2, 89.5, 96, 4.4);
+      b.cell(
+        `${ringSegD(a1, a1 + step, 88.5, 97)} ${dd}`,
+        [P(92.75, a1 + 2.5), P(92.75, a1 + 20)],
+        "evenodd"
+      );
+      b.cell(dd, [P(92.75, a1 + step / 2)]);
+    }
+  }
   // 별 사이 바탕 꽃잎 여덟 — 별 뒤에 깔린다
-  ring(8, 22.5, (a, k) => {
-    b.cell(`f${k}`, petalD(a, 32, 86, 17, "round", 1.16), P(62, a));
-    b.decor(petalD(a, 36, 81, 11, "round", 1.12), 0.26);
+  ring(8, 22.5, (a) => {
+    nest(
+      b,
+      petalD(a, 32, 86, 17, "round", 1.16),
+      petalD(a, 36, 81, 11, "round", 1.12),
+      [P(84.8, a)], [P(60, a + 7)]
+    );
   });
-  // 큰 별 여덟 촉
-  ring(8, 0, (a, k) => {
-    b.cell(`s${k}`, diamondD(a, 28, 88, 10.5, 0.42), P(55, a));
-    b.decor(diamondD(a, 34, 80.5, 6, 0.42), 0.26);
-    b.decor(lineD(P(37, a), P(74, a)), 0.24);
+  // 큰 별 여덟 촉 — 테와 속마름모
+  ring(8, 0, (a) => {
+    nest(
+      b,
+      diamondD(a, 28, 88, 10.5, 0.42),
+      diamondD(a, 34, 80.5, 6, 0.42),
+      [P(84.25, a)], [P(55, a)]
+    );
   });
   // 버금 별 여덟 촉 — 반 칸 돌림
-  ring(8, 22.5, (a, k) => {
-    b.cell(`t${k}`, diamondD(a, 28, 72, 9.5, 0.45), P(48, a));
-    b.decor(diamondD(a, 33, 65.5, 5.2, 0.45), 0.26);
+  ring(8, 22.5, (a) => {
+    nest(
+      b,
+      diamondD(a, 28, 72, 9.5, 0.45),
+      diamondD(a, 33, 65.5, 5.2, 0.45),
+      [P(68.75, a)], [P(48, a)]
+    );
   });
-  // 별 사이 구슬 여덟
-  ring(8, 22.5, (a, k) => {
+  // 별 사이 구슬 여덟 — 테와 속알
+  ring(8, 22.5, (a) => {
     const [x, y] = P(77.5, a);
-    b.cell(`j${k}`, circleD(6.2, x, y), [x, y]);
-    b.decor(circleD(3.8, x, y), 0.26);
-    b.decor(circleD(1.2, x, y), 0, true);
+    nest(b, circleD(6.2, x, y), circleD(3.8, x, y), [P(82.5, a)], [[x, y]]);
   });
   // 구슬 띠
-  b.band("b", 33.5, 40, 16, 2);
-  b.beadRing(24, 36.7, 2.2);
-  // 안쪽 마름모 고리
-  ring(8, 22.5, (a, k) => {
-    b.cell(`d${k}`, diamondD(a, 17.5, 32.5, 7, 0.5), P(25, a));
-    b.decor(diamondD(a, 20.5, 29.5, 4, 0.5), 0.26);
+  b.beadBand(33.5, 40, 16, 2.2, 36.7);
+  // 안쪽 마름모 고리 — 테와 속마름모
+  ring(8, 22.5, (a) => {
+    nest(
+      b,
+      diamondD(a, 17.5, 32.5, 7, 0.5),
+      diamondD(a, 20.5, 29.5, 4, 0.5),
+      [P(31, a)], [P(25, a)]
+    );
   });
   // 중심 — 뾰족한 로제트
   rosette(b, 8, 18, 11.5, 7, "sharp");
@@ -377,51 +445,59 @@ function buildVajra(b: Builder) {
 // 5. 도량 — 티베트식. 연꽃 테 안에 사각 궁이 서고 네 문이 열린다
 function buildPalace(b: Builder) {
   // 밧줄 테
-  b.band("r", 91, 97, 24, 3);
-  ring(24, 0, (a) => b.decor(lineD(P(91, a), P(97, a + 7)), 0.3));
+  b.rope(91, 97, 24, 7);
   // 구슬 띠
-  b.band("b", 84.5, 90.5, 16, 2);
-  b.beadRing(36, 87.5, 1.9);
-  // 연꽃잎 고리 열여섯
-  ring(16, 11.25, (a, k) => {
-    b.cell(`l${k}`, petalD(a, 57, 84, 10.5, "sharp", 1.2), P(71, a));
-    b.decor(petalD(a, 60.5, 80, 5.6, "sharp", 1.15), 0.26);
-    b.decor(lineD(P(62.5, a), P(77, a)), 0.24);
+  b.beadBand(84.5, 90.5, 16, 2.0, 87.5);
+  // 연꽃잎 고리 열여섯 — 테와 속잎
+  ring(16, 11.25, (a) => {
+    nest(
+      b,
+      petalD(a, 57, 84, 10.5, "sharp", 1.2),
+      petalD(a, 60.5, 80, 5.6, "sharp", 1.15),
+      [P(82, a)], [P(70.25, a)]
+    );
   });
-  // 네 모서리 부채 — 궁 안 대각선
-  ring(4, 45, (a, k) => {
-    b.cell(`f${k}`, petalD(a, 40, 60, 17, "round", 1.2), P(50, a));
-    b.decor(petalD(a, 43, 56, 9.5, "round", 1.16), 0.26);
+  // 네 모서리 부채 — 궁 안 대각선, 테와 속잎
+  ring(4, 45, (a) => {
+    nest(
+      b,
+      petalD(a, 40, 60, 17, "round", 1.2),
+      petalD(a, 43, 56, 9.5, "round", 1.16),
+      [P(58, a)], [P(49.5, a)]
+    );
   });
-  // 사각 궁 — 네 변
-  ring(4, 0, (a, k) => {
-    b.cell(`w${k}`, gateSideD(a, 54, 45), F(a, 49.5, 0));
+  // 사각 궁 — 변마다 겉단·속단 두 칸 (가운데 금이 두 단의 윤곽선으로 남는다)
+  ring(4, 0, (a) => {
+    b.cell(gateSideD(a, 54, 49.5), [F(a, 51.75, 0)]);
+    b.cell(gateSideD(a, 49.5, 45), [F(a, 47.25, 0)]);
   });
-  {
-    const hs = 49.5;
-    const sq = [P(hs * Math.SQRT2, 45), P(hs * Math.SQRT2, 135), P(hs * Math.SQRT2, 225), P(hs * Math.SQRT2, 315)];
-    b.decor(poly(sq), 0.26);
-  }
-  // 네 문 — 층계로 솟는다
-  ring(4, 0, (a, k) => {
-    b.cell(`g${k}`, gateD(a, 54, [15, 10.5, 5.5], [6, 5.5, 5]), F(a, 61, 0));
-    b.decor(gateD(a, 54.8, [11, 7.2, 3.2], [4.6, 4.4, 4]), 0.24);
+  // 네 문 — 층계 문틀과 속문
+  ring(4, 0, (a) => {
+    nest(
+      b,
+      gateD(a, 54, [15, 10.5, 5.5], [6, 5.5, 5]),
+      gateD(a, 54.8, [11, 7.2, 3.2], [4.6, 4.4, 4]),
+      [F(a, 69.2, 0)], [F(a, 58, 0)]
+    );
   });
-  // 안뜰 테
-  b.band("c", 41, 45, 8, 2);
-  b.beadRing(16, 43, 0.7, 11.25, false);
-  // 안의 연꽃
-  ring(8, 0, (a, k) => {
-    b.cell(`p${k}`, petalD(a, 12.5, 40.5, 19.5, "round", 1.26), P(27, a));
-    b.decor(petalD(a, 16, 36, 10.5, "round", 1.2), 0.26);
-    b.decor(lineD(P(19, a), P(31, a)), 0.24);
+  // 안뜰 테 — 조각 여덟
+  b.band(41, 45, 8);
+  // 안의 연꽃 — 테와 속잎
+  ring(8, 0, (a) => {
+    nest(
+      b,
+      petalD(a, 12.5, 40.5, 19.5, "round", 1.26),
+      petalD(a, 16, 36, 10.5, "round", 1.2),
+      [P(38.25, a)], [P(26, a)]
+    );
   });
-  ring(8, 22.5, (a, k) => {
-    b.cell(`q${k}`, petalD(a, 8, 24, 15, "round", 1.26), P(16, a));
+  ring(8, 22.5, (a) => {
+    b.cell(petalD(a, 8, 24, 15, "round", 1.26), [P(16, a)]);
   });
-  b.cell("core", circleD(10), [C, C]);
-  b.decor(circleD(6.5), 0.3);
-  b.decor(circleD(2.0), 0, true);
+  // 심 — 겉고리·속고리·씨알, 세 칸
+  b.cell(`${circleD(10)} ${circleD(6.5)}`, [P(8.25, 45), P(8.25, 225)], "evenodd");
+  b.cell(`${circleD(6.5)} ${circleD(2.0)}`, [P(4.25, 0), P(4.25, 180)], "evenodd");
+  b.cell(circleD(2.0), [[C, C]]);
 }
 
 export const TEMPLATES: Template[] = [

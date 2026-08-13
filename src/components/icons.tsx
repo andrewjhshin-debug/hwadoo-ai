@@ -185,6 +185,63 @@ export function Elephant({ className = "w-4 h-4", stroke = "currentColor" }: Ico
   );
 }
 
+// 뜰 — 디딤돌 세 개가 안으로 드는 걸음길, 곁에 돋은 풀. 홈(마당).
+export function Garden({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {/* 디딤돌 셋 — 멀어질수록 작아진다 */}
+      <ellipse cx="6.8" cy="18.3" rx="3.1" ry="1.6" />
+      <ellipse cx="13.7" cy="14.8" rx="2.6" ry="1.35" />
+      <ellipse cx="18.7" cy="10.8" rx="2" ry="1.1" />
+      {/* 풀 — 돌 곁의 두 포기 */}
+      <path d="M5.3 12.8c.1-1.5.8-2.7 2-3.6M7.5 12.6c.1-1.1.6-2 1.5-2.7" />
+      <path d="M13.1 8.2c.1-1.3.7-2.4 1.8-3.2M15 8c.1-1 .5-1.8 1.3-2.4" />
+    </svg>
+  );
+}
+
+// 호흡 명상 — 피어오르는 숨결 세 가닥. 가운데 가닥이 가장 길다.
+export function Breath({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" className={className}>
+      <path d="M7 19.5c-1-1.8 1-2.9 0-4.8-.9-1.7.9-2.8 0-4.7" />
+      <path d="M12 21c-1.1-2 1.1-3.2 0-5.4-1-1.9 1-3.1 0-5.2-.9-1.9.9-3 0-4.9" />
+      <path d="M17 19.5c-1-1.8 1-2.9 0-4.8-.9-1.7.9-2.8 0-4.7" />
+    </svg>
+  );
+}
+
+// 연지원(蓮池園) — 연못 위의 연잎 하나와 물 위로 솟은 봉오리. 커뮤니티.
+export function LotusPond({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {/* 봉오리 — 꽃대 끝에 오므린 꽃 */}
+      <path d="M15.7 4.2c1.4 1 2.2 2.3 2.2 3.6 0 1.1-1 1.9-2.2 1.9s-2.2-.8-2.2-1.9c0-1.3.8-2.6 2.2-3.6z" />
+      <path d="M15.7 9.7v4.5" />
+      {/* 연잎 — 물에 뜬 잎, 잎맥 하나 */}
+      <ellipse cx="8.2" cy="13.1" rx="3.5" ry="1.7" />
+      <path d="M8.2 13.1l2.8-1.1" opacity="0.55" />
+      {/* 물결 */}
+      <path d="M3 17.6c1.5-.9 3-.9 4.5 0 1.5.9 3 .9 4.5 0 1.5-.9 3-.9 4.5 0 1.5.9 3 .9 4.5 0" />
+    </svg>
+  );
+}
+
+// 보자기 — 매듭 지어 싼 봇짐. 굿즈.
+export function Bojagi({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {/* 봇짐 — 둥근 몸 */}
+      <path d="M9.5 10.9c-3.1 1-5.2 3.7-5.5 6.9-.1.9.6 1.7 1.5 1.7h13c.9 0 1.6-.8 1.5-1.7-.3-3.2-2.4-5.9-5.5-6.9" />
+      {/* 묶인 목선 */}
+      <path d="M9.5 10.9c1.6.5 3.4.5 5 0" />
+      {/* 매듭 — 위로 선 두 귀 */}
+      <path d="M10.2 10.6C8.9 9.5 8.5 8 9.3 6.5c1.6.3 2.5 1.4 2.7 3.2" />
+      <path d="M13.8 10.6c1.3-1.1 1.7-2.6.9-4.1-1.6.3-2.5 1.4-2.7 3.2" />
+    </svg>
+  );
+}
+
 // 선사(禪師) — 가사를 두르고 앉은 노스님. 선지식의 한마디.
 export function SeonMaster({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
   return (

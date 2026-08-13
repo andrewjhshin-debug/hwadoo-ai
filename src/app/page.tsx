@@ -45,6 +45,11 @@ import {
   fetchSharedAnswers,
   type SharedAnswer,
 } from "@/lib/community";
+import { applyBankOverride, fetchAdminContent } from "@/lib/adminContent";
+
+// 나눔 물음창의 작은 안내 — 공유하면 무엇이 일어나는지
+const SHARE_NOTE =
+  "공유한 답은 검수를 거쳐, 공유한 그때의 글로 보입니다. 지난 화두에서 고쳐 써도 공유된 답은 바뀌지 않습니다.";
 
 // 불교 전통의 리듬 — 하루, 삼일기도, 칠일 정진, 삼칠일(3×7일), 백팔일(108 번뇌)
 const DAY_OPTIONS = [1, 3, 7, 21, 108];
@@ -163,6 +168,8 @@ export default function Home() {
     setFocusMode(window.localStorage.getItem("hwadoo-focus") === "1");
     // 승인된 '던져진 화두'들을 랜덤 풀에 합류시킨다 (실패해도 기본 30칙으로 동작)
     fetchPublicHwadu().then(setPublicPool).catch(() => {});
+    // 뒷방의 손질(숨김·고침)도 미리 데워 둔다 — 받기가 기다리지 않게
+    fetchAdminContent().catch(() => {});
   }, [archiveCurrent]);
 
   // 화두만 보기 상태를 기억한다
@@ -206,18 +213,32 @@ export default function Home() {
   }, [store?.current?.journal, store?.current?.hwaduId]);
 
   // 화두를 받는다 — 랜덤. 기본 30칙 + 승인된 던져진 화두. 지나온 것은 피해서.
-  const receive = () => {
+  // 뽑기 전에 뒷방의 손질을 살핀다 — 숨긴 화두는 빼고, 고친 화두는 고친 글로.
+  // (손질을 읽지 못하면 원본 그대로 조용히 진행한다)
+  const receive = async () => {
     const base = loadStore();
+    const admin = await fetchAdminContent().catch(() => null);
+    const bank = admin?.bank ?? { hidden: [], overrides: {} };
     const exclude = [
       ...base.history.map((s) => s.hwaduId),
       ...(base.current ? [base.current.hwaduId] : []),
+      ...bank.hidden, // 뒷방에서 감춘 은행 화두는 뽑지 않는다
     ];
     const audience = base.audience ?? "adult";
     // 서버 화두 — 지금 대상(성인/학생)에 맞는 것만 섞는다
     const freshPublic = publicPool.filter(
       (p) => (p.audience ?? "adult") === audience && !exclude.includes(`thrown:${p.id}`)
     );
-    const total = bankCount(audience) + freshPublic.length;
+    // 감춘 수만큼 은행 몫을 줄여 확률을 맞춘다
+    const hiddenInBank = bank.hidden.filter((id) => {
+      const h = getHwadu(id);
+      if (!h) return false;
+      return audience === "student"
+        ? h.audience === "student" || h.forStudent
+        : h.audience !== "student";
+    }).length;
+    const total =
+      Math.max(1, bankCount(audience) - hiddenInBank) + freshPublic.length;
     const days = base.defaultDays ?? 3;
     let session: Session;
     if (freshPublic.length > 0 && Math.random() < freshPublic.length / total) {
@@ -232,11 +253,18 @@ export default function Home() {
       // 이 물음이 한 수행자에게 닿았다 — 세는 일은 부차, 실패해도 받기는 계속된다
       void markSeen(p.id);
     } else {
+      const picked = pickRandomHwadu(exclude, audience);
       session = {
-        hwaduId: pickRandomHwadu(exclude, audience).id,
+        hwaduId: picked.id,
         receivedAt: Date.now(),
         durationDays: days,
       };
+      // 뒷방에서 고친 화두 — 고친 물음·배경을 세션에 함께 담는다
+      if (bank.overrides[picked.id]) {
+        const shaped = applyBankOverride(picked, bank);
+        session.customQuestion = shaped.question;
+        if (shaped.context) session.customSource = shaped.context;
+      }
     }
     update((latest) => ({
       ...latest,
@@ -272,7 +300,7 @@ export default function Home() {
     // 회향을 마치자마자 — 나눔의 뜻을 묻는다
     const ok = await confirm(
       "그대의 답을 다른 수행자에게 공유하겠습니까?",
-      "이름 없이 — 다른 수행자의 화두를 돕습니다.",
+      `이름 없이 — 다른 수행자의 화두를 돕습니다. ${SHARE_NOTE}`,
       { confirm: "네", cancel: "아니오" }
     );
     if (ok) {
@@ -618,9 +646,10 @@ export default function Home() {
         <div className="question-glow mt-7 w-full">
           <Question text={sessionQuestion(current)} className="text-hanji" />
         </div>
-        {(hwadu?.context || current.customSource) && (
+        {(current.customSource || hwadu?.context) && (
           <p className="mt-7 text-xs tracking-wider text-hanji-faint">
-            {hwadu?.context ?? current.customSource}
+            {/* 세션에 담긴 배경(고친 화두·서버 화두)이 먼저, 없으면 원문 */}
+            {current.customSource ?? hwadu?.context}
           </p>
         )}
 

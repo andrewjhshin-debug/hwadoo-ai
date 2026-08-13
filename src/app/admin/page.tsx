@@ -2,8 +2,11 @@
 
 // ─────────────────────────────────────────────────────────────
 // 뒷방 — 도량의 관리실. ADMIN_UID 계정으로만 열린다.
-// 네 구획(탭): 성인 화두 | 학생·어린이 화두 | 내가 더한 화두 | 승인 대기
-// 아래에 선방 관리.
+// 다섯 구획(탭): 성인 화두 | 학생·어린이 화두 | 관리자가 던진 화두
+// | 수행자들이 던진 화두(대기+승인) | 공유 허용한 화두의 답
+// 여기에 '선지식의 한마디' 구획을 더한다.
+// 코드에 내장된 은행 화두도 여기서 고치고(고침) 감출(숨김) 수 있다 —
+// 손질은 admin-content 문서에 새겨지고, 코드 원문은 그대로 남는다.
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from "react";
@@ -29,20 +32,198 @@ import {
   type SharedAnswer,
 } from "@/lib/community";
 import { HWADU_BANK, getHwadu, type Hwadu } from "@/lib/hwadu";
+import {
+  addSaying,
+  allSayings,
+  emptyAdminContent,
+  fetchAdminContent,
+  hideBankHwadu,
+  overrideBankHwadu,
+  removeSaying,
+  restoreBankHwadu,
+  restoreSaying,
+  type AdminContent,
+  type BankOverride,
+} from "@/lib/adminContent";
 
-type Tab = "adult" | "student" | "mine" | "pending" | "shared";
+type Tab = "adult" | "student" | "admin" | "thrown" | "shared" | "sayings";
 
-// 기본 화두 열람 줄
-function BankRow({ h, i }: { h: Hwadu; i: number }) {
+// 구획마다 한 줄 설명 — 무엇이 모이는 자리인지
+const TAB_NOTE: Record<Tab, string> = {
+  adult:
+    "성인 랜덤 풀에 섞이는 화두 — 코드에 내장된 은행 화두와, 뒷방·수행자가 더한 화두.",
+  student:
+    "학생·어린이 랜덤 풀에 섞이는 화두 — 학생 전용과, 학생에게도 열리는 고전.",
+  admin: "관리자가 뒷방에서 직접 던진 화두 — 승인 없이 곧바로 풀에 섞입니다.",
+  thrown:
+    "수행자들이 '나도 화두 던지기'로 던진 물음 — 승인 대기와, 승인되어 풀에 든 것.",
+  shared:
+    "다른 수행자에게 보여도 좋다고 동의한 답 — 승인해야만 그 화두를 회향한 이들에게 열립니다.",
+  sayings:
+    "선지식의 한마디에 걸리는 어록 — 내장 어록을 감추거나, 새 어록을 더할 수 있습니다.",
+};
+
+const smallBtn =
+  "border px-3.5 py-1.5 text-[11px] tracking-[0.15em] transition-colors disabled:opacity-40";
+
+// 은행(코드 내장) 화두 열람 줄 — 여기서도 고치고(덮어쓰기) 감출 수 있다
+function BankRow({
+  h,
+  i,
+  ov,
+  hidden,
+  busy,
+  onSave,
+  onHide,
+  onRestore,
+}: {
+  h: Hwadu;
+  i: number;
+  ov?: BankOverride;
+  hidden: boolean;
+  busy: boolean;
+  onSave: (patch: BankOverride) => void;
+  onHide: () => void;
+  onRestore: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState("");
+  const [q, setQ] = useState("");
+  const [ctx, setCtx] = useState("");
+
+  const overridden = !!ov;
+  const shownTitle = ov?.title ?? h.title;
+  const shownQuestion = ov?.question ?? h.question;
+  const shownContext = ov?.context ?? h.context;
+
+  // 숨긴 화두 — 흐리게 접어 두고, 되살리기만 남긴다
+  if (hidden) {
+    return (
+      <li className="border-l border-ink-3 pl-3 opacity-50">
+        <p className="text-[12.5px] text-hanji-faint">
+          <span>{i + 1}.</span> {shownTitle}
+          {h.hanja && <span> · {h.hanja}</span>}
+          <span className="ml-2 rounded-full border border-ink-3 px-2 py-0.5 text-[10px] tracking-wider">
+            숨김
+          </span>
+        </p>
+        <button
+          disabled={busy}
+          onClick={onRestore}
+          className={`${smallBtn} mt-1.5 border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji`}
+        >
+          되살리기
+        </button>
+      </li>
+    );
+  }
+
+  const save = () => {
+    const t = title.trim();
+    const qq = q.trim();
+    const cc = ctx.trim();
+    const patch: BankOverride = {};
+    if (t && t !== h.title) patch.title = t;
+    if (qq && qq !== h.question) patch.question = qq;
+    if (cc && cc !== (h.context ?? "")) patch.context = cc;
+    if (patch.title || patch.question || patch.context) onSave(patch);
+    // 원문 그대로 되돌려 적었으면 덮어쓴 것을 거둔다
+    else if (overridden) onRestore();
+    setEditing(false);
+  };
+
   return (
-    <li className="border-l border-ink-3 pl-3">
-      <p className="text-[12.5px] text-hanji-dim">
-        <span className="text-hanji-faint">{i + 1}.</span> {h.title}
-        {h.hanja && <span className="text-hanji-faint"> · {h.hanja}</span>}
-      </p>
-      <p className="mt-0.5 whitespace-pre-line text-[11.5px] leading-5 text-hanji-faint">
-        {h.question}
-      </p>
+    <li className={`border-l pl-3 ${overridden ? "border-gold/30" : "border-ink-3"}`}>
+      {editing ? (
+        <>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="짧은 이름"
+            className="w-full border-b border-ink-3 bg-transparent pb-1 text-[12.5px] text-hanji-dim outline-none placeholder:text-hanji-faint"
+          />
+          <textarea
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            rows={3}
+            placeholder="화두 — 줄바꿈 그대로 화면에 나갑니다"
+            className="journal-area mt-2 !text-sm"
+          />
+          <input
+            value={ctx}
+            onChange={(e) => setCtx(e.target.value)}
+            placeholder="배경 한 줄 (비우면 원래 배경)"
+            className="mt-1 w-full border-b border-ink-3 bg-transparent pb-1 text-[12px] text-hanji-dim outline-none placeholder:text-hanji-faint"
+          />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              disabled={!q.trim() || busy}
+              onClick={save}
+              className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
+            >
+              저장
+            </button>
+            {overridden && (
+              <button
+                disabled={busy}
+                onClick={() => {
+                  onRestore();
+                  setEditing(false);
+                }}
+                className={`${smallBtn} border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji`}
+              >
+                원래대로
+              </button>
+            )}
+            <button
+              onClick={() => setEditing(false)}
+              className={`${smallBtn} border-ink-3 text-hanji-faint hover:text-hanji-dim`}
+            >
+              취소
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-[12.5px] text-hanji-dim">
+            <span className="text-hanji-faint">{i + 1}.</span> {shownTitle}
+            {h.hanja && <span className="text-hanji-faint"> · {h.hanja}</span>}
+            {overridden && (
+              <span className="ml-2 rounded-full border border-gold/40 px-2 py-0.5 text-[10px] tracking-wider text-gold-soft">
+                고침
+              </span>
+            )}
+          </p>
+          <p className="mt-0.5 whitespace-pre-line text-[11.5px] leading-5 text-hanji-faint">
+            {shownQuestion}
+          </p>
+          {shownContext && (
+            <p className="mt-0.5 text-[11px] leading-5 text-hanji-faint">
+              {shownContext}
+            </p>
+          )}
+          <div className="mt-1.5 flex gap-2">
+            <button
+              onClick={() => {
+                setTitle(shownTitle);
+                setQ(shownQuestion);
+                setCtx(shownContext ?? "");
+                setEditing(true);
+              }}
+              className={`${smallBtn} border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji`}
+            >
+              수정
+            </button>
+            <button
+              disabled={busy}
+              onClick={onHide}
+              className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
+            >
+              삭제
+            </button>
+          </div>
+        </>
+      )}
     </li>
   );
 }
@@ -69,10 +250,11 @@ function PublicRow({ p, i }: { p: PublicHwadu; i: number }) {
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
-  const [tab, setTab] = useState<Tab>("pending");
+  const [tab, setTab] = useState<Tab>("thrown");
   const [thrown, setThrown] = useState<ThrownItem[]>([]);
   const [publicList, setPublicList] = useState<PublicHwadu[]>([]);
   const [shared, setShared] = useState<SharedAnswer[]>([]);
+  const [content, setContent] = useState<AdminContent>(emptyAdminContent());
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,19 +266,26 @@ export default function AdminPage() {
   const [editQ, setEditQ] = useState("");
   const [editSrc, setEditSrc] = useState("");
 
+  // 선지식의 한마디 — 더하기 폼
+  const [newSayText, setNewSayText] = useState("");
+  const [newSayName, setNewSayName] = useState("");
+  const [newSayEra, setNewSayEra] = useState("");
+
   useEffect(() => watchAuth(setUser), []);
   const isAdmin = user?.uid === ADMIN_UID;
 
   const refresh = useCallback(async () => {
     try {
-      const [t, p, s] = await Promise.all([
+      const [t, p, s, c] = await Promise.all([
         fetchThrown(),
         fetchPublicHwadu(),
         fetchAllSharedAnswers().catch(() => [] as SharedAnswer[]),
+        fetchAdminContent(true), // 실패해도 빈 손질로 돌아온다 — throw 하지 않는다
       ]);
       setThrown(t);
       setPublicList(p);
       setShared(s);
+      setContent(c);
       setError(null);
     } catch {
       setError("불러오지 못했습니다 — Firestore 규칙을 확인하세요.");
@@ -147,31 +336,52 @@ export default function AdminPage() {
   const adminHwadu = publicList.filter((p) => p.origin === "admin");
   const approvedThrown = publicList.filter((p) => p.origin !== "admin");
 
-  // 실제 랜덤 풀에 섞이는 성인/학생 총계 — 기본 화두(HWADU_BANK) + 추가된 화두(publicList)
+  // 뒷방의 손질 — 숨긴 은행 화두와 덮어쓴 조각
+  const hiddenSet = new Set(content.bank.hidden);
+  const hiddenAdult = adultBank.filter((h) => hiddenSet.has(h.id)).length;
+  const hiddenStudent =
+    studentOnly.filter((h) => hiddenSet.has(h.id)).length +
+    studentClassics.filter((h) => hiddenSet.has(h.id)).length;
+
+  // 실제 랜덤 풀에 섞이는 성인/학생 총계 — 은행(숨김 제외) + 추가된 화두(publicList)
   const publicAdult = publicList.filter((p) => (p.audience ?? "adult") === "adult");
   const publicStudent = publicList.filter((p) => p.audience === "student");
-  const adultTotal = adultBank.length + publicAdult.length;
+  const adultTotal = adultBank.length - hiddenAdult + publicAdult.length;
   const studentTotal =
-    studentOnly.length + studentClassics.length + publicStudent.length;
+    studentOnly.length +
+    studentClassics.length -
+    hiddenStudent +
+    publicStudent.length;
 
   // 나눔에 부쳐진 회향 — 검수 대기 / 처리된 것
   const sharedPending = shared.filter((s) => (s.status ?? "pending") === "pending");
   const sharedHandled = shared.filter((s) => (s.status ?? "pending") !== "pending");
 
+  // 선지식의 한마디 — 내장 + 더한 것 전부, 감춘 것은 따로
+  const sayingsAll = allSayings(content.sayings);
+  const hiddenSayingIds = new Set(content.sayings.hiddenIds);
+  const sayingsVisible = sayingsAll.filter((s) => !hiddenSayingIds.has(s.id));
+  const sayingsHidden = sayingsAll.filter((s) => hiddenSayingIds.has(s.id));
+
   const TABS: { key: Tab; label: string; count: number }[] = [
     { key: "adult", label: "성인 화두", count: adultTotal },
-    {
-      key: "student",
-      label: "학생·어린이 화두",
-      count: studentTotal,
-    },
-    { key: "mine", label: "내가 더한 화두", count: adminHwadu.length },
-    { key: "pending", label: "승인 대기", count: pending.length },
-    { key: "shared", label: "나눔 답 검수", count: sharedPending.length },
+    { key: "student", label: "학생·어린이 화두", count: studentTotal },
+    { key: "admin", label: "관리자가 던진 화두", count: adminHwadu.length },
+    { key: "thrown", label: "수행자들이 던진 화두", count: pending.length },
+    { key: "shared", label: "공유 허용한 화두의 답", count: sharedPending.length },
+    { key: "sayings", label: "선지식의 한마디", count: sayingsVisible.length },
   ];
 
-  const smallBtn =
-    "border px-3.5 py-1.5 text-[11px] tracking-[0.15em] transition-colors disabled:opacity-40";
+  // 은행 화두 손질 — 저장·숨김·되살리기
+  const bankRowProps = (h: Hwadu) => ({
+    ov: content.bank.overrides[h.id],
+    hidden: hiddenSet.has(h.id),
+    busy: busy === `bank-${h.id}`,
+    onSave: (patch: BankOverride) =>
+      act(`bank-${h.id}`, () => overrideBankHwadu(h.id, patch)),
+    onHide: () => act(`bank-${h.id}`, () => hideBankHwadu(h.id)),
+    onRestore: () => act(`bank-${h.id}`, () => restoreBankHwadu(h.id)),
+  });
 
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
@@ -185,7 +395,7 @@ export default function AdminPage() {
         <p className="mt-3 text-center text-xs text-vermilion">{error}</p>
       )}
 
-      {/* 네 구획 탭 */}
+      {/* 다섯 구획 + 선지식의 한마디 */}
       <nav className="mt-8 flex flex-wrap justify-center gap-2">
         {TABS.map((t) => (
           <button
@@ -202,26 +412,34 @@ export default function AdminPage() {
         ))}
       </nav>
 
-      <div className="mt-8">
+      {/* 구획 한 줄 설명 */}
+      <p className="mt-5 text-center text-[11px] leading-5 text-hanji-faint">
+        {TAB_NOTE[tab]}
+      </p>
+
+      <div className="mt-7">
         {/* ── 성인 화두 ── */}
         {tab === "adult" && (
           <section>
-            <p className="text-[11px] leading-5 text-hanji-faint">
-              어록이 붙어 있어 코드에 삽니다. 추가·수정은 Claude에게 말하면
-              됩니다.
-            </p>
-            <h3 className="mt-5 text-[11px] tracking-[0.3em] text-hanji-faint">
-              기본 화두 · {adultBank.length}
+            <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              은행 화두(코드 내장) · {adultBank.length - hiddenAdult}
+              {hiddenAdult > 0 && (
+                <span className="ml-1 tracking-normal"> (숨김 {hiddenAdult})</span>
+              )}
             </h3>
+            <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
+              여기서 고치면 &lsquo;고침&rsquo;으로, 삭제하면 &lsquo;숨김&rsquo;으로
+              남습니다 — 코드 원문은 그대로라 언제든 되살릴 수 있습니다.
+            </p>
             <ul className="mt-4 space-y-4">
               {adultBank.map((h, i) => (
-                <BankRow key={h.id} h={h} i={i} />
+                <BankRow key={h.id} h={h} i={i} {...bankRowProps(h)} />
               ))}
             </ul>
             {publicAdult.length > 0 && (
               <>
                 <h3 className="mt-8 text-[11px] tracking-[0.3em] text-gold-soft">
-                  내가·선방이 더한 화두 · {publicAdult.length}
+                  뒷방·선방이 더한 화두 · {publicAdult.length}
                 </h3>
                 <ul className="mt-3 space-y-4">
                   {publicAdult.map((p, i) => (
@@ -241,7 +459,7 @@ export default function AdminPage() {
             </h3>
             <ul className="mt-3 space-y-4">
               {studentOnly.map((h, i) => (
-                <BankRow key={h.id} h={h} i={i} />
+                <BankRow key={h.id} h={h} i={i} {...bankRowProps(h)} />
               ))}
             </ul>
             <h3 className="mt-8 text-[11px] tracking-[0.3em] text-hanji-faint">
@@ -249,7 +467,7 @@ export default function AdminPage() {
             </h3>
             <ul className="mt-3 space-y-4">
               {studentClassics.map((h, i) => (
-                <BankRow key={h.id} h={h} i={i} />
+                <BankRow key={h.id} h={h} i={i} {...bankRowProps(h)} />
               ))}
             </ul>
             {publicStudent.length > 0 && (
@@ -267,8 +485,8 @@ export default function AdminPage() {
           </section>
         )}
 
-        {/* ── 내가 더한 화두 ── */}
-        {tab === "mine" && (
+        {/* ── 관리자가 던진 화두 ── */}
+        {tab === "admin" && (
           <section>
             <div className="border border-ink-3 bg-ink-2/60 p-4">
               <textarea
@@ -408,15 +626,18 @@ export default function AdminPage() {
           </section>
         )}
 
-        {/* ── 승인 대기 ── */}
-        {tab === "pending" && (
+        {/* ── 수행자들이 던진 화두 — 대기 + 승인 ── */}
+        {tab === "thrown" && (
           <section>
+            <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              승인 대기 · {pending.length}
+            </h3>
             {pending.length === 0 ? (
-              <p className="text-sm text-hanji-faint">
+              <p className="mt-3 text-sm text-hanji-faint">
                 기다리는 화두가 없습니다.
               </p>
             ) : (
-              <ul className="space-y-4">
+              <ul className="mt-3 space-y-4">
                 {pending.map((t) => (
                   <li
                     key={t.id}
@@ -499,20 +720,18 @@ export default function AdminPage() {
           </section>
         )}
 
-        {/* ── 나눔 답 검수 — 동의한 회향만 여기 온다 ── */}
+        {/* ── 공유 허용한 화두의 답 — 동의한 회향만 여기 온다 ── */}
         {tab === "shared" && (
           <section>
-            <p className="text-[11px] leading-5 text-hanji-faint">
-              다른 수행자에게 보여도 좋다고 동의한 답들입니다. 승인해야만 그
-              화두를 회향한 이들에게 열립니다.
-            </p>
-
+            <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              검수 대기 · {sharedPending.length}
+            </h3>
             {sharedPending.length === 0 ? (
-              <p className="mt-5 text-sm text-hanji-faint">
+              <p className="mt-3 text-sm text-hanji-faint">
                 검수를 기다리는 답이 없습니다.
               </p>
             ) : (
-              <ul className="mt-5 space-y-4">
+              <ul className="mt-3 space-y-4">
                 {sharedPending.map((s) => (
                   <li key={s.id} className="border border-ink-3 bg-ink-2/60 p-4">
                     <p className="text-[11px] tracking-wide text-gold-soft">
@@ -581,6 +800,123 @@ export default function AdminPage() {
                         className="shrink-0 transition-colors hover:text-vermilion"
                       >
                         삭제
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
+        )}
+
+        {/* ── 선지식의 한마디 — 어록의 손질 ── */}
+        {tab === "sayings" && (
+          <section>
+            {/* 더하기 */}
+            <div className="border border-ink-3 bg-ink-2/60 p-4">
+              <textarea
+                value={newSayText}
+                onChange={(e) => setNewSayText(e.target.value)}
+                rows={2}
+                placeholder="말씀 — 우리말로 풀어 옮긴 한 구절"
+                className="journal-area !text-sm"
+              />
+              <div className="mt-2 flex gap-3">
+                <input
+                  value={newSayName}
+                  onChange={(e) => setNewSayName(e.target.value)}
+                  placeholder="이름 — 예: 조주 종심"
+                  className="w-1/2 border-b border-ink-3 bg-transparent pb-1.5 text-[12px] text-hanji-dim outline-none placeholder:text-hanji-faint"
+                />
+                <input
+                  value={newSayEra}
+                  onChange={(e) => setNewSayEra(e.target.value)}
+                  placeholder="시대 — 예: 당나라 (선택)"
+                  className="w-1/2 border-b border-ink-3 bg-transparent pb-1.5 text-[12px] text-hanji-dim outline-none placeholder:text-hanji-faint"
+                />
+              </div>
+              <button
+                disabled={
+                  !newSayText.trim() || !newSayName.trim() || busy === "say-add"
+                }
+                onClick={() =>
+                  act("say-add", async () => {
+                    await addSaying(
+                      newSayName.trim(),
+                      newSayEra.trim(),
+                      newSayText.trim()
+                    );
+                    setNewSayText("");
+                    setNewSayName("");
+                    setNewSayEra("");
+                  })
+                }
+                className={`${smallBtn} mt-3 border-gold/50 text-gold hover:bg-gold/10`}
+              >
+                어록에 더하기
+              </button>
+            </div>
+
+            {/* 현행 전부 — 내장 + 더한 것 */}
+            <h3 className="mt-8 text-[11px] tracking-[0.3em] text-hanji-faint">
+              지금 걸린 어록 · {sayingsVisible.length}
+            </h3>
+            <ul className="mt-4 space-y-4">
+              {sayingsVisible.map((s) => (
+                <li
+                  key={s.id}
+                  className={`border-l pl-3 ${
+                    s.isExtra ? "border-gold/30" : "border-ink-3"
+                  }`}
+                >
+                  <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
+                    {s.text}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-hanji-faint">
+                    — {s.name}
+                    {s.era && ` · ${s.era}`}
+                    {s.source && ` · 『${s.source}』`}
+                    {s.isExtra && (
+                      <span className="ml-1.5 text-[10px] tracking-wider text-gold-soft">
+                        · 더함
+                      </span>
+                    )}
+                  </p>
+                  <button
+                    disabled={busy === `say-${s.id}`}
+                    onClick={() => act(`say-${s.id}`, () => removeSaying(s.id))}
+                    className={`${smallBtn} mt-1.5 border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
+                  >
+                    빼기
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {/* 감춘 내장 어록 — 되살릴 수 있다 */}
+            {sayingsHidden.length > 0 && (
+              <>
+                <h3 className="mt-9 text-[11px] tracking-[0.3em] text-hanji-faint">
+                  감춘 어록 · {sayingsHidden.length}
+                </h3>
+                <ul className="mt-3 space-y-2">
+                  {sayingsHidden.map((s) => (
+                    <li
+                      key={s.id}
+                      className="flex items-start justify-between gap-3 text-[11px] leading-5 text-hanji-faint opacity-70"
+                    >
+                      <span>
+                        {s.text.replace(/\s+/g, " ").slice(0, 40)}
+                        {s.text.length > 40 && "…"} — {s.name}
+                      </span>
+                      <button
+                        disabled={busy === `say-${s.id}`}
+                        onClick={() =>
+                          act(`say-${s.id}`, () => restoreSaying(s.id))
+                        }
+                        className="shrink-0 transition-colors hover:text-gold-soft"
+                      >
+                        되살리기
                       </button>
                     </li>
                   ))}

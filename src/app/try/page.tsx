@@ -19,8 +19,13 @@ import { getHwadu, type Hwadu } from "@/lib/hwadu";
 import { durationLabel, loadStore, saveStore } from "@/lib/store";
 import { useConfirm } from "@/components/Confirm";
 import { SLOGAN } from "@/lib/config";
+import { shareAnswer } from "@/lib/community";
 
 const MAX_ANSWER = 500;
+
+// 나눔 물음창의 작은 안내 — 공유하면 무엇이 일어나는지
+const SHARE_NOTE =
+  "공유한 답은 검수를 거쳐, 공유한 그때의 글로 보입니다. 지난 화두에서 고쳐 써도 공유된 답은 바뀌지 않습니다.";
 
 // 체험 대표 화두 — 성인은 '이뭣고(是甚麼)', 학생·어린이는 '나는 누구인가'
 const TRY_ADULT_ID = "simsima";
@@ -62,11 +67,14 @@ export default function TryPage() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [memo, setMemo] = useState("");
   const [answer, setAnswer] = useState("");
+  // 나눔에 부쳤는지 — 회향 화면에 조용히 알린다
+  const [shareDone, setShareDone] = useState(false);
 
   // 화두를 받는다 — 성인은 이뭣고, 학생·어린이는 '나는 누구인가'
   const receive = () => {
     const id = audience === "student" ? TRY_STUDENT_ID : TRY_ADULT_ID;
     setHwadu(getHwadu(id) ?? null);
+    setShareDone(false);
     setStep("received");
   };
 
@@ -90,7 +98,7 @@ export default function TryPage() {
   // id 는 `try:이뭣고` 처럼 접두를 붙여, 실제 화두 뽑기가 이 화두를 지나온 것으로
   // 여기지 않게 한다. 물음 본문은 customQuestion 에 함께 담아 서고에서 그대로 읽힌다.
   // 두 번째부터는 몇 번을 더 돌아도 기록이 쌓이지 않는다.
-  const finish = () => {
+  const finish = async () => {
     if (!hwadu || !answer.trim()) return;
     const s = loadStore();
     // 체험은 '이뭣고' 한 판만 남긴다 — 이미 있으면 절대 늘리지 않는다
@@ -115,7 +123,19 @@ export default function TryPage() {
       });
     }
     setKept(!alreadyTried);
+    setShareDone(false);
     setStep("done");
+    // 회향을 마치자마자 — 홈과 같은 나눔의 물음. 체험이어도 답은 진짜 나눔으로 흐른다
+    const ok = await confirm(
+      "그대의 답을 다른 수행자에게 공유하시겠습니까?",
+      `이름 없이 — 다른 수행자의 화두를 돕습니다. ${SHARE_NOTE}`,
+      { confirm: "네", cancel: "아니오" }
+    );
+    if (ok) {
+      // try: 접두를 벗겨 실제 화두 id로 보낸다 — 같은 화두를 회향한 이들에게 닿게
+      shareAnswer(hwadu.id.replace(/^try:/, ""), answer.trim()).catch(() => {});
+      setShareDone(true);
+    }
   };
 
   const stepNo =
@@ -250,6 +270,12 @@ export default function TryPage() {
           <p className="mt-5 whitespace-pre-line font-serif text-[15px] font-light leading-9 text-hanji">
             {answer}
           </p>
+
+          {shareDone && (
+            <p className="mt-6 text-[12.5px] leading-6 text-gold-soft">
+              나눔에 부쳤습니다. 도량에서 살펴본 뒤 다른 수행자에게 열립니다.
+            </p>
+          )}
 
           {/* 사유의 방에 적어 둔 단상도 함께 */}
           {memo.trim() && (
@@ -512,6 +538,7 @@ export default function TryPage() {
                     setMemo("");
                     setAnswer("");
                     setDays(3);
+                    setShareDone(false);
                     setStep("choose");
                   }
                 }}

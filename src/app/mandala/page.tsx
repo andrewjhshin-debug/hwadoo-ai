@@ -3,19 +3,21 @@
 // ────────────────────────────────────────────────────────────────
 // 만다라 — 화두를 기다리는 동안의 수행. 두 갈래.
 //  ① 색칠하기: lib/mandala 가 꽃잎·아치·구슬·마름모를 겹겹이 쌓아 짠 다섯 폭.
-//     칸(data-cell)은 같은 key 를 나눠 가진 여러 path 가 한 붓에 함께 칠해지고,
-//     장식 선(decor)은 칠 위에 늘 얹혀 문양의 밀도를 지킨다.
+//     눈에 보이는 모든 닫힌 구역이 저마다 한 칸(data-cell)이다 — 꽃잎 속
+//     작은 꽃잎이면 테와 속잎이 서로 다른 칸, 구슬 한 알도 제 칸.
+//     하나하나 짚어 칠하는 것이 곧 수행이다.
 //     한 손가락 드래그 = 연달아 색칠, 우클릭 = 그 칸 비우기.
 //     두 손가락 = 확대·이동(1~3배), 더블탭 = 원위치. 확대 중에도 한 손가락은 색칠.
-//  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌아가기 지원.
-// 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 바람에 흩어진다.
+//  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌리기 지원.
+// 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 흩어진다.
 // 하던 만다라는 자동 임시저장되어, 다른 일 하다 돌아와도 그대로 떠 있다.
-// 모바일은 [만다라 → 문양 칩·도구 → 색판] 이 스크롤 없이 한 화면에 들어온다.
+// 모바일은 [토글 → 만다라 → 칩·도구 → 색판] 이 스크롤 없이 한 화면에 들어온다.
 // ────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { PALETTE, TEMPLATES, buildMandala } from "@/lib/mandala";
+import { useConfirm } from "@/components/Confirm";
 
 const ERASE = "erase";
 // v3 — 문양 엔진이 바뀌어 칸 key 가 다르다. 옛 저장(fills)과 섞지 않는다.
@@ -32,9 +34,11 @@ const BOARD_W = "max(240px, min(100vw - 16px, 100dvh - 355px, 480px))";
 const THEME_CSS = `
 .mandala-board { --m-line: rgba(217,180,91,0.32); --m-frame: rgba(217,180,91,0.16); --m-guide: rgba(217,180,91,0.12); }
 html[data-theme="light"] .mandala-board { --m-line: rgba(58,44,32,0.62); --m-frame: rgba(58,44,32,0.4); --m-guide: rgba(58,44,32,0.3); }
-@keyframes mandala-scatter-msg { 0% { opacity: 0 } 12% { opacity: 1 } 72% { opacity: 1 } 100% { opacity: 0 } }
-.mandala-scatter-msg { animation: mandala-scatter-msg 2s ease-in-out forwards; }
 `;
+
+// 도구 버튼 눌림 피드백 — 토글이든 단발 버튼이든, 누르는 동안 불이 들어온다
+const PRESS = "active:border-gold/60 active:bg-gold/10 active:text-gold";
+const PRESS_WARM = "active:border-vermilion/60 active:bg-vermilion/10 active:text-vermilion";
 
 // ══════════════ 저장 형태 ══════════════
 type Saved = {
@@ -76,25 +80,34 @@ function patchSaved(patch: Partial<Saved>) {
   } catch {}
 }
 
-// ══════════════ 가루 흩날림 (오른쪽→왼쪽 + 난수 바람) ══════════════
+// ══════════════ 가루 흩날림 ══════════════
+// 입자마다 난수 방향으로 파르르 — 어느 한쪽으로도 쓸리지 않는다.
 const SCATTER_MS = 2600;
 type Grain = { x: number; y: number; vx: number; vy: number; r: number; color: string };
+
+// 흩어지는 첫 숨 — 입자마다 제 방향, 제 빠르기
+function grainVel(): { vx: number; vy: number } {
+  const a = Math.random() * Math.PI * 2;
+  const s = 0.12 + Math.random() * 0.5;
+  return { vx: Math.cos(a) * s, vy: Math.sin(a) * s };
+}
+
 function runScatter(ctx: CanvasRenderingContext2D, size: number, parts: Grain[], onDone: () => void) {
   let raf = 0;
   const start = performance.now();
-  let gust = 0;
   const tick = (now: number) => {
     const t = now - start;
-    gust += (Math.random() - 0.5) * 0.06;
-    gust = Math.max(-0.25, Math.min(0.25, gust));
+    const alpha = Math.max(0, 1 - (t / SCATTER_MS) ** 1.7) * 0.9;
     ctx.clearRect(0, 0, size, size);
+    ctx.globalAlpha = alpha;
     for (const p of parts) {
-      p.vx -= 0.03 + Math.random() * 0.02;
-      p.vy += gust + (Math.random() - 0.5) * 0.12;
-      p.vy *= 0.97;
+      // 잔떨림 + 옅은 중력 — 과하지 않게, 가라앉듯이
+      p.vx += (Math.random() - 0.5) * 0.11;
+      p.vy += 0.008 + (Math.random() - 0.5) * 0.11;
+      p.vx *= 0.985;
+      p.vy *= 0.985;
       p.x += p.vx;
       p.y += p.vy;
-      ctx.globalAlpha = Math.max(0, 1 - (t / SCATTER_MS) ** 1.7) * 0.92;
       ctx.fillStyle = p.color;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
@@ -111,80 +124,7 @@ function runScatter(ctx: CanvasRenderingContext2D, size: number, parts: Grain[],
   raf = requestAnimationFrame(tick);
 }
 
-// 흩어지는 동안 화면 가운데 잠깐 머무는 한 줄 (2초 페이드)
-function ScatterMessage({ show }: { show: boolean }) {
-  if (!show) return null;
-  return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-6">
-      <p
-        className="mandala-scatter-msg text-center text-[13px] leading-6 tracking-[0.12em] text-hanji"
-        style={{ textShadow: "0 1px 10px rgba(0,0,0,0.35)" }}
-      >
-        모래 만다라처럼, 흩어짐도 수행입니다
-      </p>
-    </div>
-  );
-}
-
-// ══════════════ 먹색·금 그라데이션 확인 팝업 ══════════════
-function ConfirmModal({
-  open,
-  title,
-  body,
-  confirmLabel = "비우기",
-  cancelLabel = "머무르기",
-  onConfirm,
-  onCancel,
-}: {
-  open: boolean;
-  title: string;
-  body: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  if (!open) return null;
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-6"
-      style={{ background: "rgba(8,6,5,0.72)", backdropFilter: "blur(3px)" }}
-      onClick={onCancel}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[340px] overflow-hidden rounded-2xl border border-gold/25 text-center shadow-2xl"
-        style={{
-          background: "linear-gradient(160deg, #14100c 0%, #0d0b09 55%, #1a1510 100%)",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(217,180,91,0.12)",
-        }}
-      >
-        <div className="h-[2px] w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(217,180,91,0.6), transparent)" }} />
-        <div className="px-7 pb-7 pt-6">
-          <p className="text-[13px] tracking-[0.25em] text-gold-soft">{title}</p>
-          <p className="mt-4 whitespace-pre-line text-[12.5px] leading-6 text-hanji-dim">{body}</p>
-          <div className="mt-7 flex items-center justify-center gap-3">
-            <button
-              onClick={onCancel}
-              className="rounded-[10px] border border-ink-3 px-5 py-2.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:text-hanji"
-            >
-              {cancelLabel}
-            </button>
-            <button
-              onClick={onConfirm}
-              className="rounded-[10px] border border-gold/50 px-6 py-2.5 text-[12px] tracking-[0.2em] text-gold transition-colors hover:bg-gold/10"
-              style={{ background: "linear-gradient(160deg, rgba(217,180,91,0.14), rgba(217,180,91,0.04))" }}
-            >
-              {confirmLabel}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ══════════════ 색판 — 하단 고정, 모바일은 두 줄 가로 스크롤 ══════════════
+// ══════════════ 색판 — 모바일은 두 줄 가로 스크롤 ══════════════
 function PaletteBar({ color, onPick }: { color: string; onPick: (c: string) => void }) {
   return (
     <div className="mt-3 w-full max-w-[480px]">
@@ -196,7 +136,7 @@ function PaletteBar({ color, onPick }: { color: string; onPick: (c: string) => v
           onClick={() => onPick(ERASE)}
           aria-label="빈칸"
           title="빈칸 — 칠한 색을 지웁니다"
-          className={`relative h-6 w-6 shrink-0 overflow-hidden rounded-full border-2 bg-ink-2 transition-transform sm:h-7 sm:w-7 ${
+          className={`relative h-6 w-6 shrink-0 overflow-hidden rounded-full border-2 bg-ink-2 transition-transform active:scale-95 sm:h-7 sm:w-7 ${
             color === ERASE ? "scale-110 border-hanji" : "border-ink-3 hover:scale-105"
           }`}
         >
@@ -207,7 +147,7 @@ function PaletteBar({ color, onPick }: { color: string; onPick: (c: string) => v
             key={c}
             onClick={() => onPick(c)}
             aria-label={c}
-            className={`h-6 w-6 shrink-0 rounded-full border-2 transition-transform sm:h-7 sm:w-7 ${
+            className={`h-6 w-6 shrink-0 rounded-full border-2 transition-transform active:scale-95 sm:h-7 sm:w-7 ${
               color === c ? "scale-110 border-hanji" : "border-transparent hover:scale-105"
             }`}
             style={{ backgroundColor: c }}
@@ -242,12 +182,15 @@ export default function MandalaPage() {
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-2 py-3 sm:px-4 sm:py-6">
       <style>{THEME_CSS}</style>
 
+      {/* 상단 — 모바일은 색칠/그리기 토글만, 한자 장식과 제목은 데스크톱에서만 */}
       <div className="rise flex items-center gap-4">
-        <h1 className="text-xs tracking-[0.4em] text-gold-soft">曼陀羅 · 만다라</h1>
+        <h1 className="hidden text-xs tracking-[0.4em] text-gold-soft sm:block">
+          曼陀羅 · 만다라
+        </h1>
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => changeMode("color")}
-            className={`rounded-full border px-3 py-1.5 text-[11px] tracking-[0.1em] transition-colors ${
+            className={`rounded-full border px-3 py-1.5 text-[11px] tracking-[0.1em] transition-colors ${PRESS} ${
               mode === "color" ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
             }`}
           >
@@ -255,7 +198,7 @@ export default function MandalaPage() {
           </button>
           <button
             onClick={() => changeMode("draw")}
-            className={`rounded-full border px-3 py-1.5 text-[11px] tracking-[0.1em] transition-colors ${
+            className={`rounded-full border px-3 py-1.5 text-[11px] tracking-[0.1em] transition-colors ${PRESS} ${
               mode === "draw" ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
             }`}
           >
@@ -264,9 +207,11 @@ export default function MandalaPage() {
         </div>
       </div>
 
-      {mode === "color" ? <ColorMode color={color} /> : <DrawMode color={color} />}
-
-      <PaletteBar color={color} onPick={changeColor} />
+      {mode === "color" ? (
+        <ColorMode color={color} onPick={changeColor} />
+      ) : (
+        <DrawMode color={color} onPick={changeColor} />
+      )}
 
       <div className="mt-6 hidden text-center md:block">
         <Link href="/" className="text-xs tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim">
@@ -278,13 +223,13 @@ export default function MandalaPage() {
 }
 
 // ── 색칠 모드 ──────────────────────────────────────────
-function ColorMode({ color }: { color: string }) {
+function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => void }) {
   const [tplIdx, setTplIdx] = useState(0);
   const [fillsAll, setFillsAll] = useState<Record<string, Record<string, string>>>({});
   const [scattering, setScattering] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [zoomed, setZoomed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const confirm = useConfirm();
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -477,7 +422,6 @@ function ColorMode({ color }: { color: string }) {
 
   // ── 비우기(모래 흩어짐) ──
   const doScatter = () => {
-    setConfirmOpen(false);
     // 포인터 살림을 말끔히 정리 — 흩어진 뒤 그리기가 막히는 일이 없도록
     painting.current = false;
     pointers.current.clear();
@@ -507,18 +451,17 @@ function ColorMode({ color }: { color: string }) {
     const scale = size / 200;
     const parts: Grain[] = [];
     for (const id of ids) {
-      // 한 칸(key)이 여러 조각(구슬 묶음 등)일 수 있다 — 조각마다 가루를 뿌린다
+      // 칸의 표본점마다 잘고 미세한 가루를 뿌린다
       for (const [sx, sy] of built.seeds[id]) {
         const px = sx * scale;
         const py = sy * scale;
-        const count = 6 + Math.floor(Math.random() * 5);
+        const count = 12 + Math.floor(Math.random() * 9);
         for (let k = 0; k < count; k++) {
           parts.push({
             x: px + (Math.random() - 0.5) * 6,
             y: py + (Math.random() - 0.5) * 6,
-            vx: -(0.1 + Math.random() * 0.5),
-            vy: (Math.random() - 0.5) * 0.3,
-            r: 0.3 + Math.random() * 0.7,
+            ...grainVel(),
+            r: 0.2 + Math.random() * 0.45,
             color: fills[id],
           });
         }
@@ -536,9 +479,14 @@ function ColorMode({ color }: { color: string }) {
     }, SCATTER_MS + 800);
   };
 
-  const askClear = () => {
-    if (filledCount === 0) return;
-    setConfirmOpen(true);
+  const askClear = async () => {
+    if (filledCount === 0 || scattering) return;
+    const ok = await confirm(
+      "만다라를 비우시겠습니까?",
+      "모래 만다라처럼, 흩어짐도 수행입니다.",
+      { confirm: "비우기", cancel: "머무르기" }
+    );
+    if (ok) doScatter();
   };
 
   return (
@@ -557,42 +505,27 @@ function ColorMode({ color }: { color: string }) {
         <div ref={innerRef} className="h-full w-full origin-center will-change-transform">
           <svg viewBox="0 0 200 200" className="h-full w-full">
             <circle cx="100" cy="100" r="98.5" fill="none" stroke="var(--m-frame)" strokeWidth="0.6" />
-            {/* nodes 는 그리는 순서 그대로 — cell 위에 그 겹의 decor 가 얹힌다 */}
-            {built.nodes.map((n, i) =>
-              n.kind === "cell" ? (
-                <path
-                  key={i}
-                  d={n.d}
-                  data-cell={n.key}
-                  fill={fills[n.key] ?? "transparent"}
-                  fillRule={n.fillRule}
-                  stroke="var(--m-line)"
-                  strokeWidth="0.3"
-                  strokeLinejoin="round"
-                  style={{
-                    pointerEvents: "all", // 빈칸은 진짜 투명이되, 짚는 건 잡힌다
-                    transition: "fill 0.08s",
-                    cursor: scattering ? "default" : "pointer",
-                  }}
-                />
-              ) : (
-                <path
-                  key={i}
-                  d={n.d}
-                  fill={n.fill ? "var(--m-line)" : "none"}
-                  stroke={n.fill ? "none" : "var(--m-line)"}
-                  strokeWidth={n.w}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  opacity={n.opacity ?? 0.9}
-                  style={{ pointerEvents: "none" }}
-                />
-              )
-            )}
+            {/* 모든 path 가 칸이다 — 테(evenodd 구멍) 위에 안쪽 칸이 얹힌다 */}
+            {built.nodes.map((n) => (
+              <path
+                key={n.key}
+                d={n.d}
+                data-cell={n.key}
+                fill={fills[n.key] ?? "transparent"}
+                fillRule={n.fillRule}
+                stroke="var(--m-line)"
+                strokeWidth="0.3"
+                strokeLinejoin="round"
+                style={{
+                  pointerEvents: "all", // 빈칸은 진짜 투명이되, 짚는 건 잡힌다
+                  transition: "fill 0.08s",
+                  cursor: scattering ? "default" : "pointer",
+                }}
+              />
+            ))}
           </svg>
         </div>
         <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
-        <ScatterMessage show={scattering} />
       </div>
 
       {/* 문양 칩 — 만다라 아래, 모바일은 가로 스크롤 */}
@@ -605,7 +538,7 @@ function ColorMode({ color }: { color: string }) {
             key={t.key}
             title={t.hanja}
             onClick={() => !scattering && setTplIdx(i)}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] tracking-widest transition-colors ${
+            className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] tracking-widest transition-colors ${PRESS} ${
               tplIdx === i ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
             }`}
           >
@@ -619,13 +552,10 @@ function ColorMode({ color }: { color: string }) {
         <p className="text-[11px] tracking-[0.2em] text-hanji-faint">
           {filledCount} / {built.cellKeys.length} 칸
         </p>
-        <span className="text-[10px] tracking-[0.05em] text-hanji-faint sm:hidden">
-          두 손가락 확대 · 더블탭 원위치
-        </span>
         {zoomed && (
           <button
             onClick={resetView}
-            className="rounded-full border border-ink-3 px-3 py-1 text-[11px] tracking-[0.1em] text-hanji-dim transition-colors hover:text-hanji"
+            className={`rounded-full border border-ink-3 px-3 py-1 text-[11px] tracking-[0.1em] text-hanji-dim transition-colors hover:text-hanji ${PRESS}`}
           >
             ⊙ 원위치
           </button>
@@ -633,25 +563,19 @@ function ColorMode({ color }: { color: string }) {
         <button
           onClick={askClear}
           disabled={scattering}
-          className="rounded-[10px] border border-ink-3 px-4 py-1.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50"
+          className={`rounded-[10px] border border-ink-3 px-4 py-1.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 ${PRESS_WARM}`}
         >
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
       </div>
 
-      <ConfirmModal
-        open={confirmOpen}
-        title="만다라를 비우시겠습니까"
-        body={"만다라는 간직하지 않습니다.\n이렇게 비우는 것 또한 수행입니다."}
-        onConfirm={doScatter}
-        onCancel={() => setConfirmOpen(false)}
-      />
+      <PaletteBar color={color} onPick={onPick} />
     </>
   );
 }
 
 // ── 그리기 모드 ──────────────────────────────────────────
-function DrawMode({ color }: { color: string }) {
+function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => void }) {
   const boardRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLCanvasElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -662,15 +586,15 @@ function DrawMode({ color }: { color: string }) {
   const [brush, setBrush] = useState(3);
   const [panMode, setPanMode] = useState(false); // 기본: 연달아 그리기
   const [scattering, setScattering] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
+  const confirm = useConfirm();
 
   const view = useRef({ scale: 1, x: 0, y: 0 });
   const stroke = useRef({ active: false, last: null as null | { x: number; y: number } });
   const pinch = useRef({ active: false, dist: 0, cx: 0, cy: 0 });
   const pan = useRef({ active: false, x: 0, y: 0 });
   const dirty = useRef(false);
-  const undoStack = useRef<ImageData[]>([]); // 되돌아가기 스냅샷
+  const undoStack = useRef<ImageData[]>([]); // 되돌리기 스냅샷
   const scatterSeq = useRef(0);
   const SIZE = 1000;
 
@@ -752,7 +676,7 @@ function DrawMode({ color }: { color: string }) {
     } catch {}
   };
 
-  // 스트로크 시작 전 스냅샷 저장 (되돌아가기용)
+  // 스트로크 시작 전 스냅샷 저장 (되돌리기용)
   const pushUndo = () => {
     const canvas = canvasRef.current;
     const ctx = getCtx();
@@ -891,7 +815,6 @@ function DrawMode({ color }: { color: string }) {
   };
 
   const doScatter = () => {
-    setConfirmOpen(false);
     // 획·이동 상태를 말끔히 정리 — 흩어진 뒤 그리기가 막히지 않도록
     stroke.current.active = false;
     stroke.current.last = null;
@@ -906,7 +829,8 @@ function DrawMode({ color }: { color: string }) {
     const dpr = window.devicePixelRatio || 1;
     const img = src.getImageData(0, 0, SIZE * dpr, SIZE * dpr);
     const parts: Grain[] = [];
-    const step = Math.max(6, Math.floor((SIZE * dpr) / 190));
+    // 잘고 미세한 가루 — 촘촘히 긁어 모은다
+    const step = Math.max(4, Math.floor((SIZE * dpr) / 260));
     for (let y = 0; y < SIZE * dpr; y += step) {
       for (let x = 0; x < SIZE * dpr; x += step) {
         const idx = (y * SIZE * dpr + x) * 4;
@@ -915,15 +839,14 @@ function DrawMode({ color }: { color: string }) {
         parts.push({
           x: (x / (SIZE * dpr)) * size,
           y: (y / (SIZE * dpr)) * size,
-          vx: -(0.1 + Math.random() * 0.5),
-          vy: (Math.random() - 0.5) * 0.3,
-          r: 0.3 + Math.random() * 0.7,
+          ...grainVel(),
+          r: 0.2 + Math.random() * 0.45,
           color: `rgb(${r},${g},${b})`,
         });
       }
     }
     // 상한 없이 전체를 담은 뒤, 너무 많으면 그림 전반에서 골고루 무작위로 솎아낸다
-    const MAX = 3200;
+    const MAX = 5200;
     if (parts.length > MAX) {
       for (let i = parts.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -955,11 +878,21 @@ function DrawMode({ color }: { color: string }) {
     }, SCATTER_MS + 800);
   };
 
+  const askClear = async () => {
+    if (!dirty.current || scattering) return;
+    const ok = await confirm(
+      "만다라를 비우시겠습니까?",
+      "모래 만다라처럼, 흩어짐도 수행입니다.",
+      { confirm: "비우기", cancel: "머무르기" }
+    );
+    if (ok) doScatter();
+  };
+
   return (
     <>
-      <p className="mt-2 text-center text-[11px] leading-5 text-hanji-faint">
+      {/* 안내는 데스크톱에만 — 모바일은 한 화면에 다 들어오도록 아낀다 */}
+      <p className="mt-2 hidden text-center text-[11px] leading-5 text-hanji-faint sm:block">
         손끝으로 그으면, 여러 갈래로 함께 피어납니다.
-        <span className="inline sm:hidden"> 두 손가락으로 확대할 수 있습니다.</span>
       </p>
 
       <div
@@ -984,21 +917,23 @@ function DrawMode({ color }: { color: string }) {
         </div>
         {/* 흩날림 전용 오버레이 — wrap 변형과 무관하게 화면 전체를 덮는다 */}
         <canvas ref={scatterRef} className="pointer-events-none absolute inset-0 h-full w-full" />
-        <ScatterMessage show={scattering} />
       </div>
 
-      {/* 되돌아가기 · 손으로 옮기기 · 원위치 · 비우기 */}
+      {/* 색판을 먼저 — 모바일에서 아래 잘림 없이 한 화면에 들어온다 */}
+      <PaletteBar color={color} onPick={onPick} />
+
+      {/* 되돌리기 · 손으로 옮기기 · 원위치 · 비우기 */}
       <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
         <button
           onClick={undo}
           disabled={!canUndo || scattering}
-          className="rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.1em] text-hanji-dim transition-colors enabled:hover:text-hanji disabled:opacity-40"
+          className={`rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.1em] text-hanji-dim transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
         >
-          ↩ 되돌아가기
+          ↩ 되돌리기
         </button>
         <button
           onClick={() => setPanMode((v) => !v)}
-          className={`rounded-full border px-3.5 py-1.5 text-[11px] tracking-[0.1em] transition-colors sm:hidden ${
+          className={`rounded-full border px-3.5 py-1.5 text-[11px] tracking-[0.1em] transition-colors sm:hidden ${PRESS} ${
             panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim"
           }`}
         >
@@ -1006,14 +941,14 @@ function DrawMode({ color }: { color: string }) {
         </button>
         <button
           onClick={resetView}
-          className="rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.1em] text-hanji-faint transition-colors hover:text-hanji sm:hidden"
+          className={`rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.1em] text-hanji-faint transition-colors hover:text-hanji sm:hidden ${PRESS}`}
         >
           ⊙ 원위치
         </button>
         <button
-          onClick={() => dirty.current && setConfirmOpen(true)}
+          onClick={askClear}
           disabled={scattering}
-          className="rounded-[10px] border border-ink-3 px-4 py-1.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50"
+          className={`rounded-[10px] border border-ink-3 px-4 py-1.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 ${PRESS_WARM}`}
         >
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
@@ -1025,7 +960,7 @@ function DrawMode({ color }: { color: string }) {
           <button
             key={n}
             onClick={() => setSegments(n)}
-            className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+            className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${PRESS} ${
               segments === n ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
             }`}
           >
@@ -1034,7 +969,7 @@ function DrawMode({ color }: { color: string }) {
         ))}
         <button
           onClick={() => setMirror((v) => !v)}
-          className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+          className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${PRESS} ${
             mirror ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
           }`}
         >
@@ -1051,14 +986,6 @@ function DrawMode({ color }: { color: string }) {
           className="mandala-range w-[120px]"
         />
       </div>
-
-      <ConfirmModal
-        open={confirmOpen}
-        title="만다라를 비우시겠습니까"
-        body={"만다라는 간직하지 않습니다.\n이렇게 비우는 것 또한 수행입니다."}
-        onConfirm={doScatter}
-        onCancel={() => setConfirmOpen(false)}
-      />
     </>
   );
 }

@@ -5,9 +5,12 @@
 // · 세 구획으로 묶는다 — 수행 / 말씀 / 나눔 (전부 불교 문양)
 //   수행: 뜰(홈) · 체험하기 · 사유의 방 · 만다라 · 비움 · 호흡 명상(곧)
 //   말씀: 간화선이란? · 선지식의 한마디
-//   나눔: 내가 던지는 화두 · 차담회 · 연지원 · 차 한 잔
+//   나눔: 내가 던지는 화두 · 차담회 · 연지원 · 차 한 잔 · 굿즈(곧)
+// · 메뉴가 길어졌다 — 내비 영역만 휠 스크롤(스크롤바는 감춘다),
+//   위 브랜드와 아래 로그인은 제자리에 머문다
 // · 데스크톱: 접기(아이콘만, 구획 제목은 숨김) ↔ 펴기, 상태 기억
-// · 모바일: 햄버거 서랍
+// · 모바일: 햄버거 서랍 (같은 내비 영역이 스크롤을 맡는다)
+// · 내 도량 곁 걸음 뱃지 — 회향 수로 人(1+)/修(5+)/天(15+) 중 최고 한 글자
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
@@ -19,14 +22,16 @@ import { ADMIN_UID } from "@/lib/config";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
   Banga,
+  Bojagi,
   Book,
+  Breath,
   Dharmachakra,
   Elephant,
+  Garden,
   Jukbi,
-  Lantern,
+  LotusPond,
   Mandala,
   Moktak,
-  Lotus,
   SeonMaster,
   Person,
   Teacup,
@@ -37,6 +42,7 @@ type NavItem = {
   label: string;
   Icon: React.ComponentType<{ className?: string; stroke?: string }>;
   soon?: boolean;
+  disabled?: boolean; // 아직 문이 열리지 않은 자리 — 눌러도 이동하지 않는다
 };
 
 // 수행 — 매일 앉아 익히는 방들 (뜰·체험하기는 위의 붙박이 단추가 맡는다)
@@ -45,7 +51,7 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/mandala", label: "만다라", Icon: Mandala },
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
   { href: "/empty", label: "비움", Icon: Moktak },
-  { href: "/breath", label: "호흡 명상", Icon: Lotus, soon: true },
+  { href: "/breath", label: "호흡 명상", Icon: Breath, soon: true },
 ];
 
 // 말씀 · 나눔 — 구획 제목과 함께 아래에 잇는다
@@ -61,12 +67,21 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: "나눔",
     items: [
       { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
-      { href: "/gathering", label: "차담회(茶談會)", Icon: Person },
-      { href: "/community", label: "연지원 — 커뮤니티", Icon: Lantern },
+      { href: "/gathering", label: "차담회 · 모임", Icon: Person },
+      { href: "/community", label: "연지원 — 커뮤니티", Icon: LotusPond },
       { href: "/tea", label: "차 한 잔", Icon: Teacup },
+      { href: "/goods", label: "굿즈", Icon: Bojagi, soon: true, disabled: true },
     ],
   },
 ];
+
+// 걸음 뱃지 — 회향 수로 오른 자리. 육도에서 빌린 한 글자 (내 도량과 같은 셈).
+function rankHanja(returned: number): string | null {
+  if (returned >= 15) return "天";
+  if (returned >= 5) return "修";
+  if (returned >= 1) return "人";
+  return null;
+}
 
 const COLLAPSE_KEY = "hwadoo-sidebar-collapsed";
 const THEME_KEY = "hwadoo-theme";
@@ -175,28 +190,58 @@ export default function Sidebar() {
   // 데스크톱에서 접혔을 때는 아이콘만 (모바일 서랍이 열리면 항상 펼침)
   const slim = collapsed && !open;
 
-  // 나란한 방 하나 — 구획마다 같은 모양으로 그린다
-  const renderItem = ({ href, label, Icon, soon }: NavItem) => (
-    <Link
-      key={href}
-      href={href}
-      onClick={go(href)}
-      title={label}
-      className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-[15px] transition-colors sm:py-1.5 sm:text-[12.5px] ${
-        pathname === href
-          ? "bg-gold/10 text-hanji"
-          : "text-hanji-dim hover:bg-gold/5 hover:text-hanji"
-      } ${slim ? "justify-center" : ""}`}
+  // 걸음 뱃지 — 회향이 없으면 아무것도 그리지 않는다
+  const rank = rankHanja(history.length);
+  const rankBadge = rank && (
+    <span
+      aria-label={`걸음 · ${rank}`}
+      className="flex h-[15px] w-[15px] shrink-0 items-center justify-center rounded-full border border-gold/50 bg-gold/10 font-serif text-[9px] leading-none text-gold"
     >
-      <Icon className="h-[16px] w-[16px] shrink-0 opacity-75" />
-      {!slim && <span>{label}</span>}
-      {!slim && soon && (
-        <span className="ml-auto rounded-full border border-gold/30 px-1.5 py-px text-[9px] leading-tight text-gold-soft">
-          곧
-        </span>
-      )}
-    </Link>
+      {rank}
+    </span>
   );
+
+  // 나란한 방 하나 — 구획마다 같은 모양으로 그린다
+  const renderItem = ({ href, label, Icon, soon, disabled }: NavItem) => {
+    const soonBadge = !slim && soon && (
+      <span className="ml-auto rounded-full border border-gold/30 px-1.5 py-px text-[9px] leading-tight text-gold-soft">
+        곧
+      </span>
+    );
+    // 아직 문이 열리지 않은 자리 — 자리만 밝혀 두고, 눌러도 이동하지 않는다
+    if (disabled) {
+      return (
+        <span
+          key={href}
+          title={label}
+          className={`flex cursor-default items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-[15px] text-hanji-faint sm:py-1 sm:text-[12.5px] ${
+            slim ? "justify-center" : ""
+          }`}
+        >
+          <Icon className="h-[16px] w-[16px] shrink-0 opacity-55" />
+          {!slim && <span>{label}</span>}
+          {soonBadge}
+        </span>
+      );
+    }
+    return (
+      <Link
+        key={href}
+        href={href}
+        onClick={go(href)}
+        title={label}
+        className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-[15px] transition-colors sm:py-1 sm:text-[12.5px] ${
+          pathname === href
+            ? "bg-gold/10 text-hanji"
+            : "text-hanji-dim hover:bg-gold/5 hover:text-hanji"
+        } ${slim ? "justify-center" : ""}`}
+      >
+        <Icon className="h-[16px] w-[16px] shrink-0 opacity-75" />
+        {!slim && <span>{label}</span>}
+        {soonBadge}
+      </Link>
+    );
+  };
 
   return (
     <>
@@ -251,7 +296,7 @@ export default function Sidebar() {
       >
         {/* 브랜드 + 접기 */}
         <div
-          className={`mb-5 hidden items-center md:flex ${slim ? "justify-center" : "justify-between px-2"}`}
+          className={`mb-4 hidden shrink-0 items-center md:flex ${slim ? "justify-center" : "justify-between px-2"}`}
         >
           {!slim && (
             <Link href="/" onClick={go("/")} className="flex items-center gap-2.5">
@@ -262,15 +307,20 @@ export default function Sidebar() {
             </Link>
           )}
           <div className={`flex items-center ${slim ? "flex-col gap-1" : "gap-0.5"}`}>
-            {/* 마이 페이지 · 내 도량 — 오른쪽 위 */}
+            {/* 마이 페이지 · 내 도량 — 오른쪽 위. 걸음 뱃지가 곁에 앉는다 */}
             <Link
               href="/settings"
               onClick={go("/settings")}
-              title="내 도량"
+              title={rank ? `내 도량 · 걸음 ${rank}` : "내 도량"}
               aria-label="내 도량"
-              className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
+              className="relative p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
             >
               <Person className="h-4 w-4" />
+              {rank && (
+                <span className="absolute -right-1 -top-0.5 flex h-[13px] w-[13px] items-center justify-center rounded-full border border-gold/50 bg-ink-2 font-serif text-[8px] leading-none text-gold">
+                  {rank}
+                </span>
+              )}
             </Link>
             <ThemeToggle />
             <button
@@ -286,80 +336,84 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* ── 수행 — 매일 앉는 자리 ── */}
-        {!slim && (
-          <div className="mb-2 px-2.5 text-[11px] tracking-[0.22em] text-hanji-faint">
-            수행
-          </div>
-        )}
-
-        {/* 새 화두 받기 — 홈 */}
-        <Link
-          href="/"
-          onClick={go("/")}
-          title="새 화두 받기"
-          className={`btn-obang flex items-center gap-2.5 py-3.5 text-[16px] font-medium text-hanji transition-opacity hover:opacity-90 sm:py-2.5 sm:text-[13px] ${
-            slim ? "justify-center px-0" : "px-4"
-          }`}
+        {/* ── 내비 — 휠 스크롤 영역 (위 브랜드·아래 로그인은 제자리) ── */}
+        <div
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2 [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none" }}
         >
-          <Lotus className="h-[17px] w-[17px]" stroke="#D9B45B" />
-          {!slim && "뜰"}
-        </Link>
-
-        {/* 체험하기 — 기한 없이 전 과정 한 바퀴 */}
-        <Link
-          href="/try"
-          onClick={go("/try")}
-          title="체험하기"
-          className={`mt-2 flex items-center gap-2.5 rounded-[10px] border py-3 text-[15px] transition-colors sm:py-2 sm:text-[12.5px] ${
-            pathname === "/try"
-              ? "border-gold/40 bg-gold/10 text-hanji"
-              : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
-          } ${slim ? "justify-center px-0" : "px-3"}`}
-        >
-          <Elephant className="h-[16px] w-[16px] opacity-75" />
-          {!slim && <span>체험하기</span>}
-        </Link>
-
-        {/* 수행의 나머지 방들 */}
-        <nav className="mt-2 flex flex-col gap-0.5">
-          {NAV_PRACTICE.map(renderItem)}
-        </nav>
-
-        {/* ── 말씀 · 나눔 ── */}
-        {NAV_GROUPS.map(({ title, items }) => (
-          <div key={title} className={slim ? "mt-3 border-t border-ink-3 pt-3" : "mt-5"}>
-            {!slim && (
-              <div className="mb-1.5 px-2.5 text-[11px] tracking-[0.22em] text-hanji-faint">
-                {title}
-              </div>
-            )}
-            <nav className="flex flex-col gap-0.5">{items.map(renderItem)}</nav>
-          </div>
-        ))}
-
-        {/* 지난 화두 — 목록 없이 기록 보기 링크만 (스크롤바 방지) */}
-        {!slim && (
-          <div className="mt-6 flex-1">
-            <div className="px-2.5 text-[11.5px] tracking-[0.18em] text-hanji-faint">
-              지난 화두
+          {/* ── 수행 — 매일 앉는 자리 ── */}
+          {!slim && (
+            <div className="mb-1.5 px-2.5 text-[11px] tracking-[0.22em] text-hanji-faint">
+              수행
             </div>
-            <Link
-              href="/archive"
-              onClick={go("/archive")}
-              className="mt-2 flex items-center gap-2.5 rounded-[10px] px-2.5 py-2.5 text-[13.5px] text-hanji-dim transition-colors hover:bg-gold/5 hover:text-hanji"
-            >
-              <Book className="h-[15px] w-[15px] shrink-0 opacity-75" />
-              <span>
-                {history.length === 0
-                  ? "아직 회향한 화두가 없습니다"
-                  : `기록 보기 · ${history.length}`}
-              </span>
-            </Link>
-          </div>
-        )}
+          )}
 
-        {slim && <div className="flex-1" />}
+          {/* 새 화두 받기 — 홈 */}
+          <Link
+            href="/"
+            onClick={go("/")}
+            title="새 화두 받기"
+            className={`btn-obang flex items-center gap-2.5 py-3.5 text-[16px] font-medium text-hanji transition-opacity hover:opacity-90 sm:py-2 sm:text-[13px] ${
+              slim ? "justify-center px-0" : "px-4"
+            }`}
+          >
+            <Garden className="h-[17px] w-[17px]" stroke="#D9B45B" />
+            {!slim && "뜰"}
+          </Link>
+
+          {/* 체험하기 — 기한 없이 전 과정 한 바퀴 */}
+          <Link
+            href="/try"
+            onClick={go("/try")}
+            title="체험하기"
+            className={`mt-1.5 flex items-center gap-2.5 rounded-[10px] border py-3 text-[15px] transition-colors sm:py-1.5 sm:text-[12.5px] ${
+              pathname === "/try"
+                ? "border-gold/40 bg-gold/10 text-hanji"
+                : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
+            } ${slim ? "justify-center px-0" : "px-3"}`}
+          >
+            <Elephant className="h-[16px] w-[16px] opacity-75" />
+            {!slim && <span>체험하기</span>}
+          </Link>
+
+          {/* 수행의 나머지 방들 */}
+          <nav className="mt-1.5 flex flex-col gap-0.5">
+            {NAV_PRACTICE.map(renderItem)}
+          </nav>
+
+          {/* ── 말씀 · 나눔 ── */}
+          {NAV_GROUPS.map(({ title, items }) => (
+            <div key={title} className={slim ? "mt-2.5 border-t border-ink-3 pt-2.5" : "mt-4"}>
+              {!slim && (
+                <div className="mb-1 px-2.5 text-[11px] tracking-[0.22em] text-hanji-faint">
+                  {title}
+                </div>
+              )}
+              <nav className="flex flex-col gap-0.5">{items.map(renderItem)}</nav>
+            </div>
+          ))}
+
+          {/* 지난 화두 — 목록 없이 기록 보기 링크만 */}
+          {!slim && (
+            <div className="mt-4">
+              <div className="px-2.5 text-[11.5px] tracking-[0.18em] text-hanji-faint">
+                지난 화두
+              </div>
+              <Link
+                href="/archive"
+                onClick={go("/archive")}
+                className="mt-1 flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-[13.5px] text-hanji-dim transition-colors hover:bg-gold/5 hover:text-hanji"
+              >
+                <Book className="h-[15px] w-[15px] shrink-0 opacity-75" />
+                <span>
+                  {history.length === 0
+                    ? "아직 회향한 화두가 없습니다"
+                    : `기록 보기 · ${history.length}`}
+                </span>
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* 아래 — 로그인 (데스크톱·모바일 모두, 접혔을 때는 아이콘만) */}
         <div className="mt-auto shrink-0 border-t border-ink-3 pt-3.5">
@@ -371,7 +425,14 @@ export default function Sidebar() {
                 title={`${user.displayName ?? "수행자"}님 · 내 도량`}
                 className="flex w-full justify-center rounded-[10px] border border-ink-3 px-0 py-2.5 text-hanji-dim transition-colors hover:text-hanji"
               >
-                <Person className="h-4 w-4" />
+                <span className="relative">
+                  <Person className="h-4 w-4" />
+                  {rank && (
+                    <span className="absolute -right-2 -top-1.5 flex h-[13px] w-[13px] items-center justify-center rounded-full border border-gold/50 bg-ink-2 font-serif text-[8px] leading-none text-gold">
+                      {rank}
+                    </span>
+                  )}
+                </span>
               </Link>
             ) : (
               <>
@@ -388,8 +449,9 @@ export default function Sidebar() {
                     <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[14px] text-hanji">
                       {user.displayName ?? "수행자"}님
                     </span>
-                    <span className="block text-[11px] text-hanji-faint">
+                    <span className="flex items-center gap-1.5 text-[11px] text-hanji-faint">
                       내 도량
+                      {rankBadge}
                     </span>
                   </span>
                 </Link>

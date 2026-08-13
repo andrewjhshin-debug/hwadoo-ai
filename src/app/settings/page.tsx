@@ -24,10 +24,12 @@ import {
   Dharmachakra,
   SeonMaster,
   Banga,
+  Bojagi,
+  Breath,
+  Garden,
   Jukbi,
+  LotusPond,
   Mandala,
-  Lantern,
-  Lotus,
   Moktak,
 } from "@/components/icons";
 
@@ -68,18 +70,19 @@ type ServiceItem = {
 };
 
 const SERVICES: ServiceItem[] = [
-  { href: "/", label: "뜰", Icon: Lotus },
+  { href: "/", label: "뜰", Icon: Garden },
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/masters", label: "선지식", Icon: SeonMaster },
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/my-hwadu", label: "화두 던지기", Icon: Jukbi },
   { href: "/mandala", label: "만다라", Icon: Mandala },
+  { href: "/empty", label: "비움", Icon: Moktak },
   { href: "/gathering", label: "차담회", Icon: Person },
-  { href: "/community", label: "연지원", Icon: Lantern },
+  { href: "/community", label: "연지원", Icon: LotusPond },
   { href: "/archive", label: "지난 화두", Icon: Book },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
-  { label: "굿즈", Icon: Moktak, soon: true },
-  { href: "/breath", label: "호흡 명상", Icon: Lotus, soon: true },
+  { label: "굿즈", Icon: Bojagi, soon: true },
+  { href: "/breath", label: "호흡 명상", Icon: Breath, soon: true },
 ];
 
 export default function SettingsPage() {
