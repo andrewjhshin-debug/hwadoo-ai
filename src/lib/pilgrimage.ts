@@ -198,8 +198,9 @@ export type Temple = {
   region: Region;
   address: string;
   note: string; // 한 줄 — 담백하게
-  lat: number; // 대략(소수 3자리) — 길찾기는 이름 검색으로 간다
-  lng: number;
+  lat: number; // 지도 마커용 — 아는 곳은 소수 3~4자리로 다듬었다.
+  lng: number; // 확신 없는 몇 곳은 대략값 그대로 · 길찾기는 이름 검색으로 간다
+
 };
 
 export const TEMPLES: Temple[] = [
@@ -211,8 +212,8 @@ export const TEMPLES: Temple[] = [
     region: "수도권",
     address: "서울 종로구 우정국로 55",
     note: "도심 한복판, 대한불교조계종의 총본산.",
-    lat: 37.574,
-    lng: 126.982,
+    lat: 37.5738,
+    lng: 126.9818,
   },
   {
     name: "봉은사",
@@ -221,8 +222,8 @@ export const TEMPLES: Temple[] = [
     region: "수도권",
     address: "서울 강남구 봉은사로 531",
     note: "빌딩 숲 곁에 앉은 천년 도량.",
-    lat: 37.515,
-    lng: 127.057,
+    lat: 37.5146,
+    lng: 127.0576,
   },
   {
     name: "화계사",
@@ -231,8 +232,8 @@ export const TEMPLES: Temple[] = [
     region: "수도권",
     address: "서울 강북구 화계사길 117",
     note: "삼각산 자락, 국제 선원이 깃든 참선 도량.",
-    lat: 37.633,
-    lng: 127.017,
+    lat: 37.6335,
+    lng: 127.0175,
   },
   {
     name: "도선사",
@@ -241,8 +242,8 @@ export const TEMPLES: Temple[] = [
     region: "수도권",
     address: "서울 강북구 삼양로173길 504",
     note: "도선 국사가 터를 잡은 북한산 기도 도량.",
-    lat: 37.652,
-    lng: 126.993,
+    lat: 37.6559,
+    lng: 126.9926,
   },
   {
     name: "봉선사",
@@ -251,8 +252,8 @@ export const TEMPLES: Temple[] = [
     region: "수도권",
     address: "경기 남양주시 진접읍 봉선사길 32",
     note: "한글 경전 번역의 산실이 된 운악산 본찰.",
-    lat: 37.747,
-    lng: 127.187,
+    lat: 37.7589,
+    lng: 127.1858,
   },
   {
     name: "용주사",
@@ -261,8 +262,8 @@ export const TEMPLES: Temple[] = [
     region: "수도권",
     address: "경기 화성시 용주로 136",
     note: "정조가 아버지를 기리며 세운 효행의 절.",
-    lat: 37.211,
-    lng: 126.996,
+    lat: 37.2109,
+    lng: 126.9963,
   },
   {
     name: "전등사",
@@ -271,8 +272,8 @@ export const TEMPLES: Temple[] = [
     region: "수도권",
     address: "인천 강화군 길상면 전등사로 37-41",
     note: "삼랑성 안에 깃든 강화의 오랜 도량.",
-    lat: 37.632,
-    lng: 126.485,
+    lat: 37.6314,
+    lng: 126.4854,
   },
   {
     name: "보문사",
@@ -281,8 +282,8 @@ export const TEMPLES: Temple[] = [
     region: "수도권",
     address: "인천 강화군 삼산면 삼산남로828번길 44",
     note: "석모도 눈썹바위 아래 마애관음의 기도처.",
-    lat: 37.712,
-    lng: 126.319,
+    lat: 37.688,
+    lng: 126.307,
   },
   // ── 강원 ──
   {
@@ -292,8 +293,8 @@ export const TEMPLES: Temple[] = [
     region: "강원",
     address: "강원 평창군 진부면 오대산로 374-8",
     note: "전나무 숲길 끝에 앉은 오대산 본찰.",
-    lat: 37.732,
-    lng: 128.593,
+    lat: 37.7317,
+    lng: 128.5926,
   },
   {
     name: "상원사",
@@ -302,8 +303,8 @@ export const TEMPLES: Temple[] = [
     region: "강원",
     address: "강원 평창군 진부면 오대산로 1211-50",
     note: "가장 오래된 동종이 아침을 여는 절.",
-    lat: 37.779,
-    lng: 128.564,
+    lat: 37.7788,
+    lng: 128.5636,
   },
   {
     name: "낙산사",
@@ -312,8 +313,8 @@ export const TEMPLES: Temple[] = [
     region: "강원",
     address: "강원 양양군 강현면 낙산사로 100",
     note: "동해를 굽어보는 해수관음의 절.",
-    lat: 38.124,
-    lng: 128.628,
+    lat: 38.1247,
+    lng: 128.6277,
   },
   {
     name: "신흥사",
@@ -322,8 +323,8 @@ export const TEMPLES: Temple[] = [
     region: "강원",
     address: "강원 속초시 설악산로 1137",
     note: "설악으로 드는 산문 — 통일대불이 맞이한다.",
-    lat: 38.173,
-    lng: 128.478,
+    lat: 38.164,
+    lng: 128.477,
   },
   {
     name: "백담사",
@@ -332,8 +333,8 @@ export const TEMPLES: Temple[] = [
     region: "강원",
     address: "강원 인제군 북면 백담로 746",
     note: "만해 한용운이 머물던 내설악의 절.",
-    lat: 38.165,
-    lng: 128.373,
+    lat: 38.1653,
+    lng: 128.3733,
   },
   {
     name: "봉정암",
@@ -342,8 +343,8 @@ export const TEMPLES: Temple[] = [
     region: "강원",
     address: "강원 인제군 북면 백담로 1700",
     note: "설악 가장 높은 곳, 진신사리를 모신 기도처.",
-    lat: 38.146,
-    lng: 128.443,
+    lat: 38.132,
+    lng: 128.444,
   },
   // ── 충청 ──
   {
@@ -353,8 +354,8 @@ export const TEMPLES: Temple[] = [
     region: "충청",
     address: "충남 예산군 덕산면 수덕사안길 79",
     note: "고려 대웅전이 남아 있는 선지종찰.",
-    lat: 36.662,
-    lng: 126.622,
+    lat: 36.6623,
+    lng: 126.6216,
   },
   {
     name: "마곡사",
@@ -363,8 +364,8 @@ export const TEMPLES: Temple[] = [
     region: "충청",
     address: "충남 공주시 사곡면 마곡사로 966",
     note: "봄 마곡 — 태화산 물돌이에 앉은 절.",
-    lat: 36.556,
-    lng: 127.009,
+    lat: 36.5565,
+    lng: 127.0083,
   },
   {
     name: "법주사",
@@ -373,8 +374,8 @@ export const TEMPLES: Temple[] = [
     region: "충청",
     address: "충북 보은군 속리산면 법주사로 405",
     note: "하나뿐인 목탑 팔상전이 서 있는 절.",
-    lat: 36.541,
-    lng: 127.833,
+    lat: 36.5417,
+    lng: 127.8332,
   },
   {
     name: "갑사",
@@ -383,8 +384,8 @@ export const TEMPLES: Temple[] = [
     region: "충청",
     address: "충남 공주시 계룡면 갑사로 567-3",
     note: "가을 갑사 — 계룡산 서쪽 기슭의 고찰.",
-    lat: 36.348,
-    lng: 127.198,
+    lat: 36.3482,
+    lng: 127.197,
   },
   {
     name: "동학사",
@@ -414,8 +415,8 @@ export const TEMPLES: Temple[] = [
     region: "영남",
     address: "경남 양산시 하북면 통도사로 108",
     note: "진신사리를 모신 불보사찰 — 대웅전에 불상이 없다.",
-    lat: 35.487,
-    lng: 129.064,
+    lat: 35.488,
+    lng: 129.0641,
   },
   {
     name: "해인사",
@@ -424,8 +425,8 @@ export const TEMPLES: Temple[] = [
     region: "영남",
     address: "경남 합천군 가야면 해인사길 122",
     note: "팔만대장경을 지켜온 법보사찰.",
-    lat: 35.801,
-    lng: 128.098,
+    lat: 35.8011,
+    lng: 128.0978,
   },
   {
     name: "불국사",
@@ -435,7 +436,7 @@ export const TEMPLES: Temple[] = [
     address: "경북 경주시 불국로 385",
     note: "석가탑과 다보탑이 마주 선 토함산 대가람.",
     lat: 35.79,
-    lng: 129.332,
+    lng: 129.3322,
   },
   {
     name: "석굴암",
@@ -445,7 +446,7 @@ export const TEMPLES: Temple[] = [
     address: "경북 경주시 석굴로 238",
     note: "동해를 바라보는 돌집 안의 본존불.",
     lat: 35.795,
-    lng: 129.349,
+    lng: 129.3492,
   },
   {
     name: "범어사",
@@ -454,8 +455,8 @@ export const TEMPLES: Temple[] = [
     region: "영남",
     address: "부산 금정구 범어사로 250",
     note: "금정산 자락의 영남 선찰대본산.",
-    lat: 35.284,
-    lng: 129.068,
+    lat: 35.2839,
+    lng: 129.0683,
   },
   {
     name: "동화사",
@@ -464,8 +465,8 @@ export const TEMPLES: Temple[] = [
     region: "영남",
     address: "대구 동구 동화사1길 1",
     note: "팔공산 약사여래대불의 기도 도량.",
-    lat: 35.992,
-    lng: 128.699,
+    lat: 35.9924,
+    lng: 128.7008,
   },
   {
     name: "은해사",
@@ -494,8 +495,8 @@ export const TEMPLES: Temple[] = [
     region: "영남",
     address: "경북 영주시 부석면 부석사로 345",
     note: "무량수전 배흘림기둥에 노을이 드는 절.",
-    lat: 36.998,
-    lng: 128.687,
+    lat: 36.9988,
+    lng: 128.6869,
   },
   {
     name: "쌍계사",
@@ -504,8 +505,8 @@ export const TEMPLES: Temple[] = [
     region: "영남",
     address: "경남 하동군 화개면 쌍계사길 59",
     note: "화개 골짜기, 차와 범패의 절.",
-    lat: 35.234,
-    lng: 127.646,
+    lat: 35.2339,
+    lng: 127.645,
   },
   {
     name: "표충사",
@@ -514,8 +515,8 @@ export const TEMPLES: Temple[] = [
     region: "영남",
     address: "경남 밀양시 단장면 표충로 1338",
     note: "사명대사의 충절을 함께 모신 절.",
-    lat: 35.503,
-    lng: 128.869,
+    lat: 35.496,
+    lng: 128.866,
   },
   // ── 호남 ──
   {
@@ -525,8 +526,8 @@ export const TEMPLES: Temple[] = [
     region: "호남",
     address: "전남 순천시 송광면 송광사안길 100",
     note: "열여섯 국사를 배출한 승보사찰.",
-    lat: 34.995,
-    lng: 127.275,
+    lat: 34.9952,
+    lng: 127.2748,
   },
   {
     name: "선암사",
@@ -535,8 +536,8 @@ export const TEMPLES: Temple[] = [
     region: "호남",
     address: "전남 순천시 승주읍 선암사길 450",
     note: "승선교 무지개다리 너머의 옛 절.",
-    lat: 34.997,
-    lng: 127.331,
+    lat: 34.9967,
+    lng: 127.3311,
   },
   {
     name: "화엄사",
@@ -545,8 +546,8 @@ export const TEMPLES: Temple[] = [
     region: "호남",
     address: "전남 구례군 마산면 화엄사로 539",
     note: "각황전이 우뚝한 지리산 화엄의 본찰.",
-    lat: 35.257,
-    lng: 127.499,
+    lat: 35.2573,
+    lng: 127.4991,
   },
   {
     name: "대흥사",
@@ -585,8 +586,8 @@ export const TEMPLES: Temple[] = [
     region: "호남",
     address: "전북 정읍시 내장산로 1253",
     note: "단풍 골짜기 가장 안쪽에 앉은 절.",
-    lat: 35.495,
-    lng: 126.905,
+    lat: 35.484,
+    lng: 126.89,
   },
   {
     name: "금산사",
@@ -605,8 +606,8 @@ export const TEMPLES: Temple[] = [
     region: "호남",
     address: "전북 고창군 아산면 선운사로 250",
     note: "동백숲과 꽃무릇으로 이름난 고찰.",
-    lat: 35.497,
-    lng: 126.577,
+    lat: 35.4974,
+    lng: 126.5801,
   },
   {
     name: "향일암",
@@ -615,8 +616,8 @@ export const TEMPLES: Temple[] = [
     region: "호남",
     address: "전남 여수시 돌산읍 향일암로 60",
     note: "해 뜨는 바다를 마주한 남해 기도처.",
-    lat: 34.594,
-    lng: 127.803,
+    lat: 34.5936,
+    lng: 127.8032,
   },
   // ── 제주 ──
   {
@@ -626,8 +627,8 @@ export const TEMPLES: Temple[] = [
     region: "제주",
     address: "제주 제주시 산록북로 660",
     note: "한라산 기슭, 제주 불교의 본산.",
-    lat: 33.426,
-    lng: 126.556,
+    lat: 33.4257,
+    lng: 126.5566,
   },
   {
     name: "약천사",
@@ -637,7 +638,7 @@ export const TEMPLES: Temple[] = [
     address: "제주 서귀포시 이어도로 293-28",
     note: "바다를 앞에 둔 큰 법당의 절.",
     lat: 33.246,
-    lng: 126.508,
+    lng: 126.489,
   },
 ];
 

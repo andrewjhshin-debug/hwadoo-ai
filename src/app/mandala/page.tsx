@@ -15,17 +15,15 @@
 // 하던 만다라는 자동 임시저장되어, 다른 일 하다 돌아와도 그대로 떠 있다.
 // 배치 — 판 위에는 아무 버튼도 겹치지 않는다. 캡처하면 만다라만 나온다.
 //  모바일: 토글 바로 아래 얇은 도구줄에 [원위치 · 되돌리기 · (그리기만) 옮기기 ·
-//  비우기 · 내려받기 · (그리기만) 붓]이 작게 나란히 앉는다.
+//  비우기 · (그리기만) 붓]이 작게 나란히 앉는다.
 //  데스크톱(sm+): 좌우에 자리가 넉넉하니 원위치·되돌리기·옮기기는 판 왼쪽 바깥
-//  세로 스택, 비우기는 판 오른쪽 바깥(둘 다 16px 간격) — 도구줄에는 내려받기(와
-//  그리기의 붓)만 남는다. 데스크톱 마우스: 휠 = 커서 자리 기준
+//  세로 스택, 비우기는 판 오른쪽 바깥(둘 다 16px 간격) — 도구줄에는 그리기의
+//  붓만 남고, 색칠은 도구줄 자체가 접힌다. 데스크톱 마우스: 휠 = 커서 자리 기준
 //  확대/축소(1~3배, 핀치와 같은 클램프), 꾹 눌러 끌면 팬 — 로직은 터치와 한 몸.
 //  색칠: [토글 → 도구줄 → 만다라 → N/M칸 → 문양 칩(가운데) → 색판]
 //  그리기: [토글 → 도구줄 → 만다라 → 갈래·거울 → 색판]
 // 가 스크롤 없이 한 화면에 들어온다.
-//  내려받기 — 색칠은 SVG 를 XMLSerializer → Image → canvas(1024²)로 굽고,
-//  그리기는 가이드+그림 캔버스를 합성한다. 배경은 늘 먹빛(#0d0b09)이라
-//  테마와 무관하게 밤 금선으로 굽는다. 실패는 조용히 삼킨다.
+//  내려받기는 없다 — 만다라는 간직하는 것이 아니라 지우는 것이다.
 // ────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -59,32 +57,10 @@ const PRESS_WARM = "active:border-vermilion/60 active:bg-vermilion/10 active:tex
 const TOOL =
   "rounded-full border bg-ink-2/70 px-1.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors sm:px-2.5";
 
-// ══════════════ 내려받기 ══════════════
-// 배경은 늘 먹빛 — 테마와 무관하게 밤 금선으로 굽는다 (파일 머리 주석의 약속)
-const DL_SIZE = 1024;
-const DL_BG = "#0d0b09";
-const DL_LINE = "rgba(217,180,91,0.32)";
-const DL_FRAME = "rgba(217,180,91,0.16)";
-const DL_GUIDE = "rgba(217,180,91,0.12)";
+// 가이드 선 폴백 — CSS 변수(--m-guide)를 아직 못 읽었을 때 쓰는 밤 금선 값
+const GUIDE_FALLBACK = "rgba(217,180,91,0.12)";
 
-// 구운 canvas 를 hwadu-mandala.png 로 내린다 — 실패는 조용히 삼킨다
-function savePng(canvas: HTMLCanvasElement) {
-  try {
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "hwadu-mandala.png";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }, "image/png");
-  } catch {}
-}
-
-// 가이드 선(동심원·방사선) — 화면 배경 캔버스와 내려받기 합성이 같은 그림을 쓴다
+// 가이드 선(동심원·방사선) — 그리기 모드의 배경 캔버스가 쓴다
 function paintGuides(
   ctx: CanvasRenderingContext2D,
   size: number,
@@ -305,7 +281,6 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
   const wrapRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
 
   // 포인터 살림 — 손가락별 위치, 핀치 기준, 확대·이동 상태
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -654,49 +629,15 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     if (ok) doScatter();
   };
 
-  // ── 내려받기 — SVG → XMLSerializer → Image → canvas(1024²) → PNG ──
-  // CSS 변수는 판 밖에서 풀리지 않으니, 밤 금선 값으로 바꿔 굽는다.
-  const download = () => {
-    try {
-      const svg = svgRef.current;
-      if (!svg) return;
-      const clone = svg.cloneNode(true) as SVGSVGElement;
-      clone.setAttribute("width", String(DL_SIZE));
-      clone.setAttribute("height", String(DL_SIZE));
-      const xml = new XMLSerializer()
-        .serializeToString(clone)
-        .replace(/var\(--m-line\)/g, DL_LINE)
-        .replace(/var\(--m-frame\)/g, DL_FRAME);
-      const url = URL.createObjectURL(
-        new Blob([xml], { type: "image/svg+xml;charset=utf-8" })
-      );
-      const img = new Image();
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const out = document.createElement("canvas");
-        out.width = DL_SIZE;
-        out.height = DL_SIZE;
-        const ctx = out.getContext("2d");
-        if (!ctx) return;
-        ctx.fillStyle = DL_BG;
-        ctx.fillRect(0, 0, DL_SIZE, DL_SIZE);
-        ctx.drawImage(img, 0, 0, DL_SIZE, DL_SIZE);
-        savePng(out);
-      };
-      img.onerror = () => URL.revokeObjectURL(url);
-      img.src = url;
-    } catch {}
-  };
-
   return (
     <>
-      {/* 도구줄 — 토글 바로 아래. 판 위에는 아무것도 얹지 않는다 — 캡처하면 만다라만.
-          원위치·되돌리기·비우기는 모바일 전용, 데스크톱(sm+)에선 판 바깥에 있다 */}
-      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-1">
+      {/* 도구줄 — 토글 바로 아래, 모바일 전용. 판 위에는 아무것도 얹지 않는다 —
+          캡처하면 만다라만. 데스크톱(sm+)은 세 버튼 모두 판 바깥에 있으니 통째로 접는다 */}
+      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-1 sm:hidden">
         <button
           onClick={resetView}
           aria-label="원위치(더블탭)"
-          className={`${TOOL} ${PRESS} sm:hidden ${
+          className={`${TOOL} ${PRESS} ${
             zoomed ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint"
           }`}
         >
@@ -706,7 +647,7 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           onClick={undo}
           disabled={!canUndo || scattering}
           aria-label="되돌리기"
-          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint disabled:opacity-40 sm:hidden`}
+          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint disabled:opacity-40`}
         >
           되돌리기
         </button>
@@ -714,16 +655,9 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           onClick={askClear}
           disabled={scattering}
           aria-label="비우기"
-          className={`${TOOL} ${PRESS_WARM} border-ink-3 text-hanji-faint disabled:opacity-50 sm:hidden`}
+          className={`${TOOL} ${PRESS_WARM} border-ink-3 text-hanji-faint disabled:opacity-50`}
         >
           비우기
-        </button>
-        <button
-          onClick={download}
-          aria-label="내려받기"
-          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint hover:text-hanji`}
-        >
-          <span className="hidden sm:inline">⤓ </span>내려받기
         </button>
       </div>
 
@@ -742,7 +676,7 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           onContextMenu={(e) => e.preventDefault()}
         >
           <div ref={innerRef} className="h-full w-full origin-center will-change-transform">
-            <svg ref={svgRef} viewBox="0 0 200 200" className="h-full w-full">
+            <svg viewBox="0 0 200 200" className="h-full w-full">
               <circle cx="100" cy="100" r="98.5" fill="none" stroke="var(--m-frame)" strokeWidth="0.6" />
               {/* 모든 path 가 칸이다 — 테(evenodd 구멍) 위에 안쪽 칸이 얹힌다 */}
               {built.nodes.map((n) => (
@@ -868,7 +802,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
     const g = boardRef.current
       ? getComputedStyle(boardRef.current).getPropertyValue("--m-guide").trim()
       : "";
-    paintGuides(ctx, SIZE, g || DL_GUIDE, segments);
+    paintGuides(ctx, SIZE, g || GUIDE_FALLBACK, segments);
   }, [segments]);
 
   useEffect(() => {
@@ -1177,28 +1111,6 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
     if (ok) doScatter();
   };
 
-  // ── 내려받기 — 가이드+그림 캔버스를 1024² 판에 합성한다 ──
-  // 화면과 같은 원형 판: 원 밖은 먹빛, 가이드는 테마와 무관하게 밤 금선.
-  const download = () => {
-    try {
-      const main = canvasRef.current;
-      if (!main) return;
-      const out = document.createElement("canvas");
-      out.width = DL_SIZE;
-      out.height = DL_SIZE;
-      const ctx = out.getContext("2d");
-      if (!ctx) return;
-      ctx.fillStyle = DL_BG;
-      ctx.fillRect(0, 0, DL_SIZE, DL_SIZE);
-      ctx.beginPath();
-      ctx.arc(DL_SIZE / 2, DL_SIZE / 2, DL_SIZE / 2, 0, Math.PI * 2);
-      ctx.clip();
-      paintGuides(ctx, DL_SIZE, DL_GUIDE, segments);
-      ctx.drawImage(main, 0, 0, DL_SIZE, DL_SIZE);
-      savePng(out);
-    } catch {}
-  };
-
   return (
     <>
       {/* 도구줄 — 토글 바로 아래. 판 위에는 아무것도 얹지 않는다 — 캡처하면 만다라만.
@@ -1237,14 +1149,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         >
           비우기
         </button>
-        <button
-          onClick={download}
-          aria-label="내려받기"
-          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint hover:text-hanji`}
-        >
-          <span className="hidden sm:inline">⤓ </span>내려받기
-        </button>
-        <span className="ml-1 hidden text-[11px] tracking-[0.2em] text-hanji-faint sm:inline">
+        <span className="hidden text-[11px] tracking-[0.2em] text-hanji-faint sm:inline">
           붓
         </span>
         <input

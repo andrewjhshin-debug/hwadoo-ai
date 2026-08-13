@@ -361,6 +361,118 @@ body[data-palette] .notes-fab {
   display: none;
 }
 
+/* ─── 손잡고 절로 — 도량 지도 (Leaflet) ─── */
+.temple-map {
+  position: relative;
+  isolation: isolate; /* leaflet 의 z-index 가 바깥으로 새지 않게 */
+  z-index: 0;
+}
+.temple-map .leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: var(--color-ink-2);
+  font-family: var(--font-sans);
+}
+
+/* 밤 — 타일을 살짝 어둡고 차분하게.
+   invert 는 쓰지 않는다 — 지명 글자가 뒤집혀 이상해진다. */
+.temple-map[data-dark] .leaflet-tile-pane {
+  filter: brightness(0.68) contrast(1.04) saturate(0.4) sepia(0.12);
+}
+
+/* 마커 — 금빛 연꽃 점 (작은 원 + 은은한 빛) */
+.temple-marker {
+  background: transparent;
+  border: none;
+}
+.temple-marker .lotus-dot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 35% 32%,
+    color-mix(in srgb, var(--color-gold) 55%, #fff8e7),
+    var(--color-gold) 55%,
+    var(--color-gold-soft)
+  );
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--color-gold) 24%, transparent),
+    0 0 10px color-mix(in srgb, var(--color-gold) 65%, transparent),
+    0 0 22px color-mix(in srgb, var(--color-gold) 32%, transparent);
+}
+
+/* 팝업 — 먹빛 판 위 한지 글씨 (낮에는 토큰이 함께 뒤집힌다) */
+.temple-map .leaflet-popup-content-wrapper,
+.temple-map .leaflet-popup-tip {
+  background: var(--color-ink-2);
+  color: var(--color-hanji);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+}
+.temple-map .leaflet-popup-content-wrapper {
+  border: 1px solid var(--color-ink-3);
+  border-radius: 12px;
+}
+.temple-map .leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.65;
+}
+.temple-map .leaflet-popup-content p {
+  margin: 0;
+}
+.temple-map a.leaflet-popup-close-button {
+  color: var(--color-hanji-faint);
+}
+.temple-map a.leaflet-popup-close-button:hover {
+  color: var(--color-hanji);
+}
+.temple-map .tm-name {
+  font-size: 13px;
+  color: var(--color-hanji);
+}
+.temple-map .tm-mtn {
+  margin-left: 6px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--color-hanji-faint);
+}
+.temple-map .tm-note {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--color-hanji-dim);
+  word-break: keep-all;
+}
+.temple-map .tm-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--color-gold);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold) 40%, transparent);
+}
+.temple-map .tm-link:hover {
+  border-bottom-color: var(--color-gold);
+}
+
+/* 줌 단추·저작권 표기 — 우리 톤으로 (표기 자체는 OSM 정책상 남긴다) */
+.temple-map .leaflet-control-zoom a {
+  background: var(--color-ink-2);
+  color: var(--color-hanji);
+  border-color: var(--color-ink-3);
+}
+.temple-map .leaflet-control-zoom a:hover {
+  background: var(--color-ink);
+  color: var(--color-gold);
+}
+.temple-map .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--color-ink) 74%, transparent);
+  color: var(--color-hanji-faint);
+  font-size: 10px;
+}
+.temple-map .leaflet-control-attribution a {
+  color: var(--color-hanji-dim);
+}
+
 /* 답을 쓰는 동안에는 아래 띠를 감춘다 — 입력창이 화면 높이를 온전히 쓰도록 */
 body[data-writing] footer {
   display: none;

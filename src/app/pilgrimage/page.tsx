@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   kakaoMapUrl,
   REGIONS,
@@ -18,6 +19,14 @@ import {
   type PilgrimEvent,
   type Region,
 } from "@/lib/pilgrimage";
+
+// 지도는 클라이언트에서만 — 첫 페인트를 막지 않게 뒤늦게 불러온다
+const TempleMap = dynamic(() => import("@/components/TempleMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[300px] w-full rounded-[14px] border border-ink-3 bg-ink-2/50 md:h-[380px]" />
+  ),
+});
 
 export default function PilgrimagePage() {
   const [events, setEvents] = useState<PilgrimEvent[]>([]);
@@ -131,6 +140,11 @@ export default function PilgrimagePage() {
               {r}
             </button>
           ))}
+        </div>
+
+        {/* 지도 — 지역 칩을 누르면 목록과 함께 걸러진다 */}
+        <div className="mt-5">
+          <TempleMap temples={temples} />
         </div>
 
         {/* 도량 목록 */}
