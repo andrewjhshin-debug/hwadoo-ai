@@ -12,7 +12,18 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
-import { ADMIN_UID, CONTACT_EMAIL, DONATION_URL } from "@/lib/config";
+import {
+  ADMIN_UID,
+  CONTACT_EMAIL,
+  DONATION_URL,
+  PUSH_VAPID_KEY,
+} from "@/lib/config";
+import {
+  disablePush,
+  enablePush,
+  isPushBrowserSupported,
+  pushState,
+} from "@/lib/push";
 import { formatDate, loadStore, type Session } from "@/lib/store";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { fetchMyThrownStats, type ThrownStat } from "@/lib/thrown";
@@ -70,6 +81,9 @@ type ServiceItem = {
   soon?: boolean;
 };
 
+// 알림 구획의 상태 — 살펴보는 중 / 미지원 / 준비 중(키 없음) / 거부 / 꺼짐 / 켜짐
+type PushUi = "loading" | "unsupported" | "preparing" | "denied" | "off" | "on";
+
 const SERVICES: ServiceItem[] = [
   { href: "/", label: "뜰", Icon: LotusMark },
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
@@ -102,8 +116,34 @@ export default function SettingsPage() {
     string,
     ThrownStat
   > | null>(null);
+  const [pushUi, setPushUi] = useState<PushUi>("loading");
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushError, setPushError] = useState("");
 
   useEffect(() => watchAuth(setUser), []);
+
+  // 알림 — 아침 문안: 이 브라우저의 상태를 살핀다
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const able = await isPushBrowserSupported();
+      if (!alive) return;
+      if (!able) {
+        setPushUi("unsupported");
+        return;
+      }
+      if (!PUSH_VAPID_KEY) {
+        setPushUi("preparing");
+        return;
+      }
+      const state = await pushState();
+      if (!alive) return;
+      setPushUi(state === "unsupported" ? "preparing" : state);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
   useEffect(() => {
     setLight(document.documentElement.dataset.theme === "light");
 
@@ -251,6 +291,35 @@ export default function SettingsPage() {
       }
     } finally {
       setLoginBusy(false);
+    }
+  };
+
+  // 아침 문안 받기 — 허락을 구하고 구독한다
+  const handlePushOn = async () => {
+    setPushBusy(true);
+    setPushError("");
+    try {
+      const result = await enablePush();
+      if (result === "granted") setPushUi("on");
+      else if (result === "denied") setPushUi("denied");
+      else if (result === "unsupported") setPushUi("unsupported");
+      else {
+        setPushError("알림을 켜지 못했습니다. 잠시 뒤 다시 시도해 주십시오.");
+      }
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
+  // 그만 받기 — 조용히 구독을 내린다
+  const handlePushOff = async () => {
+    setPushBusy(true);
+    setPushError("");
+    try {
+      await disablePush();
+      setPushUi("off");
+    } finally {
+      setPushBusy(false);
     }
   };
 
@@ -450,6 +519,64 @@ export default function SettingsPage() {
               </button>
             );
           })}
+        </div>
+      </section>
+
+      {/* ── 알림 — 아침 문안: 매일 아침 8시, 물음이 찾아온다 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+          알림 — 아침 문안
+        </p>
+        <div className="mt-4 border-t border-ink-3 pt-5">
+          {pushUi === "loading" ? (
+            <p className="text-[13px] leading-7 text-hanji-faint">
+              살펴보는 중…
+            </p>
+          ) : pushUi === "unsupported" ? (
+            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+              이 브라우저는 알림을 받을 수 없습니다. (아이폰 사파리는 홈
+              화면에 추가한 뒤 가능합니다)
+            </p>
+          ) : pushUi === "preparing" ? (
+            <p className="text-[13px] leading-7 text-hanji-dim">
+              알림을 준비하고 있습니다 — 곧 열립니다.
+            </p>
+          ) : pushUi === "denied" ? (
+            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+              브라우저 설정에서 알림을 허용해 주십시오.
+            </p>
+          ) : pushUi === "on" ? (
+            <>
+              <p className="text-[13px] leading-7 text-hanji-dim">
+                매일 아침, 물음이 문안드립니다.
+              </p>
+              <button
+                onClick={handlePushOff}
+                disabled={pushBusy}
+                className="mt-5 rounded-[10px] border border-ink-3 px-6 py-2.5 text-[12px] tracking-[0.2em] text-hanji-faint transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50"
+              >
+                {pushBusy ? "내리는 중…" : "그만 받기"}
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+                매일 아침 8시, 오늘의 물음이 문안드립니다.
+              </p>
+              <button
+                onClick={handlePushOn}
+                disabled={pushBusy}
+                className="btn-obang mt-5 inline-flex items-center gap-2.5 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {pushBusy ? "여는 중…" : "아침 문안 받기"}
+              </button>
+              {pushError && (
+                <p className="mt-3 text-[12px] leading-6 text-vermilion">
+                  {pushError}
+                </p>
+              )}
+            </>
+          )}
         </div>
       </section>
 

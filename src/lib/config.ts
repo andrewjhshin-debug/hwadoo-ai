@@ -21,3 +21,9 @@ export const CONTACT_EMAIL = "admin@ibod.co.kr";
 // 관리자 계정 UID — 이 계정으로 로그인해야만 /admin 이 열린다.
 // (UID는 이름표일 뿐, 공개되어도 권한과 무관 — 권한은 Firestore 규칙이 지킨다)
 export const ADMIN_UID = "HvYY1QPhLiMLc5NezM1jt0QdUiM2";
+
+// 웹푸시(아침 문안) VAPID 키 — 파이어베이스 콘솔 > 프로젝트 설정 > 클라우드 메시징
+// > 웹 푸시 인증서의 키 쌍(공개값). 키가 오면 여기만 채우면 된다.
+// 비어 있는 동안에는 알림 구획이 "준비 중"으로 표시된다.
+export const PUSH_VAPID_KEY =
+  "BMvP4X-pCjPq_fZPITtyxpaHKHv_IchD-3OfeE2708oT7GLyHfCV_7V_A22qOjInB6DoidkFugjdCFYabxP7Xo8";

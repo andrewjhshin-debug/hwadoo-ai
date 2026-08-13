@@ -1,0 +1,104 @@
+// ─────────────────────────────────────────────────────────────
+// 아침 문안 — FCM 웹푸시 구독.
+// · 토큰은 Firestore "push-tokens/{token}" 문서로 남는다
+//   (문서 ID 자체가 토큰 — 추측할 수 없는 값이다)
+// · 이 브라우저의 구독 여부는 localStorage 에 기억한다
+// · VAPID 키(config.PUSH_VAPID_KEY)가 비어 있으면 조용히 접는다
+// · 포그라운드 onMessage 는 화면 위 알림이 과하니 두지 않는다
+// ─────────────────────────────────────────────────────────────
+
+import {
+  deleteToken,
+  getMessaging,
+  getToken,
+  isSupported,
+} from "firebase/messaging";
+import { deleteDoc, doc, setDoc } from "firebase/firestore";
+import { auth, db } from "./firebase";
+import { PUSH_VAPID_KEY } from "./config";
+
+// 이 브라우저가 받은 토큰의 서랍 열쇠
+const TOKEN_KEY = "hwadu.push.v1";
+
+export type PushResult = "granted" | "denied" | "unsupported" | "error";
+export type PushState = "on" | "off" | "denied" | "unsupported";
+
+// 브라우저가 웹푸시를 받을 수 있는가 — 키와 무관한 기기 능력만 본다.
+// (아이폰 사파리는 홈 화면에 추가해야 serviceWorker + Notification 이 생긴다)
+export async function isPushBrowserSupported(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  if (!("serviceWorker" in navigator)) return false;
+  if (!("Notification" in window)) return false;
+  try {
+    return await isSupported();
+  } catch {
+    return false;
+  }
+}
+
+// 지금 이 자리에서 구독까지 갈 수 있는가 — 기기 능력 + VAPID 키 존재
+export async function isPushSupported(): Promise<boolean> {
+  if (!PUSH_VAPID_KEY) return false;
+  return isPushBrowserSupported();
+}
+
+// 아침 문안 받기 — 허락을 구하고, 토큰을 받아 도량 장부에 올린다
+export async function enablePush(): Promise<PushResult> {
+  if (!(await isPushSupported())) return "unsupported";
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return "denied";
+
+    const registration = await navigator.serviceWorker.register(
+      "/firebase-messaging-sw.js"
+    );
+    const messaging = getMessaging(auth.app);
+    const token = await getToken(messaging, {
+      vapidKey: PUSH_VAPID_KEY,
+      serviceWorkerRegistration: registration,
+    });
+    if (!token) return "error";
+
+    // 규칙상 이 문서는 create 만 열려 있다 — 남아 있던 옛 문서를 먼저 내려
+    // 다시 구독해도 언제나 '새로 만들기'가 되게 한다
+    await deleteDoc(doc(db, "push-tokens", token)).catch(() => {});
+    await setDoc(doc(db, "push-tokens", token), {
+      createdAt: Date.now(),
+      uid: auth.currentUser?.uid ?? null,
+      ua: navigator.userAgent.slice(0, 200),
+    });
+    window.localStorage.setItem(TOKEN_KEY, token);
+    return "granted";
+  } catch {
+    return "error";
+  }
+}
+
+// 그만 받기 — 토큰을 지우고 장부에서도 내린다 (실패는 조용히)
+export async function disablePush(): Promise<void> {
+  try {
+    const token = window.localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      await deleteDoc(doc(db, "push-tokens", token)).catch(() => {});
+    }
+    if (await isPushBrowserSupported()) {
+      await deleteToken(getMessaging(auth.app)).catch(() => {});
+    }
+  } catch {
+    // 조용히 — 어차피 서버 청소가 죽은 토큰을 걷어낸다
+  } finally {
+    try {
+      window.localStorage.removeItem(TOKEN_KEY);
+    } catch {
+      /* 서랍이 없는 환경 */
+    }
+  }
+}
+
+// 지금 상태 — 화면이 무엇을 보여줄지 판별하는 헬퍼
+export async function pushState(): Promise<PushState> {
+  if (!(await isPushSupported())) return "unsupported";
+  if (Notification.permission === "denied") return "denied";
+  const token = window.localStorage.getItem(TOKEN_KEY);
+  return token && Notification.permission === "granted" ? "on" : "off";
+}
