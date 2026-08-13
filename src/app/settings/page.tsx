@@ -119,6 +119,8 @@ export default function SettingsPage() {
   const [pushUi, setPushUi] = useState<PushUi>("loading");
   const [pushBusy, setPushBusy] = useState(false);
   const [pushError, setPushError] = useState("");
+  // 차단 상태에서 버튼을 눌렀을 때 — 푸는 방법을 친절히 편다
+  const [pushGuide, setPushGuide] = useState(false);
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -294,16 +296,22 @@ export default function SettingsPage() {
     }
   };
 
-  // 아침 문안 받기 — 허락을 구하고 구독한다
+  // 문안 받기 — 허락을 구하고 구독한다.
+  // 브라우저가 차단해 두었으면 푸는 방법을 바로 아래에 편다.
   const handlePushOn = async () => {
     setPushBusy(true);
     setPushError("");
+    setPushGuide(false);
     try {
       const result = await enablePush();
-      if (result === "granted") setPushUi("on");
-      else if (result === "denied") setPushUi("denied");
-      else if (result === "unsupported") setPushUi("unsupported");
-      else {
+      if (result === "granted") {
+        setPushUi("on");
+      } else if (result === "denied") {
+        setPushUi("denied");
+        setPushGuide(true);
+      } else if (result === "unsupported") {
+        setPushUi("unsupported");
+      } else {
         setPushError("알림을 켜지 못했습니다. 잠시 뒤 다시 시도해 주십시오.");
       }
     } finally {
@@ -416,6 +424,46 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* ── 서비스 — 걸음 바로 아래, 멀리 내리지 않아도 닿게 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">서비스</p>
+        <div className="mt-4 grid grid-cols-4 gap-2 border-t border-ink-3 pt-5">
+          {SERVICES.map((s) => {
+            const itemCls =
+              "relative flex flex-col items-center gap-2 rounded-[12px] px-1 py-3 text-center transition-colors hover:bg-gold/5";
+            const inner = (
+              <>
+                <span className="relative flex h-11 w-11 items-center justify-center rounded-full border border-ink-3 bg-ink-2/50">
+                  <s.Icon className="h-5 w-5 text-gold-soft" />
+                  {s.soon && (
+                    <span className="absolute -right-1.5 -top-1 rounded-full border border-gold/40 bg-ink px-1.5 py-px text-[9px] leading-tight text-gold-soft">
+                      곧
+                    </span>
+                  )}
+                </span>
+                <span className="text-[11px] leading-tight text-hanji-dim">
+                  {s.label}
+                </span>
+              </>
+            );
+            return s.href ? (
+              <Link key={s.href + s.label} href={s.href} className={itemCls}>
+                {inner}
+              </Link>
+            ) : (
+              // 아직 문이 열리지 않은 자리 — 눌러도 이동하지 않는다
+              <button
+                key={s.label}
+                type="button"
+                className={`${itemCls} cursor-default`}
+              >
+                {inner}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       {/* ── 이달의 마음 — 이번 달의 걸음을 로컬 기록으로 센다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
@@ -482,51 +530,10 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ── 서비스 — 당근처럼 도량의 모든 것 한눈에 ── */}
+      {/* ── 알림: 매일 아침 8시, 물음이 찾아온다.
+          버튼은 언제나 살아 있다 — 차단돼 있으면 푸는 방법을 바로 아래에 편다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
-        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">서비스</p>
-        <div className="mt-4 grid grid-cols-4 gap-2 border-t border-ink-3 pt-5">
-          {SERVICES.map((s) => {
-            const itemCls =
-              "relative flex flex-col items-center gap-2 rounded-[12px] px-1 py-3 text-center transition-colors hover:bg-gold/5";
-            const inner = (
-              <>
-                <span className="relative flex h-11 w-11 items-center justify-center rounded-full border border-ink-3 bg-ink-2/50">
-                  <s.Icon className="h-5 w-5 text-gold-soft" />
-                  {s.soon && (
-                    <span className="absolute -right-1.5 -top-1 rounded-full border border-gold/40 bg-ink px-1.5 py-px text-[9px] leading-tight text-gold-soft">
-                      곧
-                    </span>
-                  )}
-                </span>
-                <span className="text-[11px] leading-tight text-hanji-dim">
-                  {s.label}
-                </span>
-              </>
-            );
-            return s.href ? (
-              <Link key={s.href + s.label} href={s.href} className={itemCls}>
-                {inner}
-              </Link>
-            ) : (
-              // 아직 문이 열리지 않은 자리 — 눌러도 이동하지 않는다
-              <button
-                key={s.label}
-                type="button"
-                className={`${itemCls} cursor-default`}
-              >
-                {inner}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── 알림 — 아침 문안: 매일 아침 8시, 물음이 찾아온다 ── */}
-      <section className={`rise rise-d1 ${sectionGap}`}>
-        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-          알림 — 아침 문안
-        </p>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">알림</p>
         <div className="mt-4 border-t border-ink-3 pt-5">
           {pushUi === "loading" ? (
             <p className="text-[13px] leading-7 text-hanji-faint">
@@ -540,10 +547,6 @@ export default function SettingsPage() {
           ) : pushUi === "preparing" ? (
             <p className="text-[13px] leading-7 text-hanji-dim">
               알림을 준비하고 있습니다 — 곧 열립니다.
-            </p>
-          ) : pushUi === "denied" ? (
-            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-              브라우저 설정에서 알림을 허용해 주십시오.
             </p>
           ) : pushUi === "on" ? (
             <>
@@ -559,6 +562,7 @@ export default function SettingsPage() {
               </button>
             </>
           ) : (
+            /* off · denied — 버튼은 언제나 눌린다. 차단이면 아래에 푸는 법을 편다 */
             <>
               <p className="break-keep text-[13px] leading-7 text-hanji-dim">
                 매일 아침 8시, 오늘의 물음이 문안드립니다.
@@ -568,8 +572,29 @@ export default function SettingsPage() {
                 disabled={pushBusy}
                 className="btn-obang mt-5 inline-flex items-center gap-2.5 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90 disabled:opacity-50"
               >
-                {pushBusy ? "여는 중…" : "아침 문안 받기"}
+                {pushBusy ? "여는 중…" : "문안 받기"}
               </button>
+              {pushGuide && (
+                <div className="mt-4 break-keep rounded-[10px] border border-ink-3 bg-ink-2/40 px-4 py-3 text-[12px] leading-6 text-hanji-dim">
+                  <p className="text-hanji">
+                    브라우저가 알림을 막아 두었습니다 — 이렇게 풀어 주십시오.
+                  </p>
+                  <p className="mt-1.5">
+                    · 컴퓨터: 주소창 왼쪽 자물쇠 → 알림 → 허용 → 새로고침
+                  </p>
+                  <p>
+                    · 안드로이드: 주소창 자물쇠 → 권한 → 알림 허용 (없으면 ⋮ →
+                    설정 → 사이트 설정 → 알림)
+                  </p>
+                  <p>
+                    · 아이폰: 사파리 공유 단추 → 홈 화면에 추가 → 홈 화면의
+                    화두로 열어 다시 시도
+                  </p>
+                  <p className="mt-1.5 text-hanji-faint">
+                    허용한 뒤 다시 [문안 받기]를 눌러 주십시오.
+                  </p>
+                </div>
+              )}
               {pushError && (
                 <p className="mt-3 text-[12px] leading-6 text-vermilion">
                   {pushError}

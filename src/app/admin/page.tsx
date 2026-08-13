@@ -456,6 +456,28 @@ export default function AdminPage() {
     }
   };
 
+  // 승인 알림 — 던진 이(uid)에게 웹푸시를 쏜다.
+  // 실패는 조용히 삼킨다 — 알림은 곁가지, 승인 흐름을 막지 않는다.
+  const notifyApproval = async (
+    kind: "thrown" | "answer",
+    uid: string | null | undefined
+  ) => {
+    if (!uid || !user) return; // 로그인 없이 던진 문서는 건너뛴다
+    try {
+      const idToken = await user.getIdToken();
+      await fetch("/api/push/notify", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ kind, uid }),
+      });
+    } catch {
+      // 조용히 — 다음 아침 문안이 어차피 간다
+    }
+  };
+
   if (user === undefined) return null;
 
   if (!isAdmin) {
@@ -797,7 +819,13 @@ export default function AdminPage() {
                     <div className="mt-3 flex gap-2">
                       <button
                         disabled={busy === t.id}
-                        onClick={() => act(t.id, () => approveThrown(t))}
+                        onClick={() =>
+                          act(t.id, async () => {
+                            await approveThrown(t);
+                            // 승인이 성공한 직후에만 — 실패는 조용히
+                            void notifyApproval("thrown", t.uid);
+                          })
+                        }
                         className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
                       >
                         승인 — 풀에 합류
@@ -892,7 +920,11 @@ export default function AdminPage() {
                       <button
                         disabled={busy === s.id}
                         onClick={() =>
-                          act(s.id, () => approveSharedAnswer(s.id))
+                          act(s.id, async () => {
+                            await approveSharedAnswer(s.id);
+                            // 승인이 성공한 직후에만 — 실패는 조용히
+                            void notifyApproval("answer", s.uid);
+                          })
                         }
                         className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
                       >

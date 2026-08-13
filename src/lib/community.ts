@@ -163,6 +163,7 @@ export type SharedAnswer = {
   hwaduId: string;
   answer: string;
   authorName: string;
+  uid?: string | null; // 나눈 이 (로그인 전이면 null) — 승인 알림의 수신인
   status?: "pending" | "approved" | "rejected";
   createdAt?: { seconds: number };
 };
@@ -177,6 +178,7 @@ export async function shareAnswer(hwaduId: string, answer: string) {
     answer: trimmed.slice(0, 500),
     authorName: anonName(), // 익명 — 낱말 이름
     authorUid: auth.currentUser?.uid ?? null,
+    uid: auth.currentUser?.uid ?? null, // 승인 알림의 수신인
     status: "pending", // 검수 대기
     createdAt: serverTimestamp(),
   });

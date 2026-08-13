@@ -25,6 +25,7 @@ import { auth, db } from "./firebase";
 export type ThrownItem = {
   id: string;
   question: string;
+  uid?: string | null; // 던진 이 (로그인 전이면 null) — 승인 알림의 수신인
   status: "pending" | "approved" | "rejected";
   thrownAt?: { seconds: number };
 };
