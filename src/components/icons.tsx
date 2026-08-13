@@ -109,21 +109,6 @@ export function Jukbi({ className = "w-4 h-4" }: IconProps) {
   );
 }
 
-// 연등(燃燈) — 커뮤니티
-export function Lantern({ className = "w-4 h-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
-      {/* 고리 */}
-      <path d="M12 2.5v1.8" />
-      {/* 연꽃 몸통 */}
-      <path d="M12 4.3c3.2 0 5.4 2 5.4 4.9 0 2.9-2.2 5-5.4 5s-5.4-2.1-5.4-5c0-2.9 2.2-4.9 5.4-4.9z" />
-      <path d="M8.5 8.2c1-.9 2.2-1.4 3.5-1.4s2.5.5 3.5 1.4" />
-      {/* 술 */}
-      <path d="M12 14.2v3M10.3 17.2v2.3M13.7 17.2v2.3M12 17.2v4" />
-    </svg>
-  );
-}
-
 // 찻잔 — 차 한 잔
 export function Teacup({ className = "w-4 h-4" }: IconProps) {
   return (
@@ -134,19 +119,6 @@ export function Teacup({ className = "w-4 h-4" }: IconProps) {
       <path d="M9 21h6" />
       {/* 김 두 줄기 */}
       <path d="M10 8c-.6-1 .6-1.7 0-2.7M14 8c-.6-1 .6-1.7 0-2.7" />
-    </svg>
-  );
-}
-
-// 일주문(一柱門) — 뜰(홈)
-export function Gate({ className = "w-4 h-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className={className}>
-      {/* 처마 — 살짝 들린 지붕 */}
-      <path d="M3 8c3-1.6 6-2.4 9-2.4s6 .8 9 2.4" />
-      <path d="M5 8.2C7.3 7 9.6 6.4 12 6.4s4.7.6 7 1.8" />
-      {/* 두 기둥 */}
-      <path d="M7.5 8.5V19M16.5 8.5V19" />
     </svg>
   );
 }
@@ -173,20 +145,6 @@ export function Iljumun({ className = "w-4 h-4", stroke = "currentColor" }: Icon
       <path d="M6.1 19.4h2.6M15.3 19.4h2.6" opacity="0.55" />
       {/* 현판 */}
       <path d="M10.4 10.4h3.2v2.6h-3.2z" opacity="0.7" />
-    </svg>
-  );
-}
-
-// 불족(佛足) — 발자국. 체험하기 = 첫걸음.
-export function Footprint({ className = "w-4 h-4" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      {/* 발바닥 */}
-      <path d="M10 21c-2.2 0-3.6-1.6-3.6-3.8 0-3 1.2-5.4 1.2-8C7.6 6.2 8.9 4 11 4c2 0 3.2 1.9 3.2 4.6 0 2.8-1.4 5-1.4 8.2 0 2.4-.9 4.2-2.8 4.2z" />
-      {/* 발가락 다섯 */}
-      <circle cx="16.4" cy="5.2" r="0.9" />
-      <circle cx="18.3" cy="7.6" r="0.8" />
-      <circle cx="19.2" cy="10.3" r="0.7" />
     </svg>
   );
 }
@@ -234,21 +192,6 @@ export function Elephant({ className = "w-4 h-4", stroke = "currentColor" }: Ico
       <path d="M7 15.4V19M17 14.6V19" />
       {/* 코 — 아래로 말린 곡선 */}
       <path d="M17.4 12.6c1 .3 1.7 1.1 1.7 2.2 0 1.1-.8 1.9-1.8 1.9-.9 0-1.5-.6-1.5-1.4" />
-    </svg>
-  );
-}
-
-// 뜰 — 디딤돌 세 개가 안으로 드는 걸음길, 곁에 돋은 풀. 홈(마당).
-export function Garden({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      {/* 디딤돌 셋 — 멀어질수록 작아진다 */}
-      <ellipse cx="6.8" cy="18.3" rx="3.1" ry="1.6" />
-      <ellipse cx="13.7" cy="14.8" rx="2.6" ry="1.35" />
-      <ellipse cx="18.7" cy="10.8" rx="2" ry="1.1" />
-      {/* 풀 — 돌 곁의 두 포기 */}
-      <path d="M5.3 12.8c.1-1.5.8-2.7 2-3.6M7.5 12.6c.1-1.1.6-2 1.5-2.7" />
-      <path d="M13.1 8.2c.1-1.3.7-2.4 1.8-3.2M15 8c.1-1 .5-1.8 1.3-2.4" />
     </svg>
   );
 }

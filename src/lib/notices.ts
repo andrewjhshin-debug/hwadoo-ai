@@ -7,19 +7,17 @@
 // 본 것은 브라우저 장부(localStorage)에 적어, 두 번 조르지 않는다.
 // ─────────────────────────────────────────────────────────────
 
+import { useEffect, useState } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { isUnlocked, loadStore } from "./store";
-import { fetchMyThrownStats } from "./thrown";
+import { fetchMyThrownStats, loadMyThrown } from "./thrown";
 
 export type Notice = { id: string; text: string };
 
 // 본 것 장부 — 본 소식의 id 들 (200개 상한, 오래된 것부터 밀려난다)
 const SEEN_KEY = "hwadu.notices.seen.v1";
 const SEEN_MAX = 200;
-
-// 화두 던지기(my-hwadu) 화면이 남기는 브라우저 서랍과 같은 열쇠
-const THROWN_KEY = "hwadoo-thrown-v1";
 
 // 서버 조회는 5분 캐시 — 사이드바가 페이지마다 마운트돼도 요청이 튀지 않게
 const CACHE_MS = 5 * 60 * 1000;
@@ -40,17 +38,9 @@ function ripeNotices(): Notice[] {
 
 // b) 던진 화두 — 승인되어 수행자들에게 흐르기 시작한 것
 async function thrownNotices(): Promise<Notice[]> {
-  let ids: string[] = [];
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(THROWN_KEY) ?? "[]");
-    if (Array.isArray(parsed)) {
-      ids = parsed
-        .map((t) => (t as { id?: unknown })?.id)
-        .filter((v): v is string => typeof v === "string" && v.length > 0);
-    }
-  } catch {
-    ids = [];
-  }
+  const ids = loadMyThrown()
+    .map((t) => t.id)
+    .filter((v): v is string => typeof v === "string" && v.length > 0);
   if (ids.length === 0) return [];
 
   const key = ids.join(",");
@@ -152,4 +142,31 @@ export function markAllSeen(notices: Notice[]) {
     // 저장 실패 — 다음에 다시 보이는 것으로 족하다
   }
   window.dispatchEvent(new CustomEvent("hwadu-notices-seen"));
+}
+
+// ── 새 소식 점 훅 — 사이드바·하단 탭이 함께 쓴다 ──────────────
+// 마운트 때 살피고, 기록이 바뀌거나 장부에 적히면 다시 센다.
+export function useHasNews(): boolean {
+  const [hasNews, setHasNews] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    const check = () => {
+      unseenNotices()
+        .then((list) => {
+          if (alive) setHasNews(list.length > 0);
+        })
+        .catch(() => {});
+    };
+    check();
+    window.addEventListener("hwadoo-store-updated", check);
+    window.addEventListener("hwadu-notices-seen", check);
+    return () => {
+      alive = false;
+      window.removeEventListener("hwadoo-store-updated", check);
+      window.removeEventListener("hwadu-notices-seen", check);
+    };
+  }, []);
+
+  return hasNews;
 }

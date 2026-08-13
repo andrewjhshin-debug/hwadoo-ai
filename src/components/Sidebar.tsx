@@ -19,7 +19,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
-import { unseenNotices } from "@/lib/notices";
+import { useHasNews } from "@/lib/notices";
+import { rankHanja } from "@/lib/badges";
+import { applyTheme } from "@/lib/theme";
 import { ADMIN_UID } from "@/lib/config";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
@@ -79,16 +81,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
   },
 ];
 
-// 걸음 뱃지 — 회향 수로 오른 자리. 육도에서 빌린 한 글자 (내 도량과 같은 셈).
-function rankHanja(returned: number): string | null {
-  if (returned >= 15) return "天";
-  if (returned >= 5) return "修";
-  if (returned >= 1) return "人";
-  return null;
-}
-
 const COLLAPSE_KEY = "hwadoo-sidebar-collapsed";
-const THEME_KEY = "hwadoo-theme";
 
 // 해/달 토글 — 낮 모드 ↔ 밤 모드
 function ThemeToggle({ className = "" }: { className?: string }) {
@@ -101,8 +94,7 @@ function ThemeToggle({ className = "" }: { className?: string }) {
   const toggle = () => {
     const next = !light;
     setLight(next);
-    document.documentElement.dataset.theme = next ? "light" : "";
-    window.localStorage.setItem(THEME_KEY, next ? "light" : "dark");
+    applyTheme(next);
   };
 
   return (
@@ -136,7 +128,7 @@ export default function Sidebar() {
   const [history, setHistory] = useState<Session[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loginBusy, setLoginBusy] = useState(false);
-  const [hasNews, setHasNews] = useState(false); // 새 소식 — 점 하나로만 말한다
+  const hasNews = useHasNews(); // 새 소식 — 점 하나로만 말한다
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
@@ -161,26 +153,6 @@ export default function Sidebar() {
 
   useEffect(() => {
     return watchAuth(setUser);
-  }, []);
-
-  // 새 소식 점 — 마운트 때 살피고, 기록이 바뀌거나 장부에 적히면 다시 센다
-  useEffect(() => {
-    let alive = true;
-    const check = () => {
-      unseenNotices()
-        .then((list) => {
-          if (alive) setHasNews(list.length > 0);
-        })
-        .catch(() => {});
-    };
-    check();
-    window.addEventListener("hwadoo-store-updated", check);
-    window.addEventListener("hwadu-notices-seen", check);
-    return () => {
-      alive = false;
-      window.removeEventListener("hwadoo-store-updated", check);
-      window.removeEventListener("hwadu-notices-seen", check);
-    };
   }, []);
 
   // 페이지를 이동하면 모바일 서랍을 닫는다
@@ -494,7 +466,7 @@ export default function Sidebar() {
                     </Link>
                   )}
                   <button
-                    onClick={() => logout()}
+                    onClick={() => logout().catch(() => {})}
                     className="text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-vermilion"
                   >
                     로그아웃

@@ -70,7 +70,15 @@ export async function enablePush(): Promise<PushResult> {
       uid: auth.currentUser?.uid ?? null,
       ua: navigator.userAgent.slice(0, 200),
     });
-    window.localStorage.setItem(TOKEN_KEY, token);
+    try {
+      window.localStorage.setItem(TOKEN_KEY, token);
+    } catch {
+      // 서랍에 못 적으면 화면은 '꺼짐'인데 문안만 오는 어긋난 상태가 된다 —
+      // 방금 올린 문서와 토큰을 도로 내리고, 한 방향으로 실패를 알린다
+      await deleteDoc(doc(db, "push-tokens", token)).catch(() => {});
+      await deleteToken(messaging).catch(() => {});
+      return "error";
+    }
     return "granted";
   } catch {
     return "error";

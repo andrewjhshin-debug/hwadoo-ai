@@ -7,6 +7,7 @@ import MobileTabBar from "@/components/MobileTabBar";
 import ConfirmProvider from "@/components/Confirm";
 import VisitLedger from "@/components/VisitLedger";
 import { CONTACT_EMAIL, SITE_NAME, SITE_URL, SLOGAN } from "@/lib/config";
+import { THEME_KEY } from "@/lib/theme";
 import "./globals.css";
 
 const serifKR = Noto_Serif_KR({
@@ -28,6 +29,16 @@ export const metadata: Metadata = {
   title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
   description: `${SLOGAN} 하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 나의 답을 씁니다. 옛 선사들의 화두를 받아 참구하고 기록하는 도량.`,
   keywords: ["화두", "명상", "선", "불교", "간화선", "참선", "koan", "사유"],
+  // 홈 화면에 앱처럼 담기 (PWA)
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: SITE_NAME,
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",
     other: {
@@ -69,7 +80,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* 저장된 테마를 첫 화면 그리기 전에 적용 (깜빡임 방지) */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem('hwadoo-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}`,
+            __html: `try{if(localStorage.getItem('${THEME_KEY}')==='light')document.documentElement.dataset.theme='light'}catch(e){}`,
           }}
         />
         <ConfirmProvider>

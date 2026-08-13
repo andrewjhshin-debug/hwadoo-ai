@@ -7,31 +7,22 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
-import { submitThrown } from "@/lib/thrown";
-
-// id — 서버 thrown 문서의 id. 내 도량에서 이 물음의 걸음(승인·받은 수)을 좇는 실마리.
-// 이 필드가 없던 시절의 옛 항목도 그대로 동작한다.
-type Thrown = { question: string; thrownAt: number; id?: string };
-
-const KEY = "hwadoo-thrown-v1"; // 내가 던진 것들의 목록 (내 브라우저 보관용)
-
-function loadThrown(): Thrown[] {
-  try {
-    return JSON.parse(window.localStorage.getItem(KEY) ?? "[]");
-  } catch {
-    return [];
-  }
-}
+import {
+  loadMyThrown,
+  submitThrown,
+  THROWN_KEY,
+  type MyThrown,
+} from "@/lib/thrown";
 
 export default function MyHwaduPage() {
   const [question, setQuestion] = useState("");
-  const [thrown, setThrown] = useState<Thrown[] | null>(null);
+  const [thrown, setThrown] = useState<MyThrown[] | null>(null);
   const [justThrown, setJustThrown] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    setThrown(loadThrown());
+    setThrown(loadMyThrown());
   }, []);
 
   const toss = async () => {
@@ -45,7 +36,7 @@ export default function MyHwaduPage() {
         { question: q, thrownAt: Date.now(), id },
         ...(thrown ?? []),
       ];
-      window.localStorage.setItem(KEY, JSON.stringify(next));
+      window.localStorage.setItem(THROWN_KEY, JSON.stringify(next));
       setThrown(next);
       setQuestion("");
       setJustThrown(true);
@@ -137,7 +128,10 @@ export default function MyHwaduPage() {
                     const next = thrown.filter(
                       (x) => x.thrownAt !== t.thrownAt
                     );
-                    window.localStorage.setItem(KEY, JSON.stringify(next));
+                    window.localStorage.setItem(
+                      THROWN_KEY,
+                      JSON.stringify(next)
+                    );
                     setThrown(next);
                   }}
                   aria-label="이 목록에서 지우기"

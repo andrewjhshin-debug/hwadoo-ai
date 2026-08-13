@@ -10,6 +10,7 @@
 
 import { useEffect } from "react";
 import { initPushForeground } from "@/lib/push";
+import { captureInstallPrompt } from "@/lib/install";
 
 export const VISITS_KEY = "hwadu.visits.v1";
 // 최대 400일치 — 넘치면 오래된 것부터 버린다
@@ -37,6 +38,8 @@ export function loadVisits(): string[] {
 
 export default function VisitLedger() {
   useEffect(() => {
+    // 설치 프롬프트는 페이지 초기에 오므로, 여기서 미리 받아 둔다
+    captureInstallPrompt();
     try {
       const today = visitDayKey();
       const list = loadVisits();

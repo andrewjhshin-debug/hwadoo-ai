@@ -8,42 +8,15 @@
 // · 죽은 토큰(등록 해제·형식 오류)은 장부에서 걷어낸다
 // ─────────────────────────────────────────────────────────────
 
-import {
-  cert,
-  getApps,
-  initializeApp,
-  type App,
-  type ServiceAccount,
-} from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getMessaging, type TokenMessage } from "firebase-admin/messaging";
+import { adminApp, BATCH, cleanDeadTokens } from "@/lib/firebaseAdmin";
 import { SITE_URL } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const BATCH = 500; // FCM sendEach 도 한 번에 500개까지
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-function adminApp(): App | null {
-  const existing = getApps()[0];
-  if (existing) return existing;
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!raw) return null;
-  try {
-    // 콘솔에서 받은 서비스 계정 JSON은 snake_case — cert() 가 그대로 받는다
-    const account = JSON.parse(raw) as ServiceAccount & {
-      private_key?: string;
-    };
-    // 환경변수에 개행이 \\n 으로 이중 이스케이프되어 들어오는 흔한 경우를 받쳐 준다
-    if (typeof account.private_key === "string") {
-      account.private_key = account.private_key.replace(/\\n/g, "\n");
-    }
-    return initializeApp({ credential: cert(account) });
-  } catch {
-    return null;
-  }
-}
 
 // ── 문안 고르기 — 순수 함수들 (서버에서 store 를 방어적으로 읽는다) ──
 
@@ -214,21 +187,8 @@ export async function GET(request: Request) {
     });
   }
 
-  // 죽은 토큰 청소 — Firestore 일괄 쓰기도 500개 상한
-  let cleaned = 0;
-  for (let i = 0; i < dead.length; i += BATCH) {
-    const writer = db.batch();
-    const slice = dead.slice(i, i + BATCH);
-    for (const token of slice) {
-      writer.delete(db.collection("push-tokens").doc(token));
-    }
-    try {
-      await writer.commit();
-      cleaned += slice.length;
-    } catch {
-      /* 청소 실패는 다음 아침에 다시 */
-    }
-  }
+  // 죽은 토큰 청소 — 실패한 묶음은 다음 아침에 다시
+  const cleaned = await cleanDeadTokens(db, dead);
 
   return Response.json({ sent, failed, cleaned });
 }

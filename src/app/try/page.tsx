@@ -69,12 +69,15 @@ export default function TryPage() {
   const [answer, setAnswer] = useState("");
   // 나눔에 부쳤는지 — 회향 화면에 조용히 알린다
   const [shareDone, setShareDone] = useState(false);
+  // 나눔에 부치지 못했을 때의 안내
+  const [shareError, setShareError] = useState("");
 
   // 화두를 받는다 — 성인은 이뭣고, 학생·어린이는 '나는 누구인가'
   const receive = () => {
     const id = audience === "student" ? TRY_STUDENT_ID : TRY_ADULT_ID;
     setHwadu(getHwadu(id) ?? null);
     setShareDone(false);
+    setShareError("");
     setStep("received");
   };
 
@@ -124,6 +127,7 @@ export default function TryPage() {
     }
     setKept(!alreadyTried);
     setShareDone(false);
+    setShareError("");
     setStep("done");
     // 회향을 마치자마자 — 홈과 같은 나눔의 물음. 체험이어도 답은 진짜 나눔으로 흐른다
     const ok = await confirm(
@@ -132,9 +136,16 @@ export default function TryPage() {
       { confirm: "네", cancel: "아니오" }
     );
     if (ok) {
-      // try: 접두를 벗겨 실제 화두 id로 보낸다 — 같은 화두를 회향한 이들에게 닿게
-      shareAnswer(hwadu.id.replace(/^try:/, ""), answer.trim()).catch(() => {});
-      setShareDone(true);
+      // try: 접두를 벗겨 실제 화두 id로 보낸다 — 같은 화두를 회향한 이들에게 닿게.
+      // 부치는 데까지 기다린다 — 성공했을 때만 성공 문구를 보인다
+      try {
+        await shareAnswer(hwadu.id.replace(/^try:/, ""), answer.trim());
+        setShareDone(true);
+      } catch {
+        setShareError(
+          "나눔에 부치지 못했습니다 — 잠시 후 다시 시도해 주십시오."
+        );
+      }
     }
   };
 
@@ -274,6 +285,11 @@ export default function TryPage() {
           {shareDone && (
             <p className="mt-6 text-[12.5px] leading-6 text-gold-soft">
               나눔에 부쳤습니다. 도량에서 살펴본 뒤 다른 수행자에게 열립니다.
+            </p>
+          )}
+          {shareError && (
+            <p className="mt-6 text-[12.5px] leading-6 text-vermilion">
+              {shareError}
             </p>
           )}
 
@@ -539,6 +555,7 @@ export default function TryPage() {
                     setAnswer("");
                     setDays(3);
                     setShareDone(false);
+                    setShareError("");
                     setStep("choose");
                   }
                 }}

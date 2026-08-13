@@ -165,6 +165,7 @@ async function startSync(uid: string) {
   //    — 다른 기기에서 온 변화(remote)는 다시 올리지 않는다 (메아리 방지)
   //    — 내 변화가 아직 서버에 반영되기 전에는 원격 갱신을 막는다 (경쟁 상태 방지)
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingLocal = false; // 내 변화가 서버에 확정될 때까지 true
   let inFlight: Promise<void> | null = null;
   let pushSeq = 0;
@@ -174,6 +175,10 @@ async function startSync(uid: string) {
       clearTimeout(timer);
       timer = null;
     }
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
+    }
     if (isBlank(store)) {
       pendingLocal = false;
       return Promise.resolve();
@@ -181,18 +186,28 @@ async function startSync(uid: string) {
     pendingLocal = true;
     const seq = ++pushSeq;
     inFlight = (async () => {
+      let ok = false;
       try {
         await setDoc(
           ref,
           { store: clean(store), updatedAt: serverTimestamp() },
           { merge: true }
         );
+        ok = true;
       } catch {
-        /* 실패해도 잠금은 풀어 준다 */
+        /* 실패 — 아래에서 5초 뒤 다시 올린다 */
       }
-      if (seq === pushSeq) {
+      if (seq !== pushSeq) return; // 그새 더 새 push 가 나갔다 — 그쪽에 맡긴다
+      inFlight = null;
+      if (ok) {
+        // 성공했을 때만 잠금을 푼다 — 실패한 채 풀면 다음 원격 스냅샷이
+        // 아직 안 올라간 로컬 기록을 덮어써 유실된다
         pendingLocal = false;
-        inFlight = null;
+      } else if (gen === generation) {
+        retryTimer = setTimeout(() => {
+          retryTimer = null;
+          if (seq === pushSeq && gen === generation) void push(loadStore());
+        }, 5000);
       }
     })();
     return inFlight;
@@ -233,11 +248,13 @@ async function startSync(uid: string) {
 
   stopPush = () => {
     if (timer) clearTimeout(timer);
+    if (retryTimer) clearTimeout(retryTimer);
     window.removeEventListener("hwadoo-store-updated", handler);
     unsubscribeSnapshot();
   };
   flushPush = async () => {
-    if (timer) push(loadStore());
+    // 디바운스 대기 중이든 재시도 대기 중이든 — 못 올라간 변화가 있으면 지금 올린다
+    if (pendingLocal) push(loadStore());
     if (inFlight) await inFlight;
   };
 }
@@ -261,10 +278,22 @@ export function watchAuth(cb: (user: User | null) => void): () => void {
   return onAuthStateChanged(auth, (user) => {
     if (user) {
       // 여러 화면이 저마다 부르더라도 계정당 한 번만 시작한다
-      startSync(user.uid).catch(() => {
-        /* Firestore 준비 전이면 로그인만 유지 */
-        if (syncingUid === user.uid) syncingUid = null;
-      });
+      const begin = (retry: boolean) => {
+        startSync(user.uid).catch(() => {
+          /* Firestore 준비 전이면 로그인만 유지 */
+          if (syncingUid === user.uid) syncingUid = null;
+          // 최초 읽기가 어긋났을 뿐일 수 있다 — 같은 계정으로 로그인이
+          // 유지되고 있으면 10초 뒤 한 번만 다시 시작해 본다
+          if (retry) {
+            setTimeout(() => {
+              if (auth.currentUser?.uid === user.uid && syncingUid === null) {
+                begin(false);
+              }
+            }, 10_000);
+          }
+        });
+      };
+      begin(true);
     } else {
       stopSync();
     }

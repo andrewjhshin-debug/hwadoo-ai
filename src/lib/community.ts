@@ -8,7 +8,6 @@ import {
   collection,
   deleteDoc,
   doc,
-  getDoc,
   getDocs,
   increment,
   limit,
@@ -89,11 +88,6 @@ async function sweepLegacy(board: Board, found: Post[]): Promise<Post[]> {
   }
   posts.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
   return posts.slice(0, PAGE);
-}
-
-export async function fetchPost(id: string): Promise<Post | null> {
-  const snap = await getDoc(doc(db, "posts", id));
-  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Post) : null;
 }
 
 export async function createPost(title: string, body: string, board: Board = "community") {

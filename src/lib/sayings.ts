@@ -172,9 +172,3 @@ export function randomSaying(excludeText?: string): Saying {
     : SAYINGS;
   return pool[Math.floor(Math.random() * pool.length)];
 }
-
-// 오늘의 한마디 — 날짜에 따라 하루 하나씩 돈다
-export function todaySaying(now = new Date()): Saying {
-  const days = Math.floor(now.getTime() / (24 * 60 * 60 * 1000));
-  return SAYINGS[days % SAYINGS.length];
-}

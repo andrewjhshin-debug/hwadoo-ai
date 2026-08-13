@@ -86,7 +86,13 @@ export default function Board({
 
   useEffect(() => {
     try {
-      setBowed(JSON.parse(window.sessionStorage.getItem(bowedKey) ?? "[]"));
+      // 깨진 JSON·어긋난 모양은 조용히 걸러 낸다 — 문자열 배열만 받는다
+      const parsed: unknown = JSON.parse(
+        window.sessionStorage.getItem(bowedKey) ?? "[]"
+      );
+      if (Array.isArray(parsed)) {
+        setBowed(parsed.filter((v): v is string => typeof v === "string"));
+      }
     } catch {}
     refresh();
   }, [refresh, bowedKey]);
@@ -109,20 +115,33 @@ export default function Board({
     }
   };
 
+  // 합장 장부를 브라우저에 적어 둔다 — 못 적어도 화면의 합장은 그대로 간다
+  const keepBowed = (list: string[]) => {
+    try {
+      window.sessionStorage.setItem(bowedKey, JSON.stringify(list));
+    } catch {}
+  };
+
   const bow = async (id: string) => {
     if (bowed.includes(id)) return;
-    const next = [...bowed, id];
-    setBowed(next);
-    window.sessionStorage.setItem(bowedKey, JSON.stringify(next));
+    // 함수형 갱신 — 연달아 눌러도 서로의 낙관 갱신을 덮어쓰지 않는다
+    setBowed((prev) => {
+      const next = prev.includes(id) ? prev : [...prev, id];
+      keepBowed(next);
+      return next;
+    });
     setPosts((p) =>
       p?.map((x) => (x.id === id ? { ...x, hapjang: x.hapjang + 1 } : x)) ?? null
     );
     try {
       await bowToPost(id);
     } catch {
-      // 올리지 못했으면 되돌린다
-      setBowed(bowed);
-      window.sessionStorage.setItem(bowedKey, JSON.stringify(bowed));
+      // 올리지 못했으면 이 글의 합장만 되돌린다
+      setBowed((prev) => {
+        const next = prev.filter((v) => v !== id);
+        keepBowed(next);
+        return next;
+      });
       setPosts((p) =>
         p?.map((x) =>
           x.id === id ? { ...x, hapjang: Math.max(0, x.hapjang - 1) } : x

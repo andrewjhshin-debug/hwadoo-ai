@@ -45,6 +45,8 @@ export default function NotesDrawer({
   const router = useRouter();
   const [question, setQuestion] = useState("");
   const [saved, setSaved] = useState(false);
+  // 브라우저에 적지 못했을 때의 안내 (저장 공간이 찼을 때 등)
+  const [saveError, setSaveError] = useState("");
   const [hasHwadu, setHasHwadu] = useState(true);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // 아직 저장되지 않은 손글씨가 있는지 — 밖에서 온 갱신이 이를 덮어쓰지 않게 한다
@@ -116,9 +118,16 @@ export default function NotesDrawer({
       return false;
     }
     if ((latest.current.notes ?? "") !== value) {
-      saveStore({ ...latest, current: { ...latest.current, notes: value } });
+      if (
+        !saveStore({ ...latest, current: { ...latest.current, notes: value } })
+      ) {
+        // 적지 못했다 — 글은 화면에 그대로 두고(dirty 유지) 사정을 알린다
+        setSaveError("저장하지 못했습니다 — 저장 공간을 확인해 주십시오.");
+        return false;
+      }
       setSaved(true);
     }
+    setSaveError("");
     writeDraft(""); // 맡아 둔 글은 화두의 단상으로 옮겨졌다
     dirty.current = false;
     return true;
@@ -269,6 +278,10 @@ export default function NotesDrawer({
                 >
                   화두를 받으러 가다
                 </button>
+              ) : saveError ? (
+                <span className="text-[11px] leading-5 text-vermilion">
+                  {saveError}
+                </span>
               ) : (
                 saved && (
                   <span className="text-[11px] text-hanji-faint">

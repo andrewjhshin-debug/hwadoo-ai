@@ -100,22 +100,29 @@ export function loadStore(): Store {
   }
 }
 
-export function saveStore(store: Store) {
-  if (typeof window === "undefined") return;
+// 저장 성공 여부를 돌려준다 — 저장 공간이 차거나 막힌 환경에서는 false.
+// (false 면 화면이 사용자에게 알릴 수 있다 — 조용한 유실을 막는다)
+export function saveStore(store: Store): boolean {
+  if (typeof window === "undefined") return false;
   // 주인 표시는 화면 상태가 조금 오래되어도 잃지 않는다
   // (주인을 잃으면 다음에 로그인한 사람이 이 기록을 제 것으로 주워 담는다)
   const next: Store =
     store.ownerUid === undefined
       ? { ...store, ownerUid: loadStore().ownerUid }
       : store;
-  window.localStorage.setItem(KEY, JSON.stringify(next));
-  // 사이드바 등 다른 화면이 즉시 갱신되도록 알림
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(next));
+  } catch {
+    return false;
+  }
+  // 사이드바 등 다른 화면이 즉시 갱신되도록 알림 — 실제로 저장됐을 때만
   // (렌더링 도중 상태 갱신을 피하려고 한 박자 늦춰서 보낸다)
   window.setTimeout(() => {
     window.dispatchEvent(
       new CustomEvent("hwadoo-store-updated", { detail: { source: "local" } })
     );
   }, 0);
+  return true;
 }
 
 // 다른 기기에서 온 기록을 적용한다 — 서버 동기화 전용
@@ -175,17 +182,6 @@ export function formatCountdown(ms: number): string {
   if (d > 0) return `${d}일 ${pad(h)}시간 ${pad(m)}분 ${pad(s)}초`;
   if (h > 0) return `${h}시간 ${pad(m)}분 ${pad(s)}초`;
   return `${m}분 ${pad(s)}초`;
-}
-
-// "1일 4시간" 같은 남은 시간 표현
-export function formatRemaining(ms: number): string {
-  if (ms <= 0) return "";
-  const hours = Math.ceil(ms / (60 * 60 * 1000));
-  const d = Math.floor(hours / 24);
-  const h = hours % 24;
-  if (d > 0 && h > 0) return `${d}일 ${h}시간`;
-  if (d > 0) return `${d}일`;
-  return `${h}시간`;
 }
 
 // 화두와 함께한 지 며칠째인지 (받은 날 = 1일째)

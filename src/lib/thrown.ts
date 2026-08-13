@@ -38,6 +38,35 @@ export type PublicHwadu = {
   audience?: "adult" | "student"; // 어느 랜덤 풀에 뿌릴지 (없으면 성인)
 };
 
+// ── 내가 던진 것들의 브라우저 서랍 ──────────────────────────
+// 화두 던지기(my-hwadu) 화면이 남기고, 내 도량·새 소식이 함께 읽는다.
+
+export const THROWN_KEY = "hwadoo-thrown-v1";
+
+// id — 서버 thrown 문서의 id. 내 도량에서 이 물음의 걸음(승인·받은 수)을 좇는 실마리.
+// 이 필드가 없던 시절의 옛 항목도 그대로 동작한다.
+export type MyThrown = { question: string; thrownAt: number; id?: string };
+
+// 서랍을 읽는다 — 깨진 JSON·어긋난 모양은 조용히 걸러 낸다
+export function loadMyThrown(): MyThrown[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(THROWN_KEY) ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((t): t is MyThrown => {
+      if (!t || typeof t !== "object") return false;
+      const v = t as Record<string, unknown>;
+      return (
+        typeof v.question === "string" &&
+        typeof v.thrownAt === "number" &&
+        (v.id === undefined || typeof v.id === "string")
+      );
+    });
+  } catch {
+    return [];
+  }
+}
+
 // 화두를 던진다 — 로그인 없어도 가능.
 // 만들어진 문서 id를 돌려준다 (브라우저가 제 물음의 걸음을 좇을 수 있게).
 export async function submitThrown(question: string): Promise<string> {
@@ -105,14 +134,17 @@ export async function fetchMyThrownStats(
   }));
 }
 
-// 승인된 화두 모두 — 홈의 랜덤 풀에 섞인다
+// 승인된 화두 모두 — 홈의 랜덤 풀에 섞인다.
+// 물음이 비었거나 문자열이 아닌 문서는 걸러 낸다 — 빈 화두가 뽑히지 않게.
 export async function fetchPublicHwadu(): Promise<PublicHwadu[]> {
   const snap = await getDocs(collection(db, "public-hwadu"));
-  return snap.docs.map((d) => {
+  const list: PublicHwadu[] = [];
+  for (const d of snap.docs) {
     const data = d.data();
-    return {
+    if (typeof data.question !== "string" || !data.question.trim()) continue;
+    list.push({
       id: d.id,
-      question: data.question as string,
+      question: data.question,
       source: (data.source as string) || undefined,
       origin: (data.origin as "thrown" | "admin") || "thrown",
       // 대상이 적히지 않은 것(예전에 승인된 던져진 화두)은 undefined 그대로 둔다
@@ -122,8 +154,9 @@ export async function fetchPublicHwadu(): Promise<PublicHwadu[]> {
           : data.audience === "adult"
             ? "adult"
             : undefined,
-    };
-  });
+    });
+  }
+  return list;
 }
 
 // ── 관리자 전용 (규칙이 관리자 UID만 허용) ──────────────────

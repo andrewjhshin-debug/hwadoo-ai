@@ -8,42 +8,14 @@
 // · 죽은 토큰은 여기서도 걷어낸다
 // ─────────────────────────────────────────────────────────────
 
-import {
-  cert,
-  getApps,
-  initializeApp,
-  type App,
-  type ServiceAccount,
-} from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getMessaging, type TokenMessage } from "firebase-admin/messaging";
+import { adminApp, BATCH, cleanDeadTokens } from "@/lib/firebaseAdmin";
 import { ADMIN_UID, SITE_URL } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-const BATCH = 500; // FCM sendEach 의 한 번 상한
-
-function adminApp(): App | null {
-  const existing = getApps()[0];
-  if (existing) return existing;
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!raw) return null;
-  try {
-    // 콘솔에서 받은 서비스 계정 JSON은 snake_case — cert() 가 그대로 받는다
-    const account = JSON.parse(raw) as ServiceAccount & {
-      private_key?: string;
-    };
-    // 환경변수에 개행이 \\n 으로 이중 이스케이프되어 들어오는 흔한 경우를 받쳐 준다
-    if (typeof account.private_key === "string") {
-      account.private_key = account.private_key.replace(/\\n/g, "\n");
-    }
-    return initializeApp({ credential: cert(account) });
-  } catch {
-    return null;
-  }
-}
 
 // 승인 종류별 문안
 const NOTICE: Record<"thrown" | "answer", { title: string; body: string }> = {
@@ -142,18 +114,8 @@ export async function POST(request: Request) {
     });
   }
 
-  // 죽은 토큰 청소 — 실패해도 다음 기회에
-  for (let i = 0; i < dead.length; i += BATCH) {
-    const writer = db.batch();
-    dead
-      .slice(i, i + BATCH)
-      .forEach((token) => writer.delete(db.collection("push-tokens").doc(token)));
-    try {
-      await writer.commit();
-    } catch {
-      /* 아침 크론의 청소가 마저 걷어낸다 */
-    }
-  }
+  // 죽은 토큰 청소 — 실패해도 다음 기회에 (아침 크론이 마저 걷어낸다)
+  await cleanDeadTokens(db, dead);
 
   return Response.json({ sent });
 }

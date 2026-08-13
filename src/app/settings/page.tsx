@@ -27,7 +27,22 @@ import {
 import { formatDate, loadStore, type Session } from "@/lib/store";
 import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
-import { fetchMyThrownStats, type ThrownStat } from "@/lib/thrown";
+import { BADGES } from "@/lib/badges";
+import { applyTheme } from "@/lib/theme";
+import {
+  fetchMyThrownStats,
+  fetchThrown,
+  loadMyThrown,
+  type MyThrown,
+  type ThrownStat,
+} from "@/lib/thrown";
+import {
+  canInstall,
+  isIOS,
+  isStandalone,
+  onInstallChange,
+  promptInstall,
+} from "@/lib/install";
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
 import {
   Person,
@@ -45,18 +60,6 @@ import {
   Mandala,
   Moktak,
 } from "@/components/icons";
-
-const THEME_KEY = "hwadoo-theme";
-// 내가 던진 화두 — 화두 던지기(my-hwadu) 화면이 남기는 브라우저 서랍과 같은 열쇠
-const THROWN_KEY = "hwadoo-thrown-v1";
-type MyThrown = { question: string; thrownAt: number; id?: string };
-
-// 걸음 — 얻은 자리. 육도(六道)에서 빌린 이름, 회향 수로 오른다.
-const BADGES = [
-  { hanja: "人", name: "인간도", full: "人間道", need: 1, cond: "첫 회향" },
-  { hanja: "修", name: "수라도", full: "修羅道", need: 5, cond: "회향 5 이상" },
-  { hanja: "天", name: "천상도", full: "天上道", need: 15, cond: "회향 15 이상" },
-] as const;
 
 // 이달의 마음 — 이번 달의 걸음을 로컬 기록으로 센 것
 type MonthReport = {
@@ -85,6 +88,10 @@ type ServiceItem = {
 
 // 알림 구획의 상태 — 살펴보는 중 / 미지원 / 준비 중(키 없음) / 거부 / 꺼짐 / 켜짐
 type PushUi = "loading" | "unsupported" | "preparing" | "denied" | "off" | "on";
+
+// 홈 화면에 담기 구획의 상태 —
+// 이미 앱으로 열림 / 프롬프트가 잡혀 있음 / 아이폰 안내 / 브라우저 메뉴 안내
+type InstallUi = "standalone" | "promptable" | "ios" | "manual";
 
 const SERVICES: ServiceItem[] = [
   { href: "/", label: "뜰", Icon: LotusMark },
@@ -126,8 +133,43 @@ export default function SettingsPage() {
   const [pushGuide, setPushGuide] = useState(false);
   // 새 소식 — 아직 보지 않은 것만. 여기 나열되면 곧 장부에 적혀 점이 꺼진다
   const [notices, setNotices] = useState<Notice[]>([]);
+  // 홈 화면에 담기 — 서버에서는 알 수 없으니 마운트 뒤에 살핀다
+  const [installUi, setInstallUi] = useState<InstallUi | null>(null);
+  const [installBusy, setInstallBusy] = useState(false);
+  const [installDone, setInstallDone] = useState(false);
+  // 뒷방 — 관리자에게만: 승인 기다리는 화두 수 (실패는 조용히)
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
 
   useEffect(() => watchAuth(setUser), []);
+
+  // 홈 화면에 담기 — 지금 형편을 살피고, 프롬프트가 뒤늦게 잡히면 다시 살핀다
+  useEffect(() => {
+    const look = () => {
+      if (isStandalone()) setInstallUi("standalone");
+      else if (canInstall()) setInstallUi("promptable");
+      else if (isIOS()) setInstallUi("ios");
+      else setInstallUi("manual");
+    };
+    look();
+    return onInstallChange(look);
+  }, []);
+
+  // 뒷방 살림 — 관리자로 로그인했을 때만 승인 대기 수를 센다
+  useEffect(() => {
+    if (user?.uid !== ADMIN_UID) return;
+    let alive = true;
+    fetchThrown()
+      .then((list) => {
+        if (alive)
+          setPendingCount(list.filter((t) => t.status === "pending").length);
+      })
+      .catch(() => {
+        // 셈이 안 되어도 카드는 보인다 — 조용히 지나간다
+      });
+    return () => {
+      alive = false;
+    };
+  }, [user]);
 
   // 새 소식 — 나열한 뒤 잠시 두었다가 본 것으로 적는다.
   // 타이머를 걷지 않는다 — 금방 떠나도 장부에는 적혀 점이 꺼진다.
@@ -170,107 +212,118 @@ export default function SettingsPage() {
   useEffect(() => {
     setLight(document.documentElement.dataset.theme === "light");
 
-    // 나의 걸음 — 받은 화두 수(지금 든 것·내려놓은 것까지),
-    // 회향해 지난 화두에 남은 수, 함께한 날수
-    const s = loadStore();
-    const past = s.history.length;
-    setJournalCount(past);
-    // store.received 가 참값이지만, 이 값이 없던 시절의 기록도 있어
-    // 눈에 보이는 수보다 작아지지 않게 받쳐 준다
-    setReceivedCount(Math.max(s.received, past + (s.current ? 1 : 0)));
+    // 걸음·이달의 마음·품어온 시간 — 저장소가 바뀌면 다시 센다.
+    // (동기화·다른 창·같은 창의 다른 화면이 바꿔도 곧바로 따라간다 — Sidebar 와 같은 결)
+    const refresh = () => {
+      // 나의 걸음 — 받은 화두 수(지금 든 것·내려놓은 것까지),
+      // 회향해 지난 화두에 남은 수, 함께한 날수
+      const s = loadStore();
+      const past = s.history.length;
+      setJournalCount(past);
+      // store.received 가 참값이지만, 이 값이 없던 시절의 기록도 있어
+      // 눈에 보이는 수보다 작아지지 않게 받쳐 준다
+      setReceivedCount(Math.max(s.received, past + (s.current ? 1 : 0)));
 
-    const now = Date.now();
-    const DAY = 24 * 60 * 60 * 1000;
-    const sessions: Session[] = [
-      ...s.history,
-      ...(s.current ? [s.current] : []),
-    ];
-    const visits = loadVisits();
+      const now = Date.now();
+      const DAY = 24 * 60 * 60 * 1000;
+      const sessions: Session[] = [
+        ...s.history,
+        ...(s.current ? [s.current] : []),
+      ];
+      const visits = loadVisits();
 
-    // 구간 [from, to] 의 날짜들을 "YYYY-MM-DD"로 모은다 — 끝날도 빠뜨리지 않는다
-    const addHeldDays = (from: number, to: number, into: Set<string>) => {
-      if (from > to) return;
-      for (let t = from; t <= to; t += DAY) into.add(visitDayKey(t));
-      into.add(visitDayKey(to));
-    };
-
-    // 함께한 날 — 실제 접속일(발자국 장부) ∪ 화두를 품고 있던 날.
-    // 옛날은 방문 기록이 없으니 품은 날수로 보완한다
-    const allDays = new Set<string>(visits);
-    for (const sess of sessions) {
-      addHeldDays(sess.receivedAt, sess.journalAt ?? now, allDays);
-    }
-    setDaysWith(allDays.size);
-
-    // ── 이달의 마음 — 이번 달의 걸음을 로컬에서 센다 ──
-    const base = new Date();
-    const monthStart = new Date(base.getFullYear(), base.getMonth(), 1).getTime();
-    const monthEnd = new Date(base.getFullYear(), base.getMonth() + 1, 1).getTime();
-    const inMonth = (t: number) => t >= monthStart && t < monthEnd;
-
-    // 이번 달 회향 수 — 회향 시각이 이번 달인 기록
-    // (아주 옛 기록에는 회향 시각이 없어, 받은 시각으로 받쳐 준다)
-    const returned = s.history.filter((h) =>
-      inMonth(h.journalAt ?? h.receivedAt)
-    ).length;
-
-    // 이번 달 함께한 날수 — 이번 달의 접속일 ∪ 이번 달 화두를 품고 있던 날
-    const monthDays = new Set<string>();
-    const monthPrefix = visitDayKey(monthStart).slice(0, 8); // "YYYY-MM-"
-    for (const v of visits) {
-      if (v.startsWith(monthPrefix)) monthDays.add(v);
-    }
-    for (const sess of sessions) {
-      addHeldDays(
-        Math.max(sess.receivedAt, monthStart),
-        Math.min(sess.journalAt ?? now, monthEnd - 1),
-        monthDays
-      );
-    }
-
-    // 남긴 글자 수 — 이번 달 회향의 글과 단상, 지금 든 화두의 단상
-    let chars = 0;
-    for (const h of s.history) {
-      if (inMonth(h.journalAt ?? h.receivedAt)) {
-        chars += (h.journal ?? "").length + (h.notes ?? "").length;
-      }
-    }
-    if (s.current?.notes) chars += s.current.notes.length;
-
-    setReport({ returned, days: monthDays.size, chars });
-
-    // ── 품어온 시간 — 화두마다 품은 일수, 오래 품은 순(내림차순) ──
-    const toHeld = (sess: Session, isCurrent: boolean): HeldItem => {
-      const end = sess.journalAt ?? now;
-      const d = new Date(sess.receivedAt);
-      return {
-        key: `${sess.hwaduId}-${sess.receivedAt}${isCurrent ? "-now" : ""}`,
-        from: `${d.getMonth() + 1}.${d.getDate()}`,
-        receivedAt: sess.receivedAt,
-        question: flatQuestion(sessionQuestion(sess)),
-        days: Math.max(1, Math.floor((end - sess.receivedAt) / DAY)),
-        current: isCurrent,
+      // 구간 [from, to] 의 날짜들을 "YYYY-MM-DD"로 모은다 — 끝날도 빠뜨리지 않는다
+      const addHeldDays = (from: number, to: number, into: Set<string>) => {
+        if (from > to) return;
+        for (let t = from; t <= to; t += DAY) into.add(visitDayKey(t));
+        into.add(visitDayKey(to));
       };
+
+      // 함께한 날 — 실제 접속일(발자국 장부) ∪ 화두를 품고 있던 날.
+      // 옛날은 방문 기록이 없으니 품은 날수로 보완한다
+      const allDays = new Set<string>(visits);
+      for (const sess of sessions) {
+        addHeldDays(sess.receivedAt, sess.journalAt ?? now, allDays);
+      }
+      setDaysWith(allDays.size);
+
+      // ── 이달의 마음 — 이번 달의 걸음을 로컬에서 센다 ──
+      const base = new Date();
+      const monthStart = new Date(
+        base.getFullYear(),
+        base.getMonth(),
+        1
+      ).getTime();
+      const monthEnd = new Date(
+        base.getFullYear(),
+        base.getMonth() + 1,
+        1
+      ).getTime();
+      const inMonth = (t: number) => t >= monthStart && t < monthEnd;
+
+      // 이번 달 회향 수 — 회향 시각이 이번 달인 기록
+      // (아주 옛 기록에는 회향 시각이 없어, 받은 시각으로 받쳐 준다)
+      const returned = s.history.filter((h) =>
+        inMonth(h.journalAt ?? h.receivedAt)
+      ).length;
+
+      // 이번 달 함께한 날수 — 이번 달의 접속일 ∪ 이번 달 화두를 품고 있던 날
+      const monthDays = new Set<string>();
+      const monthPrefix = visitDayKey(monthStart).slice(0, 8); // "YYYY-MM-"
+      for (const v of visits) {
+        if (v.startsWith(monthPrefix)) monthDays.add(v);
+      }
+      for (const sess of sessions) {
+        addHeldDays(
+          Math.max(sess.receivedAt, monthStart),
+          Math.min(sess.journalAt ?? now, monthEnd - 1),
+          monthDays
+        );
+      }
+
+      // 남긴 글자 수 — 이번 달 회향의 글과 단상, 지금 든 화두의 단상
+      let chars = 0;
+      for (const h of s.history) {
+        if (inMonth(h.journalAt ?? h.receivedAt)) {
+          chars += (h.journal ?? "").length + (h.notes ?? "").length;
+        }
+      }
+      if (s.current?.notes) chars += s.current.notes.length;
+
+      setReport({ returned, days: monthDays.size, chars });
+
+      // ── 품어온 시간 — 화두마다 품은 일수, 오래 품은 순(내림차순) ──
+      const toHeld = (sess: Session, isCurrent: boolean): HeldItem => {
+        const end = sess.journalAt ?? now;
+        const d = new Date(sess.receivedAt);
+        return {
+          key: `${sess.hwaduId}-${sess.receivedAt}${isCurrent ? "-now" : ""}`,
+          from: `${d.getMonth() + 1}.${d.getDate()}`,
+          receivedAt: sess.receivedAt,
+          question: flatQuestion(sessionQuestion(sess)),
+          days: Math.max(1, Math.floor((end - sess.receivedAt) / DAY)),
+          current: isCurrent,
+        };
+      };
+      setHeld(
+        [
+          ...s.history.map((h) => toHeld(h, false)),
+          ...(s.current ? [toHeld(s.current, true)] : []),
+        ].sort((a, b) => b.receivedAt - a.receivedAt)
+      );
     };
-    setHeld(
-      [
-        ...s.history.map((h) => toHeld(h, false)),
-        ...(s.current ? [toHeld(s.current, true)] : []),
-      ].sort((a, b) => b.receivedAt - a.receivedAt)
-    );
+    refresh();
+    window.addEventListener("hwadoo-store-updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("hwadoo-store-updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
   }, []);
 
   // 내가 던진 화두 — 브라우저 서랍을 읽고, 서버에서 걸음(승인·받은 수)을 살핀다
   useEffect(() => {
-    let list: MyThrown[] = [];
-    try {
-      const parsed = JSON.parse(
-        window.localStorage.getItem(THROWN_KEY) ?? "[]"
-      );
-      if (Array.isArray(parsed)) list = parsed;
-    } catch {
-      list = [];
-    }
+    const list = loadMyThrown();
     setMyThrown(list);
 
     const ids = list
@@ -288,8 +341,7 @@ export default function SettingsPage() {
 
   const setTheme = (toLight: boolean) => {
     setLight(toLight);
-    document.documentElement.dataset.theme = toLight ? "light" : "";
-    window.localStorage.setItem(THEME_KEY, toLight ? "light" : "dark");
+    applyTheme(toLight);
   };
 
   // 구글 로그인 — 팝업이 막히거나 닫히면 그 까닭을 알린다
@@ -352,6 +404,18 @@ export default function SettingsPage() {
     }
   };
 
+  // 홈 화면에 담기 — 받아 둔 프롬프트를 연다
+  const handleInstall = async () => {
+    setInstallBusy(true);
+    try {
+      const result = await promptInstall();
+      if (result === "accepted") setInstallDone(true);
+      // dismissed / unavailable — 프롬프트가 비워져 onInstallChange 가 안내로 바꾼다
+    } finally {
+      setInstallBusy(false);
+    }
+  };
+
   const sectionGap = "mt-11";
 
   // 품어온 시간 한 줄 — "3.2 · {질문 전문} · 108일" (여러 줄 허용, 줄이지 않는다)
@@ -398,6 +462,39 @@ export default function SettingsPage() {
           </div>
         </div>
       </section>
+
+      {/* ── 뒷방 — 관리자에게만 보이는 도량 살림 카드 ── */}
+      {user?.uid === ADMIN_UID && (
+        <section className="rise mt-6">
+          <div className="rounded-[14px] border border-gold/40 bg-gold/5 px-6 py-6 sm:px-7">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-4">
+              <div>
+                <p className="font-serif text-[17px] font-light tracking-wider text-gold">
+                  뒷방 — 도량 살림
+                </p>
+                <p className="mt-2 text-[12px] leading-6 tracking-wider text-hanji-dim">
+                  {pendingCount === null ? (
+                    "던져진 물음을 살피는 중…"
+                  ) : pendingCount > 0 ? (
+                    <>
+                      승인을 기다리는 화두{" "}
+                      <span className="text-gold">{pendingCount}</span>건
+                    </>
+                  ) : (
+                    "기다리는 물음이 없습니다"
+                  )}
+                </p>
+              </div>
+              <Link
+                href="/admin"
+                className="btn-obang inline-flex items-center px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
+              >
+                들어가기
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── 걸음 — 얻은 자리: 육도에서 빌린 이름, 회향이 쌓이면 오른다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
@@ -644,6 +741,47 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* ── 홈 화면에 담기 — 앱처럼 여는 길을 형편대로 안내한다 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+          홈 화면에 담기
+        </p>
+        <div className="mt-4 border-t border-ink-3 pt-5">
+          {installUi === null ? (
+            <p className="text-[13px] leading-7 text-hanji-faint">
+              살펴보는 중…
+            </p>
+          ) : installUi === "standalone" || installDone ? (
+            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+              이미 손안에 있습니다. 홈 화면의 화두로 언제든 드나드십시오.
+            </p>
+          ) : installUi === "promptable" ? (
+            <>
+              <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+                홈 화면에 담아 두면, 앱처럼 한 번에 도량에 듭니다.
+              </p>
+              <button
+                onClick={handleInstall}
+                disabled={installBusy}
+                className="btn-obang mt-5 inline-flex items-center px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {installBusy ? "여는 중…" : "홈 화면에 담기"}
+              </button>
+            </>
+          ) : installUi === "ios" ? (
+            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+              사파리 공유 단추 → &lsquo;홈 화면에 추가&rsquo;를 누르면 앱처럼
+              쓸 수 있습니다.
+            </p>
+          ) : (
+            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+              브라우저 메뉴(⋮)의 &lsquo;앱 설치&rsquo; 또는 &lsquo;홈 화면에
+              추가&rsquo;를 누르면 앱처럼 쓸 수 있습니다.
+            </p>
+          )}
+        </div>
+      </section>
+
       {/* ── 색상 모드 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">색상 모드</p>
@@ -831,17 +969,10 @@ export default function SettingsPage() {
                 </p>
               </div>
             </div>
+            {/* 뒷방 들목은 화면 위의 카드로 옮겼다 — 여기는 로그아웃만 */}
             <div className="mt-5 flex items-center gap-4">
-              {user.uid === ADMIN_UID && (
-                <Link
-                  href="/admin"
-                  className="text-[12px] tracking-widest text-gold-soft transition-colors hover:text-gold"
-                >
-                  뒷방(관리)
-                </Link>
-              )}
               <button
-                onClick={() => logout()}
+                onClick={() => logout().catch(() => {})}
                 className="rounded-[10px] border border-ink-3 px-6 py-2.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion"
               >
                 로그아웃

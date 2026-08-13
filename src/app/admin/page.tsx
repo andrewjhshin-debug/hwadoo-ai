@@ -70,6 +70,12 @@ const TAB_NOTE: Record<Tab, string> = {
 const smallBtn =
   "border px-3.5 py-1.5 text-[11px] tracking-[0.15em] transition-colors disabled:opacity-40";
 
+// 은행(코드 내장 상수)에서만 파생되는 세 갈래 — 모듈에서 한 번만 거른다.
+// (폼 입력마다 페이지 전체가 재렌더되는 화면이라, 렌더 안에서 매번 거르면 낭비다)
+const ADULT_BANK = HWADU_BANK.filter((h) => h.audience !== "student");
+const STUDENT_ONLY = HWADU_BANK.filter((h) => h.audience === "student");
+const STUDENT_CLASSICS = HWADU_BANK.filter((h) => h.forStudent);
+
 // 은행(코드 내장) 화두 열람 줄 — 여기서도 고치고(덮어쓰기) 감출 수 있다
 function BankRow({
   h,
@@ -498,9 +504,6 @@ export default function AdminPage() {
     );
   }
 
-  const adultBank = HWADU_BANK.filter((h) => h.audience !== "student");
-  const studentOnly = HWADU_BANK.filter((h) => h.audience === "student");
-  const studentClassics = HWADU_BANK.filter((h) => h.forStudent);
   const pending = thrown.filter((t) => t.status === "pending");
   const handled = thrown.filter((t) => t.status !== "pending");
   const adminHwadu = publicList.filter((p) => p.origin === "admin");
@@ -508,18 +511,18 @@ export default function AdminPage() {
 
   // 뒷방의 손질 — 숨긴 은행 화두와 덮어쓴 조각
   const hiddenSet = new Set(content.bank.hidden);
-  const hiddenAdult = adultBank.filter((h) => hiddenSet.has(h.id)).length;
+  const hiddenAdult = ADULT_BANK.filter((h) => hiddenSet.has(h.id)).length;
   const hiddenStudent =
-    studentOnly.filter((h) => hiddenSet.has(h.id)).length +
-    studentClassics.filter((h) => hiddenSet.has(h.id)).length;
+    STUDENT_ONLY.filter((h) => hiddenSet.has(h.id)).length +
+    STUDENT_CLASSICS.filter((h) => hiddenSet.has(h.id)).length;
 
   // 실제 랜덤 풀에 섞이는 성인/학생 총계 — 은행(숨김 제외) + 추가된 화두(publicList)
   const publicAdult = publicList.filter((p) => (p.audience ?? "adult") === "adult");
   const publicStudent = publicList.filter((p) => p.audience === "student");
-  const adultTotal = adultBank.length - hiddenAdult + publicAdult.length;
+  const adultTotal = ADULT_BANK.length - hiddenAdult + publicAdult.length;
   const studentTotal =
-    studentOnly.length +
-    studentClassics.length -
+    STUDENT_ONLY.length +
+    STUDENT_CLASSICS.length -
     hiddenStudent +
     publicStudent.length;
 
@@ -592,7 +595,7 @@ export default function AdminPage() {
         {tab === "adult" && (
           <section>
             <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
-              은행 화두(코드 내장) · {adultBank.length - hiddenAdult}
+              은행 화두(코드 내장) · {ADULT_BANK.length - hiddenAdult}
               {hiddenAdult > 0 && (
                 <span className="ml-1 tracking-normal"> (숨김 {hiddenAdult})</span>
               )}
@@ -602,7 +605,7 @@ export default function AdminPage() {
               남습니다 — 코드 원문은 그대로라 언제든 되살릴 수 있습니다.
             </p>
             <ul className="mt-4 space-y-4">
-              {adultBank.map((h, i) => (
+              {ADULT_BANK.map((h, i) => (
                 <BankRow key={h.id} h={h} i={i} {...bankRowProps(h)} />
               ))}
             </ul>
@@ -613,7 +616,7 @@ export default function AdminPage() {
                 </h3>
                 <ul className="mt-3 space-y-4">
                   {publicAdult.map((p, i) => (
-                    <PublicRow key={p.id} p={p} i={adultBank.length + i} />
+                    <PublicRow key={p.id} p={p} i={ADULT_BANK.length + i} />
                   ))}
                 </ul>
               </>
@@ -625,18 +628,18 @@ export default function AdminPage() {
         {tab === "student" && (
           <section>
             <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
-              학생 전용 · {studentOnly.length}
+              학생 전용 · {STUDENT_ONLY.length}
             </h3>
             <ul className="mt-3 space-y-4">
-              {studentOnly.map((h, i) => (
+              {STUDENT_ONLY.map((h, i) => (
                 <BankRow key={h.id} h={h} i={i} {...bankRowProps(h)} />
               ))}
             </ul>
             <h3 className="mt-8 text-[11px] tracking-[0.3em] text-hanji-faint">
-              학생에게도 열리는 고전 · {studentClassics.length}
+              학생에게도 열리는 고전 · {STUDENT_CLASSICS.length}
             </h3>
             <ul className="mt-3 space-y-4">
-              {studentClassics.map((h, i) => (
+              {STUDENT_CLASSICS.map((h, i) => (
                 <BankRow key={h.id} h={h} i={i} {...bankRowProps(h)} />
               ))}
             </ul>

@@ -27,8 +27,8 @@ import {
   incrementHolding,
 } from "@/lib/holding";
 import { todayGuide } from "@/lib/guidance";
-import { dayCount } from "@/lib/store";
 import {
+  dayCount,
   durationLabel,
   formatCountdown,
   isUnlocked,
@@ -104,16 +104,20 @@ export default function Home() {
   const [sharedAnswers, setSharedAnswers] = useState<SharedAnswer[]>([]);
   // 나눔에 부쳤는지 — 회향 화면에 조용히 알린다
   const [shareDone, setShareDone] = useState(false);
+  // 나눔에 부치지 못했을 때의 안내 — 성공 문구와 나뉜다
+  const [shareError, setShareError] = useState("");
+  // 회향을 브라우저에 적지 못했을 때의 안내 (저장 공간이 찼을 때 등)
+  const [saveError, setSaveError] = useState("");
   const draftRef = useRef<HTMLTextAreaElement | null>(null);
 
   // 저장은 언제나 '지금 저장되어 있는 것' 위에 병합한다.
   // 화면이 들고 있는 옛 상태로 통째로 덮어쓰면, 그 사이 사유의 방이 적은
   // 단상 같은 글이 소리 없이 사라진다.
+  // 저장 성공 여부를 돌려준다 — 실패하면 화면이 알릴 수 있게.
   const update = useCallback((merge: (base: Store) => Store) => {
     const next = merge(loadStore());
     setStore(next);
-    saveStore(next);
-    return next;
+    return saveStore(next);
   }, []);
 
   // 회향을 마친 화두를 서고로 보낸다 — 화면은 '새 화두 받기'로 돌아간다
@@ -134,6 +138,8 @@ export default function Home() {
     decrementHolding(done.hwaduId);
     dropDraft(done.hwaduId);
     setShareDone(false);
+    setShareError("");
+    setSaveError("");
     setSharedAnswers([]);
     setWriting(false);
     setDraft("");
@@ -281,7 +287,7 @@ export default function Home() {
     const cur = loadStore().current;
     if (!cur || !answer) return;
     const hwaduId = cur.hwaduId;
-    update((latest) =>
+    const saved = update((latest) =>
       latest.current
         ? {
             ...latest,
@@ -293,10 +299,13 @@ export default function Home() {
           }
         : latest
     );
+    // 브라우저에 적지 못했다 — 화면에는 남아 있으니, 사정을 알린다
+    setSaveError(saved ? "" : "저장하지 못했습니다 — 저장 공간을 확인해 주십시오.");
     dropDraft(hwaduId);
     setDraft("");
     setWriting(false);
     setShareDone(false);
+    setShareError("");
     // 회향을 마치자마자 — 나눔의 뜻을 묻는다
     const ok = await confirm(
       "이 답을 다른 수행자에게 공유하겠습니까?",
@@ -304,8 +313,15 @@ export default function Home() {
       { confirm: "네", cancel: "아니오" }
     );
     if (ok) {
-      shareAnswer(hwaduId, answer).catch(() => {});
-      setShareDone(true);
+      // 부치는 데까지 기다린다 — 성공했을 때만 성공 문구를 보인다
+      try {
+        await shareAnswer(hwaduId, answer);
+        setShareDone(true);
+      } catch {
+        setShareError(
+          "나눔에 부치지 못했습니다 — 잠시 후 다시 시도해 주십시오."
+        );
+      }
     }
   };
 
@@ -450,9 +466,20 @@ export default function Home() {
             </details>
           )}
 
+          {saveError && (
+            <p className="mt-8 text-[12.5px] leading-6 text-vermilion">
+              {saveError}
+            </p>
+          )}
+
           {shareDone && (
             <p className="mt-8 text-[12.5px] leading-6 text-gold-soft">
               나눔에 부쳤습니다. 도량에서 살펴본 뒤 다른 수행자에게 열립니다.
+            </p>
+          )}
+          {shareError && (
+            <p className="mt-8 text-[12.5px] leading-6 text-vermilion">
+              {shareError}
             </p>
           )}
 

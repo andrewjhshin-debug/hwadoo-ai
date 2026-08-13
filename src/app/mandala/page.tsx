@@ -13,15 +13,19 @@
 //  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌리기·붓 굵기 지원.
 // 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 흩어진다.
 // 하던 만다라는 자동 임시저장되어, 다른 일 하다 돌아와도 그대로 떠 있다.
-// 배치 — 모바일: 왼쪽 위 모서리에 세로 스택 [원위치(더블탭) → 되돌리기 → (그리기만)
-//  손으로 옮기기], 오른쪽 위엔 비우기 — 작고 조용한 톤으로 판 위에 겹쳐 앉는다.
-//  데스크톱(sm+): 좌우에 자리가 넉넉하니 같은 버튼들이 판 바깥으로 나앉는다 —
-//  왼쪽 묶음은 판 왼쪽 바깥 세로 스택, 비우기는 판 오른쪽 바깥(둘 다 16px 간격).
-//  원 테두리를 조금도 가리지 않는다. 데스크톱 마우스: 휠 = 커서 자리 기준
+// 배치 — 판 위에는 아무 버튼도 겹치지 않는다. 캡처하면 만다라만 나온다.
+//  모바일: 토글 바로 아래 얇은 도구줄에 [원위치 · 되돌리기 · (그리기만) 옮기기 ·
+//  비우기 · 내려받기 · (그리기만) 붓]이 작게 나란히 앉는다.
+//  데스크톱(sm+): 좌우에 자리가 넉넉하니 원위치·되돌리기·옮기기는 판 왼쪽 바깥
+//  세로 스택, 비우기는 판 오른쪽 바깥(둘 다 16px 간격) — 도구줄에는 내려받기(와
+//  그리기의 붓)만 남는다. 데스크톱 마우스: 휠 = 커서 자리 기준
 //  확대/축소(1~3배, 핀치와 같은 클램프), 꾹 눌러 끌면 팬 — 로직은 터치와 한 몸.
-//  색칠: [토글 → 만다라 → N/M칸 → 문양 칩(가운데) → 색판]
-//  그리기: [토글 → 만다라 → 갈래·거울·붓 → 색판]
+//  색칠: [토글 → 도구줄 → 만다라 → N/M칸 → 문양 칩(가운데) → 색판]
+//  그리기: [토글 → 도구줄 → 만다라 → 갈래·거울 → 색판]
 // 가 스크롤 없이 한 화면에 들어온다.
+//  내려받기 — 색칠은 SVG 를 XMLSerializer → Image → canvas(1024²)로 굽고,
+//  그리기는 가이드+그림 캔버스를 합성한다. 배경은 늘 먹빛(#0d0b09)이라
+//  테마와 무관하게 밤 금선으로 굽는다. 실패는 조용히 삼킨다.
 // ────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -34,10 +38,10 @@ const ERASE = "erase";
 const MKEY = "hwadu.mandala.v3";
 const OLD_MKEY = "hwadoo-mandala-v1";
 
-// 만다라 판의 한 변 — 화면폭(-16px)과, 화면높이에서 고정 요소(헤더·칩·도구·색판·
-// 탭바)를 뺀 값 중 작은 쪽. 데스크톱에선 480px 를 넘지 않고,
+// 만다라 판의 한 변 — 화면폭(-16px)과, 화면높이에서 고정 요소(헤더·토글·도구줄·
+// 칩·색판·탭바)를 뺀 값 중 작은 쪽. 데스크톱에선 480px 를 넘지 않고,
 // 아주 낮은 가로 화면에서도 240px 아래로는 쪼그라들지 않는다.
-const BOARD_W = "max(240px, min(100vw - 16px, 100dvh - 355px, 480px))";
+const BOARD_W = "max(240px, min(100vw - 16px, 100dvh - 390px, 480px))";
 
 // 조각 테두리 — 밤엔 옅은 금선, 낮엔 짙은 먹선(#3a2c20 계열)이어야 흐리지 않다.
 // globals.css 는 다른 손이 만지므로, 여기서 인라인 CSS 변수로만 해결한다.
@@ -49,6 +53,63 @@ html[data-theme="light"] .mandala-board { --m-line: rgba(58,44,32,0.62); --m-fra
 // 도구 버튼 눌림 피드백 — 토글이든 단발 버튼이든, 누르는 동안 불이 들어온다
 const PRESS = "active:border-gold/60 active:bg-gold/10 active:text-gold";
 const PRESS_WARM = "active:border-vermilion/60 active:bg-vermilion/10 active:text-vermilion";
+
+// 도구줄 버튼 — 모바일은 토글 아래 얇게 나란히(판 위에는 아무것도 얹지 않는다),
+// 데스크톱(sm+)은 여백이 넉넉하니 조금 넓게 앉는다
+const TOOL =
+  "rounded-full border bg-ink-2/70 px-1.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors sm:px-2.5";
+
+// ══════════════ 내려받기 ══════════════
+// 배경은 늘 먹빛 — 테마와 무관하게 밤 금선으로 굽는다 (파일 머리 주석의 약속)
+const DL_SIZE = 1024;
+const DL_BG = "#0d0b09";
+const DL_LINE = "rgba(217,180,91,0.32)";
+const DL_FRAME = "rgba(217,180,91,0.16)";
+const DL_GUIDE = "rgba(217,180,91,0.12)";
+
+// 구운 canvas 를 hwadu-mandala.png 로 내린다 — 실패는 조용히 삼킨다
+function savePng(canvas: HTMLCanvasElement) {
+  try {
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "hwadu-mandala.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, "image/png");
+  } catch {}
+}
+
+// 가이드 선(동심원·방사선) — 화면 배경 캔버스와 내려받기 합성이 같은 그림을 쓴다
+function paintGuides(
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  strokeStyle: string,
+  segments: number
+) {
+  ctx.save();
+  ctx.strokeStyle = strokeStyle;
+  ctx.lineWidth = size / 1000;
+  const c = size / 2;
+  const k = size / 1000;
+  for (let r = 70 * k; r < c; r += 80 * k) {
+    ctx.beginPath();
+    ctx.arc(c, c, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  for (let i = 0; i < segments; i++) {
+    const a = (Math.PI * 2 * i) / segments;
+    ctx.beginPath();
+    ctx.moveTo(c, c);
+    ctx.lineTo(c + Math.cos(a) * c, c + Math.sin(a) * c);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
 
 // ══════════════ 저장 형태 ══════════════
 type Saved = {
@@ -244,6 +305,7 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
   const wrapRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   // 포인터 살림 — 손가락별 위치, 핀치 기준, 확대·이동 상태
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -592,10 +654,81 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     if (ok) doScatter();
   };
 
+  // ── 내려받기 — SVG → XMLSerializer → Image → canvas(1024²) → PNG ──
+  // CSS 변수는 판 밖에서 풀리지 않으니, 밤 금선 값으로 바꿔 굽는다.
+  const download = () => {
+    try {
+      const svg = svgRef.current;
+      if (!svg) return;
+      const clone = svg.cloneNode(true) as SVGSVGElement;
+      clone.setAttribute("width", String(DL_SIZE));
+      clone.setAttribute("height", String(DL_SIZE));
+      const xml = new XMLSerializer()
+        .serializeToString(clone)
+        .replace(/var\(--m-line\)/g, DL_LINE)
+        .replace(/var\(--m-frame\)/g, DL_FRAME);
+      const url = URL.createObjectURL(
+        new Blob([xml], { type: "image/svg+xml;charset=utf-8" })
+      );
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const out = document.createElement("canvas");
+        out.width = DL_SIZE;
+        out.height = DL_SIZE;
+        const ctx = out.getContext("2d");
+        if (!ctx) return;
+        ctx.fillStyle = DL_BG;
+        ctx.fillRect(0, 0, DL_SIZE, DL_SIZE);
+        ctx.drawImage(img, 0, 0, DL_SIZE, DL_SIZE);
+        savePng(out);
+      };
+      img.onerror = () => URL.revokeObjectURL(url);
+      img.src = url;
+    } catch {}
+  };
+
   return (
     <>
+      {/* 도구줄 — 토글 바로 아래. 판 위에는 아무것도 얹지 않는다 — 캡처하면 만다라만.
+          원위치·되돌리기·비우기는 모바일 전용, 데스크톱(sm+)에선 판 바깥에 있다 */}
+      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-1">
+        <button
+          onClick={resetView}
+          aria-label="원위치(더블탭)"
+          className={`${TOOL} ${PRESS} sm:hidden ${
+            zoomed ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint"
+          }`}
+        >
+          원위치
+        </button>
+        <button
+          onClick={undo}
+          disabled={!canUndo || scattering}
+          aria-label="되돌리기"
+          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint disabled:opacity-40 sm:hidden`}
+        >
+          되돌리기
+        </button>
+        <button
+          onClick={askClear}
+          disabled={scattering}
+          aria-label="비우기"
+          className={`${TOOL} ${PRESS_WARM} border-ink-3 text-hanji-faint disabled:opacity-50 sm:hidden`}
+        >
+          비우기
+        </button>
+        <button
+          onClick={download}
+          aria-label="내려받기"
+          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint hover:text-hanji`}
+        >
+          <span className="hidden sm:inline">⤓ </span>내려받기
+        </button>
+      </div>
+
       {/* 만다라 판 — 화면폭과 남은 높이 중 작은 쪽에 맞춘다.
-          모서리 버튼이 판 위에 겹치도록, 바깥 틀은 overflow 를 자르지 않는다 */}
+          판 위에는 아무 버튼도 없다 — 바깥 틀은 데스크톱 바깥 버튼을 위해 overflow 를 자르지 않는다 */}
       <div className="relative mt-3 w-full max-w-[480px] sm:mt-5" style={{ width: BOARD_W }}>
         <div
           ref={wrapRef}
@@ -609,7 +742,7 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           onContextMenu={(e) => e.preventDefault()}
         >
           <div ref={innerRef} className="h-full w-full origin-center will-change-transform">
-            <svg viewBox="0 0 200 200" className="h-full w-full">
+            <svg ref={svgRef} viewBox="0 0 200 200" className="h-full w-full">
               <circle cx="100" cy="100" r="98.5" fill="none" stroke="var(--m-frame)" strokeWidth="0.6" />
               {/* 모든 path 가 칸이다 — 테(evenodd 구멍) 위에 안쪽 칸이 얹힌다 */}
               {built.nodes.map((n) => (
@@ -633,10 +766,9 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           </div>
           <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
         </div>
-        {/* 판 왼쪽 위 — 세로 스택: 원위치(더블탭) · 되돌리기.
-            모바일: 모서리에 바짝(-4px), 판은 둥글어 이 자리가 비니 가림이 적다.
-            데스크톱(sm+): 판 왼쪽 바깥으로 나앉는다(16px 간격) — 원을 가리지 않는다 */}
-        <div className="absolute -left-1 -top-1 z-10 flex flex-col items-start gap-1 sm:left-auto sm:right-full sm:top-0 sm:mr-4 sm:items-end sm:whitespace-nowrap">
+        {/* 데스크톱(sm+) 전용 — 판 왼쪽 바깥 세로 스택(16px 간격): 원위치 · 되돌리기.
+            모바일은 위 도구줄로 올라갔다 — 판 위에는 아무것도 겹치지 않는다 */}
+        <div className="absolute right-full top-0 z-10 mr-4 hidden flex-col items-end gap-1 whitespace-nowrap sm:flex">
           <button
             onClick={resetView}
             aria-label="원위치(더블탭)"
@@ -655,12 +787,12 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
             ↩ 되돌리기
           </button>
         </div>
-        {/* 판 오른쪽 위 — 비우기. 데스크톱(sm+)은 판 오른쪽 바깥(16px 간격) */}
+        {/* 데스크톱(sm+) 전용 — 판 오른쪽 바깥(16px 간격) 비우기 */}
         <button
           onClick={askClear}
           disabled={scattering}
           aria-label="비우기"
-          className={`absolute right-0 top-0 z-10 rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 sm:left-full sm:right-auto sm:ml-4 sm:whitespace-nowrap ${PRESS_WARM}`}
+          className={`absolute left-full top-0 z-10 ml-4 hidden whitespace-nowrap rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 sm:block ${PRESS_WARM}`}
         >
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
@@ -709,7 +841,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
   const wrapRef = useRef<HTMLDivElement>(null);
   const [segments, setSegments] = useState(12);
   const [mirror, setMirror] = useState(true);
-  const [brush, setBrush] = useState(3); // 붓 굵기 — 갈래·거울 옆 슬라이더로 고른다
+  const [brush, setBrush] = useState(3); // 붓 굵기 — 도구줄(토글 아래) 슬라이더로 고른다
   const [panMode, setPanMode] = useState(false); // 기본: 연달아 그리기
   const [scattering, setScattering] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
@@ -732,27 +864,11 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
     const ctx = getBg();
     if (!ctx) return;
     ctx.clearRect(0, 0, SIZE, SIZE);
-    ctx.save();
     // 가이드 선 — 낮 모드에선 짙은 먹선 (인라인 CSS 변수에서 읽는다)
     const g = boardRef.current
       ? getComputedStyle(boardRef.current).getPropertyValue("--m-guide").trim()
       : "";
-    ctx.strokeStyle = g || "rgba(217,180,91,0.12)";
-    ctx.lineWidth = 1;
-    const c = SIZE / 2;
-    for (let r = 70; r < c; r += 80) {
-      ctx.beginPath();
-      ctx.arc(c, c, r, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    for (let i = 0; i < segments; i++) {
-      const a = (Math.PI * 2 * i) / segments;
-      ctx.beginPath();
-      ctx.moveTo(c, c);
-      ctx.lineTo(c + Math.cos(a) * c, c + Math.sin(a) * c);
-      ctx.stroke();
-    }
-    ctx.restore();
+    paintGuides(ctx, SIZE, g || DL_GUIDE, segments);
   }, [segments]);
 
   useEffect(() => {
@@ -1061,14 +1177,94 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
     if (ok) doScatter();
   };
 
+  // ── 내려받기 — 가이드+그림 캔버스를 1024² 판에 합성한다 ──
+  // 화면과 같은 원형 판: 원 밖은 먹빛, 가이드는 테마와 무관하게 밤 금선.
+  const download = () => {
+    try {
+      const main = canvasRef.current;
+      if (!main) return;
+      const out = document.createElement("canvas");
+      out.width = DL_SIZE;
+      out.height = DL_SIZE;
+      const ctx = out.getContext("2d");
+      if (!ctx) return;
+      ctx.fillStyle = DL_BG;
+      ctx.fillRect(0, 0, DL_SIZE, DL_SIZE);
+      ctx.beginPath();
+      ctx.arc(DL_SIZE / 2, DL_SIZE / 2, DL_SIZE / 2, 0, Math.PI * 2);
+      ctx.clip();
+      paintGuides(ctx, DL_SIZE, DL_GUIDE, segments);
+      ctx.drawImage(main, 0, 0, DL_SIZE, DL_SIZE);
+      savePng(out);
+    } catch {}
+  };
+
   return (
     <>
+      {/* 도구줄 — 토글 바로 아래. 판 위에는 아무것도 얹지 않는다 — 캡처하면 만다라만.
+          원위치·되돌리기·옮기기·비우기는 모바일 전용, 데스크톱(sm+)에선 판 바깥에 있다.
+          붓 굵기는 여기 — 거울 옆이 아니라 토글 곁에서 고른다 */}
+      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-1">
+        <button
+          onClick={resetView}
+          aria-label="원위치(더블탭)"
+          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint sm:hidden`}
+        >
+          원위치
+        </button>
+        <button
+          onClick={undo}
+          disabled={!canUndo || scattering}
+          aria-label="되돌리기"
+          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint disabled:opacity-40 sm:hidden`}
+        >
+          되돌리기
+        </button>
+        <button
+          onClick={() => setPanMode((v) => !v)}
+          aria-label="손으로 옮기기"
+          className={`${TOOL} ${PRESS} sm:hidden ${
+            panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint"
+          }`}
+        >
+          옮기기
+        </button>
+        <button
+          onClick={askClear}
+          disabled={scattering}
+          aria-label="비우기"
+          className={`${TOOL} ${PRESS_WARM} border-ink-3 text-hanji-faint disabled:opacity-50 sm:hidden`}
+        >
+          비우기
+        </button>
+        <button
+          onClick={download}
+          aria-label="내려받기"
+          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint hover:text-hanji`}
+        >
+          <span className="hidden sm:inline">⤓ </span>내려받기
+        </button>
+        <span className="ml-1 hidden text-[11px] tracking-[0.2em] text-hanji-faint sm:inline">
+          붓
+        </span>
+        <input
+          type="range"
+          min={1}
+          max={10}
+          step={0.5}
+          value={brush}
+          onChange={(e) => setBrush(Number(e.target.value))}
+          aria-label="붓 굵기"
+          className="mandala-range w-16 sm:w-[120px]"
+        />
+      </div>
+
       {/* 안내는 데스크톱에만 — 모바일은 한 화면에 다 들어오도록 아낀다 */}
       <p className="mt-2 hidden text-center text-[11px] leading-5 text-hanji-faint sm:block">
         손끝으로 그으면, 여러 갈래로 함께 피어납니다.
       </p>
 
-      {/* 만다라 판 — 색칠 모드와 같은 자리에 모서리 버튼 */}
+      {/* 만다라 판 — 판 위에는 아무 버튼도 없다. 색칠 모드와 같은 결 */}
       <div className="relative mt-3 w-full max-w-[480px]" style={{ width: BOARD_W }}>
         <div
           ref={boardRef}
@@ -1092,10 +1288,9 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
           {/* 흩날림 전용 오버레이 — wrap 변형과 무관하게 화면 전체를 덮는다 */}
           <canvas ref={scatterRef} className="pointer-events-none absolute inset-0 h-full w-full" />
         </div>
-        {/* 판 왼쪽 위 — 세로 스택: 원위치(더블탭) · 되돌리기 · 손으로 옮기기.
-            모바일: 모서리에 바짝(-4px), 판은 둥글어 이 자리가 비니 가림이 적다.
-            데스크톱(sm+): 판 왼쪽 바깥으로 나앉는다(16px 간격) — 원을 가리지 않는다 */}
-        <div className="absolute -left-1 -top-1 z-10 flex flex-col items-start gap-1 sm:left-auto sm:right-full sm:top-0 sm:mr-4 sm:items-end sm:whitespace-nowrap">
+        {/* 데스크톱(sm+) 전용 — 판 왼쪽 바깥 세로 스택(16px 간격):
+            원위치 · 되돌리기 · 손으로 옮기기. 모바일은 위 도구줄로 올라갔다 */}
+        <div className="absolute right-full top-0 z-10 mr-4 hidden flex-col items-end gap-1 whitespace-nowrap sm:flex">
           <button
             onClick={resetView}
             aria-label="원위치(더블탭)"
@@ -1121,18 +1316,18 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
             ✋ 손으로 옮기기
           </button>
         </div>
-        {/* 판 오른쪽 위 — 비우기. 데스크톱(sm+)은 판 오른쪽 바깥(16px 간격) */}
+        {/* 데스크톱(sm+) 전용 — 판 오른쪽 바깥(16px 간격) 비우기 */}
         <button
           onClick={askClear}
           disabled={scattering}
           aria-label="비우기"
-          className={`absolute right-0 top-0 z-10 rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 sm:left-full sm:right-auto sm:ml-4 sm:whitespace-nowrap ${PRESS_WARM}`}
+          className={`absolute left-full top-0 z-10 ml-4 hidden whitespace-nowrap rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 sm:block ${PRESS_WARM}`}
         >
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
       </div>
 
-      {/* 갈래·거울·붓 — 문양 칩 자리(판 바로 아래)로 조용히 올린다 */}
+      {/* 갈래·거울 — 문양 칩 자리(판 바로 아래). 붓은 위 도구줄로 옮겨 갔다 */}
       <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-2 px-1">
         <span className="text-[11px] tracking-[0.2em] text-hanji-faint">갈래</span>
         {[6, 8, 12, 16, 24].map((n) => (
@@ -1154,17 +1349,6 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         >
           거울
         </button>
-        <span className="ml-2 text-[11px] tracking-[0.2em] text-hanji-faint">붓</span>
-        <input
-          type="range"
-          min={1}
-          max={10}
-          step={0.5}
-          value={brush}
-          onChange={(e) => setBrush(Number(e.target.value))}
-          aria-label="붓 굵기"
-          className="mandala-range w-[120px]"
-        />
       </div>
 
       <PaletteBar color={color} onPick={onPick} />

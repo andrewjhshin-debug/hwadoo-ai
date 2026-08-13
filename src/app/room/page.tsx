@@ -40,6 +40,8 @@ export default function RoomPage() {
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState(false);
   const [savedAt, setSavedAt] = useState<string>("");
+  // 브라우저에 적지 못했을 때의 안내 (저장 공간이 찼을 때 등)
+  const [saveError, setSaveError] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notesRef = useRef("");
   const lastWrote = useRef<string | null>(null);
@@ -60,8 +62,16 @@ export default function RoomPage() {
     if (!latest.current) return;
     lastWrote.current = value;
     if ((latest.current.notes ?? "") !== value) {
-      saveStore({ ...latest, current: { ...latest.current, notes: value } });
+      if (
+        !saveStore({ ...latest, current: { ...latest.current, notes: value } })
+      ) {
+        // 적지 못했다 — 글은 화면에 그대로 두고 사정을 알린다
+        setSaved(false);
+        setSaveError("저장하지 못했습니다 — 저장 공간을 확인해 주십시오.");
+        return;
+      }
     }
+    setSaveError("");
     setSaved(true);
     setSavedAt(
       new Date().toLocaleTimeString("ko-KR", {
@@ -164,10 +174,16 @@ export default function RoomPage() {
           <p className="text-[11px] leading-5 text-hanji-faint">
             떠오르는 것을 적어 두십시오 — 답이 아니라 발자국입니다.
           </p>
-          {savedAt && (
-            <span className="shrink-0 text-[10px] text-hanji-faint">
-              {saved ? `저장됨 · ${savedAt}` : "적는 중…"}
+          {saveError ? (
+            <span className="shrink-0 text-[10px] leading-5 text-vermilion">
+              {saveError}
             </span>
+          ) : (
+            savedAt && (
+              <span className="shrink-0 text-[10px] text-hanji-faint">
+                {saved ? `저장됨 · ${savedAt}` : "적는 중…"}
+              </span>
+            )
           )}
         </div>
         <textarea

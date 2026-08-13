@@ -4,7 +4,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { flatQuestion, getHwadu, sessionQuestion, sessionTitle } from "@/lib/hwadu";
-import { formatDate, loadStore, saveStore, type Session } from "@/lib/store";
+import {
+  formatDate,
+  loadStore,
+  saveStore,
+  sessionKey,
+  type Session,
+} from "@/lib/store";
 import { useConfirm } from "@/components/Confirm";
 
 const MAX_ANSWER = 500;
@@ -19,13 +25,11 @@ export default function ArchivePage() {
     setHistory(loadStore().history);
   }, []);
 
-  const keyOf = (s: Session) => `${s.hwaduId}-${s.receivedAt}`;
-
   // 답을 고쳐 쓴다
   const saveEdit = (s: Session) => {
     const latest = loadStore();
     const next = latest.history.map((h) =>
-      keyOf(h) === keyOf(s)
+      sessionKey(h) === sessionKey(s)
         ? { ...h, journal: draft.trim(), journalAt: Date.now() }
         : h
     );
@@ -43,7 +47,7 @@ export default function ArchivePage() {
     );
     if (!ok) return;
     const latest = loadStore();
-    const next = latest.history.filter((h) => keyOf(h) !== keyOf(s));
+    const next = latest.history.filter((h) => sessionKey(h) !== sessionKey(s));
     saveStore({ ...latest, history: next });
     setHistory(next);
   };
@@ -85,7 +89,7 @@ export default function ArchivePage() {
           {[...history]
             .sort((a, b) => b.receivedAt - a.receivedAt)
             .map((s, i) => {
-            const k = keyOf(s);
+            const k = sessionKey(s);
             const editing = editKey === k;
             return (
               <article

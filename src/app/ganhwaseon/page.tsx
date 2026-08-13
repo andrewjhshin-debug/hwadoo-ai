@@ -109,6 +109,49 @@ export default function GanhwaseonPage() {
           </div>
         </section>
 
+        {/* 구체적인 수행 방법 */}
+        <section>
+          <h2 className="font-serif text-lg text-gold-soft">
+            구체적인 수행 방법
+          </h2>
+          <p className="mt-4">
+            여섯 걸음이 뼈대라면, 아래는 처음 앉는 분을 위한 살입니다.
+            그대로 따라 해 보셔도 좋습니다.
+          </p>
+          <div className="mt-6 space-y-8">
+            {[
+              {
+                n: "坐",
+                title: "바른 자세로 앉기 — 좌선",
+                desc: "조용한 자리에 방석을 놓고 가부좌나 반가부좌로 바르게 앉습니다. 허리는 곧게 세우고, 턱은 살짝 당기고, 눈은 반쯤 감아 시선을 한두 걸음 앞 바닥에 가만히 둡니다. 어깨의 힘을 빼고 호흡이 고요해질 때까지 잠시 기다립니다.",
+              },
+              {
+                n: "話",
+                title: "화두를 정하고 들기",
+                desc: "처음이라면 무(無)나 '이뭣고' 같은 대표 화두를 드는 것이 좋습니다. 지식이나 논리로 답을 찾으려 하지 말고, “이게 무엇이지?” 하는 순수한 궁금증과 의심만 오롯이 붙듭니다.",
+              },
+              {
+                n: "疑",
+                title: "생각을 끊고 의심을 잇기",
+                desc: "잡생각이 일어나면 따라가지 말고, 조용히 화두의 의심으로 돌아옵니다. 물음과 내가 하나가 되도록, 모르는 답답함 속으로 깊이 들어갑니다.",
+              },
+              {
+                n: "行",
+                title: "일상으로 잇기",
+                desc: "앉아 있을 때만이 아니라 걷고 일하고 말할 때도 의심이 끊어지지 않게 합니다. 자리에서 일어나는 순간 공부가 끝나는 것이 아니라, 거기서부터가 본 공부입니다.",
+              },
+            ].map((item) => (
+              <div key={item.n} className="border-l border-ink-3 pl-5">
+                <p className="flex items-baseline gap-3">
+                  <span className="font-serif text-gold-soft">{item.n}</span>
+                  <span className="text-hanji">{item.title}</span>
+                </p>
+                <p className="mt-2 text-sm leading-7">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* 이게 왜 좋은가 */}
         <section>
           <h2 className="font-serif text-lg text-gold-soft">
