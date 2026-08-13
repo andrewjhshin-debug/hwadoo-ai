@@ -56,6 +56,7 @@ type MonthReport = {
 type HeldItem = {
   key: string;
   from: string; // 받은 날, "3.2" 꼴
+  receivedAt: number; // 받은 시각 — 최신순 정렬의 기준
   question: string; // 화두 질문 전문 — 줄이지 않는다
   days: number; // 품은 일수 (최소 1일)
   current: boolean; // 지금 품는 중인가
@@ -182,6 +183,7 @@ export default function SettingsPage() {
       return {
         key: `${sess.hwaduId}-${sess.receivedAt}${isCurrent ? "-now" : ""}`,
         from: `${d.getMonth() + 1}.${d.getDate()}`,
+        receivedAt: sess.receivedAt,
         question: flatQuestion(sessionQuestion(sess)),
         days: Math.max(1, Math.floor((end - sess.receivedAt) / DAY)),
         current: isCurrent,
@@ -191,7 +193,7 @@ export default function SettingsPage() {
       [
         ...s.history.map((h) => toHeld(h, false)),
         ...(s.current ? [toHeld(s.current, true)] : []),
-      ].sort((a, b) => b.days - a.days)
+      ].sort((a, b) => b.receivedAt - a.receivedAt)
     );
   }, []);
 

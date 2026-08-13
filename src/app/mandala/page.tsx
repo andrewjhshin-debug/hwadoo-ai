@@ -11,7 +11,10 @@
 //  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌리기 지원.
 // 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 흩어진다.
 // 하던 만다라는 자동 임시저장되어, 다른 일 하다 돌아와도 그대로 떠 있다.
-// 모바일은 [토글 → 만다라 → 칩·도구 → 색판] 이 스크롤 없이 한 화면에 들어온다.
+// 배치 — 원위치·비우기는 판의 왼쪽 위·오른쪽 위 모서리에 겹쳐 앉는다.
+//  색칠: [토글 → 만다라 → N/M칸 → 문양 칩(가운데) → 색판]
+//  그리기: [토글 → 만다라 → 갈래·거울·붓 → 색판 → 되돌리기·손으로 옮기기]
+// 가 스크롤 없이 한 화면에 들어온다.
 // ────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -491,82 +494,86 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
 
   return (
     <>
-      {/* 만다라 판 — 화면폭과 남은 높이 중 작은 쪽에 맞춘다 */}
-      <div
-        ref={wrapRef}
-        className="mandala-board relative mt-3 aspect-square w-full max-w-[480px] touch-none select-none overflow-hidden rounded-full border border-ink-3 bg-ink-2/40 sm:mt-5"
-        style={{ width: BOARD_W, touchAction: "none" }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endPointer}
-        onPointerCancel={endPointer}
-        onContextMenu={(e) => e.preventDefault()}
-      >
-        <div ref={innerRef} className="h-full w-full origin-center will-change-transform">
-          <svg viewBox="0 0 200 200" className="h-full w-full">
-            <circle cx="100" cy="100" r="98.5" fill="none" stroke="var(--m-frame)" strokeWidth="0.6" />
-            {/* 모든 path 가 칸이다 — 테(evenodd 구멍) 위에 안쪽 칸이 얹힌다 */}
-            {built.nodes.map((n) => (
-              <path
-                key={n.key}
-                d={n.d}
-                data-cell={n.key}
-                fill={fills[n.key] ?? "transparent"}
-                fillRule={n.fillRule}
-                stroke="var(--m-line)"
-                strokeWidth="0.3"
-                strokeLinejoin="round"
-                style={{
-                  pointerEvents: "all", // 빈칸은 진짜 투명이되, 짚는 건 잡힌다
-                  transition: "fill 0.08s",
-                  cursor: scattering ? "default" : "pointer",
-                }}
-              />
-            ))}
-          </svg>
+      {/* 만다라 판 — 화면폭과 남은 높이 중 작은 쪽에 맞춘다.
+          모서리 버튼이 판 위에 겹치도록, 바깥 틀은 overflow 를 자르지 않는다 */}
+      <div className="relative mt-3 w-full max-w-[480px] sm:mt-5" style={{ width: BOARD_W }}>
+        <div
+          ref={wrapRef}
+          className="mandala-board relative aspect-square w-full touch-none select-none overflow-hidden rounded-full border border-ink-3 bg-ink-2/40"
+          style={{ touchAction: "none" }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endPointer}
+          onPointerCancel={endPointer}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <div ref={innerRef} className="h-full w-full origin-center will-change-transform">
+            <svg viewBox="0 0 200 200" className="h-full w-full">
+              <circle cx="100" cy="100" r="98.5" fill="none" stroke="var(--m-frame)" strokeWidth="0.6" />
+              {/* 모든 path 가 칸이다 — 테(evenodd 구멍) 위에 안쪽 칸이 얹힌다 */}
+              {built.nodes.map((n) => (
+                <path
+                  key={n.key}
+                  d={n.d}
+                  data-cell={n.key}
+                  fill={fills[n.key] ?? "transparent"}
+                  fillRule={n.fillRule}
+                  stroke="var(--m-line)"
+                  strokeWidth="0.3"
+                  strokeLinejoin="round"
+                  style={{
+                    pointerEvents: "all", // 빈칸은 진짜 투명이되, 짚는 건 잡힌다
+                    transition: "fill 0.08s",
+                    cursor: scattering ? "default" : "pointer",
+                  }}
+                />
+              ))}
+            </svg>
+          </div>
+          <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
         </div>
-        <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
-      </div>
-
-      {/* 문양 칩 — 만다라 아래, 모바일은 가로 스크롤 */}
-      <div
-        className="mt-2.5 flex w-full max-w-[480px] items-center gap-1.5 overflow-x-auto px-1 pb-0.5 sm:justify-center"
-        style={{ scrollbarWidth: "none" }}
-      >
-        {TEMPLATES.map((t, i) => (
-          <button
-            key={t.key}
-            title={t.hanja}
-            onClick={() => !scattering && setTplIdx(i)}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] tracking-widest transition-colors ${PRESS} ${
-              tplIdx === i ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
-            }`}
-          >
-            {t.name}
-          </button>
-        ))}
-      </div>
-
-      {/* 진행 · 원위치 · 비우기 */}
-      <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-        <p className="text-[11px] tracking-[0.2em] text-hanji-faint">
-          {filledCount} / {built.cellKeys.length} 칸
-        </p>
-        {zoomed && (
-          <button
-            onClick={resetView}
-            className={`rounded-full border border-ink-3 px-3 py-1 text-[11px] tracking-[0.1em] text-hanji-dim transition-colors hover:text-hanji ${PRESS}`}
-          >
-            ⊙ 원위치
-          </button>
-        )}
+        {/* 판 왼쪽 위 — 원위치 (확대 중이면 금빛으로 살아난다) */}
+        <button
+          onClick={resetView}
+          aria-label="원위치"
+          className={`absolute left-0 top-0 z-10 rounded-full border bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors ${PRESS} ${
+            zoomed ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint hover:text-hanji"
+          }`}
+        >
+          ⊙ 원위치
+        </button>
+        {/* 판 오른쪽 위 — 비우기 */}
         <button
           onClick={askClear}
           disabled={scattering}
-          className={`rounded-[10px] border border-ink-3 px-4 py-1.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 ${PRESS_WARM}`}
+          aria-label="비우기"
+          className={`absolute right-0 top-0 z-10 rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 ${PRESS_WARM}`}
         >
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
+      </div>
+
+      {/* 판 바로 아래 — 진행 표시 */}
+      <p className="mt-2 text-[11px] tracking-[0.2em] text-hanji-faint">
+        {filledCount} / {built.cellKeys.length} 칸
+      </p>
+
+      {/* 문양 칩 — 가운데 정렬, 폭을 넘치면 가로 스크롤 */}
+      <div className="mt-2 w-full max-w-[480px] overflow-x-auto pb-0.5" style={{ scrollbarWidth: "none" }}>
+        <div className="flex w-max min-w-full items-center justify-center gap-1.5 px-1">
+          {TEMPLATES.map((t, i) => (
+            <button
+              key={t.key}
+              title={t.hanja}
+              onClick={() => !scattering && setTplIdx(i)}
+              className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] tracking-widest transition-colors ${PRESS} ${
+                tplIdx === i ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
+              }`}
+            >
+              {t.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       <PaletteBar color={color} onPick={onPick} />
@@ -895,66 +902,51 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         손끝으로 그으면, 여러 갈래로 함께 피어납니다.
       </p>
 
-      <div
-        ref={boardRef}
-        className="mandala-board relative mt-3 aspect-square w-full max-w-[480px] overflow-hidden rounded-full border border-ink-3 bg-ink-2/40"
-        style={{ width: BOARD_W }}
-      >
-        <div ref={wrapRef} className="relative h-full w-full origin-center will-change-transform">
-          <canvas ref={bgRef} className="pointer-events-none absolute inset-0 h-full w-full" />
-          <canvas
-            ref={canvasRef}
-            onPointerDown={onDown}
-            onPointerMove={onMove}
-            onPointerUp={onUp}
-            onPointerLeave={onUp}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-            className="absolute inset-0 h-full w-full touch-none"
-            style={{ cursor: panMode ? "grab" : "crosshair" }}
-          />
+      {/* 만다라 판 — 색칠 모드와 같은 자리에 모서리 버튼 */}
+      <div className="relative mt-3 w-full max-w-[480px]" style={{ width: BOARD_W }}>
+        <div
+          ref={boardRef}
+          className="mandala-board relative aspect-square w-full overflow-hidden rounded-full border border-ink-3 bg-ink-2/40"
+        >
+          <div ref={wrapRef} className="relative h-full w-full origin-center will-change-transform">
+            <canvas ref={bgRef} className="pointer-events-none absolute inset-0 h-full w-full" />
+            <canvas
+              ref={canvasRef}
+              onPointerDown={onDown}
+              onPointerMove={onMove}
+              onPointerUp={onUp}
+              onPointerLeave={onUp}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+              className="absolute inset-0 h-full w-full touch-none"
+              style={{ cursor: panMode ? "grab" : "crosshair" }}
+            />
+          </div>
+          {/* 흩날림 전용 오버레이 — wrap 변형과 무관하게 화면 전체를 덮는다 */}
+          <canvas ref={scatterRef} className="pointer-events-none absolute inset-0 h-full w-full" />
         </div>
-        {/* 흩날림 전용 오버레이 — wrap 변형과 무관하게 화면 전체를 덮는다 */}
-        <canvas ref={scatterRef} className="pointer-events-none absolute inset-0 h-full w-full" />
-      </div>
-
-      {/* 색판을 먼저 — 모바일에서 아래 잘림 없이 한 화면에 들어온다 */}
-      <PaletteBar color={color} onPick={onPick} />
-
-      {/* 되돌리기 · 손으로 옮기기 · 원위치 · 비우기 */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-        <button
-          onClick={undo}
-          disabled={!canUndo || scattering}
-          className={`rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.1em] text-hanji-dim transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
-        >
-          ↩ 되돌리기
-        </button>
-        <button
-          onClick={() => setPanMode((v) => !v)}
-          className={`rounded-full border px-3.5 py-1.5 text-[11px] tracking-[0.1em] transition-colors sm:hidden ${PRESS} ${
-            panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim"
-          }`}
-        >
-          ✋ 손으로 옮기기
-        </button>
+        {/* 판 왼쪽 위 — 원위치 */}
         <button
           onClick={resetView}
-          className={`rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.1em] text-hanji-faint transition-colors hover:text-hanji sm:hidden ${PRESS}`}
+          aria-label="원위치"
+          className={`absolute left-0 top-0 z-10 rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:text-hanji ${PRESS}`}
         >
           ⊙ 원위치
         </button>
+        {/* 판 오른쪽 위 — 비우기 */}
         <button
           onClick={askClear}
           disabled={scattering}
-          className={`rounded-[10px] border border-ink-3 px-4 py-1.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 ${PRESS_WARM}`}
+          aria-label="비우기"
+          className={`absolute right-0 top-0 z-10 rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50 ${PRESS_WARM}`}
         >
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
       </div>
 
-      <div className="mt-2.5 flex flex-wrap items-center justify-center gap-2">
+      {/* 갈래·거울·붓 — 문양 칩 자리(판 바로 아래)로 조용히 올린다 */}
+      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-2 px-1">
         <span className="text-[11px] tracking-[0.2em] text-hanji-faint">갈래</span>
         {[6, 8, 12, 16, 24].map((n) => (
           <button
@@ -985,6 +977,27 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
           onChange={(e) => setBrush(Number(e.target.value))}
           className="mandala-range w-[120px]"
         />
+      </div>
+
+      <PaletteBar color={color} onPick={onPick} />
+
+      {/* 색판 밑 — 되돌리기 · 손으로 옮기기, 이 둘만 */}
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+        <button
+          onClick={undo}
+          disabled={!canUndo || scattering}
+          className={`rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.1em] text-hanji-dim transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
+        >
+          ↩ 되돌리기
+        </button>
+        <button
+          onClick={() => setPanMode((v) => !v)}
+          className={`rounded-full border px-3.5 py-1.5 text-[11px] tracking-[0.1em] transition-colors ${PRESS} ${
+            panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim"
+          }`}
+        >
+          ✋ 손으로 옮기기
+        </button>
       </div>
     </>
   );
