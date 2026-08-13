@@ -27,8 +27,8 @@ import {
   Breath,
   Dharmachakra,
   Elephant,
-  Garden,
   Jukbi,
+  Lotus,
   LotusPond,
   Mandala,
   Moktak,
@@ -357,7 +357,7 @@ export default function Sidebar() {
               slim ? "justify-center px-0" : "px-4"
             }`}
           >
-            <Garden className="h-[17px] w-[17px]" stroke="#D9B45B" />
+            <Lotus className="h-[17px] w-[17px]" stroke="#D9B45B" />
             {!slim && "뜰"}
           </Link>
 

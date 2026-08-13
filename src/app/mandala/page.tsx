@@ -6,14 +6,15 @@
 //     눈에 보이는 모든 닫힌 구역이 저마다 한 칸(data-cell)이다 — 꽃잎 속
 //     작은 꽃잎이면 테와 속잎이 서로 다른 칸, 구슬 한 알도 제 칸.
 //     하나하나 짚어 칠하는 것이 곧 수행이다.
-//     한 손가락 드래그 = 연달아 색칠, 우클릭 = 그 칸 비우기.
-//     두 손가락 = 확대·이동(1~3배), 더블탭 = 원위치. 확대 중에도 한 손가락은 색칠.
+//     한 손가락 탭 = 그 칸 하나 색칠, 우클릭 = 그 칸 비우기.
+//     한 손가락 드래그(문턱 8px) = 판 이동(팬) — 긁어서 연달아 칠하지 않는다.
+//     두 손가락 = 핀치 확대(1~3배), 더블탭 = 원위치. 되돌리기 = 마지막 한 칸.
 //  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌리기 지원.
 // 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 흩어진다.
 // 하던 만다라는 자동 임시저장되어, 다른 일 하다 돌아와도 그대로 떠 있다.
 // 배치 — 원위치·비우기는 판의 왼쪽 위·오른쪽 위 모서리에 겹쳐 앉는다.
-//  색칠: [토글 → 만다라 → N/M칸 → 문양 칩(가운데) → 색판]
-//  그리기: [토글 → 만다라 → 갈래·거울·붓 → 색판 → 되돌리기·손으로 옮기기]
+//  색칠: [토글 → 만다라 → N/M칸 → 문양 칩(가운데) → 색판 → 되돌리기]
+//  그리기: [토글 → 만다라 → 갈래·거울 → 색판 → 되돌리기·손으로 옮기기]
 // 가 스크롤 없이 한 화면에 들어온다.
 // ────────────────────────────────────────────────────────────────
 
@@ -239,13 +240,22 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // 포인터 살림 — 손가락별 위치, 핀치 기준, 확대·이동 상태
-  const painting = useRef(false);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; cx: number; cy: number } | null>(null);
   const view = useRef({ scale: 1, x: 0, y: 0 });
   const lastTap = useRef({ t: 0, x: 0, y: 0 });
-  // 핀치 직전에 얼떨결에 칠해진 칸을 되돌리기 위한 기억
-  const justPainted = useRef<{ id: string; prev: string | undefined; t: number } | null>(null);
+  // 한 손가락 — 탭인지 팬인지 문턱(8px)을 넘기 전엔 모른다
+  const gesture = useRef<null | {
+    mode: "pending" | "pan";
+    startX: number;
+    startY: number;
+    lastX: number;
+    lastY: number;
+    button: number;
+  }>(null);
+  // 되돌리기 더미 — 칠하기 직전의 칸 상태를 쌓는다
+  const undoStack = useRef<{ tpl: string; id: string; prev: string | undefined }[]>([]);
+  const [canUndo, setCanUndo] = useState(false);
   const scatterSeq = useRef(0);
 
   const tpl = TEMPLATES[tplIdx] ?? TEMPLATES[0];
@@ -278,23 +288,34 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     patchSaved({ tpl: tplIdx, fills: fillsAll });
   }, [fillsAll, tplIdx, hydrated]);
 
-  const apply = useCallback(
-    (id: string, erase: boolean) => {
-      if (scattering) return;
-      setFillsAll((prev) => {
-        const cur = { ...(prev[String(tplIdx)] ?? {}) };
-        if (erase || color === ERASE) {
-          if (!(id in cur)) return prev;
-          delete cur[id];
-        } else {
-          if (cur[id] === color) return prev;
-          cur[id] = color;
-        }
-        return { ...prev, [String(tplIdx)]: cur };
-      });
-    },
-    [color, tplIdx, scattering]
-  );
+  // 탭 한 번 = 칸 하나 — 바뀔 때만 되돌리기 더미에 이전 상태를 쌓는다
+  const paintCell = (id: string, erase: boolean) => {
+    if (scattering) return;
+    const prev = fills[id];
+    const next = erase || color === ERASE ? undefined : color;
+    if (prev === next) return;
+    undoStack.current.push({ tpl: String(tplIdx), id, prev });
+    if (undoStack.current.length > 200) undoStack.current.shift();
+    setCanUndo(true);
+    setFillsAll((all) => {
+      const cur = { ...(all[String(tplIdx)] ?? {}) };
+      if (next === undefined) delete cur[id];
+      else cur[id] = next;
+      return { ...all, [String(tplIdx)]: cur };
+    });
+  };
+
+  const undo = () => {
+    const last = undoStack.current.pop();
+    setCanUndo(undoStack.current.length > 0);
+    if (!last) return;
+    setFillsAll((all) => {
+      const cur = { ...(all[last.tpl] ?? {}) };
+      if (last.prev === undefined) delete cur[last.id];
+      else cur[last.id] = last.prev;
+      return { ...all, [last.tpl]: cur };
+    });
+  };
 
   const filledCount = useMemo(
     () => built.cellKeys.reduce((n, k) => n + (fills[k] ? 1 : 0), 0),
@@ -328,6 +349,8 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     return hit ? hit.getAttribute("data-cell") : null;
   };
 
+  const TAP_SLOP = 8; // px — 이 안에서 떼면 탭(색칠), 넘으면 팬(판 이동)
+
   const onPointerDown = (e: React.PointerEvent) => {
     if (scattering) return;
     try {
@@ -335,20 +358,9 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     } catch {}
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-    // 두 번째 손가락 — 색칠을 멈추고 확대·이동 모드로
+    // 두 번째 손가락 — 탭·팬을 접고 핀치 확대·이동 모드로
     if (pointers.current.size === 2) {
-      painting.current = false;
-      const jp = justPainted.current;
-      if (jp && performance.now() - jp.t < 250) {
-        // 핀치의 첫 손가락이 얼떨결에 칠한 칸을 되돌린다
-        setFillsAll((prev) => {
-          const cur = { ...(prev[String(tplIdx)] ?? {}) };
-          if (jp.prev === undefined) delete cur[jp.id];
-          else cur[jp.id] = jp.prev;
-          return { ...prev, [String(tplIdx)]: cur };
-        });
-      }
-      justPainted.current = null;
+      gesture.current = null;
       const [a, b] = [...pointers.current.values()];
       pinch.current = {
         dist: Math.hypot(b.x - a.x, b.y - a.y),
@@ -373,16 +385,15 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     }
     lastTap.current = { t: now, x: e.clientX, y: e.clientY };
 
-    // 한 손가락 = 색칠 (확대 중에도 그대로)
-    const id = cellAt(e.clientX, e.clientY);
-    if (!id) return;
-    if (e.button === 2) {
-      apply(id, true); // 우클릭 = 그 칸 비우기
-      return;
-    }
-    painting.current = true;
-    justPainted.current = { id, prev: fills[id], t: now };
-    apply(id, false);
+    // 아직 탭인지 팬인지 모른다 — 여기서는 칠하지 않는다 (떼는 순간 판정)
+    gesture.current = {
+      mode: "pending",
+      startX: e.clientX,
+      startY: e.clientY,
+      lastX: e.clientX,
+      lastY: e.clientY,
+      button: e.button,
+    };
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -411,25 +422,50 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
       return;
     }
 
-    if (painting.current) {
-      const id = cellAt(e.clientX, e.clientY);
-      if (id) apply(id, false);
+    // 한 손가락 — 문턱을 넘는 순간 팬으로 확정, 그 뒤로는 판만 옮긴다
+    const g = gesture.current;
+    if (!g || pointers.current.size !== 1) return;
+    if (g.mode === "pending" && Math.hypot(e.clientX - g.startX, e.clientY - g.startY) > TAP_SLOP) {
+      g.mode = "pan";
     }
+    if (g.mode === "pan") {
+      view.current.x += e.clientX - g.lastX;
+      view.current.y += e.clientY - g.lastY;
+      applyView(); // 배율 1이면 클램프가 0이라 제자리 — 그래도 된다
+    }
+    g.lastX = e.clientX;
+    g.lastY = e.clientY;
   };
 
   const endPointer = (e: React.PointerEvent) => {
     pointers.current.delete(e.pointerId);
     if (pointers.current.size < 2) pinch.current = null; // 배율은 그대로 남는다
-    if (pointers.current.size === 0) painting.current = false;
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    const g = gesture.current;
+    // 문턱 안에서 뗐다 — 탭 = 그 칸 하나 색칠 (우클릭이면 그 칸 비우기)
+    if (g && g.mode === "pending" && pointers.current.has(e.pointerId) && pointers.current.size === 1) {
+      const id = cellAt(e.clientX, e.clientY);
+      if (id) paintCell(id, g.button === 2);
+    }
+    gesture.current = null;
+    endPointer(e);
+  };
+
+  const onPointerCancel = (e: React.PointerEvent) => {
+    gesture.current = null;
+    endPointer(e);
   };
 
   // ── 비우기(모래 흩어짐) ──
   const doScatter = () => {
     // 포인터 살림을 말끔히 정리 — 흩어진 뒤 그리기가 막히는 일이 없도록
-    painting.current = false;
+    gesture.current = null;
     pointers.current.clear();
     pinch.current = null;
-    justPainted.current = null;
+    undoStack.current = []; // 비움은 되돌리지 않는다 — 그리기 모드와 같은 결
+    setCanUndo(false);
     resetView();
 
     const ids = built.cellKeys.filter((k) => fills[k] && built.seeds[k]?.length);
@@ -503,8 +539,8 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           style={{ touchAction: "none" }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
-          onPointerUp={endPointer}
-          onPointerCancel={endPointer}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerCancel}
           onContextMenu={(e) => e.preventDefault()}
         >
           <div ref={innerRef} className="h-full w-full origin-center will-change-transform">
@@ -565,7 +601,13 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
             <button
               key={t.key}
               title={t.hanja}
-              onClick={() => !scattering && setTplIdx(i)}
+              onClick={() => {
+                if (scattering || tplIdx === i) return;
+                // 문양이 바뀌면 되돌리기 더미도 비운다 — 남의 판을 되돌리지 않게
+                undoStack.current = [];
+                setCanUndo(false);
+                setTplIdx(i);
+              }}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] tracking-widest transition-colors ${PRESS} ${
                 tplIdx === i ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
               }`}
@@ -577,6 +619,17 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
       </div>
 
       <PaletteBar color={color} onPick={onPick} />
+
+      {/* 색판 밑 맨 밑 줄 — 되돌리기 (그리기 모드와 같은 모양) */}
+      <div className="mt-3 flex items-center justify-center">
+        <button
+          onClick={undo}
+          disabled={!canUndo || scattering}
+          className={`rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.1em] text-hanji-dim transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
+        >
+          ↩ 되돌리기
+        </button>
+      </div>
     </>
   );
 }
@@ -590,7 +643,6 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
   const wrapRef = useRef<HTMLDivElement>(null);
   const [segments, setSegments] = useState(12);
   const [mirror, setMirror] = useState(true);
-  const [brush, setBrush] = useState(3);
   const [panMode, setPanMode] = useState(false); // 기본: 연달아 그리기
   const [scattering, setScattering] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
@@ -604,6 +656,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
   const undoStack = useRef<ImageData[]>([]); // 되돌리기 스냅샷
   const scatterSeq = useRef(0);
   const SIZE = 1000;
+  const BRUSH = 3; // 붓 굵기 — 고정 (붓 옵션은 뺐다, 갈래·거울만 남긴다)
 
   const getCtx = () => canvasRef.current?.getContext("2d") ?? null;
   const getBg = () => bgRef.current?.getContext("2d") ?? null;
@@ -722,7 +775,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
     const erasing = color === ERASE;
     ctx.globalCompositeOperation = erasing ? "destination-out" : "source-over";
     ctx.strokeStyle = erasing ? "rgba(0,0,0,1)" : color;
-    ctx.lineWidth = erasing ? brush + 4 : brush;
+    ctx.lineWidth = erasing ? BRUSH + 4 : BRUSH;
     ctx.globalAlpha = erasing ? 1 : 0.92;
     const fx = from.x - c, fy = from.y - c, tx = to.x - c, ty = to.y - c;
     for (let i = 0; i < segments; i++) {
@@ -945,7 +998,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         </button>
       </div>
 
-      {/* 갈래·거울·붓 — 문양 칩 자리(판 바로 아래)로 조용히 올린다 */}
+      {/* 갈래·거울 — 문양 칩 자리(판 바로 아래)로 조용히 올린다 */}
       <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-2 px-1">
         <span className="text-[11px] tracking-[0.2em] text-hanji-faint">갈래</span>
         {[6, 8, 12, 16, 24].map((n) => (
@@ -967,16 +1020,6 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         >
           거울
         </button>
-        <span className="ml-2 text-[11px] tracking-[0.2em] text-hanji-faint">붓</span>
-        <input
-          type="range"
-          min={1}
-          max={10}
-          step={0.5}
-          value={brush}
-          onChange={(e) => setBrush(Number(e.target.value))}
-          className="mandala-range w-[120px]"
-        />
       </div>
 
       <PaletteBar color={color} onPick={onPick} />

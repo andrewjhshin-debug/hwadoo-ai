@@ -12,12 +12,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import NotesDrawer from "@/components/NotesDrawer";
-import { Dharmachakra, Person, Garden, Mandala, Banga, SeonMaster } from "./icons";
+import { Dharmachakra, Person, Lotus, Mandala, Banga, SeonMaster } from "./icons";
 
 const TABS = [
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/masters", label: "선지식", Icon: SeonMaster },
-  { href: "/", label: "뜰", Icon: Garden },
+  { href: "/", label: "뜰", Icon: Lotus },
   { href: "/settings", label: "내 도량", Icon: Person },
   { href: "/mandala", label: "만다라", Icon: Mandala },
 ];

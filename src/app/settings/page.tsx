@@ -26,8 +26,8 @@ import {
   Banga,
   Bojagi,
   Breath,
-  Garden,
   Jukbi,
+  Lotus,
   LotusPond,
   Mandala,
   Moktak,
@@ -71,7 +71,7 @@ type ServiceItem = {
 };
 
 const SERVICES: ServiceItem[] = [
-  { href: "/", label: "뜰", Icon: Garden },
+  { href: "/", label: "뜰", Icon: Lotus },
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/masters", label: "선지식", Icon: SeonMaster },
   { href: "/room", label: "사유의 방", Icon: Banga },
