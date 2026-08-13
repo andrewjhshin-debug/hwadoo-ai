@@ -151,6 +151,32 @@ export function Gate({ className = "w-4 h-4" }: IconProps) {
   );
 }
 
+// 일주문(一柱門) — 기둥 둘에 들린 겹처마 지붕, 가운데 현판. 순례 — 절로 드는 첫 문.
+export function Iljumun({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* 위 처마 — 끝이 살짝 들렸다 */}
+      <path d="M2.8 7.8C5.8 6 8.9 5.1 12 5.1s6.2.9 9.2 2.7" />
+      {/* 아래 처마 */}
+      <path d="M4.8 10.3c2.3-1.1 4.7-1.7 7.2-1.7s4.9.6 7.2 1.7" />
+      {/* 두 기둥 */}
+      <path d="M7.4 10.6V19.4M16.6 10.6V19.4" />
+      {/* 주춧돌 */}
+      <path d="M6.1 19.4h2.6M15.3 19.4h2.6" opacity="0.55" />
+      {/* 현판 */}
+      <path d="M10.4 10.4h3.2v2.6h-3.2z" opacity="0.7" />
+    </svg>
+  );
+}
+
 // 불족(佛足) — 발자국. 체험하기 = 첫걸음.
 export function Footprint({ className = "w-4 h-4" }: IconProps) {
   return (

@@ -8,10 +8,11 @@
 // 햄버거 서랍과 내 도량의 서비스 그리드에서 닿는다.
 // ────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import NotesDrawer from "@/components/NotesDrawer";
+import { unseenNotices } from "@/lib/notices";
 import { Dharmachakra, Person, LotusMark, Mandala, Banga, SeonMaster } from "./icons";
 
 const TABS = [
@@ -31,6 +32,27 @@ export default function MobileTabBar() {
   const pathname = usePathname();
   const router = useRouter();
   const [notesOpen, setNotesOpen] = useState(false);
+  const [hasNews, setHasNews] = useState(false); // 새 소식 — 내 도량 탭에 점 하나
+
+  // 새 소식 점 — 마운트 때 살피고, 기록이 바뀌거나 장부에 적히면 다시 센다
+  useEffect(() => {
+    let alive = true;
+    const check = () => {
+      unseenNotices()
+        .then((list) => {
+          if (alive) setHasNews(list.length > 0);
+        })
+        .catch(() => {});
+    };
+    check();
+    window.addEventListener("hwadoo-store-updated", check);
+    window.addEventListener("hwadu-notices-seen", check);
+    return () => {
+      alive = false;
+      window.removeEventListener("hwadoo-store-updated", check);
+      window.removeEventListener("hwadu-notices-seen", check);
+    };
+  }, []);
 
   // 사유의 방을 스스로 가진 화면에서는 FAB도 서랍도 내지 않는다
   const showNotes = !OWN_NOTES.includes(pathname);
@@ -70,7 +92,15 @@ export default function MobileTabBar() {
                 active ? "text-gold" : "text-hanji-faint hover:text-hanji-dim"
               }`}
             >
-              <Icon className="h-[19px] w-[19px]" />
+              <span className="relative">
+                <Icon className="h-[19px] w-[19px]" />
+                {href === "/settings" && hasNews && (
+                  <span
+                    aria-hidden
+                    className="absolute -right-1 -top-0.5 h-1.5 w-1.5 rounded-full bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
+                  />
+                )}
+              </span>
               <span className="whitespace-nowrap leading-none">{label}</span>
             </Link>
           );

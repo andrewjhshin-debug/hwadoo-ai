@@ -4,9 +4,12 @@
 // 발자국 장부 — 화면에는 아무것도 그리지 않는 컴포넌트.
 // 도량에 든 날("YYYY-MM-DD")을 브라우저 서랍에 조용히 적어 둔다.
 // '내 도량'의 함께한 날 셈이 이 장부를 읽는다.
+// 겸사겸사, 구독한 브라우저라면 포그라운드 문안 수신기도 깨운다
+// (탭을 보고 있는 동안 온 알림도 놓치지 않게).
 // ────────────────────────────────────────────────────────────────
 
 import { useEffect } from "react";
+import { initPushForeground } from "@/lib/push";
 
 export const VISITS_KEY = "hwadu.visits.v1";
 // 최대 400일치 — 넘치면 오래된 것부터 버린다
@@ -46,6 +49,8 @@ export default function VisitLedger() {
     } catch {
       // 기록 실패는 조용히 — 수행에 지장이 없도록
     }
+    // 포그라운드 문안 수신 — 실패는 안에서 삼킨다
+    void initPushForeground();
   }, []);
   return null;
 }

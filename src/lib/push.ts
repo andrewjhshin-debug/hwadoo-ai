@@ -4,7 +4,9 @@
 //   (문서 ID 자체가 토큰 — 추측할 수 없는 값이다)
 // · 이 브라우저의 구독 여부는 localStorage 에 기억한다
 // · VAPID 키(config.PUSH_VAPID_KEY)가 비어 있으면 조용히 접는다
-// · 포그라운드 onMessage 는 화면 위 알림이 과하니 두지 않는다
+// · 사이트를 보고 있는 동안 온 문안도 놓치지 않게, 포그라운드 수신도
+//   서비스 워커의 알림으로 띄운다 (탭이 열려 있으면 백그라운드 수신기가
+//   불리지 않아 "알림이 안 왔다"가 되기 때문)
 // ─────────────────────────────────────────────────────────────
 
 import {
@@ -12,6 +14,7 @@ import {
   getMessaging,
   getToken,
   isSupported,
+  onMessage,
 } from "firebase/messaging";
 import { deleteDoc, doc, setDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
@@ -101,4 +104,36 @@ export async function pushState(): Promise<PushState> {
   if (Notification.permission === "denied") return "denied";
   const token = window.localStorage.getItem(TOKEN_KEY);
   return token && Notification.permission === "granted" ? "on" : "off";
+}
+
+// 포그라운드 수신 — 탭이 열려 있는 동안 온 문안도 알림으로 띄운다.
+// 레이아웃(VisitLedger)에서 한 번만 부른다. 실패는 전부 조용히.
+let foregroundReady = false;
+export async function initPushForeground(): Promise<void> {
+  if (foregroundReady) return;
+  try {
+    if (!(await isPushSupported())) return;
+    if (Notification.permission !== "granted") return;
+    if (!window.localStorage.getItem(TOKEN_KEY)) return; // 구독한 브라우저만
+    foregroundReady = true;
+    const messaging = getMessaging(auth.app);
+    onMessage(messaging, async (payload) => {
+      try {
+        const data = payload.data ?? {};
+        const reg =
+          (await navigator.serviceWorker.getRegistration(
+            "/firebase-messaging-sw.js"
+          )) ?? (await navigator.serviceWorker.ready);
+        await reg.showNotification(data.title ?? "화두", {
+          body: data.body ?? "",
+          icon: "/icon.svg",
+          data: { url: data.url ?? "/" },
+        });
+      } catch {
+        /* 못 띄워도 다음 문안에는 지장 없다 */
+      }
+    });
+  } catch {
+    foregroundReady = false;
+  }
 }

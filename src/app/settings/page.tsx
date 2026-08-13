@@ -25,6 +25,7 @@ import {
   pushState,
 } from "@/lib/push";
 import { formatDate, loadStore, type Session } from "@/lib/store";
+import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { fetchMyThrownStats, type ThrownStat } from "@/lib/thrown";
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
@@ -37,6 +38,7 @@ import {
   Banga,
   Bojagi,
   Breath,
+  Iljumun,
   Jukbi,
   LotusMark,
   LotusPond,
@@ -91,6 +93,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/my-hwadu", label: "화두 던지기", Icon: Jukbi },
   { href: "/mandala", label: "만다라", Icon: Mandala },
+  { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
   { href: "/empty", label: "비움", Icon: Moktak },
   { href: "/gathering", label: "차담회", Icon: Person },
   { href: "/community", label: "연지원", Icon: LotusPond },
@@ -121,8 +124,26 @@ export default function SettingsPage() {
   const [pushError, setPushError] = useState("");
   // 차단 상태에서 버튼을 눌렀을 때 — 푸는 방법을 친절히 편다
   const [pushGuide, setPushGuide] = useState(false);
+  // 새 소식 — 아직 보지 않은 것만. 여기 나열되면 곧 장부에 적혀 점이 꺼진다
+  const [notices, setNotices] = useState<Notice[]>([]);
 
   useEffect(() => watchAuth(setUser), []);
+
+  // 새 소식 — 나열한 뒤 잠시 두었다가 본 것으로 적는다.
+  // 타이머를 걷지 않는다 — 금방 떠나도 장부에는 적혀 점이 꺼진다.
+  useEffect(() => {
+    let alive = true;
+    unseenNotices()
+      .then((list) => {
+        if (!alive || list.length === 0) return;
+        setNotices(list);
+        window.setTimeout(() => markAllSeen(list), 1500);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // 알림 — 아침 문안: 이 브라우저의 상태를 살핀다
   useEffect(() => {
@@ -535,6 +556,24 @@ export default function SettingsPage() {
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">알림</p>
         <div className="mt-4 border-t border-ink-3 pt-5">
+          {/* 새 소식 — 아직 보지 않은 것만, 금색 점 한 줄씩.
+              나열되고 잠시 뒤 장부에 적혀, 사이드바·탭의 점이 꺼진다 */}
+          {notices.length > 0 && (
+            <ul className="mb-5 space-y-2 rounded-[12px] border border-gold/25 bg-gold/5 px-4 py-3.5">
+              {notices.map((n) => (
+                <li
+                  key={n.id}
+                  className="flex items-start gap-2.5 break-keep text-[13px] leading-6 text-hanji"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-gold shadow-[0_0_6px_var(--color-gold)]"
+                  />
+                  {n.text}
+                </li>
+              ))}
+            </ul>
+          )}
           {pushUi === "loading" ? (
             <p className="text-[13px] leading-7 text-hanji-faint">
               살펴보는 중…

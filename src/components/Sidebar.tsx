@@ -11,6 +11,7 @@
 // · 데스크톱: 접기(아이콘만, 구획 제목은 숨김) ↔ 펴기, 상태 기억
 // · 모바일: 햄버거 서랍 (같은 내비 영역이 스크롤을 맡는다)
 // · 내 도량 곁 걸음 뱃지 — 회향 수로 人(1+)/修(5+)/天(15+) 중 최고 한 글자
+//   (아래 로그인 영역에만 남긴다 — 위 Person 아이콘에는 대신 새 소식 점)
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
+import { unseenNotices } from "@/lib/notices";
 import { ADMIN_UID } from "@/lib/config";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
@@ -27,6 +29,7 @@ import {
   Breath,
   Dharmachakra,
   Elephant,
+  Iljumun,
   Jukbi,
   LotusMark,
   LotusPond,
@@ -51,6 +54,7 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/mandala", label: "만다라", Icon: Mandala },
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
   { href: "/empty", label: "비움", Icon: Moktak },
+  { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
   { href: "/breath", label: "호흡 명상", Icon: Breath, soon: true },
 ];
 
@@ -132,6 +136,7 @@ export default function Sidebar() {
   const [history, setHistory] = useState<Session[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loginBusy, setLoginBusy] = useState(false);
+  const [hasNews, setHasNews] = useState(false); // 새 소식 — 점 하나로만 말한다
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
@@ -156,6 +161,26 @@ export default function Sidebar() {
 
   useEffect(() => {
     return watchAuth(setUser);
+  }, []);
+
+  // 새 소식 점 — 마운트 때 살피고, 기록이 바뀌거나 장부에 적히면 다시 센다
+  useEffect(() => {
+    let alive = true;
+    const check = () => {
+      unseenNotices()
+        .then((list) => {
+          if (alive) setHasNews(list.length > 0);
+        })
+        .catch(() => {});
+    };
+    check();
+    window.addEventListener("hwadoo-store-updated", check);
+    window.addEventListener("hwadu-notices-seen", check);
+    return () => {
+      alive = false;
+      window.removeEventListener("hwadoo-store-updated", check);
+      window.removeEventListener("hwadu-notices-seen", check);
+    };
   }, []);
 
   // 페이지를 이동하면 모바일 서랍을 닫는다
@@ -307,19 +332,21 @@ export default function Sidebar() {
             </Link>
           )}
           <div className={`flex items-center ${slim ? "flex-col gap-1" : "gap-0.5"}`}>
-            {/* 마이 페이지 · 내 도량 — 오른쪽 위. 걸음 뱃지가 곁에 앉는다 */}
+            {/* 마이 페이지 · 내 도량 — 오른쪽 위.
+                걸음 뱃지는 아래 로그인 영역에만 — 여기에는 새 소식 점만 뜬다 */}
             <Link
               href="/settings"
               onClick={go("/settings")}
-              title={rank ? `내 도량 · 걸음 ${rank}` : "내 도량"}
+              title={hasNews ? "내 도량 · 새 소식" : "내 도량"}
               aria-label="내 도량"
               className="relative p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
             >
               <Person className="h-4 w-4" />
-              {rank && (
-                <span className="absolute -right-1 -top-0.5 flex h-[13px] w-[13px] items-center justify-center rounded-full border border-gold/50 bg-ink-2 font-serif text-[8px] leading-none text-gold">
-                  {rank}
-                </span>
+              {hasNews && (
+                <span
+                  aria-hidden
+                  className="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
+                />
               )}
             </Link>
             <ThemeToggle />
@@ -427,10 +454,11 @@ export default function Sidebar() {
               >
                 <span className="relative">
                   <Person className="h-4 w-4" />
-                  {rank && (
-                    <span className="absolute -right-2 -top-1.5 flex h-[13px] w-[13px] items-center justify-center rounded-full border border-gold/50 bg-ink-2 font-serif text-[8px] leading-none text-gold">
-                      {rank}
-                    </span>
+                  {hasNews && (
+                    <span
+                      aria-hidden
+                      className="absolute -right-1 -top-1 h-1.5 w-1.5 rounded-full bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
+                    />
                   )}
                 </span>
               </Link>
