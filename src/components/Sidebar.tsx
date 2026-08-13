@@ -28,7 +28,7 @@ import {
   Dharmachakra,
   Elephant,
   Jukbi,
-  Lotus,
+  LotusMark,
   LotusPond,
   Mandala,
   Moktak,
@@ -357,7 +357,7 @@ export default function Sidebar() {
               slim ? "justify-center px-0" : "px-4"
             }`}
           >
-            <Lotus className="h-[17px] w-[17px]" stroke="#D9B45B" />
+            <LotusMark className="h-[17px] w-[17px]" stroke="#D9B45B" />
             {!slim && "뜰"}
           </Link>
 

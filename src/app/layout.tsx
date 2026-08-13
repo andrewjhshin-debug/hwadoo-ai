@@ -26,7 +26,7 @@ const sansKR = Noto_Sans_KR({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
-  description: `${SLOGAN} 하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 그대의 답을 씁니다. 옛 선사들의 화두를 받아 참구하고 기록하는 도량.`,
+  description: `${SLOGAN} 하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 나의 답을 씁니다. 옛 선사들의 화두를 받아 참구하고 기록하는 도량.`,
   keywords: ["화두", "명상", "선", "불교", "간화선", "참선", "koan", "사유"],
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
     description:
-      "하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 그대의 답을 씁니다.",
+      "하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 나의 답을 씁니다.",
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
     description:
-      "하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 그대의 답을 씁니다.",
+      "하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 나의 답을 씁니다.",
   },
 };
 
@@ -105,7 +105,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </nav>
             <p className="mt-3 text-center text-[11px] tracking-widest text-hanji-faint">
               © {new Date().getFullYear()} {SITE_NAME} · 물음은 오래된 것, 답은
-              그대의 것
+              나의 것
             </p>
           </footer>
         </div>

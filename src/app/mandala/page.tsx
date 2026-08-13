@@ -7,14 +7,16 @@
 //     작은 꽃잎이면 테와 속잎이 서로 다른 칸, 구슬 한 알도 제 칸.
 //     하나하나 짚어 칠하는 것이 곧 수행이다.
 //     한 손가락 탭 = 그 칸 하나 색칠, 우클릭 = 그 칸 비우기.
+//     꾹 누르기(한 자리 500ms, 이동 8px 미만) = 그 칸 비우기 — 떼도 칠하지 않는다.
 //     한 손가락 드래그(문턱 8px) = 판 이동(팬) — 긁어서 연달아 칠하지 않는다.
 //     두 손가락 = 핀치 확대(1~3배), 더블탭 = 원위치. 되돌리기 = 마지막 한 칸.
-//  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌리기 지원.
+//  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌리기·붓 굵기 지원.
 // 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 흩어진다.
 // 하던 만다라는 자동 임시저장되어, 다른 일 하다 돌아와도 그대로 떠 있다.
-// 배치 — 원위치·비우기는 판의 왼쪽 위·오른쪽 위 모서리에 겹쳐 앉는다.
-//  색칠: [토글 → 만다라 → N/M칸 → 문양 칩(가운데) → 색판 → 되돌리기]
-//  그리기: [토글 → 만다라 → 갈래·거울 → 색판 → 되돌리기·손으로 옮기기]
+// 배치 — 왼쪽 위 모서리에 세로 스택 [원위치(더블탭) → 되돌리기 → (그리기만) 손으로
+//  옮기기], 오른쪽 위엔 비우기 — 작고 조용한 톤으로 판 위에 겹쳐 앉는다.
+//  색칠: [토글 → 만다라 → N/M칸 → 문양 칩(가운데) → 색판]
+//  그리기: [토글 → 만다라 → 갈래·거울·붓 → 색판]
 // 가 스크롤 없이 한 화면에 들어온다.
 // ────────────────────────────────────────────────────────────────
 
@@ -244,15 +246,25 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
   const pinch = useRef<{ dist: number; cx: number; cy: number } | null>(null);
   const view = useRef({ scale: 1, x: 0, y: 0 });
   const lastTap = useRef({ t: 0, x: 0, y: 0 });
-  // 한 손가락 — 탭인지 팬인지 문턱(8px)을 넘기 전엔 모른다
+  // 한 손가락 — 탭인지 팬인지 문턱(8px)을 넘기 전엔 모른다.
+  // held = 꾹 눌러 이미 그 칸을 비웠다 — 떼도 칠하지 않는다.
   const gesture = useRef<null | {
-    mode: "pending" | "pan";
+    mode: "pending" | "pan" | "held";
     startX: number;
     startY: number;
     lastX: number;
     lastY: number;
     button: number;
   }>(null);
+  // 꾹 누르기(500ms) 재개 타이머 — 팬·핀치·떼기가 끼어들면 곧장 무른다
+  const holdTimer = useRef<number | null>(null);
+  const clearHold = useCallback(() => {
+    if (holdTimer.current !== null) {
+      window.clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+  }, []);
+  useEffect(() => clearHold, [clearHold]);
   // 되돌리기 더미 — 칠하기 직전의 칸 상태를 쌓는다
   const undoStack = useRef<{ tpl: string; id: string; prev: string | undefined }[]>([]);
   const [canUndo, setCanUndo] = useState(false);
@@ -350,9 +362,11 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
   };
 
   const TAP_SLOP = 8; // px — 이 안에서 떼면 탭(색칠), 넘으면 팬(판 이동)
+  const HOLD_MS = 500; // ms — 한 자리에서 이만큼 누르고 있으면 그 칸 비우기
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (scattering) return;
+    clearHold();
     try {
       wrapRef.current?.setPointerCapture(e.pointerId);
     } catch {}
@@ -394,6 +408,15 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
       lastY: e.clientY,
       button: e.button,
     };
+    // 꾹 누르기 — 500ms 동안 문턱(8px)을 안 넘고 버티면 그 칸을 비운다
+    holdTimer.current = window.setTimeout(() => {
+      holdTimer.current = null;
+      const g = gesture.current;
+      if (!g || g.mode !== "pending") return;
+      g.mode = "held"; // 떼도 칠하지 않는다
+      const id = cellAt(g.lastX, g.lastY);
+      if (id) paintCell(id, true);
+    }, HOLD_MS);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -427,6 +450,7 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     if (!g || pointers.current.size !== 1) return;
     if (g.mode === "pending" && Math.hypot(e.clientX - g.startX, e.clientY - g.startY) > TAP_SLOP) {
       g.mode = "pan";
+      clearHold(); // 문턱을 넘었다 — 꾹 누르기가 아니라 팬이다
     }
     if (g.mode === "pan") {
       view.current.x += e.clientX - g.lastX;
@@ -443,8 +467,10 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
+    clearHold();
     const g = gesture.current;
     // 문턱 안에서 뗐다 — 탭 = 그 칸 하나 색칠 (우클릭이면 그 칸 비우기)
+    // held(꾹 눌러 이미 비운 칸)면 여기서는 아무것도 하지 않는다
     if (g && g.mode === "pending" && pointers.current.has(e.pointerId) && pointers.current.size === 1) {
       const id = cellAt(e.clientX, e.clientY);
       if (id) paintCell(id, g.button === 2);
@@ -454,6 +480,7 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
   };
 
   const onPointerCancel = (e: React.PointerEvent) => {
+    clearHold();
     gesture.current = null;
     endPointer(e);
   };
@@ -461,6 +488,7 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
   // ── 비우기(모래 흩어짐) ──
   const doScatter = () => {
     // 포인터 살림을 말끔히 정리 — 흩어진 뒤 그리기가 막히는 일이 없도록
+    clearHold();
     gesture.current = null;
     pointers.current.clear();
     pinch.current = null;
@@ -536,7 +564,8 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
         <div
           ref={wrapRef}
           className="mandala-board relative aspect-square w-full touch-none select-none overflow-hidden rounded-full border border-ink-3 bg-ink-2/40"
-          style={{ touchAction: "none" }}
+          // 꾹 누르기 동안 iOS 말풍선·선택이 끼어들지 않게 — contextmenu 는 아래서 막는다
+          style={{ touchAction: "none", WebkitTouchCallout: "none", WebkitUserSelect: "none" }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -568,16 +597,27 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           </div>
           <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" />
         </div>
-        {/* 판 왼쪽 위 — 원위치 (확대 중이면 금빛으로 살아난다) */}
-        <button
-          onClick={resetView}
-          aria-label="원위치"
-          className={`absolute left-0 top-0 z-10 rounded-full border bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors ${PRESS} ${
-            zoomed ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint hover:text-hanji"
-          }`}
-        >
-          ⊙ 원위치
-        </button>
+        {/* 판 왼쪽 위 — 세로 스택: 원위치(더블탭) · 되돌리기.
+            모서리에 바짝(-4px), 판은 둥글어 이 자리가 비니 가림이 적다 */}
+        <div className="absolute -left-1 -top-1 z-10 flex flex-col items-start gap-1">
+          <button
+            onClick={resetView}
+            aria-label="원위치(더블탭)"
+            className={`rounded-full border bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors ${PRESS} ${
+              zoomed ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint hover:text-hanji"
+            }`}
+          >
+            ⊙ 원위치(더블탭)
+          </button>
+          <button
+            onClick={undo}
+            disabled={!canUndo || scattering}
+            aria-label="되돌리기"
+            className={`rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
+          >
+            ↩ 되돌리기
+          </button>
+        </div>
         {/* 판 오른쪽 위 — 비우기 */}
         <button
           onClick={askClear}
@@ -619,17 +659,6 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
       </div>
 
       <PaletteBar color={color} onPick={onPick} />
-
-      {/* 색판 밑 맨 밑 줄 — 되돌리기 (그리기 모드와 같은 모양) */}
-      <div className="mt-3 flex items-center justify-center">
-        <button
-          onClick={undo}
-          disabled={!canUndo || scattering}
-          className={`rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.1em] text-hanji-dim transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
-        >
-          ↩ 되돌리기
-        </button>
-      </div>
     </>
   );
 }
@@ -643,6 +672,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
   const wrapRef = useRef<HTMLDivElement>(null);
   const [segments, setSegments] = useState(12);
   const [mirror, setMirror] = useState(true);
+  const [brush, setBrush] = useState(3); // 붓 굵기 — 갈래·거울 옆 슬라이더로 고른다
   const [panMode, setPanMode] = useState(false); // 기본: 연달아 그리기
   const [scattering, setScattering] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
@@ -652,11 +682,11 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
   const stroke = useRef({ active: false, last: null as null | { x: number; y: number } });
   const pinch = useRef({ active: false, dist: 0, cx: 0, cy: 0 });
   const pan = useRef({ active: false, x: 0, y: 0 });
+  const lastTap = useRef({ t: 0, x: 0, y: 0 }); // 더블탭 = 원위치 (색칠 모드와 같은 결)
   const dirty = useRef(false);
   const undoStack = useRef<ImageData[]>([]); // 되돌리기 스냅샷
   const scatterSeq = useRef(0);
   const SIZE = 1000;
-  const BRUSH = 3; // 붓 굵기 — 고정 (붓 옵션은 뺐다, 갈래·거울만 남긴다)
 
   const getCtx = () => canvasRef.current?.getContext("2d") ?? null;
   const getBg = () => bgRef.current?.getContext("2d") ?? null;
@@ -775,7 +805,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
     const erasing = color === ERASE;
     ctx.globalCompositeOperation = erasing ? "destination-out" : "source-over";
     ctx.strokeStyle = erasing ? "rgba(0,0,0,1)" : color;
-    ctx.lineWidth = erasing ? BRUSH + 4 : BRUSH;
+    ctx.lineWidth = erasing ? brush + 4 : brush;
     ctx.globalAlpha = erasing ? 1 : 0.92;
     const fx = from.x - c, fy = from.y - c, tx = to.x - c, ty = to.y - c;
     for (let i = 0; i < segments; i++) {
@@ -814,6 +844,20 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
   const onDown = (e: React.PointerEvent) => {
     if (scattering) return;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    // 더블탭 = 원위치 — 확대·이동이 걸려 있을 때만. 탭은 획을 남기지 않으니
+    // (움직임 없인 아무것도 안 그린다) 그림을 해치지 않는다. 첫 손가락만 센다.
+    if (e.isPrimary) {
+      const now = performance.now();
+      const lt = lastTap.current;
+      const v = view.current;
+      const moved = Math.abs(v.scale - 1) > 0.01 || Math.abs(v.x) > 1 || Math.abs(v.y) > 1;
+      if (now - lt.t < 300 && Math.hypot(e.clientX - lt.x, e.clientY - lt.y) < 30 && moved) {
+        lastTap.current = { t: 0, x: 0, y: 0 };
+        resetView();
+        return;
+      }
+      lastTap.current = { t: now, x: e.clientX, y: e.clientY };
+    }
     if (panMode) {
       pan.current = { active: true, x: e.clientX - view.current.x, y: e.clientY - view.current.y };
     } else {
@@ -979,14 +1023,34 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
           {/* 흩날림 전용 오버레이 — wrap 변형과 무관하게 화면 전체를 덮는다 */}
           <canvas ref={scatterRef} className="pointer-events-none absolute inset-0 h-full w-full" />
         </div>
-        {/* 판 왼쪽 위 — 원위치 */}
-        <button
-          onClick={resetView}
-          aria-label="원위치"
-          className={`absolute left-0 top-0 z-10 rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:text-hanji ${PRESS}`}
-        >
-          ⊙ 원위치
-        </button>
+        {/* 판 왼쪽 위 — 세로 스택: 원위치(더블탭) · 되돌리기 · 손으로 옮기기.
+            모서리에 바짝(-4px), 판은 둥글어 이 자리가 비니 가림이 적다 */}
+        <div className="absolute -left-1 -top-1 z-10 flex flex-col items-start gap-1">
+          <button
+            onClick={resetView}
+            aria-label="원위치(더블탭)"
+            className={`rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:text-hanji ${PRESS}`}
+          >
+            ⊙ 원위치(더블탭)
+          </button>
+          <button
+            onClick={undo}
+            disabled={!canUndo || scattering}
+            aria-label="되돌리기"
+            className={`rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
+          >
+            ↩ 되돌리기
+          </button>
+          <button
+            onClick={() => setPanMode((v) => !v)}
+            aria-label="손으로 옮기기"
+            className={`rounded-full border bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors ${PRESS} ${
+              panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint hover:text-hanji"
+            }`}
+          >
+            ✋ 손으로 옮기기
+          </button>
+        </div>
         {/* 판 오른쪽 위 — 비우기 */}
         <button
           onClick={askClear}
@@ -998,7 +1062,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         </button>
       </div>
 
-      {/* 갈래·거울 — 문양 칩 자리(판 바로 아래)로 조용히 올린다 */}
+      {/* 갈래·거울·붓 — 문양 칩 자리(판 바로 아래)로 조용히 올린다 */}
       <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-2 px-1">
         <span className="text-[11px] tracking-[0.2em] text-hanji-faint">갈래</span>
         {[6, 8, 12, 16, 24].map((n) => (
@@ -1020,28 +1084,20 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         >
           거울
         </button>
+        <span className="ml-2 text-[11px] tracking-[0.2em] text-hanji-faint">붓</span>
+        <input
+          type="range"
+          min={1}
+          max={10}
+          step={0.5}
+          value={brush}
+          onChange={(e) => setBrush(Number(e.target.value))}
+          aria-label="붓 굵기"
+          className="mandala-range w-[120px]"
+        />
       </div>
 
       <PaletteBar color={color} onPick={onPick} />
-
-      {/* 색판 밑 — 되돌리기 · 손으로 옮기기, 이 둘만 */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-        <button
-          onClick={undo}
-          disabled={!canUndo || scattering}
-          className={`rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.1em] text-hanji-dim transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
-        >
-          ↩ 되돌리기
-        </button>
-        <button
-          onClick={() => setPanMode((v) => !v)}
-          className={`rounded-full border px-3.5 py-1.5 text-[11px] tracking-[0.1em] transition-colors ${PRESS} ${
-            panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim"
-          }`}
-        >
-          ✋ 손으로 옮기기
-        </button>
-      </div>
     </>
   );
 }

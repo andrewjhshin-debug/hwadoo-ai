@@ -91,7 +91,7 @@ export default function MyHwaduPage() {
         <>
           <div className="rise rise-d2 mt-8">
             <p className="mb-2 text-[11px] tracking-[0.2em] text-hanji-faint">
-              여기에 그대의 물음을 적으십시오
+              여기에 물음을 적으십시오
             </p>
             <textarea
               value={question}

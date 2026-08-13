@@ -23,7 +23,7 @@ export default function AboutPage() {
       </div>
 
       <p className="rise rise-d2 mt-16 text-center text-xs leading-7 text-hanji-faint">
-        기록은 그대의 브라우저에만 남습니다.
+        기록은 내 브라우저에만 남습니다.
         <br />이 도량은 특정 종단과 무관합니다.
       </p>
 

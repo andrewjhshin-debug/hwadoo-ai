@@ -2,7 +2,8 @@
 // 뒷방의 손질 — 코드에 내장된 화두 은행·어록도 관리자가 다듬는다.
 // Firestore 컬렉션 "admin-content" (읽기는 모두 / 쓰기는 관리자만):
 // · 문서 "bank":    { hidden: string[], overrides: { [hwaduId]: { question?, context?, title? } } }
-// · 문서 "sayings": { extra: [{ id, name, era, text }], hiddenIds: string[] }
+// · 문서 "sayings": { extra: [{ id, name, era, text }], hiddenIds: string[],
+//                     edited: { [id]: { name, era, text } } }
 // 내장 데이터는 코드에 그대로 두고, 숨김·덮어쓰기만 서버에 새긴다.
 // 읽기에 실패하면 원본(코드 내장) 그대로 조용히 물러선다 — 화면이 멈추지 않게.
 // ─────────────────────────────────────────────────────────────
@@ -39,9 +40,17 @@ export type ExtraSaying = {
   text: string;
 };
 
+// 어록 하나를 고쳐 쓴 조각 — 원문(내장·더한 것)을 화면에서만 가린다
+export type SayingEdit = {
+  name: string;
+  era: string;
+  text: string;
+};
+
 export type AdminSayings = {
   extra: ExtraSaying[];
   hiddenIds: string[]; // 감춘 어록 id (내장 어록은 텍스트 해시 id)
+  edited: Record<string, SayingEdit>; // 고쳐 쓴 어록 — id는 원문 기준 그대로
 };
 
 export type AdminContent = {
@@ -53,7 +62,7 @@ export type AdminContent = {
 export function emptyAdminContent(): AdminContent {
   return {
     bank: { hidden: [], overrides: {} },
-    sayings: { extra: [], hiddenIds: [] },
+    sayings: { extra: [], hiddenIds: [], edited: {} },
   };
 }
 
@@ -140,7 +149,21 @@ function parseSayings(data: Record<string, unknown> | undefined): AdminSayings {
   const hiddenIds = Array.isArray(data?.hiddenIds)
     ? (data.hiddenIds as unknown[]).filter((v): v is string => typeof v === "string")
     : [];
-  return { extra, hiddenIds };
+  const edited: Record<string, SayingEdit> = {};
+  const rawEdited = data?.edited;
+  if (rawEdited && typeof rawEdited === "object") {
+    for (const [id, v] of Object.entries(rawEdited as Record<string, unknown>)) {
+      if (!v || typeof v !== "object") continue;
+      const o = v as Record<string, unknown>;
+      if (typeof o.text !== "string" || !o.text.trim()) continue;
+      edited[id] = {
+        name: typeof o.name === "string" ? o.name : "",
+        era: typeof o.era === "string" ? o.era : "",
+        text: o.text,
+      };
+    }
+  }
+  return { extra, hiddenIds, edited };
 }
 
 // ── 은행 화두 손질 (관리자 전용 — 규칙이 지킨다) ─────────────────
@@ -200,20 +223,37 @@ export function sayingId(text: string): string {
   return "b" + (h >>> 0).toString(36);
 }
 
-export type MergedSaying = Saying & { id: string; isExtra: boolean };
+export type MergedSaying = Saying & {
+  id: string;
+  isExtra: boolean;
+  isEdited: boolean; // 뒷방에서 고쳐 쓴 어록인가 — '고침' 배지의 근거
+};
 
 // 내장 + 더한 어록 전부 — 감춤은 거르지 않는다 (뒷방이 감춘 것도 봐야 하므로)
+// 고쳐 쓴 조각(edited)은 원문 위에 덮어 읽는다 — id는 원문 기준 그대로다.
 export function allSayings(content: AdminSayings): MergedSaying[] {
-  return [
-    ...SAYINGS.map((s) => ({ ...s, id: sayingId(s.text), isExtra: false })),
+  const base: MergedSaying[] = [
+    ...SAYINGS.map((s) => ({
+      ...s,
+      id: sayingId(s.text),
+      isExtra: false,
+      isEdited: false,
+    })),
     ...content.extra.map((e) => ({
       text: e.text,
       name: e.name,
       era: e.era,
       id: e.id,
       isExtra: true,
+      isEdited: false,
     })),
   ];
+  return base.map((s) => {
+    const ed = content.edited[s.id];
+    return ed
+      ? { ...s, name: ed.name, era: ed.era, text: ed.text, isEdited: true }
+      : s;
+  });
 }
 
 // 화면에 보일 어록 — 내장 + 더한 것, 감춘 것은 뺀다
@@ -235,12 +275,37 @@ export async function addSaying(name: string, era: string, text: string) {
   invalidate();
 }
 
+// 어록 한 줄을 고쳐 쓴다 — 내장·더한 것 모두. 원문은 남고, 화면만 이 조각을 읽는다.
+export async function editSaying(id: string, patch: SayingEdit) {
+  const name = patch.name.trim();
+  const era = patch.era.trim();
+  const text = patch.text.trim();
+  if (!text || !name) throw new Error("이름과 말씀이 필요합니다");
+  await setDoc(
+    sayingsRef(),
+    { edited: { [id]: { name, era, text } } },
+    { merge: true }
+  );
+  invalidate();
+}
+
+// 고쳐 쓴 어록을 원래대로 — 덮어쓴 조각을 걷어내면 원문이 산다
+export async function restoreSayingEdit(id: string) {
+  await setDoc(sayingsRef(), { edited: { [id]: deleteField() } }, { merge: true });
+  invalidate();
+}
+
 // 어록 한 줄을 뺀다 — 더한 것은 걷어내고, 내장 어록은 hiddenIds로 감춘다
 export async function removeSaying(id: string) {
   const content = await fetchAdminContent(true);
   const rest = content.sayings.extra.filter((e) => e.id !== id);
   if (rest.length !== content.sayings.extra.length) {
-    await setDoc(sayingsRef(), { extra: rest }, { merge: true });
+    // 더한 어록을 걷어낼 때는 그 위에 얹힌 고침 조각도 함께 거둔다
+    await setDoc(
+      sayingsRef(),
+      { extra: rest, edited: { [id]: deleteField() } },
+      { merge: true }
+    );
   } else {
     await setDoc(sayingsRef(), { hiddenIds: arrayUnion(id) }, { merge: true });
   }

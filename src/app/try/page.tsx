@@ -39,8 +39,8 @@ const GUIDE: Record<Step, string> = {
   received:
     "화두를 받았습니다. 본래는 이대로 며칠이 흘러야 합니다 — 체험에서는 눌러서 건너뜁니다.",
   pondering:
-    "사유의 시간입니다. 떠오르는 것은 사유의 방에 적어 두십시오 — 그 단상은 마지막에 그대의 답과 함께 기록에 남습니다.",
-  ripened: "달이 찼습니다. 이제 붓을 들어 그대의 답을 씁니다.",
+    "사유의 시간입니다. 떠오르는 것은 사유의 방에 적어 두십시오 — 그 단상은 마지막에 답과 함께 기록에 남습니다.",
+  ripened: "달이 찼습니다. 이제 붓을 들어 답을 씁니다.",
   writing:
     "정답은 없습니다. 지금 보이는 만큼만 쓰십시오 — 사유의 방에 남긴 단상도 함께 저장됩니다.",
   done: "한 바퀴를 돌았습니다 — 이 체험은 지난 화두에 첫 기록으로 남습니다.",
@@ -127,7 +127,7 @@ export default function TryPage() {
     setStep("done");
     // 회향을 마치자마자 — 홈과 같은 나눔의 물음. 체험이어도 답은 진짜 나눔으로 흐른다
     const ok = await confirm(
-      "그대의 답을 다른 수행자에게 공유하시겠습니까?",
+      "이 답을 다른 수행자에게 공유하시겠습니까?",
       `이름 없이 — 다른 수행자의 화두를 돕습니다. ${SHARE_NOTE}`,
       { confirm: "네", cancel: "아니오" }
     );
@@ -253,7 +253,7 @@ export default function TryPage() {
       {/* ── 회향을 마쳤다 ── */}
       {step === "done" && hwadu && (
         <section className="rise mt-10 flex w-full max-w-2xl flex-col items-center">
-          {/* 화두 — 그대의 답 위에 */}
+          {/* 화두 — 나의 답 위에 */}
           {hwadu.hanja && (
             <p className="text-xs tracking-[0.6em] text-hanji-faint">
               {hwadu.hanja}
@@ -265,7 +265,7 @@ export default function TryPage() {
 
           <div className="mt-10 w-full border-t border-ink-3 pt-8" />
           <p className="text-xs tracking-[0.4em] text-gold-soft">
-            回向 · 그대의 답
+            回向 · 나의 답
           </p>
           <p className="mt-5 whitespace-pre-line font-serif text-[15px] font-light leading-9 text-hanji">
             {answer}
@@ -375,7 +375,7 @@ export default function TryPage() {
                 <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-ink-2/40 px-4 py-3">
                   <p className="text-left text-[12.5px] leading-6 text-hanji-dim">
                     며칠을 품고 계셨습니다. 무엇이 보였습니까.
-                    <br />아래에 그대의 답을 적어, 회향하십시오.
+                    <br />아래에 답을 적어, 회향하십시오.
                   </p>
                 </div>
               </div>
@@ -397,7 +397,7 @@ export default function TryPage() {
                   }}
                   rows={3}
                   maxLength={MAX_ANSWER}
-                  placeholder="그대의 답을 적으십시오…"
+                  placeholder="여기에 답을 적으십시오…"
                   className="max-h-[60vh] min-h-[96px] flex-1 resize-none overflow-hidden rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-3 text-left text-[15px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
                 />
                 <button

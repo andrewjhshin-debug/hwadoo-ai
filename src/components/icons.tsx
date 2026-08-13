@@ -31,6 +31,33 @@ export function Lotus({ className = "w-5 h-5", stroke = "currentColor" }: IconPr
   );
 }
 
+// 연꽃 문장(紋章) — 홈 첫 화면 로고(Enso)의 활짝 핀 연꽃을 24칸에 옮긴 것.
+// 가운데 꽃잎 + 안쪽·바깥 좌우 겹꽃잎 + 수면 받침 — 뜰(홈) 자리의 아이콘.
+export function LotusMark({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* 가운데 꽃잎 */}
+      <path d="M12 5.76c1.44 1.92 2.16 3.6 2.16 5.28 0 1.92-.96 3.36-2.16 4.32-1.2-.96-2.16-2.4-2.16-4.32 0-1.68.72-3.36 2.16-5.28z" />
+      {/* 안쪽 좌우 꽃잎 */}
+      <path d="M12 15.36c-.96-1.44-2.64-2.16-4.32-1.92-.24 1.92.72 3.6 2.4 4.32" />
+      <path d="M12 15.36c.96-1.44 2.64-2.16 4.32-1.92.24 1.92-.72 3.6-2.4 4.32" />
+      {/* 바깥 좌우 꽃잎 — 넓게 벌어진 */}
+      <path d="M9.84 15.84c-1.44-1.2-3.6-1.44-5.52-.48.24 1.92 1.92 3.36 4.08 3.36" opacity="0.85" />
+      <path d="M14.16 15.84c1.44-1.2 3.6-1.44 5.52-.48-.24 1.92-1.92 3.36-4.08 3.36" opacity="0.85" />
+      {/* 수면 받침 */}
+      <path d="M7.2 19.68c1.44.72 3.12.96 4.8.96s3.36-.24 4.8-.96" opacity="0.5" />
+    </svg>
+  );
+}
+
 // 목탁(木鐸) — 선지식의 한마디
 export function Moktak({ className = "w-4 h-4" }: IconProps) {
   return (

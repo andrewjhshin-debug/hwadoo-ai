@@ -27,7 +27,7 @@ import {
   Bojagi,
   Breath,
   Jukbi,
-  Lotus,
+  LotusMark,
   LotusPond,
   Mandala,
   Moktak,
@@ -71,7 +71,7 @@ type ServiceItem = {
 };
 
 const SERVICES: ServiceItem[] = [
-  { href: "/", label: "뜰", Icon: Lotus },
+  { href: "/", label: "뜰", Icon: LotusMark },
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/masters", label: "선지식", Icon: SeonMaster },
   { href: "/room", label: "사유의 방", Icon: Banga },
@@ -256,10 +256,10 @@ export default function SettingsPage() {
 
   const sectionGap = "mt-11";
 
-  // 품어온 시간 한 줄 — "3.2~ · {질문 전문} · 108일" (여러 줄 허용, 줄이지 않는다)
+  // 품어온 시간 한 줄 — "3.2 · {질문 전문} · 108일" (여러 줄 허용, 줄이지 않는다)
   const heldRow = (h: HeldItem) => (
     <li key={h.key} className="break-keep text-[12px] leading-6 text-hanji-dim">
-      <span className="text-hanji-faint">{h.from}~</span>
+      <span className="text-hanji-faint">{h.from}</span>
       {" · "}
       <span className="text-hanji">{h.question}</span>
       <span className="text-hanji-faint">
@@ -711,7 +711,7 @@ export default function SettingsPage() {
           </a>
         </div>
         <p className="mt-3 px-2 text-[10px] tracking-widest text-hanji-faint">
-          © {new Date().getFullYear()} 화두 · 물음은 오래된 것, 답은 그대의 것
+          © {new Date().getFullYear()} 화두 · 물음은 오래된 것, 답은 나의 것
         </p>
       </section>
 

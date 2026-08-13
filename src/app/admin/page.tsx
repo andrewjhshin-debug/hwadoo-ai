@@ -35,6 +35,7 @@ import { HWADU_BANK, getHwadu, type Hwadu } from "@/lib/hwadu";
 import {
   addSaying,
   allSayings,
+  editSaying,
   emptyAdminContent,
   fetchAdminContent,
   hideBankHwadu,
@@ -42,8 +43,11 @@ import {
   removeSaying,
   restoreBankHwadu,
   restoreSaying,
+  restoreSayingEdit,
   type AdminContent,
   type BankOverride,
+  type MergedSaying,
+  type SayingEdit,
 } from "@/lib/adminContent";
 
 type Tab = "adult" | "student" | "admin" | "thrown" | "shared" | "sayings";
@@ -60,7 +64,7 @@ const TAB_NOTE: Record<Tab, string> = {
   shared:
     "다른 수행자에게 보여도 좋다고 동의한 답 — 승인해야만 그 화두를 회향한 이들에게 열립니다.",
   sayings:
-    "선지식의 한마디에 걸리는 어록 — 내장 어록을 감추거나, 새 어록을 더할 수 있습니다.",
+    "선지식의 한마디에 걸리는 어록 — 고치고(내장·더한 것 모두) 감추고, 새 어록을 더할 수 있습니다.",
 };
 
 const smallBtn =
@@ -248,6 +252,150 @@ function PublicRow({ p, i }: { p: PublicHwadu; i: number }) {
   );
 }
 
+// 어록 한 줄 — 내장·더한 것 모두 여기서 고쳐 쓸 수 있다.
+// 고침은 edited 조각으로 새겨지고, 원문은 그대로라 언제든 원래대로 돌아간다.
+function SayingRow({
+  s,
+  busy,
+  onEdit,
+  onRestoreEdit,
+  onRemove,
+}: {
+  s: MergedSaying;
+  busy: boolean;
+  onEdit: (patch: SayingEdit) => void;
+  onRestoreEdit: () => void;
+  onRemove: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState("");
+  const [name, setName] = useState("");
+  const [era, setEra] = useState("");
+
+  const save = () => {
+    const t = text.trim();
+    const n = name.trim();
+    const e = era.trim();
+    if (!t || !n) return;
+    // 보이는 그대로 되돌려 적었으면 새로 새기지 않는다
+    if (t !== s.text || n !== s.name || e !== s.era) {
+      onEdit({ name: n, era: e, text: t });
+    }
+    setEditing(false);
+  };
+
+  return (
+    <li
+      className={`border-l pl-3 ${
+        s.isExtra || s.isEdited ? "border-gold/30" : "border-ink-3"
+      }`}
+    >
+      {editing ? (
+        <>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={2}
+            placeholder="말씀 — 우리말로 풀어 옮긴 한 구절"
+            className="journal-area !text-sm"
+          />
+          <div className="mt-2 flex gap-3">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="이름 — 예: 조주 종심"
+              className="w-1/2 border-b border-ink-3 bg-transparent pb-1 text-[12px] text-hanji-dim outline-none placeholder:text-hanji-faint"
+            />
+            <input
+              value={era}
+              onChange={(e) => setEra(e.target.value)}
+              placeholder="시대 — 예: 당나라 (선택)"
+              className="w-1/2 border-b border-ink-3 bg-transparent pb-1 text-[12px] text-hanji-dim outline-none placeholder:text-hanji-faint"
+            />
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              disabled={!text.trim() || !name.trim() || busy}
+              onClick={save}
+              className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
+            >
+              저장
+            </button>
+            {s.isEdited && (
+              <button
+                disabled={busy}
+                onClick={() => {
+                  onRestoreEdit();
+                  setEditing(false);
+                }}
+                className={`${smallBtn} border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji`}
+              >
+                원래대로
+              </button>
+            )}
+            <button
+              onClick={() => setEditing(false)}
+              className={`${smallBtn} border-ink-3 text-hanji-faint hover:text-hanji-dim`}
+            >
+              취소
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
+            {s.text}
+          </p>
+          <p className="mt-0.5 text-[11px] text-hanji-faint">
+            — {s.name}
+            {s.era && ` · ${s.era}`}
+            {s.source && ` · 『${s.source}』`}
+            {s.isExtra && (
+              <span className="ml-1.5 text-[10px] tracking-wider text-gold-soft">
+                · 더함
+              </span>
+            )}
+            {s.isEdited && (
+              <span className="ml-1.5 rounded-full border border-gold/40 px-2 py-0.5 text-[10px] tracking-wider text-gold-soft">
+                고침
+              </span>
+            )}
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                setText(s.text);
+                setName(s.name);
+                setEra(s.era);
+                setEditing(true);
+              }}
+              className={`${smallBtn} border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji`}
+            >
+              수정
+            </button>
+            {s.isEdited && (
+              <button
+                disabled={busy}
+                onClick={onRestoreEdit}
+                className={`${smallBtn} border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji`}
+              >
+                원래대로
+              </button>
+            )}
+            <button
+              disabled={busy}
+              onClick={onRemove}
+              className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
+            >
+              빼기
+            </button>
+          </div>
+        </>
+      )}
+    </li>
+  );
+}
+
 export default function AdminPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>("thrown");
@@ -366,7 +514,7 @@ export default function AdminPage() {
   const TABS: { key: Tab; label: string; count: number }[] = [
     { key: "adult", label: "성인 화두", count: adultTotal },
     { key: "student", label: "학생·어린이 화두", count: studentTotal },
-    { key: "admin", label: "관리자가 던진 화두", count: adminHwadu.length },
+    { key: "admin", label: "관리자 모드", count: adminHwadu.length },
     { key: "thrown", label: "수행자들이 던진 화두", count: pending.length },
     { key: "shared", label: "공유 허용한 화두의 답", count: sharedPending.length },
     { key: "sayings", label: "선지식의 한마디", count: sayingsVisible.length },
@@ -485,7 +633,7 @@ export default function AdminPage() {
           </section>
         )}
 
-        {/* ── 관리자가 던진 화두 ── */}
+        {/* ── 관리자 모드 — 관리자가 직접 던지는 화두 ── */}
         {tab === "admin" && (
           <section>
             <div className="border border-ink-3 bg-ink-2/60 p-4">
@@ -863,33 +1011,18 @@ export default function AdminPage() {
             </h3>
             <ul className="mt-4 space-y-4">
               {sayingsVisible.map((s) => (
-                <li
+                <SayingRow
                   key={s.id}
-                  className={`border-l pl-3 ${
-                    s.isExtra ? "border-gold/30" : "border-ink-3"
-                  }`}
-                >
-                  <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
-                    {s.text}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-hanji-faint">
-                    — {s.name}
-                    {s.era && ` · ${s.era}`}
-                    {s.source && ` · 『${s.source}』`}
-                    {s.isExtra && (
-                      <span className="ml-1.5 text-[10px] tracking-wider text-gold-soft">
-                        · 더함
-                      </span>
-                    )}
-                  </p>
-                  <button
-                    disabled={busy === `say-${s.id}`}
-                    onClick={() => act(`say-${s.id}`, () => removeSaying(s.id))}
-                    className={`${smallBtn} mt-1.5 border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
-                  >
-                    빼기
-                  </button>
-                </li>
+                  s={s}
+                  busy={busy === `say-${s.id}`}
+                  onEdit={(patch) =>
+                    act(`say-${s.id}`, () => editSaying(s.id, patch))
+                  }
+                  onRestoreEdit={() =>
+                    act(`say-${s.id}`, () => restoreSayingEdit(s.id))
+                  }
+                  onRemove={() => act(`say-${s.id}`, () => removeSaying(s.id))}
+                />
               ))}
             </ul>
 

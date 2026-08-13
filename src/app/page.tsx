@@ -299,7 +299,7 @@ export default function Home() {
     setShareDone(false);
     // 회향을 마치자마자 — 나눔의 뜻을 묻는다
     const ok = await confirm(
-      "그대의 답을 다른 수행자에게 공유하겠습니까?",
+      "이 답을 다른 수행자에게 공유하겠습니까?",
       `이름 없이 — 다른 수행자의 화두를 돕습니다. ${SHARE_NOTE}`,
       { confirm: "네", cancel: "아니오" }
     );
@@ -432,7 +432,7 @@ export default function Home() {
       <div className="flex flex-1 flex-col items-center px-6 py-14">
         <section className="rise flex w-full max-w-2xl flex-col items-center text-center">
           <p className="text-xs tracking-[0.4em] text-gold-soft">
-            回向 · 그대의 답
+            回向 · 나의 답
           </p>
           <p className="mt-5 whitespace-pre-line font-serif text-[15px] font-light leading-9 text-hanji">
             {current.journal}
@@ -501,7 +501,7 @@ export default function Home() {
           </div>
           <p className="mt-8 text-xs leading-6 text-hanji-faint">
             {current.hwaduId.startsWith("thrown:")
-              ? "이 화두는 어느 낯선 이가 던진 것 — 스승의 답은 없습니다. 그대의 답이 첫 답입니다."
+              ? "이 화두는 어느 낯선 이가 던진 것 — 스승의 답은 없습니다. 이 답이 첫 답입니다."
               : "정답은 없습니다. 다만 천 년 전에도 같은 물음을 품은 이들이 있었습니다."}
           </p>
 
@@ -543,7 +543,7 @@ export default function Home() {
                 <p className="text-[12.5px] leading-6 text-hanji-dim">
                   며칠을 품고 계셨습니다. 무엇이 보였습니까.
                   <br />
-                  아래에 그대의 답을 적어, 회향하십시오.
+                  아래에 답을 적어, 회향하십시오.
                 </p>
               </div>
             </div>
@@ -583,7 +583,7 @@ export default function Home() {
               }}
               rows={3}
               maxLength={500}
-              placeholder="그대의 답을 적으십시오…"
+              placeholder="여기에 답을 적으십시오…"
               className="max-h-[40vh] min-h-[92px] w-full resize-none overflow-y-auto rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-3 text-[15px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
             />
             {/* 나가기 · 글자수 · 회향 — 글칸 아래 한 줄로 */}

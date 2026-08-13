@@ -62,7 +62,7 @@ export default function ArchivePage() {
             아직 회향한 화두가 없습니다.
           </p>
           <p className="mt-2 text-xs text-hanji-faint">
-            물음을 품은 시간이 쌓이면, 이곳이 그대의 서고가 됩니다.
+            물음을 품은 시간이 쌓이면, 이곳이 나의 서고가 됩니다.
           </p>
           <Link
             href="/"
@@ -81,7 +81,10 @@ export default function ArchivePage() {
             </p>
           )}
           <div className="mt-12 flex flex-col gap-11">
-          {[...history].reverse().map((s, i) => {
+          {/* 최신 기록이 맨 위 — 받은 시각 내림차순으로 명시적으로 세운다 */}
+          {[...history]
+            .sort((a, b) => b.receivedAt - a.receivedAt)
+            .map((s, i) => {
             const k = keyOf(s);
             const editing = editKey === k;
             return (
@@ -138,7 +141,7 @@ export default function ArchivePage() {
                       }
                       rows={6}
                       maxLength={MAX_ANSWER}
-                      placeholder="그대의 답"
+                      placeholder="나의 답"
                       className="journal-area !text-sm"
                     />
                     <p className="mt-1 text-right text-[11px] text-hanji-faint">
