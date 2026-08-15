@@ -5,22 +5,27 @@
 // 다섯 구획(탭): 성인 화두 | 학생·어린이 화두 | 관리자가 던진 화두
 // | 수행자들이 던진 화두(대기+승인) | 공유 허용한 화두의 답
 // 여기에 '선지식의 한마디' 구획을 더한다.
-// 코드에 내장된 은행 화두도 여기서 고치고(고침) 감출(숨김) 수 있다 —
-// 손질은 admin-content 문서에 새겨지고, 코드 원문은 그대로 남는다.
+// 삭제는 어디서나 두 단계다 — 목록의 [숨기기]는 그 구획 하단의
+// '숨긴 것들'로 접어 두고(되살릴 수 있다), 숨긴 것들에서 [삭제]하면
+// 물음창을 거쳐 영영 지운다. 코드 내장 화두·어록은 removed 표식으로,
+// 서버 문서(공개 화두·공유 답)는 문서 자체를 지운다.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { User } from "firebase/auth";
 import { ADMIN_UID } from "@/lib/config";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
+import { useConfirm } from "@/components/Confirm";
 import {
   adminAddHwadu,
   adminUpdateHwadu,
   approveThrown,
   deletePublicHwadu,
-  fetchPublicHwadu,
+  fetchAllPublicHwadu,
   fetchThrown,
+  hidePublicHwadu,
   rejectThrown,
+  unhidePublicHwadu,
   type PublicHwadu,
   type ThrownItem,
 } from "@/lib/thrown";
@@ -29,6 +34,8 @@ import {
   deleteSharedAnswer,
   fetchAllSharedAnswers,
   rejectSharedAnswer,
+  restoreSharedAnswer,
+  updateSharedAnswer,
   type SharedAnswer,
 } from "@/lib/community";
 import { HWADU_BANK, getHwadu, type Hwadu } from "@/lib/hwadu";
@@ -40,7 +47,9 @@ import {
   fetchAdminContent,
   hideBankHwadu,
   overrideBankHwadu,
+  removeBankHwaduForever,
   removeSaying,
+  removeSayingForever,
   restoreBankHwadu,
   restoreSaying,
   restoreSayingEdit,
@@ -70,18 +79,83 @@ const TAB_NOTE: Record<Tab, string> = {
 const smallBtn =
   "border px-3.5 py-1.5 text-[11px] tracking-[0.15em] transition-colors disabled:opacity-40";
 
+// 한 줄 요약 — 숨긴 것들 목록에 쓰는 짧은 꼬리표
+function snip(text: string, n: number): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  return flat.length > n ? `${flat.slice(0, n)}…` : flat;
+}
+
+// 숨긴 것들 — 구획 하단의 접이. 비어 있으면 아예 그리지 않는다.
+function HiddenDetails({
+  count,
+  children,
+}: {
+  count: number;
+  children: ReactNode;
+}) {
+  if (count === 0) return null;
+  return (
+    <details className="mt-9 border-t border-ink-3 pt-5">
+      <summary className="cursor-pointer text-[11px] tracking-[0.3em] text-hanji-faint transition-colors hover:text-hanji-dim">
+        숨긴 것들 · {count}
+      </summary>
+      <p className="mt-2 text-[11px] leading-5 text-hanji-faint">
+        되살리면 제자리로 돌아갑니다. 여기서 삭제하면 되돌릴 수 없습니다.
+      </p>
+      <ul className="mt-4 space-y-3">{children}</ul>
+    </details>
+  );
+}
+
+// 숨긴 것 한 줄 — [되살리기] [삭제(영구)]. 삭제는 부르는 쪽이 물음창을 거친다.
+function HiddenRow({
+  label,
+  busy,
+  onRevive,
+  onDelete,
+  reviveLabel = "되살리기",
+}: {
+  label: string;
+  busy: boolean;
+  onRevive: () => void;
+  onDelete: () => void;
+  reviveLabel?: string;
+}) {
+  return (
+    <li className="flex items-start justify-between gap-3 border-l border-ink-3 pl-3 text-[11.5px] leading-5 text-hanji-faint opacity-80">
+      <span>{label}</span>
+      <span className="flex shrink-0 gap-3">
+        <button
+          disabled={busy}
+          onClick={onRevive}
+          className="transition-colors hover:text-gold-soft disabled:opacity-40"
+        >
+          {reviveLabel}
+        </button>
+        <button
+          disabled={busy}
+          onClick={onDelete}
+          className="transition-colors hover:text-vermilion disabled:opacity-40"
+        >
+          삭제
+        </button>
+      </span>
+    </li>
+  );
+}
+
 // 은행(코드 내장 상수)에서만 파생되는 세 갈래 — 모듈에서 한 번만 거른다.
 // (폼 입력마다 페이지 전체가 재렌더되는 화면이라, 렌더 안에서 매번 거르면 낭비다)
 const ADULT_BANK = HWADU_BANK.filter((h) => h.audience !== "student");
 const STUDENT_ONLY = HWADU_BANK.filter((h) => h.audience === "student");
 const STUDENT_CLASSICS = HWADU_BANK.filter((h) => h.forStudent);
 
-// 은행(코드 내장) 화두 열람 줄 — 여기서도 고치고(덮어쓰기) 감출 수 있다
+// 은행(코드 내장) 화두 열람 줄 — 여기서도 고치고(덮어쓰기) 숨길 수 있다.
+// 숨긴 줄은 여기 없다 — 구획 하단의 '숨긴 것들'(HiddenDetails)로 접힌다.
 function BankRow({
   h,
   i,
   ov,
-  hidden,
   busy,
   onSave,
   onHide,
@@ -90,7 +164,6 @@ function BankRow({
   h: Hwadu;
   i: number;
   ov?: BankOverride;
-  hidden: boolean;
   busy: boolean;
   onSave: (patch: BankOverride) => void;
   onHide: () => void;
@@ -105,28 +178,6 @@ function BankRow({
   const shownTitle = ov?.title ?? h.title;
   const shownQuestion = ov?.question ?? h.question;
   const shownContext = ov?.context ?? h.context;
-
-  // 숨긴 화두 — 흐리게 접어 두고, 되살리기만 남긴다
-  if (hidden) {
-    return (
-      <li className="border-l border-ink-3 pl-3 opacity-50">
-        <p className="text-[12.5px] text-hanji-faint">
-          <span>{i + 1}.</span> {shownTitle}
-          {h.hanja && <span> · {h.hanja}</span>}
-          <span className="ml-2 rounded-full border border-ink-3 px-2 py-0.5 text-[10px] tracking-wider">
-            숨김
-          </span>
-        </p>
-        <button
-          disabled={busy}
-          onClick={onRestore}
-          className={`${smallBtn} mt-1.5 border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji`}
-        >
-          되살리기
-        </button>
-      </li>
-    );
-  }
 
   const save = () => {
     const t = title.trim();
@@ -229,7 +280,7 @@ function BankRow({
               onClick={onHide}
               className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
             >
-              삭제
+              숨기기
             </button>
           </div>
         </>
@@ -393,7 +444,101 @@ function SayingRow({
               onClick={onRemove}
               className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
             >
-              빼기
+              숨기기
+            </button>
+          </div>
+        </>
+      )}
+    </li>
+  );
+}
+
+// 나눔에 부쳐진 답 한 줄 — 대기·열린 답 모두 여기서 오탈자를 손질할 수 있다.
+// [숨기기]는 거절(rejected)로 접는 것 — 하단 '숨긴 것들'에서 되살리거나 지운다.
+function SharedRow({
+  s,
+  busy,
+  onApprove,
+  onHide,
+  onSave,
+}: {
+  s: SharedAnswer;
+  busy: boolean;
+  onApprove?: () => void; // 대기 항목에만 붙는다
+  onHide: () => void;
+  onSave: (answer: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState("");
+
+  const save = () => {
+    const t = text.trim();
+    if (!t) return;
+    // 그대로 되돌려 적었으면 새로 새기지 않는다
+    if (t !== s.answer) onSave(t);
+    setEditing(false);
+  };
+
+  return (
+    <li className="border border-ink-3 bg-ink-2/60 p-4">
+      <p className="text-[11px] tracking-wide text-gold-soft">
+        {getHwadu(s.hwaduId)?.title ?? s.hwaduId} · {s.authorName}
+      </p>
+      {editing ? (
+        <>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value.slice(0, 500))}
+            rows={3}
+            maxLength={500}
+            className="journal-area mt-2 !text-sm"
+          />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              disabled={!text.trim() || busy}
+              onClick={save}
+              className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
+            >
+              저장
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              className={`${smallBtn} border-ink-3 text-hanji-faint hover:text-hanji-dim`}
+            >
+              취소
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="mt-2 whitespace-pre-line break-keep text-[13.5px] font-light leading-7 text-hanji">
+            {s.answer}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {onApprove && (
+              <button
+                disabled={busy}
+                onClick={onApprove}
+                className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
+              >
+                승인 — 다른 이에게 열기
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setText(s.answer);
+                setEditing(true);
+              }}
+              className={`${smallBtn} border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji`}
+            >
+              수정
+            </button>
+            <button
+              disabled={busy}
+              onClick={onHide}
+              className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
+            >
+              숨기기
             </button>
           </div>
         </>
@@ -403,6 +548,7 @@ function SayingRow({
 }
 
 export default function AdminPage() {
+  const confirm = useConfirm();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>("thrown");
   const [thrown, setThrown] = useState<ThrownItem[]>([]);
@@ -432,7 +578,7 @@ export default function AdminPage() {
     try {
       const [t, p, s, c] = await Promise.all([
         fetchThrown(),
-        fetchPublicHwadu(),
+        fetchAllPublicHwadu(), // 숨긴 것까지 — 뒷방은 접힌 것도 봐야 한다
         fetchAllSharedAnswers().catch(() => [] as SharedAnswer[]),
         fetchAdminContent(true), // 실패해도 빈 손질로 돌아온다 — throw 하지 않는다
       ]);
@@ -460,6 +606,15 @@ export default function AdminPage() {
     } finally {
       setBusy(null);
     }
+  };
+
+  // 영구 삭제 — 반드시 물음창을 거친다. '두다'를 고르면 아무 일도 없다.
+  const eraseForever = async (key: string, fn: () => Promise<void>) => {
+    const ok = await confirm("정말 지우시겠습니까?", "돌이킬 수 없습니다.", {
+      confirm: "지우다",
+      cancel: "두다",
+    });
+    if (ok) await act(key, fn);
   };
 
   // 승인 알림 — 던진 이(uid)에게 웹푸시를 쏜다.
@@ -506,35 +661,57 @@ export default function AdminPage() {
 
   const pending = thrown.filter((t) => t.status === "pending");
   const handled = thrown.filter((t) => t.status !== "pending");
-  const adminHwadu = publicList.filter((p) => p.origin === "admin");
-  const approvedThrown = publicList.filter((p) => p.origin !== "admin");
 
-  // 뒷방의 손질 — 숨긴 은행 화두와 덮어쓴 조각
+  // 공개 화두 — 숨긴 것은 목록에서 빠져 각 구획의 '숨긴 것들'로 접힌다
+  const activePublic = publicList.filter((p) => !p.hidden);
+  const hiddenPublic = publicList.filter((p) => p.hidden);
+  const adminHwadu = activePublic.filter((p) => p.origin === "admin");
+  const adminHiddenPub = hiddenPublic.filter((p) => p.origin === "admin");
+  const approvedThrown = activePublic.filter((p) => p.origin !== "admin");
+  const thrownHiddenPub = hiddenPublic.filter((p) => p.origin !== "admin");
+
+  // 뒷방의 손질 — 숨긴 것(되살릴 수 있음)·영영 지운 것·덮어쓴 조각
   const hiddenSet = new Set(content.bank.hidden);
-  const hiddenAdult = ADULT_BANK.filter((h) => hiddenSet.has(h.id)).length;
-  const hiddenStudent =
-    STUDENT_ONLY.filter((h) => hiddenSet.has(h.id)).length +
-    STUDENT_CLASSICS.filter((h) => hiddenSet.has(h.id)).length;
+  const removedSet = new Set(content.bank.removed);
+  const inBank = (h: Hwadu) => !hiddenSet.has(h.id) && !removedSet.has(h.id);
+  const adultBankVisible = ADULT_BANK.filter(inBank);
+  const adultBankHidden = ADULT_BANK.filter(
+    (h) => hiddenSet.has(h.id) && !removedSet.has(h.id)
+  );
+  const studentOnlyVisible = STUDENT_ONLY.filter(inBank);
+  const studentClassicsVisible = STUDENT_CLASSICS.filter(inBank);
+  // 학생 풀 전체(전용+고전)에서 숨긴 것 — 두 목록에 겹치는 화두도 한 번만
+  const studentBankHidden = HWADU_BANK.filter(
+    (h) =>
+      (h.audience === "student" || h.forStudent) &&
+      hiddenSet.has(h.id) &&
+      !removedSet.has(h.id)
+  );
 
-  // 실제 랜덤 풀에 섞이는 성인/학생 총계 — 은행(숨김 제외) + 추가된 화두(publicList)
-  const publicAdult = publicList.filter((p) => (p.audience ?? "adult") === "adult");
-  const publicStudent = publicList.filter((p) => p.audience === "student");
-  const adultTotal = ADULT_BANK.length - hiddenAdult + publicAdult.length;
+  // 실제 랜덤 풀에 섞이는 성인/학생 총계 — 은행(숨김·삭제 제외) + 추가된 화두
+  const publicAdult = activePublic.filter((p) => (p.audience ?? "adult") === "adult");
+  const publicStudent = activePublic.filter((p) => p.audience === "student");
+  const adultTotal = adultBankVisible.length + publicAdult.length;
   const studentTotal =
-    STUDENT_ONLY.length +
-    STUDENT_CLASSICS.length -
-    hiddenStudent +
+    studentOnlyVisible.length +
+    studentClassicsVisible.length +
     publicStudent.length;
 
-  // 나눔에 부쳐진 회향 — 검수 대기 / 처리된 것
+  // 나눔에 부쳐진 회향 — 검수 대기 / 열린 답 / 숨긴 것(거절이 곧 숨김)
   const sharedPending = shared.filter((s) => (s.status ?? "pending") === "pending");
-  const sharedHandled = shared.filter((s) => (s.status ?? "pending") !== "pending");
+  const sharedApproved = shared.filter((s) => s.status === "approved");
+  const sharedRejected = shared.filter((s) => s.status === "rejected");
 
-  // 선지식의 한마디 — 내장 + 더한 것 전부, 감춘 것은 따로
+  // 선지식의 한마디 — 감춘 것은 따로, 영영 지운 것은 어디에도 없다
   const sayingsAll = allSayings(content.sayings);
   const hiddenSayingIds = new Set(content.sayings.hiddenIds);
-  const sayingsVisible = sayingsAll.filter((s) => !hiddenSayingIds.has(s.id));
-  const sayingsHidden = sayingsAll.filter((s) => hiddenSayingIds.has(s.id));
+  const removedSayingIds = new Set(content.sayings.removedIds);
+  const sayingsVisible = sayingsAll.filter(
+    (s) => !hiddenSayingIds.has(s.id) && !removedSayingIds.has(s.id)
+  );
+  const sayingsHidden = sayingsAll.filter(
+    (s) => hiddenSayingIds.has(s.id) && !removedSayingIds.has(s.id)
+  );
 
   const TABS: { key: Tab; label: string; count: number }[] = [
     { key: "adult", label: "성인 화두", count: adultTotal },
@@ -545,16 +722,28 @@ export default function AdminPage() {
     { key: "sayings", label: "선지식의 한마디", count: sayingsVisible.length },
   ];
 
-  // 은행 화두 손질 — 저장·숨김·되살리기
+  // 은행 화두 손질 — 저장·숨김·(덮어쓴 것) 원래대로
   const bankRowProps = (h: Hwadu) => ({
     ov: content.bank.overrides[h.id],
-    hidden: hiddenSet.has(h.id),
     busy: busy === `bank-${h.id}`,
     onSave: (patch: BankOverride) =>
       act(`bank-${h.id}`, () => overrideBankHwadu(h.id, patch)),
     onHide: () => act(`bank-${h.id}`, () => hideBankHwadu(h.id)),
     onRestore: () => act(`bank-${h.id}`, () => restoreBankHwadu(h.id)),
   });
+
+  // 숨긴 은행 화두 한 줄 — 되살리기 / (물음창 거쳐) 영구 삭제
+  const bankHiddenRow = (h: Hwadu) => (
+    <HiddenRow
+      key={h.id}
+      label={h.hanja ? `${h.title} · ${h.hanja}` : h.title}
+      busy={busy === `bank-${h.id}`}
+      onRevive={() => act(`bank-${h.id}`, () => restoreBankHwadu(h.id))}
+      onDelete={() =>
+        eraseForever(`bank-${h.id}`, () => removeBankHwaduForever(h.id))
+      }
+    />
+  );
 
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
@@ -595,17 +784,21 @@ export default function AdminPage() {
         {tab === "adult" && (
           <section>
             <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
-              은행 화두(코드 내장) · {ADULT_BANK.length - hiddenAdult}
-              {hiddenAdult > 0 && (
-                <span className="ml-1 tracking-normal"> (숨김 {hiddenAdult})</span>
+              은행 화두(코드 내장) · {adultBankVisible.length}
+              {adultBankHidden.length > 0 && (
+                <span className="ml-1 tracking-normal">
+                  {" "}
+                  (숨김 {adultBankHidden.length})
+                </span>
               )}
             </h3>
             <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
-              여기서 고치면 &lsquo;고침&rsquo;으로, 삭제하면 &lsquo;숨김&rsquo;으로
-              남습니다 — 코드 원문은 그대로라 언제든 되살릴 수 있습니다.
+              여기서 고치면 &lsquo;고침&rsquo;으로, 숨기면 아래 &lsquo;숨긴
+              것들&rsquo;로 접힙니다 — 되살릴 수 있고, 숨긴 것들에서 한 번 더
+              지우면 영영 사라집니다.
             </p>
             <ul className="mt-4 space-y-4">
-              {ADULT_BANK.map((h, i) => (
+              {adultBankVisible.map((h, i) => (
                 <BankRow key={h.id} h={h} i={i} {...bankRowProps(h)} />
               ))}
             </ul>
@@ -616,11 +809,14 @@ export default function AdminPage() {
                 </h3>
                 <ul className="mt-3 space-y-4">
                   {publicAdult.map((p, i) => (
-                    <PublicRow key={p.id} p={p} i={ADULT_BANK.length + i} />
+                    <PublicRow key={p.id} p={p} i={adultBankVisible.length + i} />
                   ))}
                 </ul>
               </>
             )}
+            <HiddenDetails count={adultBankHidden.length}>
+              {adultBankHidden.map(bankHiddenRow)}
+            </HiddenDetails>
           </section>
         )}
 
@@ -628,18 +824,18 @@ export default function AdminPage() {
         {tab === "student" && (
           <section>
             <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
-              학생 전용 · {STUDENT_ONLY.length}
+              학생 전용 · {studentOnlyVisible.length}
             </h3>
             <ul className="mt-3 space-y-4">
-              {STUDENT_ONLY.map((h, i) => (
+              {studentOnlyVisible.map((h, i) => (
                 <BankRow key={h.id} h={h} i={i} {...bankRowProps(h)} />
               ))}
             </ul>
             <h3 className="mt-8 text-[11px] tracking-[0.3em] text-hanji-faint">
-              학생에게도 열리는 고전 · {STUDENT_CLASSICS.length}
+              학생에게도 열리는 고전 · {studentClassicsVisible.length}
             </h3>
             <ul className="mt-3 space-y-4">
-              {STUDENT_CLASSICS.map((h, i) => (
+              {studentClassicsVisible.map((h, i) => (
                 <BankRow key={h.id} h={h} i={i} {...bankRowProps(h)} />
               ))}
             </ul>
@@ -655,6 +851,9 @@ export default function AdminPage() {
                 </ul>
               </>
             )}
+            <HiddenDetails count={studentBankHidden.length}>
+              {studentBankHidden.map(bankHiddenRow)}
+            </HiddenDetails>
           </section>
         )}
 
@@ -781,11 +980,11 @@ export default function AdminPage() {
                         <button
                           disabled={busy === p.id}
                           onClick={() =>
-                            act(p.id, () => deletePublicHwadu(p.id))
+                            act(p.id, () => hidePublicHwadu(p.id))
                           }
                           className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
                         >
-                          삭제
+                          숨기기
                         </button>
                       </div>
                     </>
@@ -796,6 +995,19 @@ export default function AdminPage() {
                 <p className="text-sm text-hanji-faint">아직 없습니다.</p>
               )}
             </ul>
+            <HiddenDetails count={adminHiddenPub.length}>
+              {adminHiddenPub.map((p) => (
+                <HiddenRow
+                  key={p.id}
+                  label={snip(p.question, 34)}
+                  busy={busy === p.id}
+                  onRevive={() => act(p.id, () => unhidePublicHwadu(p.id))}
+                  onDelete={() =>
+                    eraseForever(p.id, () => deletePublicHwadu(p.id))
+                  }
+                />
+              ))}
+            </HiddenDetails>
           </section>
         )}
 
@@ -860,14 +1072,28 @@ export default function AdminPage() {
                   </p>
                   <button
                     disabled={busy === p.id}
-                    onClick={() => act(p.id, () => deletePublicHwadu(p.id))}
+                    onClick={() => act(p.id, () => hidePublicHwadu(p.id))}
                     className="shrink-0 text-[11px] text-hanji-faint transition-colors hover:text-vermilion"
                   >
-                    내리기
+                    숨기기
                   </button>
                 </li>
               ))}
             </ul>
+
+            <HiddenDetails count={thrownHiddenPub.length}>
+              {thrownHiddenPub.map((p) => (
+                <HiddenRow
+                  key={p.id}
+                  label={snip(p.question, 34)}
+                  busy={busy === p.id}
+                  onRevive={() => act(p.id, () => unhidePublicHwadu(p.id))}
+                  onDelete={() =>
+                    eraseForever(p.id, () => deletePublicHwadu(p.id))
+                  }
+                />
+              ))}
+            </HiddenDetails>
 
             {handled.length > 0 && (
               <>
@@ -912,83 +1138,62 @@ export default function AdminPage() {
             ) : (
               <ul className="mt-3 space-y-4">
                 {sharedPending.map((s) => (
-                  <li key={s.id} className="border border-ink-3 bg-ink-2/60 p-4">
-                    <p className="text-[11px] tracking-wide text-gold-soft">
-                      {getHwadu(s.hwaduId)?.title ?? s.hwaduId} · {s.authorName}
-                    </p>
-                    <p className="mt-2 whitespace-pre-line break-keep text-[13.5px] font-light leading-7 text-hanji">
-                      {s.answer}
-                    </p>
-                    <div className="mt-3 flex gap-2">
-                      <button
-                        disabled={busy === s.id}
-                        onClick={() =>
-                          act(s.id, async () => {
-                            await approveSharedAnswer(s.id);
-                            // 승인이 성공한 직후에만 — 실패는 조용히
-                            void notifyApproval("answer", s.uid);
-                          })
-                        }
-                        className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
-                      >
-                        승인 — 다른 이에게 열기
-                      </button>
-                      <button
-                        disabled={busy === s.id}
-                        onClick={() => act(s.id, () => rejectSharedAnswer(s.id))}
-                        className={`${smallBtn} border-ink-3 text-hanji-dim hover:border-vermilion/50 hover:text-hanji`}
-                      >
-                        거절
-                      </button>
-                      <button
-                        disabled={busy === s.id}
-                        onClick={() => act(s.id, () => deleteSharedAnswer(s.id))}
-                        className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  </li>
+                  <SharedRow
+                    key={s.id}
+                    s={s}
+                    busy={busy === s.id}
+                    onApprove={() =>
+                      act(s.id, async () => {
+                        await approveSharedAnswer(s.id);
+                        // 승인이 성공한 직후에만 — 실패는 조용히
+                        void notifyApproval("answer", s.uid);
+                      })
+                    }
+                    onHide={() => act(s.id, () => rejectSharedAnswer(s.id))}
+                    onSave={(answer) =>
+                      act(s.id, () => updateSharedAnswer(s.id, answer))
+                    }
+                  />
                 ))}
               </ul>
             )}
 
-            {sharedHandled.length > 0 && (
+            {sharedApproved.length > 0 && (
               <>
                 <h3 className="mt-9 text-[11px] tracking-[0.3em] text-hanji-faint">
-                  처리 내역 · {sharedHandled.length}
+                  열린 답 · {sharedApproved.length}
                 </h3>
-                <ul className="mt-3 space-y-2">
-                  {sharedHandled.map((s) => (
-                    <li
+                <ul className="mt-3 space-y-4">
+                  {sharedApproved.map((s) => (
+                    <SharedRow
                       key={s.id}
-                      className="flex items-start justify-between gap-3 text-[11px] leading-5 text-hanji-faint"
-                    >
-                      <span>
-                        <span
-                          className={
-                            s.status === "approved"
-                              ? "text-gold-soft"
-                              : "text-vermilion/70"
-                          }
-                        >
-                          [{s.status === "approved" ? "열림" : "거절"}]
-                        </span>{" "}
-                        {s.answer.replace(/\s+/g, " ").slice(0, 34)}
-                        {s.answer.length > 34 && "…"}
-                      </span>
-                      <button
-                        disabled={busy === s.id}
-                        onClick={() => act(s.id, () => deleteSharedAnswer(s.id))}
-                        className="shrink-0 transition-colors hover:text-vermilion"
-                      >
-                        삭제
-                      </button>
-                    </li>
+                      s={s}
+                      busy={busy === s.id}
+                      onHide={() => act(s.id, () => rejectSharedAnswer(s.id))}
+                      onSave={(answer) =>
+                        act(s.id, () => updateSharedAnswer(s.id, answer))
+                      }
+                    />
                   ))}
                 </ul>
               </>
             )}
+
+            {/* 거절이 곧 숨김 — 되살리면 대기로 돌아가 다시 검수대에 오른다 */}
+            <HiddenDetails count={sharedRejected.length}>
+              {sharedRejected.map((s) => (
+                <HiddenRow
+                  key={s.id}
+                  label={`${snip(s.answer, 34)} — ${s.authorName}`}
+                  busy={busy === s.id}
+                  reviveLabel="되살리기 — 대기로"
+                  onRevive={() => act(s.id, () => restoreSharedAnswer(s.id))}
+                  onDelete={() =>
+                    eraseForever(s.id, () => deleteSharedAnswer(s.id))
+                  }
+                />
+              ))}
+            </HiddenDetails>
           </section>
         )}
 
@@ -1061,36 +1266,20 @@ export default function AdminPage() {
               ))}
             </ul>
 
-            {/* 감춘 내장 어록 — 되살릴 수 있다 */}
-            {sayingsHidden.length > 0 && (
-              <>
-                <h3 className="mt-9 text-[11px] tracking-[0.3em] text-hanji-faint">
-                  감춘 어록 · {sayingsHidden.length}
-                </h3>
-                <ul className="mt-3 space-y-2">
-                  {sayingsHidden.map((s) => (
-                    <li
-                      key={s.id}
-                      className="flex items-start justify-between gap-3 text-[11px] leading-5 text-hanji-faint opacity-70"
-                    >
-                      <span>
-                        {s.text.replace(/\s+/g, " ").slice(0, 40)}
-                        {s.text.length > 40 && "…"} — {s.name}
-                      </span>
-                      <button
-                        disabled={busy === `say-${s.id}`}
-                        onClick={() =>
-                          act(`say-${s.id}`, () => restoreSaying(s.id))
-                        }
-                        className="shrink-0 transition-colors hover:text-gold-soft"
-                      >
-                        되살리기
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+            {/* 숨긴 어록 — 되살리거나, 물음창을 거쳐 영영 지운다 */}
+            <HiddenDetails count={sayingsHidden.length}>
+              {sayingsHidden.map((s) => (
+                <HiddenRow
+                  key={s.id}
+                  label={`${snip(s.text, 40)} — ${s.name}`}
+                  busy={busy === `say-${s.id}`}
+                  onRevive={() => act(`say-${s.id}`, () => restoreSaying(s.id))}
+                  onDelete={() =>
+                    eraseForever(`say-${s.id}`, () => removeSayingForever(s.id))
+                  }
+                />
+              ))}
+            </HiddenDetails>
           </section>
         )}
       </div>

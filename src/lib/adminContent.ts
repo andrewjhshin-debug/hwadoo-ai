@@ -1,10 +1,13 @@
 // ─────────────────────────────────────────────────────────────
 // 뒷방의 손질 — 코드에 내장된 화두 은행·어록도 관리자가 다듬는다.
 // Firestore 컬렉션 "admin-content" (읽기는 모두 / 쓰기는 관리자만):
-// · 문서 "bank":    { hidden: string[], overrides: { [hwaduId]: { question?, context?, title? } } }
+// · 문서 "bank":    { hidden: string[], removed: string[],
+//                     overrides: { [hwaduId]: { question?, context?, title? } } }
 // · 문서 "sayings": { extra: [{ id, name, era, text }], hiddenIds: string[],
-//                     edited: { [id]: { name, era, text } } }
+//                     removedIds: string[], edited: { [id]: { name, era, text } } }
 // 내장 데이터는 코드에 그대로 두고, 숨김·덮어쓰기만 서버에 새긴다.
+// 삭제는 두 단계다 — 숨김(hidden/hiddenIds)은 되살릴 수 있고,
+// 숨김 목록에서 한 번 더 지우면 removed/removedIds 로 넘어가 영영 안 보인다.
 // 읽기에 실패하면 원본(코드 내장) 그대로 조용히 물러선다 — 화면이 멈추지 않게.
 // ─────────────────────────────────────────────────────────────
 
@@ -28,7 +31,8 @@ export type BankOverride = {
 };
 
 export type AdminBank = {
-  hidden: string[]; // 랜덤 풀에서 감춘 은행 화두 id
+  hidden: string[]; // 랜덤 풀에서 감춘 은행 화두 id — 되살릴 수 있다
+  removed: string[]; // 영구 삭제한 은행 화두 id — 뒷방 어디에도 다시 안 보인다
   overrides: Record<string, BankOverride>;
 };
 
@@ -49,7 +53,8 @@ export type SayingEdit = {
 
 export type AdminSayings = {
   extra: ExtraSaying[];
-  hiddenIds: string[]; // 감춘 어록 id (내장 어록은 텍스트 해시 id)
+  hiddenIds: string[]; // 감춘 어록 id (내장 어록은 텍스트 해시 id) — 되살릴 수 있다
+  removedIds: string[]; // 영구 삭제한 내장 어록 id — 더한 어록은 extra 에서 바로 걷는다
   edited: Record<string, SayingEdit>; // 고쳐 쓴 어록 — id는 원문 기준 그대로
 };
 
@@ -61,8 +66,8 @@ export type AdminContent = {
 // 빈 손질 — 늘 새 객체로 (실수로 고쳐 쓰이지 않도록)
 export function emptyAdminContent(): AdminContent {
   return {
-    bank: { hidden: [], overrides: {} },
-    sayings: { extra: [], hiddenIds: [], edited: {} },
+    bank: { hidden: [], removed: [], overrides: {} },
+    sayings: { extra: [], hiddenIds: [], removedIds: [], edited: {} },
   };
 }
 
@@ -109,11 +114,17 @@ export async function fetchAdminContent(force = false): Promise<AdminContent> {
   return run;
 }
 
+// 서버에서 온 문자열 배열 — 모양이 어긋나면 빈 배열로 물러선다
+function parseIds(raw: unknown): string[] {
+  return Array.isArray(raw)
+    ? (raw as unknown[]).filter((v): v is string => typeof v === "string")
+    : [];
+}
+
 // 서버에서 온 것을 그대로 믿지 않는다 — 모양이 어긋나도 화면이 깨지지 않게
 function parseBank(data: Record<string, unknown> | undefined): AdminBank {
-  const hidden = Array.isArray(data?.hidden)
-    ? (data.hidden as unknown[]).filter((v): v is string => typeof v === "string")
-    : [];
+  const hidden = parseIds(data?.hidden);
+  const removed = parseIds(data?.removed);
   const overrides: Record<string, BankOverride> = {};
   const raw = data?.overrides;
   if (raw && typeof raw === "object") {
@@ -127,7 +138,7 @@ function parseBank(data: Record<string, unknown> | undefined): AdminBank {
       if (ov.question || ov.context || ov.title) overrides[id] = ov;
     }
   }
-  return { hidden, overrides };
+  return { hidden, removed, overrides };
 }
 
 function parseSayings(data: Record<string, unknown> | undefined): AdminSayings {
@@ -146,9 +157,8 @@ function parseSayings(data: Record<string, unknown> | undefined): AdminSayings {
       });
     }
   }
-  const hiddenIds = Array.isArray(data?.hiddenIds)
-    ? (data.hiddenIds as unknown[]).filter((v): v is string => typeof v === "string")
-    : [];
+  const hiddenIds = parseIds(data?.hiddenIds);
+  const removedIds = parseIds(data?.removedIds);
   const edited: Record<string, SayingEdit> = {};
   const rawEdited = data?.edited;
   if (rawEdited && typeof rawEdited === "object") {
@@ -163,7 +173,7 @@ function parseSayings(data: Record<string, unknown> | undefined): AdminSayings {
       };
     }
   }
-  return { extra, hiddenIds, edited };
+  return { extra, hiddenIds, removedIds, edited };
 }
 
 // ── 은행 화두 손질 (관리자 전용 — 규칙이 지킨다) ─────────────────
@@ -197,6 +207,21 @@ export async function restoreBankHwadu(hwaduId: string) {
   await setDoc(
     bankRef(),
     { hidden: arrayRemove(hwaduId), overrides: { [hwaduId]: deleteField() } },
+    { merge: true }
+  );
+  invalidate();
+}
+
+// 숨긴 은행 화두를 영영 지운다 — hidden 에서 빼고 removed 에 새긴다.
+// 뒷방 어디에도 다시 안 보이고, 되살릴 수 없다. 덮어쓴 조각도 함께 거둔다.
+export async function removeBankHwaduForever(hwaduId: string) {
+  await setDoc(
+    bankRef(),
+    {
+      hidden: arrayRemove(hwaduId),
+      removed: arrayUnion(hwaduId),
+      overrides: { [hwaduId]: deleteField() },
+    },
     { merge: true }
   );
   invalidate();
@@ -256,10 +281,10 @@ export function allSayings(content: AdminSayings): MergedSaying[] {
   });
 }
 
-// 화면에 보일 어록 — 내장 + 더한 것, 감춘 것은 뺀다
+// 화면에 보일 어록 — 내장 + 더한 것, 감춘 것과 영영 지운 것은 뺀다
 export function mergeSayings(content: AdminSayings): MergedSaying[] {
-  const hidden = new Set(content.hiddenIds);
-  return allSayings(content).filter((s) => !hidden.has(s.id));
+  const gone = new Set([...content.hiddenIds, ...content.removedIds]);
+  return allSayings(content).filter((s) => !gone.has(s.id));
 }
 
 // 어록 한 줄을 더한다
@@ -295,25 +320,43 @@ export async function restoreSayingEdit(id: string) {
   invalidate();
 }
 
-// 어록 한 줄을 뺀다 — 더한 것은 걷어내고, 내장 어록은 hiddenIds로 감춘다
+// 어록 한 줄을 숨긴다 — 내장·더한 것 모두 hiddenIds 로. 되살릴 수 있다.
 export async function removeSaying(id: string) {
-  const content = await fetchAdminContent(true);
-  const rest = content.sayings.extra.filter((e) => e.id !== id);
-  if (rest.length !== content.sayings.extra.length) {
-    // 더한 어록을 걷어낼 때는 그 위에 얹힌 고침 조각도 함께 거둔다
-    await setDoc(
-      sayingsRef(),
-      { extra: rest, edited: { [id]: deleteField() } },
-      { merge: true }
-    );
-  } else {
-    await setDoc(sayingsRef(), { hiddenIds: arrayUnion(id) }, { merge: true });
-  }
+  await setDoc(sayingsRef(), { hiddenIds: arrayUnion(id) }, { merge: true });
   invalidate();
 }
 
-// 감춘 내장 어록을 되살린다
+// 감춘 어록을 되살린다 — 내장·더한 것 모두
 export async function restoreSaying(id: string) {
   await setDoc(sayingsRef(), { hiddenIds: arrayRemove(id) }, { merge: true });
+  invalidate();
+}
+
+// 숨긴 어록을 영영 지운다 — 더한 것은 extra 에서 걷어내고,
+// 내장 어록은 removedIds 로 새긴다. 얹힌 고침 조각도 함께 거둔다.
+export async function removeSayingForever(id: string) {
+  const content = await fetchAdminContent(true);
+  const rest = content.sayings.extra.filter((e) => e.id !== id);
+  if (rest.length !== content.sayings.extra.length) {
+    await setDoc(
+      sayingsRef(),
+      {
+        extra: rest,
+        hiddenIds: arrayRemove(id),
+        edited: { [id]: deleteField() },
+      },
+      { merge: true }
+    );
+  } else {
+    await setDoc(
+      sayingsRef(),
+      {
+        hiddenIds: arrayRemove(id),
+        removedIds: arrayUnion(id),
+        edited: { [id]: deleteField() },
+      },
+      { merge: true }
+    );
+  }
   invalidate();
 }

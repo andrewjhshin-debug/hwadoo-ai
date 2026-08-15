@@ -211,10 +211,24 @@ export async function approveSharedAnswer(id: string) {
   await updateDoc(doc(db, "shared-answers", id), { status: "approved" });
 }
 
+// 거절이 곧 숨김이다 — 목록에서 빠지되 문서는 남아, 되살릴 수 있다
 export async function rejectSharedAnswer(id: string) {
   await updateDoc(doc(db, "shared-answers", id), { status: "rejected" });
 }
 
+// 숨긴(거절한) 답을 대기로 되살린다 — 다시 검수대에 오른다
+export async function restoreSharedAnswer(id: string) {
+  await updateDoc(doc(db, "shared-answers", id), { status: "pending" });
+}
+
+// 답의 오탈자 손질 — 글만 고쳐 쓴다 (작성자·상태는 그대로)
+export async function updateSharedAnswer(id: string, answer: string) {
+  const trimmed = answer.trim().slice(0, 500);
+  if (!trimmed) return;
+  await updateDoc(doc(db, "shared-answers", id), { answer: trimmed });
+}
+
+// 영구 삭제 — 숨김(거절) 목록에서 한 번 더 지울 때만 부른다
 export async function deleteSharedAnswer(id: string) {
   await deleteDoc(doc(db, "shared-answers", id));
 }

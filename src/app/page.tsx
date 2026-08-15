@@ -224,19 +224,21 @@ export default function Home() {
   const receive = async () => {
     const base = loadStore();
     const admin = await fetchAdminContent().catch(() => null);
-    const bank = admin?.bank ?? { hidden: [], overrides: {} };
+    const bank = admin?.bank ?? { hidden: [], removed: [], overrides: {} };
+    // 뒷방에서 감춘 것(되살릴 수 있음)과 영영 지운 것 — 둘 다 뽑지 않는다
+    const gone = [...new Set([...bank.hidden, ...bank.removed])];
     const exclude = [
       ...base.history.map((s) => s.hwaduId),
       ...(base.current ? [base.current.hwaduId] : []),
-      ...bank.hidden, // 뒷방에서 감춘 은행 화두는 뽑지 않는다
+      ...gone,
     ];
     const audience = base.audience ?? "adult";
     // 서버 화두 — 지금 대상(성인/학생)에 맞는 것만 섞는다
     const freshPublic = publicPool.filter(
       (p) => (p.audience ?? "adult") === audience && !exclude.includes(`thrown:${p.id}`)
     );
-    // 감춘 수만큼 은행 몫을 줄여 확률을 맞춘다
-    const hiddenInBank = bank.hidden.filter((id) => {
+    // 감춘·지운 수만큼 은행 몫을 줄여 확률을 맞춘다
+    const hiddenInBank = gone.filter((id) => {
       const h = getHwadu(id);
       if (!h) return false;
       return audience === "student"

@@ -10,6 +10,7 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDocs,
   increment,
@@ -36,6 +37,7 @@ export type PublicHwadu = {
   source?: string; // 출처 (관리자 화두)
   origin?: "thrown" | "admin";
   audience?: "adult" | "student"; // 어느 랜덤 풀에 뿌릴지 (없으면 성인)
+  hidden?: boolean; // 뒷방에서 숨긴 화두 — 풀에서 빠지고, 뒷방에서 되살릴 수 있다
 };
 
 // ── 내가 던진 것들의 브라우저 서랍 ──────────────────────────
@@ -134,32 +136,51 @@ export async function fetchMyThrownStats(
   }));
 }
 
-// 승인된 화두 모두 — 홈의 랜덤 풀에 섞인다.
-// 물음이 비었거나 문자열이 아닌 문서는 걸러 낸다 — 빈 화두가 뽑히지 않게.
+// 문서 하나를 PublicHwadu 로 — 물음이 비었거나 문자열이 아니면 null (빈 화두가 뽑히지 않게)
+function toPublicHwadu(
+  id: string,
+  data: Record<string, unknown>
+): PublicHwadu | null {
+  if (typeof data.question !== "string" || !data.question.trim()) return null;
+  return {
+    id,
+    question: data.question,
+    source: (data.source as string) || undefined,
+    origin: (data.origin as "thrown" | "admin") || "thrown",
+    // 대상이 적히지 않은 것(예전에 승인된 던져진 화두)은 undefined 그대로 둔다
+    audience:
+      data.audience === "student"
+        ? "student"
+        : data.audience === "adult"
+          ? "adult"
+          : undefined,
+    hidden: data.hidden === true,
+  };
+}
+
+// 승인된 화두 모두 — 홈의 랜덤 풀에 섞인다. 뒷방에서 숨긴 것은 뺀다.
 export async function fetchPublicHwadu(): Promise<PublicHwadu[]> {
   const snap = await getDocs(collection(db, "public-hwadu"));
   const list: PublicHwadu[] = [];
   for (const d of snap.docs) {
-    const data = d.data();
-    if (typeof data.question !== "string" || !data.question.trim()) continue;
-    list.push({
-      id: d.id,
-      question: data.question,
-      source: (data.source as string) || undefined,
-      origin: (data.origin as "thrown" | "admin") || "thrown",
-      // 대상이 적히지 않은 것(예전에 승인된 던져진 화두)은 undefined 그대로 둔다
-      audience:
-        data.audience === "student"
-          ? "student"
-          : data.audience === "adult"
-            ? "adult"
-            : undefined,
-    });
+    const p = toPublicHwadu(d.id, d.data());
+    if (p && !p.hidden) list.push(p);
   }
   return list;
 }
 
 // ── 관리자 전용 (규칙이 관리자 UID만 허용) ──────────────────
+
+// 뒷방 목록용 — 숨긴 것까지 다 가져온다 (hidden 구분값이 붙어 온다)
+export async function fetchAllPublicHwadu(): Promise<PublicHwadu[]> {
+  const snap = await getDocs(collection(db, "public-hwadu"));
+  const list: PublicHwadu[] = [];
+  for (const d of snap.docs) {
+    const p = toPublicHwadu(d.id, d.data());
+    if (p) list.push(p);
+  }
+  return list;
+}
 
 export async function fetchThrown(): Promise<ThrownItem[]> {
   const snap = await getDocs(
@@ -213,6 +234,21 @@ export async function adminUpdateHwadu(
   });
 }
 
+// 공개 화두를 숨긴다 — 풀에서 빠지되 문서는 남아, 뒷방에서 되살릴 수 있다
+export async function hidePublicHwadu(id: string) {
+  await setDoc(doc(db, "public-hwadu", id), { hidden: true }, { merge: true });
+}
+
+// 숨긴 공개 화두를 되살린다 — 다시 풀에 섞인다
+export async function unhidePublicHwadu(id: string) {
+  await setDoc(
+    doc(db, "public-hwadu", id),
+    { hidden: deleteField() },
+    { merge: true }
+  );
+}
+
+// 영구 삭제 — 숨김 목록에서 한 번 더 지울 때만 부른다
 export async function deletePublicHwadu(id: string) {
   await deleteDoc(doc(db, "public-hwadu", id));
 }
