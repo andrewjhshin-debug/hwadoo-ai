@@ -135,6 +135,7 @@ export async function initPushForeground(): Promise<void> {
         await reg.showNotification(data.title ?? "화두", {
           body: data.body ?? "",
           icon: "/icon.svg",
+          tag: "hwadu-morning", // SW와 같은 tag — 새 문안이 옛것을 대체 (쌓이지 않음)
           data: { url: data.url ?? "/" },
         });
       } catch {

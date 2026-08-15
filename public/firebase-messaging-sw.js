@@ -2,6 +2,7 @@
 // 화두 — 아침 문안 알림 서비스 워커 (FCM 백그라운드 수신)
 // 서버는 data-only 메시지만 보낸다 — 알림 표시는 오직 여기서 한다.
 // (notification 페이로드를 쓰면 브라우저가 한 번 더 띄워 중복된다)
+// v2 — tag "hwadu-morning": 새 문안이 옛것을 갈아치운다 (알림탭에 쌓이지 않음)
 // ─────────────────────────────────────────────────────────────
 
 importScripts(
@@ -30,6 +31,7 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(title, {
     body: data.body || "",
     icon: "/icon.svg",
+    tag: "hwadu-morning", // 같은 tag — 새 문안이 옛것을 대체 (renotify 없음)
     data: { url: data.url || "/" },
   });
 });

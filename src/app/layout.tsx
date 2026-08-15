@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import ConfirmProvider from "@/components/Confirm";
 import VisitLedger from "@/components/VisitLedger";
+import InstallBanner from "@/components/InstallBanner";
 import { CONTACT_EMAIL, SITE_NAME, SITE_URL, SLOGAN } from "@/lib/config";
 import { THEME_KEY } from "@/lib/theme";
 import "./globals.css";
@@ -121,6 +122,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </footer>
         </div>
         <MobileTabBar />
+        {/* 홈 화면에 담기 — 세션마다 한 번, 탭바 위에 낮게 깔려 묻는다 */}
+        <InstallBanner />
         </ConfirmProvider>
         <Analytics />
       </body>

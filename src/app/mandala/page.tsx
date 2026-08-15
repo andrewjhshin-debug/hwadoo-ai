@@ -9,8 +9,13 @@
 //     한 손가락 탭 = 그 칸 하나 색칠, 우클릭 = 그 칸 비우기.
 //     꾹 누르기(한 자리 500ms, 이동 8px 미만) = 그 칸 비우기 — 떼도 칠하지 않는다.
 //     한 손가락 드래그(문턱 8px) = 판 이동(팬) — 긁어서 연달아 칠하지 않는다.
-//     두 손가락 = 핀치 확대(1~3배), 더블탭 = 원위치. 되돌리기 = 마지막 한 칸.
-//  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌리기·붓 굵기 지원.
+//     두 손가락 = 핀치 확대(1~3배), 더블탭 = 원위치.
+//     되돌리기 = 마지막 한 칸, 다시하기 = 되돌린 칸 다시. 새 칠은 다시하기를 비운다.
+//  ② 그리기: 손끝으로 그으면 여러 갈래로 대칭 복제. 되돌리기·다시하기·붓 굵기 지원.
+// 저장 — 그림(drawURL)은 제 키(DKEY)에 따로 산다. 색칠 저장(MKEY)과 서로 덮을 일이
+//  없고, 색칠 fills 저장도 가벼워진다. 옛 통짜 저장에서 한 번 이행한다.
+//  모드 전환 때는 세션 캐시(drawCache)로 동기 복원 — 비동기 복원 경쟁이 아예 없다.
+//  언마운트 직전엔 저장 안 된 획을 반드시 flush 한다.
 // 만다라는 간직하지 않는다 — 비움도 수행. 비울 때 색이 가루로 흩어진다.
 // 하던 만다라는 자동 임시저장되어, 다른 일 하다 돌아와도 그대로 떠 있다.
 // 배치 — 판 위에는 아무 버튼도 겹치지 않는다. 캡처하면 만다라만 나온다.
@@ -35,6 +40,9 @@ const ERASE = "erase";
 // v3 — 문양 엔진이 바뀌어 칸 key 가 다르다. 옛 저장(fills)과 섞지 않는다.
 const MKEY = "hwadu.mandala.v3";
 const OLD_MKEY = "hwadoo-mandala-v1";
+// 그림(drawURL)은 제 키에 따로 — 통짜 JSON 을 매번 되쓰다 쿼터에 막혀
+// 조용히 유실되던 것을 끊는다. 색칠 저장과 서로 덮을 일도 없다.
+const DKEY = "hwadu.mandala.draw.v1";
 
 // 만다라 판의 한 변 — 화면폭(-16px)과, 화면높이에서 고정 요소(헤더·토글·도구줄·
 // 칩·색판·탭바)를 뺀 값 중 작은 쪽. 데스크톱에선 480px 를 넘지 않고,
@@ -46,6 +54,15 @@ const BOARD_W = "max(240px, min(100vw - 16px, 100dvh - 390px, 480px))";
 const THEME_CSS = `
 .mandala-board { --m-line: rgba(217,180,91,0.32); --m-frame: rgba(217,180,91,0.16); --m-guide: rgba(217,180,91,0.12); }
 html[data-theme="light"] .mandala-board { --m-line: rgba(58,44,32,0.62); --m-frame: rgba(58,44,32,0.4); --m-guide: rgba(58,44,32,0.3); }
+.mandala-draw-size { width: max(240px, min(100vw - 16px, 100dvh - 390px, 480px)); }
+/* 그리기 모바일 — 화면이 충분히 길 때만(여유가 남을 때만) 컨트롤을 키워
+   아래 빈 공간을 쓴다. 판 예약폭(-432px)도 함께 늘려 세로 넘침 0 을 지킨다. */
+@media (max-width: 639px) and (min-height: 800px) {
+  .mandala-draw-size { width: max(240px, min(100vw - 16px, 100dvh - 432px, 480px)); }
+  .m-tool { min-height: 42px; padding-top: 8px; padding-bottom: 8px; }
+  .m-chip { min-height: 42px; }
+  .m-roomy .m-dot { height: 28px; width: 28px; }
+}
 `;
 
 // 도구 버튼 눌림 피드백 — 토글이든 단발 버튼이든, 누르는 동안 불이 들어온다
@@ -93,14 +110,15 @@ type Saved = {
   tpl: number;
   color: string;
   fills: Record<string, Record<string, string>>;
-  drawURL?: string;
+  drawURL?: string; // 옛 통짜 저장에만 남은 유물 — 읽어서 DKEY 로 이행만 한다
 };
 function loadSaved(): Saved | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(MKEY);
     if (raw) return JSON.parse(raw) as Saved;
-    // 옛 저장에서 모드·색·그림(캔버스)만 물려받는다 — 칸 key 가 바뀐 fills 는 버린다
+    // 옛 저장에서 모드·색만 물려받는다 — 칸 key 가 바뀐 fills 는 버리고,
+    // 그림(drawURL)은 loadDrawURL 이 제 키(DKEY)로 옮겨 간다
     const old = window.localStorage.getItem(OLD_MKEY);
     if (old) {
       const s = JSON.parse(old) as Saved;
@@ -109,7 +127,6 @@ function loadSaved(): Saved | null {
         tpl: 0,
         color: typeof s.color === "string" ? s.color : PALETTE[0],
         fills: {},
-        drawURL: s.drawURL,
       };
       window.localStorage.setItem(MKEY, JSON.stringify(migrated));
       return migrated;
@@ -122,10 +139,75 @@ function loadSaved(): Saved | null {
 function patchSaved(patch: Partial<Saved>) {
   if (typeof window === "undefined") return;
   const s = loadSaved() ?? { mode: "color", tpl: 0, color: PALETTE[0], fills: {} };
+  const merged: Saved = { ...s, ...patch };
   try {
-    window.localStorage.setItem(MKEY, JSON.stringify({ ...s, ...patch }));
+    // 통짜 저장에 남아 있던 그림은 버리지 않고 제 키로 옮긴 뒤 뗀다 — 사용자 데이터 불멸
+    if (merged.drawURL && !window.localStorage.getItem(DKEY)) {
+      window.localStorage.setItem(DKEY, merged.drawURL);
+    }
+  } catch {}
+  delete merged.drawURL;
+  try {
+    window.localStorage.setItem(MKEY, JSON.stringify(merged));
   } catch {}
 }
+
+// ── 그림 저장 — DKEY 단독 ──
+function loadDrawURL(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const url = window.localStorage.getItem(DKEY);
+    if (url) return url;
+    // 한 번 이행 — 옛 통짜 저장(MKEY→OLD_MKEY 순) 속 drawURL 을 제 키로
+    for (const key of [MKEY, OLD_MKEY]) {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const s = JSON.parse(raw) as Saved;
+        if (s.drawURL) {
+          window.localStorage.setItem(DKEY, s.drawURL);
+          if (key === MKEY) {
+            const rest = { ...s };
+            delete rest.drawURL;
+            window.localStorage.setItem(MKEY, JSON.stringify(rest));
+          }
+          return s.drawURL;
+        }
+      } catch {}
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+// 저장용 스냅샷 — 백킹(SIZE×dpr)을 줄여 담는다. 쿼터를 아끼고 매 획 저장도 빨라진다.
+// 쿼터가 꽉 차면 한 단계 더 줄여 다시 시도 — 조용히 유실되던 것을 막는다.
+function saveDraw(source: HTMLCanvasElement): boolean {
+  if (typeof window === "undefined") return false;
+  for (const side of [1000, 640]) {
+    try {
+      const c = document.createElement("canvas");
+      c.width = side;
+      c.height = side;
+      const x = c.getContext("2d");
+      if (!x) return false;
+      x.drawImage(source, 0, 0, side, side);
+      window.localStorage.setItem(DKEY, c.toDataURL("image/png"));
+      return true;
+    } catch {}
+  }
+  return false;
+}
+function snapshotCanvas(src: HTMLCanvasElement): HTMLCanvasElement {
+  const c = document.createElement("canvas");
+  c.width = src.width;
+  c.height = src.height;
+  c.getContext("2d")?.drawImage(src, 0, 0);
+  return c;
+}
+// 세션 안 모드 전환용 그림 캐시 — 언마운트 때 담고, 마운트 때 '동기'로 복원한다.
+// 비동기 이미지 복원의 타이밍 경쟁이 아예 없고, 쿼터가 막혀도 세션 안에선 안 잃는다.
+let drawCache: { canvas: HTMLCanvasElement; dirty: boolean } | null = null;
 
 // ══════════════ 가루 흩날림 ══════════════
 // 입자마다 난수 방향으로 파르르 — 어느 한쪽으로도 쓸리지 않는다.
@@ -172,9 +254,18 @@ function runScatter(ctx: CanvasRenderingContext2D, size: number, parts: Grain[],
 }
 
 // ══════════════ 색판 — 모바일은 두 줄 가로 스크롤 ══════════════
-function PaletteBar({ color, onPick }: { color: string; onPick: (c: string) => void }) {
+// roomy(그리기 모드): 긴 화면에서 알약이 커진다(.m-roomy .m-dot — THEME_CSS)
+function PaletteBar({
+  color,
+  onPick,
+  roomy = false,
+}: {
+  color: string;
+  onPick: (c: string) => void;
+  roomy?: boolean;
+}) {
   return (
-    <div className="mt-3 w-full max-w-[480px]">
+    <div className={`mt-3 w-full max-w-[480px] ${roomy ? "m-roomy" : ""}`}>
       <div
         className="grid grid-flow-col grid-rows-2 justify-start gap-1.5 overflow-x-auto px-1 pb-1 sm:flex sm:flex-wrap sm:justify-center sm:overflow-visible"
         style={{ scrollbarWidth: "none" }}
@@ -183,7 +274,7 @@ function PaletteBar({ color, onPick }: { color: string; onPick: (c: string) => v
           onClick={() => onPick(ERASE)}
           aria-label="빈칸"
           title="빈칸 — 칠한 색을 지웁니다"
-          className={`relative h-6 w-6 shrink-0 overflow-hidden rounded-full border-2 bg-ink-2 transition-transform active:scale-95 sm:h-7 sm:w-7 ${
+          className={`m-dot relative h-6 w-6 shrink-0 overflow-hidden rounded-full border-2 bg-ink-2 transition-transform active:scale-95 sm:h-7 sm:w-7 ${
             color === ERASE ? "scale-110 border-hanji" : "border-ink-3 hover:scale-105"
           }`}
         >
@@ -194,7 +285,7 @@ function PaletteBar({ color, onPick }: { color: string; onPick: (c: string) => v
             key={c}
             onClick={() => onPick(c)}
             aria-label={c}
-            className={`h-6 w-6 shrink-0 rounded-full border-2 transition-transform active:scale-95 sm:h-7 sm:w-7 ${
+            className={`m-dot h-6 w-6 shrink-0 rounded-full border-2 transition-transform active:scale-95 sm:h-7 sm:w-7 ${
               color === c ? "scale-110 border-hanji" : "border-transparent hover:scale-105"
             }`}
             style={{ backgroundColor: c }}
@@ -306,9 +397,12 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     }
   }, []);
   useEffect(() => clearHold, [clearHold]);
-  // 되돌리기 더미 — 칠하기 직전의 칸 상태를 쌓는다
-  const undoStack = useRef<{ tpl: string; id: string; prev: string | undefined }[]>([]);
+  // 되돌리기·다시하기 더미 — 칠하기 직전(prev)·직후(next)의 칸 상태를 쌓는다
+  type CellOp = { tpl: string; id: string; prev: string | undefined; next: string | undefined };
+  const undoStack = useRef<CellOp[]>([]);
+  const redoStack = useRef<CellOp[]>([]);
   const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
   const scatterSeq = useRef(0);
 
   const tpl = TEMPLATES[tplIdx] ?? TEMPLATES[0];
@@ -341,33 +435,45 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     patchSaved({ tpl: tplIdx, fills: fillsAll });
   }, [fillsAll, tplIdx, hydrated]);
 
-  // 탭 한 번 = 칸 하나 — 바뀔 때만 되돌리기 더미에 이전 상태를 쌓는다
+  const setCell = (tpl: string, id: string, val: string | undefined) => {
+    setFillsAll((all) => {
+      const cur = { ...(all[tpl] ?? {}) };
+      if (val === undefined) delete cur[id];
+      else cur[id] = val;
+      return { ...all, [tpl]: cur };
+    });
+  };
+
+  // 탭 한 번 = 칸 하나 — 바뀔 때만 되돌리기 더미에 앞뒤 상태를 쌓는다
   const paintCell = (id: string, erase: boolean) => {
     if (scattering) return;
     const prev = fills[id];
     const next = erase || color === ERASE ? undefined : color;
     if (prev === next) return;
-    undoStack.current.push({ tpl: String(tplIdx), id, prev });
+    undoStack.current.push({ tpl: String(tplIdx), id, prev, next });
     if (undoStack.current.length > 200) undoStack.current.shift();
     setCanUndo(true);
-    setFillsAll((all) => {
-      const cur = { ...(all[String(tplIdx)] ?? {}) };
-      if (next === undefined) delete cur[id];
-      else cur[id] = next;
-      return { ...all, [String(tplIdx)]: cur };
-    });
+    redoStack.current = []; // 표준 규칙 — 새 칠은 다시하기 더미를 비운다
+    setCanRedo(false);
+    setCell(String(tplIdx), id, next);
   };
 
   const undo = () => {
     const last = undoStack.current.pop();
     setCanUndo(undoStack.current.length > 0);
     if (!last) return;
-    setFillsAll((all) => {
-      const cur = { ...(all[last.tpl] ?? {}) };
-      if (last.prev === undefined) delete cur[last.id];
-      else cur[last.id] = last.prev;
-      return { ...all, [last.tpl]: cur };
-    });
+    redoStack.current.push(last);
+    setCanRedo(true);
+    setCell(last.tpl, last.id, last.prev);
+  };
+
+  const redo = () => {
+    const next = redoStack.current.pop();
+    setCanRedo(redoStack.current.length > 0);
+    if (!next) return;
+    undoStack.current.push(next);
+    setCanUndo(true);
+    setCell(next.tpl, next.id, next.next);
   };
 
   const filledCount = useMemo(
@@ -566,7 +672,9 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     pointers.current.clear();
     pinch.current = null;
     undoStack.current = []; // 비움은 되돌리지 않는다 — 그리기 모드와 같은 결
+    redoStack.current = [];
     setCanUndo(false);
+    setCanRedo(false);
     resetView();
 
     const ids = built.cellKeys.filter((k) => fills[k] && built.seeds[k]?.length);
@@ -652,6 +760,14 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           되돌리기
         </button>
         <button
+          onClick={redo}
+          disabled={!canRedo || scattering}
+          aria-label="다시하기"
+          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint disabled:opacity-40`}
+        >
+          다시하기
+        </button>
+        <button
           onClick={askClear}
           disabled={scattering}
           aria-label="비우기"
@@ -720,6 +836,14 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           >
             ↩ 되돌리기
           </button>
+          <button
+            onClick={redo}
+            disabled={!canRedo || scattering}
+            aria-label="다시하기"
+            className={`rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
+          >
+            ↪ 다시하기
+          </button>
         </div>
         {/* 데스크톱(sm+) 전용 — 판 오른쪽 바깥(16px 간격) 비우기 */}
         <button
@@ -746,9 +870,11 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
               title={t.hanja}
               onClick={() => {
                 if (scattering || tplIdx === i) return;
-                // 문양이 바뀌면 되돌리기 더미도 비운다 — 남의 판을 되돌리지 않게
+                // 문양이 바뀌면 되돌리기·다시하기 더미도 비운다 — 남의 판을 되돌리지 않게
                 undoStack.current = [];
+                redoStack.current = [];
                 setCanUndo(false);
+                setCanRedo(false);
                 setTplIdx(i);
               }}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] tracking-widest transition-colors ${PRESS} ${
@@ -787,7 +913,12 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
   const pan = useRef({ active: false, x: 0, y: 0 });
   const lastTap = useRef({ t: 0, x: 0, y: 0 }); // 더블탭 = 원위치 (색칠 모드와 같은 결)
   const dirty = useRef(false);
+  const unsaved = useRef(false); // 마지막 저장 뒤에 판이 바뀌었나 — 언마운트 flush 판단
+  const restoring = useRef(false); // 저장소 비동기 복원 중 — 반쪽 판으로 저장하지 않는다
+  const persistPending = useRef(false); // 복원 중 미뤄 둔 저장
   const undoStack = useRef<ImageData[]>([]); // 되돌리기 스냅샷
+  const redoStack = useRef<ImageData[]>([]); // 다시하기 스냅샷
+  const [canRedo, setCanRedo] = useState(false);
   const scatterSeq = useRef(0);
   const SIZE = 1000;
 
@@ -822,15 +953,56 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     drawGuides();
-    const s = loadSaved();
-    if (s?.drawURL) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, SIZE, SIZE);
-        dirty.current = true;
-      };
-      img.src = s.drawURL;
+    let disposed = false;
+    if (drawCache) {
+      // 같은 세션의 모드 전환 — 세션 캐시로 '동기' 복원. 비동기 창이 없어
+      // 획이 복원보다 먼저 저장되는 경쟁 자체가 없다.
+      ctx.drawImage(drawCache.canvas, 0, 0, SIZE, SIZE);
+      dirty.current = drawCache.dirty;
+    } else {
+      const url = loadDrawURL();
+      if (url) {
+        restoring.current = true;
+        const img = new Image();
+        img.onload = () => {
+          restoring.current = false;
+          const c2 = canvas.getContext("2d");
+          if (!c2) return;
+          // 복원 그림은 '뒤'에 깐다 — 복원이 끝나기 전에 그은 획을 덮지 않는다
+          c2.save();
+          c2.globalCompositeOperation = "destination-over";
+          c2.drawImage(img, 0, 0, SIZE, SIZE);
+          c2.restore();
+          dirty.current = true;
+          if (disposed) {
+            // 복원 도중 모드가 바뀌었다 — 온전해진 판을 캐시에 담고, 미룬 저장을 마저
+            drawCache = { canvas: snapshotCanvas(canvas), dirty: true };
+            if (persistPending.current || unsaved.current) {
+              persistPending.current = false;
+              if (saveDraw(canvas)) unsaved.current = false;
+            }
+          } else if (persistPending.current) {
+            persistPending.current = false;
+            if (saveDraw(canvas)) unsaved.current = false;
+          }
+        };
+        img.onerror = () => {
+          restoring.current = false;
+        };
+        img.src = url;
+      }
     }
+    // 언마운트(모드 전환) 직전 — 그림을 세션 캐시에 담고, 안 담긴 획은 반드시 flush
+    return () => {
+      disposed = true;
+      if (restoring.current) {
+        // 복원이 아직이다 — 저장소가 원본. 위 onload 가 마저 완성해 캐시에 담는다.
+        drawCache = null;
+        return;
+      }
+      drawCache = { canvas: snapshotCanvas(canvas), dirty: dirty.current };
+      if (unsaved.current && saveDraw(canvas)) unsaved.current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -848,12 +1020,15 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
   const persist = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    try {
-      patchSaved({ drawURL: canvas.toDataURL("image/png") });
-    } catch {}
+    if (restoring.current) {
+      // 저장소 복원이 끝나기 전 — 반쪽 판으로 최신 저장을 덮지 않고 미룬다
+      persistPending.current = true;
+      return;
+    }
+    if (saveDraw(canvas)) unsaved.current = false;
   };
 
-  // 스트로크 시작 전 스냅샷 저장 (되돌리기용)
+  // 스트로크 시작 전 스냅샷 저장 (되돌리기용) — 새 획은 다시하기 더미를 비운다
   const pushUndo = () => {
     const canvas = canvasRef.current;
     const ctx = getCtx();
@@ -862,20 +1037,47 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
       undoStack.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
       if (undoStack.current.length > 25) undoStack.current.shift();
       setCanUndo(true);
+      redoStack.current = [];
+      setCanRedo(false);
     } catch {}
+  };
+
+  const restoreSnap = (snap: ImageData) => {
+    const ctx = getCtx();
+    if (!ctx) return;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // putImageData는 변환 무시하지만 안전하게
+    ctx.putImageData(snap, 0, 0);
+    ctx.restore();
   };
 
   const undo = () => {
     const ctx = getCtx();
     const canvas = canvasRef.current;
     if (!ctx || !canvas || undoStack.current.length === 0) return;
-    const prev = undoStack.current.pop()!;
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0); // putImageData는 변환 무시하지만 안전하게
-    ctx.putImageData(prev, 0, 0);
-    ctx.restore();
+    try {
+      redoStack.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      setCanRedo(true);
+    } catch {}
+    restoreSnap(undoStack.current.pop()!);
     setCanUndo(undoStack.current.length > 0);
-    dirty.current = undoStack.current.length > 0 || dirty.current;
+    dirty.current = true;
+    unsaved.current = true;
+    persist();
+  };
+
+  const redo = () => {
+    const ctx = getCtx();
+    const canvas = canvasRef.current;
+    if (!ctx || !canvas || redoStack.current.length === 0) return;
+    try {
+      undoStack.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      setCanUndo(true);
+    } catch {}
+    restoreSnap(redoStack.current.pop()!);
+    setCanRedo(redoStack.current.length > 0);
+    dirty.current = true;
+    unsaved.current = true;
     persist();
   };
 
@@ -915,6 +1117,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";
     dirty.current = true;
+    unsaved.current = true;
   };
 
   const applyTransform = () => {
@@ -1005,7 +1208,8 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
   };
   const onTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length < 2) return;
-    // 두 손가락이 닿으면 — 그리던 획을 즉시 멈추고 확대·이동 모드로
+    // 두 손가락이 닿으면 — 그리던 획을 즉시 멈추고(그은 데까지 저장) 확대·이동 모드로
+    if (stroke.current.active && dirty.current) persist();
     stroke.current.active = false;
     stroke.current.last = null;
     const [a, b] = [e.touches[0], e.touches[1]];
@@ -1079,8 +1283,11 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
     }
     src.clearRect(0, 0, SIZE, SIZE);
     dirty.current = false;
-    undoStack.current = [];
+    unsaved.current = true; // 비워진 판도 저장돼야 한다
+    undoStack.current = []; // 비움은 되돌리지 않는다
+    redoStack.current = [];
     setCanUndo(false);
+    setCanRedo(false);
     persist();
     if (parts.length === 0) return;
     sc.width = size * dpr;
@@ -1120,7 +1327,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         <button
           onClick={resetView}
           aria-label="원위치(더블탭)"
-          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint sm:hidden`}
+          className={`${TOOL} ${PRESS} m-tool border-ink-3 text-hanji-faint sm:hidden`}
         >
           원위치
         </button>
@@ -1128,14 +1335,22 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
           onClick={undo}
           disabled={!canUndo || scattering}
           aria-label="되돌리기"
-          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint disabled:opacity-40 sm:hidden`}
+          className={`${TOOL} ${PRESS} m-tool border-ink-3 text-hanji-faint disabled:opacity-40 sm:hidden`}
         >
           되돌리기
         </button>
         <button
+          onClick={redo}
+          disabled={!canRedo || scattering}
+          aria-label="다시하기"
+          className={`${TOOL} ${PRESS} m-tool border-ink-3 text-hanji-faint disabled:opacity-40 sm:hidden`}
+        >
+          다시하기
+        </button>
+        <button
           onClick={() => setPanMode((v) => !v)}
           aria-label="손으로 옮기기"
-          className={`${TOOL} ${PRESS} sm:hidden ${
+          className={`${TOOL} ${PRESS} m-tool sm:hidden ${
             panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint"
           }`}
         >
@@ -1145,7 +1360,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
           onClick={askClear}
           disabled={scattering}
           aria-label="비우기"
-          className={`${TOOL} ${PRESS_WARM} border-ink-3 text-hanji-faint disabled:opacity-50 sm:hidden`}
+          className={`${TOOL} ${PRESS_WARM} m-tool border-ink-3 text-hanji-faint disabled:opacity-50 sm:hidden`}
         >
           비우기
         </button>
@@ -1169,8 +1384,9 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         손끝으로 그으면, 여러 갈래로 함께 피어납니다.
       </p>
 
-      {/* 만다라 판 — 판 위에는 아무 버튼도 없다. 색칠 모드와 같은 결 */}
-      <div className="relative mt-3 w-full max-w-[480px]" style={{ width: BOARD_W }}>
+      {/* 만다라 판 — 판 위에는 아무 버튼도 없다. 색칠 모드와 같은 결.
+          폭은 클래스(mandala-draw-size)로 — 긴 화면에서 컨트롤이 커지면 예약폭도 같이 는다 */}
+      <div className="mandala-draw-size relative mt-3 max-w-[480px]">
         <div
           ref={boardRef}
           className="mandala-board relative aspect-square w-full overflow-hidden rounded-full border border-ink-3 bg-ink-2/40"
@@ -1212,6 +1428,14 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
             ↩ 되돌리기
           </button>
           <button
+            onClick={redo}
+            disabled={!canRedo || scattering}
+            aria-label="다시하기"
+            className={`rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
+          >
+            ↪ 다시하기
+          </button>
+          <button
             onClick={() => setPanMode((v) => !v)}
             aria-label="손으로 옮기기"
             className={`rounded-full border bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors ${PRESS} ${
@@ -1239,7 +1463,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
           <button
             key={n}
             onClick={() => setSegments(n)}
-            className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${PRESS} ${
+            className={`m-chip rounded-full border px-2.5 py-1 text-[11px] transition-colors ${PRESS} ${
               segments === n ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
             }`}
           >
@@ -1248,7 +1472,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         ))}
         <button
           onClick={() => setMirror((v) => !v)}
-          className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${PRESS} ${
+          className={`m-chip rounded-full border px-2.5 py-1 text-[11px] transition-colors ${PRESS} ${
             mirror ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
           }`}
         >
@@ -1256,7 +1480,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         </button>
       </div>
 
-      <PaletteBar color={color} onPick={onPick} />
+      <PaletteBar color={color} onPick={onPick} roomy />
     </>
   );
 }

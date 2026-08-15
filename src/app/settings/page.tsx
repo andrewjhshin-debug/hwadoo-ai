@@ -107,7 +107,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/archive", label: "지난 화두", Icon: Book },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
   { label: "굿즈", Icon: Bojagi, soon: true },
-  { href: "/breath", label: "호흡 명상", Icon: Breath, soon: true },
+  { href: "/breath", label: "호흡 명상", Icon: Breath },
 ];
 
 export default function SettingsPage() {
@@ -404,6 +404,19 @@ export default function SettingsPage() {
     }
   };
 
+  // 토글 한 번으로 — 켜짐이면 내리고, 꺼짐이면 올린다.
+  // 차단이면 첫 누름에 푸는 법 안내를 펴고, 다음 누름부터는 다시 시도한다
+  // (안내대로 허용을 풀고 왔다면 그대로 켜진다)
+  const handlePushToggle = () => {
+    if (pushUi === "on") {
+      void handlePushOff();
+    } else if (pushUi === "denied" && !pushGuide) {
+      setPushGuide(true);
+    } else if (pushUi === "off" || pushUi === "denied") {
+      void handlePushOn();
+    }
+  };
+
   // 홈 화면에 담기 — 받아 둔 프롬프트를 연다
   const handleInstall = async () => {
     setInstallBusy(true);
@@ -622,22 +635,23 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
-              {/* 품어온 시간 — 화두마다 품은 일수, 오래 품은 순. 질문은 전문 그대로 */}
+              {/* 품어온 시간 — 최신순, 질문은 전문 그대로.
+                  접힌 기본은 가장 최근 1개만 — '모두 보기'를 누르면 전부 펼친다 */}
               {held.length > 0 && (
                 <div className="mt-5">
                   <p className="text-[11px] tracking-[0.2em] text-hanji-faint">
                     품어온 시간
                   </p>
                   <ul className="mt-2.5 space-y-2">
-                    {held.slice(0, 5).map(heldRow)}
+                    {held.slice(0, 1).map(heldRow)}
                   </ul>
-                  {held.length > 5 && (
+                  {held.length > 1 && (
                     <details className="mt-2.5">
                       <summary className="cursor-pointer text-[11px] tracking-wider text-hanji-faint transition-colors hover:text-hanji-dim">
-                        모두 보기 · {held.length - 5}
+                        모두 보기 · {held.length}개
                       </summary>
                       <ul className="mt-2.5 space-y-2">
-                        {held.slice(5).map(heldRow)}
+                        {held.slice(1).map(heldRow)}
                       </ul>
                     </details>
                   )}
@@ -648,10 +662,39 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ── 알림: 매일 아침 9시(사시불공의 때), 물음이 찾아온다.
-          버튼은 언제나 살아 있다 — 차단돼 있으면 푸는 방법을 바로 아래에 편다 ── */}
+      {/* ── 알림 — 아침 문안: 제목 한 줄 + 온/오프 토글.
+          차단이면 토글을 눌렀을 때 푸는 법 안내가 접혀 나온다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
-        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">알림</p>
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+            알림 — 아침 문안
+          </p>
+          {/* 토글 스위치 — 켜짐: 금색 채움 · 꺼짐: 테두리만 */}
+          <button
+            role="switch"
+            aria-checked={pushUi === "on"}
+            aria-label="아침 문안 알림"
+            onClick={handlePushToggle}
+            disabled={
+              pushBusy ||
+              pushUi === "loading" ||
+              pushUi === "unsupported" ||
+              pushUi === "preparing"
+            }
+            className={`relative h-[26px] w-[46px] shrink-0 rounded-full border transition-colors disabled:opacity-40 ${
+              pushUi === "on"
+                ? "border-gold bg-gold"
+                : "border-hanji-faint bg-transparent hover:border-hanji-dim"
+            }`}
+          >
+            <span
+              aria-hidden
+              className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full transition-transform duration-200 ${
+                pushUi === "on" ? "translate-x-5 bg-ink" : "bg-hanji-faint"
+              }`}
+            />
+          </button>
+        </div>
         <div className="mt-4 border-t border-ink-3 pt-5">
           {/* 새 소식 — 아직 보지 않은 것만, 금색 점 한 줄씩.
               나열되고 잠시 뒤 장부에 적혀, 사이드바·탭의 점이 꺼진다 */}
@@ -671,72 +714,40 @@ export default function SettingsPage() {
               ))}
             </ul>
           )}
-          {pushUi === "loading" ? (
-            <p className="text-[13px] leading-7 text-hanji-faint">
-              살펴보는 중…
-            </p>
-          ) : pushUi === "unsupported" ? (
-            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-              이 브라우저는 알림을 받을 수 없습니다. (아이폰 사파리는 홈
-              화면에 추가한 뒤 가능합니다)
-            </p>
-          ) : pushUi === "preparing" ? (
-            <p className="text-[13px] leading-7 text-hanji-dim">
-              알림을 준비하고 있습니다 — 곧 열립니다.
-            </p>
-          ) : pushUi === "on" ? (
-            <>
-              <p className="text-[13px] leading-7 text-hanji-dim">
-                매일 아침, 물음이 문안드립니다.
+          {/* 토글 밑의 작은 한 줄 — 미지원·준비 중도 한 줄로 */}
+          <p className="break-keep text-[12px] leading-6 text-hanji-faint">
+            {pushUi === "unsupported"
+              ? "이 브라우저는 알림을 받을 수 없습니다. (아이폰은 홈 화면에 추가한 뒤 가능)"
+              : pushUi === "preparing"
+                ? "알림을 준비하고 있습니다 — 곧 열립니다."
+                : "매일 아침 9시, 오늘의 물음이 옵니다"}
+          </p>
+          {/* 차단 상태에서 토글을 누르면 접혀 나오는 푸는 법 */}
+          {pushGuide && (
+            <div className="mt-4 break-keep rounded-[10px] border border-ink-3 bg-ink-2/40 px-4 py-3 text-[12px] leading-6 text-hanji-dim">
+              <p className="text-hanji">
+                브라우저가 알림을 막아 두었습니다 — 이렇게 풀어 주십시오.
               </p>
-              <button
-                onClick={handlePushOff}
-                disabled={pushBusy}
-                className="mt-5 rounded-[10px] border border-ink-3 px-6 py-2.5 text-[12px] tracking-[0.2em] text-hanji-faint transition-colors hover:border-vermilion/50 hover:text-vermilion disabled:opacity-50"
-              >
-                {pushBusy ? "내리는 중…" : "그만 받기"}
-              </button>
-            </>
-          ) : (
-            /* off · denied — 버튼은 언제나 눌린다. 차단이면 아래에 푸는 법을 편다 */
-            <>
-              <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-                매일 아침 9시 — 사시불공의 때에, 오늘의 물음이 문안드립니다.
+              <p className="mt-1.5">
+                · 컴퓨터: 주소창 왼쪽 자물쇠 → 알림 → 허용 → 새로고침
               </p>
-              <button
-                onClick={handlePushOn}
-                disabled={pushBusy}
-                className="btn-obang mt-5 inline-flex items-center gap-2.5 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90 disabled:opacity-50"
-              >
-                {pushBusy ? "여는 중…" : "문안 받기"}
-              </button>
-              {pushGuide && (
-                <div className="mt-4 break-keep rounded-[10px] border border-ink-3 bg-ink-2/40 px-4 py-3 text-[12px] leading-6 text-hanji-dim">
-                  <p className="text-hanji">
-                    브라우저가 알림을 막아 두었습니다 — 이렇게 풀어 주십시오.
-                  </p>
-                  <p className="mt-1.5">
-                    · 컴퓨터: 주소창 왼쪽 자물쇠 → 알림 → 허용 → 새로고침
-                  </p>
-                  <p>
-                    · 안드로이드: 주소창 자물쇠 → 권한 → 알림 허용 (없으면 ⋮ →
-                    설정 → 사이트 설정 → 알림)
-                  </p>
-                  <p>
-                    · 아이폰: 사파리 공유 단추 → 홈 화면에 추가 → 홈 화면의
-                    화두로 열어 다시 시도
-                  </p>
-                  <p className="mt-1.5 text-hanji-faint">
-                    허용한 뒤 다시 [문안 받기]를 눌러 주십시오.
-                  </p>
-                </div>
-              )}
-              {pushError && (
-                <p className="mt-3 text-[12px] leading-6 text-vermilion">
-                  {pushError}
-                </p>
-              )}
-            </>
+              <p>
+                · 안드로이드: 주소창 자물쇠 → 권한 → 알림 허용 (없으면 ⋮ →
+                설정 → 사이트 설정 → 알림)
+              </p>
+              <p>
+                · 아이폰: 사파리 공유 단추 → 홈 화면에 추가 → 홈 화면의
+                화두로 열어 다시 시도
+              </p>
+              <p className="mt-1.5 text-hanji-faint">
+                허용한 뒤 다시 토글을 눌러 주십시오.
+              </p>
+            </div>
+          )}
+          {pushError && (
+            <p className="mt-3 text-[12px] leading-6 text-vermilion">
+              {pushError}
+            </p>
           )}
         </div>
       </section>
