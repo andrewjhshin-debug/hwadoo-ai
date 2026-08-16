@@ -534,9 +534,27 @@ export default function Home() {
               : "정답은 없습니다. 다만 천 년 전에도 같은 물음을 품은 이들이 있었습니다."}
           </p>
 
+          {/* 잠시 — 다음으로 나아가기 전에 */}
+          <div className="mt-10 w-full max-w-xl rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-5 text-left">
+            <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              숨을 고르다
+            </p>
+            <p className="mt-3 break-keep text-[13px] leading-7 text-hanji-dim">
+              답을 쓰는 것으로 화두가 끝나지는 않습니다. 지금 이 자리에서 잠시 눈을 감고 —
+              내가 쓴 답을 다시 한 번 몸으로 느껴봅니다. 스승의 말과 나의 말이 어떻게 다르고,
+              어떻게 닮았는지 그저 바라봅니다.
+            </p>
+            <Link
+              href="/breath"
+              className="mt-4 inline-flex items-center gap-1.5 text-[12px] tracking-wider text-gold-soft transition-colors hover:text-gold"
+            >
+              호흡 명상으로 잠시 앉기 →
+            </Link>
+          </div>
+
           <button
             onClick={archiveCurrent}
-            className="btn-obang mt-12 px-9 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
+            className="btn-obang mt-8 px-9 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
           >
             다음 화두를 받다
           </button>

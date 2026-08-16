@@ -232,3 +232,15 @@ export async function updateSharedAnswer(id: string, answer: string) {
 export async function deleteSharedAnswer(id: string) {
   await deleteDoc(doc(db, "shared-answers", id));
 }
+
+// 내가 나눔에 부쳐 승인된 회향의 수
+export async function fetchMyApprovedAnswerCount(uid: string): Promise<number> {
+  try {
+    const snap = await getDocs(
+      query(collection(db, "shared-answers"), where("uid", "==", uid))
+    );
+    return snap.docs.filter((d) => d.data().status === "approved").length;
+  } catch {
+    return 0;
+  }
+}

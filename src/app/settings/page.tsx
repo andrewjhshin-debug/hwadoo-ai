@@ -36,6 +36,7 @@ import {
   type MyThrown,
   type ThrownStat,
 } from "@/lib/thrown";
+import { fetchMyApprovedAnswerCount } from "@/lib/community";
 import {
   canInstall,
   isIOS,
@@ -138,6 +139,8 @@ export default function SettingsPage() {
   const [installDone, setInstallDone] = useState(false);
   // 뒷방 — 관리자에게만: 승인 기다리는 화두 수 (실패는 조용히)
   const [pendingCount, setPendingCount] = useState<number | null>(null);
+  // 나눔 통계 — 내 승인된 회향 수
+  const [myAnswerCount, setMyAnswerCount] = useState<number | null>(null);
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -338,6 +341,14 @@ export default function SettingsPage() {
       });
   }, []);
 
+  // 내 나눔 통계 — 로그인된 상태에서 승인된 회향 수를 가져온다
+  useEffect(() => {
+    if (!user?.uid) return;
+    fetchMyApprovedAnswerCount(user.uid)
+      .then(setMyAnswerCount)
+      .catch(() => {});
+  }, [user?.uid]);
+
   const setTheme = (toLight: boolean) => {
     setLight(toLight);
     applyTheme(toLight);
@@ -473,6 +484,30 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
+        {/* 나눔의 흔적 — 로그인했을 때만, 조용한 한 줄씩 */}
+        {user && (myAnswerCount !== null || thrownStats !== null) && (
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 px-1">
+            {myAnswerCount !== null && myAnswerCount > 0 && (
+              <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
+                회향이{" "}
+                <span className="text-hanji-dim">{myAnswerCount}</span>
+                명에게 전해졌습니다
+              </p>
+            )}
+            {thrownStats !== null && (() => {
+              const total = Array.from(thrownStats.values()).reduce(
+                (s, st) => s + st.seen, 0
+              );
+              return total > 0 ? (
+                <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
+                  내 화두를{" "}
+                  <span className="text-hanji-dim">{total}</span>
+                  명이 받았습니다
+                </p>
+              ) : null;
+            })()}
+          </div>
+        )}
       </section>
 
       {/* ── 뒷방 — 관리자에게만 보이는 도량 살림 카드 ── */}
@@ -658,6 +693,26 @@ export default function SettingsPage() {
               )}
             </>
           )}
+        </div>
+      </section>
+
+      {/* ── 지난 화두 — 품어온 시간 바로 아래 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="flex items-center gap-2 text-[11px] tracking-[0.3em] text-hanji-faint">
+          <Book className="h-[15px] w-[15px] text-gold-soft" />
+          지난 화두
+        </p>
+        <div className="mt-4 border-t border-ink-3 pt-5">
+          <p className="text-[13px] leading-7 text-hanji-dim">
+            시간을 다 품고 회향한 화두들이 이곳에 남습니다.
+          </p>
+          <Link
+            href="/archive"
+            className="mt-5 inline-flex items-center gap-2.5 rounded-[10px] border border-ink-3 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          >
+            <Book className="h-4 w-4 text-gold-soft" />
+            지난 화두 보기 · {journalCount}
+          </Link>
         </div>
       </section>
 
@@ -874,26 +929,6 @@ export default function SettingsPage() {
               찻자리를 마련하고 있습니다
             </p>
           )}
-        </div>
-      </section>
-
-      {/* ── 지난 화두 ── */}
-      <section className={`rise rise-d2 ${sectionGap}`}>
-        <p className="flex items-center gap-2 text-[11px] tracking-[0.3em] text-hanji-faint">
-          <Book className="h-[15px] w-[15px] text-gold-soft" />
-          지난 화두
-        </p>
-        <div className="mt-4 border-t border-ink-3 pt-5">
-          <p className="text-[13px] leading-7 text-hanji-dim">
-            시간을 다 품고 회향한 화두들이 이곳에 남습니다.
-          </p>
-          <Link
-            href="/archive"
-            className="mt-5 inline-flex items-center gap-2.5 rounded-[10px] border border-ink-3 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-          >
-            <Book className="h-4 w-4 text-gold-soft" />
-            지난 화두 보기 · {journalCount}
-          </Link>
         </div>
       </section>
 
