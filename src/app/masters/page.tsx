@@ -55,23 +55,25 @@ export default function MastersPage() {
 
       {/* 한마디 — 누를 때마다 다른 말 */}
       {saying && (
-        <section className="rise rise-d1 mt-12 text-center">
-          <blockquote className="question-glow break-keep font-serif text-lg font-light leading-[1.8] text-hanji sm:text-xl">
-            {splitSentences(saying.text).map((line, i) => (
-              <span key={i} className="block">
-                {line}
-              </span>
-            ))}
-          </blockquote>
-          <p className="mt-5 text-xs tracking-widest text-hanji-dim">
-            — {saying.name}
-            {saying.era && (
-              <span className="text-hanji-faint"> · {saying.era}</span>
-            )}
-            {saying.source && (
-              <span className="text-hanji-faint"> · 『{saying.source}』</span>
-            )}
-          </p>
+        <section className="rise rise-d1 mt-12 flex min-h-[17rem] flex-col items-center justify-between text-center">
+          <div className="w-full">
+            <blockquote className="question-glow break-keep font-serif text-lg font-light leading-[1.8] text-hanji sm:text-xl">
+              {splitSentences(saying.text).map((line, i) => (
+                <span key={i} className="block">
+                  {line}
+                </span>
+              ))}
+            </blockquote>
+            <p className="mt-5 text-xs tracking-widest text-hanji-dim">
+              — {saying.name}
+              {saying.era && (
+                <span className="text-hanji-faint"> · {saying.era}</span>
+              )}
+              {saying.source && (
+                <span className="text-hanji-faint"> · 『{saying.source}』</span>
+              )}
+            </p>
+          </div>
           <button
             onClick={another}
             className="mt-7 border border-ink-3 px-6 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"

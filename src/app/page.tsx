@@ -671,22 +671,22 @@ export default function Home() {
         <div className="question-glow mt-8 w-full max-w-2xl">
           <Question text={sessionQuestion(current)} className="text-hanji" />
         </div>
-        <div className="mt-16 flex items-center gap-4">
-          <button
-            onClick={() => setFocusMode(false)}
-            className="border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-          >
-            되돌아가기
-          </button>
-          <button
-            onClick={() => setNotesOpen(true)}
-            aria-label="사유의 방 열기"
-            className="flex items-center gap-2 border border-ink-3 px-5 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-          >
-            <Banga className="h-[14px] w-[14px] shrink-0" />
-            사유의 방
-          </button>
-        </div>
+        <button
+          onClick={() => setFocusMode(false)}
+          className="mt-16 border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+        >
+          되돌아가기
+        </button>
+
+        {/* 사유의 방 FAB — MobileTabBar와 동일한 스타일, 화두만 보기 전용 */}
+        <button
+          onClick={() => setNotesOpen(true)}
+          aria-label="사유의 방 열기"
+          className="notes-fab btn-obang fixed bottom-[76px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:bottom-8 md:right-8"
+        >
+          <Banga className="h-6 w-6 text-gold-soft" />
+        </button>
+        <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
       </div>
     );
   }

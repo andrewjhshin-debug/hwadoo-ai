@@ -806,46 +806,34 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ── 홈 화면에 담기 — 앱처럼 여는 길을 형편대로 안내한다 ── */}
-      <section className={`rise rise-d1 ${sectionGap}`}>
-        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-          홈 화면에 담기
-        </p>
-        <div className="mt-4 border-t border-ink-3 pt-5">
-          {installUi === null ? (
-            <p className="text-[13px] leading-7 text-hanji-faint">
-              살펴보는 중…
+      {/* ── 홈 화면에 앱처럼 담기 — standalone이면 숨김 ── */}
+      {installUi !== null && installUi !== "standalone" && !installDone && (
+        <section className={`rise rise-d1 ${sectionGap}`}>
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              홈 화면에 앱처럼 담기
             </p>
-          ) : installUi === "standalone" || installDone ? (
-            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-              이미 손안에 있습니다. 홈 화면의 화두로 언제든 드나드십시오.
-            </p>
-          ) : installUi === "promptable" ? (
-            <>
-              <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-                홈 화면에 담아 두면, 앱처럼 한 번에 도량에 듭니다.
-              </p>
+            {installUi === "promptable" && (
               <button
                 onClick={handleInstall}
                 disabled={installBusy}
-                className="btn-obang mt-5 inline-flex items-center px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="shrink-0 rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
               >
-                {installBusy ? "여는 중…" : "홈 화면에 담기"}
+                {installBusy ? "여는 중…" : "담기"}
               </button>
-            </>
-          ) : installUi === "ios" ? (
-            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-              사파리 공유 단추 → &lsquo;홈 화면에 추가&rsquo;를 누르면 앱처럼
-              쓸 수 있습니다.
-            </p>
-          ) : (
-            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-              브라우저 메뉴(⋮)의 &lsquo;앱 설치&rsquo; 또는 &lsquo;홈 화면에
-              추가&rsquo;를 누르면 앱처럼 쓸 수 있습니다.
-            </p>
+            )}
+          </div>
+          {(installUi === "ios" || installUi === "manual") && (
+            <div className="mt-4 border-t border-ink-3 pt-4">
+              <p className="break-keep text-[12px] leading-6 text-hanji-faint">
+                {installUi === "ios"
+                  ? "사파리 공유 단추 → '홈 화면에 추가'를 누르면 앱처럼 쓸 수 있습니다."
+                  : "브라우저 메뉴(⋮)의 '앱 설치' 또는 '홈 화면에 추가'를 누르면 담깁니다."}
+              </p>
+            </div>
           )}
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── 색상 모드 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
