@@ -137,6 +137,7 @@ export default function SettingsPage() {
   const [installUi, setInstallUi] = useState<InstallUi | null>(null);
   const [installBusy, setInstallBusy] = useState(false);
   const [installDone, setInstallDone] = useState(false);
+  const [installGuide, setInstallGuide] = useState(false);
   // 뒷방 — 관리자에게만: 승인 기다리는 화두 수 (실패는 조용히)
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   // 나눔 통계 — 내 승인된 회향 수
@@ -807,13 +808,13 @@ export default function SettingsPage() {
       </section>
 
       {/* ── 홈 화면에 앱처럼 담기 — standalone이면 숨김 ── */}
-      {installUi !== null && installUi !== "standalone" && !installDone && (
+      {installUi !== "standalone" && !installDone && (
         <section className={`rise rise-d1 ${sectionGap}`}>
           <div className="flex items-center justify-between gap-4">
             <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
               홈 화면에 앱처럼 담기
             </p>
-            {installUi === "promptable" && (
+            {installUi === "promptable" ? (
               <button
                 onClick={handleInstall}
                 disabled={installBusy}
@@ -821,13 +822,20 @@ export default function SettingsPage() {
               >
                 {installBusy ? "여는 중…" : "담기"}
               </button>
-            )}
+            ) : installUi !== null ? (
+              <button
+                onClick={() => setInstallGuide((v) => !v)}
+                className="shrink-0 rounded-[10px] border border-ink-3 px-4 py-2 text-[12px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+              >
+                방법 보기
+              </button>
+            ) : null}
           </div>
-          {(installUi === "ios" || installUi === "manual") && (
+          {installGuide && installUi !== null && installUi !== "promptable" && (
             <div className="mt-4 border-t border-ink-3 pt-4">
               <p className="break-keep text-[12px] leading-6 text-hanji-faint">
                 {installUi === "ios"
-                  ? "사파리 공유 단추 → '홈 화면에 추가'를 누르면 앱처럼 쓸 수 있습니다."
+                  ? "사파리 공유 단추(□↑) → '홈 화면에 추가'를 누르면 앱처럼 쓸 수 있습니다."
                   : "브라우저 메뉴(⋮)의 '앱 설치' 또는 '홈 화면에 추가'를 누르면 담깁니다."}
               </p>
             </div>
