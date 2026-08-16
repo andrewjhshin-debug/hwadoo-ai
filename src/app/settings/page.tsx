@@ -102,7 +102,6 @@ const SERVICES: ServiceItem[] = [
   { href: "/mandala", label: "만다라", Icon: Mandala },
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
   { href: "/empty", label: "비움", Icon: Moktak },
-  { href: "/gathering", label: "차담회", Icon: Person },
   { href: "/community", label: "연지원", Icon: LotusPond },
   { href: "/archive", label: "지난 화두", Icon: Book },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
@@ -667,7 +666,7 @@ export default function SettingsPage() {
       <section className={`rise rise-d1 ${sectionGap}`}>
         <div className="flex items-center justify-between gap-4">
           <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-            알림 — 아침 문안
+            알림 — 문안 켜기
           </p>
           {/* 토글 스위치 — 켜짐: 금색 채움 · 꺼짐: 테두리만 */}
           <button
@@ -714,14 +713,14 @@ export default function SettingsPage() {
               ))}
             </ul>
           )}
-          {/* 토글 밑의 작은 한 줄 — 미지원·준비 중도 한 줄로 */}
-          <p className="break-keep text-[12px] leading-6 text-hanji-faint">
-            {pushUi === "unsupported"
-              ? "이 브라우저는 알림을 받을 수 없습니다. (아이폰은 홈 화면에 추가한 뒤 가능)"
-              : pushUi === "preparing"
-                ? "알림을 준비하고 있습니다 — 곧 열립니다."
-                : "매일 아침 9시, 오늘의 물음이 옵니다"}
-          </p>
+          {/* 미지원·준비 중일 때만 한 줄 안내 */}
+          {(pushUi === "unsupported" || pushUi === "preparing") && (
+            <p className="break-keep text-[12px] leading-6 text-hanji-faint">
+              {pushUi === "unsupported"
+                ? "이 브라우저는 알림을 받을 수 없습니다. (아이폰은 홈 화면에 추가한 뒤 가능)"
+                : "알림을 준비하고 있습니다 — 곧 열립니다."}
+            </p>
+          )}
           {/* 차단 상태에서 토글을 누르면 접혀 나오는 푸는 법 */}
           {pushGuide && (
             <div className="mt-4 break-keep rounded-[10px] border border-ink-3 bg-ink-2/40 px-4 py-3 text-[12px] leading-6 text-hanji-dim">

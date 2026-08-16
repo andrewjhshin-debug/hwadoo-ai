@@ -653,12 +653,22 @@ export default function Home() {
         <div className="question-glow mt-8 w-full max-w-2xl">
           <Question text={sessionQuestion(current)} className="text-hanji" />
         </div>
-        <button
-          onClick={() => setFocusMode(false)}
-          className="mt-16 border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-        >
-          되돌아가기
-        </button>
+        <div className="mt-16 flex items-center gap-4">
+          <button
+            onClick={() => setFocusMode(false)}
+            className="border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          >
+            되돌아가기
+          </button>
+          <button
+            onClick={() => setNotesOpen(true)}
+            aria-label="사유의 방 열기"
+            className="flex items-center gap-2 border border-ink-3 px-5 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          >
+            <Banga className="h-[14px] w-[14px] shrink-0" />
+            사유의 방
+          </button>
+        </div>
       </div>
     );
   }
