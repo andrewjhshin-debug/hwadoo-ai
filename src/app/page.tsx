@@ -738,7 +738,7 @@ export default function Home() {
               : "이 물음을 든 사람은, 지금 그대뿐입니다"}
           </p>
         )}
-        {onlineCount !== null && onlineCount > 1 && (
+        {onlineCount !== null && onlineCount > 0 && (
           <p className="mt-1.5 text-[11px] tracking-widest text-hanji-faint">
             지금 도량에 {onlineCount}명이 함께 있습니다
           </p>
