@@ -7,10 +7,13 @@
 import { getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAdNMHbhnjJqyB5i6rhF8SxpouTuqqN4OE",
   authDomain: "hwadu-9dc7b.firebaseapp.com",
+  databaseURL:
+    "https://hwadu-9dc7b-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "hwadu-9dc7b",
   storageBucket: "hwadu-9dc7b.firebasestorage.app",
   messagingSenderId: "107600530616",
@@ -21,3 +24,4 @@ const app = getApps()[0] ?? initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const rtdb = getDatabase(app);

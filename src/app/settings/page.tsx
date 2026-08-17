@@ -37,6 +37,7 @@ import {
   type ThrownStat,
 } from "@/lib/thrown";
 import { fetchMyApprovedAnswerCount } from "@/lib/community";
+import { initPresence, watchOnlineCount } from "@/lib/presence";
 import {
   canInstall,
   isIOS,
@@ -142,6 +143,8 @@ export default function SettingsPage() {
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   // 나눔 통계 — 내 승인된 회향 수
   const [myAnswerCount, setMyAnswerCount] = useState<number | null>(null);
+  // 실시간 접속자 수
+  const [onlineCount, setOnlineCount] = useState<number | null>(null);
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -350,6 +353,16 @@ export default function SettingsPage() {
       .catch(() => {});
   }, [user?.uid]);
 
+  // 실시간 접속자 추적
+  useEffect(() => {
+    const stopPresence = initPresence();
+    const stopWatch = watchOnlineCount(setOnlineCount);
+    return () => {
+      stopPresence();
+      stopWatch();
+    };
+  }, []);
+
   const setTheme = (toLight: boolean) => {
     setLight(toLight);
     applyTheme(toLight);
@@ -485,30 +498,35 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
-        {/* 나눔의 흔적 — 로그인했을 때만, 조용한 한 줄씩 */}
-        {user && (myAnswerCount !== null || thrownStats !== null) && (
-          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 px-1">
-            {myAnswerCount !== null && myAnswerCount > 0 && (
+        {/* 나눔의 흔적 + 실시간 접속자 */}
+        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 px-1">
+          {onlineCount !== null && onlineCount > 0 && (
+            <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
+              지금 도량에{" "}
+              <span className="text-hanji-dim">{onlineCount}</span>
+              명이 함께 있습니다
+            </p>
+          )}
+          {user && myAnswerCount !== null && myAnswerCount > 0 && (
+            <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
+              회향이{" "}
+              <span className="text-hanji-dim">{myAnswerCount}</span>
+              명에게 전해졌습니다
+            </p>
+          )}
+          {user && thrownStats !== null && (() => {
+            const total = Array.from(thrownStats.values()).reduce(
+              (s, st) => s + st.seen, 0
+            );
+            return total > 0 ? (
               <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
-                회향이{" "}
-                <span className="text-hanji-dim">{myAnswerCount}</span>
-                명에게 전해졌습니다
+                내 화두를{" "}
+                <span className="text-hanji-dim">{total}</span>
+                명이 받았습니다
               </p>
-            )}
-            {thrownStats !== null && (() => {
-              const total = Array.from(thrownStats.values()).reduce(
-                (s, st) => s + st.seen, 0
-              );
-              return total > 0 ? (
-                <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
-                  내 화두를{" "}
-                  <span className="text-hanji-dim">{total}</span>
-                  명이 받았습니다
-                </p>
-              ) : null;
-            })()}
-          </div>
-        )}
+            ) : null;
+          })()}
+        </div>
       </section>
 
       {/* ── 뒷방 — 관리자에게만 보이는 도량 살림 카드 ── */}

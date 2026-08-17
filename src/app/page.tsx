@@ -46,6 +46,7 @@ import {
   type SharedAnswer,
 } from "@/lib/community";
 import { applyBankOverride, fetchAdminContent } from "@/lib/adminContent";
+import { initPresence, watchOnlineCount } from "@/lib/presence";
 
 // 나눔 물음창의 작은 안내 — 공유하면 무엇이 일어나는지
 const SHARE_NOTE =
@@ -100,6 +101,7 @@ export default function Home() {
   const [focusMode, setFocusMode] = useState(false);
   const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
   const [holdingCount, setHoldingCount] = useState<number | null>(null);
+  const [onlineCount, setOnlineCount] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [sharedAnswers, setSharedAnswers] = useState<SharedAnswer[]>([]);
   // 나눔에 부쳤는지 — 회향 화면에 조용히 알린다
@@ -193,6 +195,16 @@ export default function Home() {
     }
     fetchHoldingCount(id).then(setHoldingCount);
   }, [store?.current?.hwaduId]);
+
+  // 실시간 접속자 추적 — 탭이 열리면 등록, 닫히면 서버가 자동 삭제
+  useEffect(() => {
+    const stopPresence = initPresence();
+    const stopWatch = watchOnlineCount(setOnlineCount);
+    return () => {
+      stopPresence();
+      stopWatch();
+    };
+  }, []);
 
   // 저장소가 바뀌면 화면도 곧바로 따라간다.
   // 다른 기기(동기화)·다른 창(storage)·같은 창의 다른 화면(사유의 방) 모두.
@@ -724,6 +736,11 @@ export default function Home() {
             {holdingCount >= 2
               ? `지금 이 물음을 ${holdingCount}명이 함께 들고 있습니다`
               : "이 물음을 든 사람은, 지금 그대뿐입니다"}
+          </p>
+        )}
+        {onlineCount !== null && onlineCount > 1 && (
+          <p className="mt-1.5 text-[11px] tracking-widest text-hanji-faint">
+            지금 도량에 {onlineCount}명이 함께 있습니다
           </p>
         )}
 
