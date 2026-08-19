@@ -1,16 +1,21 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 모임 — 절에 함께 가는 약속 (손잡고 절로 안의 게시판).
+// 모임 — 절에 함께 가는 약속.
 // · 글 하나 = 약속 하나: 어느 절로, 언제, 한 줄 소개, (선택) 오픈채팅 링크.
+// · 두 얼굴:
+//   variant="full"    — 모임 페이지(/gathering): 글쓰기 폼 + 전체 목록.
+//                       initialTemple/initialDate/autoOpen 으로 미리 채워 연다
+//                       (지도 팝업·다가오는 날이 주소 파라미터로 넘긴다).
+//   variant="preview" — 손잡고 절로 안: 다가오는 약속 3개만 + 모임 페이지로 가는 길.
 // · 여는 자격: 로그인 + 1회향 이상 — 물음을 품어 본 이들의 자리.
 //   함께하기(오픈챗 입장)와 '같이 가요'는 자격 없이 누구나.
 // · 오픈챗 링크는 open.kakao.com 만 — 아무 링크나 실리지 않게 (피싱 방지).
 // · 지난 약속은 목록에서 절로 사라진다 (날짜 지난 글은 걸러서 보인다).
-// · 지도 팝업·다가오는 날에서 절 이름/날짜가 미리 채워져 들어온다(prefill).
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { User } from "firebase/auth";
 import {
   bowToPost,
@@ -28,6 +33,8 @@ import { useConfirm } from "@/components/Confirm";
 
 // '같이 가요'를 이미 눌렀는지 — 브라우저마다 한 번씩
 const BOWED_KEY = "hwadoo-bowed-gathering-v1";
+// 미리보기에 보이는 약속 수
+const PREVIEW_COUNT = 3;
 
 function loadBowed(): Set<string> {
   try {
@@ -53,7 +60,7 @@ function todayStr(): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
-// "2026-08-25" → "8.25 · D-6" (오늘이면 "오늘")
+// "2026-08-25" → { text: "8.25", dday: "D-6" } (오늘이면 "오늘")
 function dateLabel(meetDate: string): { text: string; dday: string } {
   const [y, m, d] = meetDate.split("-").map(Number);
   const target = new Date(y, m - 1, d);
@@ -66,22 +73,27 @@ function dateLabel(meetDate: string): { text: string; dday: string } {
   };
 }
 
-export type GatheringPrefill = {
-  temple?: string;
-  date?: string; // "YYYY-MM-DD"
-  nonce: number; // 바뀔 때마다 폼을 연다
+type Props = {
+  variant?: "full" | "preview";
+  initialTemple?: string;
+  initialDate?: string; // "YYYY-MM-DD"
+  autoOpen?: boolean; // 처음부터 폼을 열고 시작한다
 };
 
-type Props = { prefill: GatheringPrefill };
-
-export default function GatheringBoard({ prefill }: Props) {
+export default function GatheringBoard({
+  variant = "full",
+  initialTemple,
+  initialDate,
+  autoOpen,
+}: Props) {
   const confirm = useConfirm();
+  const preview = variant === "preview";
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [returnedCount, setReturnedCount] = useState(0);
 
-  // 폼
+  // 폼 (full 에서만 쓴다)
   const [open, setOpen] = useState(false);
   const [temple, setTemple] = useState("");
   const [date, setDate] = useState("");
@@ -91,7 +103,6 @@ export default function GatheringBoard({ prefill }: Props) {
   const [formError, setFormError] = useState("");
 
   const [bowed, setBowed] = useState<Set<string>>(new Set());
-  const boxRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -105,6 +116,15 @@ export default function GatheringBoard({ prefill }: Props) {
     return () => window.removeEventListener("hwadoo-store-updated", count);
   }, []);
 
+  // 지도 팝업·다가오는 날에서 주소 파라미터로 넘어온 것 — 폼을 채우고 연다
+  useEffect(() => {
+    if (preview) return;
+    if (initialTemple) setTemple(initialTemple);
+    if (initialDate) setDate(initialDate);
+    if (autoOpen || initialTemple || initialDate) setOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const refresh = () => {
     fetchPosts("gathering")
       .then((list) => {
@@ -114,16 +134,6 @@ export default function GatheringBoard({ prefill }: Props) {
       .catch(() => setLoadError(true));
   };
   useEffect(refresh, []);
-
-  // 지도·다가오는 날에서 미리 채워 들어온다 — 폼을 열고 그 자리로 데려간다
-  useEffect(() => {
-    if (prefill.nonce === 0) return;
-    if (prefill.temple !== undefined) setTemple(prefill.temple);
-    if (prefill.date !== undefined) setDate(prefill.date);
-    setOpen(true);
-    boxRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefill.nonce]);
 
   const qualified = !!user && returnedCount >= 1;
 
@@ -209,7 +219,7 @@ export default function GatheringBoard({ prefill }: Props) {
   };
 
   const canRemove = (p: Post) =>
-    !!user && (user.uid === p.authorUid || user.uid === ADMIN_UID);
+    !preview && !!user && (user.uid === p.authorUid || user.uid === ADMIN_UID);
 
   // 모임 한 줄 — 날짜 있는 약속과 옛 글이 같은 모양으로
   const renderItem = (p: Post) => {
@@ -281,8 +291,56 @@ export default function GatheringBoard({ prefill }: Props) {
     );
   };
 
+  // ── 미리보기 — 다가오는 약속 3개 + 모임 페이지로 가는 길 ──
+  if (preview) {
+    const shown = upcoming.slice(0, PREVIEW_COUNT);
+    const total = upcoming.length + legacy.length;
+    return (
+      <div>
+        <div className="flex items-start justify-between gap-4">
+          <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+            혼자 나서기 어색하면, 함께 갈 이를 만나세요.
+          </p>
+          <Link
+            href="/gathering?open=1"
+            className="shrink-0 rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
+          >
+            모임 열기
+          </Link>
+        </div>
+        <ul className="mt-4 flex flex-col gap-3">
+          {posts === null ? (
+            <li className="py-3 text-[13px] leading-7 text-hanji-faint">
+              모임 자리를 살펴보는 중…
+            </li>
+          ) : loadError ? (
+            <li className="py-3 text-[13px] leading-7 text-hanji-faint">
+              모임 마당이 잠시 닫혀 있습니다. 잠시 후 다시 들러 주세요.
+            </li>
+          ) : shown.length === 0 ? (
+            <li className="py-3 break-keep text-[13px] leading-7 text-hanji-faint">
+              아직 잡힌 모임이 없습니다 — 지도의 절 팝업에서 [이 절에 함께
+              가기]를 눌러 첫 모임을 열어 보십시오.
+            </li>
+          ) : (
+            shown.map(renderItem)
+          )}
+        </ul>
+        {total > 0 && (
+          <Link
+            href="/gathering"
+            className="mt-4 inline-block text-[12px] tracking-[0.15em] text-hanji-dim underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji"
+          >
+            모임 모두 보기 · {total}
+          </Link>
+        )}
+      </div>
+    );
+  }
+
+  // ── 모임 페이지 — 폼 + 전체 목록 ──
   return (
-    <div ref={boxRef} className="scroll-mt-6">
+    <div>
       {/* 여는 줄 — 안내 + 모임 열기 */}
       <div className="flex items-start justify-between gap-4">
         <p className="break-keep text-[13px] leading-7 text-hanji-dim">
@@ -346,7 +404,7 @@ export default function GatheringBoard({ prefill }: Props) {
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 maxLength={200}
-                placeholder="한 줄 소개 — 예: 아침 사시불공 함께 드실 분"
+                placeholder="한 줄 소개 — 예: 점심 공양 같이 가실 분"
                 className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
               />
               <input
@@ -397,8 +455,8 @@ export default function GatheringBoard({ prefill }: Props) {
           </li>
         ) : upcoming.length === 0 && legacy.length === 0 ? (
           <li className="py-4 break-keep text-[13px] leading-7 text-hanji-faint">
-            아직 잡힌 모임이 없습니다. 첫 모임을 열어 보십시오 — 지도의 절
-            팝업에서 [이 절에 함께 가기]를 눌러도 됩니다.
+            아직 잡힌 모임이 없습니다. 첫 모임을 열어 보십시오 — 손잡고 절로
+            지도의 절 팝업에서 [이 절에 함께 가기]를 눌러도 됩니다.
           </li>
         ) : (
           <>

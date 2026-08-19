@@ -5,14 +5,16 @@
 // 순서: 지도(이름난 도량) → 모임(함께 가는 약속) → 다가오는 날.
 // · 지도: 전국 도량을 지역 칩·템플스테이 칩(AND)으로 거르고,
 //   절 소개·길찾기·[이 절에 함께 가기]는 마커 팝업으로 연다.
-// · 모임: 글 하나 = 약속 하나 — GatheringBoard 가 맡는다.
-//   지도 팝업과 다가오는 날의 [이 날 함께 가기]가 폼을 미리 채운다.
+// · 모임: 여기는 다가오는 약속 셋만(미리보기) — 마당은 /gathering.
+//   지도 팝업·다가오는 날의 [함께 가기]는 절 이름/날짜를 주소에 실어
+//   모임 페이지로 보낸다 (목록이 길어져도 이 화면은 짧게 머문다).
 // · 다가오는 날: 음력 일정을 해마다 자동 계산, 가까운 순 여덟.
 // 날짜 계산은 클라이언트에서만 — 서버와 하루가 어긋나도 깜빡이지 않게.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import {
   REGIONS,
   TEMPLES,
@@ -20,9 +22,7 @@ import {
   type PilgrimEvent,
   type Region,
 } from "@/lib/pilgrimage";
-import GatheringBoard, {
-  type GatheringPrefill,
-} from "@/components/GatheringBoard";
+import GatheringBoard from "@/components/GatheringBoard";
 
 // 지도는 클라이언트에서만 — 첫 페인트를 막지 않게 뒤늦게 불러온다
 const TempleMap = dynamic(() => import("@/components/TempleMap"), {
@@ -39,12 +39,10 @@ function toDateStr(d: Date): string {
 }
 
 export default function PilgrimagePage() {
+  const router = useRouter();
   const [events, setEvents] = useState<PilgrimEvent[]>([]);
   const [region, setRegion] = useState<Region | "전체">("전체");
   const [stayOnly, setStayOnly] = useState(false);
-  // 모임 폼 프리필 — nonce 가 바뀔 때마다 폼이 열린다
-  const [prefill, setPrefill] = useState<GatheringPrefill>({ nonce: 0 });
-  const gatheringRef = useRef<HTMLElement | null>(null);
 
   // 오늘 기준 계산 — 클라이언트의 오늘로 센다
   useEffect(() => {
@@ -62,10 +60,13 @@ export default function PilgrimagePage() {
     [region, stayOnly]
   );
 
-  // 지도·달력에서 모임으로 — 채워서 열고, 그 자리로 데려간다
+  // 지도·달력에서 모임으로 — 절 이름/날짜를 주소에 실어 모임 페이지로 보낸다
   const openGathering = (fill: { temple?: string; date?: string }) => {
-    setPrefill((p) => ({ ...fill, nonce: p.nonce + 1 }));
-    gatheringRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const q = new URLSearchParams();
+    if (fill.temple) q.set("temple", fill.temple);
+    if (fill.date) q.set("date", fill.date);
+    q.set("open", "1");
+    router.push(`/gathering?${q.toString()}`);
   };
 
   return (
@@ -132,13 +133,13 @@ export default function PilgrimagePage() {
         </p>
       </section>
 
-      {/* ── 구획 2 · 모임 — 함께 가는 약속 ── */}
-      <section ref={gatheringRef} className="rise rise-d3 mt-12 scroll-mt-6">
+      {/* ── 구획 2 · 모임 — 다가오는 약속 셋만, 마당은 /gathering 에 ── */}
+      <section className="rise rise-d3 mt-12">
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
           모임 — 함께 가는 약속
         </p>
         <div className="mt-4 border-t border-ink-3 pt-5">
-          <GatheringBoard prefill={prefill} />
+          <GatheringBoard variant="preview" />
         </div>
       </section>
 
