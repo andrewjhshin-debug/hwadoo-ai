@@ -1,16 +1,17 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 손잡고 절로(巡禮) — 발로 걷는 물음, 절로 가는 길.
-// · 다가오는 날: 음력으로 정해진 불교 일정을 해마다 자동 계산해
-//   가까운 순으로 여덟을 편다 (부처님오신날 등 큰 날은 금색).
-// · 이름난 도량: 전국의 이름난 절을 지도에 편다 — 지역 칩과
-//   템플스테이 칩(AND 조합)으로 거르고, 절 소개와 길찾기는
-//   마커 팝업으로만 연다 (카카오맵 이름 검색 링크 · 키 불필요).
+// 손잡고 절로(巡禮) — 가까운 절에 직접 가 보는 자리.
+// 순서: 지도(이름난 도량) → 모임(함께 가는 약속) → 다가오는 날.
+// · 지도: 전국 도량을 지역 칩·템플스테이 칩(AND)으로 거르고,
+//   절 소개·길찾기·[이 절에 함께 가기]는 마커 팝업으로 연다.
+// · 모임: 글 하나 = 약속 하나 — GatheringBoard 가 맡는다.
+//   지도 팝업과 다가오는 날의 [이 날 함께 가기]가 폼을 미리 채운다.
+// · 다가오는 날: 음력 일정을 해마다 자동 계산, 가까운 순 여덟.
 // 날짜 계산은 클라이언트에서만 — 서버와 하루가 어긋나도 깜빡이지 않게.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   REGIONS,
@@ -19,6 +20,9 @@ import {
   type PilgrimEvent,
   type Region,
 } from "@/lib/pilgrimage";
+import GatheringBoard, {
+  type GatheringPrefill,
+} from "@/components/GatheringBoard";
 
 // 지도는 클라이언트에서만 — 첫 페인트를 막지 않게 뒤늦게 불러온다
 const TempleMap = dynamic(() => import("@/components/TempleMap"), {
@@ -28,10 +32,19 @@ const TempleMap = dynamic(() => import("@/components/TempleMap"), {
   ),
 });
 
+// Date → "YYYY-MM-DD" (모임 폼의 날짜 칸에 채우는 꼴)
+function toDateStr(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 export default function PilgrimagePage() {
   const [events, setEvents] = useState<PilgrimEvent[]>([]);
   const [region, setRegion] = useState<Region | "전체">("전체");
   const [stayOnly, setStayOnly] = useState(false);
+  // 모임 폼 프리필 — nonce 가 바뀔 때마다 폼이 열린다
+  const [prefill, setPrefill] = useState<GatheringPrefill>({ nonce: 0 });
+  const gatheringRef = useRef<HTMLElement | null>(null);
 
   // 오늘 기준 계산 — 클라이언트의 오늘로 센다
   useEffect(() => {
@@ -49,25 +62,88 @@ export default function PilgrimagePage() {
     [region, stayOnly]
   );
 
+  // 지도·달력에서 모임으로 — 채워서 열고, 그 자리로 데려간다
+  const openGathering = (fill: { temple?: string; date?: string }) => {
+    setPrefill((p) => ({ ...fill, nonce: p.nonce + 1 }));
+    gatheringRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-16 pt-8 md:pt-12">
-      {/* ── 머리 ── */}
+      {/* ── 머리 — 에두르지 않고 청한다 ── */}
       <p className="rise text-center text-xs tracking-[0.5em] text-gold-soft">
         巡禮 · 손잡고 절로
       </p>
       <p className="question-glow rise rise-d1 mt-7 text-center font-serif text-xl font-light leading-[1.9] text-hanji">
-        발로 걷는 물음 —
+        가까운 절에,
         <br />
-        <span className="text-gold-grad">절로 가는 길입니다.</span>
+        <span className="text-gold-grad">한번 직접 가 보세요.</span>
       </p>
       <p className="rise rise-d2 mt-6 break-keep text-center text-[13px] leading-7 text-hanji-dim">
-        방석 위의 물음을 이따금 길 위에 내려놓습니다.
-        <br className="hidden sm:block" /> 산문을 지나 한 걸음 — 그것도
-        참구입니다.
+        절은 불자만 가는 곳이 아닙니다 — 산문은 누구에게나 열려 있습니다.
+        <br className="hidden sm:block" /> 지도에서 절을 고르고, 함께 갈 이를
+        모으고, 좋은 날을 잡으세요.
       </p>
 
-      {/* ── 구획 1 · 다가오는 날 ── */}
+      {/* ── 구획 1 · 이름난 도량 (지도) ── */}
       <section className="rise rise-d2 mt-12">
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+          이름난 도량
+        </p>
+
+        {/* 지역 칩 + 템플스테이 토글 — AND 조합 */}
+        <div className="mt-4 flex flex-wrap gap-2 border-t border-ink-3 pt-5">
+          {(["전체", ...REGIONS] as const).map((r) => (
+            <button
+              key={r}
+              onClick={() => setRegion(r)}
+              className={`rounded-full border px-3.5 py-1.5 text-[12px] tracking-wider transition-colors ${
+                region === r
+                  ? "border-gold/60 bg-gold/10 text-gold"
+                  : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
+              }`}
+            >
+              {r}
+            </button>
+          ))}
+          <button
+            onClick={() => setStayOnly((v) => !v)}
+            aria-pressed={stayOnly}
+            className={`rounded-full border px-3.5 py-1.5 text-[12px] tracking-wider transition-colors ${
+              stayOnly
+                ? "border-gold/60 bg-gold/10 text-gold"
+                : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
+            }`}
+          >
+            템플스테이
+          </button>
+        </div>
+
+        {/* 지도 — 칩을 누르면 마커가 걸러진다 · 절 소개는 마커 팝업으로 */}
+        <div className="mt-5">
+          <TempleMap
+            temples={temples}
+            onGather={(name) => openGathering({ temple: name })}
+          />
+        </div>
+        <p className="mt-3 text-[11px] leading-5 text-hanji-faint">
+          마커를 누르면 절 소개 · 길 찾기 · 함께 가기가 열립니다 ·{" "}
+          {temples.length}곳
+        </p>
+      </section>
+
+      {/* ── 구획 2 · 모임 — 함께 가는 약속 ── */}
+      <section ref={gatheringRef} className="rise rise-d3 mt-12 scroll-mt-6">
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+          모임 — 함께 가는 약속
+        </p>
+        <div className="mt-4 border-t border-ink-3 pt-5">
+          <GatheringBoard prefill={prefill} />
+        </div>
+      </section>
+
+      {/* ── 구획 3 · 다가오는 날 ── */}
+      <section className="rise rise-d3 mt-12">
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
           다가오는 날
         </p>
@@ -103,7 +179,7 @@ export default function PilgrimagePage() {
                     {ev.dDay === 0 ? "오늘" : `D-${ev.dDay}`}
                   </p>
                 </div>
-                {/* 이름(한자) · 한 줄 */}
+                {/* 이름(한자) · 한 줄 · 이 날 함께 가기 */}
                 <div className="min-w-0 flex-1">
                   <p className="break-keep text-[14px] leading-6">
                     <span className={ev.major ? "text-gold" : "text-hanji"}>
@@ -117,55 +193,19 @@ export default function PilgrimagePage() {
                     {ev.note}
                   </p>
                 </div>
+                <button
+                  onClick={() => openGathering({ date: toDateStr(ev.date) })}
+                  className="shrink-0 self-center rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                >
+                  이 날 함께 가기
+                </button>
               </li>
             ))
           )}
         </ul>
         <p className="mt-3 text-[11px] leading-5 text-hanji-faint">
-          음력으로 정해진 날들 — 해마다 자동으로 헤아립니다.
-        </p>
-      </section>
-
-      {/* ── 구획 2 · 이름난 도량 ── */}
-      <section className="rise rise-d3 mt-12">
-        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-          이름난 도량
-        </p>
-
-        {/* 지역 칩 + 템플스테이 토글 — AND 조합 */}
-        <div className="mt-4 flex flex-wrap gap-2 border-t border-ink-3 pt-5">
-          {(["전체", ...REGIONS] as const).map((r) => (
-            <button
-              key={r}
-              onClick={() => setRegion(r)}
-              className={`rounded-full border px-3.5 py-1.5 text-[12px] tracking-wider transition-colors ${
-                region === r
-                  ? "border-gold/60 bg-gold/10 text-gold"
-                  : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
-              }`}
-            >
-              {r}
-            </button>
-          ))}
-          <button
-            onClick={() => setStayOnly((v) => !v)}
-            aria-pressed={stayOnly}
-            className={`rounded-full border px-3.5 py-1.5 text-[12px] tracking-wider transition-colors ${
-              stayOnly
-                ? "border-gold/60 bg-gold/10 text-gold"
-                : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
-            }`}
-          >
-            템플스테이
-          </button>
-        </div>
-
-        {/* 지도 — 칩을 누르면 마커가 걸러진다 · 절 소개는 마커 팝업으로 */}
-        <div className="mt-5">
-          <TempleMap temples={temples} />
-        </div>
-        <p className="mt-3 text-[11px] leading-5 text-hanji-faint">
-          마커를 누르면 절 소개와 길 찾기가 열립니다 · {temples.length}곳
+          음력으로 정해진 날들 — 해마다 자동으로 헤아립니다. [이 날 함께
+          가기]를 누르면 그 날짜로 모임이 열립니다.
         </p>
       </section>
     </div>

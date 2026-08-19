@@ -29,6 +29,8 @@ type LeafletModule = typeof import("leaflet");
 type Props = {
   temples: Temple[];
   onSelect?: (name: string) => void;
+  // 팝업의 [이 절에 함께 가기] — 모임 폼에 절 이름을 채워 연다
+  onGather?: (name: string) => void;
 };
 
 // 남한 전체가 한눈에 드는 처음 자리
@@ -58,7 +60,7 @@ function templeGlyph(templestay: boolean): string {
   );
 }
 
-export default function TempleMap({ temples, onSelect }: Props) {
+export default function TempleMap({ temples, onSelect, onGather }: Props) {
   const boxRef = useRef<HTMLDivElement | null>(null);
   const leafletRef = useRef<LeafletModule | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -68,6 +70,8 @@ export default function TempleMap({ temples, onSelect }: Props) {
   const geoTimerRef = useRef<number | null>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+  const onGatherRef = useRef(onGather);
+  onGatherRef.current = onGather;
 
   const [ready, setReady] = useState(false);
   const [dark, setDark] = useState(true);
@@ -154,9 +158,24 @@ export default function TempleMap({ temples, onSelect }: Props) {
           (t.templestay ? '<span class="tm-stay">템플스테이</span>' : "") +
           `</p>` +
           `<p class="tm-note">${t.note}</p>` +
-          `<a class="tm-link" href="${kakaoMapUrl(t.name)}" target="_blank" rel="noopener noreferrer">길 찾기 →</a>`
+          `<span class="tm-actions">` +
+          `<a class="tm-link" href="${kakaoMapUrl(t.name)}" target="_blank" rel="noopener noreferrer">길 찾기 →</a>` +
+          `<button type="button" class="tm-gather">이 절에 함께 가기</button>` +
+          `</span>`
       );
       marker.on("click", () => onSelectRef.current?.(t.name));
+      // 팝업이 열릴 때 [함께 가기] 단추에 손을 잇는다 — 두 번 열려도 한 번만
+      marker.on("popupopen", (e) => {
+        const btn = e.popup
+          .getElement()
+          ?.querySelector<HTMLButtonElement>(".tm-gather");
+        if (!btn || btn.dataset.bound) return;
+        btn.dataset.bound = "1";
+        btn.addEventListener("click", () => {
+          marker.closePopup();
+          onGatherRef.current?.(t.name);
+        });
+      });
       group.addLayer(marker);
     }
 

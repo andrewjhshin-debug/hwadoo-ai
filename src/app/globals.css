@@ -513,6 +513,27 @@ body[data-palette] .notes-fab {
 .temple-map .tm-link:hover {
   border-bottom-color: var(--color-gold);
 }
+/* 팝업의 두 손잡이 — 길 찾기 · 이 절에 함께 가기 */
+.temple-map .tm-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.temple-map .tm-gather {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 0;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--color-gold);
+  background: none;
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold) 40%, transparent);
+  cursor: pointer;
+}
+.temple-map .tm-gather:hover {
+  border-bottom-color: var(--color-gold);
+}
 
 /* 줌 단추·저작권 표기 — 우리 톤으로 (표기 자체는 OSM · CARTO 정책상 남긴다) */
 .temple-map .leaflet-control-zoom a {

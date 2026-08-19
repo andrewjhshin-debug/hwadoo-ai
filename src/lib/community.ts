@@ -34,6 +34,10 @@ export type Post = {
   commentCount: number;
   board?: Board;
   createdAt?: { seconds: number };
+  // ── 모임(gathering) 전용 — 절에 함께 가는 약속 ──
+  templeName?: string; // 어느 절로
+  meetDate?: string; // 언제 — "2026-08-25" 꼴
+  openChatUrl?: string | null; // 오픈채팅 링크 — open.kakao.com 만 허용
 };
 
 export type Comment = {
@@ -107,6 +111,51 @@ export async function createPost(title: string, body: string, board: Board = "co
 
 export async function bowToPost(id: string) {
   await updateDoc(doc(db, "posts", id), { hapjang: increment(1) });
+}
+
+// ── 모임 — 절에 함께 가는 약속 (board: "gathering" 재활용) ─────────
+// 오픈채팅 링크는 카카오 오픈챗 주소만 받는다 — 아무 링크나 실리지 않게.
+export function isOpenChatUrl(url: string): boolean {
+  try {
+    const u = new URL(url.trim());
+    return u.protocol === "https:" && u.hostname === "open.kakao.com";
+  } catch {
+    return false;
+  }
+}
+
+// 모임을 연다 — 절 이름·날짜·한 줄이 필수, 오픈챗 링크는 선택.
+// 자격(로그인 + 1회향)은 화면이 먼저 거른다 — 여기서는 형식만 지킨다.
+export async function createGathering(input: {
+  templeName: string;
+  meetDate: string; // "YYYY-MM-DD"
+  body: string;
+  openChatUrl?: string;
+}) {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요합니다");
+  const templeName = input.templeName.trim().slice(0, 30);
+  const body = input.body.trim().slice(0, 200);
+  const meetDate = input.meetDate.trim();
+  if (!templeName || !body) throw new Error("절 이름과 한 줄 소개를 적어 주십시오");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(meetDate))
+    throw new Error("날짜를 골라 주십시오");
+  const chat = input.openChatUrl?.trim();
+  if (chat && !isOpenChatUrl(chat))
+    throw new Error("오픈채팅 링크는 open.kakao.com 주소만 받습니다");
+  return addDoc(collection(db, "posts"), {
+    title: templeName, // 옛 게시판 포맷과의 호환 — 제목 자리에 절 이름
+    body,
+    authorName: anonName(),
+    authorUid: u.uid,
+    hapjang: 0,
+    commentCount: 0,
+    board: "gathering" as Board,
+    templeName,
+    meetDate,
+    openChatUrl: chat || null,
+    createdAt: serverTimestamp(),
+  });
 }
 
 export async function deletePost(id: string) {
