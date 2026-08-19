@@ -558,3 +558,7 @@ body[data-palette] .notes-fab {
 body[data-writing] footer {
   display: none;
 }
+/* 답을 쓰는 동안에는 설치 배너도 접는다 — 회향 단추를 가리지 않게 */
+body[data-writing] [aria-label="홈 화면에 담기 안내"] {
+  display: none;
+}

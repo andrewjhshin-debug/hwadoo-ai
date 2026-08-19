@@ -11,7 +11,7 @@ import Link from "next/link";
 import Enso from "@/components/Enso";
 import NotesDrawer from "@/components/NotesDrawer";
 import { useConfirm } from "@/components/Confirm";
-import { Banga, Dharmachakra, Lotus } from "@/components/icons";
+import { Banga, Dharmachakra, Lotus, Teacup } from "@/components/icons";
 import {
   flatQuestion,
   bankCount,
@@ -39,7 +39,7 @@ import {
   type Session,
   type Store,
 } from "@/lib/store";
-import { SLOGAN } from "@/lib/config";
+import { DONATION_URL, SLOGAN } from "@/lib/config";
 import {
   shareAnswer,
   fetchSharedAnswers,
@@ -578,6 +578,41 @@ export default function Home() {
               호흡 명상으로 잠시 앉기 →
             </Link>
           </div>
+
+          {/* 차 한 잔 — 회향의 여운이 남은 자리에서만 조용히 청한다.
+              모바일은 카카오페이 바로, PC는 찻자리(QR)로. 링크가 없으면 접는다. */}
+          {DONATION_URL && (
+            <div className="mt-6 w-full max-w-xl rounded-[14px] border border-gold/25 bg-gold/5 px-6 py-5 text-left">
+              <p className="text-[11px] tracking-[0.3em] text-gold-soft">
+                喫茶去 · 차 한 잔
+              </p>
+              <p className="mt-3 break-keep text-[13px] leading-7 text-hanji-dim">
+                {current.durationDays >= 21
+                  ? "긴 물음을 끝까지 품으셨습니다. 이 도량이 그 곁에 있었다면 — 차 한 잔 값으로 등불을 보태 주실 수 있습니다."
+                  : "이 물음이 마음에 남았다면 — 차 한 잔 값으로 도량의 등불을 보태 주실 수 있습니다."}{" "}
+                찻값은 이 도량을 잇는 데 쓰입니다.
+              </p>
+              <a
+                href={DONATION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2 rounded-[10px] border border-gold/50 px-5 py-2.5 text-[12px] tracking-[0.2em] text-gold transition-colors hover:bg-gold/10 sm:hidden"
+              >
+                <Teacup className="h-4 w-4" />
+                차 한 잔 올리기
+              </a>
+              <Link
+                href="/tea"
+                className="mt-4 hidden items-center gap-2 rounded-[10px] border border-gold/50 px-5 py-2.5 text-[12px] tracking-[0.2em] text-gold transition-colors hover:bg-gold/10 sm:inline-flex"
+              >
+                <Teacup className="h-4 w-4" />
+                차 한 잔 올리기
+              </Link>
+              <p className="mt-3 break-keep text-[11px] leading-5 text-hanji-faint">
+                억지로는 마시지 않는 것이 차입니다 — 마음이 동할 때만.
+              </p>
+            </div>
+          )}
 
           <button
             onClick={archiveCurrent}
