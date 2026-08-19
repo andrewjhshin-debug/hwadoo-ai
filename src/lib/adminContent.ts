@@ -5,6 +5,8 @@
 //                     overrides: { [hwaduId]: { question?, context?, title? } } }
 // · 문서 "sayings": { extra: [{ id, name, era, text }], hiddenIds: string[],
 //                     removedIds: string[], edited: { [id]: { name, era, text } } }
+// · 문서 "donors":  { donors: string[] } — 차 한 잔 보태주신 분들의 이름.
+//                    화면(찻자리)에는 가운데를 ○로 가려 내보낸다.
 // 내장 데이터는 코드에 그대로 두고, 숨김·덮어쓰기만 서버에 새긴다.
 // 삭제는 두 단계다 — 숨김(hidden/hiddenIds)은 되살릴 수 있고,
 // 숨김 목록에서 한 번 더 지우면 removed/removedIds 로 넘어가 영영 안 보인다.
@@ -61,6 +63,7 @@ export type AdminSayings = {
 export type AdminContent = {
   bank: AdminBank;
   sayings: AdminSayings;
+  donors: string[]; // 차 한 잔 보태주신 분 — 적힌 순서 그대로
 };
 
 // 빈 손질 — 늘 새 객체로 (실수로 고쳐 쓰이지 않도록)
@@ -68,11 +71,13 @@ export function emptyAdminContent(): AdminContent {
   return {
     bank: { hidden: [], removed: [], overrides: {} },
     sayings: { extra: [], hiddenIds: [], removedIds: [], edited: {} },
+    donors: [],
   };
 }
 
 const bankRef = () => doc(db, "admin-content", "bank");
 const sayingsRef = () => doc(db, "admin-content", "sayings");
+const donorsRef = () => doc(db, "admin-content", "donors");
 
 // ── 읽기 + 캐시 — 화두 받기가 매번 서버를 기다리지 않게 ──────────
 
@@ -93,13 +98,15 @@ export async function fetchAdminContent(force = false): Promise<AdminContent> {
   if (!force && inflight) return inflight;
   const run = (async () => {
     try {
-      const [bankSnap, saySnap] = await Promise.all([
+      const [bankSnap, saySnap, donorSnap] = await Promise.all([
         getDoc(bankRef()),
         getDoc(sayingsRef()),
+        getDoc(donorsRef()),
       ]);
       const content: AdminContent = {
         bank: parseBank(bankSnap.exists() ? bankSnap.data() : undefined),
         sayings: parseSayings(saySnap.exists() ? saySnap.data() : undefined),
+        donors: parseIds(donorSnap.exists() ? donorSnap.data()?.donors : undefined),
       };
       cache = content;
       cacheAt = Date.now();
@@ -358,5 +365,14 @@ export async function removeSayingForever(id: string) {
       { merge: true }
     );
   }
+  invalidate();
+}
+
+// ── 차 한 잔 보태주신 분 (쓰기는 관리자 전용 — 규칙이 지킨다) ────
+
+// 명단을 통째로 새로 적는다 — 빈 줄은 거르고 앞뒤 공백은 다듬는다
+export async function saveDonors(names: string[]) {
+  const donors = names.map((n) => n.trim()).filter(Boolean);
+  await setDoc(donorsRef(), { donors }, { merge: true });
   invalidate();
 }

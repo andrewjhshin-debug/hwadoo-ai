@@ -4,15 +4,15 @@
 // 손잡고 절로(巡禮) — 발로 걷는 물음, 절로 가는 길.
 // · 다가오는 날: 음력으로 정해진 불교 일정을 해마다 자동 계산해
 //   가까운 순으로 여덟을 편다 (부처님오신날 등 큰 날은 금색).
-// · 이름난 도량: 전국의 이름난 절 — 지역 칩으로 거르고,
-//   길찾기는 카카오맵 이름 검색 링크(키 불필요)로 새 창에 연다.
+// · 이름난 도량: 전국의 이름난 절을 지도에 편다 — 지역 칩과
+//   템플스테이 칩(AND 조합)으로 거르고, 절 소개와 길찾기는
+//   마커 팝업으로만 연다 (카카오맵 이름 검색 링크 · 키 불필요).
 // 날짜 계산은 클라이언트에서만 — 서버와 하루가 어긋나도 깜빡이지 않게.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import {
-  kakaoMapUrl,
   REGIONS,
   TEMPLES,
   upcomingEvents,
@@ -24,22 +24,29 @@ import {
 const TempleMap = dynamic(() => import("@/components/TempleMap"), {
   ssr: false,
   loading: () => (
-    <div className="h-[300px] w-full rounded-[14px] border border-ink-3 bg-ink-2/50 md:h-[380px]" />
+    <div className="h-[380px] w-full rounded-[14px] border border-ink-3 bg-ink-2/50 md:h-[480px]" />
   ),
 });
 
 export default function PilgrimagePage() {
   const [events, setEvents] = useState<PilgrimEvent[]>([]);
   const [region, setRegion] = useState<Region | "전체">("전체");
+  const [stayOnly, setStayOnly] = useState(false);
 
   // 오늘 기준 계산 — 클라이언트의 오늘로 센다
   useEffect(() => {
     setEvents(upcomingEvents(8));
   }, []);
 
+  // 지역 필터 AND 템플스테이 필터
   const temples = useMemo(
-    () => (region === "전체" ? TEMPLES : TEMPLES.filter((t) => t.region === region)),
-    [region]
+    () =>
+      TEMPLES.filter(
+        (t) =>
+          (region === "전체" || t.region === region) &&
+          (!stayOnly || t.templestay === true)
+      ),
+    [region, stayOnly]
   );
 
   return (
@@ -125,7 +132,7 @@ export default function PilgrimagePage() {
           이름난 도량
         </p>
 
-        {/* 지역 칩 */}
+        {/* 지역 칩 + 템플스테이 토글 — AND 조합 */}
         <div className="mt-4 flex flex-wrap gap-2 border-t border-ink-3 pt-5">
           {(["전체", ...REGIONS] as const).map((r) => (
             <button
@@ -140,50 +147,25 @@ export default function PilgrimagePage() {
               {r}
             </button>
           ))}
+          <button
+            onClick={() => setStayOnly((v) => !v)}
+            aria-pressed={stayOnly}
+            className={`rounded-full border px-3.5 py-1.5 text-[12px] tracking-wider transition-colors ${
+              stayOnly
+                ? "border-gold/60 bg-gold/10 text-gold"
+                : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
+            }`}
+          >
+            템플스테이
+          </button>
         </div>
 
-        {/* 지도 — 지역 칩을 누르면 목록과 함께 걸러진다 */}
+        {/* 지도 — 칩을 누르면 마커가 걸러진다 · 절 소개는 마커 팝업으로 */}
         <div className="mt-5">
           <TempleMap temples={temples} />
         </div>
-
-        {/* 도량 목록 */}
-        <ul className="mt-5 flex flex-col gap-3">
-          {temples.map((t) => (
-            <li
-              key={t.name + t.address}
-              className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="break-keep text-[15px] leading-6 text-hanji">
-                    {t.name}
-                    <span className="ml-2 text-[11px] tracking-wider text-hanji-faint">
-                      {t.mountain}
-                      {t.hanja && ` · ${t.hanja}`}
-                    </span>
-                  </p>
-                  <p className="mt-1 break-keep text-[12px] leading-6 text-hanji-dim">
-                    {t.note}
-                  </p>
-                  <p className="mt-1.5 break-keep text-[11px] leading-5 text-hanji-faint">
-                    {t.address}
-                  </p>
-                </div>
-                <a
-                  href={kakaoMapUrl(t.name)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 rounded-full border border-ink-3 px-3.5 py-1.5 text-[11px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-                >
-                  길 찾기
-                </a>
-              </div>
-            </li>
-          ))}
-        </ul>
         <p className="mt-3 text-[11px] leading-5 text-hanji-faint">
-          [길 찾기]를 누르면 카카오맵이 새 창에 열립니다 · {temples.length}곳
+          마커를 누르면 절 소개와 길 찾기가 열립니다 · {temples.length}곳
         </p>
       </section>
     </div>

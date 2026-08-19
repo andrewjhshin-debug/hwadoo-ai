@@ -374,18 +374,53 @@ body[data-palette] .notes-fab {
   font-family: var(--font-sans);
 }
 
-/* 밤 — 타일을 살짝 어둡고 차분하게.
-   invert 는 쓰지 않는다 — 지명 글자가 뒤집혀 이상해진다. */
+/* 밤 — CARTO dark_all 은 이미 먹빛. 금빛 온기만 아주 옅게 얹는다. */
 .temple-map[data-dark] .leaflet-tile-pane {
-  filter: brightness(0.68) contrast(1.04) saturate(0.4) sepia(0.12);
+  filter: sepia(0.1);
 }
 
-/* 마커 — 금빛 연꽃 점 (작은 원 + 은은한 빛) */
+/* 마커 — 금빛 기와지붕 실루엣 (곡선 지붕 + 기둥 둘) */
 .temple-marker {
   background: transparent;
   border: none;
 }
-.temple-marker .lotus-dot {
+.temple-marker svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-gold) 40%, transparent));
+}
+.temple-marker .tg-roof {
+  fill: color-mix(in srgb, var(--color-ink) 72%, transparent);
+  stroke: var(--color-gold);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}
+.temple-marker .tg-post {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+.temple-marker .tg-base {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+/* 템플스테이 절 — 지붕 아래 금색 점 하나 */
+.temple-marker .tg-stay {
+  fill: var(--color-gold);
+}
+
+/* 내 위치 — 금색 맥동 점 */
+.my-location-marker {
+  background: transparent;
+  border: none;
+}
+.my-location-marker .my-dot {
   display: block;
   width: 100%;
   height: 100%;
@@ -393,13 +428,27 @@ body[data-palette] .notes-fab {
   background: radial-gradient(
     circle at 35% 32%,
     color-mix(in srgb, var(--color-gold) 55%, #fff8e7),
-    var(--color-gold) 55%,
-    var(--color-gold-soft)
+    var(--color-gold) 60%
   );
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--color-gold) 24%, transparent),
-    0 0 10px color-mix(in srgb, var(--color-gold) 65%, transparent),
-    0 0 22px color-mix(in srgb, var(--color-gold) 32%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-gold) 55%, transparent);
+  animation: my-loc-pulse 2.2s ease-out infinite;
+}
+@keyframes my-loc-pulse {
+  0% {
+    box-shadow:
+      0 0 10px color-mix(in srgb, var(--color-gold) 55%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--color-gold) 45%, transparent);
+  }
+  70% {
+    box-shadow:
+      0 0 10px color-mix(in srgb, var(--color-gold) 55%, transparent),
+      0 0 0 16px transparent;
+  }
+  100% {
+    box-shadow:
+      0 0 10px color-mix(in srgb, var(--color-gold) 55%, transparent),
+      0 0 0 0 transparent;
+  }
 }
 
 /* 팝업 — 먹빛 판 위 한지 글씨 (낮에는 토큰이 함께 뒤집힌다) */
@@ -436,6 +485,17 @@ body[data-palette] .notes-fab {
   letter-spacing: 0.08em;
   color: var(--color-hanji-faint);
 }
+.temple-map .tm-stay {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--color-gold);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 45%, transparent);
+  border-radius: 9999px;
+  vertical-align: 1px;
+}
 .temple-map .tm-note {
   margin-top: 3px;
   font-size: 11px;
@@ -454,7 +514,7 @@ body[data-palette] .notes-fab {
   border-bottom-color: var(--color-gold);
 }
 
-/* 줌 단추·저작권 표기 — 우리 톤으로 (표기 자체는 OSM 정책상 남긴다) */
+/* 줌 단추·저작권 표기 — 우리 톤으로 (표기 자체는 OSM · CARTO 정책상 남긴다) */
 .temple-map .leaflet-control-zoom a {
   background: var(--color-ink-2);
   color: var(--color-hanji);

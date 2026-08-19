@@ -4,14 +4,21 @@
 // 뒷방 — 도량의 관리실. ADMIN_UID 계정으로만 열린다.
 // 다섯 구획(탭): 성인 화두 | 학생·어린이 화두 | 관리자가 던진 화두
 // | 수행자들이 던진 화두(대기+승인) | 공유 허용한 화두의 답
-// 여기에 '선지식의 한마디' 구획을 더한다.
+// 여기에 '선지식의 한마디' · '죽비(들어온 소리)'
+// · '차 한 잔 보태주신 분' 구획을 더한다.
 // 삭제는 어디서나 두 단계다 — 목록의 [숨기기]는 그 구획 하단의
 // '숨긴 것들'로 접어 두고(되살릴 수 있다), 숨긴 것들에서 [삭제]하면
 // 물음창을 거쳐 영영 지운다. 코드 내장 화두·어록은 removed 표식으로,
 // 서버 문서(공개 화두·공유 답)는 문서 자체를 지운다.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { User } from "firebase/auth";
 import { ADMIN_UID } from "@/lib/config";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
@@ -53,13 +60,27 @@ import {
   restoreBankHwadu,
   restoreSaying,
   restoreSayingEdit,
+  saveDonors,
   type AdminContent,
   type BankOverride,
   type MergedSaying,
   type SayingEdit,
 } from "@/lib/adminContent";
+import {
+  deleteFeedback,
+  fetchAllFeedback,
+  type Feedback,
+} from "@/lib/feedback";
 
-type Tab = "adult" | "student" | "admin" | "thrown" | "shared" | "sayings";
+type Tab =
+  | "adult"
+  | "student"
+  | "admin"
+  | "thrown"
+  | "shared"
+  | "sayings"
+  | "feedback"
+  | "donors";
 
 // 구획마다 한 줄 설명 — 무엇이 모이는 자리인지
 const TAB_NOTE: Record<Tab, string> = {
@@ -74,6 +95,10 @@ const TAB_NOTE: Record<Tab, string> = {
     "다른 수행자에게 보여도 좋다고 동의한 답 — 승인해야만 그 화두를 회향한 이들에게 열립니다.",
   sayings:
     "선지식의 한마디에 걸리는 어록 — 고치고(내장·더한 것 모두) 감추고, 새 어록을 더할 수 있습니다.",
+  feedback:
+    "죽비 — 수행자들이 도량에 건넨 소리. 여기서만 읽을 수 있고, 들었으면 지웁니다.",
+  donors:
+    "차 한 잔 보태주신 분 — 한 줄에 이름 하나. 찻자리에는 가운데를 ○로 가려 나갑니다.",
 };
 
 const smallBtn =
@@ -83,6 +108,16 @@ const smallBtn =
 function snip(text: string, n: number): string {
   const flat = text.replace(/\s+/g, " ").trim();
   return flat.length > n ? `${flat.slice(0, n)}…` : flat;
+}
+
+// 들어온 소리의 날짜 — 서버 시각이 아직 안 붙었으면 '방금'
+function feedbackDate(sec?: number): string {
+  if (!sec) return "방금";
+  return new Date(sec * 1000).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 // 숨긴 것들 — 구획 하단의 접이. 비어 있으면 아예 그리지 않는다.
@@ -555,6 +590,7 @@ export default function AdminPage() {
   const [publicList, setPublicList] = useState<PublicHwadu[]>([]);
   const [shared, setShared] = useState<SharedAnswer[]>([]);
   const [content, setContent] = useState<AdminContent>(emptyAdminContent());
+  const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -571,21 +607,30 @@ export default function AdminPage() {
   const [newSayName, setNewSayName] = useState("");
   const [newSayEra, setNewSayEra] = useState("");
 
+  // 차 한 잔 보태주신 분 — 한 줄에 이름 하나 적는 칸.
+  // 적는 중(dirty)에는 refresh가 서버 명단으로 덮어쓰지 않는다.
+  const [donorsText, setDonorsText] = useState("");
+  const donorsDirty = useRef(false);
+
   useEffect(() => watchAuth(setUser), []);
   const isAdmin = user?.uid === ADMIN_UID;
 
   const refresh = useCallback(async () => {
     try {
-      const [t, p, s, c] = await Promise.all([
+      const [t, p, s, c, f] = await Promise.all([
         fetchThrown(),
         fetchAllPublicHwadu(), // 숨긴 것까지 — 뒷방은 접힌 것도 봐야 한다
         fetchAllSharedAnswers().catch(() => [] as SharedAnswer[]),
         fetchAdminContent(true), // 실패해도 빈 손질로 돌아온다 — throw 하지 않는다
+        fetchAllFeedback().catch(() => [] as Feedback[]),
       ]);
       setThrown(t);
       setPublicList(p);
       setShared(s);
       setContent(c);
+      setFeedback(f);
+      // 명단 칸 — 적는 중이 아닐 때만 서버 명단으로 채운다
+      if (!donorsDirty.current) setDonorsText(c.donors.join("\n"));
       setError(null);
     } catch {
       setError("불러오지 못했습니다 — Firestore 규칙을 확인하세요.");
@@ -720,6 +765,8 @@ export default function AdminPage() {
     { key: "thrown", label: "수행자들이 던진 화두", count: pending.length },
     { key: "shared", label: "공유 허용한 화두의 답", count: sharedPending.length },
     { key: "sayings", label: "선지식의 한마디", count: sayingsVisible.length },
+    { key: "feedback", label: "죽비", count: feedback.length },
+    { key: "donors", label: "차 한 잔", count: content.donors.length },
   ];
 
   // 은행 화두 손질 — 저장·숨김·(덮어쓴 것) 원래대로
@@ -757,7 +804,7 @@ export default function AdminPage() {
         <p className="mt-3 text-center text-xs text-vermilion">{error}</p>
       )}
 
-      {/* 다섯 구획 + 선지식의 한마디 */}
+      {/* 다섯 구획 + 선지식의 한마디 + 죽비 + 차 한 잔 */}
       <nav className="mt-8 flex flex-wrap justify-center gap-2">
         {TABS.map((t) => (
           <button
@@ -1280,6 +1327,79 @@ export default function AdminPage() {
                 />
               ))}
             </HiddenDetails>
+          </section>
+        )}
+
+        {/* ── 죽비 — 들어온 소리 (피드백) ── */}
+        {tab === "feedback" && (
+          <section>
+            <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              죽비 — 들어온 소리 · {feedback.length}
+            </h3>
+            {feedback.length === 0 ? (
+              <p className="mt-3 text-sm text-hanji-faint">
+                아직 들어온 소리가 없습니다.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-4">
+                {feedback.map((f) => (
+                  <li key={f.id} className="border border-ink-3 bg-ink-2/60 p-4">
+                    <p className="text-[11px] tracking-wide text-hanji-faint">
+                      {feedbackDate(f.createdAt?.seconds)}
+                      {!f.uid && " · 손님"}
+                    </p>
+                    <p className="mt-2 whitespace-pre-line break-keep text-[13.5px] font-light leading-7 text-hanji">
+                      {f.body}
+                    </p>
+                    <div className="mt-3">
+                      <button
+                        disabled={busy === f.id}
+                        onClick={() =>
+                          eraseForever(f.id, () => deleteFeedback(f.id))
+                        }
+                        className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
+                      >
+                        지우기
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {/* ── 차 한 잔 보태주신 분 — 찻자리에 남길 명단 ── */}
+        {tab === "donors" && (
+          <section>
+            <div className="border border-ink-3 bg-ink-2/60 p-4">
+              <textarea
+                value={donorsText}
+                onChange={(e) => {
+                  setDonorsText(e.target.value);
+                  donorsDirty.current = true;
+                }}
+                rows={8}
+                placeholder={"한 줄에 이름 하나씩 — 예:\n신준혁\n김수현"}
+                className="journal-area !text-sm"
+              />
+              <p className="mt-2 text-[11px] leading-5 text-hanji-faint">
+                찻자리에는 가운데를 ○로 가려 나갑니다 — 신준혁 → 신○혁, 김수 →
+                김○. 빈 줄은 알아서 걷어냅니다.
+              </p>
+              <button
+                disabled={busy === "donors"}
+                onClick={() =>
+                  act("donors", async () => {
+                    await saveDonors(donorsText.split("\n"));
+                    donorsDirty.current = false; // 저장 뒤엔 서버 명단이 다시 칸을 채운다
+                  })
+                }
+                className={`${smallBtn} mt-3 border-gold/50 text-gold hover:bg-gold/10`}
+              >
+                적어두기
+              </button>
+            </div>
           </section>
         )}
       </div>

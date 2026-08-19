@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
+    title: "화두AI — 당신에게 묻는다",
     description:
       "하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 나의 답을 씁니다.",
     url: SITE_URL,
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
+    title: "화두AI — 당신에게 묻는다",
     description:
       "하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 나의 답을 씁니다.",
   },

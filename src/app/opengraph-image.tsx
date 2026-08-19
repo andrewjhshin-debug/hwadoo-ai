@@ -1,12 +1,11 @@
 import { ImageResponse } from "next/og";
-import { SLOGAN } from "@/lib/config";
 
 // ────────────────────────────────────────────────────────────────
 // OG 카드 — 카톡·SNS에 링크를 공유하면 뜨는 미리보기 이미지.
 // 오직 앱의 실제 로고(Enso: 일원상 + 연꽃)만, 가운데 크게.
 // ────────────────────────────────────────────────────────────────
 
-export const alt = `화두 話頭 — ${SLOGAN}`;
+export const alt = "화두AI — 당신에게 묻는다";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

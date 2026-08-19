@@ -38,6 +38,7 @@ import {
 } from "@/lib/thrown";
 import { fetchMyApprovedAnswerCount } from "@/lib/community";
 import { initPresence, watchOnlineCount } from "@/lib/presence";
+import { submitFeedback } from "@/lib/feedback";
 import {
   canInstall,
   isIOS,
@@ -145,6 +146,11 @@ export default function SettingsPage() {
   const [myAnswerCount, setMyAnswerCount] = useState<number | null>(null);
   // 실시간 접속자 수
   const [onlineCount, setOnlineCount] = useState<number | null>(null);
+  // 죽비 — 불편한 점을 청하는 글
+  const [fb, setFb] = useState("");
+  const [fbBusy, setFbBusy] = useState(false);
+  const [fbDone, setFbDone] = useState(false);
+  const [fbError, setFbError] = useState("");
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -688,8 +694,7 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
-              {/* 품어온 시간 — 최신순, 질문은 전문 그대로.
-                  접힌 기본은 가장 최근 1개만 — '모두 보기'를 누르면 전부 펼친다 */}
+              {/* 품어온 시간 — 가장 최근 1개만, 나머지는 지난 화두(서고)에서 본다 */}
               {held.length > 0 && (
                 <div className="mt-5">
                   <p className="text-[11px] tracking-[0.2em] text-hanji-faint">
@@ -698,16 +703,13 @@ export default function SettingsPage() {
                   <ul className="mt-2.5 space-y-2">
                     {held.slice(0, 1).map(heldRow)}
                   </ul>
-                  {held.length > 1 && (
-                    <details className="mt-2.5">
-                      <summary className="cursor-pointer text-[11px] tracking-wider text-hanji-faint transition-colors hover:text-hanji-dim">
-                        모두 보기 · {held.length}개
-                      </summary>
-                      <ul className="mt-2.5 space-y-2">
-                        {held.slice(1).map(heldRow)}
-                      </ul>
-                    </details>
-                  )}
+                  <Link
+                    href="/archive"
+                    className="mt-4 inline-flex items-center gap-2 rounded-[10px] border border-ink-3 px-4 py-2 text-[11px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                  >
+                    <Book className="h-3.5 w-3.5 text-gold-soft" />
+                    지난 화두 보기 · {journalCount}
+                  </Link>
                 </div>
               )}
             </>
@@ -942,6 +944,61 @@ export default function SettingsPage() {
             <p className="mt-5 text-xs tracking-widest text-hanji-faint">
               찻자리를 마련하고 있습니다
             </p>
+          )}
+        </div>
+      </section>
+
+      {/* ── 죽비 — 따끔한 한마디: 불편한 점을 청한다 ── */}
+      <section className={`rise rise-d2 ${sectionGap}`}>
+        <p className="flex items-center gap-2 text-[11px] tracking-[0.3em] text-hanji-faint">
+          <Jukbi className="h-[15px] w-[15px] text-gold-soft" />
+          죽비 — 따끔한 한마디
+        </p>
+        <div className="mt-4 border-t border-ink-3 pt-5">
+          {fbDone ? (
+            <p className="text-[13px] leading-7 text-gold-soft">
+              달게 받겠습니다. 고맙습니다.
+            </p>
+          ) : (
+            <>
+              <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+                불편했던 점, 바라는 점을 일러주십시오. 죽비로 삼겠습니다.
+              </p>
+              <textarea
+                value={fb}
+                onChange={(e) => setFb(e.target.value)}
+                rows={3}
+                maxLength={1000}
+                placeholder="어느 화면에서, 무엇이 불편했는지 적어 주시면 큰 도움이 됩니다."
+                className="mt-4 w-full resize-none rounded-[10px] border border-ink-3 bg-ink-2/40 px-4 py-3 text-[13px] leading-6 text-hanji outline-none transition-colors focus:border-gold/40"
+              />
+              <button
+                onClick={async () => {
+                  if (!fb.trim()) return;
+                  setFbBusy(true);
+                  setFbError("");
+                  try {
+                    await submitFeedback(fb);
+                    setFbDone(true);
+                  } catch {
+                    setFbError(
+                      "전하지 못했습니다. 잠시 뒤 다시 시도해 주십시오."
+                    );
+                  } finally {
+                    setFbBusy(false);
+                  }
+                }}
+                disabled={fbBusy || !fb.trim()}
+                className="mt-3 rounded-[10px] border border-ink-3 px-6 py-2.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji disabled:opacity-40"
+              >
+                {fbBusy ? "전하는 중…" : "일러주기"}
+              </button>
+              {fbError && (
+                <p className="mt-3 text-[12px] leading-6 text-vermilion">
+                  {fbError}
+                </p>
+              )}
+            </>
           )}
         </div>
       </section>

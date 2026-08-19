@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Donation from "@/components/Donation";
+import DonorList from "@/components/DonorList";
 
 export const metadata: Metadata = {
   title: "차 한 잔 — 화두",
@@ -30,6 +31,8 @@ export default function TeaPage() {
       <div className="rise rise-d3 mt-10">
         <Donation />
       </div>
+      {/* 차 한 잔 보태주신 분 — 명단이 비어 있으면 아무것도 그리지 않는다 */}
+      <DonorList />
     </div>
   );
 }

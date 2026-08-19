@@ -355,7 +355,22 @@ export default function Home() {
   };
 
   // 참구 기간 변경 — 지금 화두와 앞으로의 기본값 모두에 적용
-  const setDays = (days: number) => {
+  // 기간 바꾸기 — 받은 날은 그대로, 기간만 바뀐다 (이미 품은 시간은 차감된 채 남는다).
+  // 새 기간이 이미 지난 시간보다 짧으면 그 자리에서 붓이 풀린다 — 한 번 묻고 간다.
+  const setDays = async (days: number) => {
+    const cur = loadStore().current;
+    if (cur && days > 0) {
+      const elapsed = Date.now() - cur.receivedAt;
+      if (elapsed >= days * 24 * 60 * 60 * 1000) {
+        const heldDays = Math.max(1, Math.floor(elapsed / (24 * 60 * 60 * 1000)));
+        const ok = await confirm(
+          "지금 바로 붓을 들게 됩니다",
+          `이미 ${heldDays}일을 품었습니다. ${durationLabel(days)}로 바꾸면 기다림 없이 곧장 답을 쓸 수 있습니다.`,
+          { confirm: "바꾸겠습니다", cancel: "그대로 두기" }
+        );
+        if (!ok) return;
+      }
+    }
     update((base) => ({
       ...base,
       defaultDays: days,
