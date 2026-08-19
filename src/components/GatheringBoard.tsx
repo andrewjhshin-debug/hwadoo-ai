@@ -18,12 +18,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
+  addComment,
   bowToPost,
   createGathering,
+  deleteComment,
   deletePost,
+  fetchComments,
   fetchPosts,
   isOpenChatUrl,
   updateGathering,
+  type Comment,
   type Post,
 } from "@/lib/community";
 import { loadStore } from "@/lib/store";
@@ -101,6 +105,14 @@ export default function GatheringBoard({
 
   const [bowed, setBowed] = useState<Set<string>>(new Set());
   const formRef = useRef<HTMLDivElement | null>(null);
+
+  // 말 걸기(댓글) — 한 번에 한 약속만 펼친다
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [commentsMap, setCommentsMap] = useState<Record<string, Comment[]>>(
+    {}
+  );
+  const [cBody, setCBody] = useState("");
+  const [cBusy, setCBusy] = useState(false);
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -248,6 +260,65 @@ export default function GatheringBoard({
     window.open(p.openChatUrl, "_blank", "noopener,noreferrer");
   };
 
+  // 말 걸기 — 펼치면 댓글을 불러온다 (한 번 불러온 것은 쥐고 있는다)
+  const toggleComments = (p: Post) => {
+    if (expandedId === p.id) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(p.id);
+    setCBody("");
+    if (!commentsMap[p.id]) {
+      fetchComments(p.id)
+        .then((list) =>
+          setCommentsMap((m) => ({ ...m, [p.id]: list }))
+        )
+        .catch(() => setCommentsMap((m) => ({ ...m, [p.id]: [] })));
+    }
+  };
+
+  const submitComment = async (p: Post) => {
+    const body = cBody.trim();
+    if (!body) return;
+    setCBusy(true);
+    try {
+      await addComment(p.id, body.slice(0, 300));
+      setCBody("");
+      const list = await fetchComments(p.id);
+      setCommentsMap((m) => ({ ...m, [p.id]: list }));
+      setPosts(
+        (ps) =>
+          ps?.map((x) =>
+            x.id === p.id ? { ...x, commentCount: x.commentCount + 1 } : x
+          ) ?? null
+      );
+    } catch {
+      // 연결·권한 문제 — 입력은 남겨 둔다
+    } finally {
+      setCBusy(false);
+    }
+  };
+
+  const removeComment = async (p: Post, c: Comment) => {
+    try {
+      await deleteComment(p.id, c.id);
+      setCommentsMap((m) => ({
+        ...m,
+        [p.id]: (m[p.id] ?? []).filter((x) => x.id !== c.id),
+      }));
+      setPosts(
+        (ps) =>
+          ps?.map((x) =>
+            x.id === p.id
+              ? { ...x, commentCount: Math.max(0, x.commentCount - 1) }
+              : x
+          ) ?? null
+      );
+    } catch {
+      // 조용히
+    }
+  };
+
   // 모임 한 줄 — 날짜 있는 약속과 옛 글이 같은 모양으로
   const renderItem = (p: Post) => {
     const dl = p.meetDate ? dateLabel(p.meetDate) : null;
@@ -320,6 +391,80 @@ export default function GatheringBoard({
             )}
           </div>
         </div>
+
+        {/* 말 걸기 — 인사를 건네고, 서로를 살핀 뒤 함께 간다 */}
+        <button
+          onClick={() => toggleComments(p)}
+          aria-expanded={expandedId === p.id}
+          className="mt-3 text-[11px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
+        >
+          {expandedId === p.id
+            ? "접기"
+            : `말 걸기${p.commentCount > 0 ? ` · ${p.commentCount}` : ""}`}
+        </button>
+        {expandedId === p.id && (
+          <div className="mt-2 border-t border-ink-3/60 pt-3">
+            {commentsMap[p.id] === undefined ? (
+              <p className="text-[12px] leading-6 text-hanji-faint">
+                건넨 말들을 살펴보는 중…
+              </p>
+            ) : (
+              <>
+                {(commentsMap[p.id] ?? []).length > 0 && (
+                  <ul className="flex flex-col gap-2.5">
+                    {(commentsMap[p.id] ?? []).map((c) => (
+                      <li
+                        key={c.id}
+                        className="break-keep text-[12.5px] leading-6 text-hanji-dim"
+                      >
+                        <span className="text-hanji-faint">
+                          {c.authorName} ·{" "}
+                        </span>
+                        {c.body}
+                        {!!user &&
+                          (user.uid === c.authorUid ||
+                            user.uid === ADMIN_UID) && (
+                            <button
+                              onClick={() => removeComment(p, c)}
+                              className="ml-2 text-[10px] tracking-wider text-hanji-faint underline decoration-ink-3 underline-offset-2 transition-colors hover:text-vermilion"
+                            >
+                              지우기
+                            </button>
+                          )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {user ? (
+                  <div className="mt-3 flex items-center gap-2">
+                    <input
+                      value={cBody}
+                      onChange={(e) => setCBody(e.target.value)}
+                      maxLength={300}
+                      placeholder="예: 초행인데 함께해도 될까요?"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.nativeEvent.isComposing)
+                          void submitComment(p);
+                      }}
+                      className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-2 text-[12.5px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+                    />
+                    <button
+                      onClick={() => submitComment(p)}
+                      disabled={cBusy || !cBody.trim()}
+                      className="shrink-0 rounded-[10px] border border-ink-3 px-3.5 py-2 text-[11px] tracking-[0.15em] text-hanji-dim transition-colors enabled:hover:border-gold/40 enabled:hover:text-hanji disabled:opacity-40"
+                    >
+                      {cBusy ? "…" : "남기기"}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="mt-3 text-[11px] leading-5 text-hanji-faint">
+                    말 걸기는 로그인한 분만 — 익명(낱말 이름)으로 남습니다.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </li>
     );
   };
