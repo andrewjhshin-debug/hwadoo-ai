@@ -1,21 +1,21 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 모임 — 절에 함께 가는 약속.
+// 손잡고 절로 — 모임: 절에 함께 가는 약속의 마당 (/gathering 전용).
 // · 글 하나 = 약속 하나: 어느 절로, 언제, 한 줄 소개, (선택) 오픈채팅 링크.
-// · 두 얼굴:
-//   variant="full"    — 모임 페이지(/gathering): 글쓰기 폼 + 전체 목록.
-//                       initialTemple/initialDate/autoOpen 으로 미리 채워 연다
-//                       (지도 팝업·다가오는 날이 주소 파라미터로 넘긴다).
-//   variant="preview" — 손잡고 절로 안: 다가오는 약속 3개만 + 모임 페이지로 가는 길.
 // · 여는 자격: 로그인 + 1회향 이상 — 물음을 품어 본 이들의 자리.
 //   함께하기(오픈챗 입장)와 '같이 가요'는 자격 없이 누구나.
-// · 오픈챗 링크는 open.kakao.com 만 — 아무 링크나 실리지 않게 (피싱 방지).
+// · 오픈챗 주소는 화면 어디에도 글자로 드러나지 않는다 —
+//   [함께하기] 단추가 window.open 으로만 연다. 한 줄 소개에 주소를 적으면
+//   등록을 돌려보낸다 (community.ts 의 refineGathering).
+// · 고치기: 작성자(또는 뒷방)가 [고치기]를 누르면 그 약속이 폼에 실려
+//   올라온다 — 고쳐 적으면 그 자리에 다시 앉는다.
 // · 지난 약속은 목록에서 절로 사라진다 (날짜 지난 글은 걸러서 보인다).
+// · initialTemple/initialDate/autoOpen — 지도 팝업·다가오는 날이
+//   주소 파라미터로 미리 채워 보낸다.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
   bowToPost,
@@ -23,6 +23,7 @@ import {
   deletePost,
   fetchPosts,
   isOpenChatUrl,
+  updateGathering,
   type Post,
 } from "@/lib/community";
 import { loadStore } from "@/lib/store";
@@ -33,8 +34,6 @@ import { useConfirm } from "@/components/Confirm";
 
 // '같이 가요'를 이미 눌렀는지 — 브라우저마다 한 번씩
 const BOWED_KEY = "hwadoo-bowed-gathering-v1";
-// 미리보기에 보이는 약속 수
-const PREVIEW_COUNT = 3;
 
 function loadBowed(): Set<string> {
   try {
@@ -74,27 +73,25 @@ function dateLabel(meetDate: string): { text: string; dday: string } {
 }
 
 type Props = {
-  variant?: "full" | "preview";
   initialTemple?: string;
   initialDate?: string; // "YYYY-MM-DD"
   autoOpen?: boolean; // 처음부터 폼을 열고 시작한다
 };
 
 export default function GatheringBoard({
-  variant = "full",
   initialTemple,
   initialDate,
   autoOpen,
 }: Props) {
   const confirm = useConfirm();
-  const preview = variant === "preview";
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [returnedCount, setReturnedCount] = useState(0);
 
-  // 폼 (full 에서만 쓴다)
+  // 폼 — 새로 열기와 고치기가 같은 폼을 쓴다 (editingId 로 가른다)
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [temple, setTemple] = useState("");
   const [date, setDate] = useState("");
   const [body, setBody] = useState("");
@@ -103,6 +100,7 @@ export default function GatheringBoard({
   const [formError, setFormError] = useState("");
 
   const [bowed, setBowed] = useState<Set<string>>(new Set());
+  const formRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -118,7 +116,6 @@ export default function GatheringBoard({
 
   // 지도 팝업·다가오는 날에서 주소 파라미터로 넘어온 것 — 폼을 채우고 연다
   useEffect(() => {
-    if (preview) return;
     if (initialTemple) setTemple(initialTemple);
     if (initialDate) setDate(initialDate);
     if (autoOpen || initialTemple || initialDate) setOpen(true);
@@ -154,6 +151,15 @@ export default function GatheringBoard({
     return { upcoming: up, legacy: old };
   }, [posts]);
 
+  const resetForm = () => {
+    setEditingId(null);
+    setTemple("");
+    setDate("");
+    setBody("");
+    setChat("");
+    setFormError("");
+  };
+
   const submit = async () => {
     setFormError("");
     if (chat.trim() && !isOpenChatUrl(chat)) {
@@ -162,16 +168,15 @@ export default function GatheringBoard({
     }
     setBusy(true);
     try {
-      await createGathering({
+      const input = {
         templeName: temple,
         meetDate: date,
         body,
         openChatUrl: chat.trim() || undefined,
-      });
-      setTemple("");
-      setDate("");
-      setBody("");
-      setChat("");
+      };
+      if (editingId) await updateGathering(editingId, input);
+      else await createGathering(input);
+      resetForm();
       setOpen(false);
       refresh();
     } catch (e) {
@@ -183,6 +188,18 @@ export default function GatheringBoard({
     } finally {
       setBusy(false);
     }
+  };
+
+  // 고치기 — 그 약속을 폼에 실어 올린다
+  const startEdit = (p: Post) => {
+    setEditingId(p.id);
+    setTemple(p.templeName ?? p.title);
+    setDate(p.meetDate ?? "");
+    setBody(p.body);
+    setChat(p.openChatUrl ?? "");
+    setFormError("");
+    setOpen(true);
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const bow = async (p: Post) => {
@@ -213,13 +230,23 @@ export default function GatheringBoard({
     try {
       await deletePost(p.id);
       setPosts((list) => list?.filter((x) => x.id !== p.id) ?? null);
+      if (editingId === p.id) {
+        resetForm();
+        setOpen(false);
+      }
     } catch {
       // 권한·연결 문제 — 화면은 그대로
     }
   };
 
-  const canRemove = (p: Post) =>
-    !preview && !!user && (user.uid === p.authorUid || user.uid === ADMIN_UID);
+  const isMine = (p: Post) =>
+    !!user && (user.uid === p.authorUid || user.uid === ADMIN_UID);
+
+  // 함께하기 — 주소를 화면에 드러내지 않고 새 창으로만 연다
+  const joinChat = (p: Post) => {
+    if (!p.openChatUrl) return;
+    window.open(p.openChatUrl, "_blank", "noopener,noreferrer");
+  };
 
   // 모임 한 줄 — 날짜 있는 약속과 옛 글이 같은 모양으로
   const renderItem = (p: Post) => {
@@ -261,14 +288,12 @@ export default function GatheringBoard({
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
             {p.openChatUrl && (
-              <a
-                href={p.openChatUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => joinChat(p)}
                 className="rounded-full border border-gold/50 px-3.5 py-1.5 text-[11px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
               >
                 함께하기 →
-              </a>
+              </button>
             )}
             <button
               onClick={() => bow(p)}
@@ -277,13 +302,21 @@ export default function GatheringBoard({
             >
               {bowed.has(p.id) ? "가요 🙏" : "같이 가요"}
             </button>
-            {canRemove(p) && (
-              <button
-                onClick={() => remove(p)}
-                className="text-[11px] tracking-wider text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-vermilion"
-              >
-                내리기
-              </button>
+            {isMine(p) && (
+              <span className="flex items-center gap-2.5">
+                <button
+                  onClick={() => startEdit(p)}
+                  className="text-[11px] tracking-wider text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji"
+                >
+                  고치기
+                </button>
+                <button
+                  onClick={() => remove(p)}
+                  className="text-[11px] tracking-wider text-hanji-faint underline decoration-ink-3 underline-offset-4 transition-colors hover:text-vermilion"
+                >
+                  내리기
+                </button>
+              </span>
             )}
           </div>
         </div>
@@ -291,54 +324,6 @@ export default function GatheringBoard({
     );
   };
 
-  // ── 미리보기 — 다가오는 약속 3개 + 모임 페이지로 가는 길 ──
-  if (preview) {
-    const shown = upcoming.slice(0, PREVIEW_COUNT);
-    const total = upcoming.length + legacy.length;
-    return (
-      <div>
-        <div className="flex items-start justify-between gap-4">
-          <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-            혼자 나서기 어색하면, 함께 갈 이를 만나세요.
-          </p>
-          <Link
-            href="/gathering?open=1"
-            className="shrink-0 rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
-          >
-            모임 열기
-          </Link>
-        </div>
-        <ul className="mt-4 flex flex-col gap-3">
-          {posts === null ? (
-            <li className="py-3 text-[13px] leading-7 text-hanji-faint">
-              모임 자리를 살펴보는 중…
-            </li>
-          ) : loadError ? (
-            <li className="py-3 text-[13px] leading-7 text-hanji-faint">
-              모임 마당이 잠시 닫혀 있습니다. 잠시 후 다시 들러 주세요.
-            </li>
-          ) : shown.length === 0 ? (
-            <li className="py-3 break-keep text-[13px] leading-7 text-hanji-faint">
-              아직 잡힌 모임이 없습니다 — 지도의 절 팝업에서 [이 절에 함께
-              가기]를 눌러 첫 모임을 열어 보십시오.
-            </li>
-          ) : (
-            shown.map(renderItem)
-          )}
-        </ul>
-        {total > 0 && (
-          <Link
-            href="/gathering"
-            className="mt-4 inline-block text-[12px] tracking-[0.15em] text-hanji-dim underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji"
-          >
-            모임 모두 보기 · {total}
-          </Link>
-        )}
-      </div>
-    );
-  }
-
-  // ── 모임 페이지 — 폼 + 전체 목록 ──
   return (
     <div>
       {/* 여는 줄 — 안내 + 모임 열기 */}
@@ -349,7 +334,7 @@ export default function GatheringBoard({
         {!open && (
           <button
             onClick={() => {
-              setFormError("");
+              resetForm();
               setOpen(true);
             }}
             className="shrink-0 rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
@@ -359,9 +344,12 @@ export default function GatheringBoard({
         )}
       </div>
 
-      {/* 모임 열기 폼 — 자격이 안 되면 안내만 */}
+      {/* 모임 열기·고치기 폼 — 자격이 안 되면 안내만 */}
       {open && (
-        <div className="mt-4 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-5">
+        <div
+          ref={formRef}
+          className="mt-4 scroll-mt-6 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-5"
+        >
           {!qualified ? (
             <>
               <p className="break-keep text-[13px] leading-7 text-hanji-dim">
@@ -378,6 +366,11 @@ export default function GatheringBoard({
             </>
           ) : (
             <div className="flex flex-col gap-3">
+              {editingId && (
+                <p className="text-[11px] tracking-[0.25em] text-gold-soft">
+                  모임 고치기
+                </p>
+              )}
               <div className="flex flex-col gap-3 sm:flex-row">
                 <input
                   value={temple}
@@ -415,8 +408,8 @@ export default function GatheringBoard({
                 className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
               />
               <p className="text-[11px] leading-5 text-hanji-faint">
-                오픈채팅에서 약속을 잡으면 편합니다 — 링크는 open.kakao.com
-                주소만 받습니다.
+                링크는 글에 드러나지 않고 [함께하기] 단추 뒤에만 놓입니다 —
+                open.kakao.com 주소만 받습니다.
               </p>
               {formError && (
                 <p className="text-[12px] leading-6 text-vermilion">
@@ -429,10 +422,19 @@ export default function GatheringBoard({
                   disabled={busy || !temple.trim() || !date || !body.trim()}
                   className="btn-obang rounded-[10px] px-6 py-2.5 text-[12px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-40"
                 >
-                  {busy ? "여는 중…" : "모임 열기"}
+                  {busy
+                    ? editingId
+                      ? "고치는 중…"
+                      : "여는 중…"
+                    : editingId
+                      ? "고쳐 적기"
+                      : "모임 열기"}
                 </button>
                 <button
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    resetForm();
+                    setOpen(false);
+                  }}
                   className="text-[12px] tracking-wider text-hanji-faint transition-colors hover:text-hanji-dim"
                 >
                   접기

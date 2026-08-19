@@ -55,7 +55,7 @@ const NAV_PRACTICE: NavItem[] = [
   // 손잡고 절로 — 사찰 순례가 중심이 되며 뜰 바로 다음 자리로 올렸다
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
   // 모임 — 절에 함께 가는 약속 (절로의 짝)
-  { href: "/gathering", label: "모임 — 함께 절로", Icon: Person },
+  { href: "/gathering", label: "손잡고 절로 — 모임", Icon: Person },
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/mandala", label: "만다라", Icon: Mandala },
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.

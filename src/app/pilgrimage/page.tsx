@@ -14,6 +14,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   REGIONS,
@@ -22,7 +23,6 @@ import {
   type PilgrimEvent,
   type Region,
 } from "@/lib/pilgrimage";
-import GatheringBoard from "@/components/GatheringBoard";
 
 // 지도는 클라이언트에서만 — 첫 페인트를 막지 않게 뒤늦게 불러온다
 const TempleMap = dynamic(() => import("@/components/TempleMap"), {
@@ -133,13 +133,30 @@ export default function PilgrimagePage() {
         </p>
       </section>
 
-      {/* ── 구획 2 · 모임 — 다가오는 약속 셋만, 마당은 /gathering 에 ── */}
+      {/* ── 구획 2 · 모임 — 목록은 여기 두지 않는다, 마당은 /gathering ── */}
       <section className="rise rise-d3 mt-12">
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
           모임 — 함께 가는 약속
         </p>
         <div className="mt-4 border-t border-ink-3 pt-5">
-          <GatheringBoard variant="preview" />
+          <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+            혼자 나서기 어색하면, 함께 갈 이를 만나세요 — 약속은 모임
+            마당에서 잡습니다.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Link
+              href="/gathering?open=1"
+              className="rounded-[10px] border border-gold/50 px-5 py-2.5 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
+            >
+              모임 열기
+            </Link>
+            <Link
+              href="/gathering"
+              className="rounded-[10px] border border-ink-3 px-5 py-2.5 text-[12px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+            >
+              모임 보러 가기 →
+            </Link>
+          </div>
         </div>
       </section>
 

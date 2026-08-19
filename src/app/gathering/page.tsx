@@ -22,7 +22,7 @@ function GatheringInner() {
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-16 pt-8 md:pt-12">
       {/* ── 머리 ── */}
       <p className="rise text-center text-xs tracking-[0.5em] text-gold-soft">
-        同行 · 모임
+        손잡고 절로 — 모임
       </p>
       <p className="question-glow rise rise-d1 mt-7 text-center font-serif text-xl font-light leading-[1.9] text-hanji">
         절에 가는 길,
@@ -37,7 +37,6 @@ function GatheringInner() {
       {/* ── 모임 마당 ── */}
       <section className="rise rise-d2 mt-12">
         <GatheringBoard
-          variant="full"
           initialTemple={temple}
           initialDate={date}
           autoOpen={autoOpen}
