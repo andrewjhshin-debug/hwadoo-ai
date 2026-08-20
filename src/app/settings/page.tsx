@@ -725,26 +725,6 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ── 지난 화두 — 품어온 시간 바로 아래 ── */}
-      <section className={`rise rise-d1 ${sectionGap}`}>
-        <p className="flex items-center gap-2 text-[11px] tracking-[0.3em] text-hanji-faint">
-          <Book className="h-[15px] w-[15px] text-gold-soft" />
-          지난 화두
-        </p>
-        <div className="mt-4 border-t border-ink-3 pt-5">
-          <p className="text-[13px] leading-7 text-hanji-dim">
-            시간을 다 품고 회향한 화두들이 이곳에 남습니다.
-          </p>
-          <Link
-            href="/archive"
-            className="mt-5 inline-flex items-center gap-2.5 rounded-[10px] border border-ink-3 px-6 py-3 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-          >
-            <Book className="h-4 w-4 text-gold-soft" />
-            지난 화두 보기 · {journalCount}
-          </Link>
-        </div>
-      </section>
-
       {/* ── 알림 — 아침 문안: 제목 한 줄 + 온/오프 토글.
           차단이면 토글을 눌렀을 때 푸는 법 안내가 접혀 나온다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>

@@ -37,6 +37,7 @@ export type Post = {
   // ── 모임(gathering) 전용 — 절에 함께 가는 약속 ──
   templeName?: string; // 어느 절로
   meetDate?: string; // 언제 — "2026-08-25" 꼴
+  meetTime?: string | null; // 몇 시에 — "10:30" 꼴 (선택)
   openChatUrl?: string | null; // 오픈채팅 링크 — open.kakao.com 만 허용
 };
 
@@ -129,6 +130,7 @@ export function isOpenChatUrl(url: string): boolean {
 function refineGathering(input: {
   templeName: string;
   meetDate: string; // "YYYY-MM-DD"
+  meetTime?: string; // "HH:MM" (선택)
   body: string;
   openChatUrl?: string;
 }) {
@@ -139,12 +141,21 @@ function refineGathering(input: {
     throw new Error("절 이름과 한 줄 소개를 적어 주십시오");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(meetDate))
     throw new Error("날짜를 골라 주십시오");
+  const meetTime = input.meetTime?.trim() ?? "";
+  if (meetTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(meetTime))
+    throw new Error("시간이 올바르지 않습니다");
   if (/https?:\/\/|open\.kakao/i.test(body))
     throw new Error("링크는 아래 오픈채팅 칸에만 넣어 주십시오");
   const chat = input.openChatUrl?.trim();
   if (chat && !isOpenChatUrl(chat))
     throw new Error("오픈채팅 링크는 open.kakao.com 주소만 받습니다");
-  return { templeName, meetDate, body, openChatUrl: chat || null };
+  return {
+    templeName,
+    meetDate,
+    meetTime: meetTime || null,
+    body,
+    openChatUrl: chat || null,
+  };
 }
 
 // 모임을 연다 — 절 이름·날짜·한 줄이 필수, 오픈챗 링크는 선택.
@@ -152,6 +163,7 @@ function refineGathering(input: {
 export async function createGathering(input: {
   templeName: string;
   meetDate: string;
+  meetTime?: string;
   body: string;
   openChatUrl?: string;
 }) {
@@ -168,6 +180,7 @@ export async function createGathering(input: {
     board: "gathering" as Board,
     templeName: g.templeName,
     meetDate: g.meetDate,
+    meetTime: g.meetTime,
     openChatUrl: g.openChatUrl,
     createdAt: serverTimestamp(),
   });
@@ -179,6 +192,7 @@ export async function updateGathering(
   input: {
     templeName: string;
     meetDate: string;
+    meetTime?: string;
     body: string;
     openChatUrl?: string;
   }
@@ -188,6 +202,7 @@ export async function updateGathering(
     title: g.templeName,
     templeName: g.templeName,
     meetDate: g.meetDate,
+    meetTime: g.meetTime,
     body: g.body,
     openChatUrl: g.openChatUrl,
   });

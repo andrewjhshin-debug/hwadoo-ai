@@ -52,6 +52,7 @@ export type DmThread = {
   members: string[]; // [requesterUid, ownerUid] — 내 대화 찾기용
   intro: string; // 청할 때 건넨 한 마디
   status: "pending" | "accepted" | "declined";
+  msgCount?: number; // 오간 쪽지 수 — 모임 오픈챗 잠금을 푸는 잣대
   lastText?: string;
   lastBy?: string;
   lastAt?: { seconds: number };
@@ -175,6 +176,7 @@ export async function sendMessage(
     lastText: text.slice(0, 30),
     lastBy: u.uid,
     lastAt: serverTimestamp(),
+    msgCount: increment(1), // 다섯 통이 쌓이면 모임의 오픈챗이 열린다
   });
   return "sent";
 }

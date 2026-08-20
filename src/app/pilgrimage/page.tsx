@@ -127,10 +127,6 @@ export default function PilgrimagePage() {
             onGather={(name) => openGathering({ temple: name })}
           />
         </div>
-        <p className="mt-3 text-[11px] leading-5 text-hanji-faint">
-          마커를 누르면 절 소개 · 길 찾기 · 함께 가기가 열립니다 ·{" "}
-          {temples.length}곳
-        </p>
       </section>
 
       {/* ── 구획 2 · 모임 — 목록은 여기 두지 않는다, 마당은 /gathering ── */}

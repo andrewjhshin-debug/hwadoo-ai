@@ -201,6 +201,7 @@ export type Temple = {
   lat: number; // 지도 마커용 — 아는 곳은 소수 3~4자리로 다듬었다.
   lng: number; // 확신 없는 몇 곳은 대략값 그대로 · 길찾기는 이름 검색으로 간다
   templestay?: boolean; // 템플스테이 운영 절 — 지도 필터·마커 점·팝업 배지용
+  homepage?: string; // 공식 홈페이지 — 있는 절만 팝업에 [홈페이지 →]로 잇는다
 };
 
 export const TEMPLES: Temple[] = [

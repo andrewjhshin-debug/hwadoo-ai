@@ -9,7 +9,8 @@
 // · SSR 회피: leaflet 은 useEffect 안에서 동적으로 불러온다.
 // · 마커는 divIcon — 금빛 기와지붕 실루엣(맞배지붕 곡선 + 기둥 둘).
 //   템플스테이 절은 지붕 아래 금색 점 하나로 구분한다.
-//   누르면 팝업: 절 이름(산문·템플스테이 배지) · 한 줄 소개 + '길 찾기'.
+//   누르면 팝업: 절 이름(산문·템플스테이 배지) · 한 줄 소개 +
+//   공식 홈페이지가 있는 절은 '홈페이지 →', 없는 절은 '길 찾기 →'.
 // · temples 가 바뀌면 마커를 다시 놓고 fitBounds(한 곳이면 zoom 11).
 // · 오른쪽 위 과녁 단추 — 내 위치를 금색 맥동 점으로 찍고 다가간다.
 // ─────────────────────────────────────────────────────────────
@@ -159,7 +160,7 @@ export default function TempleMap({ temples, onSelect, onGather }: Props) {
           `</p>` +
           `<p class="tm-note">${t.note}</p>` +
           `<span class="tm-actions">` +
-          `<a class="tm-link" href="${kakaoMapUrl(t.name)}" target="_blank" rel="noopener noreferrer">길 찾기 →</a>` +
+          `<a class="tm-link" href="${t.homepage ?? kakaoMapUrl(t.name)}" target="_blank" rel="noopener noreferrer">${t.homepage ? "홈페이지 →" : "길 찾기 →"}</a>` +
           `<button type="button" class="tm-gather">이 절에 함께 가기</button>` +
           `</span>`
       );
