@@ -8,12 +8,14 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   increment,
   limit,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
   writeBatch,
@@ -127,44 +129,27 @@ export function isOpenChatUrl(url: string): boolean {
 }
 
 // 모임 글감 다듬기 — 만들기·고치기가 같은 잣대를 쓴다.
-// 링크는 오픈채팅 칸에만 — 한 줄 소개에 주소가 실리면 돌려보낸다 (노출 방지).
+// 제목·본문 자유 글 — 링크는 오픈채팅 칸에만 (제목·본문에 실리면 돌려보낸다).
 function refineGathering(input: {
-  templeName: string;
-  meetDate: string; // "YYYY-MM-DD"
-  meetTime?: string; // "HH:MM" (선택)
+  title: string;
   body: string;
   openChatUrl?: string;
 }) {
-  const templeName = input.templeName.trim().slice(0, 30);
-  const body = input.body.trim().slice(0, 200);
-  const meetDate = input.meetDate.trim();
-  if (!templeName || !body)
-    throw new Error("절 이름과 한 줄 소개를 적어 주십시오");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(meetDate))
-    throw new Error("날짜를 골라 주십시오");
-  const meetTime = input.meetTime?.trim() ?? "";
-  if (meetTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(meetTime))
-    throw new Error("시간이 올바르지 않습니다");
-  if (/https?:\/\/|open\.kakao/i.test(body))
+  const title = input.title.trim().slice(0, 60);
+  const body = input.body.trim().slice(0, 1000);
+  if (!title || !body) throw new Error("제목과 내용을 적어 주십시오");
+  if (/https?:\/\/|open\.kakao/i.test(title) || /https?:\/\/|open\.kakao/i.test(body))
     throw new Error("링크는 아래 오픈채팅 칸에만 넣어 주십시오");
   const chat = input.openChatUrl?.trim();
   if (chat && !isOpenChatUrl(chat))
     throw new Error("오픈채팅 링크는 open.kakao.com 주소만 받습니다");
-  return {
-    templeName,
-    meetDate,
-    meetTime: meetTime || null,
-    body,
-    openChatUrl: chat || null,
-  };
+  return { title, body, openChatUrl: chat || null };
 }
 
-// 모임을 연다 — 절 이름·날짜·한 줄이 필수, 오픈챗 링크는 선택.
+// 모임 글을 올린다 — 제목·내용 필수, 오픈챗 링크는 선택.
 // 자격(로그인 + 1회향)은 화면이 먼저 거른다 — 여기서는 형식만 지킨다.
 export async function createGathering(input: {
-  templeName: string;
-  meetDate: string;
-  meetTime?: string;
+  title: string;
   body: string;
   openChatUrl?: string;
 }) {
@@ -172,41 +157,59 @@ export async function createGathering(input: {
   if (!u) throw new Error("로그인이 필요합니다");
   const g = refineGathering(input);
   return addDoc(collection(db, "posts"), {
-    title: g.templeName, // 옛 게시판 포맷과의 호환 — 제목 자리에 절 이름
+    title: g.title,
     body: g.body,
     authorName: anonName(),
     authorUid: u.uid,
     hapjang: 0,
     commentCount: 0,
     board: "gathering" as Board,
-    templeName: g.templeName,
-    meetDate: g.meetDate,
-    meetTime: g.meetTime,
     openChatUrl: g.openChatUrl,
     createdAt: serverTimestamp(),
   });
 }
 
-// 모임을 고친다 — 작성자(또는 뒷방)만. 권한의 최종 잣대는 Firestore 규칙.
+// 모임 글을 고친다 — 작성자(또는 뒷방)만. 권한의 최종 잣대는 Firestore 규칙.
 export async function updateGathering(
   id: string,
   input: {
-    templeName: string;
-    meetDate: string;
-    meetTime?: string;
+    title: string;
     body: string;
     openChatUrl?: string;
   }
 ) {
   const g = refineGathering(input);
   await updateDoc(doc(db, "posts", id), {
-    title: g.templeName,
-    templeName: g.templeName,
-    meetDate: g.meetDate,
-    meetTime: g.meetTime,
+    title: g.title,
     body: g.body,
     openChatUrl: g.openChatUrl,
   });
+}
+
+// ── 좋아요(합장) — 계정당 한 번 ─────────────────────────────
+// posts/{id}/likes/{uid} 문서 하나가 '눌렀음'의 증거다.
+
+export async function fetchMyLike(postId: string): Promise<boolean> {
+  const u = auth.currentUser;
+  if (!u) return false;
+  try {
+    const snap = await getDoc(doc(db, "posts", postId, "likes", u.uid));
+    return snap.exists();
+  } catch {
+    return false;
+  }
+}
+
+// 좋아요를 누른다 — 이미 눌렀으면 false (셈은 하나만 오른다)
+export async function likePost(postId: string): Promise<boolean> {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요합니다");
+  const ref = doc(db, "posts", postId, "likes", u.uid);
+  const snap = await getDoc(ref);
+  if (snap.exists()) return false;
+  await setDoc(ref, { createdAt: serverTimestamp() });
+  await updateDoc(doc(db, "posts", postId), { hapjang: increment(1) });
+  return true;
 }
 
 // 연등을 단다 — 연꽃 차감(dm.ts spendLotus)은 부르는 쪽의 몫.

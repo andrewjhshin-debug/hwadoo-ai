@@ -1,0 +1,182 @@
+// ─────────────────────────────────────────────────────────────
+// 화두 Firestore 규칙 — 전문(全文). 콘솔 > Firestore > 규칙 탭의
+// 내용을 이 파일로 통째로 바꿔 넣고 [게시]하면 된다.
+//
+// 2026-08-20 통합본:
+// · posts 작성자 수정 허용 필드에 meetTime·lantern 추가 (모임 시간·연등)
+// · posts/{id}/likes/{uid} — 좋아요(합장) 계정당 한 번의 증거 문서
+// · dm-threads / wallets / reports — 쪽지·연꽃·신고 (dmOpen()으로 여닫음)
+// ─────────────────────────────────────────────────────────────
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 뒷방 주인인가
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.uid == "HvYY1QPhLiMLc5NezM1jt0QdUiM2";
+    }
+
+    // 뒷방 콘텐츠(은행 손질·선지식·후원자 명단) — 읽기는 모두, 쓰기는 뒷방만
+    match /admin-content/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 연지원 글 + 모임 — 읽기 모두, 쓰기는 로그인만.
+    // 합장·댓글수 증감은 누구나, 모임 필드 고치기는 작성자만.
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if isAdmin()
+        || request.resource.data.diff(resource.data)
+             .affectedKeys().hasOnly(['hapjang', 'commentCount'])
+        || (request.auth != null
+            && request.auth.uid == resource.data.authorUid
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'body', 'openChatUrl', 'lantern']));
+      allow delete: if isAdmin()
+        || (request.auth != null && request.auth.uid == resource.data.authorUid);
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null;
+        allow delete: if isAdmin()
+          || (request.auth != null && request.auth.uid == resource.data.authorUid);
+      }
+
+      // 좋아요(합장) — 계정당 한 번. 문서 하나가 '눌렀음'의 증거다.
+      match /likes/{uid} {
+        allow read: if true;
+        allow create: if request.auth != null && request.auth.uid == uid;
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
+    }
+
+    // 나눔에 부쳐진 답 — 부치기는 누구나(비로그인 포함), 검수·삭제는 뒷방만
+    match /shared-answers/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.answer is string
+        && request.resource.data.answer.size() > 0
+        && request.resource.data.answer.size() <= 500;
+      allow update, delete: if isAdmin();
+    }
+
+    // 던져진 화두 — 던지기는 누구나, 살피기·승인·삭제는 뒷방만
+    match /thrown/{id} {
+      allow create: if request.resource.data.question is string
+        && request.resource.data.question.size() > 0
+        && request.resource.data.question.size() <= 500;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 공개된 화두 — 읽기 모두, seen 증가는 누구나, 나머지는 뒷방만
+    match /public-hwadu/{id} {
+      allow read: if true;
+      allow update: if isAdmin()
+        || request.resource.data.diff(resource.data)
+             .affectedKeys().hasOnly(['seen']);
+      allow create, delete: if isAdmin();
+    }
+
+    // 함께 드는 수 — 익명 카운터
+    match /holding/{hwaduId} {
+      allow read, create, update: if true;
+    }
+
+    // 문안 알림 토큰 — 만들고 내리기만
+    match /push-tokens/{token} {
+      allow create, delete: if true;
+      allow read, update: if isAdmin();
+    }
+
+    // 계정 동기화 — 제 것만
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // 죽비(피드백) — 보내기는 누구나, 읽기·지우기는 뒷방만
+    match /feedback/{id} {
+      allow create: if request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 1000;
+      allow read, delete: if isAdmin();
+      allow update: if false;
+    }
+
+    // ── 쪽지 — 공통 판별 ──
+    function dmIsAdmin() {
+      return request.auth != null
+        && request.auth.uid == "HvYY1QPhLiMLc5NezM1jt0QdUiM2";
+    }
+    function dmOpen() {
+      return false; // 쪽지 전체 개방 스위치 — config.ts DM_ENABLED 와 함께
+    }
+    function dmOn() {
+      return dmOpen() || dmIsAdmin();
+    }
+
+    // ── 쪽지 대화 ──
+    match /dm-threads/{threadId} {
+      // 읽기 — 내 대화만(청한 이·받는 이·멤버). 뒷방은 신고 처리를 위해 전부.
+      allow read: if dmIsAdmin()
+        || (dmOn() && request.auth != null
+            && (request.auth.uid == resource.data.requesterUid
+                || request.auth.uid == resource.data.ownerUid
+                || request.auth.uid in resource.data.members));
+      // 청 넣기 — 내가 requester, 멤버는 [나, 받는 이] 둘, 시작은 pending
+      allow create: if dmOn() && request.auth != null
+        && request.auth.uid == request.resource.data.requesterUid
+        && request.resource.data.members.size() == 2
+        && request.auth.uid in request.resource.data.members
+        && request.resource.data.ownerUid in request.resource.data.members
+        && request.resource.data.status == "pending";
+      // 고치기 — 멤버만. 멤버·역할은 못 바꾸고, 수락/거절(status)은 받는 이만.
+      allow update: if dmIsAdmin()
+        || (dmOn() && request.auth != null
+            && request.auth.uid in resource.data.members
+            && request.resource.data.members == resource.data.members
+            && request.resource.data.requesterUid == resource.data.requesterUid
+            && request.resource.data.ownerUid == resource.data.ownerUid
+            && (request.resource.data.status == resource.data.status
+                || request.auth.uid == resource.data.ownerUid));
+      allow delete: if dmIsAdmin();
+
+      // 쪽지 낱장 — 수락된 대화의 멤버만 오간다
+      match /messages/{messageId} {
+        allow read: if dmIsAdmin()
+          || (dmOn() && request.auth != null
+              && request.auth.uid in get(/databases/$(database)/documents/dm-threads/$(threadId)).data.members);
+        allow create: if dmOn() && request.auth != null
+          && request.auth.uid == request.resource.data.uid
+          && request.auth.uid in get(/databases/$(database)/documents/dm-threads/$(threadId)).data.members
+          && get(/databases/$(database)/documents/dm-threads/$(threadId)).data.status == "accepted";
+        allow update, delete: if dmIsAdmin();
+      }
+    }
+
+    // ── 연꽃 지갑 ──
+    match /wallets/{uid} {
+      // 내 지갑만 본다 — 뒷방은 채우기 위해 전부
+      allow read: if request.auth != null
+        && (request.auth.uid == uid || dmIsAdmin());
+      // 채우기는 뒷방만(PG 전 시험용) · 본인은 한 송이 차감만
+      allow create: if dmIsAdmin();
+      allow update: if dmIsAdmin()
+        || (dmOn() && request.auth != null && request.auth.uid == uid
+            && request.resource.data.lotus == resource.data.lotus - 1);
+      allow delete: if dmIsAdmin();
+    }
+
+    // ── 신고함 ──
+    match /reports/{reportId} {
+      // 신고 넣기 — 로그인한 본인 이름으로만 · 읽기·처리·삭제는 뒷방만
+      allow create: if dmOn() && request.auth != null
+        && request.auth.uid == request.resource.data.byUid
+        && request.resource.data.status == "open";
+      allow read, update, delete: if dmIsAdmin();
+    }
+  }
+}

@@ -19,14 +19,11 @@ function GatheringInner() {
   const autoOpen = sp.get("open") === "1";
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-16 pt-8 md:pt-12">
-      {/* ── 머리 — 게시판이니 말은 아낀다 ── */}
-      <p className="rise text-center text-xs tracking-[0.5em] text-gold-soft">
-        손잡고 절로 — 모임
-      </p>
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-16 pt-6 md:pt-10">
+      {/* 설명 없이 게시판만 — 머리글도 최소한으로 */}
+      <p className="rise text-xs tracking-[0.4em] text-gold-soft">모임</p>
 
-      {/* ── 모임 마당 ── */}
-      <section className="rise rise-d1 mt-8">
+      <section className="rise rise-d1 mt-4">
         <GatheringBoard
           initialTemple={temple}
           initialDate={date}
@@ -37,7 +34,7 @@ function GatheringInner() {
       {/* 절을 고르러 — 지도로 */}
       <Link
         href="/pilgrimage"
-        className="rise rise-d3 mt-10 self-center rounded-[10px] border border-ink-3 px-5 py-2.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+        className="rise rise-d3 mt-8 self-center text-[12px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
       >
         지도에서 절 고르기 →
       </Link>

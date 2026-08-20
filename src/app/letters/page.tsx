@@ -181,7 +181,13 @@ export default function LettersPage() {
       <div className="rise rise-d1 mt-4 flex items-center justify-center gap-4">
         <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
           연꽃 <span className="text-gold">{lotus}</span>송이 · 대화마다 처음{" "}
-          {FREE_MSGS}통은 무료
+          {FREE_MSGS}통은 무료 ·{" "}
+          <Link
+            href="/lotus"
+            className="text-gold-soft underline decoration-gold/30 underline-offset-2 transition-colors hover:text-gold"
+          >
+            연꽃 얻기
+          </Link>
         </p>
         <button
           onClick={refresh}
@@ -340,12 +346,12 @@ export default function LettersPage() {
                           무료 쪽지 {FREE_MSGS}통을 다 건넸습니다 — 이어가려면
                           연꽃 한 송이가 듭니다.
                         </p>
-                        <button
-                          className="mt-2 rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold opacity-70"
-                          disabled
+                        <Link
+                          href="/lotus"
+                          className="mt-2 inline-block rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
                         >
-                          연꽃 얻기 — 곧 열립니다
-                        </button>
+                          연꽃 얻기 →
+                        </Link>
                       </div>
                     )}
 

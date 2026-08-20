@@ -79,6 +79,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
       { href: "/community", label: "연지원 — 커뮤니티", Icon: LotusPond },
+      { href: "/lotus", label: "연꽃 공양", Icon: LotusMark },
       { href: "/tea", label: "차 한 잔", Icon: Teacup },
       { href: "/goods", label: "굿즈", Icon: Bojagi, soon: true, disabled: true },
     ],

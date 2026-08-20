@@ -68,8 +68,11 @@ export type DmMessage = {
 
 // ── 청하기 ──────────────────────────────────────────────
 
-// 이 모임에 내가 이미 넣은 청이 있으면 그걸 돌려준다 (겹청 방지)
-export async function findMyRequest(postId: string): Promise<DmThread | null> {
+// 이 글에서 그 사람에게 내가 이미 넣은 청이 있으면 그걸 돌려준다 (겹청 방지)
+export async function findMyRequestTo(
+  postId: string,
+  targetUid: string
+): Promise<DmThread | null> {
   const u = auth.currentUser;
   if (!u) return null;
   const snap = await getDocs(
@@ -77,6 +80,7 @@ export async function findMyRequest(postId: string): Promise<DmThread | null> {
       collection(db, "dm-threads"),
       where("postId", "==", postId),
       where("requesterUid", "==", u.uid),
+      where("ownerUid", "==", targetUid),
       limit(1)
     )
   );
@@ -84,16 +88,17 @@ export async function findMyRequest(postId: string): Promise<DmThread | null> {
   return d ? ({ id: d.id, ...d.data() } as DmThread) : null;
 }
 
-// 모임 글에 쪽지를 청한다 — 한 마디와 함께. 이미 청했다면 그 대화를 돌려준다.
+// 글의 연등을 눌러 쪽지를 청한다 — 글쓴이든 댓글 단 이든, 한 마디와 함께.
+// 이미 청했다면 그 대화를 돌려준다. (ownerUid = 청을 받는 이)
 export async function requestThread(
   post: Post,
+  target: { uid: string; name: string },
   intro: string
 ): Promise<DmThread> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
-  if (u.uid === post.authorUid)
-    throw new Error("내가 연 모임에는 청할 수 없습니다");
-  const existing = await findMyRequest(post.id);
+  if (u.uid === target.uid) throw new Error("나에게는 청할 수 없습니다");
+  const existing = await findMyRequestTo(post.id, target.uid);
   if (existing) return existing;
   const body = {
     postId: post.id,
@@ -101,9 +106,9 @@ export async function requestThread(
     meetDate: post.meetDate ?? null,
     requesterUid: u.uid,
     requesterName: anonName(),
-    ownerUid: post.authorUid,
-    ownerName: post.authorName,
-    members: [u.uid, post.authorUid],
+    ownerUid: target.uid,
+    ownerName: target.name,
+    members: [u.uid, target.uid],
     intro: intro.trim().slice(0, 200),
     status: "pending" as const,
     createdAt: serverTimestamp(),
