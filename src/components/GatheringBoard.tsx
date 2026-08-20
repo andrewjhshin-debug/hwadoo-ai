@@ -98,21 +98,23 @@ function GenderMark({
     );
   }
   if (g === "f") {
+    // 음 — 양과 같은 문양의 반전: 반대쪽 반이 금빛으로 찬다 (180도 회전)
     return (
       <svg
         viewBox="0 0 24 24"
         fill="none"
-        stroke="currentColor"
-        className={`shrink-0 text-hanji-dim ${className}`}
+        className={`shrink-0 text-gold ${className}`}
         aria-label="음 — 여"
       >
-        <circle cx="12" cy="12" r="9.25" strokeWidth="1.3" />
-        <path
-          d="M12 2.75a4.625 4.625 0 0 1 0 9.25 4.625 4.625 0 0 0 0 9.25"
-          strokeWidth="1.3"
-        />
-        <circle cx="12" cy="7.4" r="1.7" strokeWidth="1.1" />
-        <circle cx="12" cy="16.6" r="1.7" strokeWidth="1.1" />
+        <g transform="rotate(180 12 12)">
+          <circle cx="12" cy="12" r="9.25" stroke="currentColor" strokeWidth="1.4" />
+          <path
+            fillRule="evenodd"
+            fill="currentColor"
+            d="M12 2.75a9.25 9.25 0 1 0 0 18.5 4.625 4.625 0 0 1 0-9.25 4.625 4.625 0 0 0 0-9.25Z M12 18.3a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"
+          />
+          <circle cx="12" cy="7.4" r="1.8" fill="currentColor" />
+        </g>
       </svg>
     );
   }
@@ -1145,6 +1147,10 @@ export default function GatheringBoard({
                 className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
               />
             </div>
+            <p className="text-[11.5px] leading-5 text-hanji-faint">
+              양/음(남·여) 문양은 내 도량에서 설정할 수 있습니다 — 글에
+              프로필처럼 걸립니다.
+            </p>
             {formError && (
               <p className="text-[12px] leading-6 text-vermilion">
                 {formError}
