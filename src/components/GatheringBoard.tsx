@@ -70,27 +70,57 @@ function CommentIcon({ className = "h-[13px] w-[13px]" }: { className?: string }
   );
 }
 
-// 음양 프로필 — 남자는 陽(금), 여자는 陰(먹). 안 골랐으면 빈 원.
+// 음양 프로필 — 쪽지 단추와 같은 태극 문양.
+// 남(양) = 금빛 반쪽이 찬 원, 여(음) = 같은 문양을 선으로만, 미표시 = 빈 원.
 function GenderMark({
   g,
-  className = "h-9 w-9 text-[14px]",
+  className = "h-9 w-9",
 }: {
   g?: "m" | "f" | null;
   className?: string;
 }) {
+  if (g === "m") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        className={`shrink-0 text-gold ${className}`}
+        aria-label="양 — 남"
+      >
+        <circle cx="12" cy="12" r="9.25" stroke="currentColor" strokeWidth="1.4" />
+        <path
+          fillRule="evenodd"
+          fill="currentColor"
+          d="M12 2.75a9.25 9.25 0 1 0 0 18.5 4.625 4.625 0 0 1 0-9.25 4.625 4.625 0 0 0 0-9.25Z M12 18.3a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"
+        />
+        <circle cx="12" cy="7.4" r="1.8" fill="currentColor" />
+      </svg>
+    );
+  }
+  if (g === "f") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        className={`shrink-0 text-hanji-dim ${className}`}
+        aria-label="음 — 여"
+      >
+        <circle cx="12" cy="12" r="9.25" strokeWidth="1.3" />
+        <path
+          d="M12 2.75a4.625 4.625 0 0 1 0 9.25 4.625 4.625 0 0 0 0 9.25"
+          strokeWidth="1.3"
+        />
+        <circle cx="12" cy="7.4" r="1.7" strokeWidth="1.1" />
+        <circle cx="12" cy="16.6" r="1.7" strokeWidth="1.1" />
+      </svg>
+    );
+  }
   return (
     <span
-      className={`flex shrink-0 items-center justify-center rounded-full border font-serif ${
-        g === "m"
-          ? "border-gold/50 bg-gold/10 text-gold"
-          : g === "f"
-            ? "border-hanji-faint/50 bg-ink-2/70 text-hanji-dim"
-            : "border-ink-3 bg-ink-2/40 text-hanji-faint"
-      } ${className}`}
-      aria-label={g === "m" ? "양 — 남" : g === "f" ? "음 — 여" : "미표시"}
-    >
-      {g === "m" ? "陽" : g === "f" ? "陰" : ""}
-    </span>
+      className={`shrink-0 rounded-full border border-ink-3 bg-ink-2/40 ${className}`}
+      aria-label="미표시"
+    />
   );
 }
 

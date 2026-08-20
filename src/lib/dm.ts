@@ -281,21 +281,18 @@ export function markDmSeen(uid: string, threadId: string, atSec?: number) {
   }
 }
 
+// 이 대화에 안 읽은 것이 있는가 — 새 청이거나, 상대가 보냈는데 아직 안 열었거나
+export function isThreadUnread(t: DmThread, uid: string): boolean {
+  if (t.status === "pending" && t.ownerUid === uid) return true;
+  if (t.status !== "accepted") return false;
+  if (!t.lastBy || t.lastBy === uid) return false;
+  const seen = loadDmSeen(uid);
+  return (t.lastAt?.seconds ?? 0) > (seen[t.id] ?? 0);
+}
+
 // 안 읽은 것 — 새로 들어온 청 + 상대가 보냈는데 아직 안 연 쪽지
 export function countDmUnread(threads: DmThread[], uid: string): number {
-  const seen = loadDmSeen(uid);
-  let n = 0;
-  for (const t of threads) {
-    if (t.status === "pending" && t.ownerUid === uid) n++;
-    else if (
-      t.status === "accepted" &&
-      t.lastBy &&
-      t.lastBy !== uid &&
-      (t.lastAt?.seconds ?? 0) > (seen[t.id] ?? 0)
-    )
-      n++;
-  }
-  return n;
+  return threads.filter((t) => isThreadUnread(t, uid)).length;
 }
 
 // ── 신고 ────────────────────────────────────────────────

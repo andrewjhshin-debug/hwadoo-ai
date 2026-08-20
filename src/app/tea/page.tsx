@@ -22,9 +22,9 @@ export default function TeaPage() {
         <span className="text-gold-grad">— 차나 마시게.</span>
       </p>
       <p className="rise rise-d2 mt-8 text-center text-[13px] leading-8 text-hanji-dim">
-        이 도량은 무료이며, 앞으로도 그렇습니다.
+        화두의 물음과 수행은 값을 받지 않습니다.
         <br />
-        다만 이곳이 마음에 머물렀다면, 도량에 차 한 잔을 올려 주실 수 있습니다.
+        이곳이 마음에 머물렀다면, 도량에 차 한 잔을 올려 주실 수 있습니다.
         <br />
         찻값은 이 도량을 잇는 데 쓰입니다.
       </p>

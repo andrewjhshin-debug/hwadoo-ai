@@ -924,8 +924,9 @@ export default function SettingsPage() {
         </p>
         <div className="mt-4 border-t border-ink-3 pt-5">
           <p className="text-[13px] leading-7 text-hanji-dim">
-            이 도량은 늘 무료입니다. 다만 마음에 머물렀다면,
-            <br />차 한 잔 값으로 등불을 보태 주실 수 있습니다.
+            화두의 물음과 수행은 값을 받지 않습니다.
+            <br />
+            마음에 머물렀다면, 차 한 잔 값으로 등불을 보태 주실 수 있습니다.
           </p>
           {DONATION_URL ? (
             !teaOpen ? (

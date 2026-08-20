@@ -23,6 +23,7 @@ import {
   fetchMessages,
   fetchMyThreads,
   getLotus,
+  isThreadUnread,
   markDmSeen,
   reportThread,
   sendMessage,
@@ -382,29 +383,45 @@ export default function LettersPage() {
           </li>
         ) : (
           <>
-            {talks.map((t) => (
-              <li key={t.id}>
-                <button
-                  onClick={() => openThread(t)}
-                  className="flex w-full items-center gap-3.5 px-1 py-4 text-left transition-colors hover:bg-gold/5"
-                >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gold/5 font-serif text-[17px] text-gold">
-                    {other(t).slice(0, 1)}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[15.5px] text-hanji">
-                      {other(t)}
+            {talks.map((t) => {
+              const unread = isThreadUnread(t, user.uid);
+              return (
+                <li key={t.id}>
+                  <button
+                    onClick={() => openThread(t)}
+                    className="flex w-full items-center gap-3.5 px-1 py-4 text-left transition-colors hover:bg-gold/5"
+                  >
+                    <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gold/5 font-serif text-[17px] text-gold">
+                      {other(t).slice(0, 1)}
+                      {/* 안 읽은 방 — 붉은 점 하나 */}
+                      {unread && (
+                        <span
+                          aria-label="안 읽은 쪽지"
+                          className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-ink-2 bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
+                        />
+                      )}
                     </span>
-                    <span className="mt-0.5 block truncate text-[13px] text-hanji-faint">
-                      {t.lastText ?? "첫 쪽지를 건네 보십시오"}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[15.5px] text-hanji">
+                        {other(t)}
+                      </span>
+                      <span
+                        className={`mt-0.5 block truncate text-[13px] ${
+                          unread
+                            ? "font-medium text-hanji"
+                            : "text-hanji-faint"
+                        }`}
+                      >
+                        {t.lastText ?? "첫 쪽지를 건네 보십시오"}
+                      </span>
                     </span>
-                  </span>
-                  <span className="shrink-0 text-[12px] text-hanji-faint">
-                    {dstr(t.lastAt)}
-                  </span>
-                </button>
-              </li>
-            ))}
+                    <span className="shrink-0 text-[12px] text-hanji-faint">
+                      {dstr(t.lastAt)}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
             {/* 기다리는 청 — 흐리게 한 줄씩 */}
             {waiting.map((t) => (
               <li
