@@ -34,7 +34,7 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow update: if isAdmin()
         || request.resource.data.diff(resource.data)
-             .affectedKeys().hasOnly(['hapjang', 'commentCount'])
+             .affectedKeys().hasOnly(['hapjang', 'commentCount', 'views'])
         || (request.auth != null
             && request.auth.uid == resource.data.authorUid
             && request.resource.data.diff(resource.data).affectedKeys()
@@ -52,12 +52,14 @@ service cloud.firestore {
           || (request.auth != null && request.auth.uid == resource.data.authorUid);
       }
 
-      // 좋아요(합장) — 계정당 한 번. 문서 하나가 '눌렀음'의 증거다.
+      // 합장(공감) — 계정당 한 번, 토글. 문서 하나가 '눌렀음'의 증거다.
       match /likes/{uid} {
         allow read: if true;
         allow create: if request.auth != null && request.auth.uid == uid;
         allow update: if false;
-        allow delete: if isAdmin();
+        // 다시 누르면 거둔다 — 제 것만
+        allow delete: if isAdmin()
+          || (request.auth != null && request.auth.uid == uid);
       }
     }
 

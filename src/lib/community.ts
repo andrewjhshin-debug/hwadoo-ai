@@ -34,6 +34,7 @@ export type Post = {
   authorUid: string;
   hapjang: number;
   commentCount: number;
+  views?: number; // 몇 명이 열어 봤는가
   board?: Board;
   createdAt?: { seconds: number };
   // ── 모임(gathering) 전용 — 절에 함께 가는 약속 (전부 선택) ──
@@ -118,6 +119,11 @@ export async function createPost(title: string, body: string, board: Board = "co
 
 export async function bowToPost(id: string) {
   await updateDoc(doc(db, "posts", id), { hapjang: increment(1) });
+}
+
+// 조회 — 글을 열 때 한 번 올린다 (같은 세션의 재열람은 화면이 거른다)
+export async function viewPost(id: string) {
+  await updateDoc(doc(db, "posts", id), { views: increment(1) });
 }
 
 // ── 모임 — 절에 함께 가는 약속 (board: "gathering" 재활용) ─────────
@@ -232,7 +238,7 @@ export async function fetchMyLike(postId: string): Promise<boolean> {
   }
 }
 
-// 좋아요를 누른다 — 이미 눌렀으면 false (셈은 하나만 오른다)
+// 합장을 올린다 — 이미 눌렀으면 false (셈은 하나만 오른다)
 export async function likePost(postId: string): Promise<boolean> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
@@ -241,6 +247,18 @@ export async function likePost(postId: string): Promise<boolean> {
   if (snap.exists()) return false;
   await setDoc(ref, { createdAt: serverTimestamp() });
   await updateDoc(doc(db, "posts", postId), { hapjang: increment(1) });
+  return true;
+}
+
+// 합장을 거둔다 — 다시 누르면 원래대로 (토글)
+export async function unlikePost(postId: string): Promise<boolean> {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요합니다");
+  const ref = doc(db, "posts", postId, "likes", u.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return false;
+  await deleteDoc(ref);
+  await updateDoc(doc(db, "posts", postId), { hapjang: increment(-1) });
   return true;
 }
 
@@ -292,15 +310,18 @@ export async function addComment(
   await updateDoc(doc(db, "posts", postId), { commentCount: increment(1) });
 }
 
-// 댓글 좋아요/싫어요 — 셈만 올린다 (한 번만 누르기는 화면이 지킨다)
+// 댓글 좋아요/싫어요 — 오르내림을 함께 받는다 (좋아요↔싫어요 갈아타기,
+// 다시 누르면 거두기). 계정당 하나의 손길은 화면이 지킨다.
 export async function voteComment(
   postId: string,
   commentId: string,
-  dir: "up" | "down"
+  deltas: { up?: number; down?: number }
 ) {
-  await updateDoc(doc(db, "posts", postId, "comments", commentId), {
-    [dir]: increment(1),
-  });
+  const patch: Record<string, unknown> = {};
+  if (deltas.up) patch.up = increment(deltas.up);
+  if (deltas.down) patch.down = increment(deltas.down);
+  if (Object.keys(patch).length === 0) return;
+  await updateDoc(doc(db, "posts", postId, "comments", commentId), patch);
 }
 
 export async function deleteComment(postId: string, commentId: string) {

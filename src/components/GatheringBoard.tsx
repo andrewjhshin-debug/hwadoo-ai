@@ -2,19 +2,18 @@
 
 // ─────────────────────────────────────────────────────────────
 // 모임 게시판 (/gathering) — 설명 없이 게시판이 화면 전체를 쓴다.
-// · 목록: 제목 한 줄씩 (최신순). [글 쓰기]는 위 오른쪽 얇은 줄.
-// · 글: 제목(굵게) → 글쓴이+연등 → 내용 → 쓴 날짜·시간 + [함께하기] →
-//   댓글 쓰기 → 댓글들(익명 아이디+연등 · 날짜 / 내용 / 답글·좋아요·
-//   싫어요·신고). 대댓글은 한 단 들여 쓴다.
-// · 연등 — 글쓴이·댓글 단 이 이름 곁의 등불. 누르면 쪽지 팝업이 뜨고,
-//   청하기 한 번에 연꽃 1송이(1,000원)가 든다. 수락되면 쪽지함에서
-//   1:1 대화(무료·무제한), 이어지면 글의 [함께하기]가 열린다.
-//   처음 쓰는 계정엔 연꽃 3송이를 거저 준다. (DM_ENABLED 전엔 뒷방만)
-// · 합장(좋아요)은 계정당 한 번(posts/{id}/likes/{uid}), 댓글 좋아요·
-//   싫어요는 브라우저당 한 번(localStorage).
-// · 글쓰기·댓글 자격: 로그인 + 1회향.
-// · 연결 주소는 글자로 드러나지 않는다 — [함께하기]가 window.open 으로만
-//   연다. 제목·내용에 링크를 적으면 등록을 돌려보낸다.
+// · 목록: 제목 한 줄씩(최신순). 오른쪽 위 연꽃 잔고 칩(/lotus)과 [글 쓰기].
+// · 글: 제목(굵게, 오른쪽 위 ⋯ 메뉴=고치기·내리기) → 글쓴이+연꽃 ·
+//   조회 수 · 쓴 날짜 → 내용 → (있으면) 약속 절·날짜·시간 →
+//   합장(공감, 토글)·[함께하기] → 댓글들 → 댓글 쓰기(모바일: 아래 탭 바로 위 고정).
+// · 연꽃 아이콘 — 글쓴이·댓글 단 이 이름 곁. 누르면 쪽지 팝업:
+//   청하기 1건 = 연꽃 1송이(1,000원), 수락된 대화는 무료.
+//   첫 계정엔 연꽃 3송이 무료.
+// · 합장은 계정당 하나(토글 — 다시 누르면 거둔다).
+//   댓글 좋아요/싫어요는 계정당 하나 — 갈아탈 수 있고, 다시 누르면 거둔다.
+// · 뒤로가기 — 팝업/글쓰기/글이 열릴 때 history 에 층을 쌓아,
+//   브라우저·안드로이드 뒤로가기가 층을 위에서부터 접는다.
+// · 글쓰기·댓글 자격: 로그인 + 1회향. 연결 주소는 [함께하기] 뒤에만 숨는다.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -29,7 +28,9 @@ import {
   fetchMyLike,
   fetchPosts,
   likePost,
+  unlikePost,
   updateGathering,
+  viewPost,
   voteComment,
   type Comment,
   type Post,
@@ -47,27 +48,8 @@ import {
   type DmThread,
 } from "@/lib/dm";
 import { TEMPLES } from "@/lib/pilgrimage";
+import { LotusMark } from "@/components/icons";
 import { useConfirm } from "@/components/Confirm";
-
-// 연등 — 사람 곁에 걸리는 작은 등불. 누르면 쪽지를 청한다.
-function LanternGlyph({ className = "h-[15px] w-[15px]" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M9 4h6M12 4v2" />
-      <path d="M8 8.5C8 7.1 9.8 6 12 6s4 1.1 4 2.5v5c0 1.4-1.8 2.5-4 2.5s-4-1.1-4-2.5v-5Z" />
-      <path d="M12 16v2.5M10 20.5h4" />
-    </svg>
-  );
-}
 
 // 서버 시각 → "8.20 14:05" (아직 안 붙었으면 "방금")
 function stamp(t?: { seconds: number }): string {
@@ -99,18 +81,19 @@ function legacyDate(meetDate: string): string {
   return `${m}.${d} (${dday})`;
 }
 
-// 댓글 좋아요/싫어요 — 이 브라우저에서 한 번씩
-const CVOTE_KEY = "hwadoo-cvote-v1";
-function loadVotes(): Record<string, 1> {
+// 댓글 손길(좋아요/싫어요) — 계정마다 이 브라우저에서 하나씩
+type VoteDir = "up" | "down";
+const voteKey = (uid?: string | null) => `hwadoo-cvote-v2:${uid ?? "anon"}`;
+function loadVotes(uid?: string | null): Record<string, VoteDir> {
   try {
-    return JSON.parse(window.localStorage.getItem(CVOTE_KEY) ?? "{}");
+    return JSON.parse(window.localStorage.getItem(voteKey(uid)) ?? "{}");
   } catch {
     return {};
   }
 }
-function keepVotes(v: Record<string, 1>) {
+function keepVotes(uid: string | null | undefined, v: Record<string, VoteDir>) {
   try {
-    window.localStorage.setItem(CVOTE_KEY, JSON.stringify(v));
+    window.localStorage.setItem(voteKey(uid), JSON.stringify(v));
   } catch {
     // 못 적어도 화면 상태는 유지된다
   }
@@ -152,9 +135,12 @@ export default function GatheringBoard({
   // 연꽃 잔고 — 목록 오른쪽 위에 늘 보인다
   const [lotusBal, setLotusBal] = useState<number | null>(null);
 
-  // 합장 — 계정당 한 번
+  // 합장 — 계정당 하나, 토글
   const [likedMap, setLikedMap] = useState<Record<string, boolean>>({});
   const [likeHint, setLikeHint] = useState(false);
+
+  // ⋯ 메뉴 — 고치기·내리기
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // 댓글
   const [commentsMap, setCommentsMap] = useState<Record<string, Comment[]>>(
@@ -162,12 +148,12 @@ export default function GatheringBoard({
   );
   const [cBody, setCBody] = useState("");
   const [cBusy, setCBusy] = useState(false);
-  const [replyTo, setReplyTo] = useState<string | null>(null); // 답글 다는 댓글
+  const [replyTo, setReplyTo] = useState<string | null>(null);
   const [rBody, setRBody] = useState("");
-  const [votes, setVotes] = useState<Record<string, 1>>({});
+  const [votes, setVotes] = useState<Record<string, VoteDir>>({});
   const [reported, setReported] = useState<Set<string>>(new Set());
 
-  // 연등 팝업 — 쪽지 청하기
+  // 연꽃 팝업 — 쪽지 청하기
   const [dmTarget, setDmTarget] = useState<{
     postId: string;
     uid: string;
@@ -175,20 +161,63 @@ export default function GatheringBoard({
   } | null>(null);
   const [dmIntro, setDmIntro] = useState("");
   const [dmBusy, setDmBusy] = useState(false);
-  const [dmNeed, setDmNeed] = useState(false); // 연꽃 부족
+  const [dmNeed, setDmNeed] = useState(false);
   const [dmLotus, setDmLotus] = useState<number | null>(null);
   const [threadByKey, setThreadByKey] = useState<Record<string, DmThread>>({});
 
   useEffect(() => watchAuth(setUser), []);
 
+  // ── 뒤로가기 — 층을 쌓고, popstate 가 위에서부터 접는다 ──────
+  const pushLayer = () => {
+    try {
+      window.history.pushState({ hwadooLayer: true }, "");
+    } catch {
+      // 못 쌓아도 화면은 열린다
+    }
+  };
+  // 최신 상태를 popstate 가 읽도록 ref 로 비춘다
+  const layersRef = useRef({ dm: false, form: false, detail: false });
+  layersRef.current = {
+    dm: !!dmTarget,
+    form: open,
+    detail: !!selectedId,
+  };
   useEffect(() => {
-    setVotes(loadVotes());
+    const onPop = () => {
+      const l = layersRef.current;
+      if (l.dm) {
+        setDmTarget(null);
+        return;
+      }
+      if (l.form) {
+        setOpen(false);
+        setFormError("");
+        return;
+      }
+      if (l.detail) {
+        setSelectedId(null);
+        setMenuOpen(false);
+        return;
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  // 화면의 닫기 단추들 — 직접 닫지 않고 뒤로가기를 부른다 (층을 함께 걷어내려고)
+  const goBack = () => window.history.back();
+
+  useEffect(() => {
     const count = () =>
       setReturnedCount(loadStore().history.filter((h) => h.journal).length);
     count();
     window.addEventListener("hwadoo-store-updated", count);
     return () => window.removeEventListener("hwadoo-store-updated", count);
   }, []);
+
+  // 댓글 손길 — 계정이 바뀌면 그 계정의 기록을 읽는다
+  useEffect(() => {
+    setVotes(loadVotes(user?.uid));
+  }, [user]);
 
   // 내가 청해 둔 쪽지 대화들
   useEffect(() => {
@@ -207,7 +236,10 @@ export default function GatheringBoard({
   useEffect(() => {
     if (initialTemple) setTemple(initialTemple);
     if (initialDate) setDate(initialDate);
-    if (autoOpen || initialTemple || initialDate) setOpen(true);
+    if (autoOpen || initialTemple || initialDate) {
+      setOpen(true);
+      pushLayer();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -232,12 +264,13 @@ export default function GatheringBoard({
   };
   useEffect(refresh, []);
 
-  // 글에 들어가면 — 댓글과 내 합장 여부를 불러온다
+  // 글에 들어가면 — 댓글·내 합장을 불러오고, 조회를 하나 올린다(세션당 한 번)
   useEffect(() => {
     if (!selectedId) return;
     setLikeHint(false);
     setDmTarget(null);
     setReplyTo(null);
+    setMenuOpen(false);
     if (!commentsMap[selectedId]) {
       fetchComments(selectedId)
         .then((list) =>
@@ -250,10 +283,25 @@ export default function GatheringBoard({
         .then((v) => setLikedMap((m) => ({ ...m, [selectedId]: v })))
         .catch(() => {});
     }
+    try {
+      const key = `hwadoo-viewed:${selectedId}`;
+      if (!window.sessionStorage.getItem(key)) {
+        window.sessionStorage.setItem(key, "1");
+        setPosts(
+          (list) =>
+            list?.map((x) =>
+              x.id === selectedId ? { ...x, views: (x.views ?? 0) + 1 } : x
+            ) ?? null
+        );
+        viewPost(selectedId).catch(() => {});
+      }
+    } catch {
+      // 세션 저장이 막혀도 글은 보인다
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, user]);
 
-  // 연등 팝업이 열리면 — 연꽃 잔고를 살핀다
+  // 연꽃 팝업이 열리면 — 잔고를 살핀다
   useEffect(() => {
     if (!dmTarget || !user) return;
     setDmNeed(false);
@@ -300,8 +348,8 @@ export default function GatheringBoard({
       if (editingId) await updateGathering(editingId, input);
       else await createGathering(input);
       resetForm();
-      setOpen(false);
       refresh();
+      goBack(); // 층을 걷으며 닫는다 — 고치기였다면 글로 돌아간다
     } catch (e) {
       setFormError(
         e instanceof Error && e.message
@@ -322,46 +370,55 @@ export default function GatheringBoard({
     setTime(p.meetTime ?? "");
     setChat(p.openChatUrl ?? "");
     setFormError("");
+    setMenuOpen(false);
     setOpen(true);
+    pushLayer();
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // 합장 — 계정당 한 번
+  // 합장(공감) — 계정당 하나, 다시 누르면 거둔다
   const like = async (p: Post) => {
     if (!user) {
       setLikeHint(true);
       return;
     }
-    if (likedMap[p.id]) return;
-    setLikedMap((m) => ({ ...m, [p.id]: true }));
+    const cur = !!likedMap[p.id];
+    const delta = cur ? -1 : 1;
+    setLikedMap((m) => ({ ...m, [p.id]: !cur }));
     setPosts(
       (list) =>
         list?.map((x) =>
-          x.id === p.id ? { ...x, hapjang: x.hapjang + 1 } : x
+          x.id === p.id ? { ...x, hapjang: Math.max(0, x.hapjang + delta) } : x
         ) ?? null
     );
     try {
-      const counted = await likePost(p.id);
-      if (!counted) {
+      const changed = cur ? await unlikePost(p.id) : await likePost(p.id);
+      if (!changed) {
+        // 서버 상태와 어긋났다 — 셈만 되돌린다
         setPosts(
           (list) =>
             list?.map((x) =>
-              x.id === p.id ? { ...x, hapjang: Math.max(0, x.hapjang - 1) } : x
+              x.id === p.id
+                ? { ...x, hapjang: Math.max(0, x.hapjang - delta) }
+                : x
             ) ?? null
         );
       }
     } catch {
-      setLikedMap((m) => ({ ...m, [p.id]: false }));
+      setLikedMap((m) => ({ ...m, [p.id]: cur }));
       setPosts(
         (list) =>
           list?.map((x) =>
-            x.id === p.id ? { ...x, hapjang: Math.max(0, x.hapjang - 1) } : x
+            x.id === p.id
+              ? { ...x, hapjang: Math.max(0, x.hapjang - delta) }
+              : x
           ) ?? null
       );
     }
   };
 
   const remove = async (p: Post) => {
+    setMenuOpen(false);
     const ok = await confirm(
       "이 글을 내리겠습니까?",
       "내린 글은 되살릴 수 없습니다.",
@@ -371,11 +428,7 @@ export default function GatheringBoard({
     try {
       await deletePost(p.id);
       setPosts((list) => list?.filter((x) => x.id !== p.id) ?? null);
-      setSelectedId(null);
-      if (editingId === p.id) {
-        resetForm();
-        setOpen(false);
-      }
+      goBack(); // 글 층을 걷고 목록으로
     } catch {
       // 권한·연결 문제 — 화면은 그대로
     }
@@ -390,11 +443,12 @@ export default function GatheringBoard({
     window.open(p.openChatUrl, "_blank", "noopener,noreferrer");
   };
 
-  // 연등 — 이 사람에게 쪽지 팝업을 연다
+  // 연꽃 — 이 사람에게 쪽지 팝업을 연다
   const openLantern = (p: Post, uid: string, name: string) => {
     setDmIntro("");
     setDmNeed(false);
     setDmTarget({ postId: p.id, uid, name });
+    pushLayer();
   };
 
   const submitDmRequest = async (p: Post) => {
@@ -412,9 +466,9 @@ export default function GatheringBoard({
         return;
       }
       setThreadByKey((m) => ({ ...m, [`${p.id}|${dmTarget.uid}`]: t }));
-      setDmTarget(null);
       setDmIntro("");
-      getLotus().then(setLotusBal).catch(() => {}); // 잔고 새로
+      getLotus().then(setLotusBal).catch(() => {});
+      goBack(); // 팝업 층을 걷는다
     } catch {
       // 연결·권한 문제 — 입력은 남긴다
     } finally {
@@ -470,20 +524,41 @@ export default function GatheringBoard({
     }
   };
 
-  // 댓글 좋아요/싫어요 — 브라우저당 한 번
-  const vote = async (p: Post, c: Comment, dir: "up" | "down") => {
-    if (votes[c.id]) return;
-    const next = { ...votes, [c.id]: 1 as const };
+  // 댓글 좋아요/싫어요 — 계정당 하나. 갈아타면 앞의 것은 거둬진다.
+  const vote = async (p: Post, c: Comment, dir: VoteDir) => {
+    const cur = votes[c.id];
+    const deltas: { up?: number; down?: number } = {};
+    let next: Record<string, VoteDir>;
+    if (cur === dir) {
+      // 다시 누름 — 거둔다
+      deltas[dir] = -1;
+      next = { ...votes };
+      delete next[c.id];
+    } else if (cur) {
+      // 갈아탄다 — 앞의 것을 거두고 새로 얹는다
+      deltas[cur] = -1;
+      deltas[dir] = 1;
+      next = { ...votes, [c.id]: dir };
+    } else {
+      deltas[dir] = 1;
+      next = { ...votes, [c.id]: dir };
+    }
     setVotes(next);
-    keepVotes(next);
+    keepVotes(user?.uid, next);
     setCommentsMap((m) => ({
       ...m,
       [p.id]: (m[p.id] ?? []).map((x) =>
-        x.id === c.id ? { ...x, [dir]: (x[dir] ?? 0) + 1 } : x
+        x.id === c.id
+          ? {
+              ...x,
+              up: Math.max(0, (x.up ?? 0) + (deltas.up ?? 0)),
+              down: Math.max(0, (x.down ?? 0) + (deltas.down ?? 0)),
+            }
+          : x
       ),
     }));
     try {
-      await voteComment(p.id, c.id, dir);
+      await voteComment(p.id, c.id, deltas);
     } catch {
       // 셈은 부차 — 실패해도 조용히
     }
@@ -505,7 +580,7 @@ export default function GatheringBoard({
     }
   };
 
-  // 연등 아이콘 — 모든 이름 곁에 늘 걸린다. 누르면 쪽지 팝업.
+  // 연꽃 아이콘 — 모든 이름 곁에 풍성하게. 누르면 쪽지 팝업.
   const lanternFor = (p: Post, uid: string, name: string) => {
     if (!dmVisible(user?.uid)) return null;
     const has = !!threadByKey[`${p.id}|${uid}`];
@@ -514,16 +589,18 @@ export default function GatheringBoard({
         onClick={() => openLantern(p, uid, name)}
         title={has ? "쪽지함으로" : "쪽지 보내기"}
         aria-label={`${name}에게 쪽지 보내기`}
-        className={`ml-1.5 inline-flex align-[-2px] transition-colors ${
-          has ? "text-gold" : "text-gold-soft/70 hover:text-gold"
+        className={`ml-1.5 inline-flex rounded-full p-0.5 align-[-5px] transition-colors ${
+          has
+            ? "text-gold"
+            : "text-gold-soft hover:bg-gold/10 hover:text-gold"
         }`}
       >
-        <LanternGlyph />
+        <LotusMark className="h-[19px] w-[19px]" stroke="currentColor" />
       </button>
     );
   };
 
-  // ── 연등 팝업 — 쪽지 청하기 ──────────────────────────────
+  // ── 연꽃 팝업 — 쪽지 청하기 ──────────────────────────────
   const lanternModal = () => {
     if (!dmTarget) return null;
     const p = posts?.find((x) => x.id === dmTarget.postId);
@@ -532,14 +609,14 @@ export default function GatheringBoard({
     return (
       <div
         className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-4 sm:items-center"
-        onClick={() => setDmTarget(null)}
+        onClick={goBack}
       >
         <div
           className="w-full max-w-sm rounded-[16px] border border-gold/30 bg-ink-2 px-5 py-5 shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
           onClick={(e) => e.stopPropagation()}
         >
           <p className="flex items-center gap-2 text-[13px] tracking-wide text-hanji">
-            <LanternGlyph className="h-[15px] w-[15px] text-gold" />
+            <LotusMark className="h-[19px] w-[19px]" stroke="#D9B45B" />
             {dmTarget.name} 님에게 쪽지
           </p>
 
@@ -550,7 +627,7 @@ export default function GatheringBoard({
             </p>
           ) : user.uid === dmTarget.uid ? (
             <p className="mt-3 break-keep text-[12px] leading-6 text-hanji-dim">
-              내 이름 곁의 연등입니다 — 다른 수행자의 연등을 눌러 쪽지를 청해
+              내 이름 곁의 연꽃입니다 — 다른 수행자의 연꽃을 눌러 쪽지를 청해
               보십시오.
             </p>
           ) : thread ? (
@@ -611,7 +688,7 @@ export default function GatheringBoard({
           )}
 
           <button
-            onClick={() => setDmTarget(null)}
+            onClick={goBack}
             className="mt-3 w-full text-center text-[11px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
           >
             닫기
@@ -621,137 +698,161 @@ export default function GatheringBoard({
     );
   };
 
-  // ── 댓글 한 덩이 — 본문과 손길 줄 ──────────────────────────
-  const renderComment = (p: Post, c: Comment, isReply: boolean) => (
-    <li key={c.id} className={isReply ? "ml-6 border-l border-ink-3/60 pl-3.5" : ""}>
-      <p className="text-[11.5px] tracking-wide text-hanji-faint">
-        <span className="text-hanji-dim">{c.authorName}</span>
-        {lanternFor(p, c.authorUid, c.authorName)}
-        <span className="ml-2">{stamp(c.createdAt)}</span>
-      </p>
-      <p className="mt-1 break-keep text-[13px] leading-6 text-hanji">
-        {c.body}
-      </p>
-      <p className="mt-1.5 flex items-center gap-3.5 text-[11px] tracking-wide text-hanji-faint">
-        {!isReply && (
+  // ── 댓글 한 덩이 ─────────────────────────────────────────
+  const renderComment = (p: Post, c: Comment, isReply: boolean) => {
+    const my = votes[c.id];
+    return (
+      <li
+        key={c.id}
+        className={isReply ? "ml-6 border-l border-ink-3/60 pl-3.5" : ""}
+      >
+        <p className="text-[11.5px] tracking-wide text-hanji-faint">
+          <span className="text-hanji-dim">{c.authorName}</span>
+          {lanternFor(p, c.authorUid, c.authorName)}
+          <span className="ml-2">{stamp(c.createdAt)}</span>
+        </p>
+        <p className="mt-1 break-keep text-[13px] leading-6 text-hanji">
+          {c.body}
+        </p>
+        <p className="mt-1.5 flex items-center gap-3.5 text-[11px] tracking-wide text-hanji-faint">
+          {!isReply && (
+            <button
+              onClick={() => {
+                setRBody("");
+                setReplyTo(replyTo === c.id ? null : c.id);
+              }}
+              className="transition-colors hover:text-hanji-dim"
+            >
+              답글
+            </button>
+          )}
           <button
-            onClick={() => {
-              setRBody("");
-              setReplyTo(replyTo === c.id ? null : c.id);
-            }}
-            className="transition-colors hover:text-hanji-dim"
+            onClick={() => vote(p, c, "up")}
+            className={`transition-colors ${
+              my === "up" ? "font-medium text-gold" : "hover:text-gold-soft"
+            }`}
           >
-            답글
+            좋아요{(c.up ?? 0) > 0 ? ` ${c.up}` : ""}
           </button>
+          <button
+            onClick={() => vote(p, c, "down")}
+            className={`transition-colors ${
+              my === "down"
+                ? "font-medium text-vermilion"
+                : "hover:text-hanji-dim"
+            }`}
+          >
+            싫어요{(c.down ?? 0) > 0 ? ` ${c.down}` : ""}
+          </button>
+          {!!user && user.uid !== c.authorUid && (
+            <button
+              onClick={() => report(p, c)}
+              disabled={reported.has(c.id)}
+              className="transition-colors enabled:hover:text-vermilion disabled:opacity-60"
+            >
+              {reported.has(c.id) ? "신고됨" : "신고"}
+            </button>
+          )}
+          {!!user && (user.uid === c.authorUid || user.uid === ADMIN_UID) && (
+            <button
+              onClick={() => removeComment(p, c)}
+              className="transition-colors hover:text-vermilion"
+            >
+              지우기
+            </button>
+          )}
+        </p>
+        {replyTo === c.id && !isReply && (
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              value={rBody}
+              onChange={(e) => setRBody(e.target.value)}
+              maxLength={300}
+              placeholder="답글"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.nativeEvent.isComposing)
+                  void submitComment(p, rBody, c.id);
+              }}
+              className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-2 text-[12.5px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+            />
+            <button
+              onClick={() => submitComment(p, rBody, c.id)}
+              disabled={cBusy || !rBody.trim()}
+              className="shrink-0 rounded-[10px] border border-ink-3 px-3.5 py-2 text-[11px] tracking-[0.15em] text-hanji-dim transition-colors enabled:hover:border-gold/40 enabled:hover:text-hanji disabled:opacity-40"
+            >
+              {cBusy ? "…" : "남기기"}
+            </button>
+          </div>
         )}
-        <button
-          onClick={() => vote(p, c, "up")}
-          disabled={!!votes[c.id]}
-          className="transition-colors enabled:hover:text-gold-soft disabled:opacity-60"
-        >
-          좋아요{(c.up ?? 0) > 0 ? ` ${c.up}` : ""}
-        </button>
-        <button
-          onClick={() => vote(p, c, "down")}
-          disabled={!!votes[c.id]}
-          className="transition-colors enabled:hover:text-hanji-dim disabled:opacity-60"
-        >
-          싫어요{(c.down ?? 0) > 0 ? ` ${c.down}` : ""}
-        </button>
-        {!!user && user.uid !== c.authorUid && (
-          <button
-            onClick={() => report(p, c)}
-            disabled={reported.has(c.id)}
-            className="transition-colors enabled:hover:text-vermilion disabled:opacity-60"
-          >
-            {reported.has(c.id) ? "신고됨" : "신고"}
-          </button>
-        )}
-        {!!user && (user.uid === c.authorUid || user.uid === ADMIN_UID) && (
-          <button
-            onClick={() => removeComment(p, c)}
-            className="transition-colors hover:text-vermilion"
-          >
-            지우기
-          </button>
-        )}
-      </p>
-      {/* 답글 입력 — 그 댓글 바로 아래 */}
-      {replyTo === c.id && !isReply && (
-        <div className="mt-2 flex items-center gap-2">
-          <input
-            value={rBody}
-            onChange={(e) => setRBody(e.target.value)}
-            maxLength={300}
-            placeholder="답글"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.nativeEvent.isComposing)
-                void submitComment(p, rBody, c.id);
-            }}
-            className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-2 text-[12.5px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
-          />
-          <button
-            onClick={() => submitComment(p, rBody, c.id)}
-            disabled={cBusy || !rBody.trim()}
-            className="shrink-0 rounded-[10px] border border-ink-3 px-3.5 py-2 text-[11px] tracking-[0.15em] text-hanji-dim transition-colors enabled:hover:border-gold/40 enabled:hover:text-hanji disabled:opacity-40"
-          >
-            {cBusy ? "…" : "남기기"}
-          </button>
-        </div>
-      )}
-    </li>
-  );
+      </li>
+    );
+  };
 
   // ── 글 읽기 ─────────────────────────────────────────────
   const renderDetail = (p: Post) => {
     const mine = isMine(p);
     const isAuthor = !!user && user.uid === p.authorUid;
     const authorThread = threadByKey[`${p.id}|${p.authorUid}`];
-    // 함께하기 — 쪽지가 걸린 이에겐 글쓴이와 대화가 이어져야 열린다
     const dmOn = dmVisible(user?.uid) && !isAuthor;
     const chatUnlocked = !dmOn || authorThread?.status === "accepted";
     const comments = commentsMap[p.id];
     const liked = !!likedMap[p.id];
-    // 대댓글 — 부모 아래로 모은다 (부모가 지워진 답글은 겉으로)
     const all = comments ?? [];
     const ids = new Set(all.map((c) => c.id));
     const tops = all.filter((c) => !c.parentId || !ids.has(c.parentId));
     const childrenOf = (id: string) => all.filter((c) => c.parentId === id);
 
     return (
-      <div className="px-4 sm:px-0">
-        <button
-          onClick={() => setSelectedId(null)}
-          className="text-[12px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
-        >
-          ← 목록
-        </button>
+      <div className="px-4 pb-28 sm:px-0 md:pb-0">
+        <div className="flex items-start justify-between gap-3">
+          <button
+            onClick={goBack}
+            className="text-[12px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
+          >
+            ← 목록
+          </button>
+          {/* ⋯ 메뉴 — 고치기·내리기 */}
+          {mine && (
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen((v) => !v)}
+                aria-label="글 메뉴"
+                aria-expanded={menuOpen}
+                className="rounded-full px-2 py-0.5 text-[16px] leading-none tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji"
+              >
+                ⋯
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 top-7 z-30 w-28 overflow-hidden rounded-[12px] border border-ink-3 bg-ink-2 shadow-[0_8px_24px_rgba(0,0,0,0.45)]">
+                  <button
+                    onClick={() => startEdit(p)}
+                    className="block w-full px-4 py-2.5 text-left text-[12.5px] text-hanji-dim transition-colors hover:bg-gold/10 hover:text-hanji"
+                  >
+                    고치기
+                  </button>
+                  <button
+                    onClick={() => remove(p)}
+                    className="block w-full border-t border-ink-3/60 px-4 py-2.5 text-left text-[12.5px] text-hanji-dim transition-colors hover:bg-vermilion/10 hover:text-vermilion"
+                  >
+                    내리기
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* 제목 */}
-        <h2 className="mt-4 break-keep font-serif text-[19px] font-medium leading-8 text-hanji">
+        <h2 className="mt-3 break-keep font-serif text-[19px] font-medium leading-8 text-hanji">
           {p.title}
         </h2>
 
-        {/* 글쓴이 + 연등 */}
+        {/* 글쓴이 + 연꽃 · 조회 · 쓴 날짜 */}
         <p className="mt-2 text-[12px] tracking-wider text-hanji-faint">
           <span className="text-hanji-dim">{p.authorName}</span>
           {lanternFor(p, p.authorUid, p.authorName)}
-          {mine && (
-            <span className="ml-3 inline-flex gap-2.5">
-              <button
-                onClick={() => startEdit(p)}
-                className="underline decoration-ink-3 underline-offset-4 transition-colors hover:text-hanji"
-              >
-                고치기
-              </button>
-              <button
-                onClick={() => remove(p)}
-                className="underline decoration-ink-3 underline-offset-4 transition-colors hover:text-vermilion"
-              >
-                내리기
-              </button>
-            </span>
-          )}
+          <span className="ml-2.5">조회 {p.views ?? 0}</span>
+          <span className="ml-2.5">{stamp(p.createdAt)}</span>
         </p>
 
         {/* 내용 */}
@@ -759,24 +860,22 @@ export default function GatheringBoard({
           {p.body}
         </p>
 
-        {/* 날짜·시간 + 합장 + 함께하기 */}
-        <p className="mt-5 text-[11.5px] tracking-wide text-hanji-faint">
-          {stamp(p.createdAt)}
-          {(p.templeName || p.meetDate) && (
-            <span className="ml-3 text-gold-soft">
-              약속{p.templeName ? ` ${p.templeName}` : ""}
-              {p.meetDate ? ` · ${legacyDate(p.meetDate)}` : ""}
-              {p.meetTime ? ` · ${timeLabel(p.meetTime)}` : ""}
-            </span>
-          )}
-        </p>
-        <div className="mt-3 flex items-stretch gap-2">
+        {/* 약속 — 절·날짜·시간 (적은 것만) */}
+        {(p.templeName || p.meetDate) && (
+          <p className="mt-4 text-[11.5px] tracking-wide text-gold-soft">
+            약속{p.templeName ? ` ${p.templeName}` : ""}
+            {p.meetDate ? ` · ${legacyDate(p.meetDate)}` : ""}
+            {p.meetTime ? ` · ${timeLabel(p.meetTime)}` : ""}
+          </p>
+        )}
+
+        {/* 합장(공감) + 함께하기 */}
+        <div className="mt-4 flex items-stretch gap-2">
           <button
             onClick={() => like(p)}
-            disabled={liked}
             className={`shrink-0 rounded-[12px] border px-5 py-2.5 text-[12px] tracking-[0.12em] transition-colors ${
               liked
-                ? "border-gold/40 bg-gold/10 text-gold"
+                ? "border-gold/50 bg-gold/10 text-gold"
                 : "border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji"
             }`}
           >
@@ -802,7 +901,7 @@ export default function GatheringBoard({
           </p>
         )}
 
-        {/* 댓글들 — 먼저, 쓰기는 맨 아래 */}
+        {/* 댓글들 */}
         <div className="mt-6 border-t border-ink-3/60 pt-4">
           <p className="text-[11px] tracking-[0.25em] text-hanji-faint">
             댓글{p.commentCount > 0 ? ` · ${p.commentCount}` : ""}
@@ -824,9 +923,17 @@ export default function GatheringBoard({
             </ul>
           ) : null}
 
-          {/* 댓글 쓰기 — 맨 아래 */}
+          {/* 주의 — 작게 한 줄 */}
+          <p className="mt-6 break-keep text-[10px] leading-4 text-hanji-faint/80">
+            처음 만나는 자리는 사찰 등 열린 곳에서 · 연락처 등 개인정보는
+            아끼십시오.
+          </p>
+        </div>
+
+        {/* 댓글 쓰기 — 모바일은 아래 탭 바로 위에 고정 */}
+        <div className="fixed inset-x-0 bottom-16 z-[45] border-t border-ink-3 bg-ink-2/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:mt-5 md:border-0 md:bg-transparent md:p-0">
           {qualified ? (
-            <div className="mt-5 flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <input
                 value={cBody}
                 onChange={(e) => setCBody(e.target.value)}
@@ -841,24 +948,19 @@ export default function GatheringBoard({
               <button
                 onClick={() => submitComment(p, cBody)}
                 disabled={cBusy || !cBody.trim()}
-                className="shrink-0 rounded-[10px] border border-ink-3 px-4 py-2.5 text-[11px] tracking-[0.15em] text-hanji-dim transition-colors enabled:hover:border-gold/40 enabled:hover:text-hanji disabled:opacity-40"
+                className="shrink-0 rounded-[10px] border border-gold/50 px-4 py-2.5 text-[11px] tracking-[0.15em] text-gold transition-colors enabled:hover:bg-gold/10 disabled:opacity-40"
               >
                 {cBusy ? "…" : "남기기"}
               </button>
             </div>
           ) : (
-            <p className="mt-5 break-keep text-[11px] leading-5 text-hanji-faint">
+            <p className="break-keep text-center text-[11px] leading-5 text-hanji-faint md:text-left">
               {!user
                 ? "댓글은 로그인한 분만 쓸 수 있습니다."
                 : "댓글은 화두 하나를 회향한 뒤에 쓸 수 있습니다."}
             </p>
           )}
         </div>
-
-        <p className="mt-8 break-keep text-[11px] leading-5 text-hanji-faint">
-          처음 만나는 자리는 사찰 등 열린 곳에서 — 연락처 등 개인정보는
-          아끼십시오.
-        </p>
 
         {lanternModal()}
       </div>
@@ -873,22 +975,20 @@ export default function GatheringBoard({
   if (open) {
     return (
       <div ref={formRef} className="scroll-mt-6 px-4 sm:px-0">
+        <button
+          onClick={goBack}
+          className="text-[12px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
+        >
+          ← 뒤로
+        </button>
         {!qualified ? (
-          <>
-            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-              {!user
-                ? "글을 쓰려면 로그인이 필요합니다 — 왼쪽 아래(모바일은 내 도량)에서 로그인해 주십시오."
-                : "화두 하나를 회향한 뒤에 글을 쓸 수 있습니다."}
-            </p>
-            <button
-              onClick={() => setOpen(false)}
-              className="mt-4 rounded-[10px] border border-ink-3 px-4 py-2 text-[12px] tracking-[0.15em] text-hanji-dim transition-colors hover:text-hanji"
-            >
-              알겠습니다
-            </button>
-          </>
+          <p className="mt-4 break-keep text-[13px] leading-7 text-hanji-dim">
+            {!user
+              ? "글을 쓰려면 로그인이 필요합니다 — 왼쪽 아래(모바일은 내 도량)에서 로그인해 주십시오."
+              : "화두 하나를 회향한 뒤에 글을 쓸 수 있습니다."}
+          </p>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="mt-4 flex flex-col gap-3">
             <p className="text-[11px] tracking-[0.25em] text-gold-soft">
               {editingId ? "글 고치기" : "글 쓰기"}
             </p>
@@ -970,10 +1070,7 @@ export default function GatheringBoard({
                     : "올리기"}
               </button>
               <button
-                onClick={() => {
-                  resetForm();
-                  setOpen(false);
-                }}
+                onClick={goBack}
                 className="text-[12px] tracking-wider text-hanji-faint transition-colors hover:text-hanji-dim"
               >
                 접기
@@ -996,13 +1093,14 @@ export default function GatheringBoard({
           href="/lotus"
           className="inline-flex items-center gap-1.5 rounded-[10px] border border-ink-3 px-3.5 py-1.5 text-[12px] tracking-[0.1em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
         >
-          <LanternGlyph className="h-[13px] w-[13px] text-gold-soft" />
+          <LotusMark className="h-[15px] w-[15px]" stroke="#D9B45B" />
           연꽃{user && lotusBal !== null ? ` ${lotusBal}` : ""}
         </Link>
         <button
           onClick={() => {
             resetForm();
             setOpen(true);
+            pushLayer();
           }}
           className="rounded-[10px] border border-gold/50 px-4 py-1.5 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
         >
@@ -1027,7 +1125,10 @@ export default function GatheringBoard({
           sorted.map((p) => (
             <li key={p.id}>
               <button
-                onClick={() => setSelectedId(p.id)}
+                onClick={() => {
+                  setSelectedId(p.id);
+                  pushLayer();
+                }}
                 className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-gold/5 sm:px-2"
               >
                 <span className="min-w-0 flex-1 truncate text-[14.5px] font-medium leading-6 text-hanji">

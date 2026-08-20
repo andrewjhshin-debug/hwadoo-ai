@@ -8,7 +8,6 @@
 // ────────────────────────────────────────────────────────────────
 
 import { Suspense } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import GatheringBoard from "@/components/GatheringBoard";
 
@@ -28,14 +27,6 @@ function GatheringInner() {
           autoOpen={autoOpen}
         />
       </section>
-
-      {/* 절을 고르러 — 지도로 */}
-      <Link
-        href="/pilgrimage"
-        className="rise rise-d2 mt-8 self-center text-[12px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
-      >
-        지도에서 절 고르기 →
-      </Link>
     </div>
   );
 }
