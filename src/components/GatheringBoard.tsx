@@ -674,22 +674,31 @@ export default function GatheringBoard({
     }
   };
 
-  // 연등 아이콘 — 모든 이름 곁에 통통하게. 누르면 쪽지 팝업.
-  const lanternFor = (p: Post, uid: string, name: string) => {
-    if (!dmVisible(user?.uid)) return null;
+  // 프로필 태극이 곧 쪽지 단추 — 누르면 그 사람에게 쪽지 팝업.
+  // 이미 대화가 있으면 모서리에 금점 하나.
+  const profileFor = (
+    p: Post,
+    uid: string,
+    name: string,
+    g: "m" | "f" | null | undefined,
+    cls: string
+  ) => {
+    if (!dmVisible(user?.uid)) return <GenderMark g={g} className={cls} />;
     const has = !!threadByKey[`${p.id}|${uid}`];
     return (
       <button
         onClick={() => openLantern(p, uid, name)}
         title={has ? "쪽지함으로" : "쪽지 보내기"}
         aria-label={`${name}에게 쪽지 보내기`}
-        className={`ml-1.5 inline-flex rounded-full p-0.5 align-[-5px] transition-all active:scale-90 ${
-          has
-            ? "text-gold"
-            : "text-gold-soft/80 hover:bg-gold/10 hover:text-gold"
-        }`}
+        className="relative shrink-0 rounded-full transition-transform active:scale-90"
       >
-        <YinYang className="h-[20px] w-[20px]" />
+        <GenderMark g={g} className={cls} />
+        {has && (
+          <span
+            aria-hidden
+            className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-gold shadow-[0_0_5px_var(--color-gold)]"
+          />
+        )}
       </button>
     );
   };
@@ -810,15 +819,12 @@ export default function GatheringBoard({
         key={c.id}
         className={isReply ? "ml-5 border-l border-ink-3/60 pl-3" : ""}
       >
-        {/* 음양 프로필 · 이름 · 시간(작게) — 쪽지(음양 기호)는 오른쪽 끝 */}
+        {/* 프로필 태극(누르면 쪽지) · 이름 · 시간(작게) */}
         <div className="flex items-center gap-2">
-          <GenderMark g={c.gender} className="h-7 w-7 text-[11px]" />
+          {profileFor(p, c.authorUid, c.authorName, c.gender, "h-7 w-7")}
           <span className="text-[13px] text-hanji-dim">{c.authorName}</span>
           <span className="text-[10.5px] tracking-wide text-hanji-faint">
             {stamp(c.createdAt)}
-          </span>
-          <span className="ml-auto">
-            {lanternFor(p, c.authorUid, c.authorName)}
           </span>
         </div>
         <p className="mt-0.5 break-keep pl-9 text-[14.5px] leading-6 text-hanji">
@@ -953,11 +959,10 @@ export default function GatheringBoard({
           {p.title}
         </h2>
 
-        {/* 글쓴이(음양 프로필) — 오른쪽 끝에 조회·시간 아주 작게 */}
+        {/* 글쓴이 — 프로필 태극을 누르면 쪽지 · 오른쪽 끝에 조회·시간 작게 */}
         <div className="mt-2 flex items-center gap-2">
-          <GenderMark g={p.gender} className="h-8 w-8 text-[13px]" />
+          {profileFor(p, p.authorUid, p.authorName, p.gender, "h-9 w-9")}
           <span className="text-[13.5px] text-hanji-dim">{p.authorName}</span>
-          {lanternFor(p, p.authorUid, p.authorName)}
           <span className="ml-auto flex shrink-0 items-center gap-2 text-[10.5px] tracking-wide text-hanji-faint">
             <span className="flex items-center gap-1">
               <EyeIcon className="h-[12px] w-[12px]" />
