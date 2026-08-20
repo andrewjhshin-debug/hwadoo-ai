@@ -51,6 +51,24 @@ import { TEMPLES } from "@/lib/pilgrimage";
 import { LotusMark } from "@/components/icons";
 import { useConfirm } from "@/components/Confirm";
 
+// 연등 — 통통한 초롱. 채움형이라 누르고 싶게 손에 잡힌다 (쪽지 단추).
+function LanternIcon({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      {/* 고리 */}
+      <path d="M11.2 2.4h1.6v1.6h-1.6z" />
+      {/* 갓 */}
+      <rect x="8.3" y="4" width="7.4" height="2.2" rx="1.1" />
+      {/* 둥근 몸통 */}
+      <ellipse cx="12" cy="12.3" rx="6" ry="5.6" />
+      {/* 받침 */}
+      <rect x="9.1" y="17.9" width="5.8" height="1.7" rx="0.85" />
+      {/* 술 */}
+      <path d="M11.3 19.9h1.4l-.25 1.9h-.9z" />
+    </svg>
+  );
+}
+
 // 서버 시각 → "8.20 14:05" (아직 안 붙었으면 "방금")
 function stamp(t?: { seconds: number }): string {
   if (!t) return "방금";
@@ -580,7 +598,7 @@ export default function GatheringBoard({
     }
   };
 
-  // 연꽃 아이콘 — 모든 이름 곁에 풍성하게. 누르면 쪽지 팝업.
+  // 연등 아이콘 — 모든 이름 곁에 통통하게. 누르면 쪽지 팝업.
   const lanternFor = (p: Post, uid: string, name: string) => {
     if (!dmVisible(user?.uid)) return null;
     const has = !!threadByKey[`${p.id}|${uid}`];
@@ -589,13 +607,13 @@ export default function GatheringBoard({
         onClick={() => openLantern(p, uid, name)}
         title={has ? "쪽지함으로" : "쪽지 보내기"}
         aria-label={`${name}에게 쪽지 보내기`}
-        className={`ml-1.5 inline-flex rounded-full p-0.5 align-[-5px] transition-colors ${
+        className={`ml-1.5 inline-flex rounded-full p-0.5 align-[-5px] transition-all active:scale-90 ${
           has
             ? "text-gold"
-            : "text-gold-soft hover:bg-gold/10 hover:text-gold"
+            : "text-gold-soft/80 hover:bg-gold/10 hover:text-gold"
         }`}
       >
-        <LotusMark className="h-[19px] w-[19px]" stroke="currentColor" />
+        <LanternIcon className="h-[20px] w-[20px]" />
       </button>
     );
   };
@@ -615,19 +633,19 @@ export default function GatheringBoard({
           className="w-full max-w-sm rounded-[16px] border border-gold/30 bg-ink-2 px-5 py-5 shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="flex items-center gap-2 text-[13px] tracking-wide text-hanji">
-            <LotusMark className="h-[19px] w-[19px]" stroke="#D9B45B" />
+          <p className="flex items-center gap-2 text-[15.5px] tracking-wide text-hanji">
+            <LanternIcon className="h-[22px] w-[22px] text-gold" />
             {dmTarget.name} 님에게 쪽지
           </p>
 
           {!user ? (
-            <p className="mt-3 break-keep text-[12px] leading-6 text-hanji-dim">
+            <p className="mt-3 break-keep text-[13.5px] leading-6 text-hanji-dim">
               쪽지는 로그인한 분만 보낼 수 있습니다 — 왼쪽 아래(모바일은 내
               도량)에서 로그인해 주십시오.
             </p>
           ) : user.uid === dmTarget.uid ? (
-            <p className="mt-3 break-keep text-[12px] leading-6 text-hanji-dim">
-              내 이름 곁의 연꽃입니다 — 다른 수행자의 연꽃을 눌러 쪽지를 청해
+            <p className="mt-3 break-keep text-[13.5px] leading-6 text-hanji-dim">
+              내 이름 곁의 연등입니다 — 다른 수행자의 연등을 눌러 쪽지를 청해
               보십시오.
             </p>
           ) : thread ? (
@@ -641,20 +659,20 @@ export default function GatheringBoard({
               </p>
               <Link
                 href="/letters"
-                className="mt-3 inline-block rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
+                className="mt-3 inline-block rounded-[10px] border border-gold/50 px-4 py-2.5 text-[13.5px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
               >
                 쪽지함 →
               </Link>
             </>
           ) : dmNeed ? (
             <>
-              <p className="mt-3 break-keep text-[12px] leading-6 text-hanji-dim">
+              <p className="mt-3 break-keep text-[13.5px] leading-6 text-hanji-dim">
                 연꽃이 없습니다 — 연꽃 한 송이(1,000원)로 쪽지를 청할 수
                 있습니다.
               </p>
               <Link
                 href="/lotus"
-                className="mt-3 inline-block rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
+                className="mt-3 inline-block rounded-[10px] border border-gold/50 px-4 py-2.5 text-[13.5px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
               >
                 연꽃 얻기 →
               </Link>
@@ -667,29 +685,39 @@ export default function GatheringBoard({
                 rows={3}
                 maxLength={200}
                 placeholder="한 마디와 함께"
-                className="mt-3 w-full resize-none rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-2.5 text-[13px] leading-6 text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+                className="mt-3 w-full resize-none rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-3 text-[15px] leading-7 text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
               />
               <button
                 onClick={() => submitDmRequest(p)}
                 disabled={dmBusy || !dmIntro.trim()}
-                className="btn-obang mt-3 w-full rounded-[10px] py-2.5 text-[12px] tracking-[0.15em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-40"
+                className="btn-obang mt-3 w-full rounded-[10px] py-3 text-[14px] tracking-[0.15em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-40"
               >
-                {dmBusy ? "보내는 중…" : "쪽지 청하기 — 연꽃 1송이"}
+                {dmBusy
+                  ? "보내는 중…"
+                  : user.uid === ADMIN_UID
+                    ? "쪽지 청하기"
+                    : "쪽지 청하기 — 연꽃 1송이"}
               </button>
-              <p className="mt-2.5 break-keep text-center text-[11px] leading-5 text-hanji-faint">
-                내 연꽃{" "}
-                <span className="text-gold">
-                  {dmLotus === null ? "…" : dmLotus}
-                </span>
-                송이 · 처음 오신 분께는 {FIRST_GRANT}송이를 드립니다 · 수락되면
-                대화는 무료
-              </p>
+              {user.uid === ADMIN_UID ? (
+                <p className="mt-2.5 text-center text-[11px] leading-5 text-gold-soft">
+                  뒷방 주인 — 연꽃 없이 무제한으로 청할 수 있습니다
+                </p>
+              ) : (
+                <p className="mt-2.5 break-keep text-center text-[11px] leading-5 text-hanji-faint">
+                  내 연꽃{" "}
+                  <span className="text-gold">
+                    {dmLotus === null ? "…" : dmLotus}
+                  </span>
+                  송이 · 처음 오신 분께는 {FIRST_GRANT}송이를 드립니다 ·
+                  수락되면 대화는 무료
+                </p>
+              )}
             </>
           )}
 
           <button
             onClick={goBack}
-            className="mt-3 w-full text-center text-[11px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
+            className="mt-3.5 w-full text-center text-[12.5px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
           >
             닫기
           </button>
@@ -706,15 +734,15 @@ export default function GatheringBoard({
         key={c.id}
         className={isReply ? "ml-6 border-l border-ink-3/60 pl-3.5" : ""}
       >
-        <p className="text-[11.5px] tracking-wide text-hanji-faint">
+        <p className="text-[13px] tracking-wide text-hanji-faint">
           <span className="text-hanji-dim">{c.authorName}</span>
           {lanternFor(p, c.authorUid, c.authorName)}
           <span className="ml-2">{stamp(c.createdAt)}</span>
         </p>
-        <p className="mt-1 break-keep text-[13px] leading-6 text-hanji">
+        <p className="mt-1 break-keep text-[15px] leading-7 text-hanji">
           {c.body}
         </p>
-        <p className="mt-1.5 flex items-center gap-3.5 text-[11px] tracking-wide text-hanji-faint">
+        <p className="mt-1.5 flex items-center gap-4 text-[12.5px] tracking-wide text-hanji-faint">
           {!isReply && (
             <button
               onClick={() => {
@@ -773,7 +801,7 @@ export default function GatheringBoard({
                 if (e.key === "Enter" && !e.nativeEvent.isComposing)
                   void submitComment(p, rBody, c.id);
               }}
-              className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-2 text-[12.5px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+              className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-2.5 text-[14px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
             />
             <button
               onClick={() => submitComment(p, rBody, c.id)}
@@ -807,7 +835,7 @@ export default function GatheringBoard({
         <div className="flex items-start justify-between gap-3">
           <button
             onClick={goBack}
-            className="text-[12px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
+            className="text-[13.5px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
           >
             ← 목록
           </button>
@@ -843,12 +871,12 @@ export default function GatheringBoard({
         </div>
 
         {/* 제목 */}
-        <h2 className="mt-3 break-keep font-serif text-[19px] font-medium leading-8 text-hanji">
+        <h2 className="mt-3 break-keep font-serif text-[22px] font-medium leading-9 text-hanji">
           {p.title}
         </h2>
 
         {/* 글쓴이 + 연꽃 · 조회 · 쓴 날짜 */}
-        <p className="mt-2 text-[12px] tracking-wider text-hanji-faint">
+        <p className="mt-2.5 text-[13.5px] tracking-wider text-hanji-faint">
           <span className="text-hanji-dim">{p.authorName}</span>
           {lanternFor(p, p.authorUid, p.authorName)}
           <span className="ml-2.5">조회 {p.views ?? 0}</span>
@@ -856,13 +884,13 @@ export default function GatheringBoard({
         </p>
 
         {/* 내용 */}
-        <p className="mt-5 whitespace-pre-line break-keep text-[14.5px] font-light leading-8 text-hanji">
+        <p className="mt-5 whitespace-pre-line break-keep text-[16px] font-light leading-[1.9] text-hanji">
           {p.body}
         </p>
 
         {/* 약속 — 절·날짜·시간 (적은 것만) */}
         {(p.templeName || p.meetDate) && (
-          <p className="mt-4 text-[11.5px] tracking-wide text-gold-soft">
+          <p className="mt-4 text-[13.5px] tracking-wide text-gold-soft">
             약속{p.templeName ? ` ${p.templeName}` : ""}
             {p.meetDate ? ` · ${legacyDate(p.meetDate)}` : ""}
             {p.meetTime ? ` · ${timeLabel(p.meetTime)}` : ""}
@@ -873,7 +901,7 @@ export default function GatheringBoard({
         <div className="mt-4 flex items-stretch gap-2">
           <button
             onClick={() => like(p)}
-            className={`shrink-0 rounded-[12px] border px-5 py-2.5 text-[12px] tracking-[0.12em] transition-colors ${
+            className={`shrink-0 rounded-[12px] border px-5 py-3 text-[14px] tracking-[0.12em] transition-colors ${
               liked
                 ? "border-gold/50 bg-gold/10 text-gold"
                 : "border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji"
@@ -885,12 +913,12 @@ export default function GatheringBoard({
             (chatUnlocked ? (
               <button
                 onClick={() => joinChat(p)}
-                className="btn-obang flex-1 rounded-[12px] py-2.5 text-[12px] tracking-[0.15em] text-hanji transition-opacity hover:opacity-90"
+                className="btn-obang flex-1 rounded-[12px] py-3 text-[14px] tracking-[0.15em] text-hanji transition-opacity hover:opacity-90"
               >
                 함께하기 →
               </button>
             ) : (
-              <span className="flex flex-1 items-center justify-center rounded-[12px] border border-dashed border-ink-3 px-3 py-2.5 text-center text-[11px] leading-4 text-hanji-faint">
+              <span className="flex flex-1 items-center justify-center rounded-[12px] border border-dashed border-ink-3 px-3 py-3 text-center text-[12px] leading-5 text-hanji-faint">
                 함께하기는 글쓴이와 쪽지가 이어지면 열립니다
               </span>
             ))}
@@ -943,7 +971,7 @@ export default function GatheringBoard({
                   if (e.key === "Enter" && !e.nativeEvent.isComposing)
                     void submitComment(p, cBody);
                 }}
-                className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-2.5 text-[13px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+                className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-3 text-[15px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
               />
               <button
                 onClick={() => submitComment(p, cBody)}
@@ -977,7 +1005,7 @@ export default function GatheringBoard({
       <div ref={formRef} className="scroll-mt-6 px-4 sm:px-0">
         <button
           onClick={goBack}
-          className="text-[12px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
+          className="text-[13.5px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
         >
           ← 뒤로
         </button>
@@ -997,7 +1025,7 @@ export default function GatheringBoard({
               onChange={(e) => setTitle(e.target.value)}
               maxLength={60}
               placeholder="제목"
-              className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[14px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+              className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[16px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
             />
             <textarea
               value={text}
@@ -1005,7 +1033,7 @@ export default function GatheringBoard({
               rows={6}
               maxLength={1000}
               placeholder="내용"
-              className="resize-none rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[13.5px] leading-7 text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+              className="resize-none rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[15.5px] leading-8 text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
             />
             {/* 어느 절로, 언제 — 전부 선택 */}
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -1015,7 +1043,7 @@ export default function GatheringBoard({
                 list="gathering-temples"
                 maxLength={30}
                 placeholder="절 (선택)"
-                className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+                className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[15px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
               />
               <datalist id="gathering-temples">
                 {TEMPLES.map((t) => (
@@ -1044,7 +1072,7 @@ export default function GatheringBoard({
               onChange={(e) => setChat(e.target.value)}
               inputMode="url"
               placeholder="함께하기 링크 (선택) — https://open.kakao.com/o/…"
-              className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+              className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[15px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
             />
             <p className="text-[11px] leading-5 text-hanji-faint">
               링크는 글에 드러나지 않고 [함께하기] 단추 뒤에만 놓입니다 —
@@ -1091,9 +1119,9 @@ export default function GatheringBoard({
         {/* 연꽃 잔고 — 누르면 연꽃 공양(구매)으로 */}
         <Link
           href="/lotus"
-          className="inline-flex items-center gap-1.5 rounded-[10px] border border-ink-3 px-3.5 py-1.5 text-[12px] tracking-[0.1em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          className="inline-flex items-center gap-1.5 rounded-[10px] border border-ink-3 px-3.5 py-2 text-[13.5px] tracking-[0.1em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
         >
-          <LotusMark className="h-[15px] w-[15px]" stroke="#D9B45B" />
+          <LotusMark className="h-[17px] w-[17px]" stroke="#D9B45B" />
           연꽃{user && lotusBal !== null ? ` ${lotusBal}` : ""}
         </Link>
         <button
@@ -1102,7 +1130,7 @@ export default function GatheringBoard({
             setOpen(true);
             pushLayer();
           }}
-          className="rounded-[10px] border border-gold/50 px-4 py-1.5 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
+          className="rounded-[10px] border border-gold/50 px-4 py-2 text-[13.5px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
         >
           글 쓰기
         </button>
@@ -1129,17 +1157,17 @@ export default function GatheringBoard({
                   setSelectedId(p.id);
                   pushLayer();
                 }}
-                className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-gold/5 sm:px-2"
+                className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-gold/5 sm:px-2"
               >
-                <span className="min-w-0 flex-1 truncate text-[14.5px] font-medium leading-6 text-hanji">
+                <span className="min-w-0 flex-1 truncate text-[16px] font-medium leading-7 text-hanji">
                   {p.title}
                   {p.commentCount > 0 && (
-                    <span className="ml-1.5 text-[12px] font-normal text-gold-soft">
+                    <span className="ml-1.5 text-[13.5px] font-normal text-gold-soft">
                       [{p.commentCount}]
                     </span>
                   )}
                 </span>
-                <span className="shrink-0 text-[11px] tracking-wide text-hanji-faint">
+                <span className="shrink-0 text-[12.5px] tracking-wide text-hanji-faint">
                   {p.authorName}
                   {p.hapjang > 0 && ` · 🙏 ${p.hapjang}`}
                 </span>

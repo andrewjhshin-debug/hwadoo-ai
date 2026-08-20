@@ -20,7 +20,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
 import { useHasNews } from "@/lib/notices";
-import { rankHanja } from "@/lib/badges";
+import { rankHanjaFor } from "@/lib/badges";
 import { applyTheme } from "@/lib/theme";
 import { ADMIN_UID } from "@/lib/config";
 import { dmVisible } from "@/lib/dm";
@@ -192,8 +192,8 @@ export default function Sidebar() {
   // 데스크톱에서 접혔을 때는 아이콘만 (모바일 서랍이 열리면 항상 펼침)
   const slim = collapsed && !open;
 
-  // 걸음 뱃지 — 회향이 없으면 아무것도 그리지 않는다
-  const rank = rankHanja(history.length);
+  // 걸음 뱃지 — 회향이 없으면 아무것도 그리지 않는다 (뒷방 주인은 늘 天)
+  const rank = rankHanjaFor(history.length, user?.uid);
   const rankBadge = rank && (
     <span
       aria-label={`걸음 · ${rank}`}
@@ -247,37 +247,63 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* 모바일 상단 바 — 로고 가운데, 메뉴 왼쪽·테마 오른쪽 */}
+      {/* 모바일 상단 바 — 로고 가운데(절대 중앙), 메뉴 왼쪽 ·
+          오른쪽엔 연꽃 상점 · 알림 · 테마 */}
       <div className="fixed inset-x-0 top-0 z-50 flex h-16 items-center border-b border-ink-3 bg-ink-2/95 px-2 backdrop-blur md:hidden">
         {/* 왼쪽 — 삼선 메뉴 */}
-        <div className="flex w-14 justify-start">
-          <button
-            onClick={() => setOpen(!open)}
-            aria-label="메뉴 열기"
-            className="p-2 text-hanji-dim"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-7 w-7">
-              {open ? (
-                <path d="M6 6l12 12M18 6L6 18" />
-              ) : (
-                <path d="M4 7h16M4 12h16M4 17h16" />
-              )}
-            </svg>
-          </button>
-        </div>
-        {/* 가운데 — 법륜 + 화두 로고 */}
+        <button
+          onClick={() => setOpen(!open)}
+          aria-label="메뉴 열기"
+          className="p-2 text-hanji-dim"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-7 w-7">
+            {open ? (
+              <path d="M6 6l12 12M18 6L6 18" />
+            ) : (
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            )}
+          </svg>
+        </button>
+        {/* 가운데 — 법륜 + 화두 로고 (절대 중앙) */}
         <Link
           href="/"
           onClick={go("/")}
-          className="flex flex-1 items-center justify-center gap-2.5"
+          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5"
         >
           <Dharmachakra className="h-7 w-7" stroke="#D9B45B" />
           <span className="text-gold-grad font-serif text-xl font-semibold tracking-[0.35em]">
             화두
           </span>
         </Link>
-        {/* 오른쪽 — 테마 토글 */}
-        <div className="flex w-14 justify-end">
+        {/* 오른쪽 — 연꽃 상점 · 알림 · 테마 */}
+        <div className="ml-auto flex items-center">
+          <Link
+            href="/lotus"
+            onClick={go("/lotus")}
+            aria-label="연꽃 상점"
+            title="연꽃 상점"
+            className="p-2 text-hanji-dim transition-colors hover:text-gold-soft"
+          >
+            <LotusMark className="h-6 w-6" stroke="#D9B45B" />
+          </Link>
+          <Link
+            href="/settings"
+            onClick={go("/settings")}
+            aria-label="알림"
+            title="알림 — 쪽지·새 소식"
+            className="relative p-2 text-hanji-dim transition-colors hover:text-gold-soft"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+              <path d="M6 9.5a6 6 0 0 1 12 0c0 3.8 1.3 5.3 1.9 5.9H4.1c.6-.6 1.9-2.1 1.9-5.9Z" />
+              <path d="M10 18.6a2 2 0 0 0 4 0" />
+            </svg>
+            {hasNews && (
+              <span
+                aria-hidden
+                className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
+              />
+            )}
+          </Link>
           <ThemeToggle className="[&_svg]:h-6 [&_svg]:w-6" />
         </div>
       </div>

@@ -579,7 +579,9 @@ export default function SettingsPage() {
         </p>
         <div className="mt-4 grid grid-cols-3 gap-2 border-t border-ink-3 pt-5">
           {BADGES.map((b) => {
-            const earned = journalCount >= b.need;
+            // 뒷방 주인은 모든 자리가 밝다 — 늘 천상도
+            const earned =
+              user?.uid === ADMIN_UID || journalCount >= b.need;
             return (
               <div
                 key={b.name}

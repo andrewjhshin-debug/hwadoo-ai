@@ -102,8 +102,11 @@ export async function requestThread(
   if (u.uid === target.uid) throw new Error("나에게는 청할 수 없습니다");
   const existing = await findMyRequestTo(post.id, target.uid);
   if (existing) return existing;
-  const spent = await spendLotus();
-  if (!spent) return "need-lotus";
+  // 뒷방 주인은 연꽃 없이 무제한 — 도량을 살피는 손길이라
+  if (u.uid !== ADMIN_UID) {
+    const spent = await spendLotus();
+    if (!spent) return "need-lotus";
+  }
   const body = {
     postId: post.id,
     postTitle: post.templeName ?? post.title,
