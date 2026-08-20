@@ -39,6 +39,7 @@ export type Post = {
   meetDate?: string; // 언제 — "2026-08-25" 꼴
   meetTime?: string | null; // 몇 시에 — "10:30" 꼴 (선택)
   openChatUrl?: string | null; // 오픈채팅 링크 — open.kakao.com 만 허용
+  lantern?: boolean; // 연등 — 연꽃 한 송이로 목록 맨 위에 밝힌 글
 };
 
 export type Comment = {
@@ -206,6 +207,12 @@ export async function updateGathering(
     body: g.body,
     openChatUrl: g.openChatUrl,
   });
+}
+
+// 연등을 단다 — 연꽃 차감(dm.ts spendLotus)은 부르는 쪽의 몫.
+// 작성자만 달 수 있다 — 권한의 최종 잣대는 Firestore 규칙.
+export async function lightLantern(id: string) {
+  await updateDoc(doc(db, "posts", id), { lantern: true });
 }
 
 export async function deletePost(id: string) {

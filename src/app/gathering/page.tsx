@@ -20,22 +20,13 @@ function GatheringInner() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-16 pt-8 md:pt-12">
-      {/* ── 머리 ── */}
+      {/* ── 머리 — 게시판이니 말은 아낀다 ── */}
       <p className="rise text-center text-xs tracking-[0.5em] text-gold-soft">
         손잡고 절로 — 모임
       </p>
-      <p className="question-glow rise rise-d1 mt-7 text-center font-serif text-xl font-light leading-[1.9] text-hanji">
-        절에 가는 길,
-        <br />
-        <span className="text-gold-grad">함께 가면 더 가볍습니다.</span>
-      </p>
-      <p className="rise rise-d2 mt-6 break-keep text-center text-[13px] leading-7 text-hanji-dim">
-        날을 잡고, 절을 고르고, 함께 갈 이를 모으세요.
-        <br className="hidden sm:block" /> 절은 처음이어도 괜찮습니다.
-      </p>
 
       {/* ── 모임 마당 ── */}
-      <section className="rise rise-d2 mt-12">
+      <section className="rise rise-d1 mt-8">
         <GatheringBoard
           initialTemple={temple}
           initialDate={date}

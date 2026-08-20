@@ -195,8 +195,9 @@ export async function getLotus(): Promise<number> {
   }
 }
 
-// 연꽃 한 송이를 거둔다 — 없으면 false (화면이 '연꽃 얻기'를 안내한다)
-async function spendLotus(): Promise<boolean> {
+// 연꽃 한 송이를 거둔다 — 없으면 false (화면이 '연꽃 얻기'를 안내한다).
+// 쪽지 유료분과 모임 연등이 함께 쓴다.
+export async function spendLotus(): Promise<boolean> {
   const u = auth.currentUser;
   if (!u) return false;
   const n = await getLotus();
