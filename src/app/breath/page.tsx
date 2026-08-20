@@ -7,9 +7,8 @@
 // 시작·마침과 문구 전환만 거든다 — 문구는 setInterval 누적이 아니라
 // 시작 시각으로부터의 경과로 계산해, 원의 움직임과 어긋나지 않는다.
 // 길이 선택은 없다 — 스스로 마칠 때까지.
-// 음향: 에셋 없이 Web Audio 로 숨결 같은 바람 소리를 합성한다 —
-// 들숨은 밝게 차오르고 날숨은 낮게 잦아든다. 눈을 감아도 소리가
-// 숨의 길이를 알려 준다 (끄기 단추 있음). 마치면 10초 = 1식(息).
+// 음향: 마디가 바뀔 때 경쇠 한 음만 — 높은 음이 들숨, 낮은 음이 날숨.
+// (에셋 없이 Web Audio 로 합성 · 끄기 단추 있음) 마치면 10초 = 1식(息).
 // ────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
@@ -81,9 +80,8 @@ export default function BreathPage() {
   const [soundOn, setSoundOn] = useState(true);
   const startRef = useRef(0);
 
-  // ── 음향 — 파일 없이 합성한 숨결 (바람 같은 노이즈 스웰) ──────
+  // ── 음향 — 경쇠 한 음만 (파일 없이 합성) ──────────────────────
   const audioRef = useRef<AudioContext | null>(null);
-  const noiseRef = useRef<AudioBuffer | null>(null);
 
   const ensureAudio = (): AudioContext | null => {
     try {
@@ -97,13 +95,6 @@ export default function BreathPage() {
       }
       const ctx = audioRef.current;
       void ctx.resume();
-      if (!noiseRef.current) {
-        const len = ctx.sampleRate * 2;
-        const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-        const d = buf.getChannelData(0);
-        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-        noiseRef.current = buf;
-      }
       return ctx;
     } catch {
       return null; // 소리가 안 나와도 명상은 흐른다
@@ -138,42 +129,11 @@ export default function BreathPage() {
     osc2.stop(t + tail + 0.1);
   };
 
-  // 들숨은 또렷하게 차오르고(4초, 상승), 날숨은 무겁게 길게 잦아든다(6초, 하강)
+  // 마디 소리 — 경쇠 한 음이면 충분하다 (숨결 소리는 걷어냈다)
   const playBreath = (kind: "in" | "out") => {
     const ctx = ensureAudio();
-    if (!ctx || !noiseRef.current) return;
-    const dur = (kind === "in" ? INHALE_MS : CYCLE_MS - INHALE_MS) / 1000;
-    const t = ctx.currentTime;
-    playCue(ctx, kind, t); // 전환 신호 — 확실히 티가 나게
-    const src = ctx.createBufferSource();
-    src.buffer = noiseRef.current;
-    src.loop = true;
-    const filter = ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.Q.value = 1.1;
-    if (kind === "in") {
-      // 들숨 — 낮은 곳에서 높이 차오른다 (크레셴도)
-      filter.frequency.setValueAtTime(380, t);
-      filter.frequency.linearRampToValueAtTime(1150, t + dur);
-    } else {
-      // 날숨 — 높은 곳에서 깊이 가라앉는다 (디미누엔도)
-      filter.frequency.setValueAtTime(850, t);
-      filter.frequency.linearRampToValueAtTime(230, t + dur);
-    }
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.0001, t);
-    if (kind === "in") {
-      gain.gain.exponentialRampToValueAtTime(0.11, t + dur * 0.8);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    } else {
-      gain.gain.exponentialRampToValueAtTime(0.1, t + dur * 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    }
-    src.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    src.start(t);
-    src.stop(t + dur + 0.1);
+    if (!ctx) return;
+    playCue(ctx, kind, ctx.currentTime);
   };
 
   // 숨의 마디가 바뀔 때마다 소리 한 번 — 들숨/날숨이 각자의 결을 낸다
