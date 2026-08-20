@@ -81,12 +81,12 @@ export default function PilgrimagePage() {
         절은 불자만 가는 곳이 아닙니다 — 산문은 누구에게나 열려 있습니다.
       </p>
 
-      {/* ── 모임 — 화면을 열자마자 바로 보이는 들목 ── */}
+      {/* ── 인연 — 화면을 열자마자 바로 보이는 들목 ── */}
       <Link
         href="/gathering"
         className="btn-obang rise rise-d1 mt-7 w-full rounded-[14px] py-3.5 text-center text-[15px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
       >
-        모임 보러 가기 →
+        因緣 · 인연 보러 가기 →
       </Link>
 
       {/* ── 이름난 도량 (지도) ── */}
@@ -195,7 +195,7 @@ export default function PilgrimagePage() {
         </ul>
         <p className="mt-3 text-[12px] leading-5 text-hanji-faint">
           음력으로 정해진 날들 — 해마다 자동으로 헤아립니다. [이 날 함께
-          가기]를 누르면 그 날짜로 모임 글쓰기가 열립니다.
+          가기]를 누르면 그 날짜로 인연 글쓰기가 열립니다.
         </p>
       </section>
     </div>

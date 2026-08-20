@@ -36,6 +36,26 @@ import type { Post } from "./community";
 // 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 초기엔 후하게
 export const FIRST_GRANT = 3;
 
+// 푸시 한 방 — 서버(/api/push/notify)가 받는 이를 검증해 쏜다.
+// 실패는 조용히 삼킨다 — 알림은 곁가지, 본 흐름을 막지 않는다.
+export async function pingPush(payload: Record<string, string>) {
+  try {
+    const u = auth.currentUser;
+    if (!u) return;
+    const idToken = await u.getIdToken();
+    void fetch("/api/push/notify", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    // 조용히
+  }
+}
+
 // 쪽지를 보여줄 것인가 — 열려 있거나, 뒷방이거나
 export function dmVisible(uid?: string | null): boolean {
   return DM_ENABLED || uid === ADMIN_UID;
@@ -52,7 +72,7 @@ export type DmThread = {
   ownerName: string;
   members: string[]; // [requesterUid, ownerUid] — 내 대화 찾기용
   intro: string; // 청할 때 건넨 한 마디
-  status: "pending" | "accepted" | "declined";
+  status: "pending" | "accepted" | "declined" | "blocked";
   msgCount?: number; // 오간 쪽지 수 — 모임 오픈챗 잠금을 푸는 잣대
   lastText?: string;
   lastBy?: string;
@@ -122,6 +142,7 @@ export async function requestThread(
     lastAt: serverTimestamp(),
   };
   const ref = await addDoc(collection(db, "dm-threads"), body);
+  void pingPush({ kind: "dm", threadId: ref.id }); // 받는 이에게 알림
   return { id: ref.id, ...body } as unknown as DmThread;
 }
 
@@ -149,6 +170,12 @@ export async function acceptThread(id: string) {
 
 export async function declineThread(id: string) {
   await updateDoc(doc(db, "dm-threads", id), { status: "declined" });
+}
+
+// 차단 — 어느 쪽이든 걸 수 있고, 대화가 양쪽 목록에서 사라지며
+// 더는 쪽지를 보낼 수 없다 (규칙이 accepted 에서만 쪽지를 받는다)
+export async function blockThread(id: string) {
+  await updateDoc(doc(db, "dm-threads", id), { status: "blocked" });
 }
 
 // ── 쪽지 ────────────────────────────────────────────────
@@ -184,6 +211,7 @@ export async function sendMessage(
     lastAt: serverTimestamp(),
     msgCount: increment(1),
   });
+  void pingPush({ kind: "dm", threadId }); // 상대에게 알림
 }
 
 // ── 연꽃 지갑 ────────────────────────────────────────────

@@ -17,6 +17,7 @@ import { useConfirm } from "@/components/Confirm";
 import { LotusMark } from "@/components/icons";
 import {
   acceptThread,
+  blockThread,
   declineThread,
   dmVisible,
   fetchMessages,
@@ -134,6 +135,24 @@ export default function LettersPage() {
     }
   };
 
+  // 차단 — 대화가 양쪽에서 사라지고 더는 쪽지가 오지 않는다
+  const block = async (t: DmThread) => {
+    setMenuOpen(false);
+    const ok = await confirm(
+      "이 상대를 차단하겠습니까?",
+      "대화가 닫히고, 더는 쪽지가 오지 않습니다.",
+      { confirm: "차단", cancel: "두기" }
+    );
+    if (!ok) return;
+    try {
+      await blockThread(t.id);
+      refresh();
+      goBack();
+    } catch {
+      // 조용히
+    }
+  };
+
   const decide = async (t: DmThread, yes: boolean) => {
     try {
       if (yes) await acceptThread(t.id);
@@ -213,6 +232,12 @@ export default function LettersPage() {
                   className="block w-full px-4 py-2.5 text-left text-[13px] text-hanji-dim transition-colors enabled:hover:bg-vermilion/10 enabled:hover:text-vermilion disabled:opacity-50"
                 >
                   {reported.has(opened.id) ? "신고됨" : "신고"}
+                </button>
+                <button
+                  onClick={() => block(opened)}
+                  className="block w-full border-t border-ink-3/60 px-4 py-2.5 text-left text-[13px] text-hanji-dim transition-colors hover:bg-vermilion/10 hover:text-vermilion"
+                >
+                  차단
                 </button>
               </div>
             )}

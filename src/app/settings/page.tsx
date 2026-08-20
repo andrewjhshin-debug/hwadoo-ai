@@ -24,11 +24,10 @@ import {
   isPushBrowserSupported,
   pushState,
 } from "@/lib/push";
-import { formatDate, loadStore, type Session } from "@/lib/store";
+import { formatDate, loadStore, saveStore, type Session } from "@/lib/store";
 import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { BADGES } from "@/lib/badges";
-import { applyTheme } from "@/lib/theme";
 import {
   fetchMyThrownStats,
   fetchThrown,
@@ -106,7 +105,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/my-hwadu", label: "화두 던지기", Icon: Jukbi },
   { href: "/mandala", label: "만다라", Icon: Mandala },
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
-  { href: "/gathering", label: "모임", Icon: Person },
+  { href: "/gathering", label: "인연", Icon: Person },
   { href: "/empty", label: "비움", Icon: Moktak },
   { href: "/community", label: "연지원", Icon: LotusPond },
   { href: "/archive", label: "지난 화두", Icon: Book },
@@ -118,7 +117,8 @@ const SERVICES: ServiceItem[] = [
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
-  const [light, setLight] = useState(false);
+  // 음양 — 인연 게시판에 표시될 나의 문양
+  const [gender, setGender] = useState<"m" | "f" | undefined>(undefined);
   const [receivedCount, setReceivedCount] = useState(0);
   const [journalCount, setJournalCount] = useState(0);
   const [daysWith, setDaysWith] = useState(0);
@@ -228,14 +228,13 @@ export default function SettingsPage() {
     };
   }, []);
   useEffect(() => {
-    setLight(document.documentElement.dataset.theme === "light");
-
     // 걸음·이달의 마음·품어온 시간 — 저장소가 바뀌면 다시 센다.
     // (동기화·다른 창·같은 창의 다른 화면이 바꿔도 곧바로 따라간다 — Sidebar 와 같은 결)
     const refresh = () => {
       // 나의 걸음 — 받은 화두 수(지금 든 것·내려놓은 것까지),
       // 회향해 지난 화두에 남은 수, 함께한 날수
       const s = loadStore();
+      setGender(s.gender);
       const past = s.history.length;
       setJournalCount(past);
       // store.received 가 참값이지만, 이 값이 없던 시절의 기록도 있어
@@ -386,9 +385,10 @@ export default function SettingsPage() {
     };
   }, []);
 
-  const setTheme = (toLight: boolean) => {
-    setLight(toLight);
-    applyTheme(toLight);
+  // 음양 고르기 — 저장소에 적으면 계정으로도 함께 올라간다
+  const chooseGender = (g: "m" | "f") => {
+    setGender(g);
+    saveStore({ ...loadStore(), gender: g });
   };
 
   // 구글 로그인 — 팝업이 막히거나 닫히면 그 까닭을 알린다
@@ -875,31 +875,45 @@ export default function SettingsPage() {
         </section>
       )}
 
-      {/* ── 색상 모드 ── */}
+      {/* ── 음양 — 인연 게시판에 표시될 나의 문양 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
-        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">색상 모드</p>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+          음양 — 나의 문양
+        </p>
         <div className="mt-4 flex gap-3 border-t border-ink-3 pt-5">
           <button
-            onClick={() => setTheme(false)}
-            className={`flex-1 rounded-[10px] border px-4 py-3 text-[13px] tracking-[0.15em] transition-colors ${
-              !light
-                ? "border-gold/60 text-gold"
+            onClick={() => chooseGender("m")}
+            aria-pressed={gender === "m"}
+            className={`flex flex-1 items-center justify-center gap-2.5 rounded-[10px] border px-4 py-3 text-[14px] tracking-[0.15em] transition-colors ${
+              gender === "m"
+                ? "border-gold/60 bg-gold/10 text-gold"
                 : "border-ink-3 text-hanji-dim hover:text-hanji"
             }`}
           >
-            밤 — 어둠 위의 금
+            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-gold/50 bg-gold/10 font-serif text-[13px] text-gold">
+              陽
+            </span>
+            남
           </button>
           <button
-            onClick={() => setTheme(true)}
-            className={`flex-1 rounded-[10px] border px-4 py-3 text-[13px] tracking-[0.15em] transition-colors ${
-              light
-                ? "border-gold/60 text-gold"
+            onClick={() => chooseGender("f")}
+            aria-pressed={gender === "f"}
+            className={`flex flex-1 items-center justify-center gap-2.5 rounded-[10px] border px-4 py-3 text-[14px] tracking-[0.15em] transition-colors ${
+              gender === "f"
+                ? "border-gold/60 bg-gold/10 text-gold"
                 : "border-ink-3 text-hanji-dim hover:text-hanji"
             }`}
           >
-            낮 — 한지 위의 먹
+            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-hanji-faint/60 bg-ink-2 font-serif text-[13px] text-hanji-dim">
+              陰
+            </span>
+            여
           </button>
         </div>
+        <p className="mt-2.5 break-keep text-[11px] leading-5 text-hanji-faint">
+          인연 게시판의 글·댓글에 陽/陰 문양으로만 표시됩니다 — 이름은 늘
+          익명입니다.
+        </p>
       </section>
 
       {/* ── 차 한 잔 — 바로 송금 ── */}

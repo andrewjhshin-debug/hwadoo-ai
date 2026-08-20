@@ -7,7 +7,7 @@
 // (useSearchParams 는 Suspense 울타리가 필요하다 — Next 규칙)
 // ────────────────────────────────────────────────────────────────
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import GatheringBoard from "@/components/GatheringBoard";
 
@@ -16,17 +16,22 @@ function GatheringInner() {
   const temple = sp.get("temple") ?? undefined;
   const date = sp.get("date") ?? undefined;
   const autoOpen = sp.get("open") === "1";
+  // 글 안에 들어가면 머리글도 접는다 — 위 공간을 아낀다
+  const [view, setView] = useState<"list" | "post" | "write">("list");
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-0 pb-16 pt-4 sm:px-6 md:pt-10">
-      <p className="rise px-5 text-center text-[13px] tracking-[0.5em] text-gold-soft sm:px-0">
-        모임
-      </p>
-      <section className="rise rise-d1 mt-4">
+      {view === "list" && (
+        <p className="rise px-5 text-center text-[13px] tracking-[0.5em] text-gold-soft sm:px-0">
+          因緣 · 인연
+        </p>
+      )}
+      <section className={view === "list" ? "rise rise-d1 mt-4" : ""}>
         <GatheringBoard
           initialTemple={temple}
           initialDate={date}
           autoOpen={autoOpen}
+          onViewChange={setView}
         />
       </section>
     </div>

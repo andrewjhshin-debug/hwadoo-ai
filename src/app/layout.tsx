@@ -8,7 +8,6 @@ import ConfirmProvider from "@/components/Confirm";
 import VisitLedger from "@/components/VisitLedger";
 import InstallBanner from "@/components/InstallBanner";
 import { CONTACT_EMAIL, SITE_NAME, SITE_URL, SLOGAN } from "@/lib/config";
-import { THEME_KEY } from "@/lib/theme";
 import "./globals.css";
 
 const serifKR = Noto_Serif_KR({
@@ -78,12 +77,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${serifKR.variable} ${sansKR.variable} h-full antialiased`}
     >
       <body className="flex h-dvh overflow-hidden">
-        {/* 저장된 테마를 첫 화면 그리기 전에 적용 (깜빡임 방지) */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem('${THEME_KEY}')==='light')document.documentElement.dataset.theme='light'}catch(e){}`,
-          }}
-        />
         <ConfirmProvider>
         {/* 발자국 장부 — 화면에 아무것도 그리지 않고, 다녀간 날만 적는다 */}
         <VisitLedger />

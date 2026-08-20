@@ -21,6 +21,7 @@ export type Store = {
   received: number; // 지금까지 받은 화두 수
   defaultDays?: number; // 설정 — 참구 기간 기본값 (없으면 3)
   audience?: "adult" | "student"; // 설정 — 누구의 화두인가 (없으면 어른)
+  gender?: "m" | "f"; // 음양 — 인연 게시판에 표시될 문양 (m=陽, f=陰)
   ownerUid?: string; // 이 기록의 주인 (로그인 전이면 없음)
 };
 
@@ -94,6 +95,8 @@ export function loadStore(): Store {
           : parsed.audience === "adult"
             ? "adult"
             : undefined,
+      gender:
+        parsed.gender === "m" ? "m" : parsed.gender === "f" ? "f" : undefined,
     };
   } catch {
     return emptyStore();

@@ -51,6 +51,49 @@ import { TEMPLES } from "@/lib/pilgrimage";
 import { LotusMark } from "@/components/icons";
 import { useConfirm } from "@/components/Confirm";
 
+// 눈 — 조회 수. 가는 선으로 옅게.
+function EyeIcon({ className = "h-[13px] w-[13px]" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.6" />
+    </svg>
+  );
+}
+
+// 말풍선 — 댓글 수. 가는 선으로 옅게.
+function CommentIcon({ className = "h-[13px] w-[13px]" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M20 11.6c0 3.9-3.6 7-8 7-1 0-2-.15-2.9-.44L4.5 19.5l1.2-3.2A6.6 6.6 0 0 1 4 11.6c0-3.9 3.6-7 8-7s8 3.1 8 7Z" />
+    </svg>
+  );
+}
+
+// 음양 프로필 — 남자는 陽(금), 여자는 陰(먹). 안 골랐으면 빈 원.
+function GenderMark({
+  g,
+  className = "h-9 w-9 text-[14px]",
+}: {
+  g?: "m" | "f" | null;
+  className?: string;
+}) {
+  return (
+    <span
+      className={`flex shrink-0 items-center justify-center rounded-full border font-serif ${
+        g === "m"
+          ? "border-gold/50 bg-gold/10 text-gold"
+          : g === "f"
+            ? "border-hanji-faint/50 bg-ink-2/70 text-hanji-dim"
+            : "border-ink-3 bg-ink-2/40 text-hanji-faint"
+      } ${className}`}
+      aria-label={g === "m" ? "양 — 남" : g === "f" ? "음 — 여" : "미표시"}
+    >
+      {g === "m" ? "陽" : g === "f" ? "陰" : ""}
+    </span>
+  );
+}
+
 // 음양(陰陽) — 쪽지 단추. 남녀는 음양이라, 서로 다른 기운이 만나는 문양.
 // 금빛 반쪽이 차오르고 반쪽은 비어 있다 — 채움과 비움이 한 원 안에.
 function YinYang({ className = "h-5 w-5" }: { className?: string }) {
@@ -150,7 +193,6 @@ export default function GatheringBoard({
   const [temple, setTemple] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [chat, setChat] = useState("");
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const formRef = useRef<HTMLDivElement | null>(null);
@@ -358,7 +400,6 @@ export default function GatheringBoard({
     setTemple("");
     setDate("");
     setTime("");
-    setChat("");
     setFormError("");
   };
 
@@ -372,7 +413,6 @@ export default function GatheringBoard({
         templeName: temple || undefined,
         meetDate: date || undefined,
         meetTime: time || undefined,
-        openChatUrl: chat.trim() || undefined,
       };
       if (editingId) await updateGathering(editingId, input);
       else await createGathering(input);
@@ -397,7 +437,6 @@ export default function GatheringBoard({
     setTemple(p.templeName ?? "");
     setDate(p.meetDate ?? "");
     setTime(p.meetTime ?? "");
-    setChat(p.openChatUrl ?? "");
     setFormError("");
     setMenuOpen(false);
     setOpen(true);
@@ -465,12 +504,6 @@ export default function GatheringBoard({
 
   const isMine = (p: Post) =>
     !!user && (user.uid === p.authorUid || isAdminAccount(user));
-
-  // 함께하기 — 주소를 화면에 드러내지 않고 새 창으로만 연다
-  const joinChat = (p: Post) => {
-    if (!p.openChatUrl) return;
-    window.open(p.openChatUrl, "_blank", "noopener,noreferrer");
-  };
 
   // 연꽃 — 이 사람에게 쪽지 팝업을 연다
   const openLantern = (p: Post, uid: string, name: string) => {
@@ -743,17 +776,23 @@ export default function GatheringBoard({
     return (
       <li
         key={c.id}
-        className={isReply ? "ml-6 border-l border-ink-3/60 pl-3.5" : ""}
+        className={isReply ? "ml-5 border-l border-ink-3/60 pl-3" : ""}
       >
-        <p className="text-[13px] tracking-wide text-hanji-faint">
-          <span className="text-hanji-dim">{c.authorName}</span>
-          {lanternFor(p, c.authorUid, c.authorName)}
-          <span className="ml-2">{stamp(c.createdAt)}</span>
-        </p>
-        <p className="mt-1 break-keep text-[15px] leading-7 text-hanji">
+        {/* 음양 프로필 · 이름 · 시간(작게) — 쪽지(음양 기호)는 오른쪽 끝 */}
+        <div className="flex items-center gap-2">
+          <GenderMark g={c.gender} className="h-7 w-7 text-[11px]" />
+          <span className="text-[13px] text-hanji-dim">{c.authorName}</span>
+          <span className="text-[10.5px] tracking-wide text-hanji-faint">
+            {stamp(c.createdAt)}
+          </span>
+          <span className="ml-auto">
+            {lanternFor(p, c.authorUid, c.authorName)}
+          </span>
+        </div>
+        <p className="mt-0.5 break-keep pl-9 text-[14.5px] leading-6 text-hanji">
           {c.body}
         </p>
-        <p className="mt-1.5 flex items-center gap-4 text-[12.5px] tracking-wide text-hanji-faint">
+        <p className="mt-0.5 flex items-center gap-3 pl-9 text-[12px] tracking-wide text-hanji-faint">
           {!isReply && (
             <button
               onClick={() => {
@@ -802,7 +841,7 @@ export default function GatheringBoard({
           )}
         </p>
         {replyTo === c.id && !isReply && (
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-1.5 flex items-center gap-2 pl-9">
             <input
               value={rBody}
               onChange={(e) => setRBody(e.target.value)}
@@ -830,10 +869,6 @@ export default function GatheringBoard({
   // ── 글 읽기 ─────────────────────────────────────────────
   const renderDetail = (p: Post) => {
     const mine = isMine(p);
-    const isAuthor = !!user && user.uid === p.authorUid;
-    const authorThread = threadByKey[`${p.id}|${p.authorUid}`];
-    const dmOn = dmVisible(user?.uid) && !isAuthor;
-    const chatUnlocked = !dmOn || authorThread?.status === "accepted";
     const comments = commentsMap[p.id];
     const liked = !!likedMap[p.id];
     const all = comments ?? [];
@@ -881,79 +916,81 @@ export default function GatheringBoard({
           )}
         </div>
 
-        {/* 제목 */}
-        <h2 className="mt-3 break-keep font-serif text-[22px] font-medium leading-9 text-hanji">
+        {/* 제목 — 바로 붙여 위로 당긴다 */}
+        <h2 className="mt-2 break-keep font-serif text-[21px] font-medium leading-8 text-hanji">
           {p.title}
         </h2>
 
-        {/* 글쓴이 + 연꽃 · 조회 · 쓴 날짜 */}
-        <p className="mt-2.5 text-[13.5px] tracking-wider text-hanji-faint">
-          <span className="text-hanji-dim">{p.authorName}</span>
+        {/* 글쓴이(음양 프로필) — 오른쪽 끝에 조회·시간 아주 작게 */}
+        <div className="mt-2 flex items-center gap-2">
+          <GenderMark g={p.gender} className="h-8 w-8 text-[13px]" />
+          <span className="text-[13.5px] text-hanji-dim">{p.authorName}</span>
           {lanternFor(p, p.authorUid, p.authorName)}
-          <span className="ml-2.5">조회 {p.views ?? 0}</span>
-          <span className="ml-2.5">{stamp(p.createdAt)}</span>
-        </p>
+          <span className="ml-auto flex shrink-0 items-center gap-2 text-[10.5px] tracking-wide text-hanji-faint">
+            <span className="flex items-center gap-1">
+              <EyeIcon className="h-[12px] w-[12px]" />
+              {p.views ?? 0}
+            </span>
+            <span>{stamp(p.createdAt)}</span>
+          </span>
+        </div>
 
         {/* 내용 */}
-        <p className="mt-5 whitespace-pre-line break-keep text-[16px] font-light leading-[1.9] text-hanji">
+        <p className="mt-3 whitespace-pre-line break-keep text-[15.5px] font-light leading-[1.85] text-hanji">
           {p.body}
         </p>
 
         {/* 약속 — 절·날짜·시간 (적은 것만) */}
         {(p.templeName || p.meetDate) && (
-          <p className="mt-4 text-[13.5px] tracking-wide text-gold-soft">
+          <p className="mt-2.5 text-[12.5px] tracking-wide text-gold-soft">
             약속{p.templeName ? ` ${p.templeName}` : ""}
             {p.meetDate ? ` · ${legacyDate(p.meetDate)}` : ""}
             {p.meetTime ? ` · ${timeLabel(p.meetTime)}` : ""}
           </p>
         )}
 
-        {/* 합장(공감) + 함께하기 */}
-        <div className="mt-4 flex items-stretch gap-2">
+        {/* 합장 — 가운데 동그라미 하나, 본문과 댓글 사이 */}
+        <div className="mt-4 flex flex-col items-center gap-1">
           <button
             onClick={() => like(p)}
-            className={`shrink-0 rounded-[12px] border px-5 py-3 text-[14px] tracking-[0.12em] transition-colors ${
+            aria-pressed={liked}
+            aria-label="합장"
+            className={`flex h-12 w-12 items-center justify-center rounded-full border text-[19px] transition-all active:scale-90 ${
               liked
-                ? "border-gold/50 bg-gold/10 text-gold"
-                : "border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji"
+                ? "border-gold/60 bg-gold/10"
+                : "border-ink-3 hover:border-gold/40"
             }`}
           >
-            🙏 합장{p.hapjang > 0 ? ` ${p.hapjang}` : ""}
+            🙏
           </button>
-          {p.openChatUrl &&
-            (chatUnlocked ? (
-              <button
-                onClick={() => joinChat(p)}
-                className="btn-obang flex-1 rounded-[12px] py-3 text-[14px] tracking-[0.15em] text-hanji transition-opacity hover:opacity-90"
-              >
-                함께하기 →
-              </button>
-            ) : (
-              <span className="flex flex-1 items-center justify-center rounded-[12px] border border-dashed border-ink-3 px-3 py-3 text-center text-[12px] leading-5 text-hanji-faint">
-                함께하기는 글쓴이와 쪽지가 이어지면 열립니다
-              </span>
-            ))}
+          <span
+            className={`text-[11px] tracking-wide ${
+              liked ? "text-gold" : "text-hanji-faint"
+            }`}
+          >
+            합장{p.hapjang > 0 ? ` ${p.hapjang}` : ""}
+          </span>
+          {likeHint && !user && (
+            <span className="text-[10.5px] text-hanji-faint">
+              로그인한 분만 — 계정마다 한 번
+            </span>
+          )}
         </div>
-        {likeHint && !user && (
-          <p className="mt-2 text-[11px] leading-5 text-hanji-faint">
-            합장은 로그인한 분만 — 계정마다 한 번입니다.
-          </p>
-        )}
 
-        {/* 댓글들 */}
-        <div className="mt-6 border-t border-ink-3/60 pt-4">
+        {/* 댓글들 — 다닥다닥, 사이를 아낀다 */}
+        <div className="mt-4 border-t border-ink-3/60 pt-3">
           <p className="text-[11px] tracking-[0.25em] text-hanji-faint">
             댓글{p.commentCount > 0 ? ` · ${p.commentCount}` : ""}
           </p>
           {comments === undefined ? (
-            <p className="mt-3 text-[12px] leading-6 text-hanji-faint">
+            <p className="mt-2.5 text-[12px] leading-6 text-hanji-faint">
               댓글을 살펴보는 중…
             </p>
           ) : tops.length > 0 ? (
-            <ul className="mt-4 flex flex-col gap-4">
+            <ul className="mt-3 flex flex-col gap-3">
               {tops.map((c) => (
                 <li key={c.id}>
-                  <ul className="flex flex-col gap-3">
+                  <ul className="flex flex-col gap-2">
                     {renderComment(p, c, false)}
                     {childrenOf(c.id).map((r) => renderComment(p, r, true))}
                   </ul>
@@ -963,7 +1000,7 @@ export default function GatheringBoard({
           ) : null}
 
           {/* 주의 — 작게 한 줄 */}
-          <p className="mt-6 break-keep text-[10px] leading-4 text-hanji-faint/80">
+          <p className="mt-5 break-keep text-[10px] leading-4 text-hanji-faint/80">
             처음 만나는 자리는 사찰 등 열린 곳에서 · 연락처 등 개인정보는
             아끼십시오.
           </p>
@@ -1078,17 +1115,6 @@ export default function GatheringBoard({
                 className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
               />
             </div>
-            <input
-              value={chat}
-              onChange={(e) => setChat(e.target.value)}
-              inputMode="url"
-              placeholder="함께하기 링크 (선택) — https://open.kakao.com/o/…"
-              className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[15px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
-            />
-            <p className="text-[11px] leading-5 text-hanji-faint">
-              링크는 글에 드러나지 않고 [함께하기] 단추 뒤에만 놓입니다 —
-              open.kakao.com 주소만 받습니다.
-            </p>
             {formError && (
               <p className="text-[12px] leading-6 text-vermilion">
                 {formError}
@@ -1168,15 +1194,25 @@ export default function GatheringBoard({
                   setSelectedId(p.id);
                   pushLayer();
                 }}
-                className="flex w-full flex-col gap-1 px-4 py-3.5 text-left transition-colors hover:bg-gold/5 sm:px-2"
+                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gold/5 sm:px-2"
               >
-                <span className="w-full truncate text-[15px] font-medium leading-6 text-hanji">
-                  {p.title}
-                </span>
-                <span className="flex items-center gap-3 text-[12px] tracking-wide text-hanji-faint">
-                  <span>{stamp(p.createdAt)}</span>
-                  <span>👁 {p.views ?? 0}</span>
-                  <span>💬 {p.commentCount}</span>
+                {/* 음양 프로필 — 왼쪽, 오른쪽 위는 제목·아래는 시간/조회/댓글 */}
+                <GenderMark g={p.gender} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[15px] font-medium leading-6 text-hanji">
+                    {p.title}
+                  </span>
+                  <span className="mt-0.5 flex items-center gap-2.5 text-[11.5px] tracking-wide text-hanji-faint">
+                    <span>{stamp(p.createdAt)}</span>
+                    <span className="flex items-center gap-1">
+                      <EyeIcon />
+                      {p.views ?? 0}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <CommentIcon />
+                      {p.commentCount}
+                    </span>
+                  </span>
                 </span>
               </button>
             </li>

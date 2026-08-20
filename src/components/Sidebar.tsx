@@ -21,7 +21,6 @@ import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
 import { useHasNews } from "@/lib/notices";
 import { rankHanjaFor } from "@/lib/badges";
-import { applyTheme } from "@/lib/theme";
 import { isAdminAccount } from "@/lib/config";
 import {
   countDmUnread,
@@ -61,7 +60,7 @@ type NavItem = {
 const NAV_PRACTICE: NavItem[] = [
   // 손잡고 절로 — 사찰 지도·다가오는 날, 모임은 그 짝
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
-  { href: "/gathering", label: "모임", Icon: Person },
+  { href: "/gathering", label: "인연 — 함께 갈 이", Icon: Person },
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/mandala", label: "만다라", Icon: Mandala },
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
@@ -91,43 +90,6 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
 ];
 
 const COLLAPSE_KEY = "hwadoo-sidebar-collapsed";
-
-// 해/달 토글 — 낮 모드 ↔ 밤 모드
-function ThemeToggle({ className = "" }: { className?: string }) {
-  const [light, setLight] = useState(false);
-
-  useEffect(() => {
-    setLight(document.documentElement.dataset.theme === "light");
-  }, []);
-
-  const toggle = () => {
-    const next = !light;
-    setLight(next);
-    applyTheme(next);
-  };
-
-  return (
-    <button
-      onClick={toggle}
-      title={light ? "밤 모드로" : "낮 모드로"}
-      aria-label={light ? "밤 모드로 전환" : "낮 모드로 전환"}
-      className={`p-1.5 text-hanji-faint transition-colors hover:text-gold-soft ${className}`}
-    >
-      {light ? (
-        // 달 — 밤으로
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className="h-4 w-4">
-          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 7.5 7.5 0 1 0 20 14.5z" />
-        </svg>
-      ) : (
-        // 해 — 낮으로
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className="h-4 w-4">
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
-        </svg>
-      )}
-    </button>
-  );
-}
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -334,7 +296,6 @@ export default function Sidebar() {
               </span>
             )}
           </Link>
-          <ThemeToggle className="[&_svg]:h-6 [&_svg]:w-6" />
         </div>
       </div>
 
@@ -382,7 +343,6 @@ export default function Sidebar() {
                 />
               )}
             </Link>
-            <ThemeToggle />
             <button
               onClick={toggleCollapsed}
               title={slim ? "펼치기" : "접기"}

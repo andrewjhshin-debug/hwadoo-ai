@@ -85,6 +85,7 @@ function mergeStores(local: Store, cloud: Store | null): Store {
     received: Math.max(local.received, cloud.received, history.length),
     defaultDays: local.defaultDays ?? cloud.defaultDays,
     audience: local.audience ?? cloud.audience,
+    gender: local.gender ?? cloud.gender,
   };
 }
 

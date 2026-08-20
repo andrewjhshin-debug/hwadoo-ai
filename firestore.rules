@@ -151,7 +151,8 @@ service cloud.firestore {
             && request.resource.data.requesterUid == resource.data.requesterUid
             && request.resource.data.ownerUid == resource.data.ownerUid
             && (request.resource.data.status == resource.data.status
-                || request.auth.uid == resource.data.ownerUid));
+                || request.auth.uid == resource.data.ownerUid
+                || request.resource.data.status == "blocked"));
       allow delete: if dmIsAdmin();
 
       // 쪽지 낱장 — 수락된 대화의 멤버만 오간다

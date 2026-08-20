@@ -22,6 +22,8 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { anonName } from "./anonName";
+import { loadStore } from "./store";
+import { pingPush } from "./dm";
 
 // 게시판 종류 — 연지원(community, 기본) / 차담회(gathering)
 export type Board = "community" | "gathering";
@@ -32,6 +34,7 @@ export type Post = {
   body: string;
   authorName: string;
   authorUid: string;
+  gender?: "m" | "f" | null; // 음양 문양 — m=陽, f=陰 (안 골랐으면 없음)
   hapjang: number;
   commentCount: number;
   views?: number; // 몇 명이 열어 봤는가
@@ -50,6 +53,7 @@ export type Comment = {
   body: string;
   authorName: string;
   authorUid: string;
+  gender?: "m" | "f" | null; // 음양 문양
   parentId?: string | null; // 대댓글이면 어느 댓글에 단 것인지
   up?: number; // 좋아요
   down?: number; // 싫어요
@@ -137,21 +141,20 @@ export function isOpenChatUrl(url: string): boolean {
   }
 }
 
-// 모임 글감 다듬기 — 만들기·고치기가 같은 잣대를 쓴다.
-// 제목·본문 필수 — 절·날짜·시간은 선택. 링크는 함께하기 칸에만.
+// 인연 글감 다듬기 — 만들기·고치기가 같은 잣대를 쓴다.
+// 제목·본문 필수 — 절·날짜·시간은 선택. 글에 링크는 싣지 않는다.
 function refineGathering(input: {
   title: string;
   body: string;
   templeName?: string;
   meetDate?: string; // "YYYY-MM-DD" (선택)
   meetTime?: string; // "HH:MM" (선택)
-  openChatUrl?: string;
 }) {
   const title = input.title.trim().slice(0, 60);
   const body = input.body.trim().slice(0, 1000);
   if (!title || !body) throw new Error("제목과 내용을 적어 주십시오");
   if (/https?:\/\/|open\.kakao/i.test(title) || /https?:\/\/|open\.kakao/i.test(body))
-    throw new Error("링크는 아래 함께하기 칸에만 넣어 주십시오");
+    throw new Error("글에는 링크를 실을 수 없습니다");
   const templeName = input.templeName?.trim().slice(0, 30) ?? "";
   const meetDate = input.meetDate?.trim() ?? "";
   if (meetDate && !/^\d{4}-\d{2}-\d{2}$/.test(meetDate))
@@ -159,20 +162,16 @@ function refineGathering(input: {
   const meetTime = input.meetTime?.trim() ?? "";
   if (meetTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(meetTime))
     throw new Error("시간이 올바르지 않습니다");
-  const chat = input.openChatUrl?.trim();
-  if (chat && !isOpenChatUrl(chat))
-    throw new Error("함께하기 링크는 open.kakao.com 주소만 받습니다");
   return {
     title,
     body,
     templeName: templeName || null,
     meetDate: meetDate || null,
     meetTime: meetTime || null,
-    openChatUrl: chat || null,
   };
 }
 
-// 모임 글을 올린다 — 제목·내용 필수, 절·날짜·시간·링크는 선택.
+// 인연 글을 올린다 — 제목·내용 필수, 절·날짜·시간은 선택.
 // 자격(로그인 + 1회향)은 화면이 먼저 거른다 — 여기서는 형식만 지킨다.
 export async function createGathering(input: {
   title: string;
@@ -180,7 +179,6 @@ export async function createGathering(input: {
   templeName?: string;
   meetDate?: string;
   meetTime?: string;
-  openChatUrl?: string;
 }) {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
@@ -190,18 +188,18 @@ export async function createGathering(input: {
     body: g.body,
     authorName: anonName(),
     authorUid: u.uid,
+    gender: loadStore().gender ?? null, // 음양 문양 — 프로필처럼 걸린다
     hapjang: 0,
     commentCount: 0,
     board: "gathering" as Board,
     templeName: g.templeName,
     meetDate: g.meetDate,
     meetTime: g.meetTime,
-    openChatUrl: g.openChatUrl,
     createdAt: serverTimestamp(),
   });
 }
 
-// 모임 글을 고친다 — 작성자(또는 뒷방)만. 권한의 최종 잣대는 Firestore 규칙.
+// 인연 글을 고친다 — 작성자(또는 뒷방)만. 권한의 최종 잣대는 Firestore 규칙.
 export async function updateGathering(
   id: string,
   input: {
@@ -210,7 +208,6 @@ export async function updateGathering(
     templeName?: string;
     meetDate?: string;
     meetTime?: string;
-    openChatUrl?: string;
   }
 ) {
   const g = refineGathering(input);
@@ -220,7 +217,6 @@ export async function updateGathering(
     templeName: g.templeName,
     meetDate: g.meetDate,
     meetTime: g.meetTime,
-    openChatUrl: g.openChatUrl,
   });
 }
 
@@ -328,12 +324,14 @@ export async function addComment(
     body,
     authorName: kept ?? anonName(), // 이 글에서 처음이면 무작위 새 이름
     authorUid: u.uid,
+    gender: loadStore().gender ?? null, // 음양 문양
     parentId: parentId ?? null,
     up: 0,
     down: 0,
     createdAt: serverTimestamp(),
   });
   await updateDoc(doc(db, "posts", postId), { commentCount: increment(1) });
+  void pingPush({ kind: "comment", postId }); // 글쓴이에게 알림
 }
 
 // 댓글 좋아요/싫어요 — 오르내림을 함께 받는다 (좋아요↔싫어요 갈아타기,
