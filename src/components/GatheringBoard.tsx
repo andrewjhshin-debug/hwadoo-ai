@@ -122,12 +122,16 @@ type Props = {
   initialTemple?: string;
   initialDate?: string; // "YYYY-MM-DD"
   autoOpen?: boolean; // 처음부터 글쓰기 화면으로 시작한다
+  // 화면이 바뀔 때 알린다 — 절로 페이지가 글 읽기/쓰기 중에는
+  // 아래(지도·다가오는 날)를 접기 위해 쓴다
+  onViewChange?: (view: "list" | "post" | "write") => void;
 };
 
 export default function GatheringBoard({
   initialTemple,
   initialDate,
   autoOpen,
+  onViewChange,
 }: Props) {
   const confirm = useConfirm();
   const [posts, setPosts] = useState<Post[] | null>(null);
@@ -185,6 +189,12 @@ export default function GatheringBoard({
   const [threadByKey, setThreadByKey] = useState<Record<string, DmThread>>({});
 
   useEffect(() => watchAuth(setUser), []);
+
+  // 지금 화면을 밖에 알린다 — 글쓰기 > 글 읽기 > 목록
+  useEffect(() => {
+    onViewChange?.(open ? "write" : selectedId ? "post" : "list");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, selectedId]);
 
   // ── 뒤로가기 — 층을 쌓고, popstate 가 위에서부터 접는다 ──────
   const pushLayer = () => {

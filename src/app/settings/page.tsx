@@ -106,7 +106,6 @@ const SERVICES: ServiceItem[] = [
   { href: "/my-hwadu", label: "화두 던지기", Icon: Jukbi },
   { href: "/mandala", label: "만다라", Icon: Mandala },
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
-  { href: "/gathering", label: "모임", Icon: Person },
   { href: "/empty", label: "비움", Icon: Moktak },
   { href: "/community", label: "연지원", Icon: LotusPond },
   { href: "/archive", label: "지난 화두", Icon: Book },
