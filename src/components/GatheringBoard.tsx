@@ -33,6 +33,7 @@ import {
 import { loadStore } from "@/lib/store";
 import { watchAuth } from "@/lib/sync";
 import { ADMIN_UID } from "@/lib/config";
+import { dmVisible, requestThread } from "@/lib/dm";
 import { TEMPLES } from "@/lib/pilgrimage";
 import { useConfirm } from "@/components/Confirm";
 
@@ -113,6 +114,12 @@ export default function GatheringBoard({
   );
   const [cBody, setCBody] = useState("");
   const [cBusy, setCBusy] = useState(false);
+
+  // 쪽지 청하기 — 한 마디와 함께 (DM_ENABLED 전에는 뒷방에게만 보인다)
+  const [dmForId, setDmForId] = useState<string | null>(null);
+  const [dmIntro, setDmIntro] = useState("");
+  const [dmBusy, setDmBusy] = useState(false);
+  const [dmDone, setDmDone] = useState<Set<string>>(new Set());
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -260,6 +267,21 @@ export default function GatheringBoard({
     window.open(p.openChatUrl, "_blank", "noopener,noreferrer");
   };
 
+  // 쪽지 청 넣기 — 성공하면 그 약속에 '넣었음' 표시
+  const submitDmRequest = async (p: Post) => {
+    setDmBusy(true);
+    try {
+      await requestThread(p, dmIntro);
+      setDmDone((s) => new Set(s).add(p.id));
+      setDmForId(null);
+      setDmIntro("");
+    } catch {
+      // 연결·권한 문제 — 입력은 남긴다
+    } finally {
+      setDmBusy(false);
+    }
+  };
+
   // 말 걸기 — 펼치면 댓글을 불러온다 (한 번 불러온 것은 쥐고 있는다)
   const toggleComments = (p: Post) => {
     if (expandedId === p.id) {
@@ -393,15 +415,58 @@ export default function GatheringBoard({
         </div>
 
         {/* 말 걸기 — 인사를 건네고, 서로를 살핀 뒤 함께 간다 */}
-        <button
-          onClick={() => toggleComments(p)}
-          aria-expanded={expandedId === p.id}
-          className="mt-3 text-[11px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
-        >
-          {expandedId === p.id
-            ? "접기"
-            : `말 걸기${p.commentCount > 0 ? ` · ${p.commentCount}` : ""}`}
-        </button>
+        <span className="mt-3 flex items-center gap-4">
+          <button
+            onClick={() => toggleComments(p)}
+            aria-expanded={expandedId === p.id}
+            className="text-[11px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
+          >
+            {expandedId === p.id
+              ? "접기"
+              : `말 걸기${p.commentCount > 0 ? ` · ${p.commentCount}` : ""}`}
+          </button>
+          {/* 쪽지 청하기 — 내 글이 아닐 때만, 열려 있을 때만(뒷방은 늘) */}
+          {dmVisible(user?.uid) &&
+            !!user &&
+            user.uid !== p.authorUid &&
+            (dmDone.has(p.id) ? (
+              <span className="text-[11px] tracking-[0.15em] text-gold-soft">
+                청을 넣었습니다 — 쪽지함에서 답을 기다립니다
+              </span>
+            ) : (
+              <button
+                onClick={() => {
+                  setDmForId(dmForId === p.id ? null : p.id);
+                  setDmIntro("");
+                }}
+                className="text-[11px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-gold-soft"
+              >
+                쪽지 청하기
+              </button>
+            ))}
+        </span>
+        {dmForId === p.id && !dmDone.has(p.id) && (
+          <div className="mt-2.5 flex items-center gap-2">
+            <input
+              value={dmIntro}
+              onChange={(e) => setDmIntro(e.target.value)}
+              maxLength={200}
+              placeholder="한 마디와 함께 — 예: 같은 방향인데 동행하고 싶습니다"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.nativeEvent.isComposing)
+                  void submitDmRequest(p);
+              }}
+              className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-2 text-[12.5px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+            />
+            <button
+              onClick={() => submitDmRequest(p)}
+              disabled={dmBusy || !dmIntro.trim()}
+              className="shrink-0 rounded-[10px] border border-gold/50 px-3.5 py-2 text-[11px] tracking-[0.15em] text-gold transition-colors enabled:hover:bg-gold/10 disabled:opacity-40"
+            >
+              {dmBusy ? "…" : "청 넣기"}
+            </button>
+          </div>
+        )}
         {expandedId === p.id && (
           <div className="mt-2 border-t border-ink-3/60 pt-3">
             {commentsMap[p.id] === undefined ? (

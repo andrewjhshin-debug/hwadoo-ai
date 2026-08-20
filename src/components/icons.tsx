@@ -238,6 +238,16 @@ export function Bojagi({ className = "w-5 h-5", stroke = "currentColor" }: IconP
   );
 }
 
+// 쪽지(書信) — 봉투 아이콘. 쪽지함에 쓴다.
+export function Letter({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="6" width="18" height="13" rx="2" />
+      <path d="M3 9l9 6 9-6" />
+    </svg>
+  );
+}
+
 // 선사(禪師) — 가사를 두르고 앉은 노스님. 선지식의 한마디.
 export function SeonMaster({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
   return (

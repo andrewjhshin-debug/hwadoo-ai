@@ -23,6 +23,7 @@ import { useHasNews } from "@/lib/notices";
 import { rankHanja } from "@/lib/badges";
 import { applyTheme } from "@/lib/theme";
 import { ADMIN_UID } from "@/lib/config";
+import { dmVisible } from "@/lib/dm";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
   Banga,
@@ -33,6 +34,7 @@ import {
   Elephant,
   Iljumun,
   Jukbi,
+  Letter,
   LotusMark,
   LotusPond,
   Mandala,
@@ -390,7 +392,11 @@ export default function Sidebar() {
                   {title}
                 </div>
               )}
-              <nav className="flex flex-col gap-0.5">{items.map(renderItem)}</nav>
+              <nav className="flex flex-col gap-0.5">
+                {items.map(renderItem)}
+                {title === "나눔" && dmVisible(user?.uid) &&
+                  renderItem({ href: "/letters", label: "쪽지함", Icon: Letter })}
+              </nav>
             </div>
           ))}
 

@@ -5,7 +5,7 @@
 // 다섯 구획(탭): 성인 화두 | 학생·어린이 화두 | 관리자가 던진 화두
 // | 수행자들이 던진 화두(대기+승인) | 공유 허용한 화두의 답
 // 여기에 '선지식의 한마디' · '죽비(들어온 소리)'
-// · '차 한 잔 보태주신 분' 구획을 더한다.
+// · '차 한 잔 보태주신 분' · '신고함(쪽지 신고 + 연꽃 채우기)' 구획을 더한다.
 // 삭제는 어디서나 두 단계다 — 목록의 [숨기기]는 그 구획 하단의
 // '숨긴 것들'로 접어 두고(되살릴 수 있다), 숨긴 것들에서 [삭제]하면
 // 물음창을 거쳐 영영 지운다. 코드 내장 화두·어록은 removed 표식으로,
@@ -71,6 +71,13 @@ import {
   fetchAllFeedback,
   type Feedback,
 } from "@/lib/feedback";
+import {
+  deleteReport,
+  fetchAllReports,
+  grantLotus,
+  resolveReport,
+  type DmReport,
+} from "@/lib/dm";
 
 type Tab =
   | "adult"
@@ -80,7 +87,8 @@ type Tab =
   | "shared"
   | "sayings"
   | "feedback"
-  | "donors";
+  | "donors"
+  | "reports";
 
 // 구획마다 한 줄 설명 — 무엇이 모이는 자리인지
 const TAB_NOTE: Record<Tab, string> = {
@@ -99,6 +107,8 @@ const TAB_NOTE: Record<Tab, string> = {
     "죽비 — 수행자들이 도량에 건넨 소리. 여기서만 읽을 수 있고, 들었으면 지웁니다.",
   donors:
     "차 한 잔 보태주신 분 — 한 줄에 이름 하나. 찻자리에는 가운데를 ○로 가려 나갑니다.",
+  reports:
+    "쪽지 대화에서 들어온 신고 — 살펴서 처리하고, 하단에서 시험용 연꽃도 채웁니다.",
 };
 
 const smallBtn =
@@ -591,6 +601,7 @@ export default function AdminPage() {
   const [shared, setShared] = useState<SharedAnswer[]>([]);
   const [content, setContent] = useState<AdminContent>(emptyAdminContent());
   const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [reports, setReports] = useState<DmReport[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -612,23 +623,30 @@ export default function AdminPage() {
   const [donorsText, setDonorsText] = useState("");
   const donorsDirty = useRef(false);
 
+  // 연꽃 채우기 — 결제(PG)가 열리기 전, 시험 삼아 지갑을 채우는 손길
+  const [lotusUid, setLotusUid] = useState("");
+  const [lotusN, setLotusN] = useState("10");
+  const [lotusMsg, setLotusMsg] = useState<string | null>(null);
+
   useEffect(() => watchAuth(setUser), []);
   const isAdmin = user?.uid === ADMIN_UID;
 
   const refresh = useCallback(async () => {
     try {
-      const [t, p, s, c, f] = await Promise.all([
+      const [t, p, s, c, f, r] = await Promise.all([
         fetchThrown(),
         fetchAllPublicHwadu(), // 숨긴 것까지 — 뒷방은 접힌 것도 봐야 한다
         fetchAllSharedAnswers().catch(() => [] as SharedAnswer[]),
         fetchAdminContent(true), // 실패해도 빈 손질로 돌아온다 — throw 하지 않는다
         fetchAllFeedback().catch(() => [] as Feedback[]),
+        fetchAllReports().catch(() => [] as DmReport[]),
       ]);
       setThrown(t);
       setPublicList(p);
       setShared(s);
       setContent(c);
       setFeedback(f);
+      setReports(r);
       // 명단 칸 — 적는 중이 아닐 때만 서버 명단으로 채운다
       if (!donorsDirty.current) setDonorsText(c.donors.join("\n"));
       setError(null);
@@ -767,6 +785,7 @@ export default function AdminPage() {
     { key: "sayings", label: "선지식의 한마디", count: sayingsVisible.length },
     { key: "feedback", label: "죽비", count: feedback.length },
     { key: "donors", label: "차 한 잔", count: content.donors.length },
+    { key: "reports", label: "신고함", count: reports.filter((r) => r.status === "open").length },
   ];
 
   // 은행 화두 손질 — 저장·숨김·(덮어쓴 것) 원래대로
@@ -1399,6 +1418,140 @@ export default function AdminPage() {
               >
                 적어두기
               </button>
+            </div>
+          </section>
+        )}
+
+        {/* ── 신고함 — 쪽지 대화 신고 + 연꽃 채우기 ── */}
+        {tab === "reports" && (
+          <section>
+            <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              열린 신고 · {reports.filter((r) => r.status === "open").length}
+            </h3>
+            {reports.filter((r) => r.status === "open").length === 0 ? (
+              <p className="mt-3 text-sm text-hanji-faint">
+                들어온 신고가 없습니다.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-4">
+                {reports
+                  .filter((r) => r.status === "open")
+                  .map((r) => (
+                    <li
+                      key={r.id}
+                      className="border border-ink-3 bg-ink-2/60 p-4"
+                    >
+                      <p className="text-[11px] tracking-wide text-hanji-faint">
+                        {feedbackDate(r.createdAt?.seconds)}
+                      </p>
+                      <p className="mt-2 break-keep text-[13px] leading-6 text-hanji-dim">
+                        {r.reason}
+                      </p>
+                      <p className="mt-1.5 text-[10px] tracking-wider text-hanji-faint">
+                        신고 대상 UID: {r.targetUid.slice(0, 8)}…
+                        &nbsp;·&nbsp;쪽지 스레드: {r.threadId.slice(0, 8)}…
+                      </p>
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          disabled={busy === r.id}
+                          onClick={() =>
+                            act(r.id, () => resolveReport(r.id))
+                          }
+                          className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
+                        >
+                          처리함
+                        </button>
+                        <button
+                          disabled={busy === r.id}
+                          onClick={() =>
+                            eraseForever(r.id, () => deleteReport(r.id))
+                          }
+                          className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
+                        >
+                          지우기
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            )}
+
+            {/* 처리된 신고 */}
+            {reports.filter((r) => r.status === "done").length > 0 && (
+              <details className="mt-9 border-t border-ink-3 pt-5">
+                <summary className="cursor-pointer text-[11px] tracking-[0.3em] text-hanji-faint transition-colors hover:text-hanji-dim">
+                  처리된 신고 · {reports.filter((r) => r.status === "done").length}
+                </summary>
+                <ul className="mt-4 space-y-2">
+                  {reports
+                    .filter((r) => r.status === "done")
+                    .map((r) => (
+                      <li
+                        key={r.id}
+                        className="flex items-start justify-between gap-3 border-l border-ink-3 pl-3 text-[11.5px] leading-5 text-hanji-faint opacity-80"
+                      >
+                        <span>{snip(r.reason, 40)}</span>
+                        <button
+                          disabled={busy === r.id}
+                          onClick={() =>
+                            eraseForever(r.id, () => deleteReport(r.id))
+                          }
+                          className="shrink-0 transition-colors hover:text-vermilion disabled:opacity-40"
+                        >
+                          삭제
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              </details>
+            )}
+
+            {/* 연꽃 채우기 — PG 승인 전 시험용 */}
+            <div className="mt-11 border-t border-ink-3 pt-7">
+              <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
+                연꽃 채우기 — 시험용(PG 승인 전)
+              </h3>
+              <p className="mt-2 text-[11px] leading-5 text-hanji-faint">
+                쪽지 유료분 흐름을 미리 눌러보기 위한 손길 — 결제가 열리면
+                사라집니다.
+              </p>
+              <div className="mt-4 flex items-center gap-2">
+                <input
+                  value={lotusUid}
+                  onChange={(e) => setLotusUid(e.target.value)}
+                  placeholder="수행자 UID"
+                  className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-2 text-[12.5px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+                />
+                <input
+                  value={lotusN}
+                  onChange={(e) => setLotusN(e.target.value)}
+                  type="number"
+                  min="1"
+                  max="999"
+                  className="w-16 rounded-[10px] border border-ink-3 bg-transparent px-3 py-2 text-center text-[12.5px] text-hanji outline-none transition-colors focus:border-gold/40"
+                />
+                <button
+                  disabled={busy === "lotus" || !lotusUid.trim()}
+                  onClick={() =>
+                    act("lotus", async () => {
+                      const n = parseInt(lotusN, 10);
+                      if (isNaN(n) || n <= 0) return;
+                      await grantLotus(lotusUid.trim(), n);
+                      setLotusMsg(
+                        `${lotusUid.trim().slice(0, 8)}…에게 연꽃 ${n}송이를 채웠습니다.`
+                      );
+                    })
+                  }
+                  className={`${smallBtn} shrink-0 border-gold/50 text-gold hover:bg-gold/10`}
+                >
+                  {busy === "lotus" ? "…" : "채우기"}
+                </button>
+              </div>
+              {lotusMsg && (
+                <p className="mt-2 text-[11px] leading-5 text-gold-soft">
+                  {lotusMsg}
+                </p>
+              )}
             </div>
           </section>
         )}

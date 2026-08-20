@@ -39,6 +39,7 @@ import {
 import { fetchMyApprovedAnswerCount } from "@/lib/community";
 import { initPresence, watchOnlineCount } from "@/lib/presence";
 import { submitFeedback } from "@/lib/feedback";
+import { dmVisible } from "@/lib/dm";
 import {
   canInstall,
   isIOS,
@@ -58,6 +59,7 @@ import {
   Breath,
   Iljumun,
   Jukbi,
+  Letter,
   LotusMark,
   LotusPond,
   Mandala,
@@ -619,7 +621,12 @@ export default function SettingsPage() {
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">서비스</p>
         <div className="mt-4 grid grid-cols-4 gap-2 border-t border-ink-3 pt-5">
-          {SERVICES.map((s) => {
+          {[
+            ...SERVICES,
+            ...(dmVisible(user?.uid)
+              ? [{ href: "/letters", label: "쪽지함", Icon: Letter } as ServiceItem]
+              : []),
+          ].map((s) => {
             const itemCls =
               "relative flex flex-col items-center gap-2 rounded-[12px] px-1 py-3 text-center transition-colors hover:bg-gold/5";
             const inner = (
