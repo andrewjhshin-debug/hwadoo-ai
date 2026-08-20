@@ -217,6 +217,8 @@ export async function updateGathering(
     templeName: g.templeName,
     meetDate: g.meetDate,
     meetTime: g.meetTime,
+    // 문양이 없던 옛 글도 고쳐 저장하면 지금 고른 음양이 붙는다
+    gender: loadStore().gender ?? null,
   });
 }
 

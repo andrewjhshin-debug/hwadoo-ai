@@ -39,7 +39,7 @@ service cloud.firestore {
         || (request.auth != null
             && request.auth.uid == resource.data.authorUid
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'body', 'openChatUrl', 'lantern']));
+                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'body', 'openChatUrl', 'lantern', 'gender']));
       allow delete: if isAdmin()
         || (request.auth != null && request.auth.uid == resource.data.authorUid);
 
