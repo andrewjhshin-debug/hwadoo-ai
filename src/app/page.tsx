@@ -744,7 +744,7 @@ export default function Home() {
         <button
           onClick={() => setNotesOpen(true)}
           aria-label="사유의 방 열기"
-          className="notes-fab btn-obang fixed bottom-[76px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:bottom-8 md:right-8"
+          className="notes-fab btn-obang fixed bottom-[88px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:bottom-8 md:right-8"
         >
           <Banga className="h-6 w-6 text-gold-soft" />
         </button>

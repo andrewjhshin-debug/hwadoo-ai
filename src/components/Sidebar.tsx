@@ -287,22 +287,13 @@ export default function Sidebar() {
             <LotusMark className="h-6 w-6" stroke="#D9B45B" />
           </Link>
           <Link
-            href="/settings"
-            onClick={go("/settings")}
-            aria-label="알림"
-            title="알림 — 쪽지·새 소식"
-            className="relative p-2 text-hanji-dim transition-colors hover:text-gold-soft"
+            href="/letters"
+            onClick={go("/letters")}
+            aria-label="쪽지함"
+            title="쪽지함 — 1:1 서신"
+            className="p-2 text-hanji-dim transition-colors hover:text-gold-soft"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-              <path d="M6 9.5a6 6 0 0 1 12 0c0 3.8 1.3 5.3 1.9 5.9H4.1c.6-.6 1.9-2.1 1.9-5.9Z" />
-              <path d="M10 18.6a2 2 0 0 0 4 0" />
-            </svg>
-            {hasNews && (
-              <span
-                aria-hidden
-                className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
-              />
-            )}
+            <Letter className="h-6 w-6" />
           </Link>
           <ThemeToggle className="[&_svg]:h-6 [&_svg]:w-6" />
         </div>

@@ -54,14 +54,14 @@ export default function MobileTabBar() {
         <button
           onClick={() => setNotesOpen(true)}
           aria-label="사유의 방 열기"
-          className="notes-fab btn-obang fixed bottom-[76px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:hidden"
+          className="notes-fab btn-obang fixed bottom-[88px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:hidden"
         >
           <Banga className="h-6 w-6 text-gold-soft" />
         </button>
       )}
 
       {/* 하단 고정 탭 바 */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-16 items-stretch border-t border-ink-3 bg-ink-2/95 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-[76px] items-stretch border-t border-ink-3 bg-ink-2/95 backdrop-blur md:hidden">
         {TABS.map(({ href, label, Icon }) => {
           const active = pathname === href;
           return (
@@ -69,16 +69,16 @@ export default function MobileTabBar() {
               key={href}
               href={href}
               onClick={go(href)}
-              className={`flex flex-1 flex-col items-center justify-center gap-1 text-[10px] tracking-wide transition-colors ${
+              className={`flex flex-1 flex-col items-center justify-center gap-1.5 text-[12.5px] tracking-wide transition-colors ${
                 active ? "text-gold" : "text-hanji-faint hover:text-hanji-dim"
               }`}
             >
               <span className="relative">
-                <Icon className="h-[19px] w-[19px]" />
+                <Icon className="h-[24px] w-[24px]" />
                 {href === "/settings" && hasNews && (
                   <span
                     aria-hidden
-                    className="absolute -right-1 -top-0.5 h-1.5 w-1.5 rounded-full bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
+                    className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
                   />
                 )}
               </span>

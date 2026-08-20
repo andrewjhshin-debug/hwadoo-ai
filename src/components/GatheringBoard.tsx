@@ -960,7 +960,7 @@ export default function GatheringBoard({
         </div>
 
         {/* 댓글 쓰기 — 모바일은 아래 탭 바로 위에 고정 */}
-        <div className="fixed inset-x-0 bottom-16 z-[45] border-t border-ink-3 bg-ink-2/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:mt-5 md:border-0 md:bg-transparent md:p-0">
+        <div className="fixed inset-x-0 bottom-[76px] z-[45] border-t border-ink-3 bg-ink-2/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:mt-5 md:border-0 md:bg-transparent md:p-0">
           {qualified ? (
             <div className="flex items-center gap-2">
               <input

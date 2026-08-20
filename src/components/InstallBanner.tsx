@@ -71,7 +71,7 @@ export default function InstallBanner() {
     <div
       role="region"
       aria-label="홈 화면에 담기 안내"
-      className={`fixed inset-x-0 bottom-16 z-40 border-t border-ink-3 bg-ink-2/95 backdrop-blur transition-all duration-700 ease-out motion-reduce:transition-none md:bottom-0 ${
+      className={`fixed inset-x-0 bottom-[76px] z-40 border-t border-ink-3 bg-ink-2/95 backdrop-blur transition-all duration-700 ease-out motion-reduce:transition-none md:bottom-0 ${
         shown
           ? "translate-y-0 opacity-100"
           : "pointer-events-none translate-y-6 opacity-0"
