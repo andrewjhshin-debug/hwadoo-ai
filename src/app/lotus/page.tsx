@@ -83,7 +83,7 @@ export default function LotusPage() {
         <ul className="mt-3 space-y-2 break-keep text-[13px] leading-7 text-hanji-dim">
           <li>
             · <span className="text-hanji">쪽지 청하기</span> — 모임 게시판에서
-            글쓴이·댓글 단 이 곁의 연등을 눌러 1:1 쪽지를 청할 때 연꽃
+            글쓴이·댓글 단 이 곁의 음양 문양을 눌러 1:1 쪽지를 청할 때 연꽃
             1송이가 쓰입니다. 상대가 수락해 열린 대화의 쪽지는 무료·무제한.
           </li>
           <li>

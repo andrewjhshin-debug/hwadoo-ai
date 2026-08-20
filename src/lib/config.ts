@@ -22,6 +22,18 @@ export const CONTACT_EMAIL = "admin@ibod.co.kr";
 // (UID는 이름표일 뿐, 공개되어도 권한과 무관 — 권한은 Firestore 규칙이 지킨다)
 export const ADMIN_UID = "HvYY1QPhLiMLc5NezM1jt0QdUiM2";
 
+// 뒷방 부계정 — 이메일로 가른다 (규칙에도 같은 이메일이 올라 있어야 한다)
+export const ADMIN_EMAILS = ["iphonecharging1@gmail.com"];
+
+// 이 계정이 뒷방 주인인가 — 본계정(UID) 또는 부계정(이메일)
+export function isAdminAccount(
+  u?: { uid?: string | null; email?: string | null } | null
+): boolean {
+  if (!u) return false;
+  if (u.uid === ADMIN_UID) return true;
+  return !!u.email && ADMIN_EMAILS.includes(u.email.toLowerCase());
+}
+
 // 쪽지(게시판 연등 1:1 서신) — 2026-08-20 전면 개방.
 // 닫을 일이 생기면 false 로 — Firestore 규칙의 dmOpen() 도 함께 닫는다.
 export const DM_ENABLED = true;

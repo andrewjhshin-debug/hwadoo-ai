@@ -24,6 +24,16 @@ export function visitDayKey(t: number = Date.now()): string {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
+// 장부 비우기 — 계정이 바뀔 때 부른다 (앞사람의 발자국이 새 계정의
+// '함께한 날'로 새지 않도록). 오늘 발자국 하나만 남긴다.
+export function resetVisits() {
+  try {
+    window.localStorage.setItem(VISITS_KEY, JSON.stringify([visitDayKey()]));
+  } catch {
+    // 못 지워도 수행에 지장이 없도록
+  }
+}
+
 // 장부 읽기 — 어긋난 값은 조용히 걸러낸다
 export function loadVisits(): string[] {
   if (typeof window === "undefined") return [];

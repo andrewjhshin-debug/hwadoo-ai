@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "firebase/auth";
-import { ADMIN_UID } from "@/lib/config";
+import { isAdminAccount } from "@/lib/config";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import {
   addComment,
@@ -97,7 +97,7 @@ export default function Board({
     refresh();
   }, [refresh, bowedKey]);
 
-  const isAdmin = user?.uid === ADMIN_UID;
+  const isAdmin = isAdminAccount(user);
 
   const submit = async () => {
     if (!title.trim() || !body.trim() || busy) return;

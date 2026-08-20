@@ -33,6 +33,7 @@ import {
   type Store,
 } from "./store";
 import { decrementHolding } from "./holding";
+import { resetVisits } from "@/components/VisitLedger";
 
 // Firestore는 undefined 값을 거부한다 — JSON 왕복으로 걷어낸다
 function clean<T>(value: T): T {
@@ -156,7 +157,10 @@ async function startSync(uid: string) {
     ? { ...mergeStores(local, cloud), ownerUid: uid }
     : // 앞사람의 기록이다 — 합치지 않고 이 계정의 것으로 갈아끼운다
       { ...(cloud ?? emptyStore()), ownerUid: uid };
-  if (!mine) releaseHolding(local, merged);
+  if (!mine) {
+    releaseHolding(local, merged);
+    resetVisits(); // 앞사람의 발자국(함께한 날)도 이 계정에 새지 않게
+  }
   // remote 로 알린다 — 열려 있는 화면들이 합쳐진 기록을 곧바로 다시 읽게.
   // (화면이 옛 기록을 쥔 채로 있으면 다음 저장 때 합친 것이 되돌아간다)
   applyRemoteStore(merged);
@@ -314,6 +318,7 @@ export async function logout() {
   if (local.ownerUid !== undefined) {
     releaseHolding(local, emptyStore());
     clearStore();
+    resetVisits(); // 발자국 장부도 함께 — 다음 사람에게 넘어가지 않도록
   }
   await signOut(auth);
 }

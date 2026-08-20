@@ -30,7 +30,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { anonName } from "./anonName";
-import { ADMIN_UID, DM_ENABLED } from "./config";
+import { ADMIN_UID, DM_ENABLED, isAdminAccount } from "./config";
 import type { Post } from "./community";
 
 // 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 초기엔 후하게
@@ -102,8 +102,8 @@ export async function requestThread(
   if (u.uid === target.uid) throw new Error("나에게는 청할 수 없습니다");
   const existing = await findMyRequestTo(post.id, target.uid);
   if (existing) return existing;
-  // 뒷방 주인은 연꽃 없이 무제한 — 도량을 살피는 손길이라
-  if (u.uid !== ADMIN_UID) {
+  // 뒷방 주인(본·부계정)은 연꽃 없이 무제한 — 도량을 살피는 손길이라
+  if (!isAdminAccount(u)) {
     const spent = await spendLotus();
     if (!spent) return "need-lotus";
   }

@@ -6,7 +6,7 @@
 // · 글: 제목(굵게, 오른쪽 위 ⋯ 메뉴=고치기·내리기) → 글쓴이+연꽃 ·
 //   조회 수 · 쓴 날짜 → 내용 → (있으면) 약속 절·날짜·시간 →
 //   합장(공감, 토글)·[함께하기] → 댓글들 → 댓글 쓰기(모바일: 아래 탭 바로 위 고정).
-// · 연꽃 아이콘 — 글쓴이·댓글 단 이 이름 곁. 누르면 쪽지 팝업:
+// · 음양 문양 — 글쓴이·댓글 단 이 이름 곁 (남녀는 음양). 누르면 쪽지 팝업:
 //   청하기 1건 = 연꽃 1송이(1,000원), 수락된 대화는 무료.
 //   첫 계정엔 연꽃 3송이 무료.
 // · 합장은 계정당 하나(토글 — 다시 누르면 거둔다).
@@ -37,7 +37,7 @@ import {
 } from "@/lib/community";
 import { loadStore } from "@/lib/store";
 import { watchAuth } from "@/lib/sync";
-import { ADMIN_UID } from "@/lib/config";
+import { isAdminAccount } from "@/lib/config";
 import {
   dmVisible,
   fetchMyThreads,
@@ -51,20 +51,21 @@ import { TEMPLES } from "@/lib/pilgrimage";
 import { LotusMark } from "@/components/icons";
 import { useConfirm } from "@/components/Confirm";
 
-// 연등 — 통통한 초롱. 채움형이라 누르고 싶게 손에 잡힌다 (쪽지 단추).
-function LanternIcon({ className = "h-5 w-5" }: { className?: string }) {
+// 음양(陰陽) — 쪽지 단추. 남녀는 음양이라, 서로 다른 기운이 만나는 문양.
+// 금빛 반쪽이 차오르고 반쪽은 비어 있다 — 채움과 비움이 한 원 안에.
+function YinYang({ className = "h-5 w-5" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      {/* 고리 */}
-      <path d="M11.2 2.4h1.6v1.6h-1.6z" />
-      {/* 갓 */}
-      <rect x="8.3" y="4" width="7.4" height="2.2" rx="1.1" />
-      {/* 둥근 몸통 */}
-      <ellipse cx="12" cy="12.3" rx="6" ry="5.6" />
-      {/* 받침 */}
-      <rect x="9.1" y="17.9" width="5.8" height="1.7" rx="0.85" />
-      {/* 술 */}
-      <path d="M11.3 19.9h1.4l-.25 1.9h-.9z" />
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      {/* 바깥 원 */}
+      <circle cx="12" cy="12" r="9.25" stroke="currentColor" strokeWidth="1.5" />
+      {/* 찬 반쪽(왼) + 아래 불룩 — 가운데 점은 구멍으로 비운다 */}
+      <path
+        fillRule="evenodd"
+        fill="currentColor"
+        d="M12 2.75a9.25 9.25 0 1 0 0 18.5 4.625 4.625 0 0 1 0-9.25 4.625 4.625 0 0 0 0-9.25Z M12 18.3a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"
+      />
+      {/* 빈 반쪽의 점 — 금빛 한 점 */}
+      <circle cx="12" cy="7.4" r="1.8" fill="currentColor" />
     </svg>
   );
 }
@@ -453,7 +454,7 @@ export default function GatheringBoard({
   };
 
   const isMine = (p: Post) =>
-    !!user && (user.uid === p.authorUid || user.uid === ADMIN_UID);
+    !!user && (user.uid === p.authorUid || isAdminAccount(user));
 
   // 함께하기 — 주소를 화면에 드러내지 않고 새 창으로만 연다
   const joinChat = (p: Post) => {
@@ -613,7 +614,7 @@ export default function GatheringBoard({
             : "text-gold-soft/80 hover:bg-gold/10 hover:text-gold"
         }`}
       >
-        <LanternIcon className="h-[20px] w-[20px]" />
+        <YinYang className="h-[20px] w-[20px]" />
       </button>
     );
   };
@@ -634,7 +635,7 @@ export default function GatheringBoard({
           onClick={(e) => e.stopPropagation()}
         >
           <p className="flex items-center gap-2 text-[15.5px] tracking-wide text-hanji">
-            <LanternIcon className="h-[22px] w-[22px] text-gold" />
+            <YinYang className="h-[22px] w-[22px] text-gold" />
             {dmTarget.name} 님에게 쪽지
           </p>
 
@@ -645,8 +646,8 @@ export default function GatheringBoard({
             </p>
           ) : user.uid === dmTarget.uid ? (
             <p className="mt-3 break-keep text-[13.5px] leading-6 text-hanji-dim">
-              내 이름 곁의 연등입니다 — 다른 수행자의 연등을 눌러 쪽지를 청해
-              보십시오.
+              내 이름 곁의 음양입니다 — 서로 다른 기운이 만나야 쪽지가
+              오갑니다. 다른 수행자의 문양을 눌러 보십시오.
             </p>
           ) : thread ? (
             <>
@@ -694,11 +695,11 @@ export default function GatheringBoard({
               >
                 {dmBusy
                   ? "보내는 중…"
-                  : user.uid === ADMIN_UID
+                  : isAdminAccount(user)
                     ? "쪽지 청하기"
                     : "쪽지 청하기 — 연꽃 1송이"}
               </button>
-              {user.uid === ADMIN_UID ? (
+              {isAdminAccount(user) ? (
                 <p className="mt-2.5 text-center text-[11px] leading-5 text-gold-soft">
                   뒷방 주인 — 연꽃 없이 무제한으로 청할 수 있습니다
                 </p>
@@ -781,7 +782,7 @@ export default function GatheringBoard({
               {reported.has(c.id) ? "신고됨" : "신고"}
             </button>
           )}
-          {!!user && (user.uid === c.authorUid || user.uid === ADMIN_UID) && (
+          {!!user && (user.uid === c.authorUid || isAdminAccount(user)) && (
             <button
               onClick={() => removeComment(p, c)}
               className="transition-colors hover:text-vermilion"

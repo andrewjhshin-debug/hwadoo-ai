@@ -4,7 +4,7 @@
 // 뒷방 주인은 늘 천상도 — 도량 주인의 자리.
 // ─────────────────────────────────────────────────────────────
 
-import { ADMIN_UID } from "./config";
+import { isAdminAccount } from "./config";
 
 export const BADGES = [
   { hanja: "人", name: "인간도", full: "人間道", need: 1, cond: "첫 회향" },
@@ -23,8 +23,8 @@ export function rankHanja(returned: number): string | null {
 // 계정을 함께 살피는 판 — 뒷방 주인이면 회향 수와 무관하게 천상도.
 export function rankHanjaFor(
   returned: number,
-  uid?: string | null
+  u?: { uid?: string | null; email?: string | null } | null
 ): string | null {
-  if (uid === ADMIN_UID) return "天";
+  if (isAdminAccount(u)) return "天";
   return rankHanja(returned);
 }

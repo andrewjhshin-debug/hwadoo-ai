@@ -15,10 +15,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 뒷방 주인인가
+    // 뒷방 주인인가 — 본계정(UID) 또는 부계정(이메일)
     function isAdmin() {
       return request.auth != null
-        && request.auth.uid == "HvYY1QPhLiMLc5NezM1jt0QdUiM2";
+        && (request.auth.uid == "HvYY1QPhLiMLc5NezM1jt0QdUiM2"
+            || request.auth.token.email == "iphonecharging1@gmail.com");
     }
 
     // 뒷방 콘텐츠(은행 손질·선지식·후원자 명단) — 읽기는 모두, 쓰기는 뒷방만
@@ -117,7 +118,8 @@ service cloud.firestore {
     // ── 쪽지 — 공통 판별 ──
     function dmIsAdmin() {
       return request.auth != null
-        && request.auth.uid == "HvYY1QPhLiMLc5NezM1jt0QdUiM2";
+        && (request.auth.uid == "HvYY1QPhLiMLc5NezM1jt0QdUiM2"
+            || request.auth.token.email == "iphonecharging1@gmail.com");
     }
     function dmOpen() {
       return true; // 쪽지 전체 개방 스위치 — config.ts DM_ENABLED 와 함께

@@ -22,7 +22,7 @@ import { loadStore, type Session } from "@/lib/store";
 import { useHasNews } from "@/lib/notices";
 import { rankHanjaFor } from "@/lib/badges";
 import { applyTheme } from "@/lib/theme";
-import { ADMIN_UID } from "@/lib/config";
+import { isAdminAccount } from "@/lib/config";
 import { dmVisible } from "@/lib/dm";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
@@ -193,7 +193,7 @@ export default function Sidebar() {
   const slim = collapsed && !open;
 
   // 걸음 뱃지 — 회향이 없으면 아무것도 그리지 않는다 (뒷방 주인은 늘 天)
-  const rank = rankHanjaFor(history.length, user?.uid);
+  const rank = rankHanjaFor(history.length, user);
   const rankBadge = rank && (
     <span
       aria-label={`걸음 · ${rank}`}
@@ -491,7 +491,7 @@ export default function Sidebar() {
                   </span>
                 </Link>
                 <div className="mt-1.5 flex items-center gap-4 px-1.5">
-                  {user.uid === ADMIN_UID && (
+                  {isAdminAccount(user) && (
                     <Link
                       href="/admin"
                       onClick={go("/admin")}

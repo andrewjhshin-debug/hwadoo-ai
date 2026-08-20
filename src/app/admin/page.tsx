@@ -20,7 +20,7 @@ import {
   type ReactNode,
 } from "react";
 import type { User } from "firebase/auth";
-import { ADMIN_UID } from "@/lib/config";
+import { isAdminAccount } from "@/lib/config";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { useConfirm } from "@/components/Confirm";
 import {
@@ -629,7 +629,7 @@ export default function AdminPage() {
   const [lotusMsg, setLotusMsg] = useState<string | null>(null);
 
   useEffect(() => watchAuth(setUser), []);
-  const isAdmin = user?.uid === ADMIN_UID;
+  const isAdmin = isAdminAccount(user);
 
   const refresh = useCallback(async () => {
     try {

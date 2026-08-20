@@ -13,9 +13,9 @@ import { QRCodeSVG } from "qrcode.react";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
-  ADMIN_UID,
   CONTACT_EMAIL,
   DONATION_URL,
+  isAdminAccount,
   PUSH_VAPID_KEY,
 } from "@/lib/config";
 import {
@@ -172,7 +172,7 @@ export default function SettingsPage() {
 
   // 뒷방 살림 — 관리자로 로그인했을 때만 승인 대기 수를 센다
   useEffect(() => {
-    if (user?.uid !== ADMIN_UID) return;
+    if (!isAdminAccount(user)) return;
     let alive = true;
     fetchThrown()
       .then((list) => {
@@ -540,7 +540,7 @@ export default function SettingsPage() {
       </section>
 
       {/* ── 뒷방 — 관리자에게만 보이는 도량 살림 카드 ── */}
-      {user?.uid === ADMIN_UID && (
+      {isAdminAccount(user) && (
         <section className="rise mt-6">
           <div className="rounded-[14px] border border-gold/40 bg-gold/5 px-6 py-6 sm:px-7">
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-4">
@@ -581,7 +581,7 @@ export default function SettingsPage() {
           {BADGES.map((b) => {
             // 뒷방 주인은 모든 자리가 밝다 — 늘 천상도
             const earned =
-              user?.uid === ADMIN_UID || journalCount >= b.need;
+              isAdminAccount(user) || journalCount >= b.need;
             return (
               <div
                 key={b.name}
