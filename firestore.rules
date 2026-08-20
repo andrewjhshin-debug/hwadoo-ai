@@ -39,18 +39,23 @@ service cloud.firestore {
         || (request.auth != null
             && request.auth.uid == resource.data.authorUid
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'body', 'openChatUrl', 'lantern', 'gender']));
+                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'body', 'openChatUrl', 'lantern', 'gender', 'deleted']));
       allow delete: if isAdmin()
         || (request.auth != null && request.auth.uid == resource.data.authorUid);
 
       match /comments/{commentId} {
         allow read: if true;
         allow create: if request.auth != null;
-        // 좋아요·싫어요 셈만 올릴 수 있다 (본문·이름은 못 바꾼다)
+        // 좋아요·싫어요 셈 올리기(누구나) 또는
+        // 작성자·뒷방의 소프트 삭제('삭제된 댓글입니다'로 바꾸기)
         allow update: if request.resource.data.diff(resource.data)
-             .affectedKeys().hasOnly(['up', 'down']);
-        allow delete: if isAdmin()
-          || (request.auth != null && request.auth.uid == resource.data.authorUid);
+             .affectedKeys().hasOnly(['up', 'down'])
+          || ((isAdmin()
+               || (request.auth != null
+                   && request.auth.uid == resource.data.authorUid))
+              && request.resource.data.diff(resource.data)
+                   .affectedKeys().hasOnly(['deleted', 'body']));
+        allow delete: if isAdmin();
       }
 
       // 합장(공감) — 계정당 한 번, 토글. 문서 하나가 '눌렀음'의 증거다.

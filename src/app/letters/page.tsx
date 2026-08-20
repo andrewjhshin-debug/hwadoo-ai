@@ -67,6 +67,16 @@ export default function LettersPage() {
     if (user) refresh();
   }, [user, refresh]);
 
+  // 메뉴에서 쪽지를 다시 누르면 — 대화를 접고 목록으로
+  useEffect(() => {
+    const reset = () => {
+      setOpenId(null);
+      setMenuOpen(false);
+    };
+    window.addEventListener("hwadoo-nav-home", reset);
+    return () => window.removeEventListener("hwadoo-nav-home", reset);
+  }, []);
+
   // ── 뒤로가기 — 대화 층을 쌓고, popstate 가 접는다 ──────────
   const openRef = useRef<string | null>(null);
   openRef.current = openId;

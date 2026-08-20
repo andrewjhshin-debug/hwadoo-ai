@@ -317,6 +317,18 @@ export default function GatheringBoard({
     return () => window.removeEventListener("hwadoo-store-updated", count);
   }, []);
 
+  // 메뉴에서 이 화면을 다시 누르면 — 층을 다 접고 목록으로 돌아간다
+  useEffect(() => {
+    const reset = () => {
+      setDmTarget(null);
+      setOpen(false);
+      setSelectedId(null);
+      setMenuOpen(false);
+    };
+    window.addEventListener("hwadoo-nav-home", reset);
+    return () => window.removeEventListener("hwadoo-nav-home", reset);
+  }, []);
+
   // 댓글 손길 — 계정이 바뀌면 그 계정의 기록을 읽는다
   useEffect(() => {
     setVotes(loadVotes(user?.uid));
@@ -521,13 +533,29 @@ export default function GatheringBoard({
     setMenuOpen(false);
     const ok = await confirm(
       "이 글을 내리겠습니까?",
-      "내린 글은 되살릴 수 없습니다.",
+      "'삭제된 글입니다'로 자리만 남고, 댓글은 그대로 남습니다.",
       { confirm: "내리기", cancel: "두기" }
     );
     if (!ok) return;
     try {
       await deletePost(p.id);
-      setPosts((list) => list?.filter((x) => x.id !== p.id) ?? null);
+      setPosts(
+        (list) =>
+          list?.map((x) =>
+            x.id === p.id
+              ? {
+                  ...x,
+                  deleted: true,
+                  title: "삭제된 글입니다",
+                  body: "작성자가 내린 글입니다.",
+                  templeName: null,
+                  meetDate: null,
+                  meetTime: null,
+                  gender: null,
+                }
+              : x
+          ) ?? null
+      );
       goBack(); // 글 층을 걷고 목록으로
     } catch {
       // 권한·연결 문제 — 화면은 그대로
@@ -827,9 +855,14 @@ export default function GatheringBoard({
             {stamp(c.createdAt)}
           </span>
         </div>
-        <p className="mt-0.5 break-keep pl-9 text-[14.5px] leading-6 text-hanji">
+        <p
+          className={`mt-0.5 break-keep pl-9 text-[14.5px] leading-6 ${
+            c.deleted ? "text-hanji-faint" : "text-hanji"
+          }`}
+        >
           {c.body}
         </p>
+        {c.deleted ? null : (
         <p className="mt-0.5 flex items-center gap-3 pl-9 text-[12px] tracking-wide text-hanji-faint">
           {!isReply && (
             <button
@@ -878,6 +911,7 @@ export default function GatheringBoard({
             </button>
           )}
         </p>
+        )}
         {replyTo === c.id && !isReply && (
           <div className="mt-1.5 flex items-center gap-2 pl-9">
             <input
@@ -923,8 +957,8 @@ export default function GatheringBoard({
           >
             ← 목록
           </button>
-          {/* ⋯ 메뉴 — 고치기·내리기 */}
-          {mine && (
+          {/* ⋯ 메뉴 — 고치기·내리기 (내려진 글에는 없다) */}
+          {mine && !p.deleted && (
             <div className="relative">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
@@ -954,8 +988,12 @@ export default function GatheringBoard({
           )}
         </div>
 
-        {/* 제목 — 바로 붙여 위로 당긴다 */}
-        <h2 className="mt-2 break-keep font-serif text-[21px] font-medium leading-8 text-hanji">
+        {/* 제목 — 바로 붙여 위로 당긴다 (내려진 글은 흐리게) */}
+        <h2
+          className={`mt-2 break-keep font-serif text-[21px] font-medium leading-8 ${
+            p.deleted ? "text-hanji-faint" : "text-hanji"
+          }`}
+        >
           {p.title}
         </h2>
 
@@ -973,7 +1011,11 @@ export default function GatheringBoard({
         </div>
 
         {/* 내용 */}
-        <p className="mt-3 whitespace-pre-line break-keep text-[15.5px] font-light leading-[1.85] text-hanji">
+        <p
+          className={`mt-3 whitespace-pre-line break-keep text-[15.5px] font-light leading-[1.85] ${
+            p.deleted ? "text-hanji-faint" : "text-hanji"
+          }`}
+        >
           {p.body}
         </p>
 
@@ -986,7 +1028,8 @@ export default function GatheringBoard({
           </p>
         )}
 
-        {/* 합장 — 가운데 동그라미 하나, 본문과 댓글 사이 */}
+        {/* 합장 — 가운데 동그라미 하나 (내려진 글에는 없다) */}
+        {p.deleted ? null : (
         <div className="mt-4 flex flex-col items-center gap-1">
           <button
             onClick={() => like(p)}
@@ -1013,6 +1056,7 @@ export default function GatheringBoard({
             </span>
           )}
         </div>
+        )}
 
         {/* 댓글들 — 다닥다닥, 사이를 아낀다 */}
         <div className="mt-4 border-t border-ink-3/60 pt-3">
@@ -1043,9 +1087,13 @@ export default function GatheringBoard({
           </p>
         </div>
 
-        {/* 댓글 쓰기 — 모바일은 아래 탭 바로 위에 고정 */}
+        {/* 댓글 쓰기 — 모바일은 아래 탭 바로 위에 고정 (내려진 글은 닫힘) */}
         <div className="fixed inset-x-0 bottom-[76px] z-[45] border-t border-ink-3 bg-ink-2/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:mt-5 md:border-0 md:bg-transparent md:p-0">
-          {qualified ? (
+          {p.deleted ? (
+            <p className="break-keep text-center text-[11px] leading-5 text-hanji-faint md:text-left">
+              내려진 글에는 새 댓글을 달 수 없습니다.
+            </p>
+          ) : qualified ? (
             <div className="flex items-center gap-2">
               <input
                 value={cBody}
@@ -1240,19 +1288,35 @@ export default function GatheringBoard({
                 {/* 음양 프로필 — 왼쪽, 오른쪽 위는 제목·아래는 시간/조회/댓글 */}
                 <GenderMark g={p.gender} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px] font-medium leading-6 text-hanji">
+                  <span
+                    className={`block truncate text-[15px] font-medium leading-6 ${
+                      p.deleted ? "text-hanji-faint" : "text-hanji"
+                    }`}
+                  >
                     {p.title}
                   </span>
-                  <span className="mt-0.5 flex items-center gap-2.5 text-[11.5px] tracking-wide text-hanji-faint">
-                    <span>{stamp(p.createdAt)}</span>
-                    <span className="flex items-center gap-1">
+                  <span className="mt-0.5 flex min-w-0 items-center gap-2.5 text-[11.5px] tracking-wide text-hanji-faint">
+                    <span className="shrink-0">{stamp(p.createdAt)}</span>
+                    <span className="flex shrink-0 items-center gap-1">
                       <EyeIcon />
                       {p.views ?? 0}
                     </span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex shrink-0 items-center gap-1">
                       <CommentIcon />
                       {p.commentCount}
                     </span>
+                    {/* 약속 — 어느 절, 언제 가고 싶은지 (적은 것만) */}
+                    {(p.templeName || p.meetDate) && (
+                      <span className="truncate text-gold-soft">
+                        {[
+                          p.templeName,
+                          p.meetDate ? legacyDate(p.meetDate) : null,
+                          p.meetTime ? timeLabel(p.meetTime) : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    )}
                   </span>
                 </span>
               </button>

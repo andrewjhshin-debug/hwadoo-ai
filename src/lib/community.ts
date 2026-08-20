@@ -18,7 +18,6 @@ import {
   setDoc,
   updateDoc,
   where,
-  writeBatch,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { anonName } from "./anonName";
@@ -35,6 +34,7 @@ export type Post = {
   authorName: string;
   authorUid: string;
   gender?: "m" | "f" | null; // 음양 문양 — m=陽, f=陰 (안 골랐으면 없음)
+  deleted?: boolean; // 내려진 글 — 자리는 남고 댓글도 남는다
   hapjang: number;
   commentCount: number;
   views?: number; // 몇 명이 열어 봤는가
@@ -54,6 +54,7 @@ export type Comment = {
   authorName: string;
   authorUid: string;
   gender?: "m" | "f" | null; // 음양 문양
+  deleted?: boolean; // 지운 댓글 — '삭제된 댓글입니다'로 자리만 남는다
   parentId?: string | null; // 대댓글이면 어느 댓글에 단 것인지
   up?: number; // 좋아요
   down?: number; // 싫어요
@@ -266,18 +267,18 @@ export async function lightLantern(id: string) {
   await updateDoc(doc(db, "posts", id), { lantern: true });
 }
 
+// 글을 내린다 — 지우지 않고 '삭제된 글입니다'로 자리만 남긴다.
+// 댓글은 그대로 살아 있다 (대화의 흔적은 지워지지 않는다).
 export async function deletePost(id: string) {
-  // Firestore는 문서를 지워도 하위 컬렉션을 남긴다 — 댓글부터 거둔다.
-  // 댓글을 못 거두더라도(권한·연결) 글 삭제는 그대로 진행한다.
-  try {
-    const snap = await getDocs(collection(db, "posts", id, "comments"));
-    for (let i = 0; i < snap.docs.length; i += 400) {
-      const batch = writeBatch(db);
-      snap.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
-      await batch.commit();
-    }
-  } catch {}
-  await deleteDoc(doc(db, "posts", id));
+  await updateDoc(doc(db, "posts", id), {
+    deleted: true,
+    title: "삭제된 글입니다",
+    body: "작성자가 내린 글입니다.",
+    templeName: null,
+    meetDate: null,
+    meetTime: null,
+    gender: null,
+  });
 }
 
 // ── 댓글 ────────────────────────────────────────────────
@@ -350,9 +351,13 @@ export async function voteComment(
   await updateDoc(doc(db, "posts", postId, "comments", commentId), patch);
 }
 
+// 댓글을 지운다 — '삭제된 댓글입니다'로 자리만 남긴다 (답글은 그대로).
+// 셈(commentCount)은 자리가 남으므로 줄이지 않는다.
 export async function deleteComment(postId: string, commentId: string) {
-  await deleteDoc(doc(db, "posts", postId, "comments", commentId));
-  await updateDoc(doc(db, "posts", postId), { commentCount: increment(-1) });
+  await updateDoc(doc(db, "posts", postId, "comments", commentId), {
+    deleted: true,
+    body: "삭제된 댓글입니다",
+  });
 }
 
 // ── 다른 수행자들의 답 (동의를 받아 공유된 회향) ──────────────────────
