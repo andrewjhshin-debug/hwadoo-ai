@@ -110,30 +110,65 @@ export default function BreathPage() {
     }
   };
 
-  // 들숨은 밝게 차오르고(4초), 날숨은 낮게 길게 잦아든다(6초)
+  // 마디가 바뀌는 순간의 경쇠 — 눈을 감고도 전환을 놓치지 않게.
+  // 들숨은 높은 한 음(맑게), 날숨은 낮은 한 음(무겁게, 여운 길게).
+  const playCue = (ctx: AudioContext, kind: "in" | "out", t: number) => {
+    const osc = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    osc.type = "sine";
+    osc2.type = "sine";
+    const f = kind === "in" ? 660 : 330; // 들숨 높이, 날숨 낮이
+    osc.frequency.value = f;
+    osc2.frequency.value = f * 2.01; // 살짝 어긋난 배음 — 경쇠의 울림
+    const gain = ctx.createGain();
+    const peak = kind === "in" ? 0.16 : 0.14;
+    const tail = kind === "in" ? 1.1 : 1.8;
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(peak, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + tail);
+    const g2 = ctx.createGain();
+    g2.gain.value = 0.35;
+    osc.connect(gain);
+    osc2.connect(g2);
+    g2.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc2.start(t);
+    osc.stop(t + tail + 0.1);
+    osc2.stop(t + tail + 0.1);
+  };
+
+  // 들숨은 또렷하게 차오르고(4초, 상승), 날숨은 무겁게 길게 잦아든다(6초, 하강)
   const playBreath = (kind: "in" | "out") => {
     const ctx = ensureAudio();
     if (!ctx || !noiseRef.current) return;
     const dur = (kind === "in" ? INHALE_MS : CYCLE_MS - INHALE_MS) / 1000;
     const t = ctx.currentTime;
+    playCue(ctx, kind, t); // 전환 신호 — 확실히 티가 나게
     const src = ctx.createBufferSource();
     src.buffer = noiseRef.current;
     src.loop = true;
     const filter = ctx.createBiquadFilter();
     filter.type = "bandpass";
-    filter.Q.value = 0.9;
-    filter.frequency.setValueAtTime(kind === "in" ? 480 : 720, t);
-    filter.frequency.linearRampToValueAtTime(
-      kind === "in" ? 920 : 340,
-      t + dur
-    );
+    filter.Q.value = 1.1;
+    if (kind === "in") {
+      // 들숨 — 낮은 곳에서 높이 차오른다 (크레셴도)
+      filter.frequency.setValueAtTime(380, t);
+      filter.frequency.linearRampToValueAtTime(1150, t + dur);
+    } else {
+      // 날숨 — 높은 곳에서 깊이 가라앉는다 (디미누엔도)
+      filter.frequency.setValueAtTime(850, t);
+      filter.frequency.linearRampToValueAtTime(230, t + dur);
+    }
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(
-      kind === "in" ? 0.085 : 0.065,
-      t + dur * 0.35
-    );
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    if (kind === "in") {
+      gain.gain.exponentialRampToValueAtTime(0.11, t + dur * 0.8);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    } else {
+      gain.gain.exponentialRampToValueAtTime(0.1, t + dur * 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    }
     src.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
@@ -181,22 +216,22 @@ export default function BreathPage() {
   const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-4 text-center">
       {/* 클라이언트 페이지라 metadata 는 못 내보낸다 — 만다라와 같은 관례 */}
       <style>{BREATH_CSS}</style>
 
       <p className="rise text-[11px] tracking-[0.5em] text-gold-soft">
         息 · 호흡 명상
       </p>
-      <h1 className="rise rise-d1 mt-5 break-keep font-serif text-xl font-light leading-9 text-hanji">
+      <h1 className="rise rise-d1 mt-3 break-keep font-serif text-xl font-light leading-8 text-hanji">
         숨이 돌아오는 자리
       </h1>
-      <p className="rise rise-d1 mt-3 break-keep text-[12.5px] leading-6 text-hanji-dim">
+      <p className="rise rise-d1 mt-1.5 break-keep text-[12.5px] leading-6 text-hanji-dim">
         날숨을 들숨보다 길게 — 몸이 스스로 가라앉습니다.
       </p>
 
-      {/* 원은 transform 으로만 커지므로 자리(224px)는 흔들리지 않는다 */}
-      <div className="rise rise-d2 relative mt-10 flex h-56 w-56 items-center justify-center">
+      {/* 원은 transform 으로만 커지므로 자리는 흔들리지 않는다 */}
+      <div className="rise rise-d2 relative mt-4 flex h-52 w-52 items-center justify-center">
         <div
           aria-hidden
           className={`breath-circle ${stage === "breathing" ? "breath-anim" : ""}`}
@@ -208,16 +243,16 @@ export default function BreathPage() {
 
       {stage === "ready" && (
         <div className="rise rise-d3 flex flex-col items-center">
-          <p className="mt-5 break-keep text-[13.5px] leading-7 text-hanji-dim">
-            준비되면, 앉은 그대로 시작합니다.
+          <p className="mt-3 break-keep text-[13.5px] leading-7 text-hanji-dim">
+            시작하면 <span className="text-hanji">눈을 감으십시오</span> —
+            그래야 더 알아차릴 수 있습니다.
             <br />
-            눈을 감으시면 더 깊어집니다 — 들숨과 날숨의 소리가 길을 알려
-            드립니다.
+            높은 경쇠가 울리면 들숨, 낮은 경쇠가 울리면 날숨입니다.
           </p>
           <button
             type="button"
             onClick={begin}
-            className="mt-7 border border-gold/40 px-8 py-2.5 text-xs tracking-[0.3em] text-gold-soft transition-colors hover:border-gold/70 hover:text-gold"
+            className="mt-4 border border-gold/40 px-8 py-2.5 text-xs tracking-[0.3em] text-gold-soft transition-colors hover:border-gold/70 hover:text-gold"
           >
             숨을 고르다
           </button>
@@ -226,19 +261,19 @@ export default function BreathPage() {
 
       {stage === "breathing" && (
         <div className="flex flex-col items-center">
-          <p aria-live="polite" className="mt-5 break-keep text-[13px] leading-6 text-hanji-dim">
+          <p aria-live="polite" className="mt-3 break-keep text-[13px] leading-6 text-hanji-dim">
             {phase === "in"
               ? "넷을 세며 천천히 들이쉽니다"
               : "여섯을 세며 길게 내쉽니다"}
           </p>
           {/* 알아차림의 말 — 숨마다 돌아가며 하나씩 */}
-          <p className="mt-2.5 break-keep text-[12.5px] tracking-wide text-gold-soft/90">
+          <p className="mt-1.5 break-keep text-[12.5px] tracking-wide text-gold-soft/90">
             {GUIDES[Math.floor(seconds / (CYCLE_MS / 1000)) % GUIDES.length]}
           </p>
-          <p className="mt-2 text-xs tabular-nums tracking-[0.25em] text-hanji-faint">
+          <p className="mt-1.5 text-xs tabular-nums tracking-[0.25em] text-hanji-faint">
             {clock}
           </p>
-          <div className="mt-7 flex items-center gap-4">
+          <div className="mt-4 flex items-center gap-4">
             <button
               type="button"
               onClick={finish}
@@ -260,13 +295,13 @@ export default function BreathPage() {
 
       {stage === "done" && (
         <div className="flex flex-col items-center">
-          <p className="mt-5 break-keep font-serif text-[15px] leading-7 text-hanji">
+          <p className="mt-3 break-keep font-serif text-[15px] leading-7 text-hanji">
             {breaths}번의 숨을 쉬었습니다
           </p>
           <button
             type="button"
             onClick={begin}
-            className="mt-7 border border-gold/40 px-8 py-2.5 text-xs tracking-[0.3em] text-gold-soft transition-colors hover:border-gold/70 hover:text-gold"
+            className="mt-4 border border-gold/40 px-8 py-2.5 text-xs tracking-[0.3em] text-gold-soft transition-colors hover:border-gold/70 hover:text-gold"
           >
             다시 시작
           </button>
