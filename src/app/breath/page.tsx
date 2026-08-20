@@ -6,14 +6,24 @@
 // 애니메이션은 CSS keyframes 하나(10초 주기)가 맡고, JS 는
 // 시작·마침과 문구 전환만 거든다 — 문구는 setInterval 누적이 아니라
 // 시작 시각으로부터의 경과로 계산해, 원의 움직임과 어긋나지 않는다.
-// 길이 선택은 없다 — 스스로 마칠 때까지. 소리도 없다.
-// 마치면 10초 = 1식(息)으로 세어 "N번의 숨"을 알려 준다.
+// 길이 선택은 없다 — 스스로 마칠 때까지.
+// 음향: 에셋 없이 Web Audio 로 숨결 같은 바람 소리를 합성한다 —
+// 들숨은 밝게 차오르고 날숨은 낮게 잦아든다. 눈을 감아도 소리가
+// 숨의 길이를 알려 준다 (끄기 단추 있음). 마치면 10초 = 1식(息).
 // ────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
 
 const INHALE_MS = 4000; // 들숨 4초
 const CYCLE_MS = 10000; // 들숨 4초 + 날숨 6초 = 1식
+
+// 숨마다 돌아가며 건네는 알아차림의 말
+const GUIDES = [
+  "호흡을 알아차리십시오",
+  "가슴이 오르내리는 것을 느껴 보십시오",
+  "생각이 지나가면, 다시 숨으로 돌아옵니다",
+  "지금 이 숨이 전부입니다",
+];
 
 // 원의 숨 — 낮 모드는 석간주 계열로 빛깔만 바꾼다.
 // 줄여 달라는 설정(prefers-reduced-motion)이면 커지는 폭만 줄이고 리듬은 남긴다.
@@ -68,7 +78,75 @@ export default function BreathPage() {
   const [phase, setPhase] = useState<"in" | "out">("in");
   const [seconds, setSeconds] = useState(0);
   const [breaths, setBreaths] = useState(0);
+  const [soundOn, setSoundOn] = useState(true);
   const startRef = useRef(0);
+
+  // ── 음향 — 파일 없이 합성한 숨결 (바람 같은 노이즈 스웰) ──────
+  const audioRef = useRef<AudioContext | null>(null);
+  const noiseRef = useRef<AudioBuffer | null>(null);
+
+  const ensureAudio = (): AudioContext | null => {
+    try {
+      if (!audioRef.current) {
+        const Ctx =
+          window.AudioContext ??
+          (window as unknown as { webkitAudioContext?: typeof AudioContext })
+            .webkitAudioContext;
+        if (!Ctx) return null;
+        audioRef.current = new Ctx();
+      }
+      const ctx = audioRef.current;
+      void ctx.resume();
+      if (!noiseRef.current) {
+        const len = ctx.sampleRate * 2;
+        const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+        noiseRef.current = buf;
+      }
+      return ctx;
+    } catch {
+      return null; // 소리가 안 나와도 명상은 흐른다
+    }
+  };
+
+  // 들숨은 밝게 차오르고(4초), 날숨은 낮게 길게 잦아든다(6초)
+  const playBreath = (kind: "in" | "out") => {
+    const ctx = ensureAudio();
+    if (!ctx || !noiseRef.current) return;
+    const dur = (kind === "in" ? INHALE_MS : CYCLE_MS - INHALE_MS) / 1000;
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = noiseRef.current;
+    src.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.Q.value = 0.9;
+    filter.frequency.setValueAtTime(kind === "in" ? 480 : 720, t);
+    filter.frequency.linearRampToValueAtTime(
+      kind === "in" ? 920 : 340,
+      t + dur
+    );
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(
+      kind === "in" ? 0.085 : 0.065,
+      t + dur * 0.35
+    );
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(t);
+    src.stop(t + dur + 0.1);
+  };
+
+  // 숨의 마디가 바뀔 때마다 소리 한 번 — 들숨/날숨이 각자의 결을 낸다
+  useEffect(() => {
+    if (stage !== "breathing" || !soundOn) return;
+    playBreath(phase);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, stage, soundOn]);
 
   // 문구·경과 시간 — 시작 시각으로부터 계산 (같은 값이면 React 가 그리지 않는다)
   useEffect(() => {
@@ -85,6 +163,7 @@ export default function BreathPage() {
   }, [stage]);
 
   const begin = () => {
+    ensureAudio(); // 사용자 손길이 있을 때 오디오 문을 연다 (iOS 규칙)
     startRef.current = performance.now();
     setPhase("in");
     setSeconds(0);
@@ -96,6 +175,7 @@ export default function BreathPage() {
     // 10초 = 1식. 한 호흡을 채 못 채웠어도, 앉았던 숨 하나는 쳐 준다.
     setBreaths(Math.max(1, Math.floor(elapsed / CYCLE_MS)));
     setStage("done");
+    void audioRef.current?.suspend(); // 소리도 함께 내려놓는다
   };
 
   const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
@@ -128,8 +208,11 @@ export default function BreathPage() {
 
       {stage === "ready" && (
         <div className="rise rise-d3 flex flex-col items-center">
-          <p className="mt-5 break-keep text-[13px] leading-6 text-hanji-dim">
+          <p className="mt-5 break-keep text-[13.5px] leading-7 text-hanji-dim">
             준비되면, 앉은 그대로 시작합니다.
+            <br />
+            눈을 감으시면 더 깊어집니다 — 들숨과 날숨의 소리가 길을 알려
+            드립니다.
           </p>
           <button
             type="button"
@@ -148,16 +231,30 @@ export default function BreathPage() {
               ? "넷을 세며 천천히 들이쉽니다"
               : "여섯을 세며 길게 내쉽니다"}
           </p>
+          {/* 알아차림의 말 — 숨마다 돌아가며 하나씩 */}
+          <p className="mt-2.5 break-keep text-[12.5px] tracking-wide text-gold-soft/90">
+            {GUIDES[Math.floor(seconds / (CYCLE_MS / 1000)) % GUIDES.length]}
+          </p>
           <p className="mt-2 text-xs tabular-nums tracking-[0.25em] text-hanji-faint">
             {clock}
           </p>
-          <button
-            type="button"
-            onClick={finish}
-            className="mt-7 border border-ink-3 px-8 py-2.5 text-xs tracking-[0.3em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-          >
-            마치다
-          </button>
+          <div className="mt-7 flex items-center gap-4">
+            <button
+              type="button"
+              onClick={finish}
+              className="border border-ink-3 px-8 py-2.5 text-xs tracking-[0.3em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+            >
+              마치다
+            </button>
+            <button
+              type="button"
+              onClick={() => setSoundOn((v) => !v)}
+              aria-pressed={soundOn}
+              className="text-[11px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
+            >
+              {soundOn ? "음향 끄기" : "음향 켜기"}
+            </button>
+          </div>
         </div>
       )}
 

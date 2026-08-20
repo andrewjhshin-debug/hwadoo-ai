@@ -164,7 +164,7 @@ export default function RoomPage() {
       <h1 className="rise text-center text-[11px] tracking-[0.4em] text-gold-soft">
         思惟之房 · 사유의 방
       </h1>
-      <p className="rise rise-d1 mt-2 whitespace-pre-line text-center font-serif text-[13px] font-light leading-6 text-hanji-dim">
+      <p className="question-glow rise rise-d1 mt-3 whitespace-pre-line break-keep text-center font-serif text-[18px] font-light leading-8 text-hanji">
         {sessionQuestion(store.current)}
       </p>
 
