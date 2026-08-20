@@ -49,6 +49,9 @@ export type Comment = {
   body: string;
   authorName: string;
   authorUid: string;
+  parentId?: string | null; // 대댓글이면 어느 댓글에 단 것인지
+  up?: number; // 좋아요
+  down?: number; // 싫어요
   createdAt?: { seconds: number };
 };
 
@@ -241,16 +244,34 @@ export async function fetchComments(postId: string): Promise<Comment[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Comment);
 }
 
-export async function addComment(postId: string, body: string) {
+export async function addComment(
+  postId: string,
+  body: string,
+  parentId?: string
+) {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   await addDoc(collection(db, "posts", postId, "comments"), {
     body,
     authorName: anonName(), // 익명 — 쓸 때마다 무작위 낱말 이름
     authorUid: u.uid,
+    parentId: parentId ?? null,
+    up: 0,
+    down: 0,
     createdAt: serverTimestamp(),
   });
   await updateDoc(doc(db, "posts", postId), { commentCount: increment(1) });
+}
+
+// 댓글 좋아요/싫어요 — 셈만 올린다 (한 번만 누르기는 화면이 지킨다)
+export async function voteComment(
+  postId: string,
+  commentId: string,
+  dir: "up" | "down"
+) {
+  await updateDoc(doc(db, "posts", postId, "comments", commentId), {
+    [dir]: increment(1),
+  });
 }
 
 export async function deleteComment(postId: string, commentId: string) {

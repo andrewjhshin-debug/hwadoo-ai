@@ -1448,8 +1448,10 @@ export default function AdminPage() {
                         {r.reason}
                       </p>
                       <p className="mt-1.5 text-[10px] tracking-wider text-hanji-faint">
-                        신고 대상 UID: {r.targetUid.slice(0, 8)}…
-                        &nbsp;·&nbsp;쪽지 스레드: {r.threadId.slice(0, 8)}…
+                        {r.kind === "comment" ? "[댓글 신고]" : "[쪽지 신고]"}
+                        &nbsp;대상 UID: {r.targetUid.slice(0, 8)}…
+                        {r.threadId && <> · 스레드 {r.threadId.slice(0, 8)}…</>}
+                        {r.postId && <> · 글 {r.postId.slice(0, 8)}…</>}
                       </p>
                       <div className="mt-3 flex gap-2">
                         <button

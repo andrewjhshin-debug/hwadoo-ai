@@ -21,7 +21,6 @@ import {
   dmVisible,
   fetchMessages,
   fetchMyThreads,
-  FREE_MSGS,
   getLotus,
   reportThread,
   sendMessage,
@@ -47,7 +46,6 @@ export default function LettersPage() {
   const [msgs, setMsgs] = useState<DmMessage[] | null>(null);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
-  const [needLotus, setNeedLotus] = useState(false);
   const [reported, setReported] = useState<Set<string>>(new Set());
   const endRef = useRef<HTMLDivElement | null>(null);
 
@@ -72,7 +70,6 @@ export default function LettersPage() {
     setOpenId(t.id);
     setMsgs(null);
     setDraft("");
-    setNeedLotus(false);
     try {
       setMsgs(await fetchMessages(t.id));
     } catch {
@@ -88,17 +85,10 @@ export default function LettersPage() {
     const body = draft.trim();
     if (!body || !user) return;
     setBusy(true);
-    setNeedLotus(false);
     try {
-      const myCount = (msgs ?? []).filter((m) => m.uid === user.uid).length;
-      const result = await sendMessage(t.id, body, myCount);
-      if (result === "need-lotus") {
-        setNeedLotus(true);
-        return;
-      }
+      await sendMessage(t.id, body);
       setDraft("");
       setMsgs(await fetchMessages(t.id));
-      getLotus().then(setLotus);
     } catch {
       // 연결 문제 — 입력은 남긴다
     } finally {
@@ -180,8 +170,8 @@ export default function LettersPage() {
       </p>
       <div className="rise rise-d1 mt-4 flex items-center justify-center gap-4">
         <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
-          연꽃 <span className="text-gold">{lotus}</span>송이 · 대화마다 처음{" "}
-          {FREE_MSGS}통은 무료 ·{" "}
+          연꽃 <span className="text-gold">{lotus}</span>송이 · 청하기 한 번에
+          1송이, 열린 대화는 무료 ·{" "}
           <Link
             href="/lotus"
             className="text-gold-soft underline decoration-gold/30 underline-offset-2 transition-colors hover:text-gold"
@@ -338,22 +328,6 @@ export default function LettersPage() {
                       )}
                       <div ref={endRef} />
                     </div>
-
-                    {/* 연꽃 안내 */}
-                    {needLotus && (
-                      <div className="mt-3 rounded-[10px] border border-gold/25 bg-gold/5 px-4 py-3">
-                        <p className="break-keep text-[12px] leading-6 text-hanji-dim">
-                          무료 쪽지 {FREE_MSGS}통을 다 건넸습니다 — 이어가려면
-                          연꽃 한 송이가 듭니다.
-                        </p>
-                        <Link
-                          href="/lotus"
-                          className="mt-2 inline-block rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
-                        >
-                          연꽃 얻기 →
-                        </Link>
-                      </div>
-                    )}
 
                     {/* 입력 */}
                     <div className="mt-3 flex items-center gap-2">

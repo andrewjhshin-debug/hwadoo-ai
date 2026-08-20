@@ -2,10 +2,13 @@
 // 화두 Firestore 규칙 — 전문(全文). 콘솔 > Firestore > 규칙 탭의
 // 내용을 이 파일로 통째로 바꿔 넣고 [게시]하면 된다.
 //
-// 2026-08-20 통합본:
-// · posts 작성자 수정 허용 필드에 meetTime·lantern 추가 (모임 시간·연등)
-// · posts/{id}/likes/{uid} — 좋아요(합장) 계정당 한 번의 증거 문서
-// · dm-threads / wallets / reports — 쪽지·연꽃·신고 (dmOpen()으로 여닫음)
+// 2026-08-20 통합본 v3:
+// · posts 작성자 수정 허용 필드에 meetTime·lantern 추가
+// · posts/{id}/likes/{uid} — 합장(좋아요) 계정당 한 번의 증거 문서
+// · comments 의 up/down(좋아요·싫어요) 셈 올리기 허용
+// · reports — 댓글 신고도 받도록 로그인 사용자 누구나 넣을 수 있게
+// · wallets — 첫 지갑은 정확히 연꽃 3송이로만 스스로 만들 수 있다(첫 선물)
+// · dm-threads / wallets / reports — 쪽지·연꽃 (dmOpen()으로 여닫음)
 // ─────────────────────────────────────────────────────────────
 
 rules_version = '2';
@@ -42,6 +45,9 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if true;
         allow create: if request.auth != null;
+        // 좋아요·싫어요 셈만 올릴 수 있다 (본문·이름은 못 바꾼다)
+        allow update: if request.resource.data.diff(resource.data)
+             .affectedKeys().hasOnly(['up', 'down']);
         allow delete: if isAdmin()
           || (request.auth != null && request.auth.uid == resource.data.authorUid);
       }
@@ -162,18 +168,23 @@ service cloud.firestore {
       // 내 지갑만 본다 — 뒷방은 채우기 위해 전부
       allow read: if request.auth != null
         && (request.auth.uid == uid || dmIsAdmin());
-      // 채우기는 뒷방만(PG 전 시험용) · 본인은 한 송이 차감만
-      allow create: if dmIsAdmin();
+      // 첫 지갑은 정확히 연꽃 3송이로만 스스로 만들 수 있다(첫 선물) —
+      // 문서가 이미 있으면 create 가 막히므로 두 번 받을 수 없다.
+      // 채우기는 뒷방(PG 전 시험용) · 본인은 한 송이 차감만.
+      allow create: if dmIsAdmin()
+        || (dmOn() && request.auth != null && request.auth.uid == uid
+            && request.resource.data.keys().hasOnly(['lotus'])
+            && request.resource.data.lotus == 3);
       allow update: if dmIsAdmin()
         || (dmOn() && request.auth != null && request.auth.uid == uid
             && request.resource.data.lotus == resource.data.lotus - 1);
       allow delete: if dmIsAdmin();
     }
 
-    // ── 신고함 ──
+    // ── 신고함 — 쪽지·댓글 신고가 함께 모인다 ──
     match /reports/{reportId} {
       // 신고 넣기 — 로그인한 본인 이름으로만 · 읽기·처리·삭제는 뒷방만
-      allow create: if dmOn() && request.auth != null
+      allow create: if request.auth != null
         && request.auth.uid == request.resource.data.byUid
         && request.resource.data.status == "open";
       allow read, update, delete: if dmIsAdmin();

@@ -19,11 +19,9 @@ function GatheringInner() {
   const autoOpen = sp.get("open") === "1";
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-16 pt-6 md:pt-10">
-      {/* 설명 없이 게시판만 — 머리글도 최소한으로 */}
-      <p className="rise text-xs tracking-[0.4em] text-gold-soft">모임</p>
-
-      <section className="rise rise-d1 mt-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-0 pb-16 pt-3 sm:px-6 md:pt-8">
+      {/* 설명 없이 게시판이 화면 전체를 쓴다 */}
+      <section className="rise">
         <GatheringBoard
           initialTemple={temple}
           initialDate={date}
@@ -34,7 +32,7 @@ function GatheringInner() {
       {/* 절을 고르러 — 지도로 */}
       <Link
         href="/pilgrimage"
-        className="rise rise-d3 mt-8 self-center text-[12px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
+        className="rise rise-d2 mt-8 self-center text-[12px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
       >
         지도에서 절 고르기 →
       </Link>

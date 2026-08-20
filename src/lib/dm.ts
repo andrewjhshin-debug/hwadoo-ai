@@ -1,12 +1,13 @@
 // ─────────────────────────────────────────────────────────────
-// 쪽지(書信) — 모임에서 시작되는 1:1 서신.
-// · 흐름: 모임 글에서 [쪽지 청하기](한 마디와 함께) → 글쓴이가 수락해야
-//   대화가 열린다 (수락제 — 프로필 뒤지기는 없다, 대화는 모임에서만 시작).
-// · 연꽃: 한 대화에 처음 FREE_MSGS 통은 무료, 그 뒤로는 연꽃 한 송이씩.
-//   연꽃 지갑(wallets)은 지금은 뒷방만 채울 수 있다 — 결제는 PG 승인 뒤.
-//   ※ 차감은 아직 클라이언트 셈 — 유료로 열 때 서버(관리자 SDK) 검증으로
+// 쪽지(書信) — 게시판의 연등에서 시작되는 1:1 서신.
+// · 흐름: 글쓴이·댓글 단 이 곁의 연등을 눌러 [쪽지 청하기](한 마디와 함께)
+//   → 상대가 수락해야 대화가 열린다 (수락제 — 프로필 뒤지기는 없다).
+// · 값: 청하기 한 번 = 연꽃 1송이(1,000원). 수락되어 열린 대화의 쪽지는
+//   무료·무제한. 처음 쓰는 계정에는 연꽃 FIRST_GRANT 송이를 거저 쥐여 준다.
+//   연꽃 채우기는 /lotus(결제, PG 승인 뒤 연동) 또는 뒷방.
+//   ※ 차감은 아직 클라이언트 셈 — 결제가 열리면 서버(관리자 SDK) 검증으로
 //   옮겨야 한다. 지금은 흐름 확인용 뼈대다.
-// · 신고: 대화에서 [신고]하면 reports 에 쌓여 뒷방 신고함에 나타난다.
+// · 신고: 쪽지 대화·게시판 댓글 모두 reports 로 모여 뒷방 신고함에 뜬다.
 // · DM_ENABLED=false 인 동안 규칙은 관리자만 통과시킨다 — 화면도
 //   관리자에게만 보인다 (dmVisible 헬퍼).
 // ─────────────────────────────────────────────────────────────
@@ -32,8 +33,8 @@ import { anonName } from "./anonName";
 import { ADMIN_UID, DM_ENABLED } from "./config";
 import type { Post } from "./community";
 
-// 한 대화에서 무료로 건넬 수 있는 쪽지 수 (내가 보낸 것 기준)
-export const FREE_MSGS = 5;
+// 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 초기엔 후하게
+export const FIRST_GRANT = 3;
 
 // 쪽지를 보여줄 것인가 — 열려 있거나, 뒷방이거나
 export function dmVisible(uid?: string | null): boolean {
@@ -89,17 +90,20 @@ export async function findMyRequestTo(
 }
 
 // 글의 연등을 눌러 쪽지를 청한다 — 글쓴이든 댓글 단 이든, 한 마디와 함께.
-// 이미 청했다면 그 대화를 돌려준다. (ownerUid = 청을 받는 이)
+// 청하기 한 번에 연꽃 1송이 — 모자라면 "need-lotus"를 돌려준다.
+// 이미 청했다면 값을 물리지 않고 그 대화를 돌려준다. (ownerUid = 받는 이)
 export async function requestThread(
   post: Post,
   target: { uid: string; name: string },
   intro: string
-): Promise<DmThread> {
+): Promise<DmThread | "need-lotus"> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   if (u.uid === target.uid) throw new Error("나에게는 청할 수 없습니다");
   const existing = await findMyRequestTo(post.id, target.uid);
   if (existing) return existing;
+  const spent = await spendLotus();
+  if (!spent) return "need-lotus";
   const body = {
     postId: post.id,
     postTitle: post.templeName ?? post.title,
@@ -157,21 +161,15 @@ export async function fetchMessages(threadId: string): Promise<DmMessage[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as DmMessage);
 }
 
-// 보낸다 — 무료분이 다 떨어졌으면 연꽃 한 송이를 먼저 거둔다.
-// myCount: 이 대화에서 내가 이미 보낸 쪽지 수 (화면이 세어 넘긴다)
+// 보낸다 — 열린 대화의 쪽지는 무료·무제한 (값은 청할 때 한 번 물었다)
 export async function sendMessage(
   threadId: string,
-  body: string,
-  myCount: number
-): Promise<"sent" | "need-lotus"> {
+  body: string
+): Promise<void> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   const text = body.trim().slice(0, 500);
-  if (!text) return "sent";
-  if (myCount >= FREE_MSGS) {
-    const spent = await spendLotus();
-    if (!spent) return "need-lotus";
-  }
+  if (!text) return;
   await addDoc(collection(db, "dm-threads", threadId, "messages"), {
     body: text,
     uid: u.uid,
@@ -181,9 +179,8 @@ export async function sendMessage(
     lastText: text.slice(0, 30),
     lastBy: u.uid,
     lastAt: serverTimestamp(),
-    msgCount: increment(1), // 다섯 통이 쌓이면 모임의 오픈챗이 열린다
+    msgCount: increment(1),
   });
-  return "sent";
 }
 
 // ── 연꽃 지갑 ────────────────────────────────────────────
@@ -201,13 +198,21 @@ export async function getLotus(): Promise<number> {
 }
 
 // 연꽃 한 송이를 거둔다 — 없으면 false (화면이 '연꽃 얻기'를 안내한다).
-// 쪽지 유료분과 모임 연등이 함께 쓴다.
+// 지갑이 아예 없으면(첫 손길) FIRST_GRANT 송이를 먼저 쥐여 주고 거둔다 —
+// 규칙이 '정확히 FIRST_GRANT 송이 생성'만 허용하므로 부풀릴 수 없다.
 export async function spendLotus(): Promise<boolean> {
   const u = auth.currentUser;
   if (!u) return false;
-  const n = await getLotus();
-  if (n <= 0) return false;
-  await updateDoc(doc(db, "wallets", u.uid), { lotus: increment(-1) });
+  const ref = doc(db, "wallets", u.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, { lotus: FIRST_GRANT });
+    await updateDoc(ref, { lotus: increment(-1) });
+    return true;
+  }
+  const n = snap.data().lotus;
+  if (typeof n !== "number" || n <= 0) return false;
+  await updateDoc(ref, { lotus: increment(-1) });
   return true;
 }
 
@@ -220,7 +225,10 @@ export async function grantLotus(uid: string, n: number) {
 
 export type DmReport = {
   id: string;
-  threadId: string;
+  kind?: "dm" | "comment"; // 없으면 옛 쪽지 신고
+  threadId?: string; // 쪽지 신고일 때
+  postId?: string; // 댓글 신고일 때
+  commentId?: string;
   targetUid: string;
   byUid: string;
   reason: string;
@@ -236,10 +244,30 @@ export async function reportThread(
   if (!u) throw new Error("로그인이 필요합니다");
   const target = thread.members.find((m) => m !== u.uid) ?? "";
   await addDoc(collection(db, "reports"), {
+    kind: "dm",
     threadId: thread.id,
     targetUid: target,
     byUid: u.uid,
     reason: reason.trim().slice(0, 300),
+    status: "open",
+    createdAt: serverTimestamp(),
+  });
+}
+
+// 게시판 댓글 신고 — 신고함(뒷방)으로 모인다
+export async function reportComment(
+  postId: string,
+  comment: { id: string; authorUid: string; body: string }
+): Promise<void> {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요합니다");
+  await addDoc(collection(db, "reports"), {
+    kind: "comment",
+    postId,
+    commentId: comment.id,
+    targetUid: comment.authorUid,
+    byUid: u.uid,
+    reason: `[댓글] ${comment.body.slice(0, 200)}`,
     status: "open",
     createdAt: serverTimestamp(),
   });

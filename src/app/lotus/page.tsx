@@ -16,22 +16,23 @@ import Link from "next/link";
 import type { User } from "firebase/auth";
 import { watchAuth } from "@/lib/sync";
 import { CONTACT_EMAIL } from "@/lib/config";
-import { FREE_MSGS } from "@/lib/dm";
+import { FIRST_GRANT } from "@/lib/dm";
 import { LotusMark } from "@/components/icons";
 
-// 상품 — 가격은 부가세 포함
+// 상품 — 가격은 부가세 포함, 송이당 값이 딱 떨어지게
 type Product = {
   id: string;
   n: number;
   price: number;
+  each: number; // 송이당 값 — 화면에 그대로 적는다
   label: string;
   best?: boolean;
 };
 
 const PRODUCTS: Product[] = [
-  { id: "lotus-3", n: 3, price: 3300, label: "연꽃 세 송이" },
-  { id: "lotus-12", n: 12, price: 9900, label: "연꽃 열두 송이", best: true },
-  { id: "lotus-30", n: 30, price: 19900, label: "연꽃 서른 송이" },
+  { id: "lotus-1", n: 1, price: 1000, each: 1000, label: "연꽃 한 송이" },
+  { id: "lotus-10", n: 10, price: 9000, each: 900, label: "연꽃 열 송이", best: true },
+  { id: "lotus-30", n: 30, price: 24000, each: 800, label: "연꽃 서른 송이" },
 ];
 
 const won = (n: number) => n.toLocaleString("ko-KR") + "원";
@@ -81,14 +82,13 @@ export default function LotusPage() {
         </p>
         <ul className="mt-3 space-y-2 break-keep text-[13px] leading-7 text-hanji-dim">
           <li>
-            · <span className="text-hanji">쪽지 이어가기</span> — 모임에서
-            시작되는 1:1 쪽지는 대화마다 처음 {FREE_MSGS}통이 무료이며, 그
-            뒤로는 쪽지 1통에 연꽃 1송이가 쓰입니다.
+            · <span className="text-hanji">쪽지 청하기</span> — 모임 게시판에서
+            글쓴이·댓글 단 이 곁의 연등을 눌러 1:1 쪽지를 청할 때 연꽃
+            1송이가 쓰입니다. 상대가 수락해 열린 대화의 쪽지는 무료·무제한.
           </li>
           <li>
-            · <span className="text-hanji">연등 달기</span> — 연꽃 1송이로 내
-            모임 글을 게시판 맨 위에 금빛 연등으로 밝힙니다 (글이 내려갈
-            때까지 유지).
+            · <span className="text-hanji">처음 오신 분께</span> — 첫 계정에
+            연꽃 {FIRST_GRANT}송이를 무료로 드립니다.
           </li>
         </ul>
         <ul className="mt-4 space-y-1.5 border-t border-ink-3/60 pt-4 break-keep text-[12px] leading-6 text-hanji-faint">
@@ -134,7 +134,7 @@ export default function LotusPage() {
                           )}
                         </span>
                         <span className="mt-0.5 block text-[11px] tracking-wide text-hanji-faint">
-                          연꽃 {p.n}송이 · 송이당 약 {won(Math.round(p.price / p.n))}
+                          연꽃 {p.n}송이 · 송이당 {won(p.each)}
                         </span>
                       </span>
                     </span>
