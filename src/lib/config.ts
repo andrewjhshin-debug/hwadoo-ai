@@ -22,10 +22,9 @@ export const CONTACT_EMAIL = "admin@ibod.co.kr";
 // (UID는 이름표일 뿐, 공개되어도 권한과 무관 — 권한은 Firestore 규칙이 지킨다)
 export const ADMIN_UID = "HvYY1QPhLiMLc5NezM1jt0QdUiM2";
 
-// 쪽지(모임 1:1 서신) — 아직 닫혀 있다. true 로 바꾸면 모두에게 열린다.
-// 닫혀 있는 동안에도 관리자에게는 보인다 — 흐름을 미리 눌러 보기 위함.
-// 열 때는 Firestore 규칙의 dm-threads/wallets/reports 블록도 함께 열어야 한다.
-export const DM_ENABLED = false;
+// 쪽지(게시판 연등 1:1 서신) — 2026-08-20 전면 개방.
+// 닫을 일이 생기면 false 로 — Firestore 규칙의 dmOpen() 도 함께 닫는다.
+export const DM_ENABLED = true;
 
 // 웹푸시(아침 문안) VAPID 키 — 파이어베이스 콘솔 > 프로젝트 설정 > 클라우드 메시징
 // > 웹 푸시 인증서의 키 쌍(공개값). 키가 오면 여기만 채우면 된다.

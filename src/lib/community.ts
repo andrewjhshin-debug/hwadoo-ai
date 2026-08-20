@@ -36,10 +36,10 @@ export type Post = {
   commentCount: number;
   board?: Board;
   createdAt?: { seconds: number };
-  // ── 모임(gathering) 전용 — 절에 함께 가는 약속 ──
-  templeName?: string; // 어느 절로
-  meetDate?: string; // 언제 — "2026-08-25" 꼴
-  meetTime?: string | null; // 몇 시에 — "10:30" 꼴 (선택)
+  // ── 모임(gathering) 전용 — 절에 함께 가는 약속 (전부 선택) ──
+  templeName?: string | null; // 어느 절로
+  meetDate?: string | null; // 언제 — "2026-08-25" 꼴
+  meetTime?: string | null; // 몇 시에 — "10:30" 꼴
   openChatUrl?: string | null; // 오픈채팅 링크 — open.kakao.com 만 허용
   lantern?: boolean; // 연등 — 연꽃 한 송이로 목록 맨 위에 밝힌 글
 };
@@ -132,28 +132,48 @@ export function isOpenChatUrl(url: string): boolean {
 }
 
 // 모임 글감 다듬기 — 만들기·고치기가 같은 잣대를 쓴다.
-// 제목·본문 자유 글 — 링크는 오픈채팅 칸에만 (제목·본문에 실리면 돌려보낸다).
+// 제목·본문 필수 — 절·날짜·시간은 선택. 링크는 함께하기 칸에만.
 function refineGathering(input: {
   title: string;
   body: string;
+  templeName?: string;
+  meetDate?: string; // "YYYY-MM-DD" (선택)
+  meetTime?: string; // "HH:MM" (선택)
   openChatUrl?: string;
 }) {
   const title = input.title.trim().slice(0, 60);
   const body = input.body.trim().slice(0, 1000);
   if (!title || !body) throw new Error("제목과 내용을 적어 주십시오");
   if (/https?:\/\/|open\.kakao/i.test(title) || /https?:\/\/|open\.kakao/i.test(body))
-    throw new Error("링크는 아래 오픈채팅 칸에만 넣어 주십시오");
+    throw new Error("링크는 아래 함께하기 칸에만 넣어 주십시오");
+  const templeName = input.templeName?.trim().slice(0, 30) ?? "";
+  const meetDate = input.meetDate?.trim() ?? "";
+  if (meetDate && !/^\d{4}-\d{2}-\d{2}$/.test(meetDate))
+    throw new Error("날짜가 올바르지 않습니다");
+  const meetTime = input.meetTime?.trim() ?? "";
+  if (meetTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(meetTime))
+    throw new Error("시간이 올바르지 않습니다");
   const chat = input.openChatUrl?.trim();
   if (chat && !isOpenChatUrl(chat))
-    throw new Error("오픈채팅 링크는 open.kakao.com 주소만 받습니다");
-  return { title, body, openChatUrl: chat || null };
+    throw new Error("함께하기 링크는 open.kakao.com 주소만 받습니다");
+  return {
+    title,
+    body,
+    templeName: templeName || null,
+    meetDate: meetDate || null,
+    meetTime: meetTime || null,
+    openChatUrl: chat || null,
+  };
 }
 
-// 모임 글을 올린다 — 제목·내용 필수, 오픈챗 링크는 선택.
+// 모임 글을 올린다 — 제목·내용 필수, 절·날짜·시간·링크는 선택.
 // 자격(로그인 + 1회향)은 화면이 먼저 거른다 — 여기서는 형식만 지킨다.
 export async function createGathering(input: {
   title: string;
   body: string;
+  templeName?: string;
+  meetDate?: string;
+  meetTime?: string;
   openChatUrl?: string;
 }) {
   const u = auth.currentUser;
@@ -167,6 +187,9 @@ export async function createGathering(input: {
     hapjang: 0,
     commentCount: 0,
     board: "gathering" as Board,
+    templeName: g.templeName,
+    meetDate: g.meetDate,
+    meetTime: g.meetTime,
     openChatUrl: g.openChatUrl,
     createdAt: serverTimestamp(),
   });
@@ -178,6 +201,9 @@ export async function updateGathering(
   input: {
     title: string;
     body: string;
+    templeName?: string;
+    meetDate?: string;
+    meetTime?: string;
     openChatUrl?: string;
   }
 ) {
@@ -185,6 +211,9 @@ export async function updateGathering(
   await updateDoc(doc(db, "posts", id), {
     title: g.title,
     body: g.body,
+    templeName: g.templeName,
+    meetDate: g.meetDate,
+    meetTime: g.meetTime,
     openChatUrl: g.openChatUrl,
   });
 }

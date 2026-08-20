@@ -46,6 +46,7 @@ import {
   FIRST_GRANT,
   type DmThread,
 } from "@/lib/dm";
+import { TEMPLES } from "@/lib/pilgrimage";
 import { useConfirm } from "@/components/Confirm";
 
 // 연등 — 사람 곁에 걸리는 작은 등불. 누르면 쪽지를 청한다.
@@ -76,7 +77,18 @@ function stamp(t?: { seconds: number }): string {
   return `${d.getMonth() + 1}.${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-// "2026-08-25" → "8.25 (D-6)" — 옛 모임 글의 약속 표시용
+// "14:30" → "오후 2:30", "09:00" → "오전 9시"
+function timeLabel(t: string): string {
+  const [hs, ms] = t.split(":");
+  const h = Number(hs);
+  const m = Number(ms);
+  if (Number.isNaN(h) || Number.isNaN(m)) return t;
+  const half = h < 12 ? "오전" : "오후";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return m === 0 ? `${half} ${h12}시` : `${half} ${h12}:${String(m).padStart(2, "0")}`;
+}
+
+// "2026-08-25" → "8.25 (D-6)" — 약속 날짜 표시용
 function legacyDate(meetDate: string): string {
   const [y, m, d] = meetDate.split("-").map(Number);
   const target = new Date(y, m - 1, d);
@@ -125,14 +137,20 @@ export default function GatheringBoard({
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // 글쓰기 폼
+  // 글쓰기 폼 — 절·날짜·시간은 선택
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
+  const [temple, setTemple] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
   const [chat, setChat] = useState("");
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const formRef = useRef<HTMLDivElement | null>(null);
+
+  // 연꽃 잔고 — 목록 오른쪽 위에 늘 보인다
+  const [lotusBal, setLotusBal] = useState<number | null>(null);
 
   // 합장 — 계정당 한 번
   const [likedMap, setLikedMap] = useState<Record<string, boolean>>({});
@@ -185,18 +203,24 @@ export default function GatheringBoard({
       .catch(() => {});
   }, [user]);
 
-  // 지도 팝업에서 절 이름·날짜가 넘어오면 — 제목을 미리 채우고 폼을 연다
+  // 지도 팝업에서 절 이름·날짜가 넘어오면 — 폼에 미리 채우고 연다
   useEffect(() => {
-    const bits: string[] = [];
-    if (initialDate) {
-      const [, m, d] = initialDate.split("-").map(Number);
-      if (m && d) bits.push(`${m}.${d}`);
-    }
-    if (initialTemple) bits.push(initialTemple);
-    if (bits.length) setTitle(bits.join(" ") + " ");
-    if (autoOpen || bits.length) setOpen(true);
+    if (initialTemple) setTemple(initialTemple);
+    if (initialDate) setDate(initialDate);
+    if (autoOpen || initialTemple || initialDate) setOpen(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 연꽃 잔고 — 로그인하면 살핀다
+  useEffect(() => {
+    if (!user) {
+      setLotusBal(null);
+      return;
+    }
+    getLotus()
+      .then(setLotusBal)
+      .catch(() => {});
+  }, [user]);
 
   const refresh = () => {
     fetchPosts("gathering")
@@ -254,6 +278,9 @@ export default function GatheringBoard({
     setEditingId(null);
     setTitle("");
     setText("");
+    setTemple("");
+    setDate("");
+    setTime("");
     setChat("");
     setFormError("");
   };
@@ -265,6 +292,9 @@ export default function GatheringBoard({
       const input = {
         title,
         body: text,
+        templeName: temple || undefined,
+        meetDate: date || undefined,
+        meetTime: time || undefined,
         openChatUrl: chat.trim() || undefined,
       };
       if (editingId) await updateGathering(editingId, input);
@@ -285,8 +315,11 @@ export default function GatheringBoard({
 
   const startEdit = (p: Post) => {
     setEditingId(p.id);
-    setTitle(p.templeName ?? p.title);
+    setTitle(p.title);
     setText(p.body);
+    setTemple(p.templeName ?? "");
+    setDate(p.meetDate ?? "");
+    setTime(p.meetTime ?? "");
     setChat(p.openChatUrl ?? "");
     setFormError("");
     setOpen(true);
@@ -381,6 +414,7 @@ export default function GatheringBoard({
       setThreadByKey((m) => ({ ...m, [`${p.id}|${dmTarget.uid}`]: t }));
       setDmTarget(null);
       setDmIntro("");
+      getLotus().then(setLotusBal).catch(() => {}); // 잔고 새로
     } catch {
       // 연결·권한 문제 — 입력은 남긴다
     } finally {
@@ -471,9 +505,9 @@ export default function GatheringBoard({
     }
   };
 
-  // 연등 아이콘 — 이름 곁의 등불 (내 이름 곁에는 걸지 않는다)
+  // 연등 아이콘 — 모든 이름 곁에 늘 걸린다. 누르면 쪽지 팝업.
   const lanternFor = (p: Post, uid: string, name: string) => {
-    if (!dmVisible(user?.uid) || !user || uid === user.uid) return null;
+    if (!dmVisible(user?.uid)) return null;
     const has = !!threadByKey[`${p.id}|${uid}`];
     return (
       <button
@@ -481,7 +515,7 @@ export default function GatheringBoard({
         title={has ? "쪽지함으로" : "쪽지 보내기"}
         aria-label={`${name}에게 쪽지 보내기`}
         className={`ml-1.5 inline-flex align-[-2px] transition-colors ${
-          has ? "text-gold" : "text-hanji-faint hover:text-gold-soft"
+          has ? "text-gold" : "text-gold-soft/70 hover:text-gold"
         }`}
       >
         <LanternGlyph />
@@ -511,7 +545,13 @@ export default function GatheringBoard({
 
           {!user ? (
             <p className="mt-3 break-keep text-[12px] leading-6 text-hanji-dim">
-              쪽지는 로그인한 분만 보낼 수 있습니다.
+              쪽지는 로그인한 분만 보낼 수 있습니다 — 왼쪽 아래(모바일은 내
+              도량)에서 로그인해 주십시오.
+            </p>
+          ) : user.uid === dmTarget.uid ? (
+            <p className="mt-3 break-keep text-[12px] leading-6 text-hanji-dim">
+              내 이름 곁의 연등입니다 — 다른 수행자의 연등을 눌러 쪽지를 청해
+              보십시오.
             </p>
           ) : thread ? (
             <>
@@ -689,7 +729,7 @@ export default function GatheringBoard({
 
         {/* 제목 */}
         <h2 className="mt-4 break-keep font-serif text-[19px] font-medium leading-8 text-hanji">
-          {p.templeName ?? p.title}
+          {p.title}
         </h2>
 
         {/* 글쓴이 + 연등 */}
@@ -722,9 +762,11 @@ export default function GatheringBoard({
         {/* 날짜·시간 + 합장 + 함께하기 */}
         <p className="mt-5 text-[11.5px] tracking-wide text-hanji-faint">
           {stamp(p.createdAt)}
-          {p.meetDate && (
+          {(p.templeName || p.meetDate) && (
             <span className="ml-3 text-gold-soft">
-              약속 {legacyDate(p.meetDate)}
+              약속{p.templeName ? ` ${p.templeName}` : ""}
+              {p.meetDate ? ` · ${legacyDate(p.meetDate)}` : ""}
+              {p.meetTime ? ` · ${timeLabel(p.meetTime)}` : ""}
             </span>
           )}
         </p>
@@ -760,15 +802,36 @@ export default function GatheringBoard({
           </p>
         )}
 
-        {/* 댓글 쓰기 */}
+        {/* 댓글들 — 먼저, 쓰기는 맨 아래 */}
         <div className="mt-6 border-t border-ink-3/60 pt-4">
+          <p className="text-[11px] tracking-[0.25em] text-hanji-faint">
+            댓글{p.commentCount > 0 ? ` · ${p.commentCount}` : ""}
+          </p>
+          {comments === undefined ? (
+            <p className="mt-3 text-[12px] leading-6 text-hanji-faint">
+              댓글을 살펴보는 중…
+            </p>
+          ) : tops.length > 0 ? (
+            <ul className="mt-4 flex flex-col gap-4">
+              {tops.map((c) => (
+                <li key={c.id}>
+                  <ul className="flex flex-col gap-3">
+                    {renderComment(p, c, false)}
+                    {childrenOf(c.id).map((r) => renderComment(p, r, true))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {/* 댓글 쓰기 — 맨 아래 */}
           {qualified ? (
-            <div className="flex items-center gap-2">
+            <div className="mt-5 flex items-center gap-2">
               <input
                 value={cBody}
                 onChange={(e) => setCBody(e.target.value)}
                 maxLength={300}
-                placeholder="댓글"
+                placeholder="댓글 쓰기"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.nativeEvent.isComposing)
                     void submitComment(p, cBody);
@@ -784,30 +847,12 @@ export default function GatheringBoard({
               </button>
             </div>
           ) : (
-            <p className="break-keep text-[11px] leading-5 text-hanji-faint">
+            <p className="mt-5 break-keep text-[11px] leading-5 text-hanji-faint">
               {!user
                 ? "댓글은 로그인한 분만 쓸 수 있습니다."
                 : "댓글은 화두 하나를 회향한 뒤에 쓸 수 있습니다."}
             </p>
           )}
-
-          {/* 댓글들 */}
-          {comments === undefined ? (
-            <p className="mt-4 text-[12px] leading-6 text-hanji-faint">
-              댓글을 살펴보는 중…
-            </p>
-          ) : tops.length > 0 ? (
-            <ul className="mt-5 flex flex-col gap-4">
-              {tops.map((c) => (
-                <li key={c.id}>
-                  <ul className="flex flex-col gap-3">
-                    {renderComment(p, c, false)}
-                    {childrenOf(c.id).map((r) => renderComment(p, r, true))}
-                  </ul>
-                </li>
-              ))}
-            </ul>
-          ) : null}
         </div>
 
         <p className="mt-8 break-keep text-[11px] leading-5 text-hanji-faint">
@@ -862,6 +907,38 @@ export default function GatheringBoard({
               placeholder="내용"
               className="resize-none rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[13.5px] leading-7 text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
             />
+            {/* 어느 절로, 언제 — 전부 선택 */}
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                value={temple}
+                onChange={(e) => setTemple(e.target.value)}
+                list="gathering-temples"
+                maxLength={30}
+                placeholder="절 (선택)"
+                className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+              />
+              <datalist id="gathering-temples">
+                {TEMPLES.map((t) => (
+                  <option key={t.name + t.address} value={t.name} />
+                ))}
+              </datalist>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                aria-label="날짜 (선택)"
+                title="날짜 (선택)"
+                className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
+              />
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                aria-label="시간 (선택)"
+                title="시간 (선택)"
+                className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
+              />
+            </div>
             <input
               value={chat}
               onChange={(e) => setChat(e.target.value)}
@@ -913,7 +990,15 @@ export default function GatheringBoard({
   // ── 목록 — 제목만 쭉, 화면 가득 ─────────────────────────
   return (
     <div>
-      <div className="flex justify-end px-4 pb-2 sm:px-0">
+      <div className="flex items-center justify-end gap-2 px-4 pb-2 sm:px-0">
+        {/* 연꽃 잔고 — 누르면 연꽃 공양(구매)으로 */}
+        <Link
+          href="/lotus"
+          className="inline-flex items-center gap-1.5 rounded-[10px] border border-ink-3 px-3.5 py-1.5 text-[12px] tracking-[0.1em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+        >
+          <LanternGlyph className="h-[13px] w-[13px] text-gold-soft" />
+          연꽃{user && lotusBal !== null ? ` ${lotusBal}` : ""}
+        </Link>
         <button
           onClick={() => {
             resetForm();
@@ -946,7 +1031,7 @@ export default function GatheringBoard({
                 className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-gold/5 sm:px-2"
               >
                 <span className="min-w-0 flex-1 truncate text-[14.5px] font-medium leading-6 text-hanji">
-                  {p.templeName ?? p.title}
+                  {p.title}
                   {p.commentCount > 0 && (
                     <span className="ml-1.5 text-[12px] font-normal text-gold-soft">
                       [{p.commentCount}]

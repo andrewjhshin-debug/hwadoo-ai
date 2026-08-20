@@ -200,7 +200,8 @@ export default function TempleMap({ temples, onSelect, onGather }: Props) {
     geoTimerRef.current = window.setTimeout(() => setGeoNote(null), 4000);
   };
 
-  // 내 위치 — 금색 맥동 점을 찍고 다가간다
+  // 내 위치 — 금색 맥동 점을 찍고 다가간다.
+  // 두 단계: 캐시된 위치로 곧장 움직이고(빠른 손맛), 고감도로 한 번 더 다듬는다.
   const locateMe = () => {
     const L = leafletRef.current;
     const map = mapRef.current;
@@ -209,29 +210,37 @@ export default function TempleMap({ temples, onSelect, onGather }: Props) {
       noteFor("위치를 지원하지 않는 기기입니다");
       return;
     }
+    const place = (pos: GeolocationPosition) => {
+      const here: [number, number] = [
+        pos.coords.latitude,
+        pos.coords.longitude,
+      ];
+      myMarkerRef.current?.remove();
+      const icon = L.divIcon({
+        className: "my-location-marker",
+        html: '<span class="my-dot"></span>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+      });
+      myMarkerRef.current = L.marker(here, {
+        icon,
+        title: "내 위치",
+        zIndexOffset: 1000,
+        interactive: false,
+      }).addTo(map);
+      map.setView(here, Math.max(map.getZoom(), 13));
+    };
+    // 1단계 — 최근 위치가 있으면 즉시 (기다림 없이)
+    navigator.geolocation.getCurrentPosition(place, () => {}, {
+      enableHighAccuracy: false,
+      timeout: 1500,
+      maximumAge: 300000,
+    });
+    // 2단계 — 고감도(GPS)로 정확히
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const here: [number, number] = [
-          pos.coords.latitude,
-          pos.coords.longitude,
-        ];
-        myMarkerRef.current?.remove();
-        const icon = L.divIcon({
-          className: "my-location-marker",
-          html: '<span class="my-dot"></span>',
-          iconSize: [14, 14],
-          iconAnchor: [7, 7],
-        });
-        myMarkerRef.current = L.marker(here, {
-          icon,
-          title: "내 위치",
-          zIndexOffset: 1000,
-          interactive: false,
-        }).addTo(map);
-        map.setView(here, 11);
-      },
+      place,
       () => noteFor("위치를 가져오지 못했습니다"),
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 

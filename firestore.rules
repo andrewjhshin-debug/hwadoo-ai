@@ -118,7 +118,7 @@ service cloud.firestore {
         && request.auth.uid == "HvYY1QPhLiMLc5NezM1jt0QdUiM2";
     }
     function dmOpen() {
-      return false; // 쪽지 전체 개방 스위치 — config.ts DM_ENABLED 와 함께
+      return true; // 쪽지 전체 개방 스위치 — config.ts DM_ENABLED 와 함께
     }
     function dmOn() {
       return dmOpen() || dmIsAdmin();

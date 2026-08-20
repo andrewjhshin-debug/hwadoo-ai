@@ -139,16 +139,10 @@ export default function PilgrimagePage() {
             혼자 나서기 어색하면, 함께 갈 이를 만나세요 — 약속은 모임
             마당에서 잡습니다.
           </p>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Link
-              href="/gathering?open=1"
-              className="rounded-[10px] border border-gold/50 px-5 py-2.5 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
-            >
-              모임 열기
-            </Link>
+          <div className="mt-4">
             <Link
               href="/gathering"
-              className="rounded-[10px] border border-ink-3 px-5 py-2.5 text-[12px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+              className="inline-block rounded-[10px] border border-gold/50 px-5 py-2.5 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
             >
               모임 보러 가기 →
             </Link>
