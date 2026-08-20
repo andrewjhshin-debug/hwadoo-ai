@@ -291,6 +291,31 @@ export async function fetchComments(postId: string): Promise<Comment[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Comment);
 }
 
+// 한 글 안에서는 한 사람 = 한 이름.
+// 글쓴이면 글의 이름을, 이미 댓을 달았으면 그 첫 이름을 그대로 잇는다 —
+// 글이 다르면 매번 새 무작위 이름 (글마다 새 옷, 글 안에서는 한 얼굴).
+async function nameInPost(postId: string, uid: string): Promise<string | null> {
+  try {
+    const post = await getDoc(doc(db, "posts", postId));
+    if (post.exists() && post.data().authorUid === uid) {
+      const n = post.data().authorName;
+      if (typeof n === "string" && n) return n;
+    }
+    const prev = await getDocs(
+      query(
+        collection(db, "posts", postId, "comments"),
+        where("authorUid", "==", uid),
+        limit(1)
+      )
+    );
+    const d = prev.docs[0];
+    const n = d?.data().authorName;
+    return typeof n === "string" && n ? n : null;
+  } catch {
+    return null; // 못 찾으면 새로 뽑는다
+  }
+}
+
 export async function addComment(
   postId: string,
   body: string,
@@ -298,9 +323,10 @@ export async function addComment(
 ) {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
+  const kept = await nameInPost(postId, u.uid);
   await addDoc(collection(db, "posts", postId, "comments"), {
     body,
-    authorName: anonName(), // 익명 — 쓸 때마다 무작위 낱말 이름
+    authorName: kept ?? anonName(), // 이 글에서 처음이면 무작위 새 이름
     authorUid: u.uid,
     parentId: parentId ?? null,
     up: 0,

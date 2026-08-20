@@ -22,8 +22,10 @@ import {
   fetchMessages,
   fetchMyThreads,
   getLotus,
+  markDmSeen,
   reportThread,
   sendMessage,
+  DM_SEEN_EVENT,
   type DmMessage,
   type DmThread,
 } from "@/lib/dm";
@@ -83,6 +85,8 @@ export default function LettersPage() {
     setMenuOpen(false);
     setMsgs(null);
     setDraft("");
+    // 읽음 — 봉투 위 붉은 점이 꺼진다
+    if (user) markDmSeen(user.uid, t.id, t.lastAt?.seconds);
     try {
       window.history.pushState({ hwadooLayer: true }, "");
     } catch {
@@ -135,6 +139,8 @@ export default function LettersPage() {
       if (yes) await acceptThread(t.id);
       else await declineThread(t.id);
       refresh();
+      // 청을 처리했다 — 봉투 위 점도 다시 세게 한다
+      window.dispatchEvent(new CustomEvent(DM_SEEN_EVENT));
     } catch {
       // 조용히
     }

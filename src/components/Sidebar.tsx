@@ -23,7 +23,12 @@ import { useHasNews } from "@/lib/notices";
 import { rankHanjaFor } from "@/lib/badges";
 import { applyTheme } from "@/lib/theme";
 import { isAdminAccount } from "@/lib/config";
-import { dmVisible } from "@/lib/dm";
+import {
+  countDmUnread,
+  dmVisible,
+  fetchMyThreads,
+  DM_SEEN_EVENT,
+} from "@/lib/dm";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
   Banga,
@@ -133,6 +138,33 @@ export default function Sidebar() {
   const [user, setUser] = useState<User | null>(null);
   const [loginBusy, setLoginBusy] = useState(false);
   const hasNews = useHasNews(); // 새 소식 — 점 하나로만 말한다
+  const [dmUnread, setDmUnread] = useState(0); // 안 읽은 쪽지 — 봉투 위 점
+
+  // 안 읽은 쪽지 살피기 — 로그인하면 이따금(90초) + 창에 돌아올 때 + 읽은 직후
+  useEffect(() => {
+    if (!user) {
+      setDmUnread(0);
+      return;
+    }
+    let alive = true;
+    const look = () => {
+      fetchMyThreads()
+        .then((list) => {
+          if (alive) setDmUnread(countDmUnread(list, user.uid));
+        })
+        .catch(() => {});
+    };
+    look();
+    const timer = window.setInterval(look, 90_000);
+    window.addEventListener("focus", look);
+    window.addEventListener(DM_SEEN_EVENT, look);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", look);
+      window.removeEventListener(DM_SEEN_EVENT, look);
+    };
+  }, [user]);
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
@@ -290,9 +322,17 @@ export default function Sidebar() {
             onClick={go("/letters")}
             aria-label="쪽지함"
             title="쪽지함 — 1:1 서신"
-            className="p-2 text-hanji-dim transition-colors hover:text-gold-soft"
+            className="relative p-2 text-hanji-dim transition-colors hover:text-gold-soft"
           >
             <Letter className="h-6 w-6" />
+            {dmUnread > 0 && (
+              <span
+                aria-label={`안 읽은 쪽지 ${dmUnread}`}
+                className="absolute right-0.5 top-0.5 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-vermilion px-1 text-[9px] font-medium leading-none text-white shadow-[0_0_6px_var(--color-vermilion)]"
+              >
+                {dmUnread > 9 ? "9+" : dmUnread}
+              </span>
+            )}
           </Link>
           <ThemeToggle className="[&_svg]:h-6 [&_svg]:w-6" />
         </div>

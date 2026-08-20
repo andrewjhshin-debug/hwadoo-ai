@@ -224,6 +224,52 @@ export async function grantLotus(uid: string, n: number) {
   await setDoc(doc(db, "wallets", uid), { lotus: increment(n) }, { merge: true });
 }
 
+// ── 안 읽음 셈 — 위 봉투 아이콘의 붉은 점 ─────────────────────
+// 읽음 장부는 이 브라우저에 계정별로 적는다 (서버 읽음표시는 아직 없다).
+
+const seenKey = (uid: string) => `hwadoo-dm-seen:${uid}`;
+export const DM_SEEN_EVENT = "hwadoo-dm-seen";
+
+function loadDmSeen(uid: string): Record<string, number> {
+  try {
+    return JSON.parse(window.localStorage.getItem(seenKey(uid)) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
+// 이 대화를 지금 읽었다 — 장부에 적고, 지켜보는 화면들에 알린다
+export function markDmSeen(uid: string, threadId: string, atSec?: number) {
+  try {
+    const seen = loadDmSeen(uid);
+    seen[threadId] = Math.max(
+      seen[threadId] ?? 0,
+      atSec ?? Math.floor(Date.now() / 1000)
+    );
+    window.localStorage.setItem(seenKey(uid), JSON.stringify(seen));
+    window.dispatchEvent(new CustomEvent(DM_SEEN_EVENT));
+  } catch {
+    // 못 적어도 대화는 열린다
+  }
+}
+
+// 안 읽은 것 — 새로 들어온 청 + 상대가 보냈는데 아직 안 연 쪽지
+export function countDmUnread(threads: DmThread[], uid: string): number {
+  const seen = loadDmSeen(uid);
+  let n = 0;
+  for (const t of threads) {
+    if (t.status === "pending" && t.ownerUid === uid) n++;
+    else if (
+      t.status === "accepted" &&
+      t.lastBy &&
+      t.lastBy !== uid &&
+      (t.lastAt?.seconds ?? 0) > (seen[t.id] ?? 0)
+    )
+      n++;
+  }
+  return n;
+}
+
 // ── 신고 ────────────────────────────────────────────────
 
 export type DmReport = {
