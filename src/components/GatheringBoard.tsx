@@ -1168,19 +1168,15 @@ export default function GatheringBoard({
                   setSelectedId(p.id);
                   pushLayer();
                 }}
-                className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-gold/5 sm:px-2"
+                className="flex w-full flex-col gap-1 px-4 py-3.5 text-left transition-colors hover:bg-gold/5 sm:px-2"
               >
-                <span className="min-w-0 flex-1 truncate text-[16px] font-medium leading-7 text-hanji">
+                <span className="w-full truncate text-[15px] font-medium leading-6 text-hanji">
                   {p.title}
-                  {p.commentCount > 0 && (
-                    <span className="ml-1.5 text-[13.5px] font-normal text-gold-soft">
-                      [{p.commentCount}]
-                    </span>
-                  )}
                 </span>
-                <span className="shrink-0 text-[12.5px] tracking-wide text-hanji-faint">
-                  {p.authorName}
-                  {p.hapjang > 0 && ` · 🙏 ${p.hapjang}`}
+                <span className="flex items-center gap-3 text-[12px] tracking-wide text-hanji-faint">
+                  <span>{stamp(p.createdAt)}</span>
+                  <span>👁 {p.views ?? 0}</span>
+                  <span>💬 {p.commentCount}</span>
                 </span>
               </button>
             </li>

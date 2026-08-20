@@ -54,8 +54,9 @@ type NavItem = {
 
 // 수행 — 매일 앉아 익히는 방들 (뜰·체험하기는 위의 붙박이 단추가 맡는다)
 const NAV_PRACTICE: NavItem[] = [
-  // 손잡고 절로 — 모임 게시판과 사찰 지도가 한 화면에 산다
+  // 손잡고 절로 — 사찰 지도·다가오는 날, 모임은 그 짝
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
+  { href: "/gathering", label: "모임", Icon: Person },
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/mandala", label: "만다라", Icon: Mandala },
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.

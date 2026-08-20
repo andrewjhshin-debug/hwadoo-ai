@@ -39,7 +39,7 @@ import {
 import { fetchMyApprovedAnswerCount } from "@/lib/community";
 import { initPresence, watchOnlineCount } from "@/lib/presence";
 import { submitFeedback } from "@/lib/feedback";
-import { dmVisible } from "@/lib/dm";
+import { dmVisible, getLotus } from "@/lib/dm";
 import {
   canInstall,
   isIOS,
@@ -106,6 +106,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/my-hwadu", label: "화두 던지기", Icon: Jukbi },
   { href: "/mandala", label: "만다라", Icon: Mandala },
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
+  { href: "/gathering", label: "모임", Icon: Person },
   { href: "/empty", label: "비움", Icon: Moktak },
   { href: "/community", label: "연지원", Icon: LotusPond },
   { href: "/archive", label: "지난 화두", Icon: Book },
@@ -149,6 +150,8 @@ export default function SettingsPage() {
   const [myAnswerCount, setMyAnswerCount] = useState<number | null>(null);
   // 실시간 접속자 수
   const [onlineCount, setOnlineCount] = useState<number | null>(null);
+  // 내 연꽃 — 작게 한 줄
+  const [myLotus, setMyLotus] = useState<number | null>(null);
   // 죽비 — 불편한 점을 청하는 글
   const [fb, setFb] = useState("");
   const [fbBusy, setFbBusy] = useState(false);
@@ -362,6 +365,17 @@ export default function SettingsPage() {
       .catch(() => {});
   }, [user?.uid]);
 
+  // 내 연꽃 잔고 — 로그인했을 때만
+  useEffect(() => {
+    if (!user) {
+      setMyLotus(null);
+      return;
+    }
+    getLotus()
+      .then(setMyLotus)
+      .catch(() => {});
+  }, [user]);
+
   // 실시간 접속자 추적
   useEffect(() => {
     const stopPresence = initPresence();
@@ -507,8 +521,16 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
-        {/* 나눔의 흔적 + 실시간 접속자 */}
+        {/* 나눔의 흔적 + 실시간 접속자 + 연꽃 */}
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 px-1">
+          {user && myLotus !== null && (
+            <Link
+              href="/lotus"
+              className="text-[11px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-gold-soft"
+            >
+              내 연꽃 <span className="text-gold">{myLotus}</span>송이
+            </Link>
+          )}
           {onlineCount !== null && onlineCount > 0 && (
             <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
               지금 도량에{" "}

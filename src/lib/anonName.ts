@@ -1,9 +1,8 @@
 // ─────────────────────────────────────────────────────────────
-// 연지원의 익명 이름 — 불교의 낱말 50가지.
-// 같은 사람은 늘 같은 이름을 얻는다(uid 기반). 로그인 안 한 경우엔 무작위.
+// 익명 이름 — 불교의 낱말 50가지.
+// 쓸 때마다 무작위다 — 같은 사람이 여러 글을 써도 매번 다른 이름을
+// 얻는다 (한 글·한 대화 안에서는 저장된 스냅샷이 이어 준다).
 // ─────────────────────────────────────────────────────────────
-
-import { auth } from "./firebase";
 
 export const ANON_NAMES: string[] = [
   "흰 코끼리",
@@ -58,21 +57,7 @@ export const ANON_NAMES: string[] = [
   "먼 산의 눈",
 ];
 
-// 문자열을 안정적인 숫자로 — 같은 uid면 늘 같은 이름
-function hash(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = (h << 5) - h + s.charCodeAt(i);
-    h |= 0;
-  }
-  return Math.abs(h);
-}
-
-// uid가 있으면 결정적으로, 없으면 무작위로 이름을 준다.
-// 호출부가 uid를 넘기지 않아도 로그인한 사람의 uid를 쓴다 —
-// 그래야 한 사람의 글과 댓글이 같은 이름으로 이어진다.
-export function anonName(uid?: string | null): string {
-  const id = uid ?? auth.currentUser?.uid;
-  if (id) return ANON_NAMES[hash(id) % ANON_NAMES.length];
+// 부를 때마다 무작위 — 익명은 매번 새 옷을 입는다
+export function anonName(): string {
   return ANON_NAMES[Math.floor(Math.random() * ANON_NAMES.length)];
 }
