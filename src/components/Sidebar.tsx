@@ -5,7 +5,7 @@
 // · 세 구획으로 묶는다 — 수행 / 말씀 / 나눔 (전부 불교 문양)
 //   수행: 뜰(홈) · 체험하기 · 손잡고 절로 · 모임 · 사유의 방 · 만다라 · 비움 · 호흡 명상
 //   말씀: 간화선이란? · 선지식의 한마디
-//   나눔: 내가 던지는 화두 · 차담회 · 연지원 · 차 한 잔 · 굿즈(곧)
+//   나눔: 내가 던지는 화두 · 차담회 · 연지원 · 차 한 잔 · 굿즈
 // · 메뉴가 길어졌다 — 내비 영역만 휠 스크롤(스크롤바는 감춘다),
 //   위 브랜드와 아래 로그인은 제자리에 머문다
 // · 데스크톱: 접기(아이콘만, 구획 제목은 숨김) ↔ 펴기, 상태 기억
@@ -84,7 +84,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { href: "/community", label: "연지원 — 커뮤니티", Icon: LotusPond },
       { href: "/lotus", label: "연꽃 공양", Icon: LotusMark },
       { href: "/tea", label: "차 한 잔", Icon: Teacup },
-      { href: "/goods", label: "굿즈", Icon: Bojagi, soon: true, disabled: true },
+      { href: "/goods", label: "굿즈", Icon: Bojagi },
     ],
   },
 ];
