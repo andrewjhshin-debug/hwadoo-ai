@@ -27,7 +27,7 @@ const sansKR = Noto_Sans_KR({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
-  description: `${SLOGAN} 하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 나의 답을 씁니다. 옛 선사들의 화두를 받아 참구하고 기록하는 도량.`,
+  description: `${SLOGAN} 물음은 혼자, 절은 둘이 — 손잡고 절로. 같은 물음을 품은 사람과 절에 가는 인연, 여기서 만납니다.`,
   keywords: ["화두", "명상", "선", "불교", "간화선", "참선", "koan", "사유"],
   // 홈 화면에 앱처럼 담기 (PWA)
   manifest: "/manifest.json",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "화두AI — 당신에게 묻는다",
     description:
-      "하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 나의 답을 씁니다.",
+      "물음은 혼자, 절은 둘이 — 손잡고 절로. 같은 물음을 품은 사람과 절에 가는 인연, 여기서 만납니다.",
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "화두AI — 당신에게 묻는다",
     description:
-      "하루, 사흘, 이레 — 물음을 품고 사유한 뒤, 나의 답을 씁니다.",
+      "물음은 혼자, 절은 둘이 — 손잡고 절로. 같은 물음을 품은 사람과 절에 가는 인연, 여기서 만납니다.",
   },
 };
 
