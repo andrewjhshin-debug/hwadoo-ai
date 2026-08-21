@@ -42,12 +42,6 @@ export default function GoodsPage() {
       <h1 className="text-center text-xs tracking-[0.5em] text-gold-soft">
         褓 · 굿즈
       </h1>
-      <p className="rise mt-6 break-keep text-center text-[13.5px] leading-7 text-hanji-dim">
-        수행 곁에 둘 만한 것들을 하나씩 골라 둡니다.
-        <br />
-        누르면 쿠팡으로 이어집니다 — 값·재고·배송은 그곳에서 확인됩니다.
-      </p>
-
       {/* 격자 — 한 물건이 한 칸, 아래로 계속 이어진다 */}
       <div className="rise rise-d1 mt-8 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
         {GOODS.map((g) => (
