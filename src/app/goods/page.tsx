@@ -22,7 +22,9 @@ type Goods = {
   name: string;
   note: string; // 한두 문장 — 담백하게 (두 줄에서 잘린다)
   img: string; // 쿠팡 상품 이미지 (정사각 썸네일)
-  url: string; // 쿠팡 파트너스 링크
+  url: string; // 쿠팡 파트너스 직행 링크 (link.coupang.com/a/…) —
+  // coupa.ng 는 배너 위젯 페이지로 가므로 쓰지 않는다.
+  // 리다이렉트 주소의 link 파라미터에서 직행 링크를 얻는다 (추적 코드 포함).
 };
 
 const GOODS: Goods[] = [
@@ -32,7 +34,15 @@ const GOODS: Goods[] = [
     name: "초역 부처의 말",
     note: "코이케 류노스케 지음. 부처의 말을 짧게 추려, 아무 쪽이나 펴서 읽기 좋습니다.",
     img: "https://t5c.coupangcdn.com/thumbnails/remote/492x492ex/image/retail-product-api/A00077021/250194790/268392228/main/9791193506516_L.jpg",
-    url: "https://coupa.ng/coVoy6",
+    url: "https://link.coupang.com/a/goeYjLKPpQ",
+  },
+  {
+    id: "book-buddha-lessons",
+    tag: "책",
+    name: "부처님 말씀대로 살아보니",
+    note: "토니 페르난도 지음. 인생이 가벼워지는 15가지 불교 수업.",
+    img: "https://t5c.coupangcdn.com/thumbnails/remote/492x492ex/image/retail/images/63160356377690-742fecc5-eefd-4e0a-a330-932d18c12656.jpg",
+    url: "https://link.coupang.com/a/gojlTssRvo",
   },
 ];
 
