@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "overrides": {
+    "jose": "5.9.6"
+  },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "firebase": "^12.17.1",
