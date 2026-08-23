@@ -12,6 +12,7 @@
 // ────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
+import { recordMeditation } from "@/lib/meditation";
 
 const INHALE_MS = 4000; // 들숨 4초
 const CYCLE_MS = 10000; // 들숨 4초 + 날숨 6초 = 1식
@@ -171,6 +172,7 @@ export default function BreathPage() {
     setBreaths(Math.max(1, Math.floor(elapsed / CYCLE_MS)));
     setStage("done");
     void audioRef.current?.suspend(); // 소리도 함께 내려놓는다
+    recordMeditation(); // 이달의 마음이 이 걸음을 세도록
   };
 
   const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;

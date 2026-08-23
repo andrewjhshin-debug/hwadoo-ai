@@ -126,6 +126,20 @@ function GenderMark({
   );
 }
 
+// 걸음 뱃지 — 글쓴이가 쓸 당시 지녔던 걸음(人·修·天) 한 글자.
+// 내 도량·사이드바의 뱃지와 같은 모양, 이름 곁에 아주 작게.
+function RankBadge({ hanja }: { hanja?: string | null }) {
+  if (!hanja) return null;
+  return (
+    <span
+      aria-label={`걸음 · ${hanja}`}
+      className="flex h-[14px] w-[14px] shrink-0 items-center justify-center rounded-full border border-gold/50 bg-gold/10 font-serif text-[8.5px] leading-none text-gold"
+    >
+      {hanja}
+    </span>
+  );
+}
+
 // 음양(陰陽) — 쪽지 단추. 남녀는 음양이라, 서로 다른 기운이 만나는 문양.
 // 금빛 반쪽이 차오르고 반쪽은 비어 있다 — 채움과 비움이 한 원 안에.
 function YinYang({ className = "h-5 w-5" }: { className?: string }) {
@@ -193,6 +207,8 @@ function keepVotes(uid: string | null | undefined, v: Record<string, VoteDir>) {
   }
 }
 
+const GENDER_FILTER_KEY = "hwadoo-gathering-gender-filter";
+
 type Props = {
   initialTemple?: string;
   initialDate?: string; // "YYYY-MM-DD"
@@ -235,6 +251,21 @@ export default function GatheringBoard({
   // 합장 — 계정당 하나, 토글
   const [likedMap, setLikedMap] = useState<Record<string, boolean>>({});
   const [likeHint, setLikeHint] = useState(false);
+
+  // 음양 보기 필터 — 음(여)만·양(남)만 골라 보기. 기기에 기억해 둔다.
+  const [genderFilter, setGenderFilter] = useState<"all" | "m" | "f">("all");
+  useEffect(() => {
+    const saved = window.localStorage.getItem(GENDER_FILTER_KEY);
+    if (saved === "m" || saved === "f") setGenderFilter(saved);
+  }, []);
+  const setFilter = (next: "all" | "m" | "f") => {
+    setGenderFilter(next);
+    try {
+      window.localStorage.setItem(GENDER_FILTER_KEY, next);
+    } catch {
+      // 못 적어도 필터는 이 화면에서 그대로 작동한다
+    }
+  };
 
   // ⋯ 메뉴 — 고치기·내리기
   const [menuOpen, setMenuOpen] = useState(false);
@@ -430,12 +461,14 @@ export default function GatheringBoard({
   const qualified = !!user && returnedCount >= 1;
 
   const sorted = useMemo(() => {
-    const list = [...(posts ?? [])];
+    const list = (posts ?? []).filter(
+      (p) => genderFilter === "all" || p.gender === genderFilter
+    );
     list.sort(
       (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
     );
     return list;
-  }, [posts]);
+  }, [posts, genderFilter]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -851,6 +884,7 @@ export default function GatheringBoard({
         <div className="flex items-center gap-2">
           {profileFor(p, c.authorUid, c.authorName, c.gender, "h-7 w-7")}
           <span className="text-[13px] text-hanji-dim">{c.authorName}</span>
+          <RankBadge hanja={c.rankHanja} />
           <span className="text-[10.5px] tracking-wide text-hanji-faint">
             {stamp(c.createdAt)}
           </span>
@@ -1001,6 +1035,7 @@ export default function GatheringBoard({
         <div className="mt-2 flex items-center gap-2">
           {profileFor(p, p.authorUid, p.authorName, p.gender, "h-9 w-9")}
           <span className="text-[13.5px] text-hanji-dim">{p.authorName}</span>
+          <RankBadge hanja={p.rankHanja} />
           <span className="ml-auto flex shrink-0 items-center gap-2 text-[10.5px] tracking-wide text-hanji-faint">
             <span className="flex items-center gap-1">
               <EyeIcon className="h-[12px] w-[12px]" />
@@ -1241,7 +1276,29 @@ export default function GatheringBoard({
   // ── 목록 — 제목만 쭉, 화면 가득 ─────────────────────────
   return (
     <div>
-      <div className="flex items-center justify-end gap-2 px-4 pb-2 sm:px-0">
+      <div className="flex items-center justify-between gap-2 px-4 pb-2 sm:px-0">
+        {/* 보기 필터 — 음(여)만·양(남)만 골라 보기, 작게 */}
+        <div className="flex items-center gap-3 text-[11px] tracking-wide text-hanji-faint">
+          <label className="flex cursor-pointer items-center gap-1.5">
+            <input
+              type="checkbox"
+              checked={genderFilter === "f"}
+              onChange={(e) => setFilter(e.target.checked ? "f" : "all")}
+              className="h-3.5 w-3.5 accent-[#D9B45B]"
+            />
+            음만 보기
+          </label>
+          <label className="flex cursor-pointer items-center gap-1.5">
+            <input
+              type="checkbox"
+              checked={genderFilter === "m"}
+              onChange={(e) => setFilter(e.target.checked ? "m" : "all")}
+              className="h-3.5 w-3.5 accent-[#D9B45B]"
+            />
+            양만 보기
+          </label>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
         {/* 연꽃 잔고 — 누르면 연꽃 공양(구매)으로 */}
         <Link
           href="/lotus"
@@ -1260,6 +1317,7 @@ export default function GatheringBoard({
         >
           글 쓰기
         </button>
+        </div>
       </div>
 
       <ul className="divide-y divide-ink-3/60 border-y border-ink-3/60">

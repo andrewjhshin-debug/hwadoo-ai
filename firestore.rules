@@ -9,6 +9,10 @@
 // · reports — 댓글 신고도 받도록 로그인 사용자 누구나 넣을 수 있게
 // · wallets — 첫 지갑은 정확히 연꽃 3송이로만 스스로 만들 수 있다(첫 선물)
 // · dm-threads / wallets / reports — 쪽지·연꽃 (dmOpen()으로 여닫음)
+//
+// 2026-08-23 v4:
+// · posts 작성자 수정 허용 필드에 rankHanja 추가 — 인연 글·댓글에
+//   걸음 뱃지(人·修·天)를 함께 건다 (community.ts 가 쓰는 필드)
 // ─────────────────────────────────────────────────────────────
 
 rules_version = '2';
@@ -39,7 +43,7 @@ service cloud.firestore {
         || (request.auth != null
             && request.auth.uid == resource.data.authorUid
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'body', 'openChatUrl', 'lantern', 'gender', 'deleted']));
+                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'body', 'openChatUrl', 'lantern', 'gender', 'rankHanja', 'deleted']));
       allow delete: if isAdmin()
         || (request.auth != null && request.auth.uid == resource.data.authorUid);
 

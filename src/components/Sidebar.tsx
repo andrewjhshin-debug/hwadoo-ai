@@ -515,6 +515,8 @@ export default function Sidebar() {
               {!slim && (
                 <p className="mt-2 px-1 text-[11px] leading-5 text-hanji-faint">
                   로그인하면 지난 화두들이 계정에 모입니다 — 기기가 바뀌어도.
+                  <br />
+                  만 19세 이상만 이용할 수 있습니다.
                 </p>
               )}
             </>

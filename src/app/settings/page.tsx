@@ -47,6 +47,7 @@ import {
   promptInstall,
 } from "@/lib/install";
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
+import { loadMeditations } from "@/lib/meditation";
 import {
   Person,
   Teacup,
@@ -70,6 +71,14 @@ type MonthReport = {
   returned: number; // 이번 달 회향 수
   days: number; // 이번 달 함께한 날수 (접속일 ∪ 화두를 품고 있던 날, 고유한 날짜 수)
   chars: number; // 이번 달 남긴 단상·회향의 글자 수
+  meditations: number; // 이번 달 호흡 명상 마친 횟수
+};
+
+// 이 달의 흐름 — 날짜별(1일부터) 셈, 그래프가 이것을 그린다
+type MonthChart = {
+  returned: number[];
+  meditations: number[];
+  chars: number[];
 };
 
 // 품어온 시간 — 화두마다 받은 날부터 회향(또는 지금)까지 품은 일수
@@ -126,6 +135,7 @@ export default function SettingsPage() {
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [report, setReport] = useState<MonthReport | null>(null);
+  const [chart, setChart] = useState<MonthChart | null>(null);
   const [held, setHeld] = useState<HeldItem[]>([]);
   const [myThrown, setMyThrown] = useState<MyThrown[] | null>(null);
   const [thrownStats, setThrownStats] = useState<Map<
@@ -307,7 +317,39 @@ export default function SettingsPage() {
       }
       if (s.current?.notes) chars += s.current.notes.length;
 
-      setReport({ returned, days: monthDays.size, chars });
+      // 이번 달 호흡 명상 — 마칠 때마다 적힌 명상 장부를 센다
+      const meditationLog = loadMeditations();
+      const meditations = meditationLog.filter((t) => inMonth(t)).length;
+
+      setReport({ returned, days: monthDays.size, chars, meditations });
+
+      // ── 이 달의 흐름 — 날짜별로 나눠, 그래프가 그릴 수 있게 ──
+      const daysInMonth = new Date(
+        base.getFullYear(),
+        base.getMonth() + 1,
+        0
+      ).getDate();
+      const dayIdx = (t: number) => new Date(t).getDate() - 1;
+      const returnedByDay = new Array(daysInMonth).fill(0);
+      const charsByDay = new Array(daysInMonth).fill(0);
+      const meditationsByDay = new Array(daysInMonth).fill(0);
+      for (const h of s.history) {
+        const t = h.journalAt ?? h.receivedAt;
+        if (!inMonth(t)) continue;
+        returnedByDay[dayIdx(t)] += 1;
+        charsByDay[dayIdx(t)] += (h.journal ?? "").length + (h.notes ?? "").length;
+      }
+      if (s.current?.notes && inMonth(now)) {
+        charsByDay[dayIdx(now)] += s.current.notes.length;
+      }
+      for (const t of meditationLog) {
+        if (inMonth(t)) meditationsByDay[dayIdx(t)] += 1;
+      }
+      setChart({
+        returned: returnedByDay,
+        meditations: meditationsByDay,
+        chars: charsByDay,
+      });
 
       // ── 품어온 시간 — 화두마다 품은 일수, 오래 품은 순(내림차순) ──
       const toHeld = (sess: Session, isCurrent: boolean): HeldItem => {
@@ -696,15 +738,17 @@ export default function SettingsPage() {
           (report.returned === 0 &&
             report.days === 0 &&
             report.chars === 0 &&
+            report.meditations === 0 &&
             held.length === 0) ? (
             <p className="text-[13px] leading-7 text-hanji-dim">
               이번 달의 걸음이 아직 없습니다.
             </p>
           ) : (
             <>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {[
                   { n: report.returned, unit: "", label: "회향" },
+                  { n: report.meditations, unit: "", label: "호흡 명상" },
                   { n: report.days, unit: "일", label: "함께한 날" },
                   { n: report.chars, unit: "자", label: "남긴 단상" },
                 ].map((c) => (
@@ -726,6 +770,51 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
+
+              {/* 이 달의 흐름 — 날마다 회향·명상·단상을 얼마나 했는지, 막대로 */}
+              {chart && (
+                <div className="mt-5 space-y-4">
+                  {[
+                    { label: "회향", unit: "", values: chart.returned },
+                    { label: "호흡 명상", unit: "", values: chart.meditations },
+                    { label: "남긴 단상", unit: "자", values: chart.chars },
+                  ]
+                    .filter((row) => row.values.some((v) => v > 0))
+                    .map((row) => {
+                      const max = Math.max(1, ...row.values);
+                      const total = row.values.reduce((a, b) => a + b, 0);
+                      return (
+                        <div key={row.label}>
+                          <p className="flex items-baseline justify-between text-[11px] tracking-[0.15em] text-hanji-faint">
+                            <span>{row.label}</span>
+                            <span className="text-hanji-dim">
+                              {total}
+                              {row.unit}
+                            </span>
+                          </p>
+                          <div
+                            className="mt-2 flex h-9 items-end gap-[2px]"
+                            role="img"
+                            aria-label={`${row.label} — 이번 달 날짜별 그래프`}
+                          >
+                            {row.values.map((v, i) => (
+                              <div
+                                key={i}
+                                className="min-h-[2px] flex-1 rounded-[1px] bg-gold"
+                                style={{
+                                  height: `${v === 0 ? 4 : Math.max(10, (v / max) * 100)}%`,
+                                  opacity: v === 0 ? 0.12 : 0.4 + (v / max) * 0.6,
+                                }}
+                                title={`${i + 1}일 · ${v}${row.unit}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+
               {/* 품어온 시간 — 지금 품는 중인 것과, 가장 최근에 내린 것.
                   나머지는 지난 화두(서고)에서 본다 */}
               {held.length > 0 && (
@@ -1131,6 +1220,8 @@ export default function SettingsPage() {
               아직 로그인하지 않았습니다.
               <br />
               로그인하면 지난 화두들이 계정에 모여 — 기기가 바뀌어도 이어집니다.
+              <br />
+              만 19세 이상만 이용할 수 있습니다.
             </p>
             <button
               onClick={handleLogin}
