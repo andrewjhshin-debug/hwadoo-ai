@@ -13,6 +13,10 @@
 // 2026-08-23 v4:
 // · posts 작성자 수정 허용 필드에 rankHanja 추가 — 인연 글·댓글에
 //   걸음 뱃지(人·修·天)를 함께 건다 (community.ts 가 쓰는 필드)
+//
+// 2026-08-23 v5:
+// · posts 작성자 수정 허용 필드에 category 추가 — 인연 글의 갈래
+//   (동행/도반 찾기/울력·봉사)를 고칠 수 있게
 // ─────────────────────────────────────────────────────────────
 
 rules_version = '2';
@@ -43,7 +47,7 @@ service cloud.firestore {
         || (request.auth != null
             && request.auth.uid == resource.data.authorUid
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'body', 'openChatUrl', 'lantern', 'gender', 'rankHanja', 'deleted']));
+                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'body', 'openChatUrl', 'lantern', 'gender', 'rankHanja', 'category', 'deleted']));
       allow delete: if isAdmin()
         || (request.auth != null && request.auth.uid == resource.data.authorUid);
 

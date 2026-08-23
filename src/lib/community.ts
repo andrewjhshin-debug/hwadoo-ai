@@ -28,6 +28,24 @@ import { rankHanjaFor } from "./badges";
 // 게시판 종류 — 연지원(community, 기본) / 차담회(gathering)
 export type Board = "community" | "gathering";
 
+// 인연 글의 갈래 — 동행(기본, 절에 함께 가는 인연) · 도반 찾기(연애와 무관한
+// 수행 동무) · 울력·봉사(절 일손 모집). 옛 글(category 없음)은 '동행'으로 본다.
+export type GatheringCategory = "together" | "companion" | "service";
+
+export const GATHERING_CATEGORIES: {
+  key: GatheringCategory;
+  label: string;
+  hint: string;
+}[] = [
+  { key: "together", label: "동행", hint: "절에 함께 갈 이" },
+  { key: "companion", label: "도반 찾기", hint: "사경·예불 등 함께할 수행" },
+  { key: "service", label: "울력·봉사", hint: "절 일손을 모읍니다" },
+];
+
+export function categoryLabel(c?: GatheringCategory | null): string {
+  return GATHERING_CATEGORIES.find((g) => g.key === c)?.label ?? "동행";
+}
+
 export type Post = {
   id: string;
   title: string;
@@ -43,6 +61,7 @@ export type Post = {
   board?: Board;
   createdAt?: { seconds: number };
   // ── 모임(gathering) 전용 — 절에 함께 가는 약속 (전부 선택) ──
+  category?: GatheringCategory | null; // 갈래 — 없으면 '동행'으로 본다
   templeName?: string | null; // 어느 절로
   meetDate?: string | null; // 언제 — "2026-08-25" 꼴
   meetTime?: string | null; // 몇 시에 — "10:30" 꼴
@@ -183,6 +202,7 @@ export async function createGathering(input: {
   templeName?: string;
   meetDate?: string;
   meetTime?: string;
+  category?: GatheringCategory;
 }) {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
@@ -194,6 +214,7 @@ export async function createGathering(input: {
     authorUid: u.uid,
     gender: loadStore().gender ?? null, // 음양 문양 — 프로필처럼 걸린다
     rankHanja: rankHanjaFor(loadStore().history.length, u) ?? null,
+    category: input.category ?? "together",
     hapjang: 0,
     commentCount: 0,
     board: "gathering" as Board,
@@ -213,11 +234,13 @@ export async function updateGathering(
     templeName?: string;
     meetDate?: string;
     meetTime?: string;
+    category?: GatheringCategory;
   }
 ) {
   const g = refineGathering(input);
   await updateDoc(doc(db, "posts", id), {
     title: g.title,
+    category: input.category ?? "together",
     body: g.body,
     templeName: g.templeName,
     meetDate: g.meetDate,

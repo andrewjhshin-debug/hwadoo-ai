@@ -21,18 +21,21 @@ import Link from "next/link";
 import type { User } from "firebase/auth";
 import {
   addComment,
+  categoryLabel,
   createGathering,
   deleteComment,
   deletePost,
   fetchComments,
   fetchMyLike,
   fetchPosts,
+  GATHERING_CATEGORIES,
   likePost,
   unlikePost,
   updateGathering,
   viewPost,
   voteComment,
   type Comment,
+  type GatheringCategory,
   type Post,
 } from "@/lib/community";
 import { loadStore } from "@/lib/store";
@@ -241,6 +244,7 @@ export default function GatheringBoard({
   const [temple, setTemple] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+  const [category, setCategory] = useState<GatheringCategory>("together");
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const formRef = useRef<HTMLDivElement | null>(null);
@@ -251,6 +255,11 @@ export default function GatheringBoard({
   // 합장 — 계정당 하나, 토글
   const [likedMap, setLikedMap] = useState<Record<string, boolean>>({});
   const [likeHint, setLikeHint] = useState(false);
+
+  // 갈래 보기 필터 — 동행/도반 찾기/울력·봉사 중 골라 보기
+  const [categoryFilter, setCategoryFilter] = useState<
+    "all" | GatheringCategory
+  >("all");
 
   // 음양 보기 필터 — 음(여)만·양(남)만 골라 보기. 기기에 기억해 둔다.
   const [genderFilter, setGenderFilter] = useState<"all" | "m" | "f">("all");
@@ -462,13 +471,15 @@ export default function GatheringBoard({
 
   const sorted = useMemo(() => {
     const list = (posts ?? []).filter(
-      (p) => genderFilter === "all" || p.gender === genderFilter
+      (p) =>
+        (genderFilter === "all" || p.gender === genderFilter) &&
+        (categoryFilter === "all" || (p.category ?? "together") === categoryFilter)
     );
     list.sort(
       (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
     );
     return list;
-  }, [posts, genderFilter]);
+  }, [posts, genderFilter, categoryFilter]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -477,6 +488,7 @@ export default function GatheringBoard({
     setTemple("");
     setDate("");
     setTime("");
+    setCategory("together");
     setFormError("");
   };
 
@@ -490,6 +502,7 @@ export default function GatheringBoard({
         templeName: temple || undefined,
         meetDate: date || undefined,
         meetTime: time || undefined,
+        category,
       };
       if (editingId) await updateGathering(editingId, input);
       else await createGathering(input);
@@ -514,6 +527,7 @@ export default function GatheringBoard({
     setTemple(p.templeName ?? "");
     setDate(p.meetDate ?? "");
     setTime(p.meetTime ?? "");
+    setCategory(p.category ?? "together");
     setFormError("");
     setMenuOpen(false);
     setOpen(true);
@@ -1022,6 +1036,13 @@ export default function GatheringBoard({
           )}
         </div>
 
+        {/* 갈래 — 동행이 아닐 때만 밝힌다 (내려진 글엔 없다) */}
+        {!p.deleted && p.category && p.category !== "together" && (
+          <p className="mt-3 text-[11px] tracking-[0.2em] text-gold-soft">
+            {categoryLabel(p.category)}
+          </p>
+        )}
+
         {/* 제목 — 바로 붙여 위로 당긴다 (내려진 글은 흐리게) */}
         <h2
           className={`mt-2 break-keep font-serif text-[21px] font-medium leading-8 ${
@@ -1188,6 +1209,25 @@ export default function GatheringBoard({
             <p className="text-[11px] tracking-[0.25em] text-gold-soft">
               {editingId ? "글 고치기" : "글 쓰기"}
             </p>
+            {/* 갈래 — 동행 / 도반 찾기 / 울력·봉사 */}
+            <div className="flex flex-wrap gap-2">
+              {GATHERING_CATEGORIES.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => setCategory(c.key)}
+                  aria-pressed={category === c.key}
+                  title={c.hint}
+                  className={`rounded-full border px-3.5 py-1.5 text-[12px] tracking-wide transition-colors ${
+                    category === c.key
+                      ? "border-gold/60 bg-gold/10 text-gold"
+                      : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -1276,6 +1316,26 @@ export default function GatheringBoard({
   // ── 목록 — 제목만 쭉, 화면 가득 ─────────────────────────
   return (
     <div>
+      {/* 갈래 필터 — 전체 / 동행 / 도반 찾기 / 울력·봉사 */}
+      <div className="flex flex-wrap gap-1.5 px-4 pb-2.5 pt-1 sm:px-0">
+        {[{ key: "all" as const, label: "전체", hint: "" }, ...GATHERING_CATEGORIES].map(
+          (c) => (
+            <button
+              key={c.key}
+              onClick={() => setCategoryFilter(c.key)}
+              aria-pressed={categoryFilter === c.key}
+              className={`rounded-full border px-3 py-1 text-[11.5px] tracking-wide transition-colors ${
+                categoryFilter === c.key
+                  ? "border-gold/60 bg-gold/10 text-gold"
+                  : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
+              }`}
+            >
+              {c.label}
+            </button>
+          )
+        )}
+      </div>
+
       <div className="flex items-center justify-between gap-2 px-4 pb-2 sm:px-0">
         {/* 보기 필터 — 음(여)만·양(남)만 골라 보기, 작게 */}
         <div className="flex items-center gap-3 text-[11px] tracking-wide text-hanji-faint">
@@ -1346,12 +1406,19 @@ export default function GatheringBoard({
                 {/* 음양 프로필 — 왼쪽, 오른쪽 위는 제목·아래는 시간/조회/댓글 */}
                 <GenderMark g={p.gender} />
                 <span className="min-w-0 flex-1">
-                  <span
-                    className={`block truncate text-[15px] font-medium leading-6 ${
-                      p.deleted ? "text-hanji-faint" : "text-hanji"
-                    }`}
-                  >
-                    {p.title}
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    {!p.deleted && p.category && p.category !== "together" && (
+                      <span className="shrink-0 rounded-full border border-gold/30 px-1.5 py-px text-[9.5px] leading-tight tracking-wide text-gold-soft">
+                        {categoryLabel(p.category)}
+                      </span>
+                    )}
+                    <span
+                      className={`block truncate text-[15px] font-medium leading-6 ${
+                        p.deleted ? "text-hanji-faint" : "text-hanji"
+                      }`}
+                    >
+                      {p.title}
+                    </span>
                   </span>
                   <span className="mt-0.5 flex min-w-0 items-center gap-2.5 text-[11.5px] tracking-wide text-hanji-faint">
                     <span className="shrink-0">{stamp(p.createdAt)}</span>

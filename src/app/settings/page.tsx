@@ -17,6 +17,7 @@ import {
   DONATION_URL,
   isAdminAccount,
   PUSH_VAPID_KEY,
+  SITE_URL,
 } from "@/lib/config";
 import {
   disablePush,
@@ -48,6 +49,7 @@ import {
 } from "@/lib/install";
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
 import { loadMeditations } from "@/lib/meditation";
+import { emptyingCountByDay } from "@/lib/emptying";
 import {
   Person,
   Teacup,
@@ -68,9 +70,8 @@ import {
 
 // 이달의 마음 — 이번 달의 걸음을 로컬 기록으로 센 것
 type MonthReport = {
-  returned: number; // 이번 달 회향 수
+  returned: number; // 이번 달 받은 화두 수(=회향 수)
   days: number; // 이번 달 함께한 날수 (접속일 ∪ 화두를 품고 있던 날, 고유한 날짜 수)
-  chars: number; // 이번 달 남긴 단상·회향의 글자 수
   meditations: number; // 이번 달 호흡 명상 마친 횟수
 };
 
@@ -78,7 +79,15 @@ type MonthReport = {
 type MonthChart = {
   returned: number[];
   meditations: number[];
-  chars: number[];
+  emptying: number[]; // 그날 무언가 하나라도 비웠으면 1
+};
+
+// 올해의 마음 — 연말에 한 장으로 보는 누적 요약(공유하기 좋은 카드)
+type YearReport = {
+  year: number;
+  returned: number;
+  meditations: number;
+  days: number;
 };
 
 // 품어온 시간 — 화두마다 받은 날부터 회향(또는 지금)까지 품은 일수
@@ -124,6 +133,79 @@ const SERVICES: ServiceItem[] = [
   { href: "/breath", label: "호흡 명상", Icon: Breath },
 ];
 
+// 이 달의 흐름 — 여러 갈래를 한 그래프에 선으로 겹쳐 그린다.
+// 범례를 누르면 그 선만 또렷해지고 나머지는 흐려진다 — 다시 누르면 원래대로.
+const LINE_DASH = ["", "3,2.5", "1,2.5"]; // 실선 · 파선 · 점선 — 겹쳐도 갈래가 갈린다
+
+function MonthLineChart({
+  series,
+}: {
+  series: { label: string; values: number[] }[];
+}) {
+  const [pick, setPick] = useState<number | null>(null);
+  const W = 300;
+  const H = 56;
+  const PAD = 4;
+  const max = Math.max(1, ...series.flatMap((s) => s.values));
+  const span = Math.max(1, (series[0]?.values.length ?? 1) - 1);
+  const points = (values: number[]) =>
+    values
+      .map(
+        (v, i) => `${(i / span) * W},${H - PAD - (v / max) * (H - PAD * 2)}`
+      )
+      .join(" ");
+  const total = (values: number[]) => values.reduce((a, b) => a + b, 0);
+  const opacityOf = (idx: number) =>
+    pick === null ? 1 - idx * 0.25 : pick === idx ? 1 : 0.15;
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-4">
+        {series.map((s, idx) => (
+          <button
+            key={s.label}
+            onClick={() => setPick((p) => (p === idx ? null : idx))}
+            className="flex items-center gap-1.5 text-[11px] tracking-[0.1em] transition-opacity"
+            style={{ opacity: pick === null || pick === idx ? 1 : 0.4 }}
+          >
+            <span
+              className="h-[2px] w-4 shrink-0 rounded-full bg-gold"
+              style={{ opacity: 1 - idx * 0.25 }}
+            />
+            <span className="text-hanji-dim">{s.label}</span>
+            <span className="text-hanji-faint">{total(s.values)}</span>
+          </button>
+        ))}
+      </div>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        className="mt-2 h-14 w-full"
+        role="img"
+        aria-label={`${series.map((s) => s.label).join("·")} — 이번 달 날짜별 그래프`}
+      >
+        {/* 뒤에서부터 그려 앞쪽(첫 갈래)이 맨 위에 오게 */}
+        {[...series].reverse().map((s, revIdx) => {
+          const idx = series.length - 1 - revIdx;
+          return (
+            <polyline
+              key={s.label}
+              points={points(s.values)}
+              fill="none"
+              stroke="var(--color-gold)"
+              strokeWidth={pick === idx ? 2.25 : 1.5}
+              strokeDasharray={LINE_DASH[idx % LINE_DASH.length]}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={opacityOf(idx)}
+            />
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   // 음양 — 인연 게시판에 표시될 나의 문양
@@ -136,6 +218,8 @@ export default function SettingsPage() {
   const [loginError, setLoginError] = useState("");
   const [report, setReport] = useState<MonthReport | null>(null);
   const [chart, setChart] = useState<MonthChart | null>(null);
+  const [yearReport, setYearReport] = useState<YearReport | null>(null);
+  const [yearShareMsg, setYearShareMsg] = useState<string | null>(null);
   const [held, setHeld] = useState<HeldItem[]>([]);
   const [myThrown, setMyThrown] = useState<MyThrown[] | null>(null);
   const [thrownStats, setThrownStats] = useState<Map<
@@ -308,20 +392,11 @@ export default function SettingsPage() {
         );
       }
 
-      // 남긴 글자 수 — 이번 달 회향의 글과 단상, 지금 든 화두의 단상
-      let chars = 0;
-      for (const h of s.history) {
-        if (inMonth(h.journalAt ?? h.receivedAt)) {
-          chars += (h.journal ?? "").length + (h.notes ?? "").length;
-        }
-      }
-      if (s.current?.notes) chars += s.current.notes.length;
-
       // 이번 달 호흡 명상 — 마칠 때마다 적힌 명상 장부를 센다
       const meditationLog = loadMeditations();
       const meditations = meditationLog.filter((t) => inMonth(t)).length;
 
-      setReport({ returned, days: monthDays.size, chars, meditations });
+      setReport({ returned, days: monthDays.size, meditations });
 
       // ── 이 달의 흐름 — 날짜별로 나눠, 그래프가 그릴 수 있게 ──
       const daysInMonth = new Date(
@@ -331,24 +406,50 @@ export default function SettingsPage() {
       ).getDate();
       const dayIdx = (t: number) => new Date(t).getDate() - 1;
       const returnedByDay = new Array(daysInMonth).fill(0);
-      const charsByDay = new Array(daysInMonth).fill(0);
       const meditationsByDay = new Array(daysInMonth).fill(0);
       for (const h of s.history) {
         const t = h.journalAt ?? h.receivedAt;
         if (!inMonth(t)) continue;
         returnedByDay[dayIdx(t)] += 1;
-        charsByDay[dayIdx(t)] += (h.journal ?? "").length + (h.notes ?? "").length;
-      }
-      if (s.current?.notes && inMonth(now)) {
-        charsByDay[dayIdx(now)] += s.current.notes.length;
       }
       for (const t of meditationLog) {
         if (inMonth(t)) meditationsByDay[dayIdx(t)] += 1;
       }
+      const monthDayKeys = Array.from({ length: daysInMonth }, (_, i) =>
+        visitDayKey(monthStart + i * DAY)
+      );
       setChart({
         returned: returnedByDay,
         meditations: meditationsByDay,
-        chars: charsByDay,
+        emptying: emptyingCountByDay(monthDayKeys),
+      });
+
+      // ── 올해의 마음 — 연말에 한 장으로 볼 수 있는 요약. 달마다 리셋되는
+      // 이달의 마음과 달리, 1월 1일부터 지금까지를 누적한다 ──
+      const yearStart = new Date(base.getFullYear(), 0, 1).getTime();
+      const yearEnd = new Date(base.getFullYear() + 1, 0, 1).getTime();
+      const inYear = (t: number) => t >= yearStart && t < yearEnd;
+      const yearReturned = s.history.filter((h) =>
+        inYear(h.journalAt ?? h.receivedAt)
+      ).length;
+      const yearMeditations = meditationLog.filter((t) => inYear(t)).length;
+      const yearDays = new Set<string>();
+      const yearPrefix = String(base.getFullYear());
+      for (const v of visits) {
+        if (v.startsWith(yearPrefix)) yearDays.add(v);
+      }
+      for (const sess of sessions) {
+        addHeldDays(
+          Math.max(sess.receivedAt, yearStart),
+          Math.min(sess.journalAt ?? now, yearEnd - 1),
+          yearDays
+        );
+      }
+      setYearReport({
+        year: base.getFullYear(),
+        returned: yearReturned,
+        meditations: yearMeditations,
+        days: yearDays.size,
       });
 
       // ── 품어온 시간 — 화두마다 품은 일수, 오래 품은 순(내림차순) ──
@@ -519,6 +620,26 @@ export default function SettingsPage() {
   };
 
   const sectionGap = "mt-11";
+
+  // 올해의 마음 공유 — 되면 공유 시트, 안 되면 글을 그대로 클립보드에
+  const shareYear = async (y: YearReport) => {
+    const text = `화두 ${y.year}년 — 받은 화두 ${y.returned} · 호흡 명상 ${y.meditations} · 함께한 날 ${y.days}일\n${SITE_URL}`;
+    setYearShareMsg(null);
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+        return;
+      }
+      throw new Error("no-share");
+    } catch {
+      try {
+        await navigator.clipboard.writeText(text);
+        setYearShareMsg("글로 복사했습니다 — 붙여넣기로 나눠 보십시오.");
+      } catch {
+        setYearShareMsg(text);
+      }
+    }
+  };
 
   // 품어온 시간 한 줄 — "3.2 · {질문 전문} · 108일" (여러 줄 허용, 줄이지 않는다)
   const heldRow = (h: HeldItem) => (
@@ -737,7 +858,6 @@ export default function SettingsPage() {
           {!report ||
           (report.returned === 0 &&
             report.days === 0 &&
-            report.chars === 0 &&
             report.meditations === 0 &&
             held.length === 0) ? (
             <p className="text-[13px] leading-7 text-hanji-dim">
@@ -745,12 +865,11 @@ export default function SettingsPage() {
             </p>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="grid grid-cols-3 gap-2">
                 {[
-                  { n: report.returned, unit: "", label: "회향" },
+                  { n: report.returned, unit: "", label: "받은 화두" },
                   { n: report.meditations, unit: "", label: "호흡 명상" },
                   { n: report.days, unit: "일", label: "함께한 날" },
-                  { n: report.chars, unit: "자", label: "남긴 단상" },
                 ].map((c) => (
                   <div
                     key={c.label}
@@ -771,49 +890,23 @@ export default function SettingsPage() {
                 ))}
               </div>
 
-              {/* 이 달의 흐름 — 날마다 회향·명상·단상을 얼마나 했는지, 막대로 */}
-              {chart && (
-                <div className="mt-5 space-y-4">
-                  {[
-                    { label: "회향", unit: "", values: chart.returned },
-                    { label: "호흡 명상", unit: "", values: chart.meditations },
-                    { label: "남긴 단상", unit: "자", values: chart.chars },
-                  ]
-                    .filter((row) => row.values.some((v) => v > 0))
-                    .map((row) => {
-                      const max = Math.max(1, ...row.values);
-                      const total = row.values.reduce((a, b) => a + b, 0);
-                      return (
-                        <div key={row.label}>
-                          <p className="flex items-baseline justify-between text-[11px] tracking-[0.15em] text-hanji-faint">
-                            <span>{row.label}</span>
-                            <span className="text-hanji-dim">
-                              {total}
-                              {row.unit}
-                            </span>
-                          </p>
-                          <div
-                            className="mt-2 flex h-9 items-end gap-[2px]"
-                            role="img"
-                            aria-label={`${row.label} — 이번 달 날짜별 그래프`}
-                          >
-                            {row.values.map((v, i) => (
-                              <div
-                                key={i}
-                                className="min-h-[2px] flex-1 rounded-[1px] bg-gold"
-                                style={{
-                                  height: `${v === 0 ? 4 : Math.max(10, (v / max) * 100)}%`,
-                                  opacity: v === 0 ? 0.12 : 0.4 + (v / max) * 0.6,
-                                }}
-                                title={`${i + 1}일 · ${v}${row.unit}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
+              {/* 이 달의 흐름 — 받은 화두·호흡 명상을 한 그래프에, 선으로 겹쳐 */}
+              {chart &&
+                (() => {
+                  const lines = [
+                    { label: "받은 화두", values: chart.returned },
+                    { label: "호흡 명상", values: chart.meditations },
+                    ...(chart.emptying.some((v) => v > 0)
+                      ? [{ label: "비움", values: chart.emptying }]
+                      : []),
+                  ];
+                  if (!lines.some((l) => l.values.some((v) => v > 0))) return null;
+                  return (
+                    <div className="mt-5">
+                      <MonthLineChart series={lines} />
+                    </div>
+                  );
+                })()}
 
               {/* 품어온 시간 — 지금 품는 중인 것과, 가장 최근에 내린 것.
                   나머지는 지난 화두(서고)에서 본다 */}
@@ -840,6 +933,50 @@ export default function SettingsPage() {
           )}
         </div>
       </section>
+
+      {/* ── 올해의 마음 — 연말에 한 장으로 보는 누적 요약. 공유하기 좋게 카드처럼 ── */}
+      {yearReport &&
+        (yearReport.returned > 0 ||
+          yearReport.meditations > 0 ||
+          yearReport.days > 0) && (
+          <section className={`rise rise-d1 ${sectionGap}`}>
+            <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              올해의 마음
+            </p>
+            <div className="mt-4 rounded-[16px] border border-gold/30 bg-gold/5 px-6 py-7 text-center">
+              <p className="font-serif text-[15px] tracking-[0.15em] text-gold-soft">
+                {yearReport.year}년
+              </p>
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                {[
+                  { n: yearReport.returned, label: "받은 화두" },
+                  { n: yearReport.meditations, label: "호흡 명상" },
+                  { n: yearReport.days, label: "함께한 날" },
+                ].map((c) => (
+                  <div key={c.label}>
+                    <p className="font-serif text-[26px] font-light leading-none text-gold">
+                      {c.n}
+                    </p>
+                    <p className="mt-2 text-[10px] tracking-[0.15em] text-hanji-faint">
+                      {c.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => shareYear(yearReport)}
+                className="mt-6 rounded-[10px] border border-gold/40 px-5 py-2 text-[11.5px] tracking-[0.2em] text-gold-soft transition-colors hover:bg-gold/10"
+              >
+                공유하기
+              </button>
+              {yearShareMsg && (
+                <p className="mt-2.5 text-[11px] text-hanji-faint">
+                  {yearShareMsg}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
 
       {/* ── 알림 — 아침 문안: 제목 한 줄 + 온/오프 토글.
           차단이면 토글을 눌렀을 때 푸는 법 안내가 접혀 나온다 ── */}
