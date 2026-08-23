@@ -61,7 +61,7 @@ export default function MobileTabBar() {
       )}
 
       {/* 하단 고정 탭 바 */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-[76px] items-stretch border-t border-ink-3 bg-ink-2/95 backdrop-blur md:hidden">
+      <nav className="mobile-tabbar fixed inset-x-0 bottom-0 z-40 flex h-[76px] items-stretch border-t border-ink-3 bg-ink-2/95 backdrop-blur md:hidden">
         {TABS.map(({ href, label, Icon }) => {
           const active = pathname === href;
           return (
