@@ -1,23 +1,10 @@
-"use client";
-
 // ─────────────────────────────────────────────────────────────
 // 비움(空) — 무지출 · 무소유 · 무집착 · 무살생.
-// 하루 하나씩, 실천했으면 눌러 둔다 — 조용한 일기장. 추적은 이 기기
-// 안에서만(달력·이달의 마음 그래프에 쓰인다), 서버로 올라가지 않는다.
+// 지금은 조용한 소개의 방이다 — 네 가지 비움이 무엇인지 안내하고,
+// 함께 비우는 자리는 곧 이곳에 열린다. (추적·기록 없음, 정적 화면)
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from "react";
-import { visitDayKey } from "@/components/VisitLedger";
-import {
-  EMPTYING_KINDS,
-  isEmptyingChecked,
-  loadEmptyingLog,
-  toggleEmptying,
-  type EmptyingKind,
-} from "@/lib/emptying";
-
 type Emptying = {
-  kind: EmptyingKind;
   hanja: string;
   name: string;
   lines: string[]; // 두어 줄의 담백한 안내
@@ -25,7 +12,6 @@ type Emptying = {
 
 const EMPTYINGS: Emptying[] = [
   {
-    kind: "nospend",
     hanja: "無支出",
     name: "무지출",
     lines: [
@@ -34,7 +20,6 @@ const EMPTYINGS: Emptying[] = [
     ],
   },
   {
-    kind: "nopossess",
     hanja: "無所有",
     name: "무소유",
     lines: [
@@ -43,7 +28,6 @@ const EMPTYINGS: Emptying[] = [
     ],
   },
   {
-    kind: "noattach",
     hanja: "無執着",
     name: "무집착",
     lines: [
@@ -52,7 +36,6 @@ const EMPTYINGS: Emptying[] = [
     ],
   },
   {
-    kind: "nokill",
     hanja: "無殺生",
     name: "무살생",
     lines: [
@@ -63,49 +46,6 @@ const EMPTYINGS: Emptying[] = [
 ];
 
 export default function EmptyPage() {
-  const today = visitDayKey();
-  const [checked, setChecked] = useState<Record<EmptyingKind, boolean>>({
-    nospend: false,
-    nopossess: false,
-    noattach: false,
-    nokill: false,
-  });
-  const [monthCount, setMonthCount] = useState<Record<EmptyingKind, number>>({
-    nospend: 0,
-    nopossess: 0,
-    noattach: 0,
-    nokill: 0,
-  });
-
-  // 화면이 뜬 뒤에만 서랍을 읽는다 — 서버 렌더와 어긋나지 않게
-  useEffect(() => {
-    const refresh = () => {
-      const next = {} as Record<EmptyingKind, boolean>;
-      for (const k of EMPTYING_KINDS) next[k.key] = isEmptyingChecked(today, k.key);
-      setChecked(next);
-
-      const log = loadEmptyingLog();
-      const prefix = today.slice(0, 7); // "YYYY-MM"
-      const counts = {} as Record<EmptyingKind, number>;
-      for (const k of EMPTYING_KINDS) counts[k.key] = 0;
-      for (const [day, kinds] of Object.entries(log)) {
-        if (!day.startsWith(prefix)) continue;
-        for (const k of kinds) counts[k] = (counts[k] ?? 0) + 1;
-      }
-      setMonthCount(counts);
-    };
-    refresh();
-  }, [today]);
-
-  const toggle = (kind: EmptyingKind) => {
-    toggleEmptying(today, kind);
-    setChecked((prev) => ({ ...prev, [kind]: !prev[kind] }));
-    setMonthCount((prev) => ({
-      ...prev,
-      [kind]: prev[kind] + (checked[kind] ? -1 : 1),
-    }));
-  };
-
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-6 pb-16 pt-8 text-center md:pt-12">
       <p className="rise text-xs tracking-[0.5em] text-gold-soft">空 · 비움</p>
@@ -117,14 +57,14 @@ export default function EmptyPage() {
       </p>
       <p className="rise rise-d2 mt-6 break-keep text-[14px] leading-7 text-hanji-dim">
         비움에는 네 갈래가 있습니다 — 쓰지 않는 것, 갖지 않는 것, 붙들지 않는
-        것, 해치지 않는 것. 오늘 실천했으면 눌러 두십시오.
+        것, 해치지 않는 것.
       </p>
 
-      {/* ── 네 가지 비움 — 오늘 실천했는지 눌러 둔다 ── */}
+      {/* ── 세 가지 비움 — 조용한 소개 ── */}
       <div className="rise rise-d3 mt-10 flex w-full flex-col gap-4">
         {EMPTYINGS.map((e) => (
           <section
-            key={e.kind}
+            key={e.hanja}
             className="border border-ink-3 bg-ink-2/50 px-7 py-8"
           >
             <p className="text-xs tracking-[0.5em] text-hanji-faint">
@@ -143,19 +83,8 @@ export default function EmptyPage() {
                 </p>
               ))}
             </div>
-            <button
-              onClick={() => toggle(e.kind)}
-              aria-pressed={checked[e.kind]}
-              className={`mt-5 rounded-[10px] border px-6 py-2.5 text-[12.5px] tracking-[0.15em] transition-colors ${
-                checked[e.kind]
-                  ? "border-gold/60 bg-gold/10 text-gold"
-                  : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
-              }`}
-            >
-              {checked[e.kind] ? "오늘 비웠습니다 ✓" : "오늘 비우기"}
-            </button>
-            <p className="mt-2.5 text-[11px] tracking-[0.1em] text-hanji-faint">
-              이번 달 {monthCount[e.kind]}일
+            <p className="mt-5 text-[11px] tracking-[0.25em] text-gold-soft">
+              곧, 이곳에서 함께 비웁니다
             </p>
           </section>
         ))}

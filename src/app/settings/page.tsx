@@ -49,7 +49,6 @@ import {
 } from "@/lib/install";
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
 import { loadMeditations } from "@/lib/meditation";
-import { emptyingCountByDay } from "@/lib/emptying";
 import {
   Person,
   Teacup,
@@ -79,7 +78,6 @@ type MonthReport = {
 type MonthChart = {
   returned: number[];
   meditations: number[];
-  emptying: number[]; // 그날 무언가 하나라도 비웠으면 1
 };
 
 // 올해의 마음 — 연말에 한 장으로 보는 누적 요약(공유하기 좋은 카드)
@@ -415,14 +413,7 @@ export default function SettingsPage() {
       for (const t of meditationLog) {
         if (inMonth(t)) meditationsByDay[dayIdx(t)] += 1;
       }
-      const monthDayKeys = Array.from({ length: daysInMonth }, (_, i) =>
-        visitDayKey(monthStart + i * DAY)
-      );
-      setChart({
-        returned: returnedByDay,
-        meditations: meditationsByDay,
-        emptying: emptyingCountByDay(monthDayKeys),
-      });
+      setChart({ returned: returnedByDay, meditations: meditationsByDay });
 
       // ── 올해의 마음 — 연말에 한 장으로 볼 수 있는 요약. 달마다 리셋되는
       // 이달의 마음과 달리, 1월 1일부터 지금까지를 누적한다 ──
@@ -896,9 +887,6 @@ export default function SettingsPage() {
                   const lines = [
                     { label: "받은 화두", values: chart.returned },
                     { label: "호흡 명상", values: chart.meditations },
-                    ...(chart.emptying.some((v) => v > 0)
-                      ? [{ label: "비움", values: chart.emptying }]
-                      : []),
                   ];
                   if (!lines.some((l) => l.values.some((v) => v > 0))) return null;
                   return (
