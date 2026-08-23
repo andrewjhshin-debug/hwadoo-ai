@@ -62,6 +62,6 @@ export async function POST(request: Request) {
       ? dmRequestMail("시험 이름")
       : milestoneMail(typeof payload.days === "number" ? payload.days : 3);
 
-  const ok = await sendMail(to, mail);
-  return Response.json({ sent: ok });
+  const result = await sendMail(to, mail);
+  return Response.json({ sent: result.ok, error: result.error });
 }

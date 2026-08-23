@@ -115,10 +115,14 @@ export function dmRequestMail(name: string) {
   };
 }
 
-// 보내기 — 실패해도 부른 쪽 흐름은 막지 않는다 (콘솔에만 남긴다)
-export async function sendMail(to: string, mail: { subject: string; html: string }): Promise<boolean> {
+// 보내기 — 실패해도 부른 쪽 흐름은 막지 않는다 (콘솔에도 남긴다).
+// error 는 시험 발송 화면에서 바로 보여주기 위한 것 — 평소엔 무시해도 된다.
+export async function sendMail(
+  to: string,
+  mail: { subject: string; html: string }
+): Promise<{ ok: boolean; error?: string }> {
   const resend = getResend();
-  if (!resend) return false;
+  if (!resend) return { ok: false, error: "RESEND_API_KEY 없음" };
   try {
     const { error } = await resend.emails.send({
       from: FROM,
@@ -128,11 +132,11 @@ export async function sendMail(to: string, mail: { subject: string; html: string
     });
     if (error) {
       console.error("[mail] send failed:", error);
-      return false;
+      return { ok: false, error: error.message };
     }
-    return true;
+    return { ok: true };
   } catch (e) {
     console.error("[mail] send threw:", e);
-    return false;
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }
 }

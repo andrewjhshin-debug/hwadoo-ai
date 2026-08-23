@@ -725,9 +725,14 @@ export default function AdminPage() {
       if (res.status === 503) {
         setMailResult("아직 RESEND_API_KEY 가 설정되지 않았습니다.");
       } else {
-        const data = (await res.json().catch(() => ({}))) as { sent?: boolean };
+        const data = (await res.json().catch(() => ({}))) as {
+          sent?: boolean;
+          error?: string;
+        };
         setMailResult(
-          data.sent ? "보냈습니다 — 받은편지함(스팸함도)을 확인해 보십시오." : "발송에 실패했습니다."
+          data.sent
+            ? "보냈습니다 — 받은편지함(스팸함도)을 확인해 보십시오."
+            : `발송에 실패했습니다${data.error ? " — " + data.error : ""}`
         );
       }
     } catch {

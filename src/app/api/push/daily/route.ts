@@ -123,7 +123,7 @@ async function sendMilestoneMails(app: App, now: number): Promise<number> {
     try {
       const { email } = await auth.getUser(doc.id);
       if (!email) continue;
-      if (await sendMail(email, milestoneMail(session.durationDays))) sent++;
+      if ((await sendMail(email, milestoneMail(session.durationDays))).ok) sent++;
     } catch {
       // 이 사람만 건너뛰고 나머지는 계속
     }
