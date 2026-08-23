@@ -605,6 +605,11 @@ export default function AdminPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // 메일 시험 발송 — Resend 가 켜졌는지 확인용
+  const [mailTo, setMailTo] = useState("");
+  const [mailBusy, setMailBusy] = useState(false);
+  const [mailResult, setMailResult] = useState<string | null>(null);
+
   // 추가/수정 폼
   const [newQ, setNewQ] = useState("");
   const [newSrc, setNewSrc] = useState("");
@@ -699,6 +704,36 @@ export default function AdminPage() {
       });
     } catch {
       // 조용히 — 다음 아침 문안이 어차피 간다
+    }
+  };
+
+  // 메일 시험 발송 — Resend(RESEND_API_KEY)가 실제로 켜져 있는지 그 자리에서 확인
+  const sendTestMail = async () => {
+    if (!user || !mailTo.trim()) return;
+    setMailBusy(true);
+    setMailResult(null);
+    try {
+      const idToken = await user.getIdToken();
+      const res = await fetch("/api/mail/test", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ to: mailTo.trim(), kind: "milestone", days: 3 }),
+      });
+      if (res.status === 503) {
+        setMailResult("아직 RESEND_API_KEY 가 설정되지 않았습니다.");
+      } else {
+        const data = (await res.json().catch(() => ({}))) as { sent?: boolean };
+        setMailResult(
+          data.sent ? "보냈습니다 — 받은편지함(스팸함도)을 확인해 보십시오." : "발송에 실패했습니다."
+        );
+      }
+    } catch {
+      setMailResult("발송 중 오류가 났습니다.");
+    } finally {
+      setMailBusy(false);
     }
   };
 
@@ -822,6 +857,26 @@ export default function AdminPage() {
       {error && (
         <p className="mt-3 text-center text-xs text-vermilion">{error}</p>
       )}
+
+      {/* 메일 시험 발송 — Resend 연결이 살아 있는지 그 자리에서 확인 */}
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-2 border border-ink-3 px-4 py-3 text-xs">
+        <span className="text-hanji-faint tracking-[0.1em]">메일 시험</span>
+        <input
+          type="email"
+          value={mailTo}
+          onChange={(e) => setMailTo(e.target.value)}
+          placeholder="받을 이메일"
+          className="border border-ink-3 bg-transparent px-3 py-1.5 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
+        />
+        <button
+          onClick={sendTestMail}
+          disabled={mailBusy || !mailTo.trim()}
+          className="border border-gold/50 px-4 py-1.5 tracking-[0.1em] text-gold transition-colors hover:bg-gold/10 disabled:opacity-40"
+        >
+          {mailBusy ? "보내는 중…" : "시험 메일 보내기"}
+        </button>
+        {mailResult && <span className="text-hanji-dim">{mailResult}</span>}
+      </div>
 
       {/* 다섯 구획 + 선지식의 한마디 + 죽비 + 차 한 잔 */}
       <nav className="mt-8 flex flex-wrap justify-center gap-2">
