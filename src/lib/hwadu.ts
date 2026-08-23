@@ -1710,6 +1710,9 @@ export const HWADU_BANK: Hwadu[] = [
 
 // 랜덤으로 건넨다 — 이미 지나온 화두(기록·현재)는 피한다.
 // 어른: 고전 화두 전체. 학생: 학생 화두 + 학생에게도 좋은 고전.
+// · 다 돌았을 때(가진 화두를 전부 받았을 때)도 아무거나 다시 주지 않는다 —
+//   excludeIds 는 받은 순서(오래된 것이 앞)로 오므로, 가장 오래전에 받은
+//   것부터 다시 건넨다. 방금 받았던 것이 곧바로 또 나오는 일은 없다.
 export function pickRandomHwadu(
   excludeIds: string[],
   audience: "adult" | "student" = "adult"
@@ -1720,8 +1723,14 @@ export function pickRandomHwadu(
       : h.audience !== "student"
   );
   const pool = byAudience.filter((h) => !excludeIds.includes(h.id));
-  const source = pool.length > 0 ? pool : byAudience;
-  return source[Math.floor(Math.random() * source.length)];
+  if (pool.length > 0) {
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  for (const id of excludeIds) {
+    const again = byAudience.find((h) => h.id === id);
+    if (again) return again;
+  }
+  return byAudience[Math.floor(Math.random() * byAudience.length)];
 }
 
 // 대상별 기본 화두(HWADU_BANK) 개수 — 하드코딩 대신 실제로 센다

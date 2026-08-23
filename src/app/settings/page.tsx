@@ -726,14 +726,17 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
-              {/* 품어온 시간 — 가장 최근 1개만, 나머지는 지난 화두(서고)에서 본다 */}
+              {/* 품어온 시간 — 지금 품는 중인 것과, 가장 최근에 내린 것.
+                  나머지는 지난 화두(서고)에서 본다 */}
               {held.length > 0 && (
                 <div className="mt-5">
                   <p className="text-[11px] tracking-[0.2em] text-hanji-faint">
                     품어온 시간
                   </p>
                   <ul className="mt-2.5 space-y-2">
-                    {held.slice(0, 1).map(heldRow)}
+                    {[held.find((h) => h.current), held.find((h) => !h.current)]
+                      .filter((h): h is HeldItem => Boolean(h))
+                      .map(heldRow)}
                   </ul>
                   <Link
                     href="/archive"

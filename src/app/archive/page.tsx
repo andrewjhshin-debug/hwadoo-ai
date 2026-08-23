@@ -169,7 +169,7 @@ export default function ArchivePage() {
                   </div>
                 ) : (
                   s.journal && (
-                    <blockquote className="mt-4 whitespace-pre-line break-keep border-l border-gold/30 pl-5 text-sm font-light leading-8 text-hanji-dim">
+                    <blockquote className="mt-4 whitespace-pre-line break-keep border-l border-gold/30 pl-5 text-sm font-light leading-8 text-hanji">
                       {s.journal}
                     </blockquote>
                   )
@@ -180,7 +180,7 @@ export default function ArchivePage() {
                     <summary className="cursor-pointer text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-hanji-dim">
                       단상 보기
                     </summary>
-                    <p className="mt-2 whitespace-pre-line pl-5 text-[13px] leading-7 text-hanji-faint">
+                    <p className="mt-2 whitespace-pre-line pl-5 text-[13px] leading-7 text-hanji-dim">
                       {s.notes}
                     </p>
                   </details>
