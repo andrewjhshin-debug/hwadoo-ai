@@ -8,13 +8,17 @@
 // · 죽은 토큰(등록 해제·형식 오류)은 장부에서 걷어낸다
 // ─────────────────────────────────────────────────────────────
 
+import type { App } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getMessaging, type TokenMessage } from "firebase-admin/messaging";
 import { adminApp, BATCH, cleanDeadTokens } from "@/lib/firebaseAdmin";
 import { SITE_URL } from "@/lib/config";
+import { milestoneMail, sendMail } from "@/lib/mail";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60; // 계정이 늘면 메일 발송에 시간이 걸린다 — 여유를 둔다
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -103,6 +107,30 @@ function morningPayload(session: CurrentSession | null, now: number): Payload {
   return DEFAULT_PAYLOAD;
 }
 
+// 화두 하루·사흘·이레 익음 메일 — 푸시 구독 여부와 무관하게 로그인 계정
+// 전체(users 컬렉션)를 살핀다. 익은 바로 그날 하루만 보낸다(재전송 없음) —
+// 답을 쓸 때까지 매일 뜨는 푸시와 달리, 메일은 한 번이면 충분하다.
+async function sendMilestoneMails(app: App, now: number): Promise<number> {
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const snap = await db.collection("users").get();
+  let sent = 0;
+  for (const doc of snap.docs) {
+    const session = parseCurrentSession(doc.get("store"));
+    if (!session || session.durationDays < 1 || session.hasJournal) continue;
+    const elapsedDays = Math.floor((now - session.receivedAt) / DAY_MS);
+    if (elapsedDays !== session.durationDays) continue; // 익은 바로 그날만
+    try {
+      const { email } = await auth.getUser(doc.id);
+      if (!email) continue;
+      if (await sendMail(email, milestoneMail(session.durationDays))) sent++;
+    } catch {
+      // 이 사람만 건너뛰고 나머지는 계속
+    }
+  }
+  return sent;
+}
+
 export async function GET(request: Request) {
   // 인증 — CRON_SECRET 이 설정돼 있으면 Vercel Cron 의 Bearer 헤더를 검사한다
   const secret = process.env.CRON_SECRET;
@@ -121,6 +149,12 @@ export async function GET(request: Request) {
   const db = getFirestore(app);
   const messaging = getMessaging(app);
 
+  // 화두 하루·사흘·이레 익음 메일 — 푸시 구독 여부와 무관하게 계정 전체를 살핀다.
+  // 딱 익은 그날 하루만 보낸다(매일 재전송하지 않는다) — 답을 쓸 때까지
+  // 매일 뜨는 푸시와 달리, 메일은 한 번이면 충분하다.
+  // (반드시 기다린다 — 서버리스는 응답을 돌려주면 나머지 일을 이어 하지 않는다)
+  const mailed = await sendMilestoneMails(app, Date.now()).catch(() => 0);
+
   // 장부의 토큰 전부 — 문서 ID가 곧 토큰, uid 가 있으면 로그인 구독자다
   const snapshot = await db.collection("push-tokens").get();
   const entries = snapshot.docs.map((d) => {
@@ -128,7 +162,7 @@ export async function GET(request: Request) {
     return { token: d.id, uid: typeof uid === "string" && uid ? uid : null };
   });
   if (entries.length === 0) {
-    return Response.json({ sent: 0, failed: 0, cleaned: 0 });
+    return Response.json({ sent: 0, failed: 0, cleaned: 0, mailed });
   }
 
   // uid 별 users 문서는 한 번만 읽는다 — 한 사람이 여러 기기로 구독해도
@@ -190,5 +224,5 @@ export async function GET(request: Request) {
   // 죽은 토큰 청소 — 실패한 묶음은 다음 아침에 다시
   const cleaned = await cleanDeadTokens(db, dead);
 
-  return Response.json({ sent, failed, cleaned });
+  return Response.json({ sent, failed, cleaned, mailed });
 }

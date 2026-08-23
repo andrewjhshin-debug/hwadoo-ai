@@ -15,6 +15,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { getMessaging, type TokenMessage } from "firebase-admin/messaging";
 import { adminApp, BATCH, cleanDeadTokens } from "@/lib/firebaseAdmin";
 import { ADMIN_UID, ADMIN_EMAILS, SITE_URL } from "@/lib/config";
+import { dmRequestMail, sendMail } from "@/lib/mail";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -32,6 +33,11 @@ const NOTICE: Record<string, { title: string; body: string; path: string }> = {
     path: "",
   },
   dm: {
+    title: "새 쪽지가 왔습니다",
+    body: "쪽지함에서 확인해 보세요.",
+    path: "/letters",
+  },
+  "dm-request": {
     title: "새 쪽지가 왔습니다",
     body: "쪽지함에서 확인해 보세요.",
     path: "/letters",
@@ -90,6 +96,7 @@ export async function POST(request: Request) {
     kind !== "thrown" &&
     kind !== "answer" &&
     kind !== "dm" &&
+    kind !== "dm-request" &&
     kind !== "comment"
   ) {
     return Response.json({ error: "bad request" }, { status: 400 });
@@ -100,6 +107,7 @@ export async function POST(request: Request) {
 
   // 5) 갈래별로 받는 이(uid)를 정한다 — 권한도 여기서 가른다
   let uid: string;
+  let requesterName: string | undefined; // dm-request 메일에만 쓴다
   if (kind === "thrown" || kind === "answer") {
     // 승인 알림 — 뒷방만 쏠 수 있다
     if (!callerIsAdmin) {
@@ -109,7 +117,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "bad request" }, { status: 400 });
     }
     uid = payload.uid;
-  } else if (kind === "dm") {
+  } else if (kind === "dm" || kind === "dm-request") {
     // 쪽지 — 스레드를 읽어, 부른 이가 멤버인지 확인하고 상대에게 보낸다
     if (typeof payload.threadId !== "string" || !payload.threadId) {
       return Response.json({ error: "bad request" }, { status: 400 });
@@ -122,6 +130,7 @@ export async function POST(request: Request) {
     const other = members.find((m) => m !== callerUid);
     if (!other) return Response.json({ sent: 0 });
     uid = other;
+    requesterName = snap.data()?.requesterName as string | undefined;
   } else {
     // 댓글 — 글을 읽어 글쓴이에게 보낸다 (내 글에 내가 단 것이면 안 보낸다)
     if (typeof payload.postId !== "string" || !payload.postId) {
@@ -133,6 +142,16 @@ export async function POST(request: Request) {
       return Response.json({ sent: 0 });
     }
     uid = author;
+  }
+
+  // 새 쪽지 청 — 메일도 함께 (푸시 구독 여부와 무관하게, 계정에 이메일이 있으면)
+  if (kind === "dm-request") {
+    try {
+      const { email } = await getAuth(app).getUser(uid);
+      if (email) void sendMail(email, dmRequestMail(requesterName ?? "누군가"));
+    } catch {
+      // 메일 못 보내도 쪽지 자체는 이미 만들어졌다 — 조용히 넘어간다
+    }
   }
 
   // 이 수행자의 기기들 — uid 가 새겨진 토큰 전부

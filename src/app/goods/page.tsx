@@ -44,6 +44,14 @@ const GOODS: Goods[] = [
     img: "https://t5c.coupangcdn.com/thumbnails/remote/492x492ex/image/retail/images/63160356377690-742fecc5-eefd-4e0a-a330-932d18c12656.jpg",
     url: "https://link.coupang.com/a/gojlTssRvo",
   },
+  {
+    id: "book-sea-broken",
+    tag: "책",
+    name: "천 번을 부서져도 그대는 여전히 바다다",
+    note: "정상교 지음. 내 삶을 사랑하게 하는 붓다의 말.",
+    img: "https://t5c.coupangcdn.com/thumbnails/remote/492x492ex/image/retail-product-api/A00077021/356253657/377147819/main/9791191731798_L.jpg",
+    url: "https://link.coupang.com/a/grs88qXt0K",
+  },
 ];
 
 export default function GoodsPage() {

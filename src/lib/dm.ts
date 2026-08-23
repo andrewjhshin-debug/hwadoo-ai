@@ -142,7 +142,8 @@ export async function requestThread(
     lastAt: serverTimestamp(),
   };
   const ref = await addDoc(collection(db, "dm-threads"), body);
-  void pingPush({ kind: "dm", threadId: ref.id }); // 받는 이에게 알림
+  // 새 청 — 대화 중 메시지(kind: "dm")와 갈래를 나눠, 이때만 메일도 함께 간다
+  void pingPush({ kind: "dm-request", threadId: ref.id });
   return { id: ref.id, ...body } as unknown as DmThread;
 }
 
