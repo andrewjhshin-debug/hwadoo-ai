@@ -259,7 +259,9 @@ export default function Home() {
     }).length;
     const total =
       Math.max(1, bankCount(audience) - hiddenInBank) + freshPublic.length;
-    const days = base.defaultDays ?? 3;
+    // ?? 가 아니라 || — 이전 버그로 defaultDays 가 0에 눌어붙은 계정도
+    // 다음에 받는 화두부터는 저절로 사흘 기본값으로 되돌아온다.
+    const days = base.defaultDays || 3;
     let session: Session;
     if (freshPublic.length > 0 && Math.random() < freshPublic.length / total) {
       const p = freshPublic[Math.floor(Math.random() * freshPublic.length)];
@@ -371,9 +373,10 @@ export default function Home() {
         if (!ok) return;
       }
     }
+    // 지금 화두에만 적용한다 — 여기서 defaultDays 까지 바꾸면, 한 번 고른
+    // 기간(특히 '스스로 정한 때')이 이후 받는 모든 화두에 조용히 눌어붙는다.
     update((base) => ({
       ...base,
-      defaultDays: days,
       current: base.current ? { ...base.current, durationDays: days } : null,
     }));
     setShowSettings(false);
