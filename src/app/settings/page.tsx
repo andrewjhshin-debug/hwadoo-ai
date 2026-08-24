@@ -13,6 +13,12 @@ import { QRCodeSVG } from "qrcode.react";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
+  BIZ_ADDRESS,
+  BIZ_MAIL_ORDER_NO,
+  BIZ_NAME,
+  BIZ_OWNER,
+  BIZ_PHONE,
+  BIZ_REG_NO,
   CONTACT_EMAIL,
   DONATION_URL,
   isAdminAccount,
@@ -1394,7 +1400,14 @@ export default function SettingsPage() {
             <span className="text-[11px] text-hanji-faint">{CONTACT_EMAIL}</span>
           </a>
         </div>
-        <p className="mt-3 px-2 text-[10px] tracking-widest text-hanji-faint">
+        {/* 사업자 정보 — 전자상거래법상 표기 의무 */}
+        <p className="mt-3 px-2 text-[10px] leading-5 text-hanji-faint">
+          {BIZ_NAME} · 대표 {BIZ_OWNER} · 사업자등록번호 {BIZ_REG_NO} ·
+          통신판매업신고 {BIZ_MAIL_ORDER_NO}
+          <br />
+          {BIZ_ADDRESS} · 연락처 {BIZ_PHONE ?? CONTACT_EMAIL}
+        </p>
+        <p className="mt-2 px-2 text-[10px] tracking-widest text-hanji-faint">
           © {new Date().getFullYear()} 화두 · 물음은 오래된 것, 답은 나의 것
         </p>
       </section>

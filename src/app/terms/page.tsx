@@ -73,7 +73,25 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-[15px] text-gold-soft">7. 약관의 변경</h2>
+          <h2 className="text-[15px] text-gold-soft">7. 연꽃(유료 디지털 재화)</h2>
+          <p className="mt-3">
+            연꽃은 인연 게시판에서 쪽지를 청할 때 쓰는 유료 디지털 재화입니다.
+            결제와 동시에 이용자 계정에 지급되며, 유효기간의 제한 없이
+            계정에 남습니다. 사용하지 않은 연꽃은 결제일로부터 7일 이내
+            전액 환불되며, 일부를 사용한 경우 남은 수량을 기준으로
+            환불합니다. 환불 문의는{" "}
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="text-hanji underline decoration-gold/30 underline-offset-4"
+            >
+              {CONTACT_EMAIL}
+            </a>
+            로 받습니다. 상품·가격은 연꽃 공양 화면에 표시된 바를 따릅니다.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-[15px] text-gold-soft">8. 약관의 변경</h2>
           <p className="mt-3">
             약관이 바뀌는 경우 시행 전에 이 페이지에 게시합니다. 문의는{" "}
             <a
@@ -87,7 +105,7 @@ export default function TermsPage() {
         </section>
 
         <p className="border-t border-ink-3 pt-6 text-xs text-hanji-faint">
-          시행일: 2026년 8월 23일
+          시행일: 2026년 8월 24일
         </p>
       </div>
     </div>

@@ -536,7 +536,7 @@ export default function Home() {
           )}
 
           <div className="mt-12 w-full border-t border-ink-3 pt-10">
-            <p className="text-xs tracking-[0.4em] text-hanji-faint">
+            <p className="text-xs tracking-[0.4em] text-hanji-dim">
               {current.hwaduId.startsWith("thrown:")
                 ? "이 물음에 대하여"
                 : "옛 스승들은 이렇게 일렀습니다"}

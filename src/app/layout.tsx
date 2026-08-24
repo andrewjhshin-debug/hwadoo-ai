@@ -7,7 +7,18 @@ import MobileTabBar from "@/components/MobileTabBar";
 import ConfirmProvider from "@/components/Confirm";
 import VisitLedger from "@/components/VisitLedger";
 import InstallBanner from "@/components/InstallBanner";
-import { CONTACT_EMAIL, SITE_NAME, SITE_URL, SLOGAN } from "@/lib/config";
+import {
+  BIZ_ADDRESS,
+  BIZ_MAIL_ORDER_NO,
+  BIZ_NAME,
+  BIZ_OWNER,
+  BIZ_PHONE,
+  BIZ_REG_NO,
+  CONTACT_EMAIL,
+  SITE_NAME,
+  SITE_URL,
+  SLOGAN,
+} from "@/lib/config";
 import "./globals.css";
 
 const serifKR = Noto_Serif_KR({
@@ -108,6 +119,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 문의
               </a>
             </nav>
+            {/* 사업자 정보 — 전자상거래법상 표기 의무 */}
+            <p className="mt-4 text-center text-[10.5px] leading-6 text-hanji-faint">
+              {BIZ_NAME} · 대표 {BIZ_OWNER} · 사업자등록번호 {BIZ_REG_NO} ·
+              통신판매업신고 {BIZ_MAIL_ORDER_NO}
+              <br />
+              {BIZ_ADDRESS} · 연락처 {BIZ_PHONE ?? CONTACT_EMAIL}
+            </p>
             <p className="mt-3 text-center text-[11px] tracking-widest text-hanji-faint">
               © {new Date().getFullYear()} {SITE_NAME} · 물음은 오래된 것, 답은
               나의 것

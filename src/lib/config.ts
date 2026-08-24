@@ -18,6 +18,15 @@ export const DONATION_URL: string | null = "https://qr.kakaopay.com/Fdo2KqicH";
 // 문의·광고 이메일 (하이웍스 정리 전까지 gmail로 통일)
 export const CONTACT_EMAIL = "admin@ibod.co.kr";
 
+// 사업자 정보 — 전자상거래법상 하단 표기 의무. 연락처는 070 회선이 나오면
+// 그 번호로 바꾼다(그전까지는 이메일로 갈음).
+export const BIZ_NAME = "스바하"; // 상호
+export const BIZ_OWNER = "신준혁"; // 대표자
+export const BIZ_REG_NO = "268-68-00422"; // 사업자등록번호
+export const BIZ_MAIL_ORDER_NO = "제2026-고양덕양구-2084호"; // 통신판매업신고번호
+export const BIZ_ADDRESS = "경기도 고양시 덕양구 안진6길 23, 201호 (지축동)"; // 소재지
+export const BIZ_PHONE: string | null = null; // 준비되면 "0XX-XXXX-XXXX" 로 채운다
+
 // 관리자 계정 UID — 이 계정으로 로그인해야만 /admin 이 열린다.
 // (UID는 이름표일 뿐, 공개되어도 권한과 무관 — 권한은 Firestore 규칙이 지킨다)
 export const ADMIN_UID = "HvYY1QPhLiMLc5NezM1jt0QdUiM2";

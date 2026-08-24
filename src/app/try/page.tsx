@@ -306,7 +306,7 @@ export default function TryPage() {
           )}
 
           <div className="mt-12 w-full border-t border-ink-3 pt-10">
-            <p className="text-xs tracking-[0.4em] text-hanji-faint">
+            <p className="text-xs tracking-[0.4em] text-hanji-dim">
               옛 스승들은 이렇게 일렀습니다
             </p>
           </div>
