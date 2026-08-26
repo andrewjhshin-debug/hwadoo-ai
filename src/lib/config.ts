@@ -32,7 +32,7 @@ export const BIZ_PHONE: string | null = null; // 준비되면 "0XX-XXXX-XXXX" �
 export const BANK_INFO: { bank: string; account: string; holder: string } | null = {
   bank: "KB국민은행",
   account: "032901-04-313278",
-  holder: "신준혁",
+  holder: "신준혁(스바하)", // 이체 화면에 뜨는 표기 그대로 — 구매자가 헷갈리지 않게
 };
 
 // 관리자 계정 UID — 이 계정으로 로그인해야만 /admin 이 열린다.
