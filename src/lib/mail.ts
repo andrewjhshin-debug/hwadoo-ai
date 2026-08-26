@@ -115,6 +115,19 @@ export function dmRequestMail(name: string) {
   };
 }
 
+// 새 연꽃 주문 — 관리자(뒷방)에게 가는 입금 확인 요청
+export function orderMail(o: { n: number; price: number; depositor: string; email: string | null }) {
+  return {
+    subject: `[주문] 연꽃 ${o.n}송이 — 입금자 ${o.depositor}`,
+    html: letter({
+      eyebrow: "蓮 · 주문",
+      title: `연꽃 ${o.n}송이 · ${o.price.toLocaleString("ko-KR")}원`,
+      body: `입금자명 — ${o.depositor}<br/>계정 — ${o.email ?? "이메일 없음"}<br/><br/>입금이 확인되면 뒷방 주문 탭에서 [지급]을 눌러 주십시오.`,
+      cta: { label: "뒷방 열기", url: `${SITE_URL}/admin` },
+    }),
+  };
+}
+
 // 보내기 — 실패해도 부른 쪽 흐름은 막지 않는다 (콘솔에도 남긴다).
 // error 는 시험 발송 화면에서 바로 보여주기 위한 것 — 평소엔 무시해도 된다.
 export async function sendMail(

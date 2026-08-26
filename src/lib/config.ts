@@ -27,6 +27,11 @@ export const BIZ_MAIL_ORDER_NO = "제2026-고양덕양구-2084호"; // 통신판
 export const BIZ_ADDRESS = "경기도 고양시 덕양구 안진6길 23, 201호 (지축동)"; // 소재지
 export const BIZ_PHONE: string | null = null; // 준비되면 "0XX-XXXX-XXXX" 로 채운다
 
+// 계좌이체(무통장입금) 수납 계좌 — PG 승인 전까지 연꽃 공양이 이 계좌로 받는다.
+// null 이면 /lotus 결제 단계가 "준비 중" 안내로 표시된다.
+export const BANK_INFO: { bank: string; account: string; holder: string } | null =
+  null; // 예: { bank: "카카오뱅크", account: "3333-00-0000000", holder: "신준혁(스바하)" }
+
 // 관리자 계정 UID — 이 계정으로 로그인해야만 /admin 이 열린다.
 // (UID는 이름표일 뿐, 공개되어도 권한과 무관 — 권한은 Firestore 규칙이 지킨다)
 export const ADMIN_UID = "HvYY1QPhLiMLc5NezM1jt0QdUiM2";

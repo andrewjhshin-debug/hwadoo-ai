@@ -78,6 +78,12 @@ import {
   resolveReport,
   type DmReport,
 } from "@/lib/dm";
+import {
+  deleteOrder,
+  fetchOrders,
+  fulfillOrder,
+  type LotusOrder,
+} from "@/lib/orders";
 
 type Tab =
   | "adult"
@@ -88,7 +94,8 @@ type Tab =
   | "sayings"
   | "feedback"
   | "donors"
-  | "reports";
+  | "reports"
+  | "orders";
 
 // 구획마다 한 줄 설명 — 무엇이 모이는 자리인지
 const TAB_NOTE: Record<Tab, string> = {
@@ -109,6 +116,8 @@ const TAB_NOTE: Record<Tab, string> = {
     "차 한 잔 보태주신 분 — 한 줄에 이름 하나. 찻자리에는 가운데를 ○로 가려 나갑니다.",
   reports:
     "쪽지 대화에서 들어온 신고 — 살펴서 처리하고, 하단에서 시험용 연꽃도 채웁니다.",
+  orders:
+    "연꽃 주문 — 계좌이체 입금을 통장에서 확인한 뒤 [지급]을 누르면 지갑에 채워집니다.",
 };
 
 const smallBtn =
@@ -628,6 +637,9 @@ export default function AdminPage() {
   const [donorsText, setDonorsText] = useState("");
   const donorsDirty = useRef(false);
 
+  // 연꽃 주문 — 계좌이체 입금 확인 대기열
+  const [orders, setOrders] = useState<LotusOrder[]>([]);
+
   // 연꽃 채우기 — 결제(PG)가 열리기 전, 시험 삼아 지갑을 채우는 손길
   const [lotusUid, setLotusUid] = useState("");
   const [lotusN, setLotusN] = useState("10");
@@ -638,13 +650,14 @@ export default function AdminPage() {
 
   const refresh = useCallback(async () => {
     try {
-      const [t, p, s, c, f, r] = await Promise.all([
+      const [t, p, s, c, f, r, o] = await Promise.all([
         fetchThrown(),
         fetchAllPublicHwadu(), // 숨긴 것까지 — 뒷방은 접힌 것도 봐야 한다
         fetchAllSharedAnswers().catch(() => [] as SharedAnswer[]),
         fetchAdminContent(true), // 실패해도 빈 손질로 돌아온다 — throw 하지 않는다
         fetchAllFeedback().catch(() => [] as Feedback[]),
         fetchAllReports().catch(() => [] as DmReport[]),
+        fetchOrders().catch(() => [] as LotusOrder[]),
       ]);
       setThrown(t);
       setPublicList(p);
@@ -652,6 +665,7 @@ export default function AdminPage() {
       setContent(c);
       setFeedback(f);
       setReports(r);
+      setOrders(o);
       // 명단 칸 — 적는 중이 아닐 때만 서버 명단으로 채운다
       if (!donorsDirty.current) setDonorsText(c.donors.join("\n"));
       setError(null);
@@ -826,6 +840,7 @@ export default function AdminPage() {
     { key: "feedback", label: "죽비", count: feedback.length },
     { key: "donors", label: "차 한 잔", count: content.donors.length },
     { key: "reports", label: "신고함", count: reports.filter((r) => r.status === "open").length },
+    { key: "orders", label: "주문", count: orders.filter((o) => o.status === "pending").length },
   ];
 
   // 은행 화두 손질 — 저장·숨김·(덮어쓴 것) 원래대로
@@ -1615,6 +1630,71 @@ export default function AdminPage() {
                 </p>
               )}
             </div>
+          </section>
+        )}
+
+        {/* ── 주문 — 계좌이체 입금 확인 후 연꽃 지급 ── */}
+        {tab === "orders" && (
+          <section>
+            <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              입금 확인 대기 ·{" "}
+              {orders.filter((o) => o.status === "pending").length}
+            </h3>
+            {orders.length === 0 ? (
+              <p className="mt-3 text-sm text-hanji-faint">
+                아직 주문이 없습니다.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-4">
+                {orders.map((o) => (
+                  <li
+                    key={o.id}
+                    className={`border-l pl-3 ${
+                      o.status === "pending"
+                        ? "border-gold/40"
+                        : "border-ink-3 opacity-60"
+                    }`}
+                  >
+                    <p className="text-[13px] text-hanji">
+                      연꽃 {o.n}송이 · {o.price.toLocaleString("ko-KR")}원
+                      <span className="ml-2 rounded-full border border-ink-3 px-2 py-0.5 text-[10px] text-gold-soft">
+                        {o.status === "pending" ? "입금 확인 대기" : "지급 완료"}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-[11.5px] leading-5 text-hanji-dim">
+                      입금자명 — {o.depositor}
+                      <br />
+                      계정 — {o.email ?? "이메일 없음"} ·{" "}
+                      {feedbackDate(o.createdAt?.seconds)}
+                    </p>
+                    <div className="mt-2 flex gap-2">
+                      {o.status === "pending" && (
+                        <button
+                          disabled={busy === o.id}
+                          onClick={() =>
+                            act(o.id, async () => {
+                              await fulfillOrder(o);
+                            })
+                          }
+                          className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
+                        >
+                          입금 확인 — 지급
+                        </button>
+                      )}
+                      <button
+                        disabled={busy === o.id}
+                        onClick={() =>
+                          eraseForever(o.id, () => deleteOrder(o.id))
+                        }
+                        className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
+                      >
+                        지우기
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
       </div>

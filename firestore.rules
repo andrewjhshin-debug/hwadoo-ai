@@ -17,6 +17,10 @@
 // 2026-08-23 v5:
 // · posts 작성자 수정 허용 필드에 category 추가 — 인연 글의 갈래
 //   (동행/도반 찾기/울력·봉사)를 고칠 수 있게
+//
+// 2026-08-24 v6:
+// · orders — 연꽃 계좌이체 주문. 넣기는 로그인한 본인(pending으로만),
+//   읽기는 본인+뒷방, 처리(지급·삭제)는 뒷방만.
 // ─────────────────────────────────────────────────────────────
 
 rules_version = '2';
@@ -197,6 +201,18 @@ service cloud.firestore {
         || (dmOn() && request.auth != null && request.auth.uid == uid
             && request.resource.data.lotus == resource.data.lotus - 1);
       allow delete: if dmIsAdmin();
+    }
+
+    // ── 연꽃 주문 — 계좌이체 입금 확인 대기열 ──
+    match /orders/{orderId} {
+      // 주문 넣기 — 로그인한 본인 이름으로, 시작은 pending
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.uid
+        && request.resource.data.status == "pending";
+      // 읽기 — 내 주문 + 뒷방 · 처리(지급·삭제)는 뒷방만
+      allow read: if dmIsAdmin()
+        || (request.auth != null && request.auth.uid == resource.data.uid);
+      allow update, delete: if dmIsAdmin();
     }
 
     // ── 신고함 — 쪽지·댓글 신고가 함께 모인다 ──
