@@ -29,8 +29,11 @@ export const BIZ_PHONE: string | null = null; // 준비되면 "0XX-XXXX-XXXX" �
 
 // 계좌이체(무통장입금) 수납 계좌 — PG 승인 전까지 연꽃 공양이 이 계좌로 받는다.
 // null 이면 /lotus 결제 단계가 "준비 중" 안내로 표시된다.
-export const BANK_INFO: { bank: string; account: string; holder: string } | null =
-  null; // 예: { bank: "카카오뱅크", account: "3333-00-0000000", holder: "신준혁(스바하)" }
+export const BANK_INFO: { bank: string; account: string; holder: string } | null = {
+  bank: "KB국민은행",
+  account: "032901-04-313278",
+  holder: "신준혁",
+};
 
 // 관리자 계정 UID — 이 계정으로 로그인해야만 /admin 이 열린다.
 // (UID는 이름표일 뿐, 공개되어도 권한과 무관 — 권한은 Firestore 규칙이 지킨다)
