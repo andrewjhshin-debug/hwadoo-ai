@@ -22,7 +22,7 @@ export const CONTACT_EMAIL = "admin@ibod.co.kr";
 // 그 번호로 바꾼다(그전까지는 이메일로 갈음).
 export const BIZ_NAME = "스바하"; // 상호
 export const BIZ_OWNER = "신준혁"; // 대표자
-export const BIZ_REG_NO = "268-68-00422"; // 사업자등록번호
+export const BIZ_REG_NO = "265-68-00422"; // 사업자등록번호
 export const BIZ_MAIL_ORDER_NO = "제2026-고양덕양구-2084호"; // 통신판매업신고번호
 export const BIZ_ADDRESS = "경기도 고양시 덕양구 안진6길 23, 201호 (지축동)"; // 소재지
 export const BIZ_PHONE: string | null = null; // 준비되면 "0XX-XXXX-XXXX" 로 채운다
