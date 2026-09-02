@@ -23,46 +23,88 @@ function getResend(): Resend | null {
 
 const FROM = process.env.RESEND_FROM || "화두 <onboarding@resend.dev>";
 
-// 편지지 — 먹빛 바탕에 금색 강조, 화두 화면과 같은 결
-function letter(opts: { eyebrow: string; title: string; body: string; cta?: { label: string; url: string } }): string {
-  const { eyebrow, title, body, cta } = opts;
+// 편지지 — 먹빛 바탕, 금빛 띠와 꽉 찬 금 단추. 화두 화면과 같은 결이되,
+// 메일함에서 한눈에 각인되도록 크고 또렷하게 (인라인 스타일만 — 지메일 호환)
+function letter(opts: {
+  eyebrow: string;
+  title: string;
+  body: string;
+  quote?: string; // 가운데 인용 상자 — 화두/핵심 한 줄
+  cta?: { label: string; url: string };
+}): string {
+  const { eyebrow, title, body, quote, cta } = opts;
   return `<!doctype html>
 <html>
-  <body style="margin:0;padding:0;background:#171009;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#171009;padding:40px 16px;">
+  <body style="margin:0;padding:0;background:#0d0b09;font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0d0b09;padding:44px 16px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:#211a10;border:1px solid #3a3226;border-radius:14px;">
+          <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;background:#1a1410;border:1px solid #3a3226;border-radius:16px;overflow:hidden;">
+            <!-- 위 금빛 띠 -->
             <tr>
-              <td style="padding:36px 32px 8px;text-align:center;">
-                <p style="margin:0;font-size:11px;letter-spacing:0.4em;color:#d9b45b;">${eyebrow}</p>
+              <td style="height:4px;background:#d9b45b;font-size:0;line-height:0;">&nbsp;</td>
+            </tr>
+            <!-- 문양 + 눈썹 -->
+            <tr>
+              <td style="padding:42px 36px 0;text-align:center;">
+                <p style="margin:0;font-size:22px;line-height:1;color:#d9b45b;">☸</p>
+                <p style="margin:14px 0 0;font-size:12px;letter-spacing:0.5em;color:#d9b45b;">${eyebrow}</p>
               </td>
             </tr>
+            <!-- 제목 -->
             <tr>
-              <td style="padding:14px 32px 0;text-align:center;">
-                <p style="margin:0;font-size:19px;font-weight:500;color:#ede6d4;line-height:1.6;">${title}</p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:16px 32px 0;text-align:center;">
-                <p style="margin:0;font-size:14px;line-height:1.9;color:#c9c0ab;">${body}</p>
+              <td style="padding:20px 36px 0;text-align:center;">
+                <p style="margin:0;font-size:26px;font-weight:700;color:#f2ead9;line-height:1.5;letter-spacing:-0.01em;">${title}</p>
               </td>
             </tr>
             ${
-              cta
-                ? `<tr>
-              <td style="padding:28px 32px 8px;text-align:center;">
-                <a href="${cta.url}" style="display:inline-block;padding:12px 28px;border:1px solid rgba(217,180,91,0.5);border-radius:10px;color:#d9b45b;text-decoration:none;font-size:13px;letter-spacing:0.15em;">${cta.label}</a>
+              quote
+                ? `<!-- 인용 상자 -->
+            <tr>
+              <td style="padding:26px 36px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="background:#241c13;border-left:3px solid #d9b45b;border-radius:0 10px 10px 0;padding:18px 20px;text-align:left;">
+                      <p style="margin:0;font-size:15px;line-height:1.9;color:#e5dcc8;">${quote}</p>
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>`
                 : ""
             }
+            <!-- 본문 -->
             <tr>
-              <td style="padding:32px 32px 28px;text-align:center;">
-                <p style="margin:0;font-size:11px;color:#7d6f5e;">화두 · ${SITE_URL.replace(/^https?:\/\//, "")}</p>
+              <td style="padding:20px 40px 0;text-align:center;">
+                <p style="margin:0;font-size:15px;line-height:2;color:#c9c0ab;">${body}</p>
+              </td>
+            </tr>
+            ${
+              cta
+                ? `<!-- 단추 — 꽉 찬 금색 -->
+            <tr>
+              <td style="padding:32px 36px 8px;text-align:center;">
+                <a href="${cta.url}" style="display:inline-block;background:#d9b45b;color:#1a120b;font-weight:700;font-size:15px;letter-spacing:0.12em;padding:15px 46px;border-radius:999px;text-decoration:none;">${cta.label}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 36px 0;text-align:center;">
+                <a href="${cta.url}" style="font-size:12px;color:#8a7f6c;text-decoration:underline;">${SITE_URL.replace(/^https?:\/\//, "")}</a>
+              </td>
+            </tr>`
+                : ""
+            }
+            <!-- 발 — 표어와 도장 -->
+            <tr>
+              <td style="padding:36px 36px 30px;text-align:center;">
+                <p style="margin:0;font-size:12px;letter-spacing:0.2em;color:#7d6f5e;">물음은 오래된 것, 답은 나의 것</p>
+                <p style="margin:10px 0 0;font-size:11px;color:#5c5348;">話頭 · 화두 — 당신에게 묻는 도량</p>
               </td>
             </tr>
           </table>
+          <p style="max-width:520px;margin:16px auto 0;font-size:10.5px;line-height:1.7;color:#4d453b;text-align:center;">
+            이 메일은 hwa-du.com 의 알림입니다.
+          </p>
         </td>
       </tr>
     </table>
@@ -92,12 +134,13 @@ function subjectParticle(word: string): string {
 export function milestoneMail(days: number) {
   const label = durationLabel(days);
   return {
-    subject: `${label}${subjectParticle(label)} 지났습니다 — 화두`,
+    subject: `🪷 ${label} 품은 물음이 익었습니다 — 이제 답을 쓸 수 있습니다`,
     html: letter({
       eyebrow: "話頭",
       title: `${label}${subjectParticle(label)} 지났습니다`,
-      body: "이제 답을 쓸 수 있습니다. 물음이 기다립니다.",
-      cta: { label: "화두 열기", url: SITE_URL },
+      quote: `${label} 동안 품고 계셨던 그 물음 — 무엇이 보였습니까.`,
+      body: "이제 붓을 들 수 있습니다.<br/>답을 쓰고 회향하면, 다음 화두가 옵니다.",
+      cta: { label: "붓을 들다", url: SITE_URL },
     }),
   };
 }
@@ -105,11 +148,12 @@ export function milestoneMail(days: number) {
 // 새 쪽지 청 — 답장 요청이 아니라 '새 인연이 청했다'는 첫 알림
 export function dmRequestMail(name: string) {
   return {
-    subject: "인연에서 쪽지가 왔습니다 — 화두",
+    subject: `🪷 ${name}님이 그대에게 쪽지를 청했습니다`,
     html: letter({
       eyebrow: "因緣",
-      title: `${name}님이 쪽지를 청했습니다`,
-      body: "쪽지함에서 확인하고, 받아들일지 정할 수 있습니다.",
+      title: `${name}님이\n쪽지를 청했습니다`.replace("\n", "<br/>"),
+      quote: "물음은 혼자, 절은 둘이 — 누군가 그대에게 연을 청했습니다.",
+      body: "쪽지함에서 청을 읽고,<br/>받아들일지는 그대가 정합니다.",
       cta: { label: "쪽지함 열기", url: `${SITE_URL}/letters` },
     }),
   };
