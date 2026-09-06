@@ -38,13 +38,16 @@ type Props = {
 const KOREA_CENTER: [number, number] = [36.1, 127.8];
 const KOREA_ZOOM = 6;
 
-// CARTO 베이스맵 — 밤은 먹빛(dark_all), 낮은 voyager
-const TILE_DARK =
-  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-const TILE_LIGHT =
-  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+// Esri 캔버스 베이스맵 — 밤은 먹빛(Dark Gray), 낮은 회백(Light Gray).
+// (CARTO 무료 타일이 2026년부터 API 키 없인 워터마크를 찍어 갈아탔다.)
+// 바탕과 지명(Reference)이 두 겹으로 나뉘어 있어 함께 깐다.
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas";
+const TILE_DARK = `${ESRI}/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`;
+const TILE_DARK_LABEL = `${ESRI}/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`;
+const TILE_LIGHT = `${ESRI}/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}`;
+const TILE_LIGHT_LABEL = `${ESRI}/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}`;
 const TILE_ATTR =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+  '&copy; <a href="https://www.esri.com/">Esri</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
 // 마커 — 한국 기와지붕 실루엣 (곡선 지붕 + 기둥 둘 · icons.tsx 의 Iljumun 을 다듬었다)
 // 템플스테이 절은 지붕 아래 금색 점 하나.
@@ -67,6 +70,7 @@ export default function TempleMap({ temples, onSelect, onGather }: Props) {
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<LayerGroup | null>(null);
   const tileRef = useRef<TileLayer | null>(null);
+  const labelRef = useRef<TileLayer | null>(null); // 지명 겹층
   const myMarkerRef = useRef<Marker | null>(null);
   const geoTimerRef = useRef<number | null>(null);
   const onSelectRef = useRef(onSelect);
@@ -115,6 +119,7 @@ export default function TempleMap({ temples, onSelect, onGather }: Props) {
       if (geoTimerRef.current) window.clearTimeout(geoTimerRef.current);
       markersRef.current = null;
       tileRef.current = null;
+      labelRef.current = null;
       myMarkerRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
@@ -129,11 +134,14 @@ export default function TempleMap({ temples, onSelect, onGather }: Props) {
     if (!ready || !L || !map) return;
 
     tileRef.current?.remove();
-    tileRef.current = L.tileLayer(dark ? TILE_DARK : TILE_LIGHT, {
-      maxZoom: 20,
-      subdomains: "abcd",
-      attribution: TILE_ATTR,
-    }).addTo(map);
+    labelRef.current?.remove();
+    // Esri 캔버스는 16레벨까지만 원본 타일 — 그 위는 확대해 그린다
+    const opts = { maxZoom: 18, maxNativeZoom: 16, attribution: TILE_ATTR };
+    tileRef.current = L.tileLayer(dark ? TILE_DARK : TILE_LIGHT, opts).addTo(map);
+    labelRef.current = L.tileLayer(
+      dark ? TILE_DARK_LABEL : TILE_LIGHT_LABEL,
+      { maxZoom: 18, maxNativeZoom: 16 }
+    ).addTo(map);
   }, [ready, dark]);
 
   // temples 가 바뀌면 마커를 다시 놓는다
