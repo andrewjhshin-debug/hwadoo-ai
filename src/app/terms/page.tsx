@@ -3,6 +3,7 @@ import { CONTACT_EMAIL, SITE_NAME } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "이용약관 — 화두",
+  alternates: { canonical: "/terms" },
 };
 
 // 이용약관 — 서비스의 성격과 한계를 정직하게 밝힌다.
@@ -46,10 +47,12 @@ export default function TermsPage() {
         <section>
           <h2 className="text-[15px] text-gold-soft">4. 기록의 보관과 책임</h2>
           <p className="mt-3">
-            기록은 이용자 브라우저에만 저장됩니다(개인정보처리방침 참조).
-            브라우저 데이터 삭제, 기기 변경 등으로 인한 기록의 소실에 대해
-            서비스는 복구 수단을 갖고 있지 않습니다. 소중한 기록은 별도로
-            옮겨 적어 두시기를 권합니다.
+            로그인하지 않고 쓰는 경우 기록은 이용자 브라우저에만 저장되며,
+            브라우저 데이터 삭제·기기 변경으로 소실된 기록에 대해 서비스는
+            복구 수단을 갖고 있지 않습니다. 로그인한 경우 화두 기록·게시글·
+            쪽지·주문 내역은 계정에 동기화되어 서버에 저장됩니다
+            (개인정보처리방침 참조). 회원 탈퇴를 요청하면 법령상 보존
+            의무가 있는 거래기록을 제외하고 지체 없이 삭제합니다.
           </p>
         </section>
 
@@ -77,9 +80,10 @@ export default function TermsPage() {
           <p className="mt-3">
             연꽃은 인연 게시판에서 쪽지를 청할 때 쓰는 유료 디지털 재화입니다.
             결제와 동시에 이용자 계정에 지급되며, 유효기간의 제한 없이
-            계정에 남습니다. 사용하지 않은 연꽃은 결제일로부터 7일 이내
-            전액 환불되며, 일부를 사용한 경우 남은 수량을 기준으로
-            환불합니다. 환불 문의는{" "}
+            계정에 남습니다. 이용자는 전자상거래 등에서의 소비자보호에 관한
+            법률 제17조에 따라 결제일로부터 7일 이내에 청약철회(환불)할 수
+            있습니다 — 사용하지 않은 연꽃은 전액, 일부를 사용한 경우 남은
+            수량을 기준으로 환불합니다. 환불 문의는{" "}
             <a
               href={`mailto:${CONTACT_EMAIL}`}
               className="text-hanji underline decoration-gold/30 underline-offset-4"
@@ -91,7 +95,21 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-[15px] text-gold-soft">8. 약관의 변경</h2>
+          <h2 className="text-[15px] text-gold-soft">
+            8. 분쟁의 해결과 준거법
+          </h2>
+          <p className="mt-3">
+            서비스와 이용자 사이에 분쟁이 생기면 우선 성실히 협의해
+            해결합니다. 협의가 이루어지지 않는 경우 공정거래위원회가 고시한
+            소비자분쟁해결기준에 따르며, 이용자는 한국소비자원 또는
+            전자문서·전자거래분쟁조정위원회에 조정을 신청할 수 있습니다. 이
+            약관은 대한민국 법을 따르고, 소송은 민사소송법상 관할 법원에
+            제기합니다.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-[15px] text-gold-soft">9. 약관의 변경</h2>
           <p className="mt-3">
             약관이 바뀌는 경우 시행 전에 이 페이지에 게시합니다. 문의는{" "}
             <a
@@ -105,7 +123,7 @@ export default function TermsPage() {
         </section>
 
         <p className="border-t border-ink-3 pt-6 text-xs text-hanji-faint">
-          시행일: 2026년 8월 24일
+          시행일: 2026년 9월 7일 (이전 판: 2026년 8월 24일)
         </p>
       </div>
     </div>

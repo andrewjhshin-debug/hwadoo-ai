@@ -23,6 +23,15 @@ function getResend(): Resend | null {
 
 const FROM = process.env.RESEND_FROM || "화두 <onboarding@resend.dev>";
 
+// 사용자 입력을 메일 HTML 에 끼워 넣기 전에 이빨을 뽑는다 — 입금자명 등
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 // 편지지 — 먹빛 바탕, 금빛 띠와 꽉 찬 금 단추. 화두 화면과 같은 결이되,
 // 메일함에서 한눈에 각인되도록 크고 또렷하게 (인라인 스타일만 — 지메일 호환)
 function letter(opts: {
@@ -103,7 +112,8 @@ function letter(opts: {
             </tr>
           </table>
           <p style="max-width:520px;margin:16px auto 0;font-size:10.5px;line-height:1.7;color:#4d453b;text-align:center;">
-            이 메일은 hwa-du.com 의 알림입니다.
+            이 메일은 hwa-du.com 의 알림입니다. 알림 메일은 화두의
+            내 도량 &gt; 알림에서 끌 수 있습니다.
           </p>
         </td>
       </tr>
@@ -147,11 +157,12 @@ export function milestoneMail(days: number) {
 
 // 새 쪽지 청 — 답장 요청이 아니라 '새 인연이 청했다'는 첫 알림
 export function dmRequestMail(name: string) {
+  const safe = esc(name);
   return {
     subject: `🪷 ${name}님이 그대에게 쪽지를 청했습니다`,
     html: letter({
       eyebrow: "因緣",
-      title: `${name}님이\n쪽지를 청했습니다`.replace("\n", "<br/>"),
+      title: `${safe}님이\n쪽지를 청했습니다`.replace("\n", "<br/>"),
       quote: "물음은 혼자, 절은 둘이 — 누군가 그대에게 연을 청했습니다.",
       body: "쪽지함에서 청을 읽고,<br/>받아들일지는 그대가 정합니다.",
       cta: { label: "쪽지함 열기", url: `${SITE_URL}/letters` },
@@ -166,7 +177,7 @@ export function orderMail(o: { n: number; price: number; depositor: string; emai
     html: letter({
       eyebrow: "蓮 · 주문",
       title: `연꽃 ${o.n}송이 · ${o.price.toLocaleString("ko-KR")}원`,
-      body: `입금자명 — ${o.depositor}<br/>계정 — ${o.email ?? "이메일 없음"}<br/><br/>입금이 확인되면 뒷방 주문 탭에서 [지급]을 눌러 주십시오.`,
+      body: `입금자명 — ${esc(o.depositor)}<br/>계정 — ${esc(o.email ?? "이메일 없음")}<br/><br/>입금이 확인되면 뒷방 주문 탭에서 [지급]을 눌러 주십시오.`,
       cta: { label: "뒷방 열기", url: `${SITE_URL}/admin` },
     }),
   };

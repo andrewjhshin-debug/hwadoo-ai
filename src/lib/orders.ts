@@ -79,8 +79,22 @@ export async function fetchOrders(): Promise<LotusOrder[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as LotusOrder);
 }
 
+// 상품표 — /lotus 의 PRODUCTS 와 같은 값. 지급 전에 송이수·값을 재검증해,
+// 조작된 주문(예: 1,000원에 1,000송이)이 사람 손을 속여도 여기서 걸린다.
+const VALID_ORDERS: Record<string, { n: number; price: number }> = {
+  "lotus-1": { n: 1, price: 1000 },
+  "lotus-10": { n: 10, price: 9000 },
+  "lotus-30": { n: 30, price: 24000 },
+};
+
 // 입금 확인 — 지갑에 채우고 주문을 paid 로
 export async function fulfillOrder(o: LotusOrder) {
+  const spec = VALID_ORDERS[o.productId];
+  if (!spec || spec.n !== o.n || spec.price !== o.price) {
+    throw new Error(
+      `상품표와 다른 주문입니다 — ${o.productId} / ${o.n}송이 / ${o.price}원. 지우고 다시 받으십시오.`
+    );
+  }
   await grantLotus(o.uid, o.n);
   await updateDoc(doc(db, "orders", o.id), { status: "paid" });
 }

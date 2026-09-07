@@ -27,7 +27,8 @@ const TABS = [
 // FAB와 서랍을 두 벌 띄우지 않도록 여기서는 접는다.
 // 만다라는 색칠 공간이 좁아 떠 있는 단추가 자꾸 겹친다 — 아예 띄우지 않는다.
 // 모임 게시판·쪽지는 아래 고정 입력창이 떠서 FAB 와 겹친다 — 접는다.
-const OWN_NOTES = ["/", "/room", "/try", "/mandala", "/gathering", "/letters"];
+// 연꽃 공양(결제) 화면은 상품 단추의 가격 자리를 FAB 가 가려 접는다.
+const OWN_NOTES = ["/", "/room", "/try", "/mandala", "/gathering", "/letters", "/lotus"];
 
 export default function MobileTabBar() {
   const pathname = usePathname();

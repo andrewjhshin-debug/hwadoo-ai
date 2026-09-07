@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────
-// 아침 문안 발송 — Vercel Cron 이 매일 23:00 UTC(08:00 KST)에 부른다.
-// · CRON_SECRET 이 있으면 Bearer 검사 — 아무나 못 두드리게
+// 아침 문안 발송 — Vercel Cron 이 매일 00:00 UTC(09:00 KST)에 부른다
+// (vercel.json 의 "0 0 * * *" 와 같은 시각).
+// · CRON_SECRET Bearer 검사 — 미설정이면 차단(fail-closed)
 // · FIREBASE_SERVICE_ACCOUNT (JSON 문자열)가 없으면 503 — 아직 준비 전
 // · data-only 페이로드 — 알림 표시는 서비스 워커가 한 번만 한다
 // · 로그인한 구독자는 문안을 골라 보낸다 — 익음 > 장기 격려 > 기본
@@ -116,6 +117,7 @@ async function sendMilestoneMails(app: App, now: number): Promise<number> {
   const snap = await db.collection("users").get();
   let sent = 0;
   for (const doc of snap.docs) {
+    if (doc.get("emailOptOut") === true) continue; // 이메일 알림을 끈 계정
     const session = parseCurrentSession(doc.get("store"));
     if (!session || session.durationDays < 1 || session.hasJournal) continue;
     const elapsedDays = Math.floor((now - session.receivedAt) / DAY_MS);
@@ -132,13 +134,13 @@ async function sendMilestoneMails(app: App, now: number): Promise<number> {
 }
 
 export async function GET(request: Request) {
-  // 인증 — CRON_SECRET 이 설정돼 있으면 Vercel Cron 의 Bearer 헤더를 검사한다
+  // 인증 — 문이 잠겨 있지 않으면 아예 열지 않는다(fail-closed).
+  // CRON_SECRET 이 없으면 아무나 이 문을 두드려 전체 발송을 시킬 수 있으므로,
+  // 시크릿 미설정은 곧 차단이다 (Vercel 환경변수에 반드시 넣을 것).
   const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${secret}`) {
-      return Response.json({ error: "unauthorized" }, { status: 401 });
-    }
+  const authHeader = request.headers.get("authorization");
+  if (!secret || authHeader !== `Bearer ${secret}`) {
+    return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const app = adminApp();

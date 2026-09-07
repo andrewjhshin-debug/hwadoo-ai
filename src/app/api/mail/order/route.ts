@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { CONTACT_EMAIL } from "@/lib/config";
 import { orderMail, sendMail } from "@/lib/mail";
@@ -27,9 +28,11 @@ export async function POST(request: Request) {
   }
 
   let email: string | null = null;
+  let callerUid: string;
   try {
     const decoded = await getAuth(app).verifyIdToken(idToken);
     email = decoded.email ?? null;
+    callerUid = decoded.uid;
   } catch {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
@@ -48,6 +51,28 @@ export async function POST(request: Request) {
       : "";
   if (n <= 0 || price <= 0 || !depositor) {
     return Response.json({ error: "bad request" }, { status: 400 });
+  }
+
+  // 방금 넣은 진짜 주문이 있는가 — 가짜 호출로 관리자 메일함을 채우지 못하게.
+  // 이 사람의 pending 주문 중 같은 송이수·값이 15분 안에 실재해야 보낸다.
+  const db = getFirestore(app);
+  const recent = await db
+    .collection("orders")
+    .where("uid", "==", callerUid)
+    .where("status", "==", "pending")
+    .limit(20)
+    .get();
+  const cutoff = Date.now() / 1000 - 15 * 60;
+  const matched = recent.docs.some((d) => {
+    const o = d.data();
+    return (
+      o.n === n &&
+      o.price === price &&
+      (o.createdAt?.seconds ?? 0) >= cutoff
+    );
+  });
+  if (!matched) {
+    return Response.json({ error: "no matching order" }, { status: 400 });
   }
 
   const result = await sendMail(

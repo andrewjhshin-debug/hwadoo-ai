@@ -14,6 +14,12 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "굿즈 — 화두",
   description: "수행 곁에 둘 만한 물건들 — 하나씩 골라 둡니다.",
+  alternates: { canonical: "/goods" },
+  openGraph: {
+    title: "굿즈 — 화두",
+    description: "수행 곁에 둘 만한 물건들 — 하나씩 골라 둡니다.",
+    url: "/goods",
+  },
 };
 
 type Goods = {
@@ -60,6 +66,12 @@ export default function GoodsPage() {
       <h1 className="text-center text-xs tracking-[0.5em] text-gold-soft">
         褓 · 굿즈
       </h1>
+      {/* 대가성 고지 — 공정거래위원회 심사지침에 따른 필수 문구.
+          목록이 길어져도 처음에 바로 보이도록 제목 아래에 둔다 */}
+      <p className="mt-3 break-keep text-center text-[12px] leading-5 text-hanji-dim">
+        이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의
+        수수료를 제공받습니다.
+      </p>
       {/* 격자 — 한 물건이 한 칸, 아래로 계속 이어진다 */}
       <div className="rise rise-d1 mt-8 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
         {GOODS.map((g) => (
@@ -95,11 +107,6 @@ export default function GoodsPage() {
         ))}
       </div>
 
-      {/* 대가성 고지 — 공정거래위원회 심사지침에 따른 필수 문구 */}
-      <p className="mt-10 break-keep text-center text-[11.5px] leading-5 text-hanji-faint">
-        이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를
-        제공받습니다.
-      </p>
 
       <div className="mt-8 text-center">
         <Link

@@ -48,6 +48,8 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: "/icon.svg",
     apple: "/apple-touch-icon.png",
   },
   verification: {
@@ -57,7 +59,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "화두AI — 당신에게 묻는다",
+    title: "화두 — 당신에게 묻는다",
     description:
       "물음은 혼자, 절은 둘이 — 손잡고 절로. 같은 물음을 품은 사람과 절에 가는 인연, 여기서 만납니다.",
     url: SITE_URL,
@@ -67,7 +69,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "화두AI — 당신에게 묻는다",
+    title: "화두 — 당신에게 묻는다",
     description:
       "물음은 혼자, 절은 둘이 — 손잡고 절로. 같은 물음을 품은 사람과 절에 가는 인연, 여기서 만납니다.",
   },
@@ -96,9 +98,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {/* 본문은 내용만큼 자란다 — 넘치면 바깥(.obang-aura)이 스크롤한다.
               min-h-0 을 주면 본문이 줄어들어 아래 띠 위로 삐져나온다. */}
           <main className="flex flex-1 flex-col">{children}</main>
-          {/* 아래 띠 — 손안에서는 하단 탭 바와 겹쳐 잘려 보이므로 감춘다.
-              같은 내용은 '내 도량 → 도량 안내'에 모아 두었다. */}
-          <footer className="hidden border-t border-ink-3 px-6 py-5 md:block">
+          {/* 아래 띠 — 전자상거래법상 사업자 표기는 모바일에서도 닿아야 한다.
+              스크롤 컨테이너 안이라 탭 바 위에서 끝난다(컨테이너 pb-[76px]). */}
+          <footer className="border-t border-ink-3 px-6 py-5">
             <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11.5px] text-hanji-faint">
               <Link href="/about" className="transition-colors hover:text-hanji-dim">
                 서비스 소개

@@ -68,16 +68,22 @@ export async function POST(request: Request) {
   // 3) 토큰 검증 — 부른 이가 누구인가
   let callerUid: string;
   let callerEmail: string | undefined;
+  let callerEmailVerified = false;
   try {
     const decoded = await getAuth(app).verifyIdToken(idToken);
     callerUid = decoded.uid;
     callerEmail = decoded.email ?? undefined;
+    callerEmailVerified = decoded.email_verified === true;
   } catch {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
+  // 이메일 기반 부계정 판별은 '검증된 이메일'만 믿는다 — 미검증 이메일로
+  // 관리자 행세를 하는 가입을 막는다
   const callerIsAdmin =
     callerUid === ADMIN_UID ||
-    (!!callerEmail && ADMIN_EMAILS.includes(callerEmail.toLowerCase()));
+    (!!callerEmail &&
+      callerEmailVerified &&
+      ADMIN_EMAILS.includes(callerEmail.toLowerCase()));
 
   // 4) 본문 파싱
   let payload: {
@@ -104,6 +110,23 @@ export async function POST(request: Request) {
 
   const db = getFirestore(app);
   const messaging = getMessaging(app);
+
+  // 4.5) 잦은 두드림 억제 — 같은 사람이 같은 갈래로 60초 안에 또 부르면
+  // 조용히 무시한다 (푸시·메일 폭탄 방지 — 관리자 갈래는 제외)
+  if (kind === "dm" || kind === "dm-request" || kind === "comment") {
+    const limitRef = db.collection("notify-limits").doc(`${kind}:${callerUid}`);
+    const now = Date.now();
+    try {
+      const seen = await limitRef.get();
+      const last = (seen.data()?.at as number | undefined) ?? 0;
+      if (now - last < 60_000) {
+        return Response.json({ sent: 0, limited: true });
+      }
+      await limitRef.set({ at: now });
+    } catch {
+      // 장부를 못 읽어도 알림 자체는 계속 — 억제는 보조 장치다
+    }
+  }
 
   // 5) 갈래별로 받는 이(uid)를 정한다 — 권한도 여기서 가른다
   let uid: string;
@@ -144,11 +167,23 @@ export async function POST(request: Request) {
     uid = author;
   }
 
-  // 새 쪽지 청 — 메일도 함께 (푸시 구독 여부와 무관하게, 계정에 이메일이 있으면)
-  if (kind === "dm-request") {
+  // 새 쪽지 청 — 메일도 함께 (푸시 구독 여부와 무관하게, 계정에 이메일이 있으면).
+  // 스레드당 한 번만 보내고(requestMailedAt), 이메일 알림을 끈 계정은 건너뛴다.
+  // 반드시 await — 서버리스는 응답을 돌려주면 나머지 일을 이어 하지 않는다.
+  if (kind === "dm-request" && typeof payload.threadId === "string") {
     try {
-      const { email } = await getAuth(app).getUser(uid);
-      if (email) void sendMail(email, dmRequestMail(requesterName ?? "누군가"));
+      const threadRef = db.collection("dm-threads").doc(payload.threadId);
+      const thread = await threadRef.get();
+      const alreadyMailed = !!thread.data()?.requestMailedAt;
+      const userDoc = await db.collection("users").doc(uid).get();
+      const optOut = userDoc.exists && userDoc.get("emailOptOut") === true;
+      if (!alreadyMailed && !optOut) {
+        const { email } = await getAuth(app).getUser(uid);
+        if (email) {
+          await sendMail(email, dmRequestMail(requesterName ?? "누군가"));
+          await threadRef.set({ requestMailedAt: Date.now() }, { merge: true });
+        }
+      }
     } catch {
       // 메일 못 보내도 쪽지 자체는 이미 만들어졌다 — 조용히 넘어간다
     }

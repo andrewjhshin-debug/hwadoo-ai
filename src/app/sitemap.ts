@@ -6,6 +6,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
     "", // 홈
     "/ganhwaseon",
+    "/gathering",
+    "/pilgrimage",
+    "/goods",
     "/masters",
     "/my-hwadu",
     "/try",
@@ -14,13 +17,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/community",
     "/archive",
     "/room",
+    "/breath",
+    "/mandala",
+    "/empty",
+    "/lotus",
     "/terms",
     "/privacy",
   ];
+  const high = ["/ganhwaseon", "/gathering", "/pilgrimage"];
   return routes.map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: new Date(),
-    changeFrequency: path === "" || path === "/masters" ? "daily" : "monthly",
-    priority: path === "" ? 1 : path === "/ganhwaseon" ? 0.8 : 0.5,
+    changeFrequency:
+      path === "" || path === "/masters" || path === "/gathering"
+        ? "daily"
+        : "monthly",
+    priority: path === "" ? 1 : high.includes(path) ? 0.8 : 0.5,
   }));
 }

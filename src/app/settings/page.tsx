@@ -46,6 +46,7 @@ import { fetchMyApprovedAnswerCount } from "@/lib/community";
 import { initPresence, watchOnlineCount } from "@/lib/presence";
 import { submitFeedback } from "@/lib/feedback";
 import { dmVisible, getLotus } from "@/lib/dm";
+import { loadEmailOptOut, setEmailOptOut } from "@/lib/mailPrefs";
 import {
   canInstall,
   isIOS,
@@ -214,6 +215,9 @@ export default function SettingsPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   // 음양 — 인연 게시판에 표시될 나의 문양
   const [gender, setGender] = useState<"m" | "f" | undefined>(undefined);
+  // 이메일 알림 — 켜짐이 기본, users/{uid}.emailOptOut 로 끈다
+  const [mailOn, setMailOn] = useState(true);
+  const [mailBusy, setMailBusy] = useState(false);
   const [receivedCount, setReceivedCount] = useState(0);
   const [journalCount, setJournalCount] = useState(0);
   const [daysWith, setDaysWith] = useState(0);
@@ -302,6 +306,34 @@ export default function SettingsPage() {
       alive = false;
     };
   }, []);
+
+  // 이메일 알림 상태 — 로그인 계정의 emailOptOut 을 읽는다
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    loadEmailOptOut()
+      .then((off) => {
+        if (alive) setMailOn(!off);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
+  const handleMailToggle = async () => {
+    if (mailBusy) return;
+    setMailBusy(true);
+    const next = !mailOn;
+    try {
+      await setEmailOptOut(!next);
+      setMailOn(next);
+    } catch {
+      // 못 적으면 그대로 둔다
+    } finally {
+      setMailBusy(false);
+    }
+  };
 
   // 알림 — 아침 문안: 이 브라우저의 상태를 살핀다
   useEffect(() => {
@@ -1005,6 +1037,33 @@ export default function SettingsPage() {
             />
           </button>
         </div>
+        {/* 이메일 알림 — 화두 익음·쪽지 청 메일. 로그인해야 보인다 */}
+        {user && (
+          <div className="mt-4 flex items-center justify-between gap-4">
+            <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              알림 — 이메일
+            </p>
+            <button
+              role="switch"
+              aria-checked={mailOn}
+              aria-label="이메일 알림"
+              onClick={handleMailToggle}
+              disabled={mailBusy}
+              className={`relative h-[26px] w-[46px] shrink-0 rounded-full border transition-colors disabled:opacity-40 ${
+                mailOn
+                  ? "border-gold bg-gold"
+                  : "border-hanji-faint bg-transparent hover:border-hanji-dim"
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full transition-transform duration-200 ${
+                  mailOn ? "translate-x-5 bg-ink" : "bg-hanji-faint"
+                }`}
+              />
+            </button>
+          </div>
+        )}
         <div className="mt-4 border-t border-ink-3 pt-5">
           {/* 새 소식 — 아직 보지 않은 것만, 금색 점 한 줄씩.
               나열되고 잠시 뒤 장부에 적혀, 사이드바·탭의 점이 꺼진다 */}

@@ -472,6 +472,10 @@ export default function GatheringBoard({
   const sorted = useMemo(() => {
     const list = (posts ?? []).filter(
       (p) =>
+        // 내려진 글은 목록에서 아예 뺀다 — 첫 화면이 '삭제된 글입니다'로
+        // 도배되면 갓 온 사람에게 버려진 판으로 보인다 (댓글·자리는 남아
+        // 있으니, 링크로 직접 열면 여전히 닿는다)
+        !p.deleted &&
         (genderFilter === "all" || p.gender === genderFilter) &&
         (categoryFilter === "all" || (p.category ?? "together") === categoryFilter)
     );

@@ -24,6 +24,16 @@ export default function InstallBanner() {
   const [shown, setShown] = useState(false); // 스르륵 등장의 스위치
   const [busy, setBusy] = useState(false);
 
+  // 배너가 떠 있는 동안 몸통에 표를 남긴다 — 사유의 방 FAB 와 스크롤
+  // 바닥 여백이 이 표를 보고 배너 높이만큼 비켜선다 (globals.css 참조)
+  useEffect(() => {
+    if (phase) document.body.dataset.installBanner = "1";
+    else delete document.body.dataset.installBanner;
+    return () => {
+      delete document.body.dataset.installBanner;
+    };
+  }, [phase]);
+
   useEffect(() => {
     // 이미 손안에 있으면 묻지 않는다
     if (isStandalone()) return;

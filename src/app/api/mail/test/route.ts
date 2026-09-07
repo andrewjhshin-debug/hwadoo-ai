@@ -28,16 +28,21 @@ export async function POST(request: Request) {
 
   let callerUid: string;
   let callerEmail: string | undefined;
+  let callerEmailVerified = false;
   try {
     const decoded = await getAuth(app).verifyIdToken(idToken);
     callerUid = decoded.uid;
     callerEmail = decoded.email ?? undefined;
+    callerEmailVerified = decoded.email_verified === true;
   } catch {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
+  // 이메일 기반 부계정 판별은 '검증된 이메일'만 믿는다
   const callerIsAdmin =
     callerUid === ADMIN_UID ||
-    (!!callerEmail && ADMIN_EMAILS.includes(callerEmail.toLowerCase()));
+    (!!callerEmail &&
+      callerEmailVerified &&
+      ADMIN_EMAILS.includes(callerEmail.toLowerCase()));
   if (!callerIsAdmin) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }

@@ -22,9 +22,15 @@ function GatheringInner() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-0 pb-16 pt-4 sm:px-6 md:pt-10">
       {view === "list" && (
-        <p className="rise px-5 text-center text-[13px] tracking-[0.5em] text-gold-soft sm:px-0">
-          因緣 · 인연
-        </p>
+        <>
+          <p className="rise px-5 text-center text-[13px] tracking-[0.5em] text-gold-soft sm:px-0">
+            因緣 · 인연
+          </p>
+          {/* 만 19세 고지 — 로그인·화면 크기와 무관하게 게시판에서 늘 보인다 */}
+          <p className="rise rise-d1 mt-2.5 px-5 text-center text-[11.5px] tracking-wide text-hanji-faint sm:px-0">
+            만 19세 이상만 이용할 수 있습니다 · 익명 법명으로 활동합니다
+          </p>
+        </>
       )}
       <section className={view === "list" ? "rise rise-d1 mt-4" : ""}>
         <GatheringBoard
