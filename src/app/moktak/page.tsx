@@ -200,11 +200,11 @@ export default function MoktakPage() {
     };
   }, [auto]);
 
-  // 염주 — total 이 늘수록 고리가 왼쪽(시계 방향)으로 돈다
+  // 염주 — total 이 늘수록 윗알이 왼쪽으로 넘어간다 (반시계 회전)
   const [total, setTotal] = useState(0);
   const pos = total % BEADS;
   const rounds = Math.floor(total / BEADS);
-  const angle = total * STEP; // 고리의 누적 회전각
+  const angle = -total * STEP; // 고리의 누적 회전각
   const dragX = useRef<number | null>(null);
   const dragAcc = useRef(0);
 
@@ -462,7 +462,7 @@ export default function MoktakPage() {
               style={{ width: BOX, height: BOX, cursor: "grab" }}
               aria-label="염주 굴리기 — 왼쪽으로 쓸거나 톡 누르면 한 알"
             >
-              {/* 실 — 알 뒤로 둥글게, 위쪽은 어둠에 잠긴다 */}
+              {/* 실 — 알 뒤로 둥글게, 아래쪽은 어둠에 잠긴다 */}
               <span
                 aria-hidden
                 className="absolute rounded-full border-2 border-[#221912]"
@@ -472,9 +472,9 @@ export default function MoktakPage() {
                   width: R * 2,
                   height: R * 2,
                   maskImage:
-                    "linear-gradient(to top, black 45%, rgba(0,0,0,0.15) 80%, transparent)",
+                    "linear-gradient(to bottom, black 45%, rgba(0,0,0,0.15) 80%, transparent)",
                   WebkitMaskImage:
-                    "linear-gradient(to top, black 45%, rgba(0,0,0,0.15) 80%, transparent)",
+                    "linear-gradient(to bottom, black 45%, rgba(0,0,0,0.15) 80%, transparent)",
                 }}
               />
               {/* 고리 — total 에 따라 시계 방향(아랫알이 왼쪽으로) */}
@@ -489,14 +489,11 @@ export default function MoktakPage() {
                   const mother = k === 0; // 모주 — 금빛 표지
                   // 지금 화면 기준 이 알의 각도(0=위, 180=아래)
                   const eff = (((k * STEP + angle) % 360) + 360) % 360;
-                  const fromBottom = Math.min(
-                    Math.abs(eff - 180),
-                    360 - Math.abs(eff - 180)
-                  );
-                  const nearBottom = Math.max(0, 1 - fromBottom / 46);
-                  // 아래 반원만 또렷하고, 위로 갈수록 어둠에 잠긴다
-                  const vis = Math.max(0, 1 - fromBottom / 135);
-                  const size = (mother ? 34 : 26) * (1 + nearBottom * 0.32);
+                  const fromTop = Math.min(eff, 360 - eff);
+                  const nearTop = Math.max(0, 1 - fromTop / 46);
+                  // 위 반원만 진하게 — 양끝은 희미해지고, 아래는 아예 사라진다
+                  const vis = Math.max(0, 1 - fromTop / 110);
+                  const size = (mother ? 34 : 26) * (1 + nearTop * 0.32);
                   return (
                     <span
                       key={k}
@@ -523,20 +520,20 @@ export default function MoktakPage() {
                             : "radial-gradient(circle at 35% 28%, #8a5c34, #573620 50%, #33200f 85%, #1d1108)",
                           boxShadow:
                             "0 4px 9px rgba(0,0,0,0.5), inset 0 -3px 6px rgba(0,0,0,0.4)",
-                          opacity: 0.12 + vis * 0.88,
+                          opacity: vis,
                         }}
                       />
                     </span>
                   );
                 })}
               </div>
-              {/* 아래 표지 — 지금 넘기는 자리 */}
+              {/* 위 표지 — 지금 넘기는 자리 */}
               <span
                 aria-hidden
                 className="absolute left-1/2 -translate-x-1/2 text-gold-soft"
-                style={{ bottom: 6, fontSize: 11, letterSpacing: "0.2em" }}
+                style={{ top: 2, fontSize: 11, letterSpacing: "0.2em" }}
               >
-                ▲
+                ▼
               </span>
               {/* 가운데 — 셈 */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
