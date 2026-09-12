@@ -285,7 +285,7 @@ export default function MoktakPage() {
       {tab === "moktak" ? (
         <>
           {/* 목탁 — 누르는 자리 */}
-          <div className="rise rise-d2 relative mt-10 flex flex-col items-center">
+          <div className="rise rise-d2 relative mt-3 flex flex-col items-center">
             <button
               onClick={hit}
               aria-label="목탁 치기"
@@ -316,12 +316,12 @@ export default function MoktakPage() {
                 {/* 목탁 — 디자인 심사에서 뽑힌 SVG (moktakSvg.ts). 순수 마크업이라
                     문자열로 끼운다 — 그라디언트·필터를 JSX 로 옮기며 깨질 일이 없다 */}
                 <span
-                  className="block h-[268px] w-[322px]"
+                  className="block h-[228px] w-[322px]"
                   dangerouslySetInnerHTML={{ __html: MOKTAK_SVG }}
                 />
               </span>
             </button>
-            <p className="mt-4 text-[12px] tracking-[0.25em] text-hanji-faint">
+            <p className="mt-1 text-[12px] tracking-[0.25em] text-hanji-faint">
               {hits === 0
                 ? "목탁을 눌러 보십시오"
                 : `${hits.toLocaleString("ko-KR")} 번 울렸습니다`}

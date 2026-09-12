@@ -10,7 +10,9 @@
 //   아무리 어둡게 해도 플라스틱으로 읽힌다.
 // · 빛: 좌상단 하나. 윗면이 밝고 오른쪽 아래로 깊게 떨어지며 바닥에
 //   길게 그림자를 드리운다. 점 하이라이트 없음.
-export const MOKTAK_SVG = `<svg viewBox="0 0 300 250" class="moktak-svg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+// viewBox 는 물체에 바짝 맞춰 잘랐다 — 그림 안에 빈 여백이 있으면
+// 화면에서 위아래가 허전해진다.
+export const MOKTAK_SVG = `<svg viewBox="30 40 254 180" class="moktak-svg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="mk_body" cx="30%" cy="16%" r="86%">
       <stop offset="0%" stop-color="#7a5630"/>
@@ -74,7 +76,7 @@ export const MOKTAK_SVG = `<svg viewBox="0 0 300 250" class="moktak-svg" aria-hi
 
   <g transform="rotate(-3 140 126)">
     <!-- 바닥에 드리운 그림자 -->
-    <ellipse cx="156" cy="202" rx="116" ry="24" fill="url(#mk_ground)" filter="url(#mk_soft3)"/>
+    <ellipse cx="152" cy="197" rx="112" ry="17" fill="url(#mk_ground)" filter="url(#mk_soft3)"/>
 
     <!-- 손잡이 고리 -->
     <g transform="rotate(-10 230 120)">
