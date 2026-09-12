@@ -3,9 +3,10 @@
 // ─────────────────────────────────────────────────────────────
 // 목탁과 염주 — 손끝의 수행 (ASMR).
 // · 목탁: 누르면 울린다. 소리는 Web Audio 로 그 자리에서 빚는다
-//   (몸통 울림 + 타격 '딱' + 나무 결 노이즈). 자동 연타(빠르기 조절)도.
-// · 염주: 108알 꿰미를 쓸어 넘긴다 — 알마다 딸깍, 108알을 다 넘기면
-//   일주(一周) 회향. 위로 쓸거나 톡톡 눌러 한 알씩.
+//   (몸통 울림 + 타격 '딱' + 나무 결 노이즈). 칠 때마다 목탁채가 움직인다.
+// · 염주: 정면에서 본 108염주 — 동그란 고리가 누를 때마다 왼쪽으로
+//   한 알씩 돈다. 고리에는 36알(한 바퀴 = 36, 세 바퀴 = 백팔).
+//   금빛 모주(母珠)가 표지. 알마다 딸깍, 108알을 넘기면 일주(一周) 회향.
 // · 소리 합성이라 파일이 없다 — 첫 터치에서 AudioContext 를 깨운다.
 // ─────────────────────────────────────────────────────────────
 
@@ -93,23 +94,23 @@ function strikeMoktak(vol: number) {
   src.start(t);
 }
 
-// 염주 한 알 — 아주 짧은 고음 딸깍 (알끼리 부딪는 소리)
+// 염주 한 알 — 알끼리 부딪는 또렷한 딸깍 (묵직한 속살 한 점 포함)
 function clickBead(vol: number) {
   const ac = audio();
   if (!ac) return;
   const t = ac.currentTime;
   const out = ac.createGain();
-  out.gain.value = vol * 0.7;
+  out.gain.value = vol * 1.15;
   out.connect(ac.destination);
 
   const src = ac.createBufferSource();
   src.buffer = noise(ac);
   const hp = ac.createBiquadFilter();
   hp.type = "highpass";
-  hp.frequency.value = 2600;
+  hp.frequency.value = 2400;
   const g = ac.createGain();
-  g.gain.setValueAtTime(0.5, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
+  g.gain.setValueAtTime(0.8, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
   src.connect(hp);
   hp.connect(g);
   g.connect(out);
@@ -117,17 +118,30 @@ function clickBead(vol: number) {
 
   const o = ac.createOscillator();
   o.type = "sine";
-  const f = 1750 + Math.random() * 180;
+  const f = 1700 + Math.random() * 200;
   o.frequency.setValueAtTime(f, t);
-  o.frequency.exponentialRampToValueAtTime(f * 0.8, t + 0.03);
+  o.frequency.exponentialRampToValueAtTime(f * 0.78, t + 0.035);
   const g2 = ac.createGain();
   g2.gain.setValueAtTime(0.0001, t);
-  g2.gain.exponentialRampToValueAtTime(0.18, t + 0.002);
-  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+  g2.gain.exponentialRampToValueAtTime(0.32, t + 0.002);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
   o.connect(g2);
   g2.connect(out);
   o.start(t);
-  o.stop(t + 0.07);
+  o.stop(t + 0.08);
+
+  // 알의 속살 — 낮은 나무 울림 아주 짧게 (소리에 무게를 준다)
+  const o3 = ac.createOscillator();
+  o3.type = "sine";
+  o3.frequency.setValueAtTime(420 + Math.random() * 40, t);
+  const g3 = ac.createGain();
+  g3.gain.setValueAtTime(0.0001, t);
+  g3.gain.exponentialRampToValueAtTime(0.12, t + 0.003);
+  g3.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  o3.connect(g3);
+  g3.connect(out);
+  o3.start(t);
+  o3.stop(t + 0.08);
 }
 
 function buzz(ms: number) {
@@ -141,8 +155,10 @@ function buzz(ms: number) {
 // ── 화면 ────────────────────────────────────────────────────
 
 const BEADS = 108;
-const BEAD_H = 52; // 알 하나가 차지하는 세로 간격(px)
-const WINDOW_H = 320; // 꿰미가 보이는 창
+const RING = 36; // 고리에 보이는 알 수 — 세 바퀴가 곧 백팔
+const STEP = 360 / RING; // 한 알에 도는 각도
+const R = 118; // 고리 반지름(px)
+const BOX = 316; // 고리 상자 한 변
 
 export default function MoktakPage() {
   const [tab, setTab] = useState<"moktak" | "yeomju">("moktak");
@@ -184,48 +200,39 @@ export default function MoktakPage() {
     };
   }, [auto]);
 
-  // 염주
-  const [total, setTotal] = useState(0); // 이 자리에서 넘긴 알의 총수
+  // 염주 — total 이 늘수록 고리가 왼쪽(시계 방향)으로 돈다
+  const [total, setTotal] = useState(0);
   const pos = total % BEADS;
   const rounds = Math.floor(total / BEADS);
-  const [noAnim, setNoAnim] = useState(false); // 일주 순간의 되감기엔 애니메이션을 끈다
-  const dragY = useRef<number | null>(null);
+  const angle = total * STEP; // 고리의 누적 회전각
+  const dragX = useRef<number | null>(null);
   const dragAcc = useRef(0);
 
   const advance = () => {
     clickBead(vol);
     buzz(6);
-    setTotal((n) => {
-      const next = n + 1;
-      if (next % BEADS === 0) {
-        // 일주 — 꿰미를 소리 없이 처음 자리로 되감는다
-        setNoAnim(true);
-        window.setTimeout(() => setNoAnim(false), 60);
-      }
-      return next;
-    });
+    setTotal((n) => n + 1);
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
-    dragY.current = e.clientY;
+    dragX.current = e.clientX;
     dragAcc.current = 0;
     (e.target as Element).setPointerCapture?.(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
-    if (dragY.current === null) return;
-    const dy = dragY.current - e.clientY; // 위로 쓸면 +
-    dragY.current = e.clientY;
-    dragAcc.current += dy;
-    while (dragAcc.current >= 40) {
-      dragAcc.current -= 40;
+    if (dragX.current === null) return;
+    const dx = dragX.current - e.clientX; // 왼쪽으로 쓸면 +
+    dragX.current = e.clientX;
+    dragAcc.current += dx;
+    while (dragAcc.current >= 42) {
+      dragAcc.current -= 42;
       advance();
     }
-    if (dragAcc.current < 0) dragAcc.current = 0; // 아래로는 되돌리지 않는다
+    if (dragAcc.current < 0) dragAcc.current = 0; // 오른쪽으로는 되돌리지 않는다
   };
   const onPointerUp = (e: React.PointerEvent) => {
-    // 거의 안 움직였으면 톡 — 한 알
-    if (dragY.current !== null && Math.abs(dragAcc.current) < 8) advance();
-    dragY.current = null;
+    if (dragX.current !== null && Math.abs(dragAcc.current) < 8) advance(); // 톡 — 한 알
+    dragX.current = null;
     dragAcc.current = 0;
     (e.target as Element).releasePointerCapture?.(e.pointerId);
   };
@@ -235,12 +242,17 @@ export default function MoktakPage() {
       <style>{`
         @keyframes moktak-hit {
           0% { transform: scale(1); filter: brightness(1); }
-          18% { transform: scale(0.965); filter: brightness(1.25); }
+          18% { transform: scale(0.96) translateY(2px); filter: brightness(1.28); }
           100% { transform: scale(1); filter: brightness(1); }
         }
         @keyframes moktak-ripple {
-          0% { transform: scale(0.7); opacity: 0.5; }
-          100% { transform: scale(1.7); opacity: 0; }
+          0% { transform: scale(0.72); opacity: 0.5; }
+          100% { transform: scale(1.65); opacity: 0; }
+        }
+        @keyframes stick-swing {
+          0% { transform: rotate(16deg); }
+          28% { transform: rotate(-22deg); }
+          100% { transform: rotate(16deg); }
         }
       `}</style>
 
@@ -287,71 +299,149 @@ export default function MoktakPage() {
               <span
                 key={`r${hits}`}
                 aria-hidden
-                className="pointer-events-none absolute inset-0 rounded-full border border-gold/40"
+                className="pointer-events-none absolute inset-4 rounded-full border border-gold/40"
                 style={{
                   animation:
                     hits > 0 ? "moktak-ripple 0.6s ease-out forwards" : "none",
                 }}
               />
+              {/* 목탁채 — 칠 때마다 손목이 꺾인다 */}
+              <span
+                key={`s${hits}`}
+                aria-hidden
+                className="pointer-events-none absolute -right-11 top-[26%] origin-bottom-right"
+                style={{
+                  animation: hits > 0 ? "stick-swing 0.2s ease-out" : "none",
+                  transform: "rotate(16deg)",
+                }}
+              >
+                <svg viewBox="0 0 96 40" className="h-[44px] w-[106px]" aria-hidden>
+                  <defs>
+                    <linearGradient id="stickw" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#6d4a24" />
+                      <stop offset="100%" stopColor="#3c2812" />
+                    </linearGradient>
+                    <radialGradient id="stickb" cx="35%" cy="30%" r="75%">
+                      <stop offset="0%" stopColor="#9a6c3c" />
+                      <stop offset="60%" stopColor="#5f3f1e" />
+                      <stop offset="100%" stopColor="#3a2510" />
+                    </radialGradient>
+                  </defs>
+                  <rect x="24" y="16" width="70" height="8" rx="4" fill="url(#stickw)" />
+                  <circle cx="17" cy="20" r="15" fill="url(#stickb)" />
+                  <ellipse cx="12" cy="14" rx="6" ry="4" fill="rgba(255,230,190,0.35)" />
+                </svg>
+              </span>
               <span
                 key={`m${hits}`}
                 className="block"
                 style={{
-                  animation:
-                    hits > 0 ? "moktak-hit 0.16s ease-out" : "none",
+                  animation: hits > 0 ? "moktak-hit 0.16s ease-out" : "none",
                 }}
               >
-                {/* 목탁 몸통 — 입체감은 빛으로 */}
+                {/* 목탁 몸통 — 빛·그림자·나뭇결로 입체감 */}
                 <svg
-                  viewBox="0 0 200 190"
-                  className="h-[220px] w-[232px] drop-shadow-[0_18px_30px_rgba(0,0,0,0.55)]"
+                  viewBox="0 0 220 214"
+                  className="h-[236px] w-[242px]"
                   aria-hidden
                 >
                   <defs>
-                    <radialGradient id="wood" cx="38%" cy="30%" r="80%">
-                      <stop offset="0%" stopColor="#a97b47" />
-                      <stop offset="45%" stopColor="#7d5426" />
-                      <stop offset="80%" stopColor="#54371a" />
-                      <stop offset="100%" stopColor="#3a2512" />
+                    <radialGradient id="wood" cx="30%" cy="24%" r="85%">
+                      <stop offset="0%" stopColor="#c08c50" />
+                      <stop offset="35%" stopColor="#8d5f2c" />
+                      <stop offset="70%" stopColor="#5c3c1b" />
+                      <stop offset="100%" stopColor="#33200e" />
                     </radialGradient>
-                    <linearGradient id="slit" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#1c110a" />
-                      <stop offset="100%" stopColor="#0d0805" />
+                    <linearGradient id="under" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="55%" stopColor="rgba(0,0,0,0)" />
+                      <stop offset="100%" stopColor="rgba(0,0,0,0.5)" />
                     </linearGradient>
-                    <radialGradient id="sheen" cx="35%" cy="22%" r="40%">
-                      <stop offset="0%" stopColor="rgba(255,235,200,0.5)" />
-                      <stop offset="100%" stopColor="rgba(255,235,200,0)" />
+                    <linearGradient id="slit" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#241409" />
+                      <stop offset="100%" stopColor="#070402" />
+                    </linearGradient>
+                    <radialGradient id="sheen" cx="32%" cy="20%" r="38%">
+                      <stop offset="0%" stopColor="rgba(255,238,205,0.38)" />
+                      <stop offset="100%" stopColor="rgba(255,238,205,0)" />
+                    </radialGradient>
+                    <radialGradient id="ground" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="rgba(0,0,0,0.55)" />
+                      <stop offset="100%" stopColor="rgba(0,0,0,0)" />
                     </radialGradient>
                   </defs>
+
+                  {/* 바닥 그림자 — 떠 있지 않고 놓여 있다 */}
+                  <ellipse cx="110" cy="200" rx="84" ry="13" fill="url(#ground)" />
+
+                  {/* 물고기 꼬리 손잡이 — 몸통 아래 */}
+                  <path
+                    d="M96 176 L84 202 C94 197 126 197 136 202 L124 176 Z"
+                    fill="#452c13"
+                  />
+                  <path
+                    d="M96 176 L84 202 C89 200 98 198 106 198 L104 176 Z"
+                    fill="rgba(255,220,170,0.12)"
+                  />
+
                   {/* 몸통 */}
                   <path
-                    d="M100 12 C155 12 186 52 186 98 C186 146 150 176 100 176 C50 176 14 146 14 98 C14 52 45 12 100 12 Z"
+                    d="M110 14 C167 14 198 57 198 104 C198 152 160 182 110 182 C60 182 22 152 22 104 C22 57 53 14 110 14 Z"
                     fill="url(#wood)"
                   />
-                  {/* 물고기 입 — 아래 벌어진 소리 틈 */}
+                  {/* 아래쪽 어둠 — 구(球)의 무게 */}
                   <path
-                    d="M32 122 C58 148 142 148 168 122 C150 166 118 176 100 176 C82 176 50 166 32 122 Z"
-                    fill="url(#slit)"
+                    d="M110 14 C167 14 198 57 198 104 C198 152 160 182 110 182 C60 182 22 152 22 104 C22 57 53 14 110 14 Z"
+                    fill="url(#under)"
                   />
-                  {/* 틈 가장자리 하이라이트 */}
+                  {/* 나뭇결 — 아주 희미한 동심 곡선 */}
                   <path
-                    d="M34 121 C60 145 140 145 166 121"
+                    d="M48 62 C76 44 144 44 172 62"
                     fill="none"
-                    stroke="rgba(217,180,91,0.28)"
+                    stroke="rgba(0,0,0,0.08)"
+                    strokeWidth="2.5"
+                  />
+                  <path
+                    d="M40 84 C74 62 146 62 180 84"
+                    fill="none"
+                    stroke="rgba(0,0,0,0.06)"
                     strokeWidth="2"
                   />
-                  {/* 광 */}
-                  <ellipse cx="76" cy="52" rx="46" ry="30" fill="url(#sheen)" />
-                  {/* 손잡이 꼭지 */}
+                  {/* 물고기 입 — 벌어진 소리 틈 */}
                   <path
-                    d="M92 8 C92 2 108 2 108 8 L106 18 L94 18 Z"
-                    fill="#54371a"
+                    d="M34 124 C62 152 158 152 186 124 C168 170 132 182 110 182 C88 182 52 170 34 124 Z"
+                    fill="url(#slit)"
                   />
+                  {/* 틈 안쪽 깊이 — 한 겹 더 어두운 속 */}
+                  <path
+                    d="M52 138 C80 156 140 156 168 138 C150 168 122 176 110 176 C98 176 70 168 52 138 Z"
+                    fill="rgba(0,0,0,0.55)"
+                  />
+                  {/* 틈 가장자리 빛 */}
+                  <path
+                    d="M36 123 C64 149 156 149 184 123"
+                    fill="none"
+                    stroke="rgba(217,180,91,0.35)"
+                    strokeWidth="2.5"
+                  />
+                  {/* 왼쪽 위 림 라이트 — 광원의 방향, 은은하게 */}
+                  <path
+                    d="M42 42 C58 24 84 15 108 15"
+                    fill="none"
+                    stroke="rgba(255,235,200,0.14)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                  {/* 광 */}
+                  <ellipse cx="78" cy="52" rx="44" ry="28" fill="url(#sheen)" />
+                  {/* 손잡이 꼭지 */}
+                  <path d="M100 8 C100 2 120 2 120 8 L117 18 L103 18 Z" fill="#5c3c1b" />
                 </svg>
               </span>
             </button>
-            <p className="mt-5 text-[12px] tracking-[0.25em] text-hanji-faint">
-              {hits === 0 ? "목탁을 눌러 보십시오" : `${hits.toLocaleString("ko-KR")} 번 울렸습니다`}
+            <p className="mt-4 text-[12px] tracking-[0.25em] text-hanji-faint">
+              {hits === 0
+                ? "목탁을 눌러 보십시오"
+                : `${hits.toLocaleString("ko-KR")} 번 울렸습니다`}
             </p>
           </div>
 
@@ -413,98 +503,107 @@ export default function MoktakPage() {
         </>
       ) : (
         <>
-          {/* 염주 — 쓸어 넘기는 꿰미 */}
+          {/* 염주 — 정면에서 본 동그란 고리. 누르면 왼쪽으로 한 알 돈다 */}
           <div className="rise rise-d2 mt-8 flex flex-col items-center">
             <div
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
-              className="relative touch-none select-none overflow-hidden"
-              style={{
-                height: WINDOW_H,
-                width: 200,
-                cursor: "grab",
-                // 위아래를 배경으로 녹인다 — 상자 티가 나지 않게
-                maskImage:
-                  "linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)",
-                WebkitMaskImage:
-                  "linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)",
-              }}
-              aria-label="염주 넘기기 — 위로 쓸거나 톡 누르면 한 알"
+              className="relative touch-none select-none"
+              style={{ width: BOX, height: BOX, cursor: "grab" }}
+              aria-label="염주 굴리기 — 왼쪽으로 쓸거나 톡 누르면 한 알"
             >
-              {/* 실 */}
+              {/* 실 — 알 뒤로 둥글게 */}
               <span
                 aria-hidden
-                className="absolute left-1/2 top-0 h-full w-[3px] -translate-x-1/2 bg-gradient-to-b from-transparent via-[#3a2c1a] to-transparent"
-              />
-              {/* 꿰미 */}
-              <div
-                className="absolute left-0 w-full"
+                className="absolute rounded-full border-2 border-[#3a2c1a]"
                 style={{
-                  transform: `translateY(${WINDOW_H / 2 - pos * BEAD_H - BEAD_H / 2}px)`,
-                  transition: noAnim ? "none" : "transform 0.16s ease-out",
+                  left: BOX / 2 - R,
+                  top: BOX / 2 - R,
+                  width: R * 2,
+                  height: R * 2,
+                }}
+              />
+              {/* 고리 — total 에 따라 시계 방향(아랫알이 왼쪽으로) */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  transform: `rotate(${angle}deg)`,
+                  transition: "transform 0.16s ease-out",
                 }}
               >
-                {Array.from({ length: BEADS }, (_, i) => {
-                  const d = Math.abs(i - pos);
-                  if (d > 4 && BEADS - d > 4) {
-                    // 창밖의 알은 자리만 지킨다
-                    return (
-                      <div key={i} style={{ height: BEAD_H }} aria-hidden />
-                    );
-                  }
-                  const near = Math.min(d, BEADS - d);
-                  const scale = 1 - near * 0.13;
-                  const dim = 1 - near * 0.22;
-                  const mother = i === 0; // 모주(母珠) — 한 바퀴의 표지
+                {Array.from({ length: RING }, (_, k) => {
+                  const mother = k === 0; // 모주 — 금빛 표지
+                  // 지금 화면 기준 이 알의 각도(0=위, 180=아래)
+                  const eff = (((k * STEP + angle) % 360) + 360) % 360;
+                  const fromBottom = Math.min(
+                    Math.abs(eff - 180),
+                    360 - Math.abs(eff - 180)
+                  );
+                  const nearBottom = Math.max(0, 1 - fromBottom / 46);
+                  const size = (mother ? 34 : 26) * (1 + nearBottom * 0.32);
                   return (
-                    <div
-                      key={i}
-                      className="flex items-center justify-center"
-                      style={{ height: BEAD_H }}
+                    <span
+                      key={k}
                       aria-hidden
+                      className="absolute left-1/2 top-1/2"
+                      style={{
+                        transform: `rotate(${k * STEP}deg) translateY(${-R}px)`,
+                      }}
                     >
                       <span
                         className="block rounded-full"
                         style={{
-                          width: mother ? 52 : 42,
-                          height: mother ? 52 : 42,
-                          transform: `scale(${scale})`,
-                          opacity: dim,
+                          width: size,
+                          height: size,
+                          marginLeft: -size / 2,
+                          marginTop: -size / 2,
+                          // 알의 광원은 늘 왼쪽 위 — 고리 회전을 되돌린다
+                          transform: `rotate(${-(k * STEP + angle)}deg)`,
+                          transition:
+                            "transform 0.16s ease-out, width 0.16s, height 0.16s, margin 0.16s",
                           background: mother
-                            ? "radial-gradient(circle at 35% 28%, #e4c37c, #a97b3a 45%, #6a4a1e 80%, #4a3212)"
-                            : "radial-gradient(circle at 35% 28%, #9c6b3e, #6b4526 50%, #43290f 85%, #2c1a08)",
-                          boxShadow: mother
-                            ? "0 6px 14px rgba(0,0,0,0.5), inset 0 -4px 8px rgba(0,0,0,0.35)"
-                            : "0 5px 12px rgba(0,0,0,0.45), inset 0 -4px 8px rgba(0,0,0,0.35)",
-                          transition: "transform 0.16s, opacity 0.16s",
+                            ? "radial-gradient(circle at 35% 28%, #ecca82, #b58440 45%, #74521f 80%, #4c3413)"
+                            : "radial-gradient(circle at 35% 28%, #a06e40, #6f4827 50%, #452a10 85%, #2b1a08)",
+                          boxShadow:
+                            "0 4px 9px rgba(0,0,0,0.45), inset 0 -3px 6px rgba(0,0,0,0.35)",
+                          opacity: 0.78 + nearBottom * 0.22,
                         }}
                       />
-                    </div>
+                    </span>
                   );
                 })}
               </div>
+              {/* 아래 표지 — 지금 넘기는 자리 */}
+              <span
+                aria-hidden
+                className="absolute left-1/2 -translate-x-1/2 text-gold-soft"
+                style={{ bottom: 6, fontSize: 11, letterSpacing: "0.2em" }}
+              >
+                ▲
+              </span>
+              {/* 가운데 — 셈 */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <p className="text-[26px] font-light tracking-wide text-hanji">
+                  <span className="text-gold-soft">
+                    {pos === 0 && total > 0 ? BEADS : pos}
+                  </span>
+                  <span className="text-[15px] text-hanji-faint"> / {BEADS}</span>
+                </p>
+                {rounds > 0 && (
+                  <p className="mt-1 text-[11.5px] tracking-[0.2em] text-hanji-faint">
+                    {rounds}주(周) 회향
+                  </p>
+                )}
+              </div>
             </div>
 
-            <p className="mt-4 text-[13px] tracking-[0.2em] text-hanji-dim">
-              <span className="text-gold-soft">{pos === 0 && total > 0 ? BEADS : pos}</span>
-              <span className="text-hanji-faint"> / {BEADS}</span>
-              {rounds > 0 && (
-                <span className="ml-3 text-[11.5px] text-hanji-faint">
-                  {rounds}주(周) 회향
-                </span>
-              )}
-            </p>
-            <p className="mt-2 break-keep text-center text-[11.5px] leading-5 text-hanji-faint">
-              위로 쓸어 넘기거나, 톡 누르면 한 알씩 넘어갑니다.
+            <p className="mt-3 break-keep text-center text-[11.5px] leading-5 text-hanji-faint">
+              왼쪽으로 쓸어 굴리거나, 톡 누르면 한 알씩 넘어갑니다.
             </p>
             {total > 0 && (
               <button
-                onClick={() => {
-                  setNoAnim(true);
-                  setTotal(0);
-                  window.setTimeout(() => setNoAnim(false), 60);
-                }}
+                onClick={() => setTotal(0)}
                 className="mt-4 rounded-[10px] border border-ink-3 px-4 py-2 text-[11.5px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
               >
                 처음으로
