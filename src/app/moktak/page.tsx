@@ -249,11 +249,6 @@ export default function MoktakPage() {
           0% { transform: scale(0.72); opacity: 0.5; }
           100% { transform: scale(1.65); opacity: 0; }
         }
-        @keyframes stick-swing {
-          0% { transform: rotate(16deg); }
-          28% { transform: rotate(-22deg); }
-          100% { transform: rotate(16deg); }
-        }
       `}</style>
 
       <p className="rise text-xs tracking-[0.5em] text-gold-soft">
@@ -305,33 +300,6 @@ export default function MoktakPage() {
                     hits > 0 ? "moktak-ripple 0.6s ease-out forwards" : "none",
                 }}
               />
-              {/* 목탁채 — 칠 때마다 손목이 꺾인다 */}
-              <span
-                key={`s${hits}`}
-                aria-hidden
-                className="pointer-events-none absolute -right-11 top-[26%] origin-bottom-right"
-                style={{
-                  animation: hits > 0 ? "stick-swing 0.2s ease-out" : "none",
-                  transform: "rotate(16deg)",
-                }}
-              >
-                <svg viewBox="0 0 96 40" className="h-[44px] w-[106px]" aria-hidden>
-                  <defs>
-                    <linearGradient id="stickw" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#6d4a24" />
-                      <stop offset="100%" stopColor="#3c2812" />
-                    </linearGradient>
-                    <radialGradient id="stickb" cx="35%" cy="30%" r="75%">
-                      <stop offset="0%" stopColor="#9a6c3c" />
-                      <stop offset="60%" stopColor="#5f3f1e" />
-                      <stop offset="100%" stopColor="#3a2510" />
-                    </radialGradient>
-                  </defs>
-                  <rect x="24" y="16" width="70" height="8" rx="4" fill="url(#stickw)" />
-                  <circle cx="17" cy="20" r="15" fill="url(#stickb)" />
-                  <ellipse cx="12" cy="14" rx="6" ry="4" fill="rgba(255,230,190,0.35)" />
-                </svg>
-              </span>
               <span
                 key={`m${hits}`}
                 className="block"
@@ -339,30 +307,27 @@ export default function MoktakPage() {
                   animation: hits > 0 ? "moktak-hit 0.16s ease-out" : "none",
                 }}
               >
-                {/* 목탁 몸통 — 빛·그림자·나뭇결로 입체감 */}
+                {/* 목탁 — 옆에 고리 손잡이가 달린 실물의 실루엣.
+                    옻칠한 나무의 넓고 부드러운 광, 가늘게 다문 입. */}
                 <svg
-                  viewBox="0 0 220 214"
-                  className="h-[236px] w-[242px]"
+                  viewBox="0 0 280 210"
+                  className="h-[220px] w-[293px]"
                   aria-hidden
                 >
                   <defs>
-                    <radialGradient id="wood" cx="30%" cy="24%" r="85%">
-                      <stop offset="0%" stopColor="#c08c50" />
-                      <stop offset="35%" stopColor="#8d5f2c" />
-                      <stop offset="70%" stopColor="#5c3c1b" />
-                      <stop offset="100%" stopColor="#33200e" />
+                    <radialGradient id="wood" cx="34%" cy="26%" r="85%">
+                      <stop offset="0%" stopColor="#a97847" />
+                      <stop offset="38%" stopColor="#7c4f24" />
+                      <stop offset="72%" stopColor="#4b2d13" />
+                      <stop offset="100%" stopColor="#291709" />
                     </radialGradient>
                     <linearGradient id="under" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="55%" stopColor="rgba(0,0,0,0)" />
-                      <stop offset="100%" stopColor="rgba(0,0,0,0.5)" />
+                      <stop offset="52%" stopColor="rgba(0,0,0,0)" />
+                      <stop offset="100%" stopColor="rgba(0,0,0,0.55)" />
                     </linearGradient>
-                    <linearGradient id="slit" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#241409" />
-                      <stop offset="100%" stopColor="#070402" />
-                    </linearGradient>
-                    <radialGradient id="sheen" cx="32%" cy="20%" r="38%">
-                      <stop offset="0%" stopColor="rgba(255,238,205,0.38)" />
-                      <stop offset="100%" stopColor="rgba(255,238,205,0)" />
+                    <radialGradient id="sheen" cx="36%" cy="22%" r="46%">
+                      <stop offset="0%" stopColor="rgba(255,236,206,0.3)" />
+                      <stop offset="100%" stopColor="rgba(255,236,206,0)" />
                     </radialGradient>
                     <radialGradient id="ground" cx="50%" cy="50%" r="50%">
                       <stop offset="0%" stopColor="rgba(0,0,0,0.55)" />
@@ -370,71 +335,55 @@ export default function MoktakPage() {
                     </radialGradient>
                   </defs>
 
-                  {/* 바닥 그림자 — 떠 있지 않고 놓여 있다 */}
-                  <ellipse cx="110" cy="200" rx="84" ry="13" fill="url(#ground)" />
+                  {/* 바닥 그림자 */}
+                  <ellipse cx="140" cy="192" rx="112" ry="12" fill="url(#ground)" />
 
-                  {/* 물고기 꼬리 손잡이 — 몸통 아래 */}
+                  {/* 고리 손잡이 — 몸통 오른쪽에 붙어 한 몸으로 */}
                   <path
-                    d="M96 176 L84 202 C94 197 126 197 136 202 L124 176 Z"
-                    fill="#452c13"
-                  />
-                  <path
-                    d="M96 176 L84 202 C89 200 98 198 106 198 L104 176 Z"
-                    fill="rgba(255,220,170,0.12)"
-                  />
-
-                  {/* 몸통 */}
-                  <path
-                    d="M110 14 C167 14 198 57 198 104 C198 152 160 182 110 182 C60 182 22 152 22 104 C22 57 53 14 110 14 Z"
+                    fillRule="evenodd"
+                    d="M202 56 A44 44 0 1 1 201.9 56 Z M202 80 A20 20 0 1 0 202.1 80 Z"
                     fill="url(#wood)"
                   />
-                  {/* 아래쪽 어둠 — 구(球)의 무게 */}
                   <path
-                    d="M110 14 C167 14 198 57 198 104 C198 152 160 182 110 182 C60 182 22 152 22 104 C22 57 53 14 110 14 Z"
+                    fillRule="evenodd"
+                    d="M202 56 A44 44 0 1 1 201.9 56 Z M202 80 A20 20 0 1 0 202.1 80 Z"
                     fill="url(#under)"
                   />
-                  {/* 나뭇결 — 아주 희미한 동심 곡선 */}
+
+                  {/* 몸통 — 매끈한 배 모양 */}
                   <path
-                    d="M48 62 C76 44 144 44 172 62"
+                    d="M118 20 C172 20 200 58 200 100 C200 144 168 180 118 180 C68 180 36 144 36 100 C36 58 64 20 118 20 Z"
+                    fill="url(#wood)"
+                  />
+                  <path
+                    d="M118 20 C172 20 200 58 200 100 C200 144 168 180 118 180 C68 180 36 144 36 100 C36 58 64 20 118 20 Z"
+                    fill="url(#under)"
+                  />
+
+                  {/* 입 — 가늘고 낮게 다문 소리 틈, 양 끝의 작은 구멍 */}
+                  <path
+                    d="M58 136 C92 144 144 144 178 136 C144 153 92 153 58 136 Z"
+                    fill="#160c05"
+                  />
+                  <circle cx="58" cy="136.5" r="3.5" fill="#160c05" />
+                  <circle cx="178" cy="136.5" r="3.5" fill="#160c05" />
+                  <path
+                    d="M61 136.5 C93 143 143 143 175 136.5"
                     fill="none"
-                    stroke="rgba(0,0,0,0.08)"
-                    strokeWidth="2.5"
+                    stroke="rgba(217,180,91,0.14)"
+                    strokeWidth="1.2"
                   />
-                  <path
-                    d="M40 84 C74 62 146 62 180 84"
-                    fill="none"
-                    stroke="rgba(0,0,0,0.06)"
-                    strokeWidth="2"
+
+                  {/* 옻칠의 광 — 넓고 부드럽게 */}
+                  <ellipse cx="92" cy="58" rx="52" ry="32" fill="url(#sheen)" />
+                  <ellipse
+                    cx="74"
+                    cy="46"
+                    rx="16"
+                    ry="9"
+                    fill="rgba(255,240,215,0.22)"
+                    transform="rotate(-18 74 46)"
                   />
-                  {/* 물고기 입 — 벌어진 소리 틈 */}
-                  <path
-                    d="M34 124 C62 152 158 152 186 124 C168 170 132 182 110 182 C88 182 52 170 34 124 Z"
-                    fill="url(#slit)"
-                  />
-                  {/* 틈 안쪽 깊이 — 한 겹 더 어두운 속 */}
-                  <path
-                    d="M52 138 C80 156 140 156 168 138 C150 168 122 176 110 176 C98 176 70 168 52 138 Z"
-                    fill="rgba(0,0,0,0.55)"
-                  />
-                  {/* 틈 가장자리 빛 */}
-                  <path
-                    d="M36 123 C64 149 156 149 184 123"
-                    fill="none"
-                    stroke="rgba(217,180,91,0.35)"
-                    strokeWidth="2.5"
-                  />
-                  {/* 왼쪽 위 림 라이트 — 광원의 방향, 은은하게 */}
-                  <path
-                    d="M42 42 C58 24 84 15 108 15"
-                    fill="none"
-                    stroke="rgba(255,235,200,0.14)"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                  {/* 광 */}
-                  <ellipse cx="78" cy="52" rx="44" ry="28" fill="url(#sheen)" />
-                  {/* 손잡이 꼭지 */}
-                  <path d="M100 8 C100 2 120 2 120 8 L117 18 L103 18 Z" fill="#5c3c1b" />
                 </svg>
               </span>
             </button>
@@ -513,15 +462,19 @@ export default function MoktakPage() {
               style={{ width: BOX, height: BOX, cursor: "grab" }}
               aria-label="염주 굴리기 — 왼쪽으로 쓸거나 톡 누르면 한 알"
             >
-              {/* 실 — 알 뒤로 둥글게 */}
+              {/* 실 — 알 뒤로 둥글게, 위쪽은 어둠에 잠긴다 */}
               <span
                 aria-hidden
-                className="absolute rounded-full border-2 border-[#3a2c1a]"
+                className="absolute rounded-full border-2 border-[#221912]"
                 style={{
                   left: BOX / 2 - R,
                   top: BOX / 2 - R,
                   width: R * 2,
                   height: R * 2,
+                  maskImage:
+                    "linear-gradient(to top, black 45%, rgba(0,0,0,0.15) 80%, transparent)",
+                  WebkitMaskImage:
+                    "linear-gradient(to top, black 45%, rgba(0,0,0,0.15) 80%, transparent)",
                 }}
               />
               {/* 고리 — total 에 따라 시계 방향(아랫알이 왼쪽으로) */}
@@ -541,6 +494,8 @@ export default function MoktakPage() {
                     360 - Math.abs(eff - 180)
                   );
                   const nearBottom = Math.max(0, 1 - fromBottom / 46);
+                  // 아래 반원만 또렷하고, 위로 갈수록 어둠에 잠긴다
+                  const vis = Math.max(0, 1 - fromBottom / 135);
                   const size = (mother ? 34 : 26) * (1 + nearBottom * 0.32);
                   return (
                     <span
@@ -562,12 +517,13 @@ export default function MoktakPage() {
                           transform: `rotate(${-(k * STEP + angle)}deg)`,
                           transition:
                             "transform 0.16s ease-out, width 0.16s, height 0.16s, margin 0.16s",
+                          // 자단(紫檀) 결 — 깊고 차분한 나무빛
                           background: mother
-                            ? "radial-gradient(circle at 35% 28%, #ecca82, #b58440 45%, #74521f 80%, #4c3413)"
-                            : "radial-gradient(circle at 35% 28%, #a06e40, #6f4827 50%, #452a10 85%, #2b1a08)",
+                            ? "radial-gradient(circle at 35% 28%, #cfa757, #8a662a 45%, #57411a 80%, #362a10)"
+                            : "radial-gradient(circle at 35% 28%, #8a5c34, #573620 50%, #33200f 85%, #1d1108)",
                           boxShadow:
-                            "0 4px 9px rgba(0,0,0,0.45), inset 0 -3px 6px rgba(0,0,0,0.35)",
-                          opacity: 0.78 + nearBottom * 0.22,
+                            "0 4px 9px rgba(0,0,0,0.5), inset 0 -3px 6px rgba(0,0,0,0.4)",
+                          opacity: 0.12 + vis * 0.88,
                         }}
                       />
                     </span>
