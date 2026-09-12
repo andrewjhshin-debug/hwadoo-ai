@@ -30,7 +30,9 @@ import {
   enablePush,
   isPushBrowserSupported,
   pushState,
+  updateBells,
 } from "@/lib/push";
+import { BELLS, loadBellsLocal, saveBellsLocal } from "@/lib/bells";
 import { formatDate, loadStore, saveStore, type Session } from "@/lib/store";
 import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
@@ -218,6 +220,8 @@ export default function SettingsPage() {
   // 이메일 알림 — 켜짐이 기본, users/{uid}.emailOptOut 로 끈다
   const [mailOn, setMailOn] = useState(true);
   const [mailBusy, setMailBusy] = useState(false);
+  // 예불 종 — 이 브라우저가 고른 시각들 (푸시 토큰 문서에도 함께 새긴다)
+  const [bells, setBells] = useState<string[]>([]);
   const [receivedCount, setReceivedCount] = useState(0);
   const [journalCount, setJournalCount] = useState(0);
   const [daysWith, setDaysWith] = useState(0);
@@ -306,6 +310,21 @@ export default function SettingsPage() {
       alive = false;
     };
   }, []);
+
+  // 예불 종 — 서랍에서 꺼낸다
+  useEffect(() => {
+    setBells(loadBellsLocal());
+  }, []);
+
+  // 종 하나를 켜고 끈다 — 서랍과 토큰 문서에 같이 적는다
+  const toggleBell = (id: string) => {
+    const next = bells.includes(id)
+      ? bells.filter((b) => b !== id)
+      : [...bells, id];
+    setBells(next);
+    saveBellsLocal(next);
+    void updateBells(next); // 구독 전이면 조용히 실패 — 구독 때 함께 새겨진다
+  };
 
   // 이메일 알림 상태 — 로그인 계정의 emailOptOut 을 읽는다
   useEffect(() => {
@@ -1064,6 +1083,40 @@ export default function SettingsPage() {
             </button>
           </div>
         )}
+        {/* 예불 종 — 하루 네 번, 정해진 시각의 알림. 문안(푸시)이 켜져 있어야 온다 */}
+        <div className="mt-5 rounded-[12px] border border-ink-3 px-4 py-4">
+          <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+            예불 종 — 시각을 골라 두드립니다
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {BELLS.map((b) => {
+              const on = bells.includes(b.id);
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => toggleBell(b.id)}
+                  className={`flex items-center justify-between rounded-[10px] border px-3 py-2.5 text-left transition-colors ${
+                    on
+                      ? "border-gold/60 bg-gold/10 text-hanji"
+                      : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
+                  }`}
+                >
+                  <span className="text-[12.5px] leading-5">{b.label}</span>
+                  <span
+                    className={`text-[11px] tracking-wide ${on ? "text-gold-soft" : ""}`}
+                  >
+                    {b.time}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {pushUi !== "on" && bells.length > 0 && (
+            <p className="mt-3 break-keep text-[11.5px] leading-5 text-hanji-faint">
+              위의 문안 알림을 켜야 예불 종이 실제로 울립니다.
+            </p>
+          )}
+        </div>
         <div className="mt-4 border-t border-ink-3 pt-5">
           {/* 새 소식 — 아직 보지 않은 것만, 금색 점 한 줄씩.
               나열되고 잠시 뒤 장부에 적혀, 사이드바·탭의 점이 꺼진다 */}

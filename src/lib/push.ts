@@ -16,9 +16,10 @@ import {
   isSupported,
   onMessage,
 } from "firebase/messaging";
-import { deleteDoc, doc, setDoc } from "firebase/firestore";
+import { deleteDoc, doc, setDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { PUSH_VAPID_KEY } from "./config";
+import { loadBellsLocal } from "./bells";
 
 // 이 브라우저가 받은 토큰의 서랍 열쇠
 const TOKEN_KEY = "hwadu.push.v1";
@@ -69,6 +70,7 @@ export async function enablePush(): Promise<PushResult> {
       createdAt: Date.now(),
       uid: auth.currentUser?.uid ?? null,
       ua: navigator.userAgent.slice(0, 200),
+      bells: loadBellsLocal(), // 전에 고른 예불 종을 새 토큰에도 이어 새긴다
     });
     try {
       window.localStorage.setItem(TOKEN_KEY, token);
@@ -103,6 +105,19 @@ export async function disablePush(): Promise<void> {
     } catch {
       /* 서랍이 없는 환경 */
     }
+  }
+}
+
+// 예불 종 갱신 — 구독 중인 토큰 문서에 고른 종들을 새긴다.
+// 규칙이 bells 한 칸만 고치는 update 를 허용한다 (토큰은 추측 불가한 값).
+export async function updateBells(ids: string[]): Promise<boolean> {
+  try {
+    const token = window.localStorage.getItem(TOKEN_KEY);
+    if (!token) return false;
+    await updateDoc(doc(db, "push-tokens", token), { bells: ids });
+    return true;
+  } catch {
+    return false;
   }
 }
 

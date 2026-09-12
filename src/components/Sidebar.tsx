@@ -66,6 +66,7 @@ const NAV_PRACTICE: NavItem[] = [
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
   { href: "/empty", label: "비움", Icon: Moktak },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
+  { href: "/moktak", label: "목탁과 염주", Icon: Moktak },
 ];
 
 // 말씀 · 나눔 — 구획 제목과 함께 아래에 잇는다

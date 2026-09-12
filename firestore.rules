@@ -14,6 +14,10 @@
 // 2026-08-23 v5: posts 작성자 수정 허용 필드에 category 추가
 // 2026-08-24 v6: orders — 연꽃 계좌이체 주문
 //
+// 2026-09-12 v8:
+// · push-tokens 에 bells(예불 종 시각 목록) 필드 — create 허용 필드에 추가,
+//   bells 한 칸만 고치는 update 허용 (문서 ID = 토큰, 추측 불가한 값)
+//
 // 2026-09-07 v7 (출시 전 보안 감사 반영):
 // · 관리자 이메일 판별에 email_verified 요구 — 미검증 이메일 사칭 차단
 // · posts/comments create 에 authorUid == 본인 강제 — 작성자 위장 차단
@@ -148,14 +152,20 @@ service cloud.firestore {
     }
 
     // 문안 알림 토큰 — 만들고 내리기만. uid 는 본인 것(또는 null)만 새길 수 있다.
+    // bells(예불 종 시각)는 그 문서를 아는 이(=토큰 주인 브라우저)만 고칠 수 있다.
     match /push-tokens/{token} {
       allow create: if request.resource.data.keys()
-          .hasOnly(['createdAt', 'uid', 'ua'])
+          .hasOnly(['createdAt', 'uid', 'ua', 'bells'])
         && (request.resource.data.uid == null
             || (request.auth != null
                 && request.resource.data.uid == request.auth.uid));
+      allow update: if isAdmin()
+        || (request.resource.data.diff(resource.data)
+              .affectedKeys().hasOnly(['bells'])
+            && request.resource.data.bells is list
+            && request.resource.data.bells.size() <= 8);
       allow delete: if true;
-      allow read, update: if isAdmin();
+      allow read: if isAdmin();
     }
 
     // 계정 동기화 — 제 것만

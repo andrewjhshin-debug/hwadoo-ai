@@ -1,0 +1,24 @@
+# 예불 종 크론 — 하루 네 번 /api/push/bell 을 두드린다.
+# KST 04:00 / 07:00 / 11:30 / 18:00 = UTC 19:00(전날) / 22:00(전날) / 02:30 / 09:00
+# 저장소 Settings > Secrets and variables > Actions 에 CRON_SECRET 을 넣어야 동작한다.
+# (깃허브 크론은 몇 분 늦을 수 있다 — 서버가 ±25분 창으로 받아준다)
+
+name: temple-bells
+
+on:
+  schedule:
+    - cron: "0 19 * * *" # KST 04:00 새벽 예불
+    - cron: "0 22 * * *" # KST 07:00 모닝 삼귀의
+    - cron: "30 2 * * *" # KST 11:30 발우공양
+    - cron: "0 9 * * *" # KST 18:00 저녁 예불
+  workflow_dispatch: {} # 손으로도 울릴 수 있게 (시험용)
+
+jobs:
+  ring:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ring the bell
+        run: |
+          curl -fsS --max-time 50 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://www.hwa-du.com/api/push/bell"
