@@ -39,6 +39,7 @@ export type Mission = {
 
 // 고르는 통 — 무겁지 않게, 오 분 안에 끝나는 것들만 둔다
 const POOL: Mission[] = [
+  { id: "sambae", key: "bow", need: 3, label: "삼배", href: "/sambae" },
   { id: "bow21", key: "bow", need: 21, label: "스물한 배", href: "/bae" },
   { id: "bow54", key: "bow", need: 54, label: "쉰네 배", href: "/bae" },
   { id: "moktak", key: "moktak", need: 54, label: "목탁 쉰네 번", href: "/moktak" },

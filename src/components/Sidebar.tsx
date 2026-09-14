@@ -67,6 +67,7 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/empty", label: "비움", Icon: Moktak },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
   { href: "/moktak", label: "목탁과 염주", Icon: Moktak },
+  { href: "/sambae", label: "삼배", Icon: Banga },
   { href: "/bae", label: "백팔배", Icon: Banga },
   { href: "/sutra", label: "외우기", Icon: Book },
   { href: "/draw", label: "오늘의 운세", Icon: LotusMark },

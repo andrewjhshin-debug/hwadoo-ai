@@ -187,6 +187,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/lotus", label: "연꽃 공양", Icon: LotusMark },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
   { href: "/goods", label: "굿즈", Icon: Bojagi },
+  { href: "/sambae", label: "삼배", Icon: Banga },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
   { href: "/sutra", label: "외우기", Icon: Book },
   { href: "/draw", label: "오늘의 운세", Icon: LotusMark },
