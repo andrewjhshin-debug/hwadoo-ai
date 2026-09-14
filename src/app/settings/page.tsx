@@ -38,6 +38,7 @@ import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { BADGES } from "@/lib/badges";
 import { dongja } from "@/lib/dongja";
+import DailyPractice from "@/components/DailyPractice";
 import { CHARMS, charmSvg, grantCharm, loadCharms } from "@/lib/charm";
 import {
   giveMerit,
@@ -736,8 +737,14 @@ export default function SettingsPage() {
         道場 · 내 도량
       </h1>
 
+      {/* ── 오늘 하루 — 두두 · 이어 온 날 · 오늘의 세 가지.
+             매일 들어올 이유는 맨 위에 있어야 한다 ── */}
+      <div className="mt-7">
+        <DailyPractice />
+      </div>
+
       {/* ── 나의 걸음 — 화두 수 · 함께한 날. 받은 화두를 누르면 서고로 ── */}
-      <section className="rise mt-9">
+      <section className={`rise ${sectionGap}`}>
         <div className="flex gap-4">
           <Link
             href="/archive"
@@ -838,38 +845,22 @@ export default function SettingsPage() {
           공덕 — 쌓은 것, 나눈 것
         </p>
         <div className="mt-4 border-t border-ink-3 pt-5">
-          <div className="flex items-center gap-4">
-            <span
-              className="block h-16 w-16 shrink-0"
-              dangerouslySetInnerHTML={{
-                __html: dongja(merit.total >= ROUND ? "bright" : "default", "merit"),
-              }}
-            />
-            <div className="min-w-0 flex-1">
-              <p className="flex items-baseline gap-2">
-                <span className="font-serif text-[26px] leading-none text-gold">
-                  {merit.total.toLocaleString("ko-KR")}
-                </span>
-                <span className="text-[12px] text-hanji-dim">
-                  {rankOf(merit.total).hanja} · {rankOf(merit.total).name}
-                </span>
-              </p>
-              <p className="mt-1 text-[11.5px] text-hanji-faint">
-                {rankOf(merit.total).say}
-                {nextRank(merit.total) &&
-                  ` · ${nextRank(merit.total)!.rank.name}까지 ${nextRank(merit.total)!.left.toLocaleString("ko-KR")}`}
-              </p>
-              <div className="mt-2 h-[5px] overflow-hidden rounded-full bg-ink-3">
-                <div
-                  className="h-full rounded-full bg-gold transition-[width] duration-300"
-                  style={{ width: `${(inRound(merit.total) / ROUND) * 100}%` }}
-                />
-              </div>
-              <p className="mt-1 text-[10.5px] text-hanji-faint">
+          <div>
+            <p className="flex items-baseline gap-2">
+              <span className="font-serif text-[30px] leading-none text-gold">
+                {merit.total.toLocaleString("ko-KR")}
+              </span>
+              <span className="text-[12px] text-hanji-dim">
                 이번 바퀴 {inRound(merit.total)}/{ROUND}
                 {merit.total >= ROUND &&
                   ` · 백팔 ${Math.floor(merit.total / ROUND)}바퀴`}
-              </p>
+              </span>
+            </p>
+            <div className="mt-2.5 h-[5px] overflow-hidden rounded-full bg-ink-3">
+              <div
+                className="h-full rounded-full bg-gold transition-[width] duration-300"
+                style={{ width: `${(inRound(merit.total) / ROUND) * 100}%` }}
+              />
             </div>
           </div>
 

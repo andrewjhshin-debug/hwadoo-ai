@@ -11,6 +11,8 @@
 // 장부는 이 브라우저에 적는다. 계정 동기화는 store 와 같은 결로 뒤에 잇는다.
 // ─────────────────────────────────────────────────────────────
 
+import { noteDaily } from "./daily";
+
 export const MERIT_KEY = "hwadu.merit.v1";
 export const MERIT_EVENT = "hwadu-merit-updated";
 
@@ -24,7 +26,8 @@ export type MeritSource =
   | "breath" // 호흡 명상 한 판
   | "hwadu" // 화두 회향
   | "temple" // 절에 다녀옴
-  | "gathering"; // 인연 — 글·댓글
+  | "gathering" // 인연 — 글·댓글
+  | "daily"; // 오늘의 세 가지를 다 마침
 
 /** 무엇을 하면 얼마나 쌓이는가 */
 export const MERIT_VALUE: Record<MeritSource, number> = {
@@ -35,6 +38,7 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   hwadu: 108, // 화두 하나를 회향하면 한 바퀴
   temple: 54,
   gathering: 9,
+  daily: 54, // 오늘의 세 가지 — 반 바퀴
 };
 
 export type MeritLedger = {
@@ -86,6 +90,9 @@ export function addMerit(
   l.total = before + gained;
   l.by[source] = (l.by[source] ?? 0) + gained;
   save(l);
+  // 하루치도 같이 적는다 — 오늘의 세 가지가 이 셈을 읽는다.
+  // 상 자체(daily)는 하루치에 넣지 않는다. 상이 상을 낳으면 안 된다.
+  if (source !== "daily") noteDaily(source, times);
   return {
     total: l.total,
     gained,
@@ -161,4 +168,5 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   hwadu: "화두 회향",
   temple: "절 다녀오기",
   gathering: "인연",
+  daily: "오늘의 세 가지",
 };
