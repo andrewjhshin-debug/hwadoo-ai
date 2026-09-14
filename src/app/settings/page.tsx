@@ -89,6 +89,40 @@ import {
   Moktak,
 } from "@/components/icons";
 
+// 접어 두는 묶음 — 도량 아래쪽 살림살이는 찾을 때만 편다.
+// 지우는 게 아니라 접는다. 필요한 사람에게는 그대로 다 있다.
+function Fold({
+  title,
+  note,
+  children,
+}: {
+  title: string;
+  note: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="rise group mt-11">
+      <summary className="flex cursor-pointer list-none items-center justify-between border-b border-ink-3 pb-3.5 [&::-webkit-details-marker]:hidden">
+        <span>
+          <span className="text-[11px] tracking-[0.3em] text-hanji-faint">
+            {title}
+          </span>
+          <span className="mt-1 block text-[11px] leading-4 text-hanji-faint/70">
+            {note}
+          </span>
+        </span>
+        <span
+          aria-hidden
+          className="ml-3 shrink-0 text-[13px] text-hanji-faint transition-transform duration-200 group-open:rotate-180"
+        >
+          ⌄
+        </span>
+      </summary>
+      <div className="-mt-6">{children}</div>
+    </details>
+  );
+}
+
 // 이달의 마음 — 이번 달의 걸음을 로컬 기록으로 센 것
 type MonthReport = {
   returned: number; // 이번 달 받은 화두 수(=회향 수)
@@ -1034,6 +1068,7 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      <Fold title="지난 걸음" note="이달의 마음 · 올해의 마음">
       {/* ── 이달의 마음 — 이번 달의 걸음을 로컬 기록으로 센다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
@@ -1159,6 +1194,8 @@ export default function SettingsPage() {
             </div>
           </section>
         )}
+
+      </Fold>
 
       {/* ── 알림 — 아침 문안: 제목 한 줄 + 온/오프 토글.
           차단이면 토글을 눌렀을 때 푸는 법 안내가 접혀 나온다 ── */}
@@ -1347,6 +1384,7 @@ export default function SettingsPage() {
         </section>
       )}
 
+      <Fold title="그 밖에" note="음양 · 차 한 잔 · 죽비 · 내가 던진 화두 · 로그인 · 도량 안내">
       {/* ── 음양 — 인연 게시판에 표시될 나의 문양 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
@@ -1660,6 +1698,8 @@ export default function SettingsPage() {
           © {new Date().getFullYear()} 화두 · 물음은 오래된 것, 답은 나의 것
         </p>
       </section>
+
+      </Fold>
 
       <div className="mt-12 text-center">
         <Link

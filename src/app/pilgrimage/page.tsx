@@ -77,8 +77,8 @@ export default function PilgrimagePage() {
         <br />
         <span className="text-gold-grad">한번 직접 가 보세요.</span>
       </p>
-      <p className="rise rise-d1 mt-5 break-keep text-center text-[15px] leading-8 text-hanji-dim">
-        절은 불자만 가는 곳이 아닙니다 — 산문은 누구에게나 열려 있습니다.
+      <p className="rise rise-d1 mt-4 break-keep text-center text-[14px] leading-7 text-hanji-dim">
+        산문은 누구에게나 열려 있습니다.
       </p>
 
       {/* ── 인연 — 화면을 열자마자 바로 보이는 들목 ── */}
@@ -194,8 +194,7 @@ export default function PilgrimagePage() {
           )}
         </ul>
         <p className="mt-3 text-[12px] leading-5 text-hanji-faint">
-          음력으로 정해진 날들 — 해마다 자동으로 헤아립니다. [이 날 함께
-          가기]를 누르면 그 날짜로 인연 글쓰기가 열립니다.
+          음력으로 정해지는 날들 — 해마다 저절로 헤아립니다.
         </p>
       </section>
     </div>

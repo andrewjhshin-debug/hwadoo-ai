@@ -37,11 +37,13 @@ html[data-theme="light"] {
   --color-ink: #eceef1; /* 바탕 — 은은한 회색 */
   --color-ink-2: #ffffff; /* 카드 — 흰 종이가 떠 있다 */
   --color-ink-3: rgba(26, 26, 28, 0.09); /* 경계선 — 아주 옅게 */
-  --color-hanji: #1a1a1c; /* 본문 */
-  --color-hanji-dim: #5a6068; /* 보조 */
-  --color-hanji-faint: #9aa0a8; /* 아주 옅게 */
-  --color-gold: #dda01c; /* 불교 금 — 공덕·강조 */
-  --color-gold-soft: #b07f12; /* 묵은 금 */
+  /* 낮의 글자 — 회색 위에 회색을 얹으면 아무것도 안 읽힌다.
+     본문은 먹, 보조도 거의 먹, 가장 옅은 것도 회색이 아니라 옅은 먹. */
+  --color-hanji: #0f0f11; /* 본문 — 먹 */
+  --color-hanji-dim: #2e3238; /* 보조 — 살짝만 물린다 */
+  --color-hanji-faint: #5e646c; /* 가장 옅게 — 여기까지가 한계 */
+  --color-gold: #b8830e; /* 불교 금 — 흰 종이 위에서 읽히도록 낮춘다 */
+  --color-gold-soft: #8a6408; /* 묵은 금 */
   --color-vermilion: #f2789f; /* 연꽃 분홍 — 얻음·알림 */
   --color-obang-blue: #6b8fd4; /* 오방 청 */
 }
@@ -68,7 +70,7 @@ html[data-theme="light"] .bg-ink-2 {
 /* 낮의 로고 — 금에서 먹으로 흐르는 한 줄 */
 html[data-theme="light"] .text-obang,
 html[data-theme="light"] .text-gold-grad {
-  background: linear-gradient(100deg, #dda01c, #1a1a1c 70%);
+  background: linear-gradient(100deg, #b8830e, #0f0f11 70%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -77,8 +79,8 @@ html[data-theme="light"] .text-gold-grad {
 
 /* 낮의 알약 버튼 — 먹으로 채운 단추가 이 결에서는 제일 또렷하다 */
 html[data-theme="light"] .btn-obang {
-  background: linear-gradient(#1a1a1c, #1a1a1c) padding-box,
-    linear-gradient(120deg, #1a1a1c, #1a1a1c) border-box;
+  background: linear-gradient(#0f0f11, #0f0f11) padding-box,
+    linear-gradient(120deg, #0f0f11, #0f0f11) border-box;
   color: #ffffff;
   box-shadow: 0 6px 18px rgba(26, 26, 28, 0.18);
 }
@@ -89,10 +91,10 @@ html[data-theme="light"] .btn-obang span {
 
 /* 금색으로 그려진 문양들 — 낮에도 금을 지킨다(불교 금색) */
 html[data-theme="light"] svg[stroke="#D9B45B"] {
-  stroke: #dda01c;
+  stroke: #b8830e;
 }
 html[data-theme="light"] svg[stroke="#B99A54"] {
-  stroke: #b07f12;
+  stroke: #8a6408;
 }
 /* 일원상 — 금 · 분홍 · 청의 오방 */
 html[data-theme="light"] #enso-g stop:nth-child(1) {

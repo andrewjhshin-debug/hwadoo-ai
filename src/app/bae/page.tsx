@@ -115,8 +115,8 @@ export default function BaePage() {
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-8 md:pt-12">
       <p className="rise text-xs tracking-[0.5em] text-gold-soft">百八拜 · 백팔배</p>
-      <p className="rise rise-d1 mt-3 break-keep text-center text-[13px] leading-6 text-hanji-dim">
-        일어설 때마다 한 번 눌러 주세요. 죽비를 켜면 박자를 이끌어 드려요.
+      <p className="rise rise-d1 mt-3 text-[12.5px] tracking-[0.15em] text-hanji-dim">
+        일어설 때마다 한 번
       </p>
 
       {/* 셈판 — 큰 원 하나가 전부다 */}

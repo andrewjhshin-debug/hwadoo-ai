@@ -502,8 +502,8 @@ export default function MoktakPage() {
               </div>
             </div>
 
-            <p className="mt-3 break-keep text-center text-[11.5px] leading-5 text-hanji-faint">
-              왼쪽으로 쓸어 굴리거나, 톡 누르면 한 알씩 넘어갑니다.
+            <p className="mt-3 text-[11.5px] tracking-[0.2em] text-hanji-faint">
+              쓸거나 눌러서 한 알
             </p>
           </div>
         </>
