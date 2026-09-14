@@ -9,8 +9,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Enso from "@/components/Enso";
-import { dongja } from "@/lib/dongja";
-import { inRound, loadMerit, ROUND } from "@/lib/merit";
+import Dudu from "@/components/Dudu";
+import {
+  loadMerit,
+  nextRank,
+  rankOf,
+  stageOf,
+  stageProgress,
+} from "@/lib/merit";
 import NotesDrawer from "@/components/NotesDrawer";
 import { useConfirm } from "@/components/Confirm";
 import { Banga, Dharmachakra, Lotus, Teacup } from "@/components/icons";
@@ -476,26 +482,38 @@ export default function Home() {
             );
           })}
         </div>
-        {/* 오늘의 수행 — 두두가 공덕을 들고 방으로 이어 준다 */}
-        <div className="rise rise-d3 mt-10 w-full max-w-sm rounded-[16px] border border-ink-3 bg-ink-2/40 px-4 py-4">
-          <div className="flex items-center gap-3">
-            <span
-              className="block h-12 w-12 shrink-0"
-              dangerouslySetInnerHTML={{
-                __html: dongja(merit >= ROUND ? "bright" : "default", "home"),
-              }}
+        {/* 두두 — 공덕이 쌓이면 자란다. 동자에서 부처까지 여섯 자리. */}
+        <div className="rise rise-d3 mt-10 w-full max-w-sm rounded-[18px] border border-ink-3 bg-ink-2/50 px-4 py-4">
+          <div className="flex items-center gap-3.5">
+            <Dudu
+              stage={stageOf(merit)}
+              mood={merit >= 3240 ? "joy" : merit >= 108 ? "bright" : "default"}
+              uid="home"
+              className="block h-[60px] w-[60px] shrink-0"
             />
             <div className="min-w-0 flex-1 text-left">
-              <p className="text-[11.5px] tracking-wide text-hanji-faint">
-                오늘의 수행 · 공덕{" "}
-                <span className="text-gold-soft">{merit.toLocaleString("ko-KR")}</span>
+              <p className="flex items-baseline gap-1.5">
+                <span className="font-serif text-[17px] text-hanji">
+                  {rankOf(merit).name}
+                </span>
+                <span className="font-serif text-[12px] text-gold-soft">
+                  {rankOf(merit).hanja}
+                </span>
+                <span className="ml-auto text-[12px] text-gold-soft">
+                  공덕 {merit.toLocaleString("ko-KR")}
+                </span>
               </p>
-              <div className="mt-1.5 h-[4px] overflow-hidden rounded-full bg-ink-3">
+              <div className="mt-2 h-[5px] overflow-hidden rounded-full bg-ink-3">
                 <div
-                  className="h-full rounded-full bg-gold transition-[width] duration-300"
-                  style={{ width: `${(inRound(merit) / ROUND) * 100}%` }}
+                  className="h-full rounded-full bg-gold transition-[width] duration-500"
+                  style={{ width: `${Math.round(stageProgress(merit) * 100)}%` }}
                 />
               </div>
+              <p className="mt-1.5 break-keep text-[11.5px] leading-5 text-hanji-faint">
+                {nextRank(merit)
+                  ? `${nextRank(merit)!.rank.name}까지 ${nextRank(merit)!.left.toLocaleString("ko-KR")}`
+                  : rankOf(merit).say}
+              </p>
             </div>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2">

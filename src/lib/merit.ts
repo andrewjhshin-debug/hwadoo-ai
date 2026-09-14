@@ -102,16 +102,18 @@ export function giveMerit(n: number): MeritLedger {
   return l;
 }
 
-// ── 자리(位) — 공덕이 쌓이며 오르는 이름 ───────────────────────
-// 보살의 계위에서 빌렸다. 마지막은 보살 — 남을 위해 도는 자리다.
+// ── 진화(進化) — 공덕이 쌓이면 두두가 자란다 ───────────────────
+// 김부따는 옷을 갈아입지만 우리는 깨달아 간다. 화두 수행이 여덟 할인
+// 서비스이니, 캐릭터도 옷이 아니라 자리가 바뀌어야 맞다.
+// 마지막에 머리 위 물음표가 광배(光背)로 바뀐다 — 물음이 답이 되는 자리.
 
 export const RANKS = [
-  { need: 0, hanja: "初", name: "첫 걸음", say: "이제 막 나섰습니다" },
-  { need: 108, hanja: "發", name: "발심", say: "마음을 냈습니다" },
-  { need: 540, hanja: "精", name: "정진", say: "쉬지 않고 갑니다" },
-  { need: 1080, hanja: "定", name: "선정", say: "흔들림이 줄었습니다" },
-  { need: 3240, hanja: "慧", name: "지혜", say: "보이는 것이 달라집니다" },
-  { need: 10800, hanja: "薩", name: "보살", say: "이제 남의 몫까지 돕니다" },
+  { need: 0, hanja: "童", name: "동자", say: "이제 막 산문에 들었어요" },
+  { need: 108, hanja: "沙", name: "사미", say: "물음 하나를 품기 시작했어요" },
+  { need: 540, hanja: "首", name: "수좌", say: "앉는 일이 몸에 붙었어요" },
+  { need: 1080, hanja: "禪", name: "선사", say: "흔들림이 눈에 띄게 줄었어요" },
+  { need: 3240, hanja: "薩", name: "보살", say: "이제 남의 몫까지 돕니다" },
+  { need: 10800, hanja: "佛", name: "부처", say: "물음표가 광배가 되었어요" },
 ] as const;
 
 export type Rank = (typeof RANKS)[number];
@@ -122,10 +124,28 @@ export function rankOf(total: number): Rank {
   return r;
 }
 
+/** 지금 자리의 번호 — 0(동자) ~ 5(부처). 그림을 고를 때 쓴다 */
+export function stageOf(total: number): number {
+  let i = 0;
+  RANKS.forEach((x, k) => {
+    if (total >= x.need) i = k;
+  });
+  return i;
+}
+
 /** 다음 자리까지 얼마나 남았는가 — null 이면 끝자리 */
 export function nextRank(total: number): { rank: Rank; left: number } | null {
   for (const x of RANKS) if (total < x.need) return { rank: x, left: x.need - total };
   return null;
+}
+
+/** 이 자리에서 다음 자리까지 얼마나 왔는가 (0~1) */
+export function stageProgress(total: number): number {
+  const here = rankOf(total);
+  const next = nextRank(total);
+  if (!next) return 1;
+  const span = next.rank.need - here.need;
+  return span > 0 ? (total - here.need) / span : 0;
 }
 
 /** 이번 바퀴에서 얼마나 왔는가 (0~107) */
