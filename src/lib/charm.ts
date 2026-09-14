@@ -18,7 +18,8 @@ export type CharmId =
   | "inyeon" // 인연부 — 인연에 글을 올리다
   | "ansim" // 안심부 — 호흡 명상을 마치다
   | "unryeok" // 운력부 — 울력·봉사에 나서다
-  | "cheonli"; // 천리부 — 절을 다녀오다
+  | "cheonli" // 천리부 — 절을 다녀오다
+  | "yeomsong"; // 염송부 — 경전을 외우다
 
 export type Charm = {
   id: CharmId;
@@ -63,6 +64,13 @@ export const CHARMS: Charm[] = [
     hanja: "運力符",
     wish: "몸으로 짓는 복이 쌓이게",
     how: "울력·봉사에 나서면",
+  },
+  {
+    id: "yeomsong",
+    name: "염송부",
+    hanja: "念誦符",
+    wish: "외운 말이 몸에 남게",
+    how: "경전을 외워 치면",
   },
   {
     id: "cheonli",

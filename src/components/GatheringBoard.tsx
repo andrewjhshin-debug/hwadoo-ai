@@ -816,16 +816,15 @@ export default function GatheringBoard({
             </p>
           ) : user.uid === dmTarget.uid ? (
             <p className="mt-3 break-keep text-[13.5px] leading-6 text-hanji-dim">
-              내 이름 곁의 음양입니다 — 서로 다른 기운이 만나야 쪽지가
-              오갑니다. 다른 수행자의 문양을 눌러 보세요.
+              내 이름 곁의 음양입니다. 다른 수행자의 문양을 눌러 보세요.
             </p>
           ) : thread ? (
             <>
               <p className="mt-3 text-[12px] leading-6 text-hanji-dim">
                 {thread.status === "accepted"
-                  ? "대화가 열려 있습니다 — 쪽지함에서 이어 가세요."
+                  ? "대화가 열려 있습니다."
                   : thread.status === "pending"
-                    ? "청을 넣었습니다 — 상대의 답을 기다립니다."
+                    ? "청을 넣었습니다."
                     : "지난 청은 거절되었습니다."}
               </p>
               <Link
@@ -1119,7 +1118,7 @@ export default function GatheringBoard({
           </span>
           {likeHint && !user && (
             <span className="text-[10.5px] text-hanji-faint">
-              로그인한 분만 — 계정마다 한 번
+              로그인한 분만
             </span>
           )}
         </div>
@@ -1287,8 +1286,7 @@ export default function GatheringBoard({
               />
             </div>
             <p className="text-[11.5px] leading-5 text-hanji-faint">
-              양/음(남·여) 문양은 내 도량에서 설정할 수 있습니다 — 글에
-              프로필처럼 걸립니다.
+              양/음(남·여) 문양은 내 도량에서 설정할 수 있습니다.
             </p>
             {formError && (
               <p className="text-[12px] leading-6 text-vermilion">

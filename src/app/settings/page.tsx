@@ -185,6 +185,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
   { href: "/goods", label: "굿즈", Icon: Bojagi },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
+  { href: "/sutra", label: "외우기", Icon: Book },
 ];
 
 // 이 달의 흐름 — 여러 갈래를 한 그래프에 선으로 겹쳐 그린다.
@@ -375,7 +376,7 @@ export default function SettingsPage() {
     setCharms(loadCharms());
     const l = giveMerit(merit.total - merit.given);
     setMerit(l);
-    setGaveMsg(`${to}에게 회향했습니다. 공덕은 줄지 않습니다 — 나눌수록 큽니다.`);
+    setGaveMsg(`${to}에게 회향했습니다.`);
     window.setTimeout(() => setGaveMsg(""), 5000);
   };
 
@@ -745,7 +746,7 @@ export default function SettingsPage() {
     } catch {
       try {
         await navigator.clipboard.writeText(text);
-        setYearShareMsg("글로 복사했습니다 — 붙여넣기로 나눠 보세요.");
+        setYearShareMsg("글로 복사했습니다.");
       } catch {
         setYearShareMsg(text);
       }
@@ -971,7 +972,7 @@ export default function SettingsPage() {
           })}
         </div>
         <p className="mt-4 break-keep text-[11.5px] leading-6 text-hanji-faint">
-          부적은 팔지 않습니다. 해내면 그 자리에서 주어져요.
+          부적은 팔지 않습니다.
         </p>
       </section>
 
@@ -1315,14 +1316,14 @@ export default function SettingsPage() {
             <p className="break-keep text-[12px] leading-6 text-hanji-faint">
               {pushUi === "unsupported"
                 ? "이 브라우저는 알림을 받을 수 없습니다. (아이폰은 홈 화면에 추가한 뒤 가능)"
-                : "알림을 준비하고 있습니다 — 곧 열립니다."}
+                : "알림을 준비하고 있습니다."}
             </p>
           )}
           {/* 차단 상태에서 토글을 누르면 접혀 나오는 푸는 법 */}
           {pushGuide && (
             <div className="mt-4 break-keep rounded-[10px] border border-ink-3 bg-ink-2/40 px-4 py-3 text-[12px] leading-6 text-hanji-dim">
               <p className="text-hanji">
-                브라우저가 알림을 막아 두었습니다 — 이렇게 풀어 주세요.
+                브라우저가 알림을 막아 두었습니다.
               </p>
               <p className="mt-1.5">
                 · 컴퓨터: 주소창 왼쪽 자물쇠 → 알림 → 허용 → 새로고침
@@ -1421,8 +1422,7 @@ export default function SettingsPage() {
           </button>
         </div>
         <p className="mt-2.5 break-keep text-[11px] leading-5 text-hanji-faint">
-          인연 게시판의 글·댓글에 陽/陰 문양으로만 표시됩니다 — 이름은 늘
-          익명입니다.
+          인연 게시판의 글·댓글에 陽/陰 문양으로만 표시됩니다.
         </p>
       </section>
 
@@ -1499,14 +1499,14 @@ export default function SettingsPage() {
           ) : (
             <>
               <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-                불편했던 점, 바라는 점을 일러 주세요. 죽비로 삼겠습니다.
+                불편했던 점, 바라는 점을 일러 주세요.
               </p>
               <textarea
                 value={fb}
                 onChange={(e) => setFb(e.target.value)}
                 rows={3}
                 maxLength={1000}
-                placeholder="어느 화면에서, 무엇이 불편했는지 적어 주시면 큰 도움이 됩니다."
+                placeholder="어느 화면에서, 무엇이 불편했는지"
                 className="mt-4 w-full resize-none rounded-[10px] border border-ink-3 bg-ink-2/40 px-4 py-3 text-[13px] leading-6 text-hanji outline-none transition-colors focus:border-gold/40"
               />
               <button
@@ -1551,7 +1551,7 @@ export default function SettingsPage() {
             {myThrown.length === 0 ? (
               <>
                 <p className="text-[13px] leading-7 text-hanji-dim">
-                  아직 던진 물음이 없습니다. 이번에는 그대가 물을 차례입니다.
+                  아직 던진 물음이 없습니다.
                 </p>
                 <Link
                   href="/my-hwadu"

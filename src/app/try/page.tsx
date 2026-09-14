@@ -7,7 +7,6 @@
 // · 다만 id 앞에 try: 를 붙인다 — 실제 화두 뽑기의 '지나온 화두 제외'와
 //   섞이지 않게. 체험 한 번으로 '이뭣고'를 영영 못 받으면 안 된다.
 // · 사유의 방 메모도 여기서 함께 써 보고, 회향 시 답과 같이 남는다
-// · 카운트다운 문구는 단계가 바뀌어도 고정 — 화면이 흔들리지 않게
 //
 // [리뉴얼 메모 — 왜 이렇게 고쳤나]
 // · 첫인상이 여기서 갈린다. 물음이 화면에서 가장 큰 것이 되어야 해서,
@@ -48,7 +47,7 @@ type Step = "choose" | "received" | "pondering" | "ripened" | "writing" | "done"
 const GUIDE: Record<Step, string> = {
   choose: "먼저 화두를 받아 보세요.",
   received: "본래는 며칠이 흘러야 합니다 — 체험에서는 눌러서 건너뜁니다.",
-  pondering: "떠오르는 것은 사유의 방에 적어 두세요. 답과 함께 남습니다.",
+  pondering: "떠오르는 것은 사유의 방에 적어 두세요.",
   // '달이 찼다'는 말은 위 카드가 큰 글씨로 이미 하고 있다 — 여기선 할 일만
   ripened: "이제 붓을 들어 답을 씁니다.",
   writing: "정답은 없습니다. 지금 보이는 만큼만 써 보세요.",
@@ -416,12 +415,6 @@ export default function TryPage() {
                 </>
               )}
             </p>
-            <p className="mt-2 text-[11px] leading-6 text-hanji-faint">
-              본래의 화두는 며칠을 품은 뒤에야 붓을 들 수 있습니다.
-              {memo.trim()
-                ? " 사유의 방 단상도 답과 함께 남았습니다."
-                : " 사유의 방 단상도 회향과 함께 남습니다."}
-            </p>
             <Link
               href="/"
               className="btn-obang mt-8 inline-block px-10 py-3.5 font-serif text-[15px] tracking-[0.25em] text-hanji transition-opacity hover:opacity-90"
@@ -458,7 +451,6 @@ export default function TryPage() {
                 <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-ink-2/60 px-4 py-3">
                   <p className="text-left text-[12.5px] leading-6 text-hanji-dim">
                     며칠을 품고 계셨습니다. 무엇이 보였습니까.
-                    <br />아래에 답을 적어, 회향해 보세요.
                   </p>
                 </div>
               </div>
@@ -492,9 +484,9 @@ export default function TryPage() {
                   회향
                 </button>
               </div>
-              {/* 단상이 함께 남는다는 안내는 사유의 방 안에 온전히 있다 — 여기선 한 마디만 */}
+              {/* 단상이 함께 남는다는 안내는 사유의 방 안에 있다 — 여기선 글자 수만 */}
               <p className="mt-2 text-right text-[10px] tabular-nums text-hanji-faint">
-                {answer.length} / {MAX_ANSWER} · 단상도 함께 남습니다
+                {answer.length} / {MAX_ANSWER}
               </p>
             </div>
           ) : (
@@ -506,9 +498,6 @@ export default function TryPage() {
                     <span className="moon mx-auto block" />
                     <p className="mt-5 font-serif text-[24px] font-light leading-none text-hanji">
                       달이 차올랐습니다
-                    </p>
-                    <p className="mt-3 text-[12.5px] tracking-wide text-hanji-dim">
-                      이제 답을 쓸 수 있습니다
                     </p>
                   </>
                 ) : (
@@ -528,9 +517,6 @@ export default function TryPage() {
                         있습니다
                       </span>
                     </div>
-                    <p className="mt-2 text-[11px] tabular-nums tracking-[0.14em] text-hanji-faint">
-                      {days}일 00시간 00분 00초
-                    </p>
                   </>
                 )}
               </div>
@@ -711,8 +697,7 @@ export default function TryPage() {
 
         <div className="flex flex-1 flex-col px-6 py-5 text-left">
           <p className="text-xs leading-6 text-hanji-faint">
-            떠오르는 것을 적어 두세요. 답이 아니라 발자국입니다.
-            <br />여기 적은 단상은 회향할 때 답과 함께 남습니다.
+            여기 적은 단상은 회향할 때 답과 함께 남습니다.
           </p>
           <textarea
             value={memo}
@@ -720,9 +705,6 @@ export default function TryPage() {
             placeholder=""
             className="journal-area mt-4 h-[34vh] min-h-[180px]"
           />
-          <p className="mt-3 text-right text-[11px] text-hanji-faint">
-            적는 대로 저장됩니다
-          </p>
         </div>
       </aside>
     </div>

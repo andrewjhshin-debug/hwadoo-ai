@@ -26,6 +26,9 @@ const CROWN: Record<CharmId, string> = {
   unryeok: `<path d="M36 36 L42 22 L50 32 L58 22 L64 36"/><path d="M32 38 H68"/>`,
   cheonli: `<path d="M34 22 H66"/><path d="M40 22 V34"/><path d="M50 22 V36"/>
     <path d="M60 22 V34"/><path d="M32 38 H68"/>`,
+  // 입에서 나가는 소리 — 세 겹의 물결
+  yeomsong: `<path d="M34 24 C40 32 44 20 50 28 C56 36 60 22 66 30"/>
+    <path d="M36 32 C42 38 46 28 52 34"/><path d="M32 38 H68"/>`,
 };
 
 // 본문 — y 44~104
@@ -55,6 +58,12 @@ const BODY: Record<CharmId, string> = {
   cheonli: `<path d="M50 44 V104"/><path d="M34 50 H66"/>
     <path d="M36 66 C42 76 58 76 64 66"/><path d="M34 84 H66"/>
     <path d="M40 96 H60"/>`,
+  // 입(口)에서 소리가 세 겹으로 퍼져 나간다
+  yeomsong: `<path d="M50 44 V60"/><path d="M38 52 H62"/>
+    <rect x="40" y="62" width="20" height="16" rx="1.5"/>
+    <path d="M34 84 C42 92 58 92 66 84"/>
+    <path d="M38 94 C44 100 56 100 62 94"/>
+    <path d="M50 78 V104"/>`,
 };
 
 /** 부적 한 장. uid 를 달리 주면 한 화면에 여러 장을 놓아도 id 가 안 겹친다. */

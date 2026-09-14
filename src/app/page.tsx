@@ -58,7 +58,7 @@ import { initPresence, watchOnlineCount } from "@/lib/presence";
 
 // 나눔 물음창의 작은 안내 — 공유하면 무엇이 일어나는지
 const SHARE_NOTE =
-  "공유한 답은 검수를 거쳐, 공유한 그때의 글로 보입니다. 지난 화두에서 고쳐 써도 공유된 답은 바뀌지 않습니다.";
+  "공유한 답은 검수를 거쳐, 공유한 그때의 글로 보입니다.";
 
 // 불교 전통의 리듬 — 하루, 삼일기도, 칠일 정진, 삼칠일(3×7일), 백팔일(108 번뇌)
 const DAY_OPTIONS = [1, 3, 7, 21, 108];
@@ -379,7 +379,7 @@ export default function Home() {
     // 회향을 마치자마자 — 나눔의 뜻을 묻는다
     const ok = await confirm(
       "이 답을 다른 수행자에게 공유하겠습니까?",
-      `이름 없이 — 다른 수행자의 화두를 돕습니다. ${SHARE_NOTE}`,
+      `이름 없이 공유됩니다. ${SHARE_NOTE}`,
       { confirm: "네", cancel: "아니오" }
     );
     if (ok) {
@@ -421,7 +421,7 @@ export default function Home() {
         const heldDays = Math.max(1, Math.floor(elapsed / (24 * 60 * 60 * 1000)));
         const ok = await confirm(
           "지금 바로 붓을 들게 됩니다",
-          `이미 ${heldDays}일을 품었습니다. ${durationLabel(days)}로 바꾸면 기다림 없이 곧장 답을 쓸 수 있습니다.`,
+          `이미 ${heldDays}일을 품었습니다.`,
           { confirm: "바꾸겠습니다", cancel: "그대로 두기" }
         );
         if (!ok) return;
@@ -701,7 +701,7 @@ export default function Home() {
             </div>
             <p className="mt-6 break-keep text-xs leading-6 text-hanji-faint">
               {current.hwaduId.startsWith("thrown:")
-                ? "이 화두는 어느 낯선 이가 던진 것 — 스승의 답은 없습니다. 이 답이 첫 답입니다."
+                ? "이 화두는 어느 낯선 이가 던진 것 — 스승의 답은 없습니다."
                 : "정답은 없습니다. 다만 천 년 전에도 같은 물음을 품은 이들이 있었습니다."}
             </p>
           </details>
@@ -767,10 +767,8 @@ export default function Home() {
                 <Teacup className="h-4 w-4" />
                 차 한 잔 올리기
               </Link>
-              {/* 두 줄이던 뜻을 한 줄로 모은다 — 지운 말은 없다 */}
               <p className="mt-2.5 break-keep text-[11px] leading-5 text-hanji-faint">
-                찻값은 이 도량을 잇는 데 쓰입니다. 억지로는 마시지 않는 것이
-                차입니다 — 마음이 동할 때만.
+                찻값은 이 도량을 잇는 데 쓰입니다.
               </p>
             </div>
           )}
@@ -812,8 +810,6 @@ export default function Home() {
               <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-ink-2/40 px-4 py-3">
                 <p className="text-[12.5px] leading-6 text-hanji-dim">
                   며칠을 품고 계셨습니다. 무엇이 보였습니까.
-                  <br />
-                  아래에 답을 적어, 회향해 보세요.
                 </p>
               </div>
             </div>
@@ -977,9 +973,6 @@ export default function Home() {
               <span className="moon !h-[26px] !w-[26px]" />
               <p className="font-serif text-[19px] font-light tracking-wide text-hanji">
                 달이 차올랐습니다
-              </p>
-              <p className="text-[12.5px] leading-6 text-hanji-dim">
-                이제 답을 쓸 수 있어요.
               </p>
             </div>
           ) : (

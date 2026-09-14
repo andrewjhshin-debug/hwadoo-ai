@@ -45,6 +45,7 @@ const POOL: Mission[] = [
   { id: "breath", key: "breath", need: 1, label: "호흡 한 판", href: "/breath" },
   { id: "hwadu", key: "hwadu", need: 1, label: "화두 하나 회향", href: "/" },
   { id: "gathering", key: "gathering", need: 1, label: "인연에 한 줄", href: "/community" },
+  { id: "sutra", key: "sutra", need: 1, label: "경전 한 편 외우기", href: "/sutra" },
 ];
 
 // 언제나 첫 자리에 놓는 것 — 들르기만 해도 하나는 켜진다

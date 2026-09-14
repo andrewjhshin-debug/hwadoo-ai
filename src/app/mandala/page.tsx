@@ -1464,11 +1464,6 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         />
       </div>
 
-      {/* 안내는 데스크톱에만, 그것도 한 마디만 — 모바일은 한 화면에 다 들어오도록 아낀다 */}
-      <p className="mt-2 hidden text-center text-[11px] leading-5 text-hanji-faint sm:block">
-        손끝을 따라 여러 갈래로 피어납니다.
-      </p>
-
       {/* 만다라 판 — 판 위에는 아무 버튼도 없다. 색칠 모드와 같은 결.
           폭은 클래스(mandala-draw-size)로 — 긴 화면에서 컨트롤이 커지면 예약폭도 같이 는다 */}
       <div className="mandala-draw-size relative mt-3 max-w-[480px]">

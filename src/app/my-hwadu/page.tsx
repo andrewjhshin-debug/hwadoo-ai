@@ -66,11 +66,6 @@ export default function MyHwaduPage() {
           <p className="font-serif text-base font-light leading-8 text-hanji">
             물음이 시위를 떠났습니다.
           </p>
-          <p className="mt-3 text-xs leading-6 text-hanji-faint">
-            누구에게 닿을지는 아무도 모릅니다.
-            <br />
-            (걸러진 뒤, 어느 낯선 이의 오늘의 화두가 됩니다)
-          </p>
           <button
             onClick={() => setJustThrown(false)}
             className="mt-7 border border-ink-3 px-6 py-2.5 text-xs tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
@@ -81,13 +76,11 @@ export default function MyHwaduPage() {
       ) : (
         <>
           <div className="rise rise-d2 mt-8">
-            <p className="mb-2 text-[11px] tracking-[0.2em] text-hanji-faint">
-              여기에 물음을 적어 주세요
-            </p>
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               rows={5}
+              aria-label="여기에 물음을 적어 주세요"
               placeholder="예 — 나는 지금 무엇을 두려워하는가."
               className="w-full resize-none rounded-xl border border-gold/30 bg-ink-2/50 p-4 text-[15px] leading-8 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/60"
             />
@@ -143,8 +136,7 @@ export default function MyHwaduPage() {
             ))}
           </ul>
           <p className="mt-4 text-[11px] leading-5 text-hanji-faint">
-            여기서 지워도 이미 시위를 떠난 물음은 돌아오지 않습니다 — 도량에
-            닿은 것은 도량이 거둡니다.
+            여기서 지워도 이미 시위를 떠난 물음은 돌아오지 않습니다.
           </p>
         </div>
       )}

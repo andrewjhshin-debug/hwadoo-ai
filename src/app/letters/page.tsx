@@ -260,11 +260,7 @@ export default function LettersPage() {
         <div className="mt-5 flex flex-1 flex-col gap-2.5 overflow-y-auto">
           {msgs === null ? (
             <p className="text-[13px] text-hanji-faint">펴 보는 중…</p>
-          ) : msgs.length === 0 ? (
-            <p className="break-keep text-[13.5px] leading-6 text-hanji-faint">
-              첫 쪽지를 건네 보세요.
-            </p>
-          ) : (
+          ) : msgs.length === 0 ? null : (
             msgs.map((m) => (
               <p
                 key={m.id}

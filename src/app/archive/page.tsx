@@ -129,9 +129,6 @@ export default function ArchivePage() {
           <p className="mt-6 font-serif text-[19px] font-light text-hanji-dim">
             서고가 비어 있어요.
           </p>
-          <p className="mt-2 text-xs text-hanji-faint">
-            품고 지나온 화두가 여기 쌓여요.
-          </p>
           <Link
             href="/"
             className="btn-obang mt-9 inline-block px-8 py-3 text-xs tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"

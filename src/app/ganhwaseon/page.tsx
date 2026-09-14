@@ -188,14 +188,11 @@ export default function GanhwaseonPage() {
       {/* 제대로 앉기 — 읽을 사람이 편다 */}
       <details className="rise rise-d3 mt-7 rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3.5">
         <summary className="cursor-pointer list-none text-[14px] text-hanji-dim marker:hidden">
-          <span className="text-gold-soft">＋</span> 제대로 앉아서 해보고 싶다면{" "}
-          {/* 뒷말은 지우지 않고 옅게 눕힌다 — 안에 무엇이 있는지 알려야 편다 */}
-          <span className="text-hanji-faint">— 구체적인 수행 방법</span>
+          <span className="text-gold-soft">＋</span> 제대로 앉아서 해보고 싶다면
         </summary>
         <div className="mt-4 space-y-5 border-t border-ink-3 pt-4">
           <p className="break-keep text-[13.5px] leading-7 text-hanji-dim">
-            여섯 걸음이 뼈대라면, 아래는 처음 앉는 분을 위한 살입니다. 그대로
-            따라 해 보셔도 좋아요.
+            여섯 걸음이 뼈대라면, 아래는 처음 앉는 분을 위한 살입니다.
           </p>
           {SITTING.map((x) => (
             <div key={x.n} className="border-l border-ink-3 pl-4">

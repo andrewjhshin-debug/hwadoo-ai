@@ -27,6 +27,7 @@ export type MeritSource =
   | "hwadu" // 화두 회향
   | "temple" // 절에 다녀옴
   | "gathering" // 인연 — 글·댓글
+  | "sutra" // 경전 외우기 — 한 마디(21)씩 곱해 쓴다
   | "daily"; // 오늘의 세 가지를 다 마침
 
 /** 무엇을 하면 얼마나 쌓이는가 */
@@ -38,6 +39,7 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   hwadu: 108, // 화두 하나를 회향하면 한 바퀴
   temple: 54,
   gathering: 9,
+  sutra: 21, // 경전 한 마디 — 삼귀의 1배, 사홍서원 2배, 반야심경 6배
   daily: 54, // 오늘의 세 가지 — 반 바퀴
 };
 
@@ -168,5 +170,6 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   hwadu: "화두 회향",
   temple: "절 다녀오기",
   gathering: "인연",
+  sutra: "경전 외우기",
   daily: "오늘의 세 가지",
 };

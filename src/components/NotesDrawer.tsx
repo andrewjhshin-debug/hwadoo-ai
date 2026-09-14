@@ -239,7 +239,7 @@ export default function NotesDrawer({
               방은 비어 있고, 물음이 그대를 기다립니다.
             </p>
             <p className="mt-3 text-xs leading-6 text-hanji-faint">
-              단상은 화두에 묶여 남습니다. 먼저 화두를 받아 주세요.
+              단상은 화두에 묶여 남습니다.
             </p>
             <button
               onClick={toHome}
@@ -252,7 +252,7 @@ export default function NotesDrawer({
           <div className="flex min-h-0 flex-1 flex-col px-6 pt-4">
             {hasHwadu ? (
               <p className="shrink-0 text-xs leading-6 text-hanji-faint">
-                떠오르는 것을 적어 두세요. 답이 아니라 발자국입니다.
+                떠오르는 것을 적어 두세요.
               </p>
             ) : (
               /* 화두가 없는데 이미 쓴 글이 있다 — 지우지 않고 맡아 둔다 */
@@ -266,14 +266,9 @@ export default function NotesDrawer({
             <textarea
               value={notes}
               onChange={(e) => onChange(e.target.value)}
-              placeholder="여기에 적어 주세요…"
+              aria-label="떠오르는 것을 적어 두세요"
               className="mt-3 min-h-0 w-full flex-1 resize-none rounded-xl border border-gold/30 bg-ink/40 p-4 text-[16px] leading-8 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/60"
             />
-            {/* 사적임의 다짐 — 단상은 어떤 공유 경로에도 실리지 않는다 */}
-            <p className="mt-2 shrink-0 text-[11px] leading-5 text-hanji-faint">
-              단상은 나만 봅니다 — 밖으로 나가지 않습니다. 나눔에 부쳐지는 것은
-              회향의 답뿐입니다.
-            </p>
             {/* 저장 — 하단 고정(키보드가 올라와도 밀리지 않음) */}
             <div className="flex shrink-0 items-center justify-end gap-3 py-3">
               {!hasHwadu ? (

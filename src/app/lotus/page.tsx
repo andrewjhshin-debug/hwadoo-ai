@@ -341,7 +341,7 @@ export default function LotusPage() {
           ) : (
             <div className="mt-6 rounded-[12px] border border-dashed border-gold/40 px-4 py-5">
               <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-                입금 계좌를 준비하고 있습니다 — 곧 이 자리에서 안내됩니다.
+                입금 계좌를 준비하고 있습니다.
               </p>
             </div>
           )}
