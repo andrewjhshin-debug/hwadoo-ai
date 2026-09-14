@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import DoryangMenu from "@/components/DoryangMenu";
+import NextDoors from "@/components/NextDoors";
 import ConfirmProvider from "@/components/Confirm";
 import VisitLedger from "@/components/VisitLedger";
 import InstallBanner from "@/components/InstallBanner";
@@ -110,6 +111,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               flex 항목에 바로 주면 높이가 접혀 본문과 띠가 겹친다. */}
           <div className="flex min-h-full flex-col">
             <main className="flex flex-1 flex-col">{children}</main>
+            {/* 이어지는 방 — 화면을 다 쓰고 내려오면 다음 문 셋이 나온다 */}
+            <NextDoors />
           </div>
           {/* 아래 띠 — 전자상거래법상 사업자 표기는 모바일에서도 닿아야 한다.
               스크롤 컨테이너 안이라 탭 바 위에서 끝난다(컨테이너 pb-[76px]). */}

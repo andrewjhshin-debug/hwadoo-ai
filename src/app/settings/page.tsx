@@ -43,13 +43,21 @@ import MyTemplePicker from "@/components/MyTemplePicker";
 import MeritExchange from "@/components/MeritExchange";
 import { CHARMS, charmSvg, grantCharm, loadCharms } from "@/lib/charm";
 import {
+  DAILY_TOTAL_CAP,
+  giveBonus,
+  giveLeftToday,
   giveMerit,
+  GIVE_PER_DAY,
+  GIVE_UNIT,
   inRound,
+  lamps,
   loadMerit,
   nextRank,
   rankOf,
   ROUND,
   SOURCE_LABEL,
+  todayRoom,
+  type Lamp,
   type MeritSource,
 } from "@/lib/merit";
 import {
@@ -280,6 +288,10 @@ export default function SettingsPage() {
   // 공덕 — 도량에서 한 일이 모두 여기로 쌓인다
   const [merit, setMerit] = useState({ total: 0, by: {} as Partial<Record<MeritSource, number>>, given: 0 });
   const [gaveMsg, setGaveMsg] = useState("");
+  const [lampList, setLampList] = useState<Lamp[]>([]);
+  const [giveLeft, setGiveLeft] = useState(GIVE_PER_DAY);
+  const [giveTo, setGiveTo] = useState(""); // 이름을 적어 돌릴 때
+  const [room, setRoom] = useState({ earned: 0, cap: DAILY_TOTAL_CAP, left: DAILY_TOTAL_CAP });
   const [charms, setCharms] = useState<Record<string, number | undefined>>({});
   const [receivedCount, setReceivedCount] = useState(0);
   const [journalCount, setJournalCount] = useState(0);
@@ -375,15 +387,26 @@ export default function SettingsPage() {
     setBells(loadBellsLocal());
     setMerit(loadMerit());
     setCharms(loadCharms());
+    setLampList(lamps());
+    setGiveLeft(giveLeftToday());
+    setRoom(todayRoom());
   }, []);
 
-  // 회향 — 쌓은 공덕을 남에게 돌린다. 총합은 줄지 않는다(대승의 셈).
+  // 회향 — 한 번에 백팔, 하루 세 번. 총합은 줄지 않는다(대승의 셈).
+  // 돌린 만큼 앞으로 쌓는 공덕이 빨라진다 — 그래야 누를 이유가 생긴다.
   const give = (to: string) => {
+    const l = giveMerit(to, GIVE_UNIT);
+    if (!l) {
+      setGaveMsg("오늘 몫을 다 돌렸어요 — 내일 또 밝힐 수 있어요.");
+      window.setTimeout(() => setGaveMsg(""), 5000);
+      return;
+    }
     grantCharm("hoehyang"); // 처음 돌린 사람에게 회향부
     setCharms(loadCharms());
-    const l = giveMerit(merit.total - merit.given);
     setMerit(l);
-    setGaveMsg(`${to}에게 회향했습니다.`);
+    setLampList(lamps());
+    setGiveLeft(giveLeftToday());
+    setGaveMsg(`${to}에게 공덕 ${GIVE_UNIT}을 돌렸습니다 — 등 하나가 켜졌어요.`);
     window.setTimeout(() => setGaveMsg(""), 5000);
   };
 
@@ -871,6 +894,17 @@ export default function SettingsPage() {
                 style={{ width: `${(inRound(merit.total) / ROUND) * 100}%` }}
               />
             </div>
+
+            {/* 하루 천장 — 목탁만 천 번 두드려 연꽃을 따는 판이 되지 않게 */}
+            <p className="mt-2.5 text-[11px] leading-5 text-hanji-faint">
+              오늘 쌓은 공덕{" "}
+              <span className={room.left > 0 ? "text-hanji-dim" : "text-gold"}>
+                {room.earned.toLocaleString("ko-KR")}
+              </span>
+              {" / "}
+              {DAILY_TOTAL_CAP.toLocaleString("ko-KR")}
+              {room.left <= 0 && " — 오늘 몫이 찼어요. 내일 또 이어 가세요"}
+            </p>
           </div>
 
           {/* 무엇으로 쌓았나 */}
@@ -887,33 +921,115 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* 회향 — 대승의 자리. 준다고 줄어들지 않는다 */}
+          {/* ── 회향(廻向) ──
+              내 것은 줄지 않는다(대승의 셈). 대신 하루 세 번뿐이고,
+              돌린 만큼 앞으로 쌓는 공덕이 빨라진다 — 나눌수록 커진다. */}
           <div className="mt-5 rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-4">
-            <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
-              쌓은 공덕은 <span className="text-hanji">남에게 돌릴 수</span> 있어요.
-              나눠도 내 공덕은 줄지 않습니다 — 그게 회향(廻向)이에요.
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+                廻向 · 회향
+              </p>
+              <p className="text-[11px] text-hanji-faint">
+                오늘 <span className="text-gold">{giveLeft}</span>/{GIVE_PER_DAY}번
+              </p>
+            </div>
+            <p className="mt-2.5 break-keep text-[12.5px] leading-6 text-hanji-dim">
+              한 번에 공덕 <span className="text-hanji">{GIVE_UNIT}</span>을 남에게
+              돌립니다. <span className="text-hanji">내 공덕은 줄지 않습니다</span> —
+              촛불로 촛불을 붙여도 내 불은 그대로인 것과 같습니다.
+              <br />
+              대신 돌린 만큼 앞으로 쌓는 공덕이 빨라집니다.
             </p>
+
             <div className="mt-3 flex flex-wrap gap-2">
               {["모든 중생", "아픈 이", "먼저 가신 분", "오늘 만날 사람"].map((t) => (
                 <button
                   key={t}
                   onClick={() => give(t)}
-                  disabled={merit.total <= merit.given}
+                  disabled={giveLeft <= 0}
                   className="rounded-full border border-gold/45 px-3.5 py-1.5 text-[12px] text-gold transition-colors hover:bg-gold/10 disabled:border-ink-3 disabled:text-hanji-faint"
                 >
                   {t}에게
                 </button>
               ))}
             </div>
-            {merit.given > 0 && (
-              <p className="mt-3 text-[11.5px] text-hanji-faint">
-                지금까지 회향한 공덕 {merit.given.toLocaleString("ko-KR")}
-              </p>
-            )}
+
+            {/* 이름을 적어 돌린다 — 마음에 둔 사람이 있으면 그 이름으로 */}
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                value={giveTo}
+                onChange={(e) => setGiveTo(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && giveTo.trim() && giveLeft > 0) {
+                    give(giveTo.trim());
+                    setGiveTo("");
+                  }
+                }}
+                maxLength={24}
+                placeholder="이름을 적어 돌리기"
+                aria-label="회향할 이름"
+                className="min-w-0 flex-1 rounded-lg border border-ink-3 bg-ink/40 px-3 py-2 text-[13px] text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/50"
+              />
+              <button
+                onClick={() => {
+                  if (!giveTo.trim() || giveLeft <= 0) return;
+                  give(giveTo.trim());
+                  setGiveTo("");
+                }}
+                disabled={!giveTo.trim() || giveLeft <= 0}
+                className="shrink-0 rounded-full border border-gold/45 px-4 py-2 text-[12px] text-gold transition-colors hover:bg-gold/15 disabled:border-ink-3 disabled:text-hanji-faint"
+              >
+                돌리다
+              </button>
+            </div>
+
             {gaveMsg && (
-              <p className="mt-2 break-keep text-[12px] leading-6 text-gold-soft">
+              <p className="mt-3 break-keep text-[12px] leading-6 text-gold-soft">
                 {gaveMsg}
               </p>
+            )}
+
+            {merit.given > 0 && (
+              <p className="mt-3 border-t border-ink-3 pt-3 text-[11.5px] leading-5 text-hanji-faint">
+                지금까지 돌린 공덕{" "}
+                <span className="text-hanji">{merit.given.toLocaleString("ko-KR")}</span>
+                {" · "}
+                적립 배수{" "}
+                <span className="text-gold">
+                  ×{giveBonus(merit as never).toFixed(2)}
+                </span>
+              </p>
+            )}
+
+            {/* 밝혀 둔 등 — 누구에게 돌렸는지 남는다 */}
+            {lampList.length > 0 && (
+              <details className="group mt-2">
+                <summary className="flex cursor-pointer list-none items-center justify-between text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-hanji-dim [&::-webkit-details-marker]:hidden">
+                  <span>밝혀 둔 등</span>
+                  <span className="font-serif text-[13px] text-gold-soft">
+                    {lampList.length}
+                  </span>
+                </summary>
+                <ul className="mt-2.5 flex flex-col gap-1.5">
+                  {lampList.slice(0, 12).map((l) => (
+                    <li
+                      key={l.at}
+                      className="flex items-baseline justify-between gap-3 text-[12px]"
+                    >
+                      <span className="min-w-0 truncate text-hanji-dim">
+                        <span className="mr-1.5 text-gold-soft">燈</span>
+                        {l.to}
+                      </span>
+                      <span className="shrink-0 text-[10.5px] tabular-nums text-hanji-faint">
+                        {new Date(l.at).toLocaleDateString("ko-KR", {
+                          month: "numeric",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
             )}
           </div>
         </div>

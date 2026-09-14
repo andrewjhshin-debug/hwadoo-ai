@@ -240,7 +240,10 @@ export function addMerit(
 ): { total: number; gained: number; crossed: boolean; round: number } {
   // 부적이 붙이는 몫 — 가진 부적과 등급만큼 공덕이 불어난다.
   // 서버에서는 서랍이 비어 있어 1 이 나온다(곱해도 그대로).
-  const raw = Math.round(MERIT_VALUE[source] * times * meritMultiplier(source));
+  // 부적 배수 × 회향 배수 — 나눌수록 빨라진다
+  const raw = Math.round(
+    MERIT_VALUE[source] * times * meritMultiplier(source) * giveBonus()
+  );
   // 하루 천장 — 넘치는 몫은 쌓이지 않는다(소리도 셈도 그대로 나간다)
   const gained = Math.max(0, Math.min(raw, roomToday(source)));
   const l = loadMerit();
@@ -295,12 +298,100 @@ export function spendMerit(n: number): boolean {
   return true;
 }
 
-/** 남에게 돌린다 — 대승의 자리. 총합은 줄지 않고, 준 몫이 따로 쌓인다 */
-export function giveMerit(n: number): MeritLedger {
+// ── 회향(廻向) — 돌려 향하게 하다 ───────────────────────────
+//
+// 교리로는 내 공덕이 줄지 않는다. 촛불로 촛불을 붙여도 내 불은 그대로다.
+// 그런데 그것만으로는 **아무 일도 안 일어나는 단추**가 된다 —
+// 안 줄고, 받는 이도 없고, 나한테 돌아오는 것도 없으니 누를 이유가 없다.
+//
+// 그래서 셋을 붙였다 —
+//   · 값이 있다   한 번에 108(백팔번뇌 한 바퀴). 아무 때나 누르는 게 아니다.
+//   · 비용이 있다 공덕이 아니라 **횟수**. 하루 세 번. 교리는 지키고 남발은 막는다.
+//   · 돌아온다   돌린 만큼 내 적립이 빨라진다(108마다 +2%, 최대 +20%).
+//                "나눌수록 커진다"를 말이 아니라 숫자로 만든 자리.
+// 누구에게 돌렸는지는 등(燈)처럼 남겨 둔다 — 이름을 적으면 그 이름으로.
+
+/** 한 번 돌리는 몫 */
+export const GIVE_UNIT = 108;
+
+/** 하루에 돌릴 수 있는 횟수 */
+export const GIVE_PER_DAY = 3;
+
+export const GIVE_KEY = "hwadu.give.v1";
+
+export type Lamp = { at: number; to: string; merit: number };
+
+function loadLamps(): Lamp[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(GIVE_KEY);
+    if (!raw) return [];
+    const p = JSON.parse(raw) as unknown;
+    if (!Array.isArray(p)) return [];
+    return p
+      .filter(
+        (x): x is Lamp =>
+          !!x &&
+          typeof (x as Lamp).at === "number" &&
+          typeof (x as Lamp).to === "string" &&
+          typeof (x as Lamp).merit === "number"
+      )
+      .slice(-200);
+  } catch {
+    return [];
+  }
+}
+
+/** 밝혀 둔 등 — 최근 것이 앞에 온다 */
+export function lamps(): Lamp[] {
+  return [...loadLamps()].reverse();
+}
+
+/** 오늘 몇 번 돌렸는가 */
+export function gaveToday(): number {
+  const today = visitDayKey();
+  return loadLamps().filter((l) => dayOf(l.at) === today).length;
+}
+
+/** 오늘 더 돌릴 수 있는 횟수 */
+export function giveLeftToday(): number {
+  return Math.max(0, GIVE_PER_DAY - gaveToday());
+}
+
+function dayOf(at: number): string {
+  const d = new Date(at);
+  const q = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${q(d.getMonth() + 1)}-${q(d.getDate())}`;
+}
+
+/**
+ * 남에게 돌린다. 총합은 줄지 않는다 — 대신 하루 세 번뿐이다.
+ * 돌리면 등이 하나 켜지고, 앞으로 쌓는 공덕이 조금 빨라진다.
+ * 오늘 몫을 다 썼으면 아무 일도 일어나지 않는다(null).
+ */
+export function giveMerit(to: string, n: number = GIVE_UNIT): MeritLedger | null {
+  if (giveLeftToday() <= 0) return null;
   const l = loadMerit();
-  l.given += Math.max(0, Math.floor(n));
+  const give = Math.max(0, Math.floor(n));
+  l.given += give;
   save(l);
+  try {
+    const list = loadLamps();
+    list.push({ at: Date.now(), to: to.trim().slice(0, 24) || "모든 중생", merit: give });
+    window.localStorage.setItem(GIVE_KEY, JSON.stringify(list.slice(-200)));
+  } catch {
+    // 등을 못 적어도 회향은 이미 했다
+  }
   return l;
+}
+
+/**
+ * 회향으로 얻는 적립 배수 — 108 돌릴 때마다 2%, 최대 20%.
+ * 부적 배수와 곱해 쓴다.
+ */
+export function giveBonus(l: MeritLedger = loadMerit()): number {
+  const steps = Math.floor((l.given ?? 0) / GIVE_UNIT);
+  return 1 + Math.min(0.2, steps * 0.02);
 }
 
 // ── 진화(進化) — 공덕이 쌓이면 나무가 자란다 ───────────────────
