@@ -52,6 +52,8 @@ import {
 } from "@/lib/dm";
 import { TEMPLES } from "@/lib/pilgrimage";
 import { dongja } from "@/lib/dongja";
+import { grantCharm } from "@/lib/charm";
+import { addMerit } from "@/lib/merit";
 import { LotusMark } from "@/components/icons";
 import { useConfirm } from "@/components/Confirm";
 
@@ -510,7 +512,11 @@ export default function GatheringBoard({
         category,
       };
       if (editingId) await updateGathering(editingId, input);
-      else await createGathering(input);
+      else {
+        await createGathering(input);
+        addMerit("gathering");
+        grantCharm("inyeon"); // 첫 글을 올린 사람에게 인연부
+      }
       resetForm();
       refresh();
       goBack(); // 층을 걷으며 닫는다 — 고치기였다면 글로 돌아간다

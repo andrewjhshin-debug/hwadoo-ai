@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { dongja } from "@/lib/dongja";
 import { addMerit, loadMerit } from "@/lib/merit";
+import { grantCharm } from "@/lib/charm";
 import { buzz, strikeJukbi, strikeMoktak } from "@/lib/sound";
 
 const FULL = 108;
@@ -55,6 +56,7 @@ export default function BaePage() {
       }
       if (next >= FULL) {
         setDone(true);
+        grantCharm("jeongjin"); // 끝까지 간 사람에게 정진부
         setAuto(false);
         strikeMoktak(autoRef.current.vol); // 마침은 목탁으로
       }

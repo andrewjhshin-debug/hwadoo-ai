@@ -4,8 +4,8 @@
   "description": "모두가 AI에게 묻는 시대, 화두는 당신에게 묻는다.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#eceef1",
+  "theme_color": "#eceef1",
   "lang": "ko",
   "icons": [
     {

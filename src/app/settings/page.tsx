@@ -38,6 +38,7 @@ import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { BADGES } from "@/lib/badges";
 import { dongja } from "@/lib/dongja";
+import { CHARMS, charmSvg, grantCharm, loadCharms } from "@/lib/charm";
 import {
   giveMerit,
   inRound,
@@ -236,6 +237,7 @@ export default function SettingsPage() {
   // 공덕 — 도량에서 한 일이 모두 여기로 쌓인다
   const [merit, setMerit] = useState({ total: 0, by: {} as Partial<Record<MeritSource, number>>, given: 0 });
   const [gaveMsg, setGaveMsg] = useState("");
+  const [charms, setCharms] = useState<Record<string, number | undefined>>({});
   const [receivedCount, setReceivedCount] = useState(0);
   const [journalCount, setJournalCount] = useState(0);
   const [daysWith, setDaysWith] = useState(0);
@@ -329,10 +331,13 @@ export default function SettingsPage() {
   useEffect(() => {
     setBells(loadBellsLocal());
     setMerit(loadMerit());
+    setCharms(loadCharms());
   }, []);
 
   // 회향 — 쌓은 공덕을 남에게 돌린다. 총합은 줄지 않는다(대승의 셈).
   const give = (to: string) => {
+    grantCharm("hoehyang"); // 처음 돌린 사람에게 회향부
+    setCharms(loadCharms());
     const l = giveMerit(merit.total - merit.given);
     setMerit(l);
     setGaveMsg(`${to}에게 회향했습니다. 공덕은 줄지 않습니다 — 나눌수록 큽니다.`);
@@ -912,6 +917,37 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
+      </section>
+
+      {/* ── 부적 — 수행하다 얻는 노란 종이. 도량 벽에 건다 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+          부적 — 도량에 건 것
+        </p>
+        <div className="mt-4 grid grid-cols-3 gap-3 border-t border-ink-3 pt-5">
+          {CHARMS.map((c) => {
+            const got = !!charms[c.id];
+            return (
+              <div key={c.id} className="text-center">
+                <span
+                  className={`mx-auto block w-full max-w-[92px] transition-opacity ${
+                    got ? "" : "opacity-20 grayscale"
+                  }`}
+                  dangerouslySetInnerHTML={{ __html: charmSvg(c.id, "s" + c.id) }}
+                />
+                <p className="mt-1.5 text-[11.5px] text-hanji">
+                  {got ? c.name : "―"}
+                </p>
+                <p className="mt-0.5 break-keep text-[10.5px] leading-4 text-hanji-faint">
+                  {got ? c.wish : c.how}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-4 break-keep text-[11.5px] leading-6 text-hanji-faint">
+          부적은 팔지 않습니다. 해내면 그 자리에서 주어져요.
+        </p>
       </section>
 
       {/* ── 걸음 — 얻은 자리: 육도에서 빌린 이름, 회향이 쌓이면 오른다 ── */}

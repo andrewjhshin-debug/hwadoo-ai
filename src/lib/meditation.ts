@@ -5,12 +5,17 @@
 // 발자국 장부(VisitLedger)와 같은 결 — 계정이 바뀌면 함께 비운다.
 // ─────────────────────────────────────────────────────────────
 
+import { grantCharm } from "./charm";
+import { addMerit } from "./merit";
+
 export const MEDITATIONS_KEY = "hwadu.meditations.v1";
 // 최대 400회치 — 넘치면 오래된 것부터 버린다
 const MAX_MEDITATIONS = 400;
 
 // 한 판을 마쳤다 — 지금 시각을 적는다
 export function recordMeditation(t: number = Date.now()) {
+  addMerit("breath"); // 한 판에 공덕 21
+  grantCharm("ansim"); // 처음 마친 사람에게 안심부
   try {
     const list = loadMeditations();
     list.push(t);
