@@ -90,6 +90,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${serifKR.variable} ${sansKR.variable} h-full antialiased`}
     >
       <body className="flex h-dvh overflow-hidden">
+        {/* 첫 그리기 전에 저장된 색상 모드를 새긴다 — 밤/낮이 깜빡이지 않게.
+            열쇠는 lib/theme.ts 의 THEME_KEY 와 같아야 한다. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(localStorage.getItem('hwadoo-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}",
+          }}
+        />
         <ConfirmProvider>
         {/* 발자국 장부 — 화면에 아무것도 그리지 않고, 다녀간 날만 적는다 */}
         <VisitLedger />

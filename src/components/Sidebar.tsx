@@ -20,6 +20,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { User } from "firebase/auth";
 import { loadStore, type Session } from "@/lib/store";
 import { useHasNews } from "@/lib/notices";
+import { applyTheme } from "@/lib/theme";
 import { rankHanjaFor } from "@/lib/badges";
 import { isAdminAccount } from "@/lib/config";
 import {
@@ -102,6 +103,7 @@ export default function Sidebar() {
   const [loginBusy, setLoginBusy] = useState(false);
   const hasNews = useHasNews(); // 새 소식 — 점 하나로만 말한다
   const [dmUnread, setDmUnread] = useState(0); // 안 읽은 쪽지 — 봉투 위 점
+  const [light, setLight] = useState(false); // 낮(한지) ↔ 밤(먹빛)
 
   // 안 읽은 쪽지 살피기 — 로그인하면 이따금(90초) + 창에 돌아올 때 + 읽은 직후
   useEffect(() => {
@@ -131,7 +133,15 @@ export default function Sidebar() {
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
+    setLight(document.documentElement.dataset.theme === "light");
   }, []);
+
+  // 밤 ↔ 낮 — 문서에 새기고 장부에 적는다 (layout 의 첫 그리기 스크립트가 같은 열쇠를 읽는다)
+  const toggleTheme = () => {
+    const next = !light;
+    setLight(next);
+    applyTheme(next);
+  };
 
   const toggleCollapsed = () => {
     const next = !collapsed;
@@ -269,8 +279,25 @@ export default function Sidebar() {
             화두
           </span>
         </Link>
-        {/* 오른쪽 — 연꽃 상점 · 알림 · 테마 */}
+        {/* 오른쪽 — 밤/낮 · 연꽃 상점 · 쪽지 */}
         <div className="ml-auto flex items-center">
+          <button
+            onClick={toggleTheme}
+            aria-label={light ? "밤 모드로 바꾸기" : "낮 모드로 바꾸기"}
+            title={light ? "밤으로" : "낮으로"}
+            className="p-2 text-hanji-dim transition-colors hover:text-gold-soft"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+              {light ? (
+                <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z" />
+              ) : (
+                <>
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
+                </>
+              )}
+            </svg>
+          </button>
           <Link
             href="/lotus"
             onClick={go("/lotus")}
@@ -344,6 +371,26 @@ export default function Sidebar() {
                 />
               )}
             </Link>
+            {/* 밤 ↔ 낮 — 먹빛 도량과 한지 도량을 오간다 */}
+            <button
+              onClick={toggleTheme}
+              title={light ? "밤으로" : "낮으로"}
+              aria-label={light ? "밤 모드로 바꾸기" : "낮 모드로 바꾸기"}
+              className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                {light ? (
+                  /* 낮이면 달을 보여준다 — 누르면 밤으로 */
+                  <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z" />
+                ) : (
+                  /* 밤이면 해를 보여준다 — 누르면 낮으로 */
+                  <>
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
+                  </>
+                )}
+              </svg>
+            </button>
             <button
               onClick={toggleCollapsed}
               title={slim ? "펼치기" : "접기"}

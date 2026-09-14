@@ -51,6 +51,7 @@ import {
   type DmThread,
 } from "@/lib/dm";
 import { TEMPLES } from "@/lib/pilgrimage";
+import { dongja } from "@/lib/dongja";
 import { LotusMark } from "@/components/icons";
 import { useConfirm } from "@/components/Confirm";
 
@@ -1394,8 +1395,16 @@ export default function GatheringBoard({
             게시판이 잠시 닫혀 있습니다. 잠시 후 다시 들러 주세요.
           </li>
         ) : sorted.length === 0 ? (
-          <li className="px-4 py-4 break-keep text-[13px] leading-7 text-hanji-faint">
-            아직 글이 없습니다. 첫 글을 올려 보십시오.
+          <li className="flex flex-col items-center gap-3 px-4 py-12">
+            <span
+              className="block h-[104px] w-[104px] opacity-90"
+              dangerouslySetInnerHTML={{ __html: dongja("tilt", "empty") }}
+            />
+            <p className="break-keep text-center text-[13.5px] leading-7 text-hanji-dim">
+              아직 아무도 없네요.
+              <br />
+              첫 글을 올리면 제일 잘 보여요.
+            </p>
           </li>
         ) : (
           sorted.map((p) => (
