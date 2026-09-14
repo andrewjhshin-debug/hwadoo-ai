@@ -11,7 +11,8 @@
 // 장부는 이 브라우저에 적는다. 계정 동기화는 store 와 같은 결로 뒤에 잇는다.
 // ─────────────────────────────────────────────────────────────
 
-import { noteDaily } from "./daily";
+import { loadDaily, noteDaily } from "./daily";
+import { visitDayKey } from "@/components/VisitLedger";
 import { meritMultiplier } from "./charmPower";
 
 export const MERIT_KEY = "hwadu.merit.v1";
@@ -44,6 +45,73 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   daily: 54, // 오늘의 세 가지 — 반 바퀴
 };
 
+// ── 하루에 쌓을 수 있는 몫 ──────────────────────────────────
+// 목탁만 천 번 두드려 연꽃을 따 가는 판이 되면 안 된다. 그건 수행이
+// 아니라 노동이고, 우리가 파는 재화(연꽃)도 같이 죽는다.
+// 그래서 갈래마다 하루 천장을 두고, 하루 전체에도 천장을 둔다.
+// 천장에 닿아도 소리는 나고 셈은 오른다 — 공덕만 더 붙지 않는다.
+// 여러 가지를 고루 해야 하루치가 찬다. 그게 '오늘의 세 가지'의 결이다.
+
+/** 갈래마다 하루에 쌓을 수 있는 공덕 */
+export const DAILY_CAP: Record<MeritSource, number> = {
+  bow: 324, // 백팔배 한 번이면 찬다
+  moktak: 108, // 목탁 백여덟 번
+  bead: 108, // 염주 한 바퀴
+  breath: 63, // 호흡 세 판
+  hwadu: 216, // 화두는 하루 둘까지
+  temple: 108, // 절은 하루 두 곳까지
+  gathering: 27, // 인연 글·댓글 셋
+  sutra: 126, // 경전 여섯 마디
+  daily: 54, // 오늘의 세 가지 — 하루 한 번뿐
+};
+
+/** 하루 전체 천장 — 갈래 천장을 다 더한 것보다 낮게 잡는다 */
+export const DAILY_TOTAL_CAP = 540;
+
+/** 오늘 이 갈래로 얼마나 쌓았는지 (하루 장부의 횟수 × 갈래값) */
+function earnedToday(): { by: Partial<Record<MeritSource, number>>; sum: number } {
+  const book = loadDaily();
+  const by: Partial<Record<MeritSource, number>> = {};
+  let sum = 0;
+  for (const [k, times] of Object.entries(book.by)) {
+    if (k === "visit") continue;
+    const per = MERIT_VALUE[k as MeritSource];
+    if (!per || !times) continue;
+    const v = Math.min(DAILY_CAP[k as MeritSource] ?? 0, per * times);
+    by[k as MeritSource] = v;
+    sum += v;
+  }
+  return { by, sum };
+}
+
+/** 지금 이 갈래로 더 쌓을 수 있는 공덕 */
+export function roomToday(source: MeritSource): number {
+  const { by, sum } = earnedToday();
+  const perLeft = (DAILY_CAP[source] ?? 0) - (by[source] ?? 0);
+  const allLeft = DAILY_TOTAL_CAP - sum;
+  return Math.max(0, Math.min(perLeft, allLeft));
+}
+
+/** 오늘 쌓은 공덕과 남은 여지 — 화면이 '오늘 몫이 찼어요'를 말할 수 있게 */
+export function todayRoom(): { earned: number; cap: number; left: number } {
+  const { sum } = earnedToday();
+  return { earned: sum, cap: DAILY_TOTAL_CAP, left: Math.max(0, DAILY_TOTAL_CAP - sum) };
+}
+
+// ── 퇴전(退轉) — 닦지 않으면 흐려진다 ───────────────────────
+// 하루는 봐준다. 이틀째부터 깎이고, 비운 날이 길수록 더 크게 깎인다.
+// 천상도(10,800)에 앉았어도 두 주쯤 손을 놓으면 지옥도로 돌아온다.
+//   2일 4% · 3일 8% · 4일 12% … 7일 이상 25% (하루당)
+// 최소 한 줌(54)은 늘 깎아, 적게 쌓은 사람도 멈춰 있지 않게 한다.
+
+/** 비운 날수에 따른 하루 감쇠율 */
+function decayRate(missed: number): number {
+  return Math.min(0.25, 0.04 * (missed - 1));
+}
+
+/** 하루 최소 감쇠 — 반 바퀴의 반 */
+const DECAY_FLOOR = 54;
+
 export type MeritLedger = {
   total: number;
   /** 갈래별 누적 — 무엇으로 쌓았는지 되돌아볼 수 있게 */
@@ -53,11 +121,28 @@ export type MeritLedger = {
   /** 연꽃으로 바꾸며 쓴 공덕 — 총합은 그대로 두고 잔고에서만 뺀다.
       쓴다고 자리가 내려가면 아무도 안 쓴다. */
   spent?: number;
+  /** 마지막으로 공덕이 움직인 날 (YYYY-MM-DD) — 퇴전을 셈하는 기준 */
+  day?: string;
+  /** 퇴전으로 깎인 누계 */
+  faded?: number;
+  /** 이번에 흐려진 몫 — 한 번 보여 주고 다음 정진에서 지운다 */
+  lastFade?: number;
+  /** 며칠 쉬었는가 */
+  lastGap?: number;
 };
 
-const EMPTY: MeritLedger = { total: 0, by: {}, given: 0, spent: 0 };
+const EMPTY: MeritLedger = {
+  total: 0,
+  by: {},
+  given: 0,
+  spent: 0,
+  day: "",
+  faded: 0,
+  lastFade: 0,
+  lastGap: 0,
+};
 
-export function loadMerit(): MeritLedger {
+function readRaw(): MeritLedger {
   if (typeof window === "undefined") return { ...EMPTY };
   try {
     const raw = window.localStorage.getItem(MERIT_KEY);
@@ -68,16 +153,78 @@ export function loadMerit(): MeritLedger {
       by: p.by && typeof p.by === "object" ? p.by : {},
       given: typeof p.given === "number" && p.given > 0 ? Math.floor(p.given) : 0,
       spent: typeof p.spent === "number" && p.spent > 0 ? Math.floor(p.spent) : 0,
+      day: typeof p.day === "string" ? p.day : "",
+      faded: typeof p.faded === "number" && p.faded > 0 ? Math.floor(p.faded) : 0,
+      lastFade: typeof p.lastFade === "number" && p.lastFade > 0 ? Math.floor(p.lastFade) : 0,
+      lastGap: typeof p.lastGap === "number" && p.lastGap > 0 ? Math.floor(p.lastGap) : 0,
     };
   } catch {
     return { ...EMPTY };
   }
 }
 
-function save(l: MeritLedger) {
+/** 두 날 사이의 날수 */
+function daysBetween(a: string, b: string): number {
+  const x = Date.parse(`${a}T00:00:00Z`);
+  const y = Date.parse(`${b}T00:00:00Z`);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return 0;
+  return Math.max(0, Math.round((y - x) / 86400000));
+}
+
+/**
+ * 장부를 읽는다. 읽는 김에 **퇴전을 셈한다** —
+ * 마지막으로 움직인 날로부터 이틀 넘게 비었으면 그만큼 깎아 적는다.
+ * 읽을 때마다 하므로 따로 도는 시계가 필요 없다.
+ */
+export function loadMerit(): MeritLedger {
+  const l = readRaw();
+  if (typeof window === "undefined") return l;
+
+  const today = visitDayKey();
+  if (!l.day) {
+    // 옛 장부 — 오늘부터 센다. 소급해서 깎지 않는다.
+    if (l.total > 0) {
+      l.day = today;
+      save(l, false);
+    }
+    return l;
+  }
+  const gap = daysBetween(l.day, today);
+  if (gap < 2 || l.total <= 0) return l;
+
+  // 하루는 봐준다 — 이틀째부터 하루씩 깎아 내려간다
+  let t = l.total;
+  let cut = 0;
+  for (let d = 2; d <= gap; d++) {
+    const bite = Math.max(DECAY_FLOOR, Math.round(t * decayRate(d)));
+    const step = Math.min(t, bite);
+    t -= step;
+    cut += step;
+    if (t <= 0) break;
+  }
+  if (cut <= 0) return l;
+
+  l.total = Math.max(0, t);
+  l.faded = (l.faded ?? 0) + cut;
+  l.lastFade = cut;
+  l.lastGap = gap;
+  // 쓴 몫이 남은 몫보다 커지지 않게 — 잔고가 음수로 뒤집히지 않도록
+  if ((l.spent ?? 0) > l.total) l.spent = l.total;
+  l.day = today;
+  save(l, false);
+  return l;
+}
+
+/** 마지막 갈무리 뒤로 흐려진 공덕 — 화면이 한 줄로 알린다 */
+export function fadedSoFar(l: MeritLedger = loadMerit()): number {
+  return l.faded ?? 0;
+}
+
+function save(l: MeritLedger, shout = true) {
   try {
     window.localStorage.setItem(MERIT_KEY, JSON.stringify(l));
-    window.dispatchEvent(new CustomEvent(MERIT_EVENT));
+    // 퇴전 갈무리는 조용히 적는다 — 읽는 도중에 다시 읽히면 끝이 없다
+    if (shout) window.dispatchEvent(new CustomEvent(MERIT_EVENT));
   } catch {
     // 못 적어도 수행은 이어진다
   }
@@ -93,11 +240,16 @@ export function addMerit(
 ): { total: number; gained: number; crossed: boolean; round: number } {
   // 부적이 붙이는 몫 — 가진 부적과 등급만큼 공덕이 불어난다.
   // 서버에서는 서랍이 비어 있어 1 이 나온다(곱해도 그대로).
-  const gained = Math.round(MERIT_VALUE[source] * times * meritMultiplier(source));
+  const raw = Math.round(MERIT_VALUE[source] * times * meritMultiplier(source));
+  // 하루 천장 — 넘치는 몫은 쌓이지 않는다(소리도 셈도 그대로 나간다)
+  const gained = Math.max(0, Math.min(raw, roomToday(source)));
   const l = loadMerit();
   const before = l.total;
   l.total = before + gained;
-  l.by[source] = (l.by[source] ?? 0) + gained;
+  if (gained > 0) l.by[source] = (l.by[source] ?? 0) + gained;
+  l.day = visitDayKey(); // 오늘 움직였다 — 퇴전 시계를 다시 감는다
+  l.lastFade = 0; // 흐려진 몫은 한 번 보여 주면 지운다
+  l.lastGap = 0;
   save(l);
   // 하루치도 같이 적는다 — 오늘의 세 가지가 이 셈을 읽는다.
   // 상 자체(daily)는 하루치에 넣지 않는다. 상이 상을 낳으면 안 된다.
@@ -111,10 +263,15 @@ export function addMerit(
 }
 
 // ── 연꽃으로 바꾸기 ────────────────────────────────────────
-// 연꽃은 천 원에 파는 재화다. 공덕은 공짜로 쌓이니 환율을 크게 잡아야
-// 파는 쪽이 죽지 않는다. 백팔의 쉰 배 — 백팔배로 치면 열여섯 번쯤.
-// 열심히 해서 한 주에 한 송이. 그쯤이라야 바꾸는 맛이 난다.
-export const LOTUS_PRICE = 5400;
+// 연꽃은 천 원에 파는 재화다. 예전엔 환율만 크게 잡아 막으려 했는데,
+// 그러면 목탁을 천 번 두드리는 사람이 생긴다. 천 원 벌자고 그 짓을
+// 하게 만드는 건 수행 앱이 할 일이 아니다.
+//
+// 그래서 막는 자리를 바꿨다 — **하루에 쌓을 수 있는 공덕에 천장(540)을**
+// 두고, 환율은 그 천장 기준으로 잡는다. 백팔의 서른 배 —
+// 하루를 꽉 채워도 엿새, 사람이 사는 대로면 열흘쯤에 한 송이.
+// 더 하고 싶어도 더 못 쌓으니 갈아 넣을 일이 없다.
+export const LOTUS_PRICE = 3240;
 
 /** 지금 쓸 수 있는 공덕 — 쌓은 것에서 쓴 것을 뺀다 */
 export function meritBalance(l: MeritLedger = loadMerit()): number {

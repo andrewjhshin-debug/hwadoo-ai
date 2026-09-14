@@ -13,15 +13,14 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Dudu from "@/components/Dudu";
-import { FACE_BY_ID, loadMe, ME_EVENT } from "@/lib/me";
+import { FACE_BY_ID, loadMe, ME_EVENT, NAME_MAX, setName } from "@/lib/me";
+import { nextRealm, realmOf, realmProgress } from "@/lib/realm";
 import {
   addMerit,
   loadMerit,
   MERIT_EVENT,
-  nextRank,
   rankOf,
   stageOf,
-  stageProgress,
 } from "@/lib/merit";
 import {
   allDone,
@@ -70,9 +69,16 @@ export default function DailyPractice() {
   const [streak, setStreak] = useState(0);
   const [got, setGot] = useState(0); // 방금 받은 상
   const [me, setMe] = useState<ReturnType<typeof loadMe>>(null);
+  const [fade, setFade] = useState({ cut: 0, gap: 0 });
+  // 법명 고쳐 쓰기
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [nameErr, setNameErr] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
-    setTotal(loadMerit().total);
+    const m = loadMerit();
+    setTotal(m.total);
+    setFade({ cut: m.lastFade ?? 0, gap: m.lastGap ?? 0 });
     setStreak(streakOf());
     setBook(loadDaily());
     setMe(loadMe());
@@ -94,9 +100,17 @@ export default function DailyPractice() {
   if (!book) return <div className="h-[320px]" aria-hidden />;
 
   const rank = rankOf(total);
-  const next = nextRank(total);
   const stage = stageOf(total);
-  const pct = Math.round(stageProgress(total) * 100);
+  // 계급은 육도다 — 나무 자리는 그 곁에 작게 붙는다
+  const realm = realmOf(total);
+  const up = nextRealm(total);
+  const pct = Math.round(realmProgress(total) * 100);
+
+  const saveName = () => {
+    const bad = setName(draft);
+    setNameErr(bad);
+    if (!bad) setEditing(false);
+  };
 
   const missions = missionsOf(book.day);
   const done = missions.filter((m) => doneOf(m, book) >= m.need).length;
@@ -128,16 +142,53 @@ export default function DailyPractice() {
             <Dudu stage={stage} uid="doryang" className="h-[92px] w-[92px] shrink-0" />
           )}
           <div className="min-w-0 flex-1">
-            <p className="flex items-baseline gap-2">
-              <span className="font-serif text-[20px] leading-none text-hanji">
-                {me ? me.name : "나무"}
-              </span>
-              <span className="text-[12.5px] text-gold">
-                {rank.hanja} · {rank.name}
-              </span>
-            </p>
+            {/* 법명 — 눌러 고친다 */}
+            {editing ? (
+              <div className="flex items-center gap-2">
+                <input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveName();
+                    if (e.key === "Escape") setEditing(false);
+                  }}
+                  maxLength={NAME_MAX}
+                  autoFocus
+                  aria-label="법명"
+                  className="min-w-0 flex-1 rounded-lg border border-gold/45 bg-ink/50 px-2.5 py-1.5 font-serif text-[17px] text-hanji outline-none focus:border-gold"
+                />
+                <button
+                  onClick={saveName}
+                  className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-[11.5px] text-gold transition-colors hover:bg-gold/15"
+                >
+                  짓다
+                </button>
+              </div>
+            ) : (
+              <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <button
+                  onClick={() => {
+                    setDraft(me?.name ?? "");
+                    setNameErr(null);
+                    setEditing(true);
+                  }}
+                  title="법명 고치기"
+                  className="font-serif text-[20px] leading-none text-hanji transition-colors hover:text-gold"
+                >
+                  {me ? me.name : "나무"}
+                  <span className="ml-1.5 align-middle text-[11px] text-hanji-faint">
+                    고쳐쓰기
+                  </span>
+                </button>
+                <span className="text-[11.5px] text-hanji-faint">
+                  {rank.hanja} · {rank.name}
+                </span>
+              </p>
+            )}
+            {nameErr && <p className="mt-1 text-[11px] text-vermilion">{nameErr}</p>}
+
             <p className="mt-1.5 break-keep text-[11.5px] leading-5 text-hanji-faint">
-              {rank.say}
+              {realm.say}
             </p>
             <div className="mt-2.5 h-[6px] overflow-hidden rounded-full bg-ink-3">
               <div
@@ -146,12 +197,40 @@ export default function DailyPractice() {
               />
             </div>
             <p className="mt-1.5 text-[10.5px] text-hanji-faint">
-              {next
-                ? `${next.rank.name}까지 공덕 ${next.left.toLocaleString("ko-KR")}`
-                : "끝자리 — 물음표가 광배가 되었어요"}
+              {up
+                ? `${up.to.name}까지 공덕 ${up.left.toLocaleString("ko-KR")}`
+                : "가장 높은 자리 — 쉬면 가장 빨리 흐려집니다"}
             </p>
           </div>
+
+          {/* 육도 — 지금 내 계급. 프로필 오른쪽에 크게 세운다 */}
+          <Link
+            href="/rank"
+            title={`${realm.name} · 육도 랭킹으로`}
+            className="flex shrink-0 flex-col items-center gap-1.5"
+          >
+            <span
+              className={`grid h-12 w-12 place-items-center rounded-full font-serif text-[22px] leading-none transition-colors ${
+                realm.id === "cheonsang"
+                  ? "bg-gold text-ink"
+                  : "border border-gold/35 text-gold-soft hover:border-gold/70"
+              }`}
+            >
+              {realm.mark}
+            </span>
+            <span className="text-[10.5px] leading-none text-hanji-faint">
+              {realm.name}
+            </span>
+          </Link>
         </div>
+
+        {/* ── 퇴전 ── 쉬었는데 아무 말도 안 하면 숫자가 줄어든 까닭을 모른다 */}
+        {fade.cut > 0 && (
+          <p className="mt-3.5 break-keep rounded-[10px] border border-vermilion/35 bg-vermilion/[0.07] px-3.5 py-2.5 text-[11.5px] leading-5 text-hanji-dim">
+            {fade.gap}일 쉬는 동안 공덕 {fade.cut.toLocaleString("ko-KR")}이 흐려졌어요 —
+            닦지 않으면 흐려집니다(退轉). 오늘 한 가지만 해도 멈춥니다.
+          </p>
+        )}
 
         {/* ── 이어 온 날 ── */}
         <div className="mt-4 flex items-center gap-2 border-t border-ink-3 pt-3.5">

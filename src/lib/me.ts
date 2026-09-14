@@ -8,6 +8,10 @@
 // 얼굴은 둘 중 하나를 고른다 —
 //   나무(南無) 산에 사는 쪽 · 무(無) 도시에 사는 쪽.
 // 안 고르면 법명에서 갈라 정해 준다(같은 사람은 늘 같은 얼굴).
+//
+// 법명은 처음에 하나 받아 두되, **직접 고쳐 쓸 수 있다** —
+// 받은 이름이 마음에 안 드는데 평생 그걸로 살라는 건 산문의 법도가
+// 아니라 그냥 불편이다. 대신 한 번 고치면 그 이름으로 남에게 보인다.
 // ─────────────────────────────────────────────────────────────
 
 import { ANON_NAMES } from "./anonName";
@@ -40,6 +44,22 @@ export const FACE_BY_ID: Record<FaceId, (typeof FACES)[number]> = Object.fromEnt
 
 type Me = { name: string; face: FaceId; at: number };
 
+/** 법명으로 쓸 수 있는 글자와 길이 */
+export const NAME_MAX = 8;
+
+/**
+ * 쓸 만한 법명인가 — 한글·한자·영문·숫자만, 두 자 이상 여덟 자 이하.
+ * 안 되면 까닭을 돌려준다(없으면 통과).
+ */
+export function nameProblem(raw: string): string | null {
+  const v = raw.trim();
+  if (v.length < 2) return "두 자 이상으로 지어 주세요";
+  if (v.length > NAME_MAX) return `${NAME_MAX}자 이하로 지어 주세요`;
+  if (!/^[가-힣ㄱ-ㆎ一-鿿 A-Za-z0-9]+$/.test(v))
+    return "한글·한자·영문·숫자만 쓸 수 있어요";
+  return null;
+}
+
 function pick(): Me {
   const name = ANON_NAMES[Math.floor(Math.random() * ANON_NAMES.length)];
   // 얼굴은 법명에서 갈라 정한다 — 고르지 않아도 사람마다 갈리게
@@ -71,7 +91,22 @@ export function loadMe(): Me | null {
   }
 }
 
-/** 얼굴만 바꾼다 — 법명은 바꾸지 않는다 */
+/** 법명을 고쳐 쓴다. 쓸 수 없는 이름이면 까닭을 돌려준다 */
+export function setName(raw: string): string | null {
+  const bad = nameProblem(raw);
+  if (bad) return bad;
+  const me = loadMe();
+  if (!me) return "지금은 이름을 적을 수 없어요";
+  try {
+    window.localStorage.setItem(ME_KEY, JSON.stringify({ ...me, name: raw.trim() }));
+    window.dispatchEvent(new CustomEvent(ME_EVENT));
+  } catch {
+    return "적지 못했어요 — 저장 공간을 확인해 주세요";
+  }
+  return null;
+}
+
+/** 얼굴만 바꾼다 */
 export function setFace(face: FaceId) {
   const me = loadMe();
   if (!me) return;
