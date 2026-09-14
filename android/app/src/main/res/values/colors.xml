@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 낮 팔레트 — 은은한 회색 바탕, 불교 금 포인트 -->
+    <color name="colorPrimary">#ECEEF1</color>
+    <color name="colorPrimaryDark">#ECEEF1</color>
+    <color name="colorAccent">#DDA01C</color>
+    <color name="splashBackground">#ECEEF1</color>
+</resources>

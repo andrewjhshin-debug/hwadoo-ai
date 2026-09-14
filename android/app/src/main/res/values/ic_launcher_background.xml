@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 적응형 아이콘 바탕 — 먹빛. 금빛 연꽃이 그 위에 앉는다 -->
+    <color name="ic_launcher_background">#0D0B09</color>
+</resources>

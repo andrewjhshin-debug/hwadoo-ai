@@ -1,0 +1,77 @@
+# 안드로이드 설치 파일 만들기 — 이 PC 에 자바·안드로이드 SDK 를 깔지 않아도
+# 깃허브 서버가 대신 빌드한다. Actions 탭에서 [Run workflow] 를 누르면
+# 끝난 뒤 아래 Artifacts 에 파일이 올라온다.
+#
+#   hwadu-release-aab  → 플레이 스토어에 올리는 파일 (심사용)
+#   hwadu-debug-apk    → 폰에 바로 설치해 보는 파일 (심사 없이 시험용)
+#
+# 서명 열쇠는 저장소에 두지 않는다. Settings > Secrets and variables >
+# Actions 에 네 가지를 넣어 두면 릴리스가 서명된다:
+#   ANDROID_KEYSTORE_BASE64 · ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_ALIAS · ANDROID_KEY_PASSWORD
+# (없으면 서명 없는 파일이 나온다 — 시험 설치는 되지만 스토어 업로드는 불가)
+
+name: android
+
+on:
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: "버전 이름 (예: 1.0.0)"
+        required: false
+        default: "1.0.0"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 웹 자산을 안드로이드로 옮기기
+        run: npx cap sync android
+
+      - name: 서명 열쇠 꺼내기
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > $RUNNER_TEMP/keystore.jks
+
+      - name: 시험 설치용 APK
+        working-directory: android
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+
+      - name: 스토어 업로드용 AAB
+        working-directory: android
+        env:
+          HWADU_VERSION_CODE: ${{ github.run_number }}
+          HWADU_VERSION_NAME: ${{ inputs.versionName }}
+          HWADU_KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && format('{0}/keystore.jks', runner.temp) || '' }}
+          HWADU_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          HWADU_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          HWADU_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: 폰에 바로 설치할 파일
+        uses: actions/upload-artifact@v4
+        with:
+          name: hwadu-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+
+      - name: 플레이 스토어에 올릴 파일
+        uses: actions/upload-artifact@v4
+        with:
+          name: hwadu-release-aab
+          path: android/app/build/outputs/bundle/release/*.aab
