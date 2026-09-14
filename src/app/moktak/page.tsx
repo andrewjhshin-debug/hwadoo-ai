@@ -21,7 +21,7 @@ import { MOKTAK_SVG } from "./moktakSvg";
 import Dudu from "@/components/Dudu";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
-import { buzz, clickBead, strikeMoktak } from "@/lib/sound";
+import { buzz, clickBead, strikeMoktak, warmMoktak } from "@/lib/sound";
 
 const BEADS = 108;
 const RING = 36; // 고리에 걸린 알 수 — 세 바퀴가 곧 백팔
@@ -73,6 +73,7 @@ export default function MoktakPage() {
 
   // 하루 장부에서 오늘치를 이어받는다
   useEffect(() => {
+    warmMoktak(); // 음원을 미리 받아 둔다 — 첫 타가 늦지 않게
     const b = loadDaily();
     setMerit(loadMerit().total);
     setHits(b.by.moktak ?? 0);

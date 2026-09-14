@@ -103,10 +103,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* 발자국 장부 — 화면에 아무것도 그리지 않고, 다녀간 날만 적는다 */}
         <VisitLedger />
         <Sidebar />
-        <div className="obang-aura flex flex-1 flex-col overflow-x-hidden overflow-y-auto pt-16 pb-[76px] md:pb-0 md:pt-0">
-          {/* 본문은 내용만큼 자란다 — 넘치면 바깥(.obang-aura)이 스크롤한다.
-              min-h-0 을 주면 본문이 줄어들어 아래 띠 위로 삐져나온다. */}
-          <main className="flex min-h-full flex-1 flex-col">{children}</main>
+        <div className="obang-aura flex-1 overflow-x-hidden overflow-y-auto pt-16 pb-[76px] md:pb-0 md:pt-0">
+          {/* 본문은 적어도 한 화면을 채운다 — 그래야 아래 띠(사업자 표기)가
+              첫 화면에 끼어들지 않고, 내려야 나온다.
+              min-h-full 은 스크롤 통의 **블록** 자식에서만 안전하다 —
+              flex 항목에 바로 주면 높이가 접혀 본문과 띠가 겹친다. */}
+          <div className="flex min-h-full flex-col">
+            <main className="flex flex-1 flex-col">{children}</main>
+          </div>
           {/* 아래 띠 — 전자상거래법상 사업자 표기는 모바일에서도 닿아야 한다.
               스크롤 컨테이너 안이라 탭 바 위에서 끝난다(컨테이너 pb-[76px]). */}
           <footer className="border-t border-ink-3 px-6 py-5">
@@ -130,13 +134,30 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 문의
               </a>
             </nav>
-            {/* 사업자 정보 — 전자상거래법상 표기 의무 */}
-            <p className="mt-4 text-center text-[10.5px] leading-6 text-hanji-faint">
-              {BIZ_NAME} · 대표 {BIZ_OWNER} · 사업자등록번호 {BIZ_REG_NO} ·
-              통신판매업신고 {BIZ_MAIL_ORDER_NO}
-              <br />
-              {BIZ_ADDRESS} · 연락처 {BIZ_PHONE ?? CONTACT_EMAIL}
-            </p>
+            {/* 사업자 정보 — 전자상거래법 제10조는 초기화면에서 '볼 수 있게'
+                하라고 한다. 한 줄로 접어 두고 누르면 펴지게 하면 그 요건을
+                지키면서도 화면은 서비스만 보인다(대부분의 상거래 사이트 방식). */}
+            <details className="group mt-4">
+              <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-1.5 text-[10.5px] text-hanji-faint transition-colors hover:text-hanji-dim [&::-webkit-details-marker]:hidden">
+                사업자 정보
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  aria-hidden
+                  className="h-3 w-3 transition-transform group-open:rotate-180"
+                >
+                  <path d="M6 9.5 12 15.5 18 9.5" />
+                </svg>
+              </summary>
+              <p className="mt-2.5 text-center text-[10.5px] leading-6 text-hanji-faint">
+                {BIZ_NAME} · 대표 {BIZ_OWNER} · 사업자등록번호 {BIZ_REG_NO} ·
+                통신판매업신고 {BIZ_MAIL_ORDER_NO}
+                <br />
+                {BIZ_ADDRESS} · 연락처 {BIZ_PHONE ?? CONTACT_EMAIL}
+              </p>
+            </details>
             <p className="mt-3 text-center text-[11px] tracking-widest text-hanji-faint">
               © {new Date().getFullYear()} {SITE_NAME} · 물음은 오래된 것, 답은
               나의 것

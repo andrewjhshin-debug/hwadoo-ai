@@ -848,39 +848,6 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ── 뒷방 — 관리자에게만 보이는 도량 살림 카드 ── */}
-      {isAdminAccount(user) && (
-        <section className="rise mt-6">
-          <div className="rounded-[14px] border border-gold/40 bg-gold/5 px-6 py-6 sm:px-7">
-            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-4">
-              <div>
-                <p className="font-serif text-[17px] font-light tracking-wider text-gold">
-                  뒷방 — 도량 살림
-                </p>
-                <p className="mt-2 text-[12px] leading-6 tracking-wider text-hanji-dim">
-                  {pendingCount === null ? (
-                    "던져진 물음을 살피는 중…"
-                  ) : pendingCount > 0 ? (
-                    <>
-                      승인을 기다리는 화두{" "}
-                      <span className="text-gold">{pendingCount}</span>건
-                    </>
-                  ) : (
-                    "기다리는 물음이 없습니다"
-                  )}
-                </p>
-              </div>
-              <Link
-                href="/admin"
-                className="btn-obang inline-flex items-center px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
-              >
-                들어가기
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* ── 공덕(功德) — 쌓고, 남에게 돌린다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
@@ -1715,6 +1682,41 @@ export default function SettingsPage() {
       </section>
 
       </Fold>
+
+      {/* ── 뒷방 — 맨 아래에 둔다.
+           관리자도 위에서부터는 다른 사람과 같은 내 도량을 본다.
+           살림은 끝에 한 칸 ── 그게 뒷방이다. ── */}
+      {isAdminAccount(user) && (
+        <section className="rise mt-6">
+          <div className="rounded-[14px] border border-gold/40 bg-gold/5 px-6 py-6 sm:px-7">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-4">
+              <div>
+                <p className="font-serif text-[17px] font-light tracking-wider text-gold">
+                  뒷방 — 도량 살림
+                </p>
+                <p className="mt-2 text-[12px] leading-6 tracking-wider text-hanji-dim">
+                  {pendingCount === null ? (
+                    "던져진 물음을 살피는 중…"
+                  ) : pendingCount > 0 ? (
+                    <>
+                      승인을 기다리는 화두{" "}
+                      <span className="text-gold">{pendingCount}</span>건
+                    </>
+                  ) : (
+                    "기다리는 물음이 없습니다"
+                  )}
+                </p>
+              </div>
+              <Link
+                href="/admin"
+                className="btn-obang inline-flex items-center px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
+              >
+                들어가기
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       <div className="mt-12 text-center">
         <Link

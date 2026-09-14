@@ -186,6 +186,19 @@ export default function AboutPage() {
         </a>
       </p>
 
+      {/* 빌려 쓴 것 — 만든 이의 이름을 적는 것이 예의다 */}
+      <p className="rise rise-d3 mt-9 border-t border-ink-3 pt-5 text-center text-[11px] leading-6 text-hanji-faint">
+        목탁 소리 — 「목탁2」 김용배 (CC BY),{" "}
+        <a
+          href="https://gongu.copyright.or.kr/gongu/wrt/wrt/view.do?wrtSn=13253416&menuNo=200020"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-gold/25 underline-offset-4 transition-colors hover:text-hanji-dim"
+        >
+          공유마당 · 한국저작권위원회
+        </a>
+      </p>
+
       <p className="mt-9 text-center">
         <Link
           href="/"

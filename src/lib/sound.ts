@@ -86,21 +86,73 @@ function master(ac: AudioContext): DynamicsCompressorNode {
   return bus;
 }
 
-// 목탁 한 방 —
+// ── 목탁 한 방 ──────────────────────────────────────────────
 //
-// 목탁은 종이 아니다. 종은 사인파가 길게 남지만 목탁은 **나무**다.
-// 나무는 (1) 때리는 순간의 넓은 잡음이 세고 (2) 배음이 어긋나 있으며
-// (3) 짧게 끝난다. 앞서 사인파를 길게 끌었더니 마림바가 되어 버렸다.
+// 코드로 빚어 봤지만 나무는 나무다. 실제로 친 소리를 쓴다 —
+//   공유마당 「목탁2」 · 김용배 · CC BY (한국저작권위원회)
+//   20초 녹음에서 첫 타 한 번(0.9초)만 잘라 냈다. public/sfx/moktak.wav
+// 표기는 /about 도량 안내에 남겨 두었다.
 //
-// 그래서 이렇게 빚는다 —
-//   딱   채가 닿는 표면 소리(높은 잡음, 12ms)
-//   퍽   때리는 힘(넓은 잡음, 30ms) — 소리의 몸무게는 여기서 나온다
-//   통   속 빈 구멍의 낮은 울림(250Hz 언저리, 0.22s)
-//   결   어긋난 배음 네 겹(1 : 1.58 : 2.71 : 4.36), 길어야 0.3초
-// 울림은 악기가 아니라 **방**이 만든다 — 그래서 잔향으로 보낸다.
+// 음원은 한 번만 받아 두고(AudioBuffer), 칠 때마다 새 소스를 물린다.
+// 아직 안 받아졌으면 아래 synthMoktak 이 대신 운다 — 첫 타를 놓치지 않게.
+
+const MOKTAK_URL = "/sfx/moktak.wav";
+let moktakBuf: AudioBuffer | null = null;
+let moktakAsked = false;
+
+function loadMoktak(ac: AudioContext) {
+  if (moktakAsked) return;
+  moktakAsked = true;
+  fetch(MOKTAK_URL)
+    .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error("no file"))))
+    .then((b) => ac.decodeAudioData(b))
+    .then((buf) => {
+      moktakBuf = buf;
+    })
+    .catch(() => {
+      // 못 받았으면 빚은 소리로 간다 — 조용히
+    });
+}
+
+/** 미리 받아 둔다 — 목탁 방에 들어서는 순간 부르면 첫 타가 늦지 않는다 */
+export function warmMoktak() {
+  const ac = audio();
+  if (ac) loadMoktak(ac);
+}
+
 export function strikeMoktak(vol: number) {
   const ac = audio();
   if (!ac) return;
+  loadMoktak(ac);
+  if (!moktakBuf) {
+    synthMoktak(ac, vol);
+    return;
+  }
+
+  const t = ac.currentTime;
+  const src = ac.createBufferSource();
+  src.buffer = moktakBuf;
+  // 나무는 칠 때마다 조금씩 다르다 — 반음의 몇 분의 일만 흔든다
+  src.playbackRate.value = 0.97 + Math.random() * 0.06;
+
+  const out = ac.createGain();
+  out.gain.value = vol * 1.15;
+  src.connect(out);
+  out.connect(master(ac));
+
+  // 방의 울림 — 소리 뒤에 남는 꼬리
+  const send = ac.createGain();
+  send.gain.value = vol * 0.3;
+  out.connect(send);
+  send.connect(hall(ac));
+
+  src.start(t);
+}
+
+// ── 빚은 목탁 — 음원이 없을 때만 ────────────────────────────
+// 딱(채가 닿는 표면) + 퍽(때리는 힘) + 통(속 빈 구멍) + 어긋난 배음 넷.
+// 나무는 짧게 끝난다 — 길게 끌면 종이 된다.
+function synthMoktak(ac: AudioContext, vol: number) {
   const t = ac.currentTime;
 
   const out = ac.createGain();
@@ -112,10 +164,7 @@ export function strikeMoktak(vol: number) {
   out.connect(send);
   send.connect(hall(ac));
 
-  // 나무마다 조금씩 다르다 — 매 방 살짝 흔든다
   const drift = 0.96 + Math.random() * 0.08;
-
-  // 잡음 한 줄기를 만들어 여러 갈래로 나눠 쓴다
   const burst = (dur: number) => {
     const s = ac.createBufferSource();
     s.buffer = noise(ac);
@@ -125,7 +174,6 @@ export function strikeMoktak(vol: number) {
     return s;
   };
 
-  // ── 딱 — 채가 닿는 표면
   {
     const s = burst(0.03);
     const hp = ac.createBiquadFilter();
@@ -138,8 +186,6 @@ export function strikeMoktak(vol: number) {
     hp.connect(g);
     g.connect(out);
   }
-
-  // ── 퍽 — 때리는 힘. 목탁의 몸무게는 여기서 나온다
   {
     const s = burst(0.06);
     const bp = ac.createBiquadFilter();
@@ -153,8 +199,6 @@ export function strikeMoktak(vol: number) {
     bp.connect(g);
     g.connect(out);
   }
-
-  // ── 통 — 속 빈 구멍이 내는 낮은 울림
   {
     const s = burst(0.3);
     const bp = ac.createBiquadFilter();
@@ -170,7 +214,6 @@ export function strikeMoktak(vol: number) {
     g.connect(out);
   }
 
-  // ── 결 — 어긋난 배음 네 겹. 종처럼 끌지 않는다.
   const base = 452 * drift;
   ([
     [1, 0.5, 0.3],
