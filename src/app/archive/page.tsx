@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { flatQuestion, getHwadu, sessionQuestion, sessionTitle } from "@/lib/hwadu";
+import { plainThoughts } from "@/lib/thoughts";
 import {
   dayCount,
   formatDate,
@@ -332,7 +333,7 @@ export default function ArchivePage() {
                             <Chevron />
                           </summary>
                           <p className="mt-2 whitespace-pre-line pl-1 text-[13px] leading-7 text-hanji-dim">
-                            {s.notes}
+                            {plainThoughts(s.notes)}
                           </p>
                         </details>
                       )}

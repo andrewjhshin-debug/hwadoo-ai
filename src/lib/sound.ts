@@ -29,7 +29,7 @@ function audio(): AudioContext | null {
 let noiseBuf: AudioBuffer | null = null;
 function noise(ac: AudioContext): AudioBuffer {
   if (!noiseBuf) {
-    noiseBuf = ac.createBuffer(1, ac.sampleRate * 0.06, ac.sampleRate);
+    noiseBuf = ac.createBuffer(1, ac.sampleRate * 0.5, ac.sampleRate);
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   }
@@ -38,33 +38,33 @@ function noise(ac: AudioContext): AudioBuffer {
 
 // 절 마당의 울림 — 목탁 소리 뒤에 남는 꼬리.
 // 노이즈로 임펄스를 빚어 컨볼버에 물린다(음원 파일 없이 만드는 잔향).
-let hallIR: AudioBuffer | null = null;
 let hallNode: ConvolverNode | null = null;
 let hallGain: GainNode | null = null;
 function hall(ac: AudioContext): GainNode {
   if (!hallNode || !hallGain) {
-    const secs = 1.9;
+    const secs = 1.4;
     const n = Math.floor(ac.sampleRate * secs);
-    hallIR = ac.createBuffer(2, n, ac.sampleRate);
+    const ir = ac.createBuffer(2, n, ac.sampleRate);
     for (let c = 0; c < 2; c++) {
-      const d = hallIR.getChannelData(c);
+      const d = ir.getChannelData(c);
       for (let i = 0; i < n; i++) {
-        const decay = Math.pow(1 - i / n, 2.6);
+        // 앞쪽은 성기게, 뒤로 갈수록 촘촘하게 — 나무 마루 깔린 방의 결
+        const decay = Math.pow(1 - i / n, 3.2);
         d[i] = (Math.random() * 2 - 1) * decay;
       }
     }
     hallNode = ac.createConvolver();
-    hallNode.buffer = hallIR;
+    hallNode.buffer = ir;
     // 잔향은 어둡게 — 나무 울림이지 유리가 아니다
     const lp = ac.createBiquadFilter();
     lp.type = "lowpass";
-    lp.frequency.value = 2100;
+    lp.frequency.value = 1600;
     hallGain = ac.createGain();
     hallGain.gain.value = 1;
     hallGain.connect(lp);
     lp.connect(hallNode);
     const wet = ac.createGain();
-    wet.gain.value = 0.9;
+    wet.gain.value = 0.85;
     hallNode.connect(wet);
     wet.connect(ac.destination);
   }
@@ -76,95 +76,120 @@ let bus: DynamicsCompressorNode | null = null;
 function master(ac: AudioContext): DynamicsCompressorNode {
   if (!bus) {
     bus = ac.createDynamicsCompressor();
-    bus.threshold.value = -14;
-    bus.knee.value = 22;
-    bus.ratio.value = 7;
-    bus.attack.value = 0.003;
-    bus.release.value = 0.22;
+    bus.threshold.value = -12;
+    bus.knee.value = 20;
+    bus.ratio.value = 6;
+    bus.attack.value = 0.002;
+    bus.release.value = 0.18;
     bus.connect(ac.destination);
   }
   return bus;
 }
 
 // 목탁 한 방 —
-//   딱(치는 순간) + 몸통(피치 내려가는 톡) + 속울림 두 겹 + 마당 잔향.
-//   작은 나무토막이 아니라 법당에서 울리는 소리라야 한다.
+//
+// 목탁은 종이 아니다. 종은 사인파가 길게 남지만 목탁은 **나무**다.
+// 나무는 (1) 때리는 순간의 넓은 잡음이 세고 (2) 배음이 어긋나 있으며
+// (3) 짧게 끝난다. 앞서 사인파를 길게 끌었더니 마림바가 되어 버렸다.
+//
+// 그래서 이렇게 빚는다 —
+//   딱   채가 닿는 표면 소리(높은 잡음, 12ms)
+//   퍽   때리는 힘(넓은 잡음, 30ms) — 소리의 몸무게는 여기서 나온다
+//   통   속 빈 구멍의 낮은 울림(250Hz 언저리, 0.22s)
+//   결   어긋난 배음 네 겹(1 : 1.58 : 2.71 : 4.36), 길어야 0.3초
+// 울림은 악기가 아니라 **방**이 만든다 — 그래서 잔향으로 보낸다.
 export function strikeMoktak(vol: number) {
   const ac = audio();
   if (!ac) return;
   const t = ac.currentTime;
 
   const out = ac.createGain();
-  out.gain.value = vol * 1.75; // 크게 — 울리도록
+  out.gain.value = vol * 1.5;
   out.connect(master(ac));
 
-  // 잔향으로 보내는 몫
   const send = ac.createGain();
-  send.gain.value = vol * 0.5;
+  send.gain.value = vol * 0.34;
   out.connect(send);
   send.connect(hall(ac));
 
-  const base = 520 + Math.random() * 46; // 매 방 미세하게 다른 나무
+  // 나무마다 조금씩 다르다 — 매 방 살짝 흔든다
+  const drift = 0.96 + Math.random() * 0.08;
 
-  // ── 몸통 — 치는 순간 높다가 뚝 떨어지는 '톡'
-  const o1 = ac.createOscillator();
-  o1.type = "sine";
-  o1.frequency.setValueAtTime(base * 1.28, t);
-  o1.frequency.exponentialRampToValueAtTime(base * 0.5, t + 0.13);
-  const g1 = ac.createGain();
-  g1.gain.setValueAtTime(0.0001, t);
-  g1.gain.exponentialRampToValueAtTime(0.9, t + 0.004);
-  g1.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
-  o1.connect(g1);
-  g1.connect(out);
-  o1.start(t);
-  o1.stop(t + 0.6);
+  // 잡음 한 줄기를 만들어 여러 갈래로 나눠 쓴다
+  const burst = (dur: number) => {
+    const s = ac.createBufferSource();
+    s.buffer = noise(ac);
+    s.loop = true;
+    s.start(t);
+    s.stop(t + dur + 0.02);
+    return s;
+  };
 
-  // ── 속울림 두 겹 — 나무는 배음이 어긋난다. 길게 남는 건 이쪽.
-  ([
-    [base * 0.44, 0.34, 1.5],
-    [base * 0.67, 0.2, 1.05],
-  ] as const).forEach(([hz, amp, dur], i) => {
-    const o = ac.createOscillator();
-    o.type = i === 0 ? "sine" : "triangle";
-    o.frequency.setValueAtTime(hz * (0.995 + Math.random() * 0.01), t);
+  // ── 딱 — 채가 닿는 표면
+  {
+    const s = burst(0.03);
+    const hp = ac.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 2800;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.55, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.014);
+    s.connect(hp);
+    hp.connect(g);
+    g.connect(out);
+  }
+
+  // ── 퍽 — 때리는 힘. 목탁의 몸무게는 여기서 나온다
+  {
+    const s = burst(0.06);
+    const bp = ac.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 1150 * drift;
+    bp.Q.value = 0.9;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.7, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.034);
+    s.connect(bp);
+    bp.connect(g);
+    g.connect(out);
+  }
+
+  // ── 통 — 속 빈 구멍이 내는 낮은 울림
+  {
+    const s = burst(0.3);
+    const bp = ac.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 248 * drift;
+    bp.Q.value = 7;
     const g = ac.createGain();
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(amp, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.85, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+    s.connect(bp);
+    bp.connect(g);
+    g.connect(out);
+  }
+
+  // ── 결 — 어긋난 배음 네 겹. 종처럼 끌지 않는다.
+  const base = 452 * drift;
+  ([
+    [1, 0.5, 0.3],
+    [1.58, 0.34, 0.19],
+    [2.71, 0.2, 0.11],
+    [4.36, 0.1, 0.06],
+  ] as const).forEach(([mul, amp, dur]) => {
+    const o = ac.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(base * mul, t);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(amp, t + 0.003);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(g);
     g.connect(out);
     o.start(t);
-    o.stop(t + dur + 0.05);
+    o.stop(t + dur + 0.03);
   });
-
-  // ── 딱 — 채가 닿는 순간
-  const o2 = ac.createOscillator();
-  o2.type = "triangle";
-  o2.frequency.setValueAtTime(1420 + Math.random() * 240, t);
-  const g2 = ac.createGain();
-  g2.gain.setValueAtTime(0.0001, t);
-  g2.gain.exponentialRampToValueAtTime(0.34, t + 0.002);
-  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.038);
-  o2.connect(g2);
-  g2.connect(out);
-  o2.start(t);
-  o2.stop(t + 0.06);
-
-  // ── 결 — 나무 표면
-  const src = ac.createBufferSource();
-  src.buffer = noise(ac);
-  const bp = ac.createBiquadFilter();
-  bp.type = "bandpass";
-  bp.frequency.value = 950;
-  bp.Q.value = 1.1;
-  const g3 = ac.createGain();
-  g3.gain.setValueAtTime(0.26, t);
-  g3.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
-  src.connect(bp);
-  bp.connect(g3);
-  g3.connect(out);
-  src.start(t);
 }
 
 // 염주 한 알 — 알끼리 부딪는 또렷한 딸깍 (묵직한 속살 한 점 포함)

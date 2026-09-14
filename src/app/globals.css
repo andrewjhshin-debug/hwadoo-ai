@@ -375,7 +375,7 @@ html[data-theme="light"] .notes-panel {
     0 0 34px rgba(221, 160, 28, 0.1);
 }
 
-/* 답을 쓰는 동안에는 사유의 방 떠 있는 단추를 감춘다 — 입력창과 겹치지 않게 */
+/* 답을 쓰는 동안에는 떠 있는 메뉴 단추를 감춘다 — 입력창과 겹치지 않게 */
 body[data-writing] .notes-fab {
   display: none;
 }
@@ -406,7 +406,7 @@ html[data-theme="light"] .confirm-panel {
     0 0 36px rgba(221, 160, 28, 0.1);
 }
 
-/* 색판이 아래에 붙박이일 때도 사유의 방 단추를 감춘다 */
+/* 색판이 아래에 붙박이일 때도 메뉴 단추를 감춘다 */
 body[data-palette] .notes-fab {
   display: none;
 }
@@ -626,5 +626,8 @@ body[data-install-banner] .obang-aura {
   /* 데스크톱은 배너가 화면 맨 아래(bottom-0)에 깔린다 — 여백만 조금 */
   body[data-install-banner] .obang-aura {
     padding-bottom: 64px;
+  }
+  body[data-install-banner] .notes-fab {
+    bottom: 88px;
   }
 }

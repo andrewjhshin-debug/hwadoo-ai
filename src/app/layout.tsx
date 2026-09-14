@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
-import NotesFab from "@/components/NotesFab";
+import DoryangMenu from "@/components/DoryangMenu";
 import ConfirmProvider from "@/components/Confirm";
 import VisitLedger from "@/components/VisitLedger";
 import InstallBanner from "@/components/InstallBanner";
@@ -106,7 +106,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="obang-aura flex flex-1 flex-col overflow-x-hidden overflow-y-auto pt-16 pb-[76px] md:pb-0 md:pt-0">
           {/* 본문은 내용만큼 자란다 — 넘치면 바깥(.obang-aura)이 스크롤한다.
               min-h-0 을 주면 본문이 줄어들어 아래 띠 위로 삐져나온다. */}
-          <main className="flex flex-1 flex-col">{children}</main>
+          <main className="flex min-h-full flex-1 flex-col">{children}</main>
           {/* 아래 띠 — 전자상거래법상 사업자 표기는 모바일에서도 닿아야 한다.
               스크롤 컨테이너 안이라 탭 바 위에서 끝난다(컨테이너 pb-[76px]). */}
           <footer className="border-t border-ink-3 px-6 py-5">
@@ -144,8 +144,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </footer>
         </div>
         <MobileTabBar />
-        {/* 사유의 방 — 왼쪽 탭에서 빼고 오른쪽 아래 떠 있는 단추로 */}
-        <NotesFab />
+        {/* 도량 한눈에 — 오른쪽 아래 단추 하나로 방 전부를 펼친다 */}
+        <DoryangMenu />
         {/* 홈 화면에 담기 — 세션마다 한 번, 탭바 위에 낮게 깔려 묻는다 */}
         <InstallBanner />
         </ConfirmProvider>

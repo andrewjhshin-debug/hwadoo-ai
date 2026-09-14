@@ -29,6 +29,7 @@ import {
 } from "@/lib/hwadu";
 import Question from "@/components/Question";
 import { fetchPublicHwadu, markSeen, type PublicHwadu } from "@/lib/thrown";
+import { plainThoughts } from "@/lib/thoughts";
 import {
   decrementHolding,
   fetchHoldingCount,
@@ -618,7 +619,7 @@ export default function Home() {
                 사유의 방에 남긴 단상 함께 보기
               </summary>
               <p className="mt-3 whitespace-pre-line border-l border-gold/25 pl-4 text-[13px] leading-7 text-hanji-faint">
-                {current.notes}
+                {plainThoughts(current.notes)}
               </p>
             </details>
           )}
@@ -822,7 +823,7 @@ export default function Home() {
                 </span>
                 <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-gold/25 bg-ink-2/40 px-4 py-3">
                   <p className="whitespace-pre-line break-keep text-[13px] leading-7 text-hanji-dim">
-                    {current.notes}
+                    {plainThoughts(current.notes)}
                   </p>
                 </div>
                 <span className="mt-1.5 text-[10px] text-hanji-faint">
