@@ -37,6 +37,17 @@ import { formatDate, loadStore, saveStore, type Session } from "@/lib/store";
 import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { BADGES } from "@/lib/badges";
+import { dongja } from "@/lib/dongja";
+import {
+  giveMerit,
+  inRound,
+  loadMerit,
+  nextRank,
+  rankOf,
+  ROUND,
+  SOURCE_LABEL,
+  type MeritSource,
+} from "@/lib/merit";
 import {
   fetchMyThrownStats,
   fetchThrown,
@@ -222,6 +233,9 @@ export default function SettingsPage() {
   const [mailBusy, setMailBusy] = useState(false);
   // 예불 종 — 이 브라우저가 고른 시각들 (푸시 토큰 문서에도 함께 새긴다)
   const [bells, setBells] = useState<string[]>([]);
+  // 공덕 — 도량에서 한 일이 모두 여기로 쌓인다
+  const [merit, setMerit] = useState({ total: 0, by: {} as Partial<Record<MeritSource, number>>, given: 0 });
+  const [gaveMsg, setGaveMsg] = useState("");
   const [receivedCount, setReceivedCount] = useState(0);
   const [journalCount, setJournalCount] = useState(0);
   const [daysWith, setDaysWith] = useState(0);
@@ -314,7 +328,16 @@ export default function SettingsPage() {
   // 예불 종 — 서랍에서 꺼낸다
   useEffect(() => {
     setBells(loadBellsLocal());
+    setMerit(loadMerit());
   }, []);
+
+  // 회향 — 쌓은 공덕을 남에게 돌린다. 총합은 줄지 않는다(대승의 셈).
+  const give = (to: string) => {
+    const l = giveMerit(merit.total - merit.given);
+    setMerit(l);
+    setGaveMsg(`${to}에게 회향했습니다. 공덕은 줄지 않습니다 — 나눌수록 큽니다.`);
+    window.setTimeout(() => setGaveMsg(""), 5000);
+  };
 
   // 종 하나를 켜고 끈다 — 서랍과 토큰 문서에 같이 적는다
   const toggleBell = (id: string) => {
@@ -803,6 +826,93 @@ export default function SettingsPage() {
           </div>
         </section>
       )}
+
+      {/* ── 공덕(功德) — 쌓고, 남에게 돌린다 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+          공덕 — 쌓은 것, 나눈 것
+        </p>
+        <div className="mt-4 border-t border-ink-3 pt-5">
+          <div className="flex items-center gap-4">
+            <span
+              className="block h-16 w-16 shrink-0"
+              dangerouslySetInnerHTML={{
+                __html: dongja(merit.total >= ROUND ? "bright" : "default", "merit"),
+              }}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="flex items-baseline gap-2">
+                <span className="font-serif text-[26px] leading-none text-gold">
+                  {merit.total.toLocaleString("ko-KR")}
+                </span>
+                <span className="text-[12px] text-hanji-dim">
+                  {rankOf(merit.total).hanja} · {rankOf(merit.total).name}
+                </span>
+              </p>
+              <p className="mt-1 text-[11.5px] text-hanji-faint">
+                {rankOf(merit.total).say}
+                {nextRank(merit.total) &&
+                  ` · ${nextRank(merit.total)!.rank.name}까지 ${nextRank(merit.total)!.left.toLocaleString("ko-KR")}`}
+              </p>
+              <div className="mt-2 h-[5px] overflow-hidden rounded-full bg-ink-3">
+                <div
+                  className="h-full rounded-full bg-gold transition-[width] duration-300"
+                  style={{ width: `${(inRound(merit.total) / ROUND) * 100}%` }}
+                />
+              </div>
+              <p className="mt-1 text-[10.5px] text-hanji-faint">
+                이번 바퀴 {inRound(merit.total)}/{ROUND}
+                {merit.total >= ROUND &&
+                  ` · 백팔 ${Math.floor(merit.total / ROUND)}바퀴`}
+              </p>
+            </div>
+          </div>
+
+          {/* 무엇으로 쌓았나 */}
+          {Object.keys(merit.by).length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {(Object.keys(merit.by) as MeritSource[]).map((k) => (
+                <span
+                  key={k}
+                  className="rounded-full border border-ink-3 px-2.5 py-1 text-[11px] text-hanji-dim"
+                >
+                  {SOURCE_LABEL[k]} {merit.by[k]?.toLocaleString("ko-KR")}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* 회향 — 대승의 자리. 준다고 줄어들지 않는다 */}
+          <div className="mt-5 rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-4">
+            <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
+              쌓은 공덕은 <span className="text-hanji">남에게 돌릴 수</span> 있어요.
+              나눠도 내 공덕은 줄지 않습니다 — 그게 회향(廻向)이에요.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["모든 중생", "아픈 이", "먼저 가신 분", "오늘 만날 사람"].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => give(t)}
+                  disabled={merit.total <= merit.given}
+                  className="rounded-full border border-gold/45 px-3.5 py-1.5 text-[12px] text-gold transition-colors hover:bg-gold/10 disabled:border-ink-3 disabled:text-hanji-faint"
+                >
+                  {t}에게
+                </button>
+              ))}
+            </div>
+            {merit.given > 0 && (
+              <p className="mt-3 text-[11.5px] text-hanji-faint">
+                지금까지 회향한 공덕 {merit.given.toLocaleString("ko-KR")}
+              </p>
+            )}
+            {gaveMsg && (
+              <p className="mt-2 break-keep text-[12px] leading-6 text-gold-soft">
+                {gaveMsg}
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* ── 걸음 — 얻은 자리: 육도에서 빌린 이름, 회향이 쌓이면 오른다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>

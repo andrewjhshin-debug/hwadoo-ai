@@ -12,6 +12,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MOKTAK_SVG } from "./moktakSvg";
+import { dongja } from "@/lib/dongja";
+import { addMerit, inRound, loadMerit, ROUND } from "@/lib/merit";
 
 // ── 소리 — 나무를 빚는다 ────────────────────────────────────
 
@@ -165,6 +167,19 @@ export default function MoktakPage() {
   const [tab, setTab] = useState<"moktak" | "yeomju">("moktak");
   const [vol, setVol] = useState(0.8);
 
+  // 공덕 — 두드리고 굴린 만큼 쌓인다. 한 바퀴(108)를 넘으면 두두가 나온다.
+  const [merit, setMerit] = useState(0);
+  const [round, setRound] = useState<number | null>(null);
+  useEffect(() => setMerit(loadMerit().total), []);
+  const earn = (src: "moktak" | "bead") => {
+    const r = addMerit(src);
+    setMerit(r.total);
+    if (r.crossed) {
+      setRound(r.round);
+      window.setTimeout(() => setRound(null), 2600);
+    }
+  };
+
   // 목탁
   const [hits, setHits] = useState(0);
   const [auto, setAuto] = useState(false);
@@ -179,6 +194,7 @@ export default function MoktakPage() {
   const hit = () => {
     strikeMoktak(autoRef.current.vol);
     setHits((n) => n + 1);
+    earn("moktak");
     buzz(8);
   };
 
@@ -211,6 +227,7 @@ export default function MoktakPage() {
 
   const advance = () => {
     clickBead(vol);
+    earn("bead");
     buzz(6);
     setTotal((n) => n + 1);
   };
@@ -257,8 +274,47 @@ export default function MoktakPage() {
         木鐸 · 목탁과 염주
       </p>
       <p className="rise rise-d1 mt-3 break-keep text-center text-[13px] leading-6 text-hanji-dim">
-        두드리고, 굴리는 — 손끝의 수행. 소리를 켜 두십시오.
+        두드리고, 굴리는 — 손끝의 수행. 소리를 켜 두세요.
       </p>
+
+      {/* 공덕 — 두드린 만큼 차오르는 한 바퀴(108) */}
+      <div className="rise rise-d1 mt-5 w-full max-w-xs">
+        <div className="flex items-baseline justify-between text-[11.5px] tracking-wide">
+          <span className="text-hanji-faint">공덕 功德</span>
+          <span className="text-gold-soft">
+            {merit.toLocaleString("ko-KR")}
+            <span className="ml-1 text-hanji-faint">
+              · 이번 바퀴 {inRound(merit)}/{ROUND}
+            </span>
+          </span>
+        </div>
+        <div className="mt-1.5 h-[5px] overflow-hidden rounded-full bg-ink-3">
+          <div
+            className="h-full rounded-full bg-gold transition-[width] duration-300"
+            style={{ width: `${(inRound(merit) / ROUND) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* 한 바퀴를 넘었다 — 두두가 잠깐 나온다 */}
+      {round !== null && (
+        <div
+          role="status"
+          className="rise mt-4 flex items-center gap-3 rounded-[14px] border border-gold/40 bg-gold/10 px-4 py-3"
+        >
+          <span
+            className="block h-12 w-12 shrink-0"
+            dangerouslySetInnerHTML={{ __html: dongja("bright", "round") }}
+          />
+          <p className="break-keep text-[13px] leading-6 text-hanji">
+            백팔 한 바퀴를 돌았어요 — <span className="text-gold">{round}바퀴째</span>
+            <br />
+            <span className="text-[11.5px] text-hanji-dim">
+              쌓인 공덕은 내 도량에서 남에게 회향할 수 있어요.
+            </span>
+          </p>
+        </div>
+      )}
 
       {/* 갈래 */}
       <div className="rise rise-d1 mt-6 flex gap-2">
