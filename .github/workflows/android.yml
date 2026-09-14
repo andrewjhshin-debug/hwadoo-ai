@@ -46,8 +46,16 @@ jobs:
         run: npx cap sync android
 
       - name: 서명 열쇠 꺼내기
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > $RUNNER_TEMP/keystore.jks
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/keystore.jks"
+            echo "HWADU_KEYSTORE_PATH=$RUNNER_TEMP/keystore.jks" >> "$GITHUB_ENV"
+            echo "서명 열쇠 준비됨 — 서명된 AAB 가 나옵니다"
+          else
+            echo "서명 열쇠 없음 — 서명 안 된 파일이 나옵니다(시험 설치는 가능, 스토어 업로드는 불가)"
+          fi
 
       - name: 시험 설치용 APK
         working-directory: android
@@ -58,7 +66,6 @@ jobs:
         env:
           HWADU_VERSION_CODE: ${{ github.run_number }}
           HWADU_VERSION_NAME: ${{ inputs.versionName }}
-          HWADU_KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && format('{0}/keystore.jks', runner.temp) || '' }}
           HWADU_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           HWADU_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           HWADU_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
