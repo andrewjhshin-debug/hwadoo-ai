@@ -145,6 +145,130 @@ export function buzz(ms: number) {
 }
 
 
+// ── 숨소리 — 들숨·날숨 ─────────────────────────────────────────
+// 목탁은 한 방이라 0.06초 버퍼로 족했지만, 숨은 몇 초를 이어 간다.
+// 짧은 버퍼를 돌리면 그 반복 주기가 '웅—' 하는 음으로 들리므로,
+// 한 호흡을 통째로 덮을 만큼 길게(8초) 한 번만 빚어 두고 돌려 쓴다.
+// 백색이 아니라 핑크 노이즈 — 높은 대역이 눌려 사람 숨결에 가깝다.
+let breathBuf: AudioBuffer | null = null;
+function breathNoise(ac: AudioContext): AudioBuffer {
+  if (!breathBuf) {
+    const len = Math.floor(ac.sampleRate * 8);
+    breathBuf = ac.createBuffer(1, len, ac.sampleRate);
+    const d = breathBuf.getChannelData(0);
+    // Paul Kellet 근사 — 필터 여럿을 겹쳐 1/f 기울기를 만든다
+    let b0 = 0,
+      b1 = 0,
+      b2 = 0,
+      b3 = 0,
+      b4 = 0,
+      b5 = 0,
+      b6 = 0;
+    for (let i = 0; i < len; i++) {
+      const w = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + w * 0.0555179;
+      b1 = 0.99332 * b1 + w * 0.0750759;
+      b2 = 0.969 * b2 + w * 0.153852;
+      b3 = 0.8665 * b3 + w * 0.3104856;
+      b4 = 0.55 * b4 + w * 0.5329522;
+      b5 = -0.7616 * b5 - w * 0.016898;
+      d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11;
+      b6 = w * 0.115926;
+    }
+  }
+  return breathBuf;
+}
+
+// 한 호흡을 빚는다. 들숨은 밝아지며 차오르고, 날숨은 어두워지며 잦아든다.
+// 돌려주는 함수를 부르면 곧바로 숨을 거둔다 — 마디가 바뀌거나 판을 마칠 때.
+function breathe(kind: "in" | "out", sec: number, vol: number): () => void {
+  const ac = audio();
+  // vol 0 으로 부르면 소리는 내지 않고 오디오 문만 연다(첫 터치에서 깨우기)
+  if (!ac || sec <= 0 || vol <= 0) return () => {};
+  try {
+    const t = ac.currentTime;
+    const dur = Math.max(0.3, sec);
+    const rise = kind === "in";
+
+    const out = ac.createGain();
+    out.gain.value = rise ? vol : vol * 0.8; // 날숨은 들숨보다 조금 낮게
+    out.connect(ac.destination);
+
+    const src = ac.createBufferSource();
+    src.buffer = breathNoise(ac);
+    src.loop = true; // 8초를 넘겨 부르는 일은 드물지만, 끊기지는 않게
+
+    // 코를 지나는 바람의 자리 — 이 통과 대역이 '스으—' 를 만든다
+    const bp = ac.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 0.85;
+    if (rise) {
+      bp.frequency.setValueAtTime(420, t);
+      bp.frequency.exponentialRampToValueAtTime(1250, t + dur * 0.7);
+      bp.frequency.exponentialRampToValueAtTime(880, t + dur);
+    } else {
+      bp.frequency.setValueAtTime(1050, t);
+      bp.frequency.exponentialRampToValueAtTime(360, t + dur);
+    }
+
+    // 바닥의 웅웅거림은 걷어낸다 — 숨은 가벼워야 한다
+    const hp = ac.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 170;
+
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    if (rise) {
+      // 들숨 — 천천히 차올라 끝자락에서 멎는다
+      g.gain.exponentialRampToValueAtTime(0.95, t + dur * 0.62);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    } else {
+      // 날숨 — 처음에 툭 터지고 길게 놓아 준다
+      g.gain.exponentialRampToValueAtTime(0.9, t + dur * 0.16);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    }
+
+    src.connect(bp);
+    bp.connect(hp);
+    hp.connect(g);
+    g.connect(out);
+    src.start(t);
+    src.stop(t + dur + 0.1);
+
+    let hushed = false;
+    return () => {
+      if (hushed) return;
+      hushed = true;
+      try {
+        const now = ac.currentTime;
+        g.gain.cancelScheduledValues(now);
+        g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), now);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12); // 뚝 끊기면 '툭' 한다
+        src.stop(now + 0.16);
+      } catch {
+        /* 이미 멎은 숨 */
+      }
+    };
+  } catch {
+    return () => {}; // 소리는 곁가지다 — 조용히 삼킨다
+  }
+}
+
+// 들숨 — sec 초 동안 차오른다
+export function breatheIn(sec: number, vol = 0.45) {
+  return breathe("in", sec, vol);
+}
+
+// 날숨 — sec 초 동안 잦아든다
+export function breatheOut(sec: number, vol = 0.45) {
+  return breathe("out", sec, vol);
+}
+
+// 첫 터치에서 오디오 문을 미리 열어 둔다 — 첫 들숨이 늦지 않게
+export function wakeBreath() {
+  audio();
+}
+
 // 죽비(竹篦) — 대나무를 쳐서 내는 마른 딱 소리. 절의 박자를 이끈다.
 export function strikeJukbi(vol: number) {
   const ac = audio();

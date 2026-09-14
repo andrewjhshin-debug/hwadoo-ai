@@ -69,7 +69,7 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/moktak", label: "목탁과 염주", Icon: Moktak },
   { href: "/bae", label: "백팔배", Icon: Banga },
   { href: "/sutra", label: "외우기", Icon: Book },
-  { href: "/draw", label: "오늘의 한 장", Icon: LotusMark },
+  { href: "/draw", label: "오늘의 운세", Icon: LotusMark },
 ];
 
 // 말씀 · 나눔 — 구획 제목과 함께 아래에 잇는다

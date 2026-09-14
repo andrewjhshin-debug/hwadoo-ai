@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
+import NotesFab from "@/components/NotesFab";
 import ConfirmProvider from "@/components/Confirm";
 import VisitLedger from "@/components/VisitLedger";
 import InstallBanner from "@/components/InstallBanner";
@@ -58,20 +59,24 @@ export const metadata: Metadata = {
       "naver-site-verification": "e3edd090a8e5cfcaab987a6d90d5b0a6f8774189",
     },
   },
+  // 링크 썸네일 — 카톡·SNS 에 붙였을 때 이것 하나로 승부가 난다.
+  // 설명하지 말고 후려라. 그림은 public/og.png (캐릭터 둘이 나온다).
   openGraph: {
-    title: "화두 — 당신에게 묻는다",
-    description:
-      "물음은 혼자, 절은 둘이 — 손잡고 절로. 같은 물음을 품은 사람과 절에 가는 인연, 여기서 만납니다.",
+    title: "AI한테 그만 물어봐",
+    description: "이번엔 AI가 너한테 묻는다. 매일 물음 하나 · 절 같이 갈 사람 · 가입 없이 무료.",
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: "ko_KR",
     type: "website",
+    images: [
+      { url: `${SITE_URL}/og.png`, width: 1200, height: 630, alt: "화두 — AI한테 그만 물어봐" },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "화두 — 당신에게 묻는다",
-    description:
-      "물음은 혼자, 절은 둘이 — 손잡고 절로. 같은 물음을 품은 사람과 절에 가는 인연, 여기서 만납니다.",
+    title: "AI한테 그만 물어봐",
+    description: "이번엔 AI가 너한테 묻는다. 매일 물음 하나 · 절 같이 갈 사람 · 가입 없이 무료.",
+    images: [`${SITE_URL}/og.png`],
   },
 };
 
@@ -144,6 +149,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </footer>
         </div>
         <MobileTabBar />
+        {/* 사유의 방 — 왼쪽 탭에서 빼고 오른쪽 아래 떠 있는 단추로 */}
+        <NotesFab />
         {/* 홈 화면에 담기 — 세션마다 한 번, 탭바 위에 낮게 깔려 묻는다 */}
         <InstallBanner />
         </ConfirmProvider>

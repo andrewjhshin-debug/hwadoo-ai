@@ -1,103 +1,110 @@
 // ─────────────────────────────────────────────────────────────
-// 오늘의 한 장(籤) — 하루에 딱 한 장 뒤집는 패.
+// 오늘의 운세(運勢) — 하루 한 장, 자정에 새로.
 //
-// 왜 "뽑기"라 부르지 않는가 —
-// 돈을 넣고 확률을 사는 판이 아니다. 하루가 지나면 한 장이 놓이고,
-// 그 한 장을 뒤집는 것뿐이다. 그래서 여기에는 값도, 확률 표시도 없다.
-// (확률형 상품으로 읽히는 순간 규제도 인심도 다 잃는다.)
-// 연꽃을 쓰면 하루에 딱 한 장까지만 더 — 더는 못 산다.
+// 길흉을 점치지 않는다. 불교는 점보는 종교가 아니다.
+// 대신 오늘 어느 마음을 조심할지 짚어 준다 — 삼독(貪瞋癡) 중 하나.
+// 맞히는 것이 아니라 살피게 하는 것이라, 틀릴 일이 없다.
+// 운을 파는 순간 규제도 인심도 다 잃는다. 값도 확률도 여기에 없다.
 //
-// 패는 손잡고 절로(인연)와 물려 있다. 공덕만 주는 판이면 혼자 노는
-// 화면이 되지만, 인연패·동행권·말문은 사람을 만나러 가게 만든다.
+// 뒤집으면 넷이 나온다 — 오늘의 독 · 처방 · 선사의 한 마디 · 공덕 21.
+// 처방은 반드시 우리 기능으로 데려간다(비움·호흡·외우기).
+// 운세만 보고 나가면 이 화면은 아무것도 아니다.
 //
-// 장부는 이 브라우저에 적는다(hwadu.draw.v1). 날이 바뀌면 오늘 뽑은 수만
-// 비우고, 모은 것(동행권·부적 조각)과 자취는 그대로 둔다.
+// 삼독 낱말은 tamjinchi.ts 에도 있지만 가져다 쓰지 않는다 —
+// 저기는 돈 앞의 마음이고 여기는 하루의 마음이라 할 말이 다르다.
+//
+// 장부는 이 브라우저에 적는다. 날이 바뀌면 다시 한 장.
 // ─────────────────────────────────────────────────────────────
 
 import { visitDayKey } from "@/components/VisitLedger";
 import { addMerit } from "./merit";
-import { CHARMS, grantCharm, loadCharms, type Charm } from "./charm";
 import { SAYINGS } from "./sayings";
 
-export const DRAW_KEY = "hwadu.draw.v1";
+export const DRAW_KEY = "hwadu.fortune.v1";
 export const DRAW_EVENT = "hwadu-draw-updated";
 
-/** 하루에 거저 놓이는 장 수 */
-export const FREE_PER_DAY = 1;
-/** 연꽃으로 더 뒤집을 수 있는 장 수 — 하루 한 장까지만 */
-export const MAX_EXTRA = 1;
-/** 부적 조각 셋이면 부적 하나 */
-export const PIECES_FOR_CHARM = 3;
+/** 뒤집으면 그 자리에서 쌓이는 공덕 */
+export const FORTUNE_MERIT = 21;
 
-// ── 패 ──────────────────────────────────────────────────────
+/** 자취를 남기는 날 수 */
+const LOG_MAX = 30;
 
-export type CardKind =
-  | "inyeon" // 인연패 — 오늘 하루 내 글이 맨 위
-  | "donghaeng" // 동행권 — 쪽지 청하기 한 번
-  | "malmun" // 말문 — 건넬 첫 마디
-  | "merit" // 공덕패
-  | "piece" // 부적 조각
-  | "saying"; // 오늘의 말
+// ── 삼독 ────────────────────────────────────────────────────
 
-export type Card = {
-  kind: CardKind;
-  name: string;
+export type Poison = "tam" | "jin" | "chi";
+
+export type PoisonCard = {
+  id: Poison;
   hanja: string;
-  /** 금색 동그라미에 새길 한 글자 */
-  mark: string;
-  /** 이 패가 무엇인지 한 줄 */
-  say: string;
-  /** 공덕패만 — 얹히는 공덕 */
-  merit?: number;
-  /** 나오는 무게. 밖으로 내보이지 않는다(확률을 광고하지 않는다) */
-  weight: number;
+  name: string;
+  /** 패 앞면에 적는 판결 한 줄 */
+  verdict: string;
+  /** 오늘 이 독이 오는 모양 — 이 중 하나가 뽑힌다 */
+  signs: string[];
+  /** 처방 한 줄 */
+  cure: string;
+  /** 처방이 데려가는 자리 */
+  href: string;
+  go: string;
 };
 
-const DECK: Card[] = [
+export const POISONS: PoisonCard[] = [
   {
-    kind: "inyeon",
-    name: "인연패",
-    hanja: "因緣牌",
-    mark: "因",
-    say: "오늘 하루, 인연에 올린 내 글이 맨 위에 놓여요",
-    weight: 8,
+    id: "tam",
+    hanja: "貪",
+    name: "탐",
+    verdict: "탐욕이 셉니다",
+    signs: [
+      "사고 싶은 게 눈에 밟히는 날",
+      "하나만 더, 가 자꾸 붙는 날",
+      "남이 가진 것이 유난히 커 보이는 날",
+      "장바구니를 이유 없이 열어 보는 날",
+    ],
+    cure: "오늘 하나는 안 사요. 안 산 것을 한 줄 남겨 두면 그게 남습니다.",
+    href: "/empty",
+    go: "비움으로",
   },
   {
-    kind: "donghaeng",
-    name: "동행권",
-    hanja: "同行券",
-    mark: "同",
-    say: "쪽지 청하기를 연꽃 없이 한 번",
-    weight: 10,
+    id: "jin",
+    hanja: "瞋",
+    name: "진",
+    verdict: "성냄이 셉니다",
+    signs: [
+      "말끝이 뾰족해지는 날",
+      "작은 소리에도 속이 달아오르는 날",
+      "지난 일을 되갚고 싶어지는 날",
+      "미워할 사람을 먼저 찾는 날",
+    ],
+    cure: "숨 한 판 쉬어요. 날숨을 길게 하면 말보다 먼저 가라앉습니다.",
+    href: "/breath",
+    go: "호흡으로",
   },
   {
-    kind: "malmun",
-    name: "말문",
-    hanja: "言門",
-    mark: "言",
-    say: "오늘 만난 사람에게 건넬 첫 마디",
-    weight: 18,
-  },
-  { kind: "merit", name: "공덕패", hanja: "功德牌", mark: "功", say: "", merit: 21, weight: 26 },
-  { kind: "merit", name: "공덕패", hanja: "功德牌", mark: "功", say: "", merit: 54, weight: 12 },
-  { kind: "merit", name: "공덕패", hanja: "功德牌", mark: "功", say: "", merit: 108, weight: 4 },
-  {
-    kind: "piece",
-    name: "부적 조각",
-    hanja: "符籍片",
-    mark: "符",
-    say: "셋을 모으면 부적 한 장을 청할 수 있어요",
-    weight: 8,
-  },
-  {
-    kind: "saying",
-    name: "오늘의 말",
-    hanja: "今日一句",
-    mark: "句",
-    say: "",
-    weight: 14,
+    id: "chi",
+    hanja: "癡",
+    name: "치",
+    verdict: "어리석음이 셉니다",
+    signs: [
+      "왜 하는지 잊은 채 손이 먼저 가는 날",
+      "화면만 넘기다 저녁이 오는 날",
+      "듣고 싶은 말만 귀에 남는 날",
+      "남의 말에 내 하루를 맡기는 날",
+    ],
+    cure: "경전 한 마디를 손으로 쳐 봐요. 흐린 날은 몸이 먼저 압니다.",
+    href: "/sutra",
+    go: "외우기로",
   },
 ];
+
+export const POISON_BY_ID: Record<Poison, PoisonCard> = {
+  tam: POISONS[0],
+  jin: POISONS[1],
+  chi: POISONS[2],
+};
+
+export function poisonOf(id: Poison): PoisonCard {
+  return POISON_BY_ID[id] ?? POISONS[0];
+}
 
 /** 말문 — 절에서 처음 만난 사람에게 건네기 좋은 것들 */
 export const OPENERS = [
@@ -113,63 +120,71 @@ export const OPENERS = [
 
 // ── 장부 ────────────────────────────────────────────────────
 
-export type Got = {
+export type Fortune = {
   at: number;
-  kind: CardKind;
-  name: string;
-  hanja: string;
-  mark: string;
-  /** 말문·오늘의 말이면 그 문장 */
-  text?: string;
-  /** 오늘의 말을 남긴 이 */
-  by?: string;
-  merit?: number;
+  /** 뒤집은 날 — 자정을 넘겼는지 이걸로 본다 */
+  day: string;
+  poison: Poison;
+  /** 오늘 이 독이 오는 모양 */
+  sign: string;
+  /** 선사의 한 마디 */
+  saying: string;
+  by: string;
+  /** 오늘의 말문 — 손잡고 절로로 이어지는 끈 */
+  opener: string;
+  merit: number;
 };
 
 export type DrawBook = {
   day: string;
-  /** 오늘 뒤집은 장 */
-  drawn: number;
-  /** 오늘 연꽃으로 더 얻은 장 */
-  extra: number;
-  /** 모아 둔 부적 조각 */
-  pieces: number;
-  /** 남은 동행권 */
-  tickets: number;
-  /** 인연패가 켜진 날 — 오늘이면 켜져 있다 */
-  boost: string | null;
-  /** 지나온 자취 — 최근 60장 */
-  log: Got[];
+  /** 오늘 뒤집은 것 — 없으면 아직 안 뒤집었다 */
+  today: Fortune | null;
+  /** 지나온 자취 */
+  log: Fortune[];
 };
 
-const EMPTY = (day: string): DrawBook => ({
-  day,
-  drawn: 0,
-  extra: 0,
-  pieces: 0,
-  tickets: 0,
-  boost: null,
-  log: [],
-});
+const EMPTY = (day: string): DrawBook => ({ day, today: null, log: [] });
 
-const num = (v: unknown) => (typeof v === "number" && v > 0 ? Math.floor(v) : 0);
+const POISON_OK = (v: unknown): v is Poison => v === "tam" || v === "jin" || v === "chi";
+
+function sane(v: unknown): v is Fortune {
+  const f = v as Fortune;
+  return (
+    !!f &&
+    typeof f === "object" &&
+    typeof f.at === "number" &&
+    typeof f.day === "string" &&
+    POISON_OK(f.poison)
+  );
+}
+
+// 옛 장부(동행권·부적 조각)는 쓸 데가 없어졌다 — 서랍에 남겨 두면
+// 지운 기능이 브라우저에만 살아 있는 꼴이 된다. 한 번만 쓸어낸다.
+let swept = false;
+function sweepOld() {
+  if (swept) return;
+  swept = true;
+  try {
+    window.localStorage.removeItem("hwadu.draw.v1");
+  } catch {
+    // 못 지워도 이 장부와는 상관없다
+  }
+}
 
 export function loadDraw(): DrawBook {
   const today = visitDayKey();
   if (typeof window === "undefined") return EMPTY(today);
+  sweepOld();
   try {
     const raw = window.localStorage.getItem(DRAW_KEY);
     if (!raw) return EMPTY(today);
     const p = JSON.parse(raw) as Partial<DrawBook>;
-    const rolled = p.day !== today; // 날이 바뀌면 오늘치만 비운다
+    const log = Array.isArray(p.log) ? p.log.filter(sane) : [];
+    const head = log[0] ?? null;
     return {
       day: today,
-      drawn: rolled ? 0 : num(p.drawn),
-      extra: rolled ? 0 : Math.min(num(p.extra), MAX_EXTRA),
-      pieces: num(p.pieces),
-      tickets: num(p.tickets),
-      boost: typeof p.boost === "string" ? p.boost : null,
-      log: Array.isArray(p.log) ? (p.log.filter((g) => g && typeof g === "object") as Got[]) : [],
+      today: head && head.day === today ? head : null,
+      log,
     };
   } catch {
     return EMPTY(today);
@@ -178,151 +193,98 @@ export function loadDraw(): DrawBook {
 
 function save(b: DrawBook) {
   try {
-    window.localStorage.setItem(DRAW_KEY, JSON.stringify(b));
+    window.localStorage.setItem(DRAW_KEY, JSON.stringify({ day: b.day, log: b.log }));
     window.dispatchEvent(new CustomEvent(DRAW_EVENT));
   } catch {
     // 못 적어도 화면은 굴러간다
   }
 }
 
-/** 오늘 남은 장 */
-export function leftToday(b: DrawBook = loadDraw()): number {
-  return Math.max(0, FREE_PER_DAY + b.extra - b.drawn);
-}
-
+/** 오늘 뒤집을 것이 남았는가 — 하루 한 장뿐이다 */
 export function canDraw(b: DrawBook = loadDraw()): boolean {
-  return leftToday(b) > 0;
+  return b.today === null;
 }
 
-/** 연꽃을 이미 쓴 날인가 — 더 살 수 있는지 화면이 묻는다 */
-export function canBuyExtra(b: DrawBook = loadDraw()): boolean {
-  return b.extra < MAX_EXTRA;
-}
-
-/** 오늘 뒤집은 그 장 — 다시 들어와도 같은 패가 놓여 있게 */
-export function todaysGot(b: DrawBook = loadDraw()): Got | null {
-  const g = b.log[0];
-  return g && visitDayKey(g.at) === b.day ? g : null;
+/** 오늘 뒤집은 그 장 — 다시 들어와도 같은 것이 놓여 있게 */
+export function todaysFortune(b: DrawBook = loadDraw()): Fortune | null {
+  return b.today;
 }
 
 // ── 뒤집기 ──────────────────────────────────────────────────
 
-function pick(): Card {
-  const sum = DECK.reduce((a, c) => a + c.weight, 0);
-  let r = Math.random() * sum;
-  for (const c of DECK) {
-    r -= c.weight;
-    if (r <= 0) return c;
-  }
-  return DECK[0];
-}
-
-// 어제 본 문장이 오늘 또 나오면 김이 샌다 — 직전 것만 피한다
-function other(list: string[], last?: string): string {
-  const pool = list.length > 1 && last ? list.filter((s) => s !== last) : list;
-  return pool[Math.floor(Math.random() * pool.length)];
+// 어제 본 것이 오늘 또 나오면 김이 샌다 — 직전 것만 피한다
+function other<T>(list: T[], last: T | undefined, key: (t: T) => string): T {
+  const pool = list.length > 1 && last ? list.filter((t) => key(t) !== key(last)) : list;
+  return pool[Math.floor(Math.random() * pool.length)] ?? list[0];
 }
 
 /**
- * 한 장 뒤집는다. 남은 장이 없으면 null.
- * 얻은 것은 그 자리에서 먹인다 — 공덕은 공덕 장부로, 나머지는 이 장부로.
+ * 오늘의 운세를 연다. 이미 뒤집었으면 null.
+ * 공덕은 그 자리에서 쌓인다 — 뒤집는 맛과 상이 붙어 있어야 한다.
  */
-export function drawOne(): Got | null {
+export function drawFortune(): Fortune | null {
   if (typeof window === "undefined") return null;
   const b = loadDraw();
   if (!canDraw(b)) return null;
 
-  const c = pick();
-  const got: Got = {
+  const last = b.log[0];
+  const p = other(POISONS, last && poisonOf(last.poison), (c) => c.id);
+  const s = other(SAYINGS, last && SAYINGS.find((x) => x.text === last.saying), (x) => x.text);
+
+  const f: Fortune = {
     at: Date.now(),
-    kind: c.kind,
-    name: c.name,
-    hanja: c.hanja,
-    mark: c.mark,
-    merit: c.merit,
+    day: b.day,
+    poison: p.id,
+    sign: other(p.signs, last?.sign, (t) => t),
+    saying: s.text,
+    by: s.name,
+    opener: other(OPENERS, last?.opener, (t) => t),
+    merit: FORTUNE_MERIT,
   };
 
-  if (c.kind === "malmun") {
-    got.text = other(
-      OPENERS,
-      b.log.find((g) => g.kind === "malmun")?.text
-    );
+  b.today = f;
+  b.log = [f, ...b.log].slice(0, LOG_MAX);
+  save(b);
+
+  // 공덕은 공덕 장부가 셈한다. 21 을 그대로 얹으려면 한 알(1)짜리 갈래를
+  // 곱하는 수밖에 없어 염주로 넣는다 — merit.ts 에 '운세' 갈래가 생기면
+  // 그때 갈아 끼우면 된다.
+  addMerit("bead", FORTUNE_MERIT);
+
+  return f;
+}
+
+// ── 이어 온 날 ──────────────────────────────────────────────
+
+/** 하루 뒤로 — "2026-09-14" 를 하루씩 물린다 */
+function back(day: string, n: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  return visitDayKey(new Date(y, m - 1, d - n).getTime());
+}
+
+/**
+ * 이어서 며칠째인가.
+ * 오늘 아직 안 뒤집었으면 어제부터 센다 — 하루가 다 가기도 전에
+ * 줄이 끊긴 것처럼 보이면 사람은 그날로 그만둔다.
+ */
+export function streakDays(b: DrawBook = loadDraw()): number {
+  if (!b.log.length) return 0;
+  const seen = new Set(b.log.map((f) => f.day));
+  let cur = seen.has(b.day) ? b.day : back(b.day, 1);
+  let n = 0;
+  while (seen.has(cur) && n <= LOG_MAX) {
+    n += 1;
+    cur = back(cur, 1);
   }
-  if (c.kind === "saying") {
-    const last = b.log.find((g) => g.kind === "saying")?.text;
-    const pool = SAYINGS.length > 1 && last ? SAYINGS.filter((s) => s.text !== last) : SAYINGS;
-    const s = pool[Math.floor(Math.random() * pool.length)];
-    got.text = s.text;
-    got.by = s.name;
-  }
-
-  b.drawn += 1;
-  b.log = [got, ...b.log].slice(0, 60);
-  if (c.kind === "inyeon") b.boost = b.day;
-  if (c.kind === "donghaeng") b.tickets += 1;
-  if (c.kind === "piece") b.pieces += 1;
-  save(b);
-
-  // 공덕은 공덕 장부가 셈한다. 21·54·108 을 그대로 얹으려면 한 알(1)짜리
-  // 갈래를 곱하는 수밖에 없어 염주로 넣는다 — merit.ts 에 '뽑기' 갈래가
-  // 생기면 그때 갈아 끼우면 된다.
-  if (got.merit) addMerit("bead", got.merit);
-
-  return got;
-}
-
-/** 연꽃 한 송이를 치른 뒤에 부른다 — 오늘 한 장이 더 놓인다 */
-export function addExtra(): boolean {
-  if (typeof window === "undefined") return false;
-  const b = loadDraw();
-  if (!canBuyExtra(b)) return false;
-  b.extra += 1;
-  save(b);
-  return true;
-}
-
-// ── 모은 것 ─────────────────────────────────────────────────
-
-// 이름을 use- 로 짓지 않는다 — 리액트가 훅으로 오해해 부르는 자리를 막는다
-/** 동행권 한 장을 쓴다 — 쪽지 청하기가 이 셈을 읽는다 */
-export function spendTicket(): boolean {
-  if (typeof window === "undefined") return false;
-  const b = loadDraw();
-  if (b.tickets <= 0) return false;
-  b.tickets -= 1;
-  save(b);
-  return true;
-}
-
-export function ticketCount(): number {
-  return loadDraw().tickets;
-}
-
-/** 인연패가 오늘 켜져 있는가 — 게시판이 이 표식을 읽어 맨 위로 올린다 */
-export function inyeonBoostOn(): boolean {
-  const b = loadDraw();
-  return b.boost === b.day;
-}
-
-/** 아직 못 받은 부적 중 다음 것 — 조각이 모자라도 무엇이 올지는 보여 준다 */
-export function nextCharm(): Charm | null {
-  const have = loadCharms();
-  return CHARMS.find((c) => !have[c.id]) ?? null;
-}
-
-/** 조각 셋을 치르고 부적 한 장을 청한다 */
-export function claimCharm(): Charm | null {
-  if (typeof window === "undefined") return null;
-  const b = loadDraw();
-  if (b.pieces < PIECES_FOR_CHARM) return null;
-  const next = nextCharm();
-  if (!next || !grantCharm(next.id)) return null;
-  b.pieces -= PIECES_FOR_CHARM;
-  save(b);
-  return next;
+  return n;
 }
 
 // ── 자정까지 ────────────────────────────────────────────────
+
+/** 오늘 — 화면이 자정을 넘겼는지 이걸로 견준다 */
+export function dayKey(): string {
+  return visitDayKey();
+}
 
 /** 다음 자정까지 남은 밀리초 */
 export function msToMidnight(now: number = Date.now()): number {
@@ -338,16 +300,7 @@ export function fmtLeft(ms: number): string {
   return `${p(Math.floor(t / 3600))}:${p(Math.floor((t % 3600) / 60))}:${p(t % 60)}`;
 }
 
-/** 그 갈래의 패가 무엇인지 한 줄 — 앞면에 적는다 */
-export function sayOf(kind: CardKind): string {
-  return DECK.find((c) => c.kind === kind)?.say ?? "";
-}
-
-/** 자취 한 줄 — 목록에 쓰는 짧은 말 */
-export function gotLine(g: Got): string {
-  if (g.kind === "merit") return `공덕 ${g.merit}`;
-  if (g.kind === "saying" || g.kind === "malmun") return g.text ?? "";
-  if (g.kind === "donghaeng") return "쪽지 한 번";
-  if (g.kind === "piece") return "조각 하나";
-  return "맨 위에 하루";
+/** 09.14 — 자취에 찍는 날짜 */
+export function stampOf(day: string): string {
+  return day.slice(5).replace("-", ".");
 }

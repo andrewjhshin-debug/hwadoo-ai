@@ -1,41 +1,34 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 오늘의 한 장(籤) — 하루에 놓이는 패 한 장을 뒤집는 자리.
+// 오늘의 운세(運勢) — 하루 한 장을 뒤집는 자리.
 //
-// 화면은 셋뿐이다 — 큰 숫자 하나, 패 한 장, 모아 둔 것.
-// 뒤집으면 되돌릴 수 없으니 되감기 단추도 두지 않았다.
-// 다 뒤집은 날에는 큰 숫자가 자정까지 남은 시간으로 바뀐다 — 내일 또 오게.
+// 뒤집기 전에는 큰 숫자가 오늘 날짜, 뒤집고 나면 자정까지 남은 시간.
+// 어느 쪽이든 화면 한복판에 숫자는 하나뿐이다.
 //
-// 셈과 효과는 전부 lib/draw.ts 가 맡는다. 여기는 뒤집는 맛만 만든다.
+// 패에는 오늘의 독만 싣는다. 처방·한 마디·말문은 패 아래로 흘린다 —
+// 63:88 짜리 종이에 넷을 다 우겨넣으면 아무것도 안 읽힌다.
+// 셈과 문구는 전부 lib/draw.ts 가 쥔다. 여기는 뒤집는 맛만 만든다.
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import type { User } from "firebase/auth";
 import Dudu from "@/components/Dudu";
-import type { Charm } from "@/lib/charm";
 import { loadMerit, stageOf } from "@/lib/merit";
 import { buzz, clickBead, strikeMoktak } from "@/lib/sound";
-import { watchAuth } from "@/lib/sync";
-import { getLotus, spendLotus } from "@/lib/dm";
 import {
-  addExtra,
-  canBuyExtra,
-  canDraw,
-  claimCharm,
-  drawOne,
+  dayKey,
+  drawFortune,
   fmtLeft,
-  gotLine,
-  leftToday,
+  FORTUNE_MERIT,
   loadDraw,
   msToMidnight,
-  nextCharm,
-  PIECES_FOR_CHARM,
-  sayOf,
-  todaysGot,
+  poisonOf,
+  stampOf,
+  streakDays,
   type DrawBook,
-  type Got,
+  type Fortune,
+  type PoisonCard,
 } from "@/lib/draw";
 
 // 카드 한 장 — 3D 로 돈다. 앞뒤 두 면을 겹쳐 두고 축을 돌린다.
@@ -92,108 +85,68 @@ const DRAW_CSS = `
 
 export default function DrawPage() {
   const [book, setBook] = useState<DrawBook | null>(null);
-  const [got, setGot] = useState<Got | null>(null);
+  const [got, setGot] = useState<Fortune | null>(null);
   const [flipped, setFlipped] = useState(false);
   const [stage, setStage] = useState(0);
   const [waiting, setWaiting] = useState(0); // 자정까지 남은 밀리초
-  const [next, setNext] = useState<Charm | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [lotus, setLotus] = useState<number | null>(null);
-  const [buying, setBuying] = useState(false);
-  const [hint, setHint] = useState<{ text: string; href?: string; go?: string } | null>(null);
-  const [taken, setTaken] = useState<Charm | null>(null);
 
   // 서랍은 붙고 난 뒤에 읽는다 — 서버 그림과 어긋나지 않게
   const refresh = useCallback(() => {
     setBook(loadDraw());
-    setNext(nextCharm());
     setStage(stageOf(loadMerit().total));
   }, []);
 
   useEffect(() => {
     const b = loadDraw();
-    refresh();
-    // 오늘 이미 뒤집었으면 그 패가 그대로 놓여 있게
-    const g = todaysGot(b);
-    if (g && !canDraw(b)) {
-      setGot(g);
+    setBook(b);
+    setStage(stageOf(loadMerit().total));
+    // 오늘 이미 뒤집었으면 그 장이 그대로 놓여 있게 — 돌아가는 시늉은 없다
+    if (b.today) {
+      setGot(b.today);
       setFlipped(true);
     }
-  }, [refresh]);
+  }, []);
 
   useEffect(() => {
-    const tick = () => setWaiting(msToMidnight());
+    const tick = () => {
+      setWaiting(msToMidnight());
+      // 자정을 넘겼는데 화면이 어제에 머물면 안 된다 — 새 장을 놓는다
+      const now = dayKey();
+      setBook((prev) => (prev && prev.day !== now ? loadDraw() : prev));
+    };
     tick();
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
   }, []);
 
-  useEffect(() => watchAuth(setUser), []);
-
+  // 새 날이 되어 오늘 것이 비면 패도 뒷면으로 되돌린다
   useEffect(() => {
-    if (!user) {
-      setLotus(null);
-      return;
+    if (book && !book.today && flipped) {
+      setFlipped(false);
+      window.setTimeout(() => setGot(null), 520);
     }
-    let alive = true;
-    void getLotus().then((n) => {
-      if (alive) setLotus(n);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [user]);
+  }, [book, flipped]);
 
   const flip = () => {
-    if (!book || flipped || !canDraw(book)) return;
-    const g = drawOne();
-    if (!g) return;
+    if (!book || flipped || book.today) return;
+    const f = drawFortune();
+    if (!f) return;
     clickBead(0.55);
     buzz(10);
-    setGot(g);
+    setGot(f);
     setFlipped(true);
-    setHint(null);
     // 반쯤 돌았을 때 목탁 한 방 — 소리가 그림보다 먼저 오면 김이 샌다
     window.setTimeout(() => strikeMoktak(0.55), 330);
     window.setTimeout(refresh, 900);
   };
 
-  const buyExtra = async () => {
-    if (!book || buying) return;
-    if (!user) {
-      setHint({ text: "연꽃은 들어오신 뒤에 쓸 수 있어요." });
-      return;
-    }
-    setBuying(true);
-    setHint(null);
-    const ok = await spendLotus().catch(() => false);
-    if (!ok) {
-      setHint({ text: "연꽃이 다 떨어졌어요.", href: "/lotus", go: "연꽃 공양" });
-      setBuying(false);
-      return;
-    }
-    addExtra();
-    setLotus((n) => (typeof n === "number" ? Math.max(0, n - 1) : n));
-    setFlipped(false);
-    refresh();
-    // 뒷면이 다시 보인 뒤에 앞면을 비운다 — 도는 중에 내용이 사라지면 어색하다
-    window.setTimeout(() => setGot(null), 520);
-    setBuying(false);
-  };
-
-  const claim = () => {
-    const c = claimCharm();
-    if (!c) return;
-    strikeMoktak(0.6);
-    buzz(14);
-    setTaken(c);
-    refresh();
-  };
-
   if (!book) return <div className="h-[70vh]" aria-hidden />;
 
-  const rest = leftToday(book);
-  const boostOn = book.boost === book.day;
+  const open = Boolean(book.today && got);
+  const p = got ? poisonOf(got.poison) : null;
+  const run = streakDays(book);
+  // 오늘 것은 위에 이미 있다 — 자취에 두 번 적지 않는다
+  const trail = (book.today ? book.log.slice(1) : book.log).slice(0, 5);
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
@@ -205,26 +158,24 @@ export default function DrawPage() {
         uid="draw"
         className="rise h-[84px] w-[84px]"
       />
-      <p className="rise mt-2 text-[12px] tracking-[0.35em] text-hanji-faint">
-        籤 · 오늘의 한 장
-      </p>
+      <p className="rise mt-2 text-[12px] tracking-[0.35em] text-hanji-faint">運 · 오늘의 운세</p>
 
-      {rest > 0 ? (
-        <>
-          <p className="rise rise-d1 mt-1 font-serif text-[68px] font-light leading-none text-hanji">
-            {rest}
-            <span className="ml-1 align-middle text-[20px] text-hanji-faint">장</span>
-          </p>
-          <p className="rise rise-d1 mt-2.5 text-[12.5px] text-hanji-faint">
-            패를 누르면 뒤집혀요
-          </p>
-        </>
-      ) : (
+      {open ? (
         <>
           <p className="rise rise-d1 mt-1 font-serif text-[46px] font-light leading-none tracking-tight text-hanji tabular-nums sm:text-[58px]">
             {fmtLeft(waiting)}
           </p>
-          <p className="rise rise-d1 mt-2.5 text-[12.5px] text-hanji-faint">다음 한 장까지</p>
+          <p className="rise rise-d1 mt-2.5 text-[12.5px] text-hanji-faint">다음 운세까지</p>
+        </>
+      ) : (
+        <>
+          <p className="rise rise-d1 mt-1 font-serif text-[68px] font-light leading-none text-hanji">
+            {Number(book.day.slice(8))}
+            <span className="ml-1 align-middle text-[20px] text-hanji-faint">일</span>
+          </p>
+          <p className="rise rise-d1 mt-2.5 text-[12.5px] text-hanji-faint">
+            패를 누르면 오늘이 열려요
+          </p>
         </>
       )}
 
@@ -233,88 +184,86 @@ export default function DrawPage() {
         <button
           type="button"
           onClick={flip}
-          disabled={rest <= 0 || flipped}
-          aria-label={flipped ? "오늘 뒤집은 패" : "오늘의 한 장 뒤집기"}
+          disabled={flipped}
+          aria-label={flipped ? "오늘의 운세" : "오늘의 운세 뒤집기"}
           className={`draw-card ${flipped ? "is-flipped" : ""}`}
         >
           <span className="draw-face border border-ink-3 bg-ink-2">
             <Back />
           </span>
           <span className="draw-front draw-face border border-ink-3 bg-ink-2">
-            {got && <Face got={got} />}
+            {got && p && <Face sign={got.sign} poison={p} />}
           </span>
         </button>
       </div>
 
-      {/* ── 한 장 더 ── */}
-      {rest <= 0 && canBuyExtra(book) && (
-        <button
-          onClick={buyExtra}
-          disabled={buying}
-          className="btn-obang mt-6 w-full max-w-[284px] py-3 text-[13px] tracking-[0.15em] text-hanji"
-        >
-          {buying ? "…" : "연꽃 한 송이로 한 장 더"}
-          {lotus !== null && !buying && (
-            <span className="ml-2 text-[11.5px] text-hanji-faint">연꽃 {lotus}</span>
+      {/* ── 얹힌 것 ── */}
+      {(open || run > 0) && (
+        <ul className="rise rise-d3 mt-6 flex flex-wrap items-center justify-center gap-2 text-[11.5px]">
+          {open && (
+            <li className="rounded-full border border-gold/45 px-3 py-1.5 text-gold">
+              공덕 +{FORTUNE_MERIT}
+            </li>
           )}
-        </button>
-      )}
-
-      {hint && (
-        <p className="mt-3 text-[12px] text-hanji-faint">
-          {hint.text}
-          {hint.href && (
-            <Link href={hint.href} className="ml-1.5 text-gold underline-offset-4 hover:underline">
-              {hint.go}
-            </Link>
+          {run > 0 && (
+            <li className="rounded-full border border-ink-3 px-3 py-1.5 text-hanji-dim">
+              이어서 {run}일
+            </li>
           )}
-        </p>
+        </ul>
       )}
 
-      {/* ── 모아 둔 것 ── */}
-      <ul className="rise rise-d3 mt-7 flex flex-wrap items-center justify-center gap-2 text-[11.5px]">
-        <li className="rounded-full border border-ink-3 px-3 py-1.5 text-hanji-dim">
-          동행권 {book.tickets}
-        </li>
-        <li className="rounded-full border border-ink-3 px-3 py-1.5 text-hanji-dim">
-          부적 조각 {book.pieces} / {PIECES_FOR_CHARM}
-        </li>
-        {boostOn && (
-          <li className="rounded-full border border-gold/45 px-3 py-1.5 text-gold">
-            인연패 · 오늘
-          </li>
-        )}
-      </ul>
-
-      {book.pieces >= PIECES_FOR_CHARM && next && !taken && (
-        <button
-          onClick={claim}
-          className="mt-4 w-full max-w-[284px] rounded-full border border-gold/50 py-2.5 text-[12.5px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
-        >
-          조각 셋으로 {next.name} 청하기
-        </button>
-      )}
-
-      {taken && (
-        <p className="mt-4 text-[12.5px] text-vermilion">
-          {taken.name} 한 장을 받았어요
-          <Link href="/settings" className="ml-1.5 text-gold underline-offset-4 hover:underline">
-            도량에 걸기
+      {open && got && p && (
+        <>
+          {/* ── 처방 ── */}
+          <p className="mt-7 max-w-[284px] break-keep text-center text-[13px] leading-6 text-hanji-dim">
+            {p.cure}
+          </p>
+          <Link
+            href={p.href}
+            className="btn-obang mt-3.5 block w-full max-w-[284px] py-3 text-center text-[13px] tracking-[0.15em] text-hanji transition-opacity hover:opacity-90"
+          >
+            {p.go}
           </Link>
-        </p>
+
+          {/* ── 오늘의 한 마디 ── */}
+          <figure className="mt-10 max-w-[284px]">
+            <p className="break-keep text-center font-serif text-[15px] leading-8 text-hanji">
+              {got.saying}
+            </p>
+            <figcaption className="mt-2.5 text-center text-[11px] tracking-wide text-hanji-faint">
+              {got.by}
+            </figcaption>
+          </figure>
+
+          {/* ── 오늘의 말문 — 절에서 건넬 첫 마디 ── */}
+          <div className="mt-9 w-full max-w-[284px] rounded-[14px] border border-ink-3 bg-ink-2/50 p-4">
+            <p className="text-[11px] tracking-[0.25em] text-hanji-faint">言 · 오늘의 말문</p>
+            <p className="mt-2 break-keep font-serif text-[14px] leading-7 text-hanji">
+              {got.opener}
+            </p>
+            <Link
+              href="/pilgrimage"
+              className="mt-3 inline-block text-[12px] text-gold underline-offset-4 hover:underline"
+            >
+              손잡고 절로
+            </Link>
+          </div>
+        </>
       )}
 
       {/* ── 지나온 자취 ── */}
-      {book.log.length > 1 && (
+      {trail.length > 0 && (
         <ul className="mt-9 w-full max-w-[284px] border-t border-ink-3">
-          {book.log.slice(0, 5).map((g) => (
+          {trail.map((f) => (
             <li
-              key={g.at}
+              key={f.at}
               className="flex items-baseline justify-between gap-3 border-b border-ink-3 py-2.5"
             >
-              <span className="shrink-0 text-[11.5px] text-hanji-faint">{stamp(g.at)}</span>
+              <span className="shrink-0 text-[11.5px] text-hanji-faint">{stampOf(f.day)}</span>
               <span className="min-w-0 flex-1 truncate text-right text-[12px] text-hanji-dim">
-                {g.name} · {gotLine(g)}
+                <span className="font-serif text-gold-soft">{poisonOf(f.poison).hanja}</span>{" "}
+                {f.sign}
               </span>
             </li>
           ))}
@@ -324,12 +273,12 @@ export default function DrawPage() {
   );
 }
 
-// ── 뒷면 — 금빛 고리 안에 一 ─────────────────────────────────
+// ── 뒷면 — 금빛 고리 안에 心 ─────────────────────────────────
 
 function Back() {
   return (
     <>
-      {/* 빛깔은 토큰에서 — currentColor 라야 낮·밤이 저절로 갈린다 */}
+      {/* 빛깔은 토큰에서 — currentColor 라야 저절로 따라온다 */}
       <svg viewBox="0 0 120 120" className="h-[132px] w-[132px] text-gold-soft" aria-hidden>
         <g fill="none" stroke="currentColor">
           <circle cx="60" cy="60" r="46" strokeWidth="0.8" opacity="0.55" />
@@ -348,57 +297,31 @@ function Back() {
           ))}
         </g>
       </svg>
-      <span className="absolute font-serif text-[30px] leading-none text-gold">一</span>
-      <span className="absolute bottom-6 text-[11px] tracking-[0.3em] text-hanji-faint">
-        籤
-      </span>
+      <span className="absolute font-serif text-[30px] leading-none text-gold">心</span>
+      <span className="absolute bottom-6 text-[11px] tracking-[0.3em] text-hanji-faint">運勢</span>
     </>
   );
 }
 
-// ── 앞면 ────────────────────────────────────────────────────
+// ── 앞면 — 오늘의 독 ────────────────────────────────────────
 
-function Face({ got }: { got: Got }) {
-  const word = got.kind === "malmun" || got.kind === "saying";
+function Face({ sign, poison }: { sign: string; poison: PoisonCard }) {
   return (
     <>
       <span className="draw-glow" aria-hidden />
       <span className="relative grid h-[38px] w-[38px] place-items-center rounded-full bg-gold font-serif text-[18px] leading-none text-ink">
-        {got.mark}
+        {poison.hanja}
       </span>
-      <span className="relative mt-3.5 font-serif text-[21px] leading-none text-hanji">
-        {got.name}
+      <span className="relative mt-3.5 break-keep font-serif text-[21px] leading-none text-hanji">
+        {poison.verdict}
       </span>
-      <span className="relative mt-1.5 text-[11px] tracking-[0.2em] text-gold-soft">
-        {got.hanja}
+      <span className="relative mt-2 text-[11px] tracking-[0.25em] text-gold-soft">
+        三毒 · 오늘의 독
       </span>
       <span className="relative mt-4 h-px w-9 bg-ink-3" aria-hidden />
-
-      {got.kind === "merit" ? (
-        <span className="relative mt-4 font-serif text-[54px] font-light leading-none text-gold">
-          {got.merit}
-        </span>
-      ) : word ? (
-        <span className="relative mt-4 break-keep px-1 text-center font-serif text-[15px] leading-7 text-hanji">
-          {got.text}
-        </span>
-      ) : (
-        <span className="relative mt-4 break-keep px-1 text-center text-[12.5px] leading-6 text-hanji-dim">
-          {sayOf(got.kind)}
-        </span>
-      )}
-
-      {got.by && (
-        <span className="relative mt-2.5 text-[11px] tracking-wide text-hanji-faint">
-          {got.by}
-        </span>
-      )}
+      <span className="relative mt-4 break-keep px-1 text-center font-serif text-[15px] leading-7 text-hanji">
+        {sign}
+      </span>
     </>
   );
-}
-
-// 자취의 날짜 — 09.14
-function stamp(at: number): string {
-  const d = new Date(at);
-  return `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 }

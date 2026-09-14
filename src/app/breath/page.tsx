@@ -6,7 +6,9 @@
 // 문구 전환만 거든다 — 문구는 setInterval 누적이 아니라 시작 시각으로부터의
 // 경과로 계산해, 원의 움직임과 어긋나지 않는다.
 // 길이 선택은 없다 — 스스로 마칠 때까지. 10초 = 1식(息).
-// 음향: 마디가 바뀔 때 경쇠 한 음만 — 높은 음이 들숨, 낮은 음이 날숨.
+// 음향: 마디가 바뀔 때 경쇠 한 음 + 그 마디 내내 흐르는 숨소리.
+// 들숨엔 소리가 밝아지며 차오르고, 날숨엔 어두워지며 잦아든다 —
+// 눈을 감으면 화면이 사라지므로, 숨의 길이는 귀가 붙잡아야 한다.
 // (에셋 없이 Web Audio 로 합성 · 끄기 단추 있음)
 //
 // 화면을 다시 짠 까닭 —
@@ -22,6 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import { recordMeditation } from "@/lib/meditation";
 import { loadDaily } from "@/lib/daily";
 import { MERIT_VALUE } from "@/lib/merit";
+import { breatheIn, breatheOut, wakeBreath } from "@/lib/sound";
 
 const INHALE_MS = 4000; // 들숨 4초
 const CYCLE_MS = 10000; // 들숨 4초 + 날숨 6초 = 1식
@@ -165,17 +168,23 @@ export default function BreathPage() {
     osc2.stop(t + tail + 0.1);
   };
 
-  // 마디 소리 — 경쇠 한 음이면 충분하다 (숨결 소리는 걷어냈다)
-  const playBreath = (kind: "in" | "out") => {
-    const ctx = ensureAudio();
-    if (!ctx) return;
-    playCue(ctx, kind, ctx.currentTime);
-  };
+  // 흐르고 있는 숨소리를 거두는 손잡이 — 마디가 바뀌거나 판을 마칠 때 부른다
+  const hushRef = useRef<(() => void) | null>(null);
 
-  // 숨의 마디가 바뀔 때마다 소리 한 번 — 들숨/날숨이 각자의 결을 낸다
+  // 마디가 바뀔 때마다: 경쇠 한 음으로 전환을 알리고, 그 마디 내내 숨소리를 깐다.
+  // 길이는 '지금 이 마디에 남은 시간'으로 준다 — 중간에 소리를 켜도 원의 리듬과
+  // 어긋나지 않게. (들숨 4초 · 날숨 6초가 CSS 애니메이션과 같은 시계를 본다)
   useEffect(() => {
     if (stage !== "breathing" || !soundOn) return;
-    playBreath(phase);
+    const ctx = ensureAudio();
+    if (ctx) playCue(ctx, phase, ctx.currentTime);
+    const pos = (performance.now() - startRef.current) % CYCLE_MS;
+    const left = (phase === "in" ? INHALE_MS - pos : CYCLE_MS - pos) / 1000;
+    hushRef.current = phase === "in" ? breatheIn(left) : breatheOut(left);
+    return () => {
+      hushRef.current?.(); // 두 숨이 겹쳐 울리지 않게 앞 숨을 먼저 거둔다
+      hushRef.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, stage, soundOn]);
 
@@ -195,6 +204,7 @@ export default function BreathPage() {
 
   const begin = () => {
     ensureAudio(); // 사용자 손길이 있을 때 오디오 문을 연다 (iOS 규칙)
+    wakeBreath(); // 숨소리는 다른 문을 쓴다 — 첫 들숨이 늦지 않게 같이 연다
     startRef.current = performance.now();
     setPhase("in");
     setSeconds(0);
@@ -337,7 +347,7 @@ export default function BreathPage() {
       {stage === "ready" && (
         <div className="rise rise-d3 flex w-full max-w-[300px] flex-col items-center">
           <p className="mt-4 break-keep text-[13px] leading-6 text-hanji-dim">
-            눈을 감으면 더 잘 보입니다.
+            눈을 감고 해보세요.
           </p>
           <div className="mt-4 flex items-center gap-3">
             <button
@@ -361,9 +371,8 @@ export default function BreathPage() {
                 천천히 들이쉬고, 여섯을 세며 길게 내쉽니다.
               </p>
               <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
-                시작하면 <span className="text-hanji">눈을 감아 보세요</span> —
-                그래야 더 알아차릴 수 있습니다. 높은 경쇠가 울리면 들숨, 낮은
-                경쇠가 울리면 날숨입니다.
+                화면을 보지 않아도 됩니다. 숨소리가 차오르면 들숨, 잦아들면
+                날숨입니다.
               </p>
               <p className="break-keep text-[12px] leading-6 text-hanji-faint">
                 열 번을 세는 동안이 한 식(息)입니다. 한 판을 마치면 공덕{" "}

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// 내가 다니는 절 —
+// 내 절 —
 // 왜 브라우저에 먼저 적는가: 로그인하지 않은 사람도 자기 절을 둘 수 있게.
 // 왜 서버에도 올리는가: 같은 절 다니는 사람을 세려면 한곳에 모여야 한다.
 // 명단은 만들지 않는다 — 서버는 사람 수만 돌려준다(사생활).
@@ -25,7 +25,11 @@ export function tidyTempleName(raw: string): string {
 
 // ── 이 기기의 서랍 ──────────────────────────────────────────
 
-export function myTemple(): string | null {
+/**
+ * 내 절 이름. 안 정했으면 null.
+ * 화면은 이 하나만 부르면 된다 — 부를 때마다 서랍에서 새로 읽는다.
+ */
+export function myTempleName(): string | null {
   if (typeof window === "undefined") return null; // 서버에는 서랍이 없다
   try {
     const raw = window.localStorage.getItem(MY_TEMPLE_KEY);
@@ -35,6 +39,9 @@ export function myTemple(): string | null {
     return null;
   }
 }
+
+/** 예전 이름 — 먼저 짜인 화면이 이 이름으로 부른다 */
+export const myTemple = myTempleName;
 
 // 서랍에만 적는다 — 서버에서 방금 데려온 값은 다시 올릴 필요가 없다
 function writeLocal(name: string) {
@@ -80,7 +87,7 @@ export function setMyTemple(name: string | null) {
  * 비었으면 계정에 적힌 절을 데려온다 — 폰에서 정하고 PC 에서 열어도 그대로.
  */
 export async function syncMyTemple(): Promise<string | null> {
-  const mine = myTemple();
+  const mine = myTempleName();
   const u = auth.currentUser;
   if (!u) return mine;
   if (mine) {

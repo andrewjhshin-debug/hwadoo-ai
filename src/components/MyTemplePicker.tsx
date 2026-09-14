@@ -1,8 +1,9 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 내가 다니는 절 — 카드 하나.
-// 안 골랐으면 한 줄 물음, 골랐으면 절 이름과 같은 절 몇 명.
+// 내 절 — 카드 하나.
+// 안 골랐으면 한 줄 물음, 골랐으면 절 이름을 크게 세우고 같은 절 몇 명.
+// 왜 이름을 크게 쓰는가 — 작게 적으면 남의 절 목록처럼 보인다.
 // 목록에서 고르되, 없는 절이면 직접 적는다 — 전국의 절이 다 여기 있진 않다.
 // ─────────────────────────────────────────────────────────────
 
@@ -11,7 +12,7 @@ import {
   fetchTempleMates,
   isKnownTemple,
   MY_TEMPLE_EVENT,
-  myTemple,
+  myTempleName,
   searchTemples,
   setMyTemple,
   syncMyTemple,
@@ -19,11 +20,13 @@ import {
 } from "@/lib/myTemple";
 import { watchAuth } from "@/lib/sync";
 
-// 寺 — 금색 뱃지 한 글자
-function TempleMark() {
+// 寺 — 한 글자 뱃지. 내 절이 있을 때만 금빛이 든다
+function TempleMark({ lit }: { lit: boolean }) {
   return (
     <span
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/30 font-serif text-[15px] leading-none text-gold"
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border font-serif text-[15px] leading-none ${
+        lit ? "border-gold/30 text-gold" : "border-ink-3 text-hanji-faint"
+      }`}
       aria-hidden
     >
       寺
@@ -40,9 +43,9 @@ export default function MyTemplePicker({ className = "" }: { className?: string 
   const [q, setQ] = useState("");
 
   useEffect(() => {
-    setName(myTemple());
+    setName(myTempleName());
     setReady(true);
-    const sync = () => setName(myTemple());
+    const sync = () => setName(myTempleName());
     window.addEventListener(MY_TEMPLE_EVENT, sync);
     return () => window.removeEventListener(MY_TEMPLE_EVENT, sync);
   }, []);
@@ -83,7 +86,7 @@ export default function MyTemplePicker({ className = "" }: { className?: string 
   };
 
   // 자리만 잡아 둔다 — 화면이 튀지 않게
-  if (!ready) return <div className={`h-[78px] ${className}`} aria-hidden />;
+  if (!ready) return <div className={`h-[94px] ${className}`} aria-hidden />;
 
   const typed = tidyTempleName(q);
   const hits = searchTemples(q);
@@ -94,19 +97,31 @@ export default function MyTemplePicker({ className = "" }: { className?: string 
       className={`rise rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4 ${className}`}
     >
       {!open ? (
-        <div className="flex items-center gap-3">
-          <TempleMark />
+        <div className="flex items-center gap-3.5">
+          <TempleMark lit={!!name} />
           {name ? (
             <div className="min-w-0 flex-1">
-              <p className="truncate font-serif text-[19px] leading-tight text-hanji">
+              <p className="text-[10.5px] tracking-[0.3em] text-hanji-faint">
+                내 절
+              </p>
+              <p className="mt-1 truncate font-serif text-[20px] font-light leading-tight text-hanji">
                 {name}
               </p>
-              <p className="mt-0.5 text-[11.5px] text-hanji-faint">
-                {mates === null
-                  ? " "
-                  : mates > 1
-                    ? `같은 절 ${mates.toLocaleString("ko-KR")}명`
-                    : "여기 첫 사람이에요"}
+              {/* 셈이 오기 전에는 자리만 비워 둔다 — 줄이 생겼다 사라지면 카드가 들썩인다 */}
+              <p className="mt-1 h-[16px] text-[12px] leading-4 text-hanji-faint">
+                {mates === null ? (
+                  ""
+                ) : mates > 1 ? (
+                  <>
+                    같은 절{" "}
+                    <span className="font-serif text-[15px] text-gold">
+                      {mates.toLocaleString("ko-KR")}
+                    </span>
+                    명
+                  </>
+                ) : (
+                  "여기 첫 사람이에요"
+                )}
               </p>
             </div>
           ) : (
@@ -117,7 +132,11 @@ export default function MyTemplePicker({ className = "" }: { className?: string 
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="btn-obang shrink-0 rounded-full px-4 py-1.5 text-[12px] tracking-[0.08em] text-hanji transition-opacity hover:opacity-90"
+            className={
+              name
+                ? "shrink-0 self-start rounded-full border border-ink-3 px-3 py-1 text-[11.5px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                : "btn-obang shrink-0 rounded-full px-4 py-1.5 text-[12px] tracking-[0.08em] text-hanji transition-opacity hover:opacity-90"
+            }
           >
             {name ? "바꾸기" : "고르기"}
           </button>

@@ -11,6 +11,7 @@
 
 import type { MeritSource } from "./merit";
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
+import { streakShield } from "./charmPower";
 
 export const DAILY_KEY = "hwadu.daily.v1";
 export const DAILY_EVENT = "hwadu-daily-updated";
@@ -164,9 +165,19 @@ export function streakOf(visits: string[] = loadVisits()): number {
   let cur = set.has(today) ? today : dayBefore(today);
   if (!set.has(cur)) return 0;
   let n = 0;
-  while (set.has(cur)) {
-    n++;
-    cur = dayBefore(cur);
+  let shield = streakShield(); // 정진부 상품 — 한 번은 건너뛴다
+  while (true) {
+    if (set.has(cur)) {
+      n++;
+      cur = dayBefore(cur);
+      continue;
+    }
+    // 하루 비었다 — 부적이 있으면 한 칸만 건너뛰고 이어 센다
+    if (!shield) break;
+    const skipped = dayBefore(cur);
+    if (!set.has(skipped)) break;
+    shield = false;
+    cur = skipped;
   }
   return n;
 }

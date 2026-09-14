@@ -40,6 +40,7 @@ import { BADGES } from "@/lib/badges";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
 import MyTemplePicker from "@/components/MyTemplePicker";
+import MeritExchange from "@/components/MeritExchange";
 import { CHARMS, charmSvg, grantCharm, loadCharms } from "@/lib/charm";
 import {
   giveMerit,
@@ -188,7 +189,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/goods", label: "굿즈", Icon: Bojagi },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
   { href: "/sutra", label: "외우기", Icon: Book },
-  { href: "/draw", label: "오늘의 한 장", Icon: LotusMark },
+  { href: "/draw", label: "오늘의 운세", Icon: LotusMark },
   { href: "/rank", label: "오늘의 정진", Icon: Dharmachakra },
   { href: "/tamjinchi", label: "불심 투자", Icon: Elephant },
 ];
@@ -1029,7 +1030,12 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ── 내가 다니는 절 ── */}
+      {/* ── 공덕을 연꽃으로 ── */}
+      <div className={`rise rise-d1 ${sectionGap}`}>
+        <MeritExchange />
+      </div>
+
+      {/* ── 내 절 ── */}
       <MyTemplePicker className={`rise rise-d1 ${sectionGap}`} />
 
       {/* ── 서비스 — 걸음 바로 아래, 멀리 내리지 않아도 닿게 ── */}

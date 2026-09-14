@@ -12,6 +12,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { noteDaily } from "./daily";
+import { meritMultiplier } from "./charmPower";
 
 export const MERIT_KEY = "hwadu.merit.v1";
 export const MERIT_EVENT = "hwadu-merit-updated";
@@ -90,7 +91,9 @@ export function addMerit(
   source: MeritSource,
   times = 1
 ): { total: number; gained: number; crossed: boolean; round: number } {
-  const gained = MERIT_VALUE[source] * times;
+  // 부적이 붙이는 몫 — 가진 부적과 등급만큼 공덕이 불어난다.
+  // 서버에서는 서랍이 비어 있어 1 이 나온다(곱해도 그대로).
+  const gained = Math.round(MERIT_VALUE[source] * times * meritMultiplier(source));
   const l = loadMerit();
   const before = l.total;
   l.total = before + gained;
