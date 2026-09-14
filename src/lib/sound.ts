@@ -1,0 +1,186 @@
+// ─────────────────────────────────────────────────────────────
+// 도량의 소리 — Web Audio 로 그 자리에서 빚는다. 음원 파일이 없다.
+// 목탁·염주·죽비를 목탁 방과 백팔배 방이 함께 쓴다.
+// 첫 터치에서 AudioContext 를 깨운다(브라우저 정책).
+// ─────────────────────────────────────────────────────────────
+
+// ── 소리 — 나무를 빚는다 ────────────────────────────────────
+
+let actx: AudioContext | null = null;
+function audio(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  try {
+    if (!actx) {
+      const AC =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (!AC) return null;
+      actx = new AC();
+    }
+    if (actx.state === "suspended") void actx.resume();
+    return actx;
+  } catch {
+    return null;
+  }
+}
+
+// 짧은 백색소음 버퍼 — 나무 결의 재료
+let noiseBuf: AudioBuffer | null = null;
+function noise(ac: AudioContext): AudioBuffer {
+  if (!noiseBuf) {
+    noiseBuf = ac.createBuffer(1, ac.sampleRate * 0.06, ac.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  return noiseBuf;
+}
+
+// 목탁 한 방 — 몸통 울림(사인, 피치 내림) + '딱'(삼각파) + 결(밴드패스 노이즈)
+export function strikeMoktak(vol: number) {
+  const ac = audio();
+  if (!ac) return;
+  const t = ac.currentTime;
+  const out = ac.createGain();
+  out.gain.value = vol;
+  out.connect(ac.destination);
+
+  const base = 540 + Math.random() * 50; // 매 방 미세하게 다른 나무
+  const o1 = ac.createOscillator();
+  o1.type = "sine";
+  o1.frequency.setValueAtTime(base, t);
+  o1.frequency.exponentialRampToValueAtTime(base * 0.52, t + 0.1);
+  const g1 = ac.createGain();
+  g1.gain.setValueAtTime(0.0001, t);
+  g1.gain.exponentialRampToValueAtTime(0.85, t + 0.004);
+  g1.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  o1.connect(g1);
+  g1.connect(out);
+  o1.start(t);
+  o1.stop(t + 0.22);
+
+  const o2 = ac.createOscillator();
+  o2.type = "triangle";
+  o2.frequency.setValueAtTime(1350 + Math.random() * 250, t);
+  const g2 = ac.createGain();
+  g2.gain.setValueAtTime(0.0001, t);
+  g2.gain.exponentialRampToValueAtTime(0.3, t + 0.002);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+  o2.connect(g2);
+  g2.connect(out);
+  o2.start(t);
+  o2.stop(t + 0.06);
+
+  const src = ac.createBufferSource();
+  src.buffer = noise(ac);
+  const bp = ac.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 950;
+  bp.Q.value = 1.1;
+  const g3 = ac.createGain();
+  g3.gain.setValueAtTime(0.22, t);
+  g3.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  src.connect(bp);
+  bp.connect(g3);
+  g3.connect(out);
+  src.start(t);
+}
+
+// 염주 한 알 — 알끼리 부딪는 또렷한 딸깍 (묵직한 속살 한 점 포함)
+export function clickBead(vol: number) {
+  const ac = audio();
+  if (!ac) return;
+  const t = ac.currentTime;
+  const out = ac.createGain();
+  out.gain.value = vol * 1.15;
+  out.connect(ac.destination);
+
+  const src = ac.createBufferSource();
+  src.buffer = noise(ac);
+  const hp = ac.createBiquadFilter();
+  hp.type = "highpass";
+  hp.frequency.value = 2400;
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0.8, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
+  src.connect(hp);
+  hp.connect(g);
+  g.connect(out);
+  src.start(t);
+
+  const o = ac.createOscillator();
+  o.type = "sine";
+  const f = 1700 + Math.random() * 200;
+  o.frequency.setValueAtTime(f, t);
+  o.frequency.exponentialRampToValueAtTime(f * 0.78, t + 0.035);
+  const g2 = ac.createGain();
+  g2.gain.setValueAtTime(0.0001, t);
+  g2.gain.exponentialRampToValueAtTime(0.32, t + 0.002);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  o.connect(g2);
+  g2.connect(out);
+  o.start(t);
+  o.stop(t + 0.08);
+
+  // 알의 속살 — 낮은 나무 울림 아주 짧게 (소리에 무게를 준다)
+  const o3 = ac.createOscillator();
+  o3.type = "sine";
+  o3.frequency.setValueAtTime(420 + Math.random() * 40, t);
+  const g3 = ac.createGain();
+  g3.gain.setValueAtTime(0.0001, t);
+  g3.gain.exponentialRampToValueAtTime(0.12, t + 0.003);
+  g3.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  o3.connect(g3);
+  g3.connect(out);
+  o3.start(t);
+  o3.stop(t + 0.08);
+}
+
+export function buzz(ms: number) {
+  try {
+    navigator.vibrate?.(ms);
+  } catch {
+    /* 진동이 없는 기기 */
+  }
+}
+
+
+// 죽비(竹篦) — 대나무를 쳐서 내는 마른 딱 소리. 절의 박자를 이끈다.
+export function strikeJukbi(vol: number) {
+  const ac = audio();
+  if (!ac) return;
+  const t = ac.currentTime;
+  const out = ac.createGain();
+  out.gain.value = vol;
+  out.connect(ac.destination);
+
+  // 마른 파열음 — 높은 대역 노이즈를 아주 짧게
+  const src = ac.createBufferSource();
+  src.buffer = noise(ac);
+  const bp = ac.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 2300 + Math.random() * 400;
+  bp.Q.value = 0.8;
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0.9, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
+  src.connect(bp);
+  bp.connect(g);
+  g.connect(out);
+  src.start(t);
+
+  // 대나무의 속 — 짧게 떨어지는 울림 한 점
+  const o = ac.createOscillator();
+  o.type = "triangle";
+  const f = 880 + Math.random() * 120;
+  o.frequency.setValueAtTime(f, t);
+  o.frequency.exponentialRampToValueAtTime(f * 0.6, t + 0.07);
+  const g2 = ac.createGain();
+  g2.gain.setValueAtTime(0.0001, t);
+  g2.gain.exponentialRampToValueAtTime(0.34, t + 0.003);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+  o.connect(g2);
+  g2.connect(out);
+  o.start(t);
+  o.stop(t + 0.12);
+}

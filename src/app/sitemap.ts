@@ -19,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/room",
     "/breath",
     "/moktak",
+    "/bae",
     "/mandala",
     "/empty",
     "/lotus",

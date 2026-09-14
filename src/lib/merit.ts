@@ -18,6 +18,7 @@ export const MERIT_EVENT = "hwadu-merit-updated";
 export const ROUND = 108;
 
 export type MeritSource =
+  | "bow" // 절 한 배
   | "moktak" // 목탁 한 번
   | "bead" // 염주 한 알
   | "breath" // 호흡 명상 한 판
@@ -27,6 +28,7 @@ export type MeritSource =
 
 /** 무엇을 하면 얼마나 쌓이는가 */
 export const MERIT_VALUE: Record<MeritSource, number> = {
+  bow: 3, // 백팔배를 마치면 324
   moktak: 1,
   bead: 1,
   breath: 21,
@@ -132,6 +134,7 @@ export function inRound(total: number): number {
 }
 
 export const SOURCE_LABEL: Record<MeritSource, string> = {
+  bow: "절",
   moktak: "목탁",
   bead: "염주",
   breath: "호흡 명상",
