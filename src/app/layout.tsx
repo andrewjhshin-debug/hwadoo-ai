@@ -80,7 +80,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0d0b09",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -90,12 +90,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${serifKR.variable} ${sansKR.variable} h-full antialiased`}
     >
       <body className="flex h-dvh overflow-hidden">
-        {/* 첫 그리기 전에 저장된 색상 모드를 새긴다 — 밤/낮이 깜빡이지 않게.
+        {/* 첫 그리기 전에 색상 모드를 새긴다 — 밤/낮이 깜빡이지 않게.
+            기본은 낮(한지). 'dark' 로 저장한 사람만 먹빛으로 연다.
             열쇠는 lib/theme.ts 의 THEME_KEY 와 같아야 한다. */}
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{if(localStorage.getItem('hwadoo-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}",
+              "try{if(localStorage.getItem('hwadoo-theme')!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}",
           }}
         />
         <ConfirmProvider>

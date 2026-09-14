@@ -1,185 +1,121 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { dongja } from "@/lib/dongja";
 
 export const metadata: Metadata = {
   title: "간화선이란? — 화두",
   description:
-    "간화선(看話禪)을 아주 쉽게 — 질문 하나를 품고 사는 한국 고유의 수행법. 구체적인 방법까지.",
+    "질문 하나를 품고 사는 한국 고유의 수행법, 간화선. 여섯 걸음으로 아주 쉽게.",
+  alternates: { canonical: "/ganhwaseon" },
 };
 
-// 간화선이란? — 아주 아주 쉽게 풀어 쓴 설명 + 방법론 도해
+// 간화선이란? — 읽는 데 30초. 깊은 이야기는 접어 두고, 궁금한 사람만 편다.
+// (긴 판은 git tag v1-dark-verbose 에 남아 있다)
+
+const STEPS = [
+  { n: "一", t: "질문 하나를 받는다", d: "이걸 화두라 해요." },
+  { n: "二", t: "답을 찾지 않는다", d: "검색도 책도 금지." },
+  { n: "三", t: "자주 떠올린다", d: "설거지하다, 지하철에서." },
+  { n: "四", t: "떠오른 답은 놓는다", d: "생각으로 찾은 건 답이 아니에요." },
+  { n: "五", t: "답답한 채로 둔다", d: "그 답답함이 곧 공부." },
+  { n: "六", t: "끝까지 든다", d: "하루, 사흘, 몇 해." },
+];
+
 export default function GanhwaseonPage() {
   return (
-    <div className="mx-auto w-full max-w-xl flex-1 px-6 py-14">
+    <div className="mx-auto w-full max-w-xl flex-1 px-6 py-12">
       <h1 className="rise text-center text-xs tracking-[0.5em] text-gold-soft">
-        看話禪 · 간화선이란?
+        看話禪 · 간화선
       </h1>
 
-      {/* 한 문장 정의 */}
-      <p className="question-glow rise rise-d1 mt-12 text-center font-serif text-xl font-light leading-[1.9] text-hanji sm:text-2xl">
-        질문 하나를 품고 사는 것.
-        <br />
-        그게 전부입니다.
-      </p>
-
-      <div className="rise rise-d2 mt-12 space-y-10 text-[15px] font-light leading-9 text-hanji-dim">
-        {/* 아주 쉽게 */}
-        <section>
-          <h2 className="font-serif text-lg text-gold-soft">
-            명상과 무엇이 다른가
-          </h2>
-          <p className="mt-4">
-            흔히 아는 명상은 <span className="text-hanji">마음을 비우는</span>{" "}
-            연습입니다. 간화선은 반대로{" "}
-            <span className="text-hanji">질문 하나를 채우는</span> 연습입니다.
-          </p>
-          <p className="mt-3">
-            &ldquo;나는 누구인가.&rdquo; 이런 질문을 하나 받아서, 풀지 않고,
-            검색하지 않고, 그냥 <span className="text-hanji">품고 삽니다</span>.
-            밥 먹을 때도, 걸을 때도, 잠들기 전에도 그 질문이 마음 한구석에
-            있는 상태 — 그게 간화선입니다.
-          </p>
-        </section>
-
-        {/* 한국 특유 */}
-        <section>
-          <h2 className="font-serif text-lg text-gold-soft">
-            지금은 한국에만 남은 수행
-          </h2>
-          <p className="mt-4">
-            천 년 전 중국에서 시작됐지만, 오늘날 이 수행이{" "}
-            <span className="text-hanji">일상으로 살아 있는 나라는 사실상
-            한국뿐</span>입니다. 지금 이 순간에도 전국 선원에서 수백 명의
-            수행자가 화두 하나를 들고 앉아 있습니다. 고려의 지눌 스님이 뿌리를
-            내렸고, 그 맥이 끊기지 않고 오늘까지 왔습니다.
-          </p>
-        </section>
-
-        {/* 방법론 — 도해 */}
-        <section>
-          <h2 className="font-serif text-lg text-gold-soft">
-            하는 법 — 여섯 걸음
-          </h2>
-          <div className="mt-6 flex flex-col items-stretch gap-0">
-            {[
-              {
-                n: "一",
-                title: "질문을 하나 받는다",
-                desc: "이것을 '화두'라 부릅니다.",
-              },
-              {
-                n: "二",
-                title: "답을 찾지 않는다",
-                desc: "검색 금지. 책 금지. 남에게 묻기 금지. 이 질문의 답은 밖에 없습니다.",
-              },
-              {
-                n: "三",
-                title: "그냥 자주 떠올린다",
-                desc: "설거지하다가, 지하철에서, 자기 전에 — 문득 다시 떠올립니다.",
-              },
-              {
-                n: "四",
-                title: "떠오른 답을 붙잡지 않는다",
-                desc: "그럴듯한 답이 떠오르면 놓아줍니다. 생각으로 찾아낸 것은 답이 아닙니다.",
-              },
-              {
-                n: "五",
-                title: "궁금함이 커지게 둔다",
-                desc: "풀리지 않아 답답한 것 — 그게 잘못이 아니라 그게 공부입니다. 옛 스승들은 이것을 '의심 덩어리'라 불렀습니다.",
-              },
-              {
-                n: "六",
-                title: "끝까지 든다",
-                desc: "하루, 사흘, 몇 해. 어느 날 생각이 아닌 곳에서 무언가 열립니다.",
-              },
-            ].map((step, i) => (
-              <div key={step.n} className="flex flex-col items-center">
-                {i > 0 && (
-                  <div className="h-6 w-px bg-gradient-to-b from-gold/40 to-gold/10" />
-                )}
-                <div className="w-full border border-ink-3 bg-ink-2/60 px-6 py-5">
-                  <p className="flex items-baseline gap-3">
-                    <span className="font-serif text-gold-soft">{step.n}</span>
-                    <span className="text-hanji">{step.title}</span>
-                  </p>
-                  <p className="mt-2 text-sm leading-7">{step.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 구체적인 수행 방법 */}
-        <section>
-          <h2 className="font-serif text-lg text-gold-soft">
-            구체적인 수행 방법
-          </h2>
-          <p className="mt-4">
-            여섯 걸음이 뼈대라면, 아래는 처음 앉는 분을 위한 살입니다.
-            그대로 따라 해 보셔도 좋습니다.
-          </p>
-          <div className="mt-6 space-y-8">
-            {[
-              {
-                n: "坐",
-                title: "바른 자세로 앉기 — 좌선",
-                desc: "조용한 자리에 방석을 놓고 가부좌나 반가부좌로 바르게 앉습니다. 허리는 곧게 세우고, 턱은 살짝 당기고, 눈은 반쯤 감아 시선을 한두 걸음 앞 바닥에 가만히 둡니다. 어깨의 힘을 빼고 호흡이 고요해질 때까지 잠시 기다립니다.",
-              },
-              {
-                n: "話",
-                title: "화두를 정하고 들기",
-                desc: "처음이라면 무(無)나 '이뭣고' 같은 대표 화두를 드는 것이 좋습니다. 지식이나 논리로 답을 찾으려 하지 말고, “이게 무엇이지?” 하는 순수한 궁금증과 의심만 오롯이 붙듭니다.",
-              },
-              {
-                n: "疑",
-                title: "생각을 끊고 의심을 잇기",
-                desc: "잡생각이 일어나면 따라가지 말고, 조용히 화두의 의심으로 돌아옵니다. 물음과 내가 하나가 되도록, 모르는 답답함 속으로 깊이 들어갑니다.",
-              },
-              {
-                n: "行",
-                title: "일상으로 잇기",
-                desc: "앉아 있을 때만이 아니라 걷고 일하고 말할 때도 의심이 끊어지지 않게 합니다. 자리에서 일어나는 순간 공부가 끝나는 것이 아니라, 거기서부터가 본 공부입니다.",
-              },
-            ].map((item) => (
-              <div key={item.n} className="border-l border-ink-3 pl-5">
-                <p className="flex items-baseline gap-3">
-                  <span className="font-serif text-gold-soft">{item.n}</span>
-                  <span className="text-hanji">{item.title}</span>
-                </p>
-                <p className="mt-2 text-sm leading-7">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 이게 왜 좋은가 */}
-        <section>
-          <h2 className="font-serif text-lg text-gold-soft">
-            왜 이걸 하는가
-          </h2>
-          <p className="mt-4">
-            질문 하나가 마음에 자리 잡으면, 잡념이 들어올 자리가 줄어듭니다.
-            남의 답 — 검색 결과, 알고리즘, AI — 에 기대는 버릇이 멈추고,{" "}
-            <span className="text-hanji">스스로 겪어서 아는 힘</span>이
-            자랍니다. 천 년 동안 이 수행이 살아남은 이유입니다.
-          </p>
-        </section>
-
-        <section className="border-t border-ink-3 pt-8">
-          <p className="text-sm leading-8 text-hanji-faint">
-            이 도량은 특정 종단과 무관하며, 전통 수행의 형식을 빌린 사유의
-            공간입니다. 본격적인 참선은 가까운 선원이나 템플스테이에서 경험할
-            수 있습니다.
-          </p>
-        </section>
+      {/* 한 문장 — 이 페이지의 전부 */}
+      <div className="rise rise-d1 mt-8 flex flex-col items-center">
+        <span
+          className="block h-[92px] w-[92px]"
+          dangerouslySetInnerHTML={{ __html: dongja("default", "gh") }}
+        />
+        <p className="question-glow mt-4 break-keep text-center font-serif text-[22px] font-light leading-[1.7] text-hanji">
+          질문 하나를 품고 사는 것.
+          <br />
+          그게 전부예요.
+        </p>
       </div>
 
-      <p className="rise rise-d3 mt-12 text-center">
+      {/* 세 줄 요약 */}
+      <div className="rise rise-d2 mt-9 grid gap-2.5">
+        {[
+          ["명상과 반대", "비우는 게 아니라, 질문 하나를 채워요."],
+          ["한국에만 남았어요", "지금도 전국 선원에서 하고 있어요."],
+          ["왜 하냐면", "남의 답 말고 내가 겪어 아는 힘이 생겨요."],
+        ].map(([t, d]) => (
+          <div
+            key={t}
+            className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3.5"
+          >
+            <p className="text-[13px] text-gold-soft">{t}</p>
+            <p className="mt-1 break-keep text-[14px] leading-6 text-hanji-dim">
+              {d}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* 여섯 걸음 */}
+      <p className="rise rise-d3 mt-10 text-[11px] tracking-[0.3em] text-hanji-faint">
+        하는 법 — 여섯 걸음
+      </p>
+      <ol className="rise rise-d3 mt-3 grid gap-2">
+        {STEPS.map((s) => (
+          <li
+            key={s.n}
+            className="flex items-baseline gap-3 rounded-[12px] border border-ink-3 px-4 py-3"
+          >
+            <span className="font-serif text-[13px] text-gold-soft">{s.n}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14.5px] text-hanji">{s.t}</span>
+              <span className="mt-0.5 block break-keep text-[12.5px] leading-5 text-hanji-faint">
+                {s.d}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      {/* 더 깊이 — 궁금한 사람만 편다 */}
+      <details className="rise rise-d3 group mt-6 rounded-[14px] border border-ink-3 bg-ink-2/40 px-4 py-3.5">
+        <summary className="cursor-pointer list-none text-[13.5px] text-hanji-dim marker:hidden">
+          <span className="text-gold-soft">＋</span> 제대로 앉아서 해보고 싶다면
+        </summary>
+        <div className="mt-4 space-y-4 border-t border-ink-3 pt-4">
+          {[
+            ["坐", "앉기", "방석에 반가부좌. 허리는 곧게, 턱은 살짝 당기고, 눈은 반쯤 떠 두어 걸음 앞을 봐요."],
+            ["話", "화두 들기", "처음이면 '이뭣고'가 좋아요. 논리로 풀지 말고 궁금함만 붙듭니다."],
+            ["疑", "의심 잇기", "잡생각이 오면 따라가지 말고 조용히 물음으로 돌아와요."],
+            ["行", "일상으로", "앉아 있을 때만이 아니라 걷고 일할 때도. 거기서부터가 진짜예요."],
+          ].map(([n, t, d]) => (
+            <div key={n} className="flex gap-3">
+              <span className="font-serif text-[13px] text-gold-soft">{n}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13.5px] text-hanji">{t}</span>
+                <span className="mt-1 block break-keep text-[13px] leading-6 text-hanji-dim">
+                  {d}
+                </span>
+              </span>
+            </div>
+          ))}
+          <p className="border-t border-ink-3 pt-3 break-keep text-[12px] leading-6 text-hanji-faint">
+            화두는 특정 종단과 무관한, 전통 수행의 형식을 빌린 사유의 공간이에요.
+            본격적인 참선은 가까운 선원이나 템플스테이에서 할 수 있어요.
+          </p>
+        </div>
+      </details>
+
+      <p className="rise rise-d3 mt-8 text-center">
         <Link
           href="/"
-          className="btn-obang inline-block px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
+          className="btn-obang inline-block px-9 py-3.5 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
         >
-          새 화두 받기
+          화두 받으러 가기
         </Link>
       </p>
     </div>

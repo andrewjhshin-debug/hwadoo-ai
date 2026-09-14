@@ -22,6 +22,10 @@
 html {
   background: var(--color-ink);
 }
+/* 기본은 낮 — 스크립트가 data-theme 를 새기기 전 한 순간에도 흰 바탕으로 */
+html:not([data-theme="dark"]) {
+  background: #ffffff;
+}
 
 /* ─── 낮(데이) 모드 — 흰 종이에 먹 글씨, 포인트는 석간주(石間硃) ─── */
 html[data-theme="light"] {
@@ -76,6 +80,18 @@ html[data-theme="light"] #enso-g stop:nth-child(2) {
 }
 html[data-theme="light"] #enso-g stop:nth-child(3) {
   stop-color: #2d3f5e;
+}
+
+/* 낮의 두두 — 금빛 물음표가 흰 종이에서 묻히므로 한 단 진하게.
+   id 가 uid 로 갈리므로(dj_gold_home 등) 앞자리로 잡는다. */
+html[data-theme="light"] linearGradient[id^="dj_gold"] stop:nth-child(1) {
+  stop-color: #e0a83e;
+}
+html[data-theme="light"] linearGradient[id^="dj_gold"] stop:nth-child(2) {
+  stop-color: #bd7d1c;
+}
+html[data-theme="light"] linearGradient[id^="dj_gold"] stop:nth-child(3) {
+  stop-color: #8a560d;
 }
 
 /* 낮의 달 — 흰 종이 위에서도 보이도록 */
