@@ -20,6 +20,7 @@ import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import MyTemplePicker from "@/components/MyTemplePicker";
 import {
   REGIONS,
   TEMPLES,
@@ -215,6 +216,9 @@ export default function PilgrimagePage() {
       <p className="rise rise-d1 mt-3.5 break-keep text-center text-[12.5px] leading-6 text-hanji-faint">
         산문은 누구에게나 열려 있습니다.
       </p>
+
+      {/* ── 내가 다니는 절 — 같은 절 다니는 사람끼리 알아본다 ── */}
+      <MyTemplePicker className="rise rise-d1 mt-6" />
 
       {/* ── 이름난 도량 (지도) ── */}
       <section className="rise rise-d2 mt-12">

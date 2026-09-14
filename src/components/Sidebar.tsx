@@ -30,6 +30,7 @@ import {
   DM_SEEN_EVENT,
 } from "@/lib/dm";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
+import Halo from "./Halo";
 import {
   Banga,
   Bojagi,
@@ -273,13 +274,14 @@ export default function Sidebar() {
             )}
           </svg>
         </button>
-        {/* 가운데 — 법륜 + 화두 로고 (절대 중앙) */}
+        {/* 가운데 — 표식 + 화두 로고 (절대 중앙).
+            법륜 바퀴는 어느 절이나 쓴다 — 끊긴 광배가 우리 것이다 */}
         <Link
           href="/"
           onClick={go("/")}
           className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5"
         >
-          <Dharmachakra className="h-7 w-7" stroke="#D9B45B" />
+          <Halo progress={0.28} className="h-8 w-8" weight={7} />
           <span className="text-gold-grad font-serif text-xl font-semibold tracking-[0.35em]">
             화두
           </span>
@@ -352,7 +354,7 @@ export default function Sidebar() {
         >
           {!slim && (
             <Link href="/" onClick={go("/")} className="flex items-center gap-2.5">
-              <Dharmachakra className="h-[26px] w-[26px]" stroke="#D9B45B" />
+              <Halo progress={0.28} className="h-[30px] w-[30px]" weight={7} />
               <span className="text-gold-grad font-serif text-lg font-semibold tracking-[0.35em]">
                 화두
               </span>

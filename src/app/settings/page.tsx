@@ -39,6 +39,7 @@ import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { BADGES } from "@/lib/badges";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
+import MyTemplePicker from "@/components/MyTemplePicker";
 import { CHARMS, charmSvg, grantCharm, loadCharms } from "@/lib/charm";
 import {
   giveMerit,
@@ -1027,6 +1028,9 @@ export default function SettingsPage() {
           })}
         </div>
       </section>
+
+      {/* ── 내가 다니는 절 ── */}
+      <MyTemplePicker className={`rise rise-d1 ${sectionGap}`} />
 
       {/* ── 서비스 — 걸음 바로 아래, 멀리 내리지 않아도 닿게 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>

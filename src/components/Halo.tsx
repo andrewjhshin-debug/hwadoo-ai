@@ -90,8 +90,8 @@ export default function Halo({
   weight = 6,
   spin = false,
   glow = false,
-  skin = "#FDF6E9",
-  ink = "#1B1730",
+  skin = "var(--color-halo-skin)",
+  ink = "var(--color-halo-ink)",
   className = "h-10 w-10",
 }: Props) {
   const u = useId().replace(/:/g, "");
@@ -170,7 +170,7 @@ export function haloSvg(
   progress = 0.28,
   opts: { face?: boolean; weight?: number; uid?: string; skin?: string; ink?: string } = {}
 ): string {
-  const { face = true, weight = 6, uid = "s", skin = "#FDF6E9", ink = "#1B1730" } = opts;
+  const { face = true, weight = 6, uid = "s", skin = "var(--color-halo-skin)", ink = "var(--color-halo-ink)" } = opts;
   const p = Math.max(0, Math.min(1, progress));
   const drawn = 0.74 + 0.25 * p;
   const hookAlpha = Math.max(0, 1 - p * 1.9);
