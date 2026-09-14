@@ -58,9 +58,43 @@ export function LotusMark({ className = "w-5 h-5", stroke = "currentColor" }: Ic
   );
 }
 
-// 연등(蓮燈) — 연꽃 공양. 연꽃 로고와 한 화면에 서므로 **등**으로 갈랐다.
-// 연꽃 공양은 꽃을 놓는 일이 아니라 등을 밝히는 일이다 — 뜻도 이쪽이 맞다.
+// 연등(蓮燈) — 연꽃 공양. 브랜드 연꽃과 한 화면에 서므로 **등**으로 갈랐다.
+// 처음엔 전구처럼 보였다. 그래서 위에 매다는 고리와 갓을 얹고, 몸통은
+// 연꽃잎 세 장이 감싼 모양으로, 아래에는 술을 달았다 — 절 마당에 걸린
+// 그 등이다. 불꽃은 가운데에 작게 하나.
 export function Yeondeung({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* 매다는 고리 */}
+      <path d="M12 1.8v1.6" />
+      <path d="M9.6 3.4h4.8" />
+      {/* 갓 — 연꽃잎 한 겹이 위를 덮는다 */}
+      <path d="M12 3.4c-2 .9-3.2 2-3.6 3.3h7.2C15.2 5.4 14 4.3 12 3.4z" />
+      {/* 몸통 — 배가 부른 등 */}
+      <path d="M8.4 6.7c-.9 1.6-1.3 3.1-1.3 4.6 0 2.9 2.2 4.9 4.9 4.9s4.9-2 4.9-4.9c0-1.5-.4-3-1.3-4.6" />
+      {/* 감싼 연꽃잎 둘 — 좌우로 벌어진다 */}
+      <path d="M7.1 11.3c-1.3-.5-2.4-.3-3.3.6.7 1.2 1.8 1.8 3.3 1.7" opacity="0.8" />
+      <path d="M16.9 11.3c1.3-.5 2.4-.3 3.3.6-.7 1.2-1.8 1.8-3.3 1.7" opacity="0.8" />
+      {/* 안의 불꽃 */}
+      <path d="M12 8.9c.9.8 1.3 1.6 1.3 2.4 0 .8-.6 1.4-1.3 1.4s-1.3-.6-1.3-1.4c0-.8.4-1.6 1.3-2.4z" />
+      {/* 술 */}
+      <path d="M12 16.2v2.3" opacity="0.8" />
+      <path d="M10.3 18.5h3.4l-.5 3.1h-2.4z" opacity="0.6" />
+    </svg>
+  );
+}
+
+// 서고(書庫) — 지나온 화두가 꽂힌 서가. 외우기(冊)와 한 화면에 나란히
+// 서므로 책 한 권이 아니라 **꽂힌 여러 권**으로 갈랐다.
+export function Seogo({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -71,16 +105,17 @@ export function Yeondeung({ className = "w-5 h-5", stroke = "currentColor" }: Ic
       strokeLinejoin="round"
       className={className}
     >
-      {/* 매다는 줄과 갓 */}
-      <path d="M12 2.4v1.9" />
-      <path d="M8.2 5.6h7.6" />
-      {/* 등 몸통 — 연꽃 봉오리를 세운 결 */}
-      <path d="M12 5.6c3.1 1.7 4.6 3.9 4.6 6.5 0 2.9-2 4.9-4.6 4.9s-4.6-2-4.6-4.9c0-2.6 1.5-4.8 4.6-6.5z" />
-      {/* 안의 불꽃 */}
-      <path d="M12 9.7c1 .9 1.5 1.8 1.5 2.7 0 1-.7 1.7-1.5 1.7s-1.5-.7-1.5-1.7c0-.9.5-1.8 1.5-2.7z" opacity="0.9" />
-      {/* 아래 술 */}
-      <path d="M12 17v2.4" opacity="0.75" />
-      <path d="M10.2 21.4h3.6" opacity="0.5" />
+      {/* 선반 */}
+      <path d="M3.6 19.2h16.8" />
+      <path d="M4.6 19.2v2.2M19.4 19.2v2.2" opacity="0.5" />
+      {/* 곧게 선 책 셋 — 높이가 조금씩 다르다 */}
+      <path d="M6 19.2V8.6h2.6v10.6z" />
+      <path d="M9.8 19.2V6.2h2.6v13z" />
+      <path d="M13.6 19.2V9.8h2.6v9.4z" opacity="0.9" />
+      {/* 기대어 놓인 두루마리 하나 — 서가에 늘 하나쯤 있다 */}
+      <path d="M17.4 19.2l2.6-6.2 1.1.5-2.2 5.7z" opacity="0.65" />
+      {/* 책등의 실 */}
+      <path d="M6.6 11.1h1.4M10.4 8.7h1.4M14.2 12.3h1.4" opacity="0.55" />
     </svg>
   );
 }

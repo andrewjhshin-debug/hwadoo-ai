@@ -1,12 +1,12 @@
 // ─────────────────────────────────────────────────────────────
-// 내가 다니는 절 — 등록과 셈.
+// 우리 절 — 등록과 셈.
 //
-// 왜 서버인가 — 같은 절 다니는 사람은 브라우저 혼자서는 셀 수 없다.
+// 왜 서버인가 — 이 절에 다니는 사람은 브라우저 혼자서는 셀 수 없다.
 // 다만 **수만** 내준다. 명단을 주면 "저 절에 누가 다니는가"가
 // 아무나 물어볼 수 있는 것이 되어 버린다 — 그건 사생활이다.
 //
 // POST(Bearer) { temple } — temple-members/{uid} 에 적는다. 빈 값이면 지운다.
-// GET  ?temple=이름       — 그 절의 사람 수 { n }
+// GET  ?temple=이름       — 이 절에 다니는 사람 수 { n }
 // GET  (Bearer, 물음 없음) — 내가 적어 둔 절 { temple } (내 것이니 내가 본다)
 // ─────────────────────────────────────────────────────────────
 
@@ -21,7 +21,7 @@ export const runtime = "nodejs";
 const COLLECTION = "temple-members";
 const NAME_MAX = 24;
 
-// 클라이언트와 같은 다듬기 — 이름이 딱 맞아야 같은 절로 묶인다
+// 클라이언트와 같은 다듬기 — 이름이 딱 맞아야 한 절로 묶인다
 function tidy(raw: string): string {
   return raw.replace(/\s+/g, " ").trim().slice(0, NAME_MAX);
 }
@@ -79,7 +79,7 @@ export async function GET(req: Request) {
   const db = getFirestore(app);
   const asked = tidy(new URL(req.url).searchParams.get("temple") ?? "");
 
-  // 1) 그 절에 몇 명인가 — 수만
+  // 1) 이 절에 다니는 사람이 몇인가 — 수만
   if (asked) {
     try {
       const agg = await db

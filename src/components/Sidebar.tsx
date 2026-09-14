@@ -45,6 +45,7 @@ import {
   Mandala,
   Moktak,
   SeonMaster,
+  Seogo,
   Person,
   Teacup,
   Yeondeung,
@@ -70,11 +71,11 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/moktak", label: "목탁과 염주", Icon: Moktak },
   { href: "/sambae", label: "삼배", Icon: Banga },
   { href: "/bae", label: "백팔배", Icon: Banga },
-  { href: "/sutra", label: "외우기", Icon: Book },
+  { href: "/sutra", label: "경전 외우기", Icon: Book },
   { href: "/draw", label: "오늘의 운세", Icon: LotusMark },
   { href: "/rank", label: "육도 랭킹", Icon: Dharmachakra },
   { href: "/room", label: "사유의 방", Icon: Banga },
-  { href: "/archive", label: "서고 — 지나온 화두", Icon: Book },
+  { href: "/archive", label: "서고", Icon: Seogo },
 ];
 
 // 말씀 · 나눔 — 구획 제목과 함께 아래에 잇는다

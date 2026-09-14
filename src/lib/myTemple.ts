@@ -1,8 +1,9 @@
 // ─────────────────────────────────────────────────────────────
-// 내 절 —
+// 우리 절 —
 // 왜 브라우저에 먼저 적는가: 로그인하지 않은 사람도 자기 절을 둘 수 있게.
-// 왜 서버에도 올리는가: 같은 절 다니는 사람을 세려면 한곳에 모여야 한다.
+// 왜 서버에도 올리는가: 이 절에 다니는 사람을 세려면 한곳에 모여야 한다.
 // 명단은 만들지 않는다 — 서버는 사람 수만 돌려준다(사생활).
+// 말은 "우리 절"로 바뀌었어도 저장 키·경로는 그대로 둔다 — 이미 쓰는 사람이 있다.
 // ─────────────────────────────────────────────────────────────
 
 import { auth } from "./firebase";
@@ -17,7 +18,7 @@ const NAME_MAX = 24;
 /**
  * 앞뒤 공백·겹공백을 걷어낸다.
  * 셈은 이름이 딱 맞을 때만 묶이므로, "봉은사 "와 "봉은사"가
- * 갈라서면 같은 절 사람이 서로를 못 알아본다.
+ * 갈라서면 한 절에 다니는 사람끼리 서로를 못 알아본다.
  */
 export function tidyTempleName(raw: string): string {
   return raw.replace(/\s+/g, " ").trim().slice(0, NAME_MAX);
@@ -26,7 +27,7 @@ export function tidyTempleName(raw: string): string {
 // ── 이 기기의 서랍 ──────────────────────────────────────────
 
 /**
- * 내 절 이름. 안 정했으면 null.
+ * 우리 절 이름. 안 정했으면 null.
  * 화면은 이 하나만 부르면 된다 — 부를 때마다 서랍에서 새로 읽는다.
  */
 export function myTempleName(): string | null {
@@ -69,11 +70,11 @@ async function pushMyTemple(temple: string) {
       body: JSON.stringify({ temple }),
     });
   } catch {
-    // 서버가 못 받아도 이 기기의 내 절은 그대로다
+    // 서버가 못 받아도 이 기기에 적힌 우리 절은 그대로다
   }
 }
 
-/** 내 절을 정한다. 빈 값이면 지운다(이제 안 다닌다). */
+/** 우리 절을 정한다. 빈 값이면 지운다(이제 안 다닌다). */
 export function setMyTemple(name: string | null) {
   if (typeof window === "undefined") return;
   const tidy = name ? tidyTempleName(name) : "";
@@ -111,9 +112,9 @@ export async function syncMyTemple(): Promise<string | null> {
   }
 }
 
-// ── 같은 절 몇 명 ───────────────────────────────────────────
+// ── 이 절에 다니는 사람 몇 ──────────────────────────────────
 
-/** 그 절에 등록해 둔 사람 수. 셀 수 없으면 0 — 화면은 조용히 넘어간다 */
+/** 이 절에 다닌다고 적어 둔 사람 수(나까지). 셀 수 없으면 0 — 화면은 조용히 넘어간다 */
 export async function fetchTempleMates(name: string): Promise<number> {
   const temple = tidyTempleName(name);
   if (!temple) return 0;

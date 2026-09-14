@@ -631,3 +631,123 @@ body[data-install-banner] .obang-aura {
     bottom: 88px;
   }
 }
+
+/* ─────────────────────────────────────────────
+   뜰(홈)의 결 — 활자를 앞에 세우고 나머지를 한 단계 낮춘다.
+   새 색은 만들지 않았다. 크기·여백·대비·움직임으로만 벌린다.
+   ───────────────────────────────────────────── */
+
+/* 화두 한 덩어리 — 글자 크기는 Question 이 폭을 재어 인라인으로 정한다.
+   여기서는 자간·행간만 눌러, 여러 줄이 낱줄이 아니라 한 덩어리로 보이게 한다.
+   행간은 그 인라인 값을 이겨야 하므로 !important 가 필요하다.
+   자간을 줄이는 쪽이라 Question 이 잰 폭보다 좁아진다 — 넘칠 일은 없다. */
+.hwadu-q > h1 {
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.24 !important;
+}
+
+/* 본문 활자 — 회향한 답, 채팅 속 물음. 화두보다 한 겹 낮되 또렷하게 */
+.hwadu-body {
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  line-height: 1.7;
+}
+
+/* ─── 등장 — 아래에서 한 번 솟는다. 향 연기(.rise)보다 짧고 날 서게 ─── */
+@keyframes hwadu-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise-sharp {
+  animation: hwadu-rise 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* 층을 짧게 겹친다 — 다 드러나기까지 1초를 넘기지 않는다 */
+.rise-s1 {
+  animation-delay: 0.08s;
+}
+.rise-s2 {
+  animation-delay: 0.18s;
+}
+.rise-s3 {
+  animation-delay: 0.3s;
+}
+
+/* ─── 금빛이 한 번 스친다 — 화두가 떠오른 직후 딱 한 번, 되풀이하지 않는다 ─── */
+@keyframes hwadu-sheen {
+  0% {
+    transform: translateX(-130%);
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(280%);
+    opacity: 0;
+  }
+}
+
+.sheen-once {
+  position: relative;
+}
+.sheen-once::after {
+  content: "";
+  position: absolute;
+  top: -8%;
+  bottom: -8%;
+  left: 0;
+  width: 38%;
+  pointer-events: none;
+  /* 덧칠이 아니라 빛 — 먹빛 위에서 금이 스쳐 지나간 것처럼 보인다 */
+  mix-blend-mode: screen;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold) 30%, transparent),
+    transparent
+  );
+  animation: hwadu-sheen 0.95s cubic-bezier(0.4, 0, 0.2, 1) 0.3s both;
+}
+
+/* ─── 주단추 — 색은 그대로 두고 금빛 훈만 한 겹 얹는다 ─── */
+.btn-hot {
+  box-shadow: 0 10px 34px color-mix(in srgb, var(--color-gold) 14%, transparent);
+  transition: box-shadow 0.3s ease, transform 0.16s ease;
+}
+.btn-hot:hover {
+  box-shadow: 0 12px 42px color-mix(in srgb, var(--color-gold) 22%, transparent);
+}
+.btn-hot:active {
+  transform: scale(0.985);
+}
+
+/* 손이 닿으면 살짝 눌린다. 전환은 걸지 않는다 —
+   transition 을 여기서 잡으면 알약들의 색 전환(transition-colors)을 덮어쓴다. */
+.tap:active {
+  transform: scale(0.97);
+}
+
+/* 움직임을 줄여 달라는 설정 — 새로 더한 결도 함께 멈춘다 */
+@media (prefers-reduced-motion: reduce) {
+  .rise-sharp {
+    animation: none;
+  }
+  .sheen-once::after {
+    display: none;
+  }
+  .btn-hot:active,
+  .tap:active {
+    transform: none;
+  }
+}

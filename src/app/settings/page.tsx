@@ -36,12 +36,12 @@ import { BELLS, loadBellsLocal, saveBellsLocal } from "@/lib/bells";
 import { formatDate, loadStore, saveStore, type Session } from "@/lib/store";
 import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
-import { BADGES } from "@/lib/badges";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import MeritExchange from "@/components/MeritExchange";
 import { CHARMS, charmSvg, grantCharm, loadCharms } from "@/lib/charm";
+import { nextRealm, realmOf, REALMS } from "@/lib/realm";
 import {
   DAILY_TOTAL_CAP,
   giveBonus,
@@ -391,6 +391,10 @@ export default function SettingsPage() {
     setGiveLeft(giveLeftToday());
     setRoom(todayRoom());
   }, []);
+
+  // 지금 서 있는 도와 한 칸 위 — 공덕이 곷 자리다
+  const myRealm = realmOf(merit.total);
+  const upRealm = nextRealm(merit.total);
 
   // 회향 — 한 번에 백팔, 하루 세 번. 총합은 줄지 않는다(대승의 셈).
   // 돌린 만큼 앞으로 쌓는 공덕이 빨라진다 — 그래야 누를 이유가 생긴다.
@@ -808,67 +812,71 @@ export default function SettingsPage() {
         <DailyPractice />
       </div>
 
-      {/* ── 나의 걸음 — 화두 수 · 함께한 날. 받은 화두를 누르면 서고로 ── */}
+      {/* ── 육도(六道) — 처음 온 사람은 지옥도에서 시작해 공덕으로 오른다.
+           예전엔 회향 수로 세 자리만 보였는데, 셋만 보이면 사다리가 아니다.
+           여섯을 다 깔아 두어야 지금 어디쯤인지, 다음이 어딘지 한눈에 든다.
+           프로필 바로 아래 — 계급은 위에 있어야 계급이다. ── */}
       <section className={`rise ${sectionGap}`}>
-        <div className="flex gap-4">
+        <div className="flex items-baseline justify-between">
+          <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+            六道 — 지금 내 자리
+          </p>
           <Link
-            href="/archive"
-            className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center transition-colors hover:border-gold/40"
+            href="/rank"
+            className="text-[11px] text-gold-soft transition-colors hover:text-gold"
           >
-            <p className="font-serif text-[40px] font-light leading-none text-gold">
-              {receivedCount}
-            </p>
-            <p className="mt-2.5 text-[11px] tracking-[0.2em] text-hanji-faint">
-              받은 화두
-            </p>
+            랭킹 →
           </Link>
-          <div className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center">
-            <p className="font-serif text-[40px] font-light leading-none text-gold">
-              {daysWith}
-              <span className="ml-1 text-[18px] text-hanji-dim">일</span>
-            </p>
-            <p className="mt-2.5 text-[11px] tracking-[0.2em] text-hanji-faint">
-              화두와 함께
-            </p>
-          </div>
         </div>
-        {/* 나눔의 흔적 + 실시간 접속자 + 연꽃 */}
-        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 px-1">
-          {user && myLotus !== null && (
-            <Link
-              href="/lotus"
-              className="text-[11px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-gold-soft"
-            >
-              내 연꽃 <span className="text-gold">{myLotus}</span>송이
-            </Link>
-          )}
-          {onlineCount !== null && onlineCount > 0 && (
-            <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
-              지금 도량에{" "}
-              <span className="text-hanji-dim">{onlineCount}</span>
-              명이 함께 있습니다
-            </p>
-          )}
-          {user && myAnswerCount !== null && myAnswerCount > 0 && (
-            <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
-              회향이{" "}
-              <span className="text-hanji-dim">{myAnswerCount}</span>
-              명에게 전해졌습니다
-            </p>
-          )}
-          {user && thrownStats !== null && (() => {
-            const total = Array.from(thrownStats.values()).reduce(
-              (s, st) => s + st.seen, 0
+        <div className="mt-4 grid grid-cols-6 gap-1.5 border-t border-ink-3 pt-5">
+          {REALMS.map((r) => {
+            // 뒷방 주인은 모든 자리가 밝다 — 도량 주인의 자리
+            const got = isAdminAccount(user) || merit.total >= r.need;
+            const here = isAdminAccount(user)
+              ? r.id === "cheonsang"
+              : myRealm.id === r.id;
+            return (
+              <div
+                key={r.id}
+                title={`${r.name} · 공덕 ${r.need.toLocaleString("ko-KR")}`}
+                className={`flex flex-col items-center gap-1.5 rounded-[11px] px-0.5 py-3 text-center transition-colors ${
+                  here ? "bg-gold/10 ring-1 ring-gold/40" : ""
+                } ${got ? "" : "opacity-40"}`}
+              >
+                <span
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border ${
+                    here
+                      ? "border-gold bg-gold text-ink"
+                      : got
+                        ? "border-gold/50 bg-gold/5 text-gold"
+                        : "border-dashed border-ink-3 text-hanji-faint"
+                  }`}
+                >
+                  <span className="font-serif text-[16px] font-light leading-none">
+                    {r.mark}
+                  </span>
+                </span>
+                <span
+                  className={`text-[10px] leading-tight ${
+                    got ? "text-hanji" : "text-hanji-dim"
+                  }`}
+                >
+                  {r.name}
+                </span>
+                <span className="text-[9px] leading-tight tabular-nums text-hanji-faint">
+                  {r.need === 0 ? "시작" : r.need.toLocaleString("ko-KR")}
+                </span>
+              </div>
             );
-            return total > 0 ? (
-              <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
-                내 화두를{" "}
-                <span className="text-hanji-dim">{total}</span>
-                명이 받았습니다
-              </p>
-            ) : null;
-          })()}
+          })}
         </div>
+        <p className="mt-3 break-keep text-[11.5px] leading-5 text-hanji-faint">
+          {isAdminAccount(user)
+            ? "뒷방 주인의 자리 — 여섯 도가 모두 열려 있습니다."
+            : upRealm
+              ? `${upRealm.to.name}까지 공덕 ${upRealm.left.toLocaleString("ko-KR")} · 이틀 넘게 쉬면 흐려집니다`
+              : "가장 높은 자리 — 쉬면 가장 빨리 흐려집니다"}
+        </p>
       </section>
 
       {/* ── 공덕(功德) — 쌓고, 남에게 돌린다 ── */}
@@ -920,6 +928,12 @@ export default function SettingsPage() {
               ))}
             </div>
           )}
+
+          {/* 공덕을 연꽃으로 — 따로 있던 판을 여기로 들였다.
+              같은 숫자를 두 곳에서 두 번 말하고 있었다. */}
+          <div className="mt-5">
+            <MeritExchange />
+          </div>
 
           {/* ── 회향(廻向) ──
               내 것은 줄지 않는다(대승의 셈). 대신 하루 세 번뿐이고,
@@ -1035,6 +1049,69 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* ── 나의 걸음 — 화두 수 · 함께한 날. 받은 화두를 누르면 서고로 ── */}
+      <section className={`rise ${sectionGap}`}>
+        <div className="flex gap-4">
+          <Link
+            href="/archive"
+            className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center transition-colors hover:border-gold/40"
+          >
+            <p className="font-serif text-[40px] font-light leading-none text-gold">
+              {receivedCount}
+            </p>
+            <p className="mt-2.5 text-[11px] tracking-[0.2em] text-hanji-faint">
+              받은 화두
+            </p>
+          </Link>
+          <div className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center">
+            <p className="font-serif text-[40px] font-light leading-none text-gold">
+              {daysWith}
+              <span className="ml-1 text-[18px] text-hanji-dim">일</span>
+            </p>
+            <p className="mt-2.5 text-[11px] tracking-[0.2em] text-hanji-faint">
+              화두와 함께
+            </p>
+          </div>
+        </div>
+        {/* 나눔의 흔적 + 실시간 접속자 + 연꽃 */}
+        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 px-1">
+          {user && myLotus !== null && (
+            <Link
+              href="/lotus"
+              className="text-[11px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-gold-soft"
+            >
+              내 연꽃 <span className="text-gold">{myLotus}</span>송이
+            </Link>
+          )}
+          {onlineCount !== null && onlineCount > 0 && (
+            <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
+              지금 도량에{" "}
+              <span className="text-hanji-dim">{onlineCount}</span>
+              명이 함께 있습니다
+            </p>
+          )}
+          {user && myAnswerCount !== null && myAnswerCount > 0 && (
+            <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
+              회향이{" "}
+              <span className="text-hanji-dim">{myAnswerCount}</span>
+              명에게 전해졌습니다
+            </p>
+          )}
+          {user && thrownStats !== null && (() => {
+            const total = Array.from(thrownStats.values()).reduce(
+              (s, st) => s + st.seen, 0
+            );
+            return total > 0 ? (
+              <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
+                내 화두를{" "}
+                <span className="text-hanji-dim">{total}</span>
+                명이 받았습니다
+              </p>
+            ) : null;
+          })()}
+        </div>
+      </section>
+
       {/* ── 부적 — 수행하다 얻는 노란 종이. 도량 벽에 건다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
@@ -1065,59 +1142,6 @@ export default function SettingsPage() {
           부적은 팔지 않습니다.
         </p>
       </section>
-
-      {/* ── 걸음 — 얻은 자리: 육도에서 빌린 이름, 회향이 쌓이면 오른다 ── */}
-      <section className={`rise rise-d1 ${sectionGap}`}>
-        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-          걸음 — 얻은 자리
-        </p>
-        <div className="mt-4 grid grid-cols-3 gap-2 border-t border-ink-3 pt-5">
-          {BADGES.map((b) => {
-            // 뒷방 주인은 모든 자리가 밝다 — 늘 천상도
-            const earned =
-              isAdminAccount(user) || journalCount >= b.need;
-            return (
-              <div
-                key={b.name}
-                className={`flex flex-col items-center gap-2 rounded-[12px] px-1 py-4 text-center ${
-                  earned ? "" : "opacity-40"
-                }`}
-              >
-                <span
-                  className={`flex h-14 w-14 items-center justify-center rounded-full border ${
-                    earned
-                      ? "border-gold/60 bg-gold/5"
-                      : "border-dashed border-ink-3 bg-ink-2/40"
-                  }`}
-                >
-                  <span
-                    className={`font-serif text-[22px] font-light leading-none ${
-                      earned ? "text-gold" : "text-hanji-faint"
-                    }`}
-                  >
-                    {b.hanja}
-                  </span>
-                </span>
-                <span
-                  className={`text-[11px] leading-tight ${
-                    earned ? "text-hanji" : "text-hanji-dim"
-                  }`}
-                >
-                  {b.name}
-                </span>
-                <span className="text-[10px] leading-tight tracking-wider text-hanji-faint">
-                  {earned ? b.full : b.cond}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── 공덕을 연꽃으로 ── */}
-      <div className={`rise rise-d1 ${sectionGap}`}>
-        <MeritExchange />
-      </div>
 
       {/* ── 내 절 ── */}
       <MyTemplePicker className={`rise rise-d1 ${sectionGap}`} />

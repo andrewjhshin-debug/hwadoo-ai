@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import DoryangMenu from "@/components/DoryangMenu";
 import NextDoors from "@/components/NextDoors";
+import MeritBar from "@/components/MeritBar";
 import ConfirmProvider from "@/components/Confirm";
 import VisitLedger from "@/components/VisitLedger";
 import InstallBanner from "@/components/InstallBanner";
@@ -104,19 +105,22 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* 발자국 장부 — 화면에 아무것도 그리지 않고, 다녀간 날만 적는다 */}
         <VisitLedger />
         <Sidebar />
-        <div className="obang-aura flex-1 overflow-x-hidden overflow-y-auto pt-16 pb-[150px] md:pb-0 md:pt-0">
-          {/* 본문은 적어도 한 화면을 채운다 — 그래야 아래 띠(사업자 표기)가
-              첫 화면에 끼어들지 않고, 내려야 나온다.
-              min-h-full 은 스크롤 통의 **블록** 자식에서만 안전하다 —
-              flex 항목에 바로 주면 높이가 접혀 본문과 띠가 겹친다. */}
-          <div className="flex min-h-full flex-col">
+        {/* 스크롤 통에는 여백을 주지 않는다.
+            min-h-full 은 통의 **안쪽 상자(content box)** 높이를 기준으로 재므로,
+            통에 아래 여백을 주면 본문이 그만큼 짧아져 아래 띠가 한 화면 안으로
+            올라온다 — 떠 있는 메뉴 단추와 겹치던 까닭이 이것이다.
+            여백은 안쪽 두 조각(본문·띠)이 각자 진다. */}
+        <div className="obang-aura flex-1 overflow-x-hidden overflow-y-auto">
+          {/* 공덕 줄 — 어느 방에 있든 맨 위에 금빛 실 한 가닥 */}
+          <MeritBar />
+          {/* 본문은 꼭 한 화면을 채운다 — 그래야 아래 띠가 내려야 나온다 */}
+          <div className="flex min-h-full flex-col pt-16 md:pt-0">
             <main className="flex flex-1 flex-col">{children}</main>
             {/* 이어지는 방 — 화면을 다 쓰고 내려오면 다음 문 셋이 나온다 */}
             <NextDoors />
           </div>
-          {/* 아래 띠 — 전자상거래법상 사업자 표기는 모바일에서도 닿아야 한다.
-              스크롤 컨테이너 안이라 탭 바 위에서 끝난다(컨테이너 pb-[76px]). */}
-          <footer className="border-t border-ink-3 px-6 py-5">
+          {/* 아래 띠 — 아래 탭 바(76)와 떠 있는 메뉴 단추 자리를 여기서 비운다 */}
+          <footer className="border-t border-ink-3 px-6 pb-[150px] pt-5 md:pb-9">
             <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11.5px] text-hanji-faint">
               <Link href="/about" className="transition-colors hover:text-hanji-dim">
                 서비스 소개

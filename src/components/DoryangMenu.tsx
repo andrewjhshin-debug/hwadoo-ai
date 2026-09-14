@@ -32,6 +32,7 @@ import {
   Moktak,
   Person,
   SeonMaster,
+  Seogo,
   Teacup,
 } from "./icons";
 import { inRound, loadMerit, rankOf, ROUND } from "@/lib/merit";
@@ -65,10 +66,10 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
       { href: "/sambae", label: "삼배", say: "서른 초면 된다", Icon: Banga },
       { href: "/bae", label: "백팔배", say: "백여덟 번 굽히다", Icon: Banga },
       { href: "/breath", label: "호흡 명상", say: "들이쉬고 내쉬다", Icon: Breath },
-      { href: "/sutra", label: "외우기", say: "입에 붙이다", Icon: Book },
+      { href: "/sutra", label: "경전 외우기", say: "입에 붙이다", Icon: Book },
       { href: "/mandala", label: "만다라", say: "색을 앉히다", Icon: Mandala },
       { href: "/empty", label: "비움", say: "쓰지 않은 하루", Icon: Moktak },
-      { href: "/archive", label: "서고", say: "지나온 화두", Icon: Book },
+      { href: "/archive", label: "서고", say: "지나온 화두", Icon: Seogo },
     ],
   },
   {

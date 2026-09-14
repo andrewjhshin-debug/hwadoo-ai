@@ -1,8 +1,9 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 내 절 — 카드 하나.
-// 안 골랐으면 한 줄 물음, 골랐으면 절 이름을 크게 세우고 같은 절 몇 명.
+// 우리 절 — 카드 하나.
+// 안 골랐으면 한 줄 물음, 골랐으면 절 이름을 크게 세우고 다니는 사람 몇.
+// 왜 "내 절"이 아니라 "우리 절"인가 — 절은 혼자 쥐는 것이 아니라 함께 다니는 곳이다.
 // 왜 이름을 크게 쓰는가 — 작게 적으면 남의 절 목록처럼 보인다.
 // 목록에서 고르되, 없는 절이면 직접 적는다 — 전국의 절이 다 여기 있진 않다.
 // ─────────────────────────────────────────────────────────────
@@ -20,7 +21,7 @@ import {
 } from "@/lib/myTemple";
 import { watchAuth } from "@/lib/sync";
 
-// 寺 — 한 글자 뱃지. 내 절이 있을 때만 금빛이 든다
+// 寺 — 한 글자 뱃지. 우리 절이 있을 때만 금빛이 든다
 function TempleMark({ lit }: { lit: boolean }) {
   return (
     <span
@@ -53,7 +54,7 @@ export default function MyTemplePicker({ className = "" }: { className?: string 
   // 로그인하면 계정에 적힌 절을 데려온다 (이 기기가 비었을 때만)
   useEffect(() => watchAuth((u) => { if (u) void syncMyTemple(); }), []);
 
-  // 절이 정해지면 몇 명인지 물어본다
+  // 우리 절이 정해지면 다니는 사람이 몇인지 물어본다
   useEffect(() => {
     if (!name) {
       setMates(null);
@@ -102,25 +103,26 @@ export default function MyTemplePicker({ className = "" }: { className?: string 
           {name ? (
             <div className="min-w-0 flex-1">
               <p className="text-[10.5px] tracking-[0.3em] text-hanji-faint">
-                내 절
+                우리 절
               </p>
               <p className="mt-1 truncate font-serif text-[20px] font-light leading-tight text-hanji">
                 {name}
               </p>
               {/* 셈이 오기 전에는 자리만 비워 둔다 — 줄이 생겼다 사라지면 카드가 들썩인다 */}
+              {/* 셈에는 나도 들어 있다 — 그래서 둘 이상일 때만 수를 세워 보인다 */}
               <p className="mt-1 h-[16px] text-[12px] leading-4 text-hanji-faint">
                 {mates === null ? (
                   ""
                 ) : mates > 1 ? (
                   <>
-                    같은 절{" "}
+                    이 절에 다니는 사람{" "}
                     <span className="font-serif text-[15px] text-gold">
                       {mates.toLocaleString("ko-KR")}
                     </span>
                     명
                   </>
                 ) : (
-                  "여기 첫 사람이에요"
+                  "이 절에 다니는 사람 · 나 혼자예요"
                 )}
               </p>
             </div>

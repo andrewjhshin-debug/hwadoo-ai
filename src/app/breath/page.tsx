@@ -392,6 +392,10 @@ export default function BreathPage() {
           <p className="mt-1.5 text-[11px] tabular-nums tracking-[0.3em] text-hanji-faint">
             {clock}
           </p>
+          {/* 숫자를 보고 있으면 명상이 아니라 구경이다 */}
+          <p className="mt-2.5 text-[12px] tracking-[0.2em] text-gold-soft">
+            눈을 감고 해 보세요
+          </p>
           <div className="mt-4 flex items-center gap-3">
             <button
               type="button"
@@ -417,7 +421,7 @@ export default function BreathPage() {
               onClick={begin}
               className="btn-obang px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
             >
-              한 판 더
+              한 번 더 명상
             </button>
             {soundButton}
           </div>

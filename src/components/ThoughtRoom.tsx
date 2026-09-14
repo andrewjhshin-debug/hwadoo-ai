@@ -9,10 +9,17 @@
 //
 // 한 줄씩 보내면 그대로 쌓인다 — 지우거나 고칠 수 있고, 저장은 자동이다.
 // 실제 저장 자리는 예전 그대로 session.notes 다(서고·관리자가 그걸 읽는다).
+//
+// 고침·지움은 오래전부터 되었지만 아무도 몰랐다. 말풍선을 눌러야 열리는
+// 것이라 단서가 없었던 탓이다. 그래서 시각 옆에 「수정」「지움」을 흐리게
+// 세워 둔다 — 손이 닿으면 또렷해지되, 평소에는 글읽기를 방해하지 않게.
+// 데스크톱은 hover, 모바일은 길게 누르기. hover 가 없는 기기에서도 보이도록
+// 숨기지 않고 opacity 로만 다룬다.
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useConfirm } from "./Confirm";
 import { dayCount, loadStore, saveStore } from "@/lib/store";
 import { sessionQuestion } from "@/lib/hwadu";
 import { todayGuide } from "@/lib/guidance";
@@ -53,6 +60,7 @@ export default function ThoughtRoom({
   className?: string;
 }) {
   const router = useRouter();
+  const ask = useConfirm();
   const [question, setQuestion] = useState("");
   const [guide, setGuide] = useState("");
   const [day, setDay] = useState(0);
@@ -62,8 +70,13 @@ export default function ThoughtRoom({
   const [editing, setEditing] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [err, setErr] = useState("");
+  // 길게 눌러 드러낸 말풍선 — 모바일에는 hover 가 없어 따로 둔다
+  const [held, setHeld] = useState<number | null>(null);
   const bottom = useRef<HTMLDivElement | null>(null);
   const box = useRef<HTMLTextAreaElement | null>(null);
+  const holdTimer = useRef<number | null>(null);
+  // 길게 누른 뒤에도 click 은 따라온다 — 그 한 번은 편집이 아니라 '드러내기'였다
+  const heldFired = useRef(false);
 
   const read = useCallback(() => {
     const s = loadStore();
@@ -119,12 +132,54 @@ export default function ThoughtRoom({
     if (write(appendThought(s.current.notes, body))) setDraft("");
   };
 
+  /** 한 마디를 지운다 — 빈 글로 고치는 것이 곧 삭제다(thoughts.ts) */
+  const remove = async (i: number) => {
+    const ok = await ask("이 말을 지울까요?", "되돌릴 수 없습니다.", {
+      confirm: "지움",
+      cancel: "그만",
+    });
+    if (!ok) return;
+    const s = loadStore();
+    write(editThought(s.current?.notes, i, ""));
+    // 뒤 순번이 한 칸씩 당겨진다 — 열려 있던 편집창은 닫아 어긋남을 막는다
+    setEditing(null);
+    setHeld(null);
+  };
+
   const commitEdit = () => {
     if (editing === null) return;
+    // 내용을 비우고 「고침」을 누르면 그대로 삭제다 — 지움과 똑같이 한 번 묻는다
+    if (!editText.trim()) {
+      void remove(editing);
+      return;
+    }
     const s = loadStore();
     write(editThought(s.current?.notes, editing, editText));
     setEditing(null);
   };
+
+  const openEdit = (i: number, text: string) => {
+    setEditing(i);
+    setEditText(text);
+    setHeld(null);
+  };
+
+  // ── 길게 누르기(모바일) ──
+  const clearHold = () => {
+    if (holdTimer.current !== null) {
+      window.clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+  };
+  const startHold = (i: number) => {
+    clearHold();
+    heldFired.current = false;
+    holdTimer.current = window.setTimeout(() => {
+      heldFired.current = true;
+      setHeld(i);
+    }, 420);
+  };
+  useEffect(() => clearHold, []);
 
   const leave = () => {
     onLeave?.();
@@ -197,35 +252,60 @@ export default function ThoughtRoom({
         {/* 왼쪽 — 내가 적는다 */}
         {list.map((t, i) => (
           <div key={`${t.at}-${i}`} className="tr-say flex justify-start">
-            <div className="max-w-[85%]">
+            <div className="group max-w-[85%]">
               {editing === i ? (
                 <div className="rounded-[16px] rounded-tl-[4px] border border-gold/50 bg-ink/50 p-2">
                   <textarea
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
                     rows={Math.min(10, editText.split("\n").length + 1)}
+                    aria-label="적은 말 고치기"
                     className="w-full resize-none bg-transparent px-2 py-1 text-[16px] leading-8 text-hanji outline-none"
                   />
-                  <div className="flex justify-end gap-2 px-1 pb-1">
+                  {/* 지움은 고침에서 멀리 — 손이 미끄러져도 지워지지 않게 */}
+                  <div className="flex items-center justify-between px-1 pb-1">
                     <button
-                      onClick={() => setEditing(null)}
-                      className="text-[11px] text-hanji-faint transition-colors hover:text-hanji-dim"
+                      onClick={() => void remove(i)}
+                      aria-label="이 말 지움"
+                      className="text-[11px] text-hanji-faint transition-colors hover:text-vermilion focus-visible:text-vermilion"
                     >
-                      그만
+                      지움
                     </button>
-                    <button
-                      onClick={commitEdit}
-                      className="text-[11px] text-gold transition-opacity hover:opacity-80"
-                    >
-                      고침
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setEditing(null)}
+                        aria-label="고치기 그만"
+                        className="text-[11px] text-hanji-faint transition-colors hover:text-hanji-dim"
+                      >
+                        그만
+                      </button>
+                      <button
+                        onClick={commitEdit}
+                        aria-label="고친 말 저장"
+                        className="text-[11px] text-gold transition-opacity hover:opacity-80"
+                      >
+                        고침
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
                 <button
                   onClick={() => {
-                    setEditing(i);
-                    setEditText(t.text);
+                    // 길게 눌러 단추를 드러낸 참이면 그 click 은 흘려보낸다
+                    if (heldFired.current) {
+                      heldFired.current = false;
+                      return;
+                    }
+                    openEdit(i, t.text);
+                  }}
+                  onTouchStart={() => startHold(i)}
+                  onTouchEnd={clearHold}
+                  onTouchMove={clearHold}
+                  onTouchCancel={clearHold}
+                  onContextMenu={(e) => {
+                    // 길게 누르면 뜨는 기기 기본 메뉴는 막는다
+                    if (held === i) e.preventDefault();
                   }}
                   className="block w-full rounded-[16px] rounded-tl-[4px] border border-ink-3 bg-ink-2/70 px-4 py-3 text-left transition-colors hover:border-gold/35"
                 >
@@ -234,9 +314,34 @@ export default function ThoughtRoom({
                   </p>
                 </button>
               )}
-              <p className="mt-1 pl-1 text-[10.5px] text-hanji-faint">
-                {whenLabel(t.at)}
-              </p>
+
+              <div className="mt-1 flex items-center gap-2.5 pl-1">
+                <span className="text-[10.5px] text-hanji-faint">
+                  {whenLabel(t.at)}
+                </span>
+                {editing !== i && (
+                  <span
+                    className={`flex items-center gap-2.5 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 ${
+                      held === i ? "opacity-100" : "opacity-40"
+                    }`}
+                  >
+                    <button
+                      onClick={() => openEdit(i, t.text)}
+                      aria-label="이 말 수정"
+                      className="text-[10.5px] text-hanji-faint transition-colors hover:text-gold focus-visible:text-gold"
+                    >
+                      수정
+                    </button>
+                    <button
+                      onClick={() => void remove(i)}
+                      aria-label="이 말 지움"
+                      className="text-[10.5px] text-hanji-faint transition-colors hover:text-vermilion focus-visible:text-vermilion"
+                    >
+                      지움
+                    </button>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         ))}

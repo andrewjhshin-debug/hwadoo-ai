@@ -127,7 +127,10 @@ export default function MastersPage() {
       {/* 오늘의 한마디 — 누를 때마다 다른 말 */}
       {saying && (
         <section className="rise rise-d1 mt-10">
-          <div className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-10 text-center">
+          {/* 말의 길이가 제각각이라 카드가 들쎄거리면 아래 단추가 따라 움직인다.
+              누를 자리가 움직이면 손이 헛돈다 — 카드 키를 박아 둘다.
+              긴 말은 안에서 스스로 흘러 내린다. */}
+          <div className="flex min-h-[260px] flex-col items-center justify-center overflow-y-auto rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-10 text-center sm:min-h-[300px]">
             <blockquote className="question-glow break-keep font-serif text-lg font-light leading-[1.85] text-hanji sm:text-xl">
               {splitSentences(saying.text).map((line, i) => (
                 <span key={i} className="block">

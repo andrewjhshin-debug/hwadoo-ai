@@ -464,38 +464,40 @@ export default function Home() {
   // ── 화두가 없다 — 브랜드 얼굴 ──────────────────────────
   if (store !== null && !current) {
     return (
-      <div className="relative flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-8 text-center sm:justify-center sm:py-14">
-        <div className="rise">
-          <Enso size={140} />
+      <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-6 text-center sm:justify-center sm:py-16">
+        <div className="rise-sharp">
+          <Enso size={116} />
         </div>
         {/* 머리글은 두 겹까지 — 이름 한 줄, 슬로건 한 줄.
-            HWADU 를 밑에 따로 세우면 겹이 하나 더 는다. 이름 옆에 붙인다. */}
-        <div className="rise rise-d1 mt-6 flex items-baseline justify-center gap-1">
-          <h1 className="text-obang font-serif text-[42px] font-semibold leading-none tracking-[0.5em] [text-indent:0.5em]">
+            자간으로 흩어 놓았던 이름을 크게 키워 한 덩어리로 세운다.
+            흩어진 작은 글씨보다, 붙여 세운 큰 글씨가 멀리서도 이름으로 읽힌다. */}
+        <div className="rise-sharp rise-s1 mt-4 flex items-baseline justify-center gap-2.5">
+          <h1 className="text-obang font-serif text-[clamp(58px,17vw,82px)] font-semibold leading-[0.88] tracking-[-0.03em]">
             화두
           </h1>
-          <span className="text-[10px] tracking-[0.45em] text-gold-soft">
+          <span className="text-[10px] tracking-[0.42em] text-gold-soft">
             HWADU
           </span>
         </div>
-        <p className="rise rise-d1 mt-5 max-w-[20rem] break-keep text-[13.5px] font-light leading-7 tracking-[0.06em] text-hanji-dim">
+        <p className="rise-sharp rise-s1 mt-5 max-w-[19rem] break-keep text-[12.5px] font-light leading-6 tracking-[0.04em] text-hanji-faint">
           &ldquo;{SLOGAN}&rdquo;
         </p>
-        <div className="rise rise-d2 my-9 flex items-center gap-3.5 opacity-80">
-          <div className="h-px w-[110px] bg-gradient-to-r from-transparent to-gold/45" />
-          <Dharmachakra className="h-[18px] w-[18px]" stroke="#B99A54" />
-          <div className="h-px w-[110px] bg-gradient-to-r from-gold/45 to-transparent" />
+        <div className="rise-sharp rise-s2 my-8 flex items-center gap-3 opacity-70">
+          <div className="h-px w-[72px] bg-gradient-to-r from-transparent to-gold/45" />
+          <Dharmachakra className="h-4 w-4" stroke="#B99A54" />
+          <div className="h-px w-[72px] bg-gradient-to-r from-gold/45 to-transparent" />
         </div>
+        {/* 이 화면에서 눈이 갈 곳은 여기 하나 — 손가락 폭만큼 넓고 높게 */}
         <button
           onClick={receive}
-          className="btn-obang rise rise-d2 inline-flex items-center gap-2.5 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
+          className="btn-obang btn-hot rise-sharp rise-s2 inline-flex h-[60px] w-full max-w-[19rem] items-center justify-center gap-2.5 font-serif text-[16px] tracking-[0.3em] text-hanji"
         >
           <Lotus className="h-[18px] w-[18px]" stroke="#B99A54" />
-          <span>새 화두 받기</span>
+          <span className="[text-indent:0.3em]">새 화두 받기</span>
         </button>
 
         {/* 누구의 화두인가 — 채워진 알약 스위치 (클릭으로만 바뀜) */}
-        <div className="rise rise-d3 mt-7 inline-flex rounded-full border border-ink-3 bg-ink-2 p-1 text-xs">
+        <div className="rise-sharp rise-s3 mt-6 inline-flex rounded-full border border-ink-3 bg-ink-2 p-1 text-[11.5px]">
           {(
             [
               { key: "adult", label: "성인의 화두" },
@@ -509,7 +511,7 @@ export default function Home() {
                 type="button"
                 aria-pressed={active}
                 onClick={() => update((base) => ({ ...base, audience: o.key }))}
-                className={`rounded-full px-5 py-2 tracking-[0.1em] transition-colors ${
+                className={`tap rounded-full px-5 py-2.5 tracking-[0.1em] transition-colors ${
                   active
                     ? "bg-gold font-medium text-ink"
                     : "bg-transparent text-hanji-faint"
@@ -523,10 +525,10 @@ export default function Home() {
         {/* 나무 — 공덕이 쌓이면 자란다. 동자에서 부처까지 여섯 자리.
             카드째로 내 도량으로 가는 문이다 — 오늘의 세 가지가 거기 있다.
             (안쪽 수행 세 칸은 Link 중첩이 되지 않도록 카드 밖 형제로 둔다) */}
-        <div className="rise rise-d3 mt-10 w-full max-w-sm">
+        <div className="rise-sharp rise-s3 mt-12 w-full max-w-sm">
           <Link
             href="/settings"
-            className="block rounded-[18px] border border-ink-3 bg-ink-2/50 px-5 py-5 text-left transition-colors hover:border-gold/40"
+            className="tap block rounded-[18px] border border-ink-3 bg-ink-2/40 px-5 py-4 text-left transition-colors hover:border-gold/40"
           >
             <div className="flex items-center gap-4">
               <Dudu
@@ -535,33 +537,34 @@ export default function Home() {
                   merit >= 3240 ? "joy" : merit >= 108 ? "bright" : "default"
                 }
                 uid="home"
-                className="block h-[66px] w-[66px] shrink-0"
+                className="block h-[58px] w-[58px] shrink-0"
               />
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] tracking-[0.34em] text-hanji-faint">
                   공덕
                 </p>
-                {/* 큰 숫자 하나 — 이 카드가 말하는 것은 결국 이것 하나다 */}
-                <p className="mt-1 font-serif text-[40px] font-light leading-none tabular-nums text-gold">
+                {/* 큰 숫자 하나 — 이 카드가 말하는 것은 결국 이것 하나다.
+                    다만 주인공(새 화두 받기)보다는 한 단계 낮춘다. */}
+                <p className="mt-0.5 font-serif text-[32px] font-light leading-none tabular-nums text-gold">
                   {merit.toLocaleString("ko-KR")}
                 </p>
-                <p className="mt-2 flex items-baseline gap-1.5">
-                  <span className="font-serif text-[15px] text-hanji">
+                <p className="mt-1.5 flex items-baseline gap-1.5">
+                  <span className="font-serif text-[13.5px] text-hanji-dim">
                     {rankOf(merit).name}
                   </span>
-                  <span className="font-serif text-[11px] text-gold-soft">
+                  <span className="font-serif text-[10.5px] text-gold-soft">
                     {rankOf(merit).hanja}
                   </span>
                 </p>
               </div>
             </div>
-            <div className="mt-4 h-[5px] overflow-hidden rounded-full bg-ink-3">
+            <div className="mt-3.5 h-[4px] overflow-hidden rounded-full bg-ink-3">
               <div
                 className="h-full rounded-full bg-gold transition-[width] duration-500"
                 style={{ width: `${Math.round(stageProgress(merit) * 100)}%` }}
               />
             </div>
-            <p className="mt-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
+            <p className="mt-2 break-keep text-[11px] leading-5 text-hanji-faint">
               {nextRank(merit)
                 ? `${nextRank(merit)!.rank.name}까지 ${nextRank(merit)!.left.toLocaleString("ko-KR")}`
                 : rankOf(merit).say}
@@ -577,7 +580,7 @@ export default function Home() {
               <Link
                 key={x.href}
                 href={x.href}
-                className="rounded-full border border-ink-3 py-2.5 text-center text-[12.5px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                className="tap rounded-full border border-ink-3 py-3 text-center text-[12px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
               >
                 {x.label}
               </Link>
@@ -585,7 +588,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-10 flex gap-2.5 opacity-60">
+        <div className="mt-12 flex gap-2.5 opacity-50">
           <i className="h-[5px] w-[5px] rounded-full bg-obang-blue" />
           <i className="h-[5px] w-[5px] rounded-full bg-vermilion" />
           <i className="h-[5px] w-[5px] rounded-full bg-gold" />
@@ -601,12 +604,13 @@ export default function Home() {
   // ── 회향을 마쳤다 ──────────────────────────────────────
   if (current.journal) {
     return (
-      <div className="flex flex-1 flex-col items-center px-6 py-14">
-        <section className="rise flex w-full max-w-2xl flex-col items-center text-center">
-          <p className="rounded-full border border-gold/30 px-4 py-1 text-[11px] tracking-[0.3em] text-gold-soft">
+      <div className="flex flex-1 flex-col items-center px-5 py-12 sm:py-14">
+        <section className="rise-sharp flex w-full max-w-2xl flex-col items-center text-center">
+          <p className="rounded-full border border-gold/30 px-4 py-1 text-[10px] tracking-[0.34em] text-gold-soft">
             回向 · 나의 답
           </p>
-          <p className="mt-7 whitespace-pre-line break-keep font-serif text-[16px] font-light leading-9 text-hanji">
+          {/* 이 화면의 주인공은 내가 쓴 답 — 아래 접힌 것들과 무게를 벌린다 */}
+          <p className="hwadu-body sheen-once mt-9 whitespace-pre-line break-keep font-serif text-[clamp(18px,5vw,23px)] text-hanji">
             {current.journal}
           </p>
 
@@ -776,9 +780,9 @@ export default function Home() {
 
           <button
             onClick={archiveCurrent}
-            className="btn-obang mt-9 rounded-full px-9 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
+            className="btn-obang btn-hot mt-12 flex h-[58px] w-full max-w-[19rem] items-center justify-center font-serif text-[15px] tracking-[0.26em] text-hanji"
           >
-            다음 화두를 받다
+            <span className="[text-indent:0.26em]">다음 화두를 받다</span>
           </button>
         </section>
       </div>
@@ -800,8 +804,9 @@ export default function Home() {
               <span className="mb-1.5 text-[10px] tracking-[0.3em] text-hanji-faint">
                 화두
               </span>
-              <div className="max-w-[85%] rounded-2xl rounded-tl-sm border border-ink-3 bg-ink-2/60 px-4 py-3">
-                <p className="whitespace-pre-line break-keep font-serif text-[15px] font-light leading-8 text-hanji">
+              <div className="max-w-[88%] rounded-2xl rounded-tl-sm border border-ink-3 bg-ink-2/60 px-4 py-3.5">
+                {/* 답을 쓰는 동안에도 물음이 제일 또렷해야 한다 */}
+                <p className="hwadu-body whitespace-pre-line break-keep font-serif text-[16.5px] text-hanji">
                   {flatQuestion(sessionQuestion(current))}
                 </p>
               </div>
@@ -867,7 +872,7 @@ export default function Home() {
               <button
                 onClick={saveJournal}
                 disabled={!draft.trim()}
-                className="btn-obang shrink-0 rounded-full px-6 py-2.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
+                className="btn-obang tap shrink-0 rounded-full px-7 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
               >
                 회향
               </button>
@@ -882,18 +887,24 @@ export default function Home() {
   // 화두만 보기 — 오직 화두 하나만, 되돌아가기 버튼과 함께
   if (focusMode) {
     return (
-      <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+      <div className="relative flex flex-1 flex-col items-center justify-center px-5 py-16 text-center">
         {hwadu?.hanja && (
-          <span className="rounded-full border border-gold/25 px-4 py-1 font-serif text-[11px] tracking-[0.4em] text-gold-soft [text-indent:0.4em]">
+          <span className="rounded-full border border-gold/25 px-4 py-1 font-serif text-[10px] tracking-[0.42em] text-gold-soft [text-indent:0.42em]">
             {hwadu.hanja}
           </span>
         )}
-        <div className="question-glow mt-8 w-full max-w-2xl">
-          <Question text={sessionQuestion(current)} className="text-hanji" />
+        {/* 오직 이것만 보는 자리 — 활자를 끝까지 키운다 */}
+        <div className="question-glow hwadu-q sheen-once mt-10 w-full max-w-2xl">
+          <Question
+            text={sessionQuestion(current)}
+            min={38}
+            max={104}
+            className="text-hanji"
+          />
         </div>
         <button
           onClick={() => setFocusMode(false)}
-          className="mt-16 rounded-full border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          className="tap mt-16 rounded-full border border-ink-3 px-7 py-3 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
         >
           되돌아가기
         </button>
@@ -925,58 +936,83 @@ export default function Home() {
       : 0;
 
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-3 text-center sm:justify-center sm:py-12">
-      <section className="rise flex w-full max-w-2xl flex-col items-center">
+    <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center sm:justify-center sm:py-12">
+      <section className="rise-sharp flex w-full max-w-2xl flex-col items-center">
         {/* 한자 — 금테 알약 하나. 제목·부제로 겹을 늘리지 않는다 */}
         {hwadu?.hanja && (
-          <span className="rounded-full border border-gold/25 px-4 py-1 font-serif text-[11px] tracking-[0.4em] text-gold-soft [text-indent:0.4em]">
+          <span className="rounded-full border border-gold/25 px-4 py-1 font-serif text-[10px] tracking-[0.42em] text-gold-soft [text-indent:0.42em]">
             {hwadu.hanja}
           </span>
         )}
-        {/* 질문 — 눈높이, 화면의 주인공 */}
-        <div className="question-glow mt-6 w-full">
-          <Question text={sessionQuestion(current)} className="text-hanji" />
+        {/* 질문 — 이 화면에서 눈이 갈 곳은 여기 하나.
+            활자를 키우고 자간·행간을 눌러 한 덩어리로 세운다(.hwadu-q). */}
+        <div className="question-glow hwadu-q sheen-once mt-8 w-full">
+          <Question
+            text={sessionQuestion(current)}
+            min={34}
+            max={88}
+            className="text-hanji"
+          />
         </div>
         {(current.customSource || hwadu?.context) && (
-          <p className="mt-6 break-keep text-xs leading-6 tracking-wider text-hanji-faint">
+          <p className="mt-7 max-w-[24rem] break-keep text-[11.5px] leading-6 tracking-wide text-hanji-faint">
             {/* 세션에 담긴 배경(고친 화두·서버 화두)이 먼저, 없으면 원문 */}
             {current.customSource ?? hwadu?.context}
           </p>
         )}
 
         {/* 화두 곁의 세 가지 — 화두만 보기 · 함께 든 이 · 도량의 사람.
-            문장 두 줄로 흐르던 숫자를 알약 한 줄로 모아 화두 아래를 비운다. */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            누를 수 있는 것만 알약으로 남기고, 숫자는 흐린 한 줄로 내린다.
+            같은 무게의 알약 셋이 화두 바로 밑에서 눈을 뺏던 것을 막는다. */}
+        <div className="mt-8 flex flex-col items-center gap-3">
           <button
             onClick={() => setFocusMode(true)}
-            className="rounded-full border border-gold/40 px-5 py-2 text-[11px] tracking-[0.25em] text-gold-soft transition-colors hover:bg-gold/10 hover:text-gold"
+            className="tap rounded-full border border-gold/40 px-6 py-2.5 text-[11px] tracking-[0.25em] text-gold-soft transition-colors hover:bg-gold/10 hover:text-gold"
           >
             화두만 보기
           </button>
-          {holdingCount !== null && (
-            <span className="rounded-full border border-ink-3 bg-ink-2/50 px-4 py-2 text-[11.5px] tracking-wide text-hanji-dim">
-              {holdingCount >= 2
-                ? `함께 든 이 ${holdingCount}명`
-                : "이 물음을 든 사람은 그대뿐"}
-            </span>
-          )}
-          {onlineCount !== null && onlineCount > 0 && (
-            <span className="rounded-full border border-ink-3 bg-ink-2/50 px-4 py-2 text-[11.5px] tracking-wide text-hanji-faint">
-              도량에 {onlineCount}명
-            </span>
+          {(holdingCount !== null ||
+            (onlineCount !== null && onlineCount > 0)) && (
+            <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] tracking-wide text-hanji-faint">
+              {holdingCount !== null && (
+                <span>
+                  {holdingCount >= 2
+                    ? `함께 든 이 ${holdingCount}명`
+                    : "이 물음을 든 사람은 그대뿐"}
+                </span>
+              )}
+              {holdingCount !== null &&
+                onlineCount !== null &&
+                onlineCount > 0 && <span aria-hidden>·</span>}
+              {onlineCount !== null && onlineCount > 0 && (
+                <span>도량에 {onlineCount}명</span>
+              )}
+            </p>
           )}
         </div>
 
-        {/* 달 — 큰 숫자와 한 줄 막대. 세 문장이 하던 일을 숫자가 한다 */}
-        <div className="mt-9 w-full max-w-md rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-6">
-          {unlocked ? (
-            <div className="flex flex-col items-center gap-2.5">
-              <span className="moon !h-[26px] !w-[26px]" />
-              <p className="font-serif text-[19px] font-light tracking-wide text-hanji">
-                달이 차올랐습니다
-              </p>
-            </div>
-          ) : (
+        {/* 달 — 찼으면 상자를 걷고 한 줄로 알린다. 그 자리의 주인공은
+            '붓을 들다' 하나뿐이므로, 카드가 그 옆에 서 있을 이유가 없다. */}
+        {unlocked ? (
+          <div className="mt-10 flex w-full flex-col items-center">
+            <p className="flex items-center gap-2.5 font-serif text-[17px] font-light tracking-wide text-hanji">
+              <span className="moon !h-[20px] !w-[20px] shrink-0" />
+              달이 차올랐습니다
+            </p>
+            <button
+              onClick={() => {
+                // 쓰다 만 답이 있으면 그 자리에서 이어 쓴다
+                setDraft((d) => d || loadDraft(current.hwaduId));
+                setWriting(true);
+              }}
+              className="btn-obang btn-hot mt-6 flex h-[58px] w-full max-w-[19rem] items-center justify-center font-serif text-[15px] tracking-[0.3em] text-hanji"
+            >
+              <span className="[text-indent:0.3em]">붓을 들다</span>
+            </button>
+          </div>
+        ) : (
+          /* 아직 차오르는 중 — 숫자와 막대 하나. 화두보다는 낮게 둔다 */
+          <div className="mt-10 w-full max-w-md rounded-[16px] border border-ink-3 bg-ink-2/40 px-6 py-6">
             <div className="flex flex-col items-center">
               <span className="flex items-center gap-2 text-[10px] tracking-[0.3em] text-hanji-faint">
                 {/* .moon 의 본디 크기가 15px — 따로 키우지 않는다 */}
@@ -991,72 +1027,60 @@ export default function Home() {
                 >
                   {countdownParts(remaining).map((p) => (
                     <span key={p.unit} className="flex items-baseline gap-1">
-                      <span className="font-serif text-[30px] font-light leading-none tabular-nums text-hanji">
+                      <span className="font-serif text-[26px] font-light leading-none tabular-nums text-hanji-dim">
                         {p.value}
                       </span>
-                      <span className="text-[11px] text-hanji-faint">
+                      <span className="text-[10.5px] text-hanji-faint">
                         {p.unit}
                       </span>
                     </span>
                   ))}
                 </div>
               )}
-              <div className="mt-5 h-[5px] w-full overflow-hidden rounded-full bg-ink-3">
+              <div className="mt-5 h-[4px] w-full overflow-hidden rounded-full bg-ink-3">
                 <div
                   className="h-full rounded-full bg-gold transition-[width] duration-1000"
                   style={{ width: `${moonPct}%` }}
                 />
               </div>
-              <p className="mt-2.5 break-keep text-[11.5px] leading-5 text-hanji-dim">
+              <p className="mt-2.5 break-keep text-[11px] leading-5 text-hanji-faint">
                 {durationLabel(current.durationDays)} 뒤 답을 쓸 수 있어요
               </p>
             </div>
-          )}
-        </div>
-
-        {/* 붓을 들다 — 달이 찼으면 이것이 이 화면의 주된 단추다 */}
-        {unlocked && (
-          <button
-            onClick={() => {
-              // 쓰다 만 답이 있으면 그 자리에서 이어 쓴다
-              setDraft((d) => d || loadDraft(current.hwaduId));
-              setWriting(true);
-            }}
-            className="btn-obang mt-7 rounded-full px-10 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
-          >
-            붓을 들다
-          </button>
+          </div>
         )}
 
-        {/* 오늘의 참구법 — 날마다 다른 사유의 길 */}
+        {/* 오늘의 참구법 — 날마다 다른 사유의 길.
+            달 카드와 한 덩어리로 붙여, 카드 둘이 따로 서지 않게 한다 */}
         {!unlocked && (
-          <div className="mt-4 w-full max-w-md rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-5 text-left">
+          <div className="mt-2.5 w-full max-w-md rounded-[16px] border border-ink-3 bg-ink-2/40 px-6 py-5 text-left">
             <p className="text-[10px] tracking-[0.34em] text-gold-soft">
               오늘의 참구법 · {dayCount(current)}일째
             </p>
-            <p className="mt-2.5 break-keep text-[13.5px] font-light leading-7 text-hanji-dim">
+            <p className="mt-2.5 break-keep text-[13px] font-light leading-7 text-hanji-dim">
               {todayGuide(dayCount(current))}
             </p>
           </div>
         )}
 
-        {/* 사유의 방 — 누르면 오른쪽 서랍이 열리고, 다시 누르면 접힌다 */}
+        {/* 사유의 방 — 누르면 오른쪽 서랍이 열리고, 다시 누르면 접힌다.
+            달을 기다리는 동안에는 손이 갈 곳이 여기뿐이라 넓게 연다 */}
         <button
           onClick={() => setNotesOpen((v) => !v)}
           aria-expanded={notesOpen}
-          className={`mt-6 flex items-center gap-2.5 rounded-full border px-7 py-3 text-[13px] tracking-[0.2em] transition-colors ${
+          className={`tap mt-8 flex h-[54px] w-full max-w-[20rem] items-center justify-center gap-2.5 rounded-full border px-3 text-[12.5px] tracking-[0.1em] transition-colors ${
             notesOpen
               ? "border-gold/60 bg-gold/10 text-gold"
               : "border-gold/40 text-hanji hover:bg-gold/10"
           }`}
         >
-          <Banga className="h-[17px] w-[17px] text-gold-soft" />
+          <Banga className="h-[17px] w-[17px] shrink-0 text-gold-soft" />
           {notesOpen ? "사유의 방 — 접기" : "사유의 방 — 떠오르는 것을 적다"}
         </button>
 
         {/* 기간 바꾸기 — 열면 알약 한 줄로 갈라진다 */}
         {!unlocked && (
-          <div className="mt-6">
+          <div className="mt-7">
             {showSettings ? (
               <div className="flex flex-col items-center gap-2.5">
                 <div className="inline-flex flex-wrap items-center justify-center gap-1 rounded-full border border-ink-3 bg-ink-2/50 p-1">
@@ -1064,7 +1088,7 @@ export default function Home() {
                     <button
                       key={d}
                       onClick={() => setDays(d)}
-                      className={`rounded-full px-4 py-1.5 text-[11.5px] tracking-[0.12em] transition-colors ${
+                      className={`tap rounded-full px-4 py-2 text-[11.5px] tracking-[0.12em] transition-colors ${
                         current.durationDays === d
                           ? "bg-gold font-medium text-ink"
                           : "text-hanji-dim hover:text-hanji"
@@ -1090,7 +1114,7 @@ export default function Home() {
         )}
 
         {/* 참구의 마음가짐 — 넉 줄을 한 줄로 접는다. 펴면 그대로 다 있다 */}
-        <details className="mt-6 w-full max-w-md">
+        <details className="mt-8 w-full max-w-md">
           <summary
             className={`${FOLD} text-center text-[12px] leading-6 tracking-[0.04em] text-hanji-faint transition-colors hover:text-hanji-dim`}
           >
@@ -1104,7 +1128,7 @@ export default function Home() {
 
         {/* 기다리는 동안 — 갈 곳. 내 도량(나무·공덕·오늘의 세 가지)도 여기서 */}
         {!unlocked && (
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-2 text-[12px]">
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-2 text-[11.5px]">
             {[
               { href: "/masters", label: "선지식의 한마디" },
               { href: "/my-hwadu", label: "나도 화두 던지기" },
@@ -1113,7 +1137,7 @@ export default function Home() {
               <Link
                 key={x.href}
                 href={x.href}
-                className="rounded-full border border-ink-3 px-4 py-2.5 tracking-[0.1em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                className="tap rounded-full border border-ink-3 px-4 py-3 tracking-[0.06em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
               >
                 {x.label}
               </Link>
@@ -1121,10 +1145,10 @@ export default function Home() {
           </div>
         )}
 
-        {/* 내려놓기 — 또렷하게 */}
+        {/* 내려놓기 — 멀찍이, 흐리게. 찾으면 보이는 자리면 된다 */}
         <button
           onClick={layDown}
-          className="mt-9 rounded-full border border-ink-3 px-7 py-2.5 text-xs tracking-[0.25em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-hanji"
+          className="tap mt-12 rounded-full border border-ink-3 px-7 py-3 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-vermilion/50 hover:text-hanji"
         >
           이 화두를 내려놓다
         </button>

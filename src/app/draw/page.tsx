@@ -13,8 +13,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Dudu from "@/components/Dudu";
-import { loadMerit, stageOf } from "@/lib/merit";
+import { loadMerit } from "@/lib/merit";
 import { buzz, clickBead, strikeMoktak } from "@/lib/sound";
 import {
   dayKey,
@@ -87,19 +86,16 @@ export default function DrawPage() {
   const [book, setBook] = useState<DrawBook | null>(null);
   const [got, setGot] = useState<Fortune | null>(null);
   const [flipped, setFlipped] = useState(false);
-  const [stage, setStage] = useState(0);
   const [waiting, setWaiting] = useState(0); // 자정까지 남은 밀리초
 
   // 서랍은 붙고 난 뒤에 읽는다 — 서버 그림과 어긋나지 않게
   const refresh = useCallback(() => {
     setBook(loadDraw());
-    setStage(stageOf(loadMerit().total));
   }, []);
 
   useEffect(() => {
     const b = loadDraw();
     setBook(b);
-    setStage(stageOf(loadMerit().total));
     // 오늘 이미 뒤집었으면 그 장이 그대로 놓여 있게 — 돌아가는 시늉은 없다
     if (b.today) {
       setGot(b.today);
@@ -152,12 +148,7 @@ export default function DrawPage() {
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
       <style>{DRAW_CSS}</style>
 
-      <Dudu
-        stage={stage}
-        mood={flipped ? "joy" : "tilt"}
-        uid="draw"
-        className="rise h-[84px] w-[84px]"
-      />
+      {/* 머리에 얼굴을 올리지 않는다 — 이 화면의 주인공은 뒤집는 한 장이다 */}
       <p className="rise mt-2 text-[12px] tracking-[0.35em] text-hanji-faint">運 · 오늘의 운세</p>
 
       {open ? (
