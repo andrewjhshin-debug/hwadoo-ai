@@ -35,14 +35,14 @@ type Step = "choose" | "received" | "pondering" | "ripened" | "writing" | "done"
 
 // 걸음마다 뜨는 체험 안내
 const GUIDE: Record<Step, string> = {
-  choose: "먼저 화두를 받아 보십시오.",
+  choose: "먼저 화두를 받아 보세요.",
   received:
     "화두를 받았습니다. 본래는 이대로 며칠이 흘러야 합니다 — 체험에서는 눌러서 건너뜁니다.",
   pondering:
-    "사유의 시간입니다. 떠오르는 것은 사유의 방에 적어 두십시오 — 그 단상은 마지막에 답과 함께 기록에 남습니다.",
+    "사유의 시간입니다. 떠오르는 것은 사유의 방에 적어 두세요 — 그 단상은 마지막에 답과 함께 기록에 남습니다.",
   ripened: "달이 찼습니다. 이제 붓을 들어 답을 씁니다.",
   writing:
-    "정답은 없습니다. 지금 보이는 만큼만 쓰십시오 — 사유의 방에 남긴 단상도 함께 저장됩니다.",
+    "정답은 없습니다. 지금 보이는 만큼만 써 보세요 — 사유의 방에 남긴 단상도 함께 저장됩니다.",
   done: "한 바퀴를 돌았습니다 — 이 체험은 지난 화두에 첫 기록으로 남습니다.",
 };
 
@@ -143,7 +143,7 @@ export default function TryPage() {
         setShareDone(true);
       } catch {
         setShareError(
-          "나눔에 부치지 못했습니다 — 잠시 후 다시 시도해 주십시오."
+          "나눔에 부치지 못했습니다 — 잠시 후 다시 시도해 주세요."
         );
       }
     }
@@ -391,7 +391,7 @@ export default function TryPage() {
                 <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-ink-2/40 px-4 py-3">
                   <p className="text-left text-[12.5px] leading-6 text-hanji-dim">
                     며칠을 품고 계셨습니다. 무엇이 보였습니까.
-                    <br />아래에 답을 적어, 회향하십시오.
+                    <br />아래에 답을 적어, 회향해 보세요.
                   </p>
                 </div>
               </div>
@@ -413,7 +413,7 @@ export default function TryPage() {
                   }}
                   rows={3}
                   maxLength={MAX_ANSWER}
-                  placeholder="여기에 답을 적으십시오…"
+                  placeholder="여기에 답을 적어 주세요…"
                   className="max-h-[60vh] min-h-[96px] flex-1 resize-none overflow-hidden rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-3 text-left text-[15px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
                 />
                 <button
@@ -461,7 +461,7 @@ export default function TryPage() {
               </p>
 
               <p className="mt-2 text-xs leading-6 tracking-[0.04em] text-hanji-faint">
-                서두르지 마십시오. 질문에는 정답이 없습니다.
+                서두르지 마세요. 질문에는 정답이 없습니다.
                 <br />
                 생각으로 찾아낸 것은 답이 아닙니다. 생각하기보다 끝까지 하는
                 힘이 중요합니다.
@@ -493,7 +493,7 @@ export default function TryPage() {
                   </p>
                   <p className="mt-3 break-keep text-[13.5px] font-light leading-7 text-hanji-dim">
                     떠오르는 생각을 좇지 말고, 오직 &lsquo;이뭣고&rsquo; 한
-                    마디로 돌아오십시오.
+                    마디로 돌아오세요.
                   </p>
                 </div>
               )}
@@ -617,7 +617,7 @@ export default function TryPage() {
 
         <div className="flex flex-1 flex-col px-6 py-5 text-left">
           <p className="text-xs leading-6 text-hanji-faint">
-            떠오르는 것을 적어 두십시오. 답이 아니라 발자국입니다.
+            떠오르는 것을 적어 두세요. 답이 아니라 발자국입니다.
             <br />여기 적은 단상은 회향할 때 답과 함께 남습니다.
           </p>
           <textarea

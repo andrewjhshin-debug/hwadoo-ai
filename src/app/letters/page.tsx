@@ -9,6 +9,7 @@
 // · 실시간이 아니라 새로고침으로 숨을 고른다 — 서버를 아끼는 뼈대.
 // ─────────────────────────────────────────────────────────────
 
+import { dongja } from "@/lib/dongja";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { User } from "firebase/auth";
@@ -261,7 +262,7 @@ export default function LettersPage() {
             <p className="text-[13px] text-hanji-faint">펴 보는 중…</p>
           ) : msgs.length === 0 ? (
             <p className="break-keep text-[13.5px] leading-6 text-hanji-faint">
-              첫 쪽지를 건네 보십시오.
+              첫 쪽지를 건네 보세요.
             </p>
           ) : (
             msgs.map((m) => (
@@ -382,14 +383,23 @@ export default function LettersPage() {
           <li className="px-1 py-4 text-[14px] text-hanji-faint">여는 중…</li>
         ) : talks.length === 0 && waiting.length === 0 ? (
           <li className="break-keep px-1 py-5 text-[14px] leading-7 text-hanji-faint">
-            아직 대화가 없습니다 —{" "}
-            <Link
-              href="/pilgrimage"
-              className="text-hanji-dim underline decoration-ink-3 underline-offset-4 hover:text-hanji"
-            >
-              절로
-            </Link>
-            의 글에서 음양 문양을 눌러 청해 보십시오.
+            <span className="flex flex-col items-center gap-3 py-10">
+              <span
+                className="block h-[104px] w-[104px] opacity-90"
+                dangerouslySetInnerHTML={{ __html: dongja("rest", "letters") }}
+              />
+              <span className="block break-keep text-center text-[13.5px] leading-7 text-hanji-dim">
+                아직 오간 쪽지가 없어요.
+                <br />
+                <Link
+                  href="/gathering"
+                  className="text-hanji underline decoration-gold/40 underline-offset-4"
+                >
+                  인연
+                </Link>
+                의 글에서 음양 문양을 누르면 청할 수 있어요.
+              </span>
+            </span>
           </li>
         ) : (
           <>
@@ -422,7 +432,7 @@ export default function LettersPage() {
                             : "text-hanji-faint"
                         }`}
                       >
-                        {t.lastText ?? "첫 쪽지를 건네 보십시오"}
+                        {t.lastText ?? "첫 쪽지를 건네 보세요"}
                       </span>
                     </span>
                     <span className="shrink-0 text-[12px] text-hanji-faint">

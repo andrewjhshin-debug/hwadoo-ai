@@ -19,8 +19,8 @@ const CYCLE_MS = 10000; // 들숨 4초 + 날숨 6초 = 1식
 
 // 숨마다 돌아가며 건네는 알아차림의 말
 const GUIDES = [
-  "호흡을 알아차리십시오",
-  "가슴이 오르내리는 것을 느껴 보십시오",
+  "호흡을 알아차려 보세요",
+  "가슴이 오르내리는 것을 느껴 보세요",
   "생각이 지나가면, 다시 숨으로 돌아옵니다",
   "지금 이 숨이 전부입니다",
 ];
@@ -206,7 +206,7 @@ export default function BreathPage() {
       {stage === "ready" && (
         <div className="rise rise-d3 flex flex-col items-center">
           <p className="mt-3 break-keep text-[13.5px] leading-7 text-hanji-dim">
-            시작하면 <span className="text-hanji">눈을 감으십시오</span> —
+            시작하면 <span className="text-hanji">눈을 감아 보세요</span> —
             그래야 더 알아차릴 수 있습니다.
             <br />
             높은 경쇠가 울리면 들숨, 낮은 경쇠가 울리면 날숨입니다.

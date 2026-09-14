@@ -67,7 +67,7 @@ export default function RoomPage() {
       ) {
         // 적지 못했다 — 글은 화면에 그대로 두고 사정을 알린다
         setSaved(false);
-        setSaveError("저장하지 못했습니다 — 저장 공간을 확인해 주십시오.");
+        setSaveError("저장하지 못했습니다 — 저장 공간을 확인해 주세요.");
         return;
       }
     }
@@ -172,7 +172,7 @@ export default function RoomPage() {
       <div className="rise rise-d2 mt-5 flex flex-1 flex-col">
         <div className="mb-2 flex items-center justify-between">
           <p className="text-[11px] leading-5 text-hanji-faint">
-            떠오르는 것을 적어 두십시오 — 답이 아니라 발자국입니다.
+            떠오르는 것을 적어 두세요 — 답이 아니라 발자국입니다.
           </p>
           {saveError ? (
             <span className="shrink-0 text-[10px] leading-5 text-vermilion">
@@ -189,7 +189,7 @@ export default function RoomPage() {
         <textarea
           value={notes}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="여기에 적으십시오…"
+          placeholder="여기에 적어 주세요…"
           className="w-full flex-1 resize-none rounded-xl border border-gold/30 bg-ink-2/50 p-4 text-[14px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/60"
           style={{ minHeight: "48vh" }}
         />

@@ -316,7 +316,7 @@ export default function Home() {
         : latest
     );
     // 브라우저에 적지 못했다 — 화면에는 남아 있으니, 사정을 알린다
-    setSaveError(saved ? "" : "저장하지 못했습니다 — 저장 공간을 확인해 주십시오.");
+    setSaveError(saved ? "" : "저장하지 못했습니다 — 저장 공간을 확인해 주세요.");
     dropDraft(hwaduId);
     setDraft("");
     setWriting(false);
@@ -335,7 +335,7 @@ export default function Home() {
         setShareDone(true);
       } catch {
         setShareError(
-          "나눔에 부치지 못했습니다 — 잠시 후 다시 시도해 주십시오."
+          "나눔에 부치지 못했습니다 — 잠시 후 다시 시도해 주세요."
         );
       }
     }
@@ -655,7 +655,7 @@ export default function Home() {
                 <p className="text-[12.5px] leading-6 text-hanji-dim">
                   며칠을 품고 계셨습니다. 무엇이 보였습니까.
                   <br />
-                  아래에 답을 적어, 회향하십시오.
+                  아래에 답을 적어, 회향해 보세요.
                 </p>
               </div>
             </div>
@@ -695,7 +695,7 @@ export default function Home() {
               }}
               rows={3}
               maxLength={500}
-              placeholder="여기에 답을 적으십시오…"
+              placeholder="여기에 답을 적어 주세요…"
               className="max-h-[40vh] min-h-[92px] w-full resize-none overflow-y-auto rounded-2xl border border-ink-3 bg-ink-2/60 px-4 py-3 text-[15px] leading-7 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
             />
             {/* 나가기 · 글자수 · 회향 — 글칸 아래 한 줄로 */}
@@ -824,7 +824,7 @@ export default function Home() {
         </div>
 
         <p className="mt-4 text-xs leading-6 tracking-[0.04em] text-hanji-faint">
-          서두르지 마십시오. 질문에는 정답이 없습니다.
+          서두르지 마세요. 질문에는 정답이 없습니다.
           <br />
           생각으로 찾아낸 것은 답이 아닙니다. 생각하기보다 끝까지 하는 힘이
           중요합니다.

@@ -518,7 +518,7 @@ export default function GatheringBoard({
       setFormError(
         e instanceof Error && e.message
           ? e.message
-          : "글을 올리지 못했습니다. 잠시 뒤 다시 시도해 주십시오."
+          : "글을 올리지 못했습니다. 잠시 뒤 다시 시도해 주세요."
       );
     } finally {
       setBusy(false);
@@ -806,12 +806,12 @@ export default function GatheringBoard({
           {!user ? (
             <p className="mt-3 break-keep text-[13.5px] leading-6 text-hanji-dim">
               쪽지는 로그인한 분만 보낼 수 있습니다 — 왼쪽 아래(모바일은 내
-              도량)에서 로그인해 주십시오.
+              도량)에서 로그인해 주세요.
             </p>
           ) : user.uid === dmTarget.uid ? (
             <p className="mt-3 break-keep text-[13.5px] leading-6 text-hanji-dim">
               내 이름 곁의 음양입니다 — 서로 다른 기운이 만나야 쪽지가
-              오갑니다. 다른 수행자의 문양을 눌러 보십시오.
+              오갑니다. 다른 수행자의 문양을 눌러 보세요.
             </p>
           ) : thread ? (
             <>
@@ -1144,7 +1144,7 @@ export default function GatheringBoard({
           {/* 주의 — 작게 한 줄 */}
           <p className="mt-5 break-keep text-[10px] leading-4 text-hanji-faint/80">
             처음 만나는 자리는 사찰 등 열린 곳에서 · 연락처 등 개인정보는
-            아끼십시오.
+            아껴 주세요.
           </p>
         </div>
 
@@ -1206,7 +1206,7 @@ export default function GatheringBoard({
         {!qualified ? (
           <p className="mt-4 break-keep text-[13px] leading-7 text-hanji-dim">
             {!user
-              ? "글을 쓰려면 로그인이 필요합니다 — 왼쪽 아래(모바일은 내 도량)에서 로그인해 주십시오."
+              ? "글을 쓰려면 로그인이 필요합니다 — 왼쪽 아래(모바일은 내 도량)에서 로그인해 주세요."
               : "화두 하나를 회향한 뒤에 글을 쓸 수 있습니다."}
           </p>
         ) : (

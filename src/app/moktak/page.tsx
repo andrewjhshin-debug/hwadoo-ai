@@ -240,7 +240,7 @@ export default function MoktakPage() {
             </button>
             <p className="mt-1 text-[12px] tracking-[0.25em] text-hanji-faint">
               {hits === 0
-                ? "목탁을 눌러 보십시오"
+                ? "목탁을 눌러 보세요"
                 : `${hits.toLocaleString("ko-KR")} 번 울렸습니다`}
             </p>
           </div>

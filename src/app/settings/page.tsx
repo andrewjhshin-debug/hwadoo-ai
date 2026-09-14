@@ -615,15 +615,15 @@ export default function SettingsPage() {
       const code = (e as { code?: string })?.code ?? "";
       if (code === "auth/popup-blocked") {
         setLoginError(
-          "팝업이 막혔습니다. 브라우저에서 팝업을 허용하거나, 기본 브라우저로 열어 주십시오."
+          "팝업이 막혔습니다. 브라우저에서 팝업을 허용하거나, 기본 브라우저로 열어 주세요."
         );
       } else if (
         code === "auth/popup-closed-by-user" ||
         code === "auth/cancelled-popup-request"
       ) {
-        setLoginError("로그인 창이 닫혔습니다. 다시 시도해 주십시오.");
+        setLoginError("로그인 창이 닫혔습니다. 다시 시도해 주세요.");
       } else {
-        setLoginError("로그인하지 못했습니다. 잠시 뒤 다시 시도해 주십시오.");
+        setLoginError("로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
       }
     } finally {
       setLoginBusy(false);
@@ -646,7 +646,7 @@ export default function SettingsPage() {
       } else if (result === "unsupported") {
         setPushUi("unsupported");
       } else {
-        setPushError("알림을 켜지 못했습니다. 잠시 뒤 다시 시도해 주십시오.");
+        setPushError("알림을 켜지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
       }
     } finally {
       setPushBusy(false);
@@ -705,7 +705,7 @@ export default function SettingsPage() {
     } catch {
       try {
         await navigator.clipboard.writeText(text);
-        setYearShareMsg("글로 복사했습니다 — 붙여넣기로 나눠 보십시오.");
+        setYearShareMsg("글로 복사했습니다 — 붙여넣기로 나눠 보세요.");
       } catch {
         setYearShareMsg(text);
       }
@@ -1258,7 +1258,7 @@ export default function SettingsPage() {
           {pushGuide && (
             <div className="mt-4 break-keep rounded-[10px] border border-ink-3 bg-ink-2/40 px-4 py-3 text-[12px] leading-6 text-hanji-dim">
               <p className="text-hanji">
-                브라우저가 알림을 막아 두었습니다 — 이렇게 풀어 주십시오.
+                브라우저가 알림을 막아 두었습니다 — 이렇게 풀어 주세요.
               </p>
               <p className="mt-1.5">
                 · 컴퓨터: 주소창 왼쪽 자물쇠 → 알림 → 허용 → 새로고침
@@ -1272,7 +1272,7 @@ export default function SettingsPage() {
                 화두로 열어 다시 시도
               </p>
               <p className="mt-1.5 text-hanji-faint">
-                허용한 뒤 다시 토글을 눌러 주십시오.
+                허용한 뒤 다시 토글을 눌러 주세요.
               </p>
             </div>
           )}
@@ -1434,7 +1434,7 @@ export default function SettingsPage() {
           ) : (
             <>
               <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-                불편했던 점, 바라는 점을 일러주십시오. 죽비로 삼겠습니다.
+                불편했던 점, 바라는 점을 일러 주세요. 죽비로 삼겠습니다.
               </p>
               <textarea
                 value={fb}
@@ -1454,7 +1454,7 @@ export default function SettingsPage() {
                     setFbDone(true);
                   } catch {
                     setFbError(
-                      "전하지 못했습니다. 잠시 뒤 다시 시도해 주십시오."
+                      "전하지 못했습니다. 잠시 뒤 다시 시도해 주세요."
                     );
                   } finally {
                     setFbBusy(false);

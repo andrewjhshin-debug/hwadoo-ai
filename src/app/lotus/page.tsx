@@ -58,11 +58,11 @@ export default function LotusPage() {
     setError("");
     if (!picked) return;
     if (!user) {
-      setError("연꽃은 계정 지갑에 지급됩니다 — 먼저 로그인해 주십시오.");
+      setError("연꽃은 계정 지갑에 지급됩니다 — 먼저 로그인해 주세요.");
       return;
     }
     if (!agree) {
-      setError("구매조건 확인 및 결제진행에 동의해 주십시오.");
+      setError("구매조건 확인 및 결제진행에 동의해 주세요.");
       return;
     }
     setStep("pay");
@@ -82,7 +82,7 @@ export default function LotusPage() {
       });
       setStep("done");
     } catch {
-      setError("접수하지 못했습니다 — 잠시 뒤 다시 시도해 주십시오.");
+      setError("접수하지 못했습니다 — 잠시 뒤 다시 시도해 주세요.");
     } finally {
       setOrderBusy(false);
     }
@@ -243,7 +243,7 @@ export default function LotusPage() {
             <>
               <div className="mt-5 rounded-[12px] border border-gold/40 px-4 py-5">
                 <p className="text-[12px] tracking-wide text-hanji-faint">
-                  아래 계좌로 {picked && won(picked.price)}을 보내 주십시오
+                  아래 계좌로 {picked && won(picked.price)}을 보내 주세요
                 </p>
                 <p className="mt-2 font-serif text-[16px] text-hanji">
                   {BANK_INFO.bank} {BANK_INFO.account}

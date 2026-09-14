@@ -17,8 +17,8 @@ export default function AboutPage() {
 
       <div className="rise rise-d1 mt-16 space-y-7 text-center font-serif text-lg font-light leading-9 text-hanji">
         <p>질문 하나를 드립니다.</p>
-        <p className="text-hanji-dim">며칠 밤낮, 스스로 품으십시오.</p>
-        <p>깨달은 것을 쓰십시오.</p>
+        <p className="text-hanji-dim">며칠 밤낮, 스스로 품어 보세요.</p>
+        <p>깨달은 것을 써 보세요.</p>
         <p className="text-hanji-dim">다음 화두가 옵니다.</p>
       </div>
 
