@@ -69,6 +69,8 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/breath", label: "호흡 명상", Icon: Breath },
   { href: "/moktak", label: "목탁과 염주", Icon: Moktak },
   { href: "/bae", label: "백팔배", Icon: Banga },
+  { href: "/sutra", label: "외우기", Icon: Book },
+  { href: "/draw", label: "오늘의 한 장", Icon: LotusMark },
 ];
 
 // 말씀 · 나눔 — 구획 제목과 함께 아래에 잇는다
@@ -78,6 +80,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/ganhwaseon", label: "간화선이란?", Icon: Dharmachakra },
       { href: "/masters", label: "선지식의 한마디", Icon: SeonMaster },
+      { href: "/tamjinchi", label: "불심 투자", Icon: Elephant },
     ],
   },
   {
@@ -88,6 +91,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { href: "/lotus", label: "연꽃 공양", Icon: LotusMark },
       { href: "/tea", label: "차 한 잔", Icon: Teacup },
       { href: "/goods", label: "굿즈", Icon: Bojagi },
+      { href: "/rank", label: "오늘의 정진", Icon: Dharmachakra },
     ],
   },
 ];

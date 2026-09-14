@@ -76,6 +76,7 @@ import {
   Teacup,
   Book,
   Dharmachakra,
+  Elephant,
   SeonMaster,
   Banga,
   Bojagi,
@@ -186,6 +187,9 @@ const SERVICES: ServiceItem[] = [
   { href: "/goods", label: "굿즈", Icon: Bojagi },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
   { href: "/sutra", label: "외우기", Icon: Book },
+  { href: "/draw", label: "오늘의 한 장", Icon: LotusMark },
+  { href: "/rank", label: "오늘의 정진", Icon: Dharmachakra },
+  { href: "/tamjinchi", label: "불심 투자", Icon: Elephant },
 ];
 
 // 이 달의 흐름 — 여러 갈래를 한 그래프에 선으로 겹쳐 그린다.

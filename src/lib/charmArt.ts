@@ -11,7 +11,7 @@
 // 붓맛은 feDisplacementMap 으로 획을 흔들어 낸다.
 // ─────────────────────────────────────────────────────────────
 
-import type { CharmId } from "./charm";
+import type { CharmGrade, CharmId } from "./charm";
 
 // 관(冠) — y 20~38
 const CROWN: Record<CharmId, string> = {
@@ -66,8 +66,45 @@ const BODY: Record<CharmId, string> = {
     <path d="M50 78 V104"/>`,
 };
 
-/** 부적 한 장. uid 를 달리 주면 한 화면에 여러 장을 놓아도 id 가 안 겹친다. */
-export function renderCharm(id: CharmId, seal: string, uid = ""): string {
+/**
+ * 부적 한 장. uid 를 달리 주면 한 화면에 여러 장을 놓아도 id 가 안 겹친다.
+ *
+ * 등급은 종이에만 얹는다 — 하품은 예전 그대로, 중품은 금 한 줄과 진한 봉인,
+ * 상품은 금테 두 줄과 은은한 금빛 광. 주사(朱砂) 붉은 획은 어느 등급에서도
+ * 손대지 않는다. 부적을 부적으로 읽히게 하는 건 그 붉은 획이다.
+ */
+export function renderCharm(
+  id: CharmId,
+  seal: string,
+  uid = "",
+  grade: CharmGrade = "ha"
+): string {
+  // 봉인이 진해지는 건 중품부터 — 상품도 그대로 물려받는다
+  const deep = grade !== "ha";
+  const sealFill = deep ? "rgba(168,26,8,0.12)" : "none";
+  const sealWidth = deep ? 3 : 2.2;
+  const sealInk = deep ? "#8d1305" : "#a81a08";
+
+  // 상품의 광 — 종이 뒤에 깔아 테두리 밖으로만 번지게 한다.
+  // 종이 위에 얹으면 붉은 획이 흐려져 부적이 아니라 스티커가 된다.
+  const halo =
+    grade === "sang"
+      ? `<g filter="url(#cm_glow)"><rect x="5" y="4" width="90" height="148" rx="2.5"
+          fill="#f4c945" opacity="0.55"/></g>`
+      : "";
+
+  // 금테 — 중품 한 줄, 상품 두 줄(붉은 안테를 사이에 두고 겹으로 둘러싼다)
+  const gilt =
+    grade === "sang"
+      ? `<rect x="7" y="6" width="86" height="144" rx="2" fill="none"
+        stroke="url(#cm_gold)" stroke-width="1.1"/>
+  <rect x="11.4" y="10.4" width="77.2" height="135.2" rx="1.2" fill="none"
+        stroke="url(#cm_gold)" stroke-width="0.55" opacity="0.85"/>`
+      : grade === "jung"
+        ? `<rect x="7" y="6" width="86" height="144" rx="2" fill="none"
+        stroke="url(#cm_gold)" stroke-width="0.95" opacity="0.9"/>`
+        : "";
+
   const svg = `<svg viewBox="0 0 100 156" class="charm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="cm_paper" x1="0.1" y1="0" x2="0.85" y2="1">
@@ -85,6 +122,18 @@ export function renderCharm(id: CharmId, seal: string, uid = ""): string {
       <stop offset="0.55" stop-color="#a81a08"/>
       <stop offset="1" stop-color="#7d1204"/>
     </linearGradient>
+    <!-- 금 — 테두리는 가로·세로 직선이다. 여기도 반드시 userSpaceOnUse.
+         기본값이면 획 하나짜리 바운딩 박스가 납작해져 금테가 사라진다. -->
+    <linearGradient id="cm_gold" gradientUnits="userSpaceOnUse"
+                    x1="8" y1="4" x2="92" y2="152">
+      <stop offset="0" stop-color="#8a6408"/>
+      <stop offset="0.3" stop-color="#f0d891"/>
+      <stop offset="0.58" stop-color="#b8830e"/>
+      <stop offset="1" stop-color="#7a5605"/>
+    </linearGradient>
+    <filter id="cm_glow" x="-30%" y="-25%" width="160%" height="150%">
+      <feGaussianBlur stdDeviation="3.4"/>
+    </filter>
     <filter id="cm_grain" x="0%" y="0%" width="100%" height="100%">
       <feTurbulence type="fractalNoise" baseFrequency="0.85 0.6" numOctaves="3" seed="5" result="t"/>
       <feColorMatrix in="t" type="saturate" values="0"/>
@@ -99,6 +148,7 @@ export function renderCharm(id: CharmId, seal: string, uid = ""): string {
     <clipPath id="cm_clip"><rect x="5" y="4" width="90" height="148" rx="2.5"/></clipPath>
   </defs>
 
+  ${halo}
   <g filter="url(#cm_lift)">
     <rect x="5" y="4" width="90" height="148" rx="2.5" fill="url(#cm_paper)"/>
   </g>
@@ -111,6 +161,7 @@ export function renderCharm(id: CharmId, seal: string, uid = ""): string {
         stroke="rgba(140,95,0,0.4)" stroke-width="0.9"/>
   <rect x="9" y="8" width="82" height="140" rx="1.5" fill="none"
         stroke="rgba(168,26,8,0.3)" stroke-width="0.8"/>
+  ${gilt}
 
   <g filter="url(#cm_brush)" stroke="url(#cm_ink)" stroke-linecap="round"
      stroke-linejoin="round" fill="none">
@@ -119,10 +170,10 @@ export function renderCharm(id: CharmId, seal: string, uid = ""): string {
   </g>
 
   <g transform="translate(0 6)">
-    <rect x="36" y="112" width="28" height="28" rx="1.5" fill="none"
-          stroke="url(#cm_ink)" stroke-width="2.2"/>
-    <text x="50" y="131" text-anchor="middle" font-size="12.5" fill="#a81a08"
-          font-family="'Noto Serif KR',serif">${seal}</text>
+    <rect x="36" y="112" width="28" height="28" rx="1.5" fill="${sealFill}"
+          stroke="url(#cm_ink)" stroke-width="${sealWidth}"/>
+    <text x="50" y="131" text-anchor="middle" font-size="12.5" fill="${sealInk}"
+          font-family="'Noto Serif KR',serif"${deep ? ' font-weight="600"' : ""}>${seal}</text>
   </g>
 </svg>`;
   return uid ? svg.replace(/cm_([a-z]+)/g, `cm_$1_${uid}`) : svg;

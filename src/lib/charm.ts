@@ -85,19 +85,84 @@ export const CHARM_BY_ID: Record<CharmId, Charm> = Object.fromEntries(
   CHARMS.map((c) => [c.id, c])
 ) as Record<CharmId, Charm>;
 
-/** 가진 부적 — 얻은 시각을 함께 적는다 */
+// ── 등급 ────────────────────────────────────────────────────
+// 아미타 구품(九品)에서 셋만 빌린다. 같은 부적이라도 어떻게 해냈느냐가
+// 종이에 남는다 — 그래야 한 번 얻고 끝내지 않고 다시 한다.
+
+export type CharmGrade = "ha" | "jung" | "sang";
+
+export type Grade = {
+  key: CharmGrade;
+  name: string; // 하품
+  hanja: string; // 下品
+  say: string; // 화면에 그대로 놓는 한 마디
+};
+
+export const GRADE: Record<CharmGrade, Grade> = {
+  ha: { key: "ha", name: "하품", hanja: "下品", say: "해냈어요" },
+  jung: { key: "jung", name: "중품", hanja: "中品", say: "잘 해냈어요" },
+  sang: { key: "sang", name: "상품", hanja: "上品", say: "흠 없이 해냈어요" },
+};
+
+/** 낮은 것부터 — 훑어 그릴 때 쓴다 */
+export const GRADES: Grade[] = [GRADE.ha, GRADE.jung, GRADE.sang];
+
+// 오르는 순서. 내려가는 일은 없다.
+const RANK: Record<CharmGrade, number> = { ha: 0, jung: 1, sang: 2 };
+
+/** 둘 가운데 높은 쪽 */
+export function higherGrade(a: CharmGrade, b: CharmGrade): CharmGrade {
+  return RANK[b] > RANK[a] ? b : a;
+}
+
+function isGrade(v: unknown): v is CharmGrade {
+  return v === "ha" || v === "jung" || v === "sang";
+}
+
+// ── 장부 ────────────────────────────────────────────────────
+
+/** 서랍에 담기는 한 칸 — 처음 얻은 시각과 지금 등급 */
+export type CharmEntry = { at: number; grade: CharmGrade };
+
+/**
+ * 얻은 시각만 보는 장부. 이름과 꼴을 옛 그대로 둔다 —
+ * 화면 여러 곳이 값을 number 로 받고 있어서, 여기를 넓히면 그쪽이 깨진다.
+ * 등급까지 보려면 loadCharmBook() 을 쓴다.
+ */
 export type CharmLedger = Partial<Record<CharmId, number>>;
 
-export function loadCharms(): CharmLedger {
+/** 등급까지 담은 장부 */
+export type CharmBook = Partial<Record<CharmId, CharmEntry>>;
+
+/**
+ * 서랍 한 칸을 읽는다.
+ * 옛 장부는 값이 number(얻은 시각) 하나뿐이었다 — 그건 하품으로 읽는다.
+ * 그래야 이미 쌓인 장부가 등급을 얹는 순간 통째로 날아가지 않는다.
+ */
+function readEntry(v: unknown): CharmEntry | null {
+  if (typeof v === "number" && Number.isFinite(v)) return { at: v, grade: "ha" };
+  if (v && typeof v === "object") {
+    const o = v as { at?: unknown; grade?: unknown };
+    if (typeof o.at === "number" && Number.isFinite(o.at)) {
+      return { at: o.at, grade: isGrade(o.grade) ? o.grade : "ha" };
+    }
+  }
+  return null;
+}
+
+/** 가진 부적 — 등급까지 */
+export function loadCharmBook(): CharmBook {
   if (typeof window === "undefined") return {};
   try {
     const raw = window.localStorage.getItem(CHARMS_KEY);
     const p = raw ? (JSON.parse(raw) as unknown) : null;
     if (!p || typeof p !== "object") return {};
-    const valid = new Set(CHARMS.map((c) => c.id));
-    const out: CharmLedger = {};
+    const valid = new Set<string>(CHARMS.map((c) => c.id));
+    const out: CharmBook = {};
     for (const [k, v] of Object.entries(p as Record<string, unknown>)) {
-      if (valid.has(k as CharmId) && typeof v === "number") out[k as CharmId] = v;
+      if (!valid.has(k)) continue;
+      const e = readEntry(v);
+      if (e) out[k as CharmId] = e;
     }
     return out;
   } catch {
@@ -105,17 +170,29 @@ export function loadCharms(): CharmLedger {
   }
 }
 
+/** 가진 부적 — 얻은 시각만. 옛 호출부가 이 꼴로 읽는다. */
+export function loadCharms(): CharmLedger {
+  const out: CharmLedger = {};
+  for (const [k, e] of Object.entries(loadCharmBook())) {
+    if (e) out[k as CharmId] = e.at;
+  }
+  return out;
+}
+
 /**
- * 부적을 얻는다. 이미 가진 것이면 아무 일도 없다(true 를 돌려주지 않는다) —
- * 화면이 "새로 얻었다"를 띄울지 판단할 수 있게.
+ * 부적을 얻는다. 인자 하나로 부르면 하품 — 옛 호출부가 그대로 돈다.
+ * 이미 가진 것이라도 더 높은 등급이면 종이를 올려 준다.
+ * 새로 얻었거나 등급이 올랐을 때만 true — 화면이 "새로 얻었다"를 띄울 수 있게.
  */
-export function grantCharm(id: CharmId): boolean {
+export function grantCharm(id: CharmId, grade: CharmGrade = "ha"): boolean {
   if (typeof window === "undefined") return false;
-  const l = loadCharms();
-  if (l[id]) return false;
-  l[id] = Date.now();
+  const book = loadCharmBook();
+  const had = book[id];
+  if (had && RANK[grade] <= RANK[had.grade]) return false;
+  // 등급이 올라도 처음 얻은 시각은 그대로 둔다 — 그날이 기록이다.
+  book[id] = { at: had?.at ?? Date.now(), grade };
   try {
-    window.localStorage.setItem(CHARMS_KEY, JSON.stringify(l));
+    window.localStorage.setItem(CHARMS_KEY, JSON.stringify(book));
     window.dispatchEvent(new CustomEvent(CHARMS_EVENT, { detail: id }));
   } catch {
     return false;
@@ -124,7 +201,12 @@ export function grantCharm(id: CharmId): boolean {
 }
 
 export function hasCharm(id: CharmId): boolean {
-  return !!loadCharms()[id];
+  return !!loadCharmBook()[id];
+}
+
+/** 가진 등급. 아직 없으면 하품으로 친다 — 가졌는지는 hasCharm 으로 가른다. */
+export function gradeOf(id: CharmId): CharmGrade {
+  return loadCharmBook()[id]?.grade ?? "ha";
 }
 
 // ── 그림 ────────────────────────────────────────────────────
@@ -132,7 +214,12 @@ export function hasCharm(id: CharmId): boolean {
 
 import { renderCharm } from "./charmArt";
 
-/** 부적 한 장. 한 화면에 여러 장이면 uid 를 달리 준다. */
-export function charmSvg(id: CharmId, uid = ""): string {
-  return renderCharm(id, CHARM_BY_ID[id].hanja.slice(0, 1), uid);
+/**
+ * 부적 한 장. 한 화면에 여러 장이면 uid 를 달리 준다.
+ * 등급은 받은 대로만 그린다 — 여기서 서랍을 뒤지면 서버가 그린 첫 그림과
+ * 어긋나 하이드레이션이 깨진다. 가진 등급을 그리려면 붙고 난 뒤(useEffect)
+ * gradeOf 로 꺼내 넘겨라.
+ */
+export function charmSvg(id: CharmId, uid = "", grade: CharmGrade = "ha"): string {
+  return renderCharm(id, CHARM_BY_ID[id].hanja.slice(0, 1), uid, grade);
 }
