@@ -25,8 +25,8 @@
 html {
   background: var(--color-ink);
 }
-/* 기본은 낮 — 스크립트가 data-theme 를 새기기 전 한 순간에도 회색 바탕으로 */
-html:not([data-theme="dark"]) {
+/* 낮을 켜 둔 사람만 회색 바탕 — 기본은 먹빛이다 */
+html[data-theme="light"] {
   background: #eceef1;
 }
 

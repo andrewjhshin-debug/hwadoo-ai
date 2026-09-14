@@ -36,41 +36,122 @@ function noise(ac: AudioContext): AudioBuffer {
   return noiseBuf;
 }
 
-// 목탁 한 방 — 몸통 울림(사인, 피치 내림) + '딱'(삼각파) + 결(밴드패스 노이즈)
+// 절 마당의 울림 — 목탁 소리 뒤에 남는 꼬리.
+// 노이즈로 임펄스를 빚어 컨볼버에 물린다(음원 파일 없이 만드는 잔향).
+let hallIR: AudioBuffer | null = null;
+let hallNode: ConvolverNode | null = null;
+let hallGain: GainNode | null = null;
+function hall(ac: AudioContext): GainNode {
+  if (!hallNode || !hallGain) {
+    const secs = 1.9;
+    const n = Math.floor(ac.sampleRate * secs);
+    hallIR = ac.createBuffer(2, n, ac.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const d = hallIR.getChannelData(c);
+      for (let i = 0; i < n; i++) {
+        const decay = Math.pow(1 - i / n, 2.6);
+        d[i] = (Math.random() * 2 - 1) * decay;
+      }
+    }
+    hallNode = ac.createConvolver();
+    hallNode.buffer = hallIR;
+    // 잔향은 어둡게 — 나무 울림이지 유리가 아니다
+    const lp = ac.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 2100;
+    hallGain = ac.createGain();
+    hallGain.gain.value = 1;
+    hallGain.connect(lp);
+    lp.connect(hallNode);
+    const wet = ac.createGain();
+    wet.gain.value = 0.9;
+    hallNode.connect(wet);
+    wet.connect(ac.destination);
+  }
+  return hallGain;
+}
+
+// 귀가 아프지 않게 — 세게 쳐도 찌그러지지 않도록 한 번 눌러 준다
+let bus: DynamicsCompressorNode | null = null;
+function master(ac: AudioContext): DynamicsCompressorNode {
+  if (!bus) {
+    bus = ac.createDynamicsCompressor();
+    bus.threshold.value = -14;
+    bus.knee.value = 22;
+    bus.ratio.value = 7;
+    bus.attack.value = 0.003;
+    bus.release.value = 0.22;
+    bus.connect(ac.destination);
+  }
+  return bus;
+}
+
+// 목탁 한 방 —
+//   딱(치는 순간) + 몸통(피치 내려가는 톡) + 속울림 두 겹 + 마당 잔향.
+//   작은 나무토막이 아니라 법당에서 울리는 소리라야 한다.
 export function strikeMoktak(vol: number) {
   const ac = audio();
   if (!ac) return;
   const t = ac.currentTime;
-  const out = ac.createGain();
-  out.gain.value = vol;
-  out.connect(ac.destination);
 
-  const base = 540 + Math.random() * 50; // 매 방 미세하게 다른 나무
+  const out = ac.createGain();
+  out.gain.value = vol * 1.75; // 크게 — 울리도록
+  out.connect(master(ac));
+
+  // 잔향으로 보내는 몫
+  const send = ac.createGain();
+  send.gain.value = vol * 0.5;
+  out.connect(send);
+  send.connect(hall(ac));
+
+  const base = 520 + Math.random() * 46; // 매 방 미세하게 다른 나무
+
+  // ── 몸통 — 치는 순간 높다가 뚝 떨어지는 '톡'
   const o1 = ac.createOscillator();
   o1.type = "sine";
-  o1.frequency.setValueAtTime(base, t);
-  o1.frequency.exponentialRampToValueAtTime(base * 0.52, t + 0.1);
+  o1.frequency.setValueAtTime(base * 1.28, t);
+  o1.frequency.exponentialRampToValueAtTime(base * 0.5, t + 0.13);
   const g1 = ac.createGain();
   g1.gain.setValueAtTime(0.0001, t);
-  g1.gain.exponentialRampToValueAtTime(0.85, t + 0.004);
-  g1.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  g1.gain.exponentialRampToValueAtTime(0.9, t + 0.004);
+  g1.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
   o1.connect(g1);
   g1.connect(out);
   o1.start(t);
-  o1.stop(t + 0.22);
+  o1.stop(t + 0.6);
 
+  // ── 속울림 두 겹 — 나무는 배음이 어긋난다. 길게 남는 건 이쪽.
+  ([
+    [base * 0.44, 0.34, 1.5],
+    [base * 0.67, 0.2, 1.05],
+  ] as const).forEach(([hz, amp, dur], i) => {
+    const o = ac.createOscillator();
+    o.type = i === 0 ? "sine" : "triangle";
+    o.frequency.setValueAtTime(hz * (0.995 + Math.random() * 0.01), t);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(amp, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g);
+    g.connect(out);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  });
+
+  // ── 딱 — 채가 닿는 순간
   const o2 = ac.createOscillator();
   o2.type = "triangle";
-  o2.frequency.setValueAtTime(1350 + Math.random() * 250, t);
+  o2.frequency.setValueAtTime(1420 + Math.random() * 240, t);
   const g2 = ac.createGain();
   g2.gain.setValueAtTime(0.0001, t);
-  g2.gain.exponentialRampToValueAtTime(0.3, t + 0.002);
-  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+  g2.gain.exponentialRampToValueAtTime(0.34, t + 0.002);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.038);
   o2.connect(g2);
   g2.connect(out);
   o2.start(t);
   o2.stop(t + 0.06);
 
+  // ── 결 — 나무 표면
   const src = ac.createBufferSource();
   src.buffer = noise(ac);
   const bp = ac.createBiquadFilter();
@@ -78,8 +159,8 @@ export function strikeMoktak(vol: number) {
   bp.frequency.value = 950;
   bp.Q.value = 1.1;
   const g3 = ac.createGain();
-  g3.gain.setValueAtTime(0.22, t);
-  g3.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  g3.gain.setValueAtTime(0.26, t);
+  g3.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
   src.connect(bp);
   bp.connect(g3);
   g3.connect(out);

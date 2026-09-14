@@ -26,7 +26,6 @@ import { buzz, clickBead, strikeMoktak } from "@/lib/sound";
 const BEADS = 108;
 const RING = 36; // 고리에 걸린 알 수 — 세 바퀴가 곧 백팔
 const STEP = 360 / RING;
-const R = 118;
 const BOX = 316;
 const ARC = 2 * Math.PI * 146; // 바깥 진행 고리 둘레
 // 알이 왼쪽으로 넘어가므로 진행 고리도 왼쪽으로 차오른다 — 반시계로 그린 원
@@ -172,7 +171,12 @@ export default function MoktakPage() {
   const pos = total % BEADS;
   const rounds = Math.floor(total / BEADS);
   const angle = -total * STEP;
-  const topIdx = total % RING; // 지금 위에 올라온 알
+  // 물든 만큼만 금빛 겹을 보여 준다 — 위에서 시계방향으로
+  const f = pos / BEADS;
+  const goldMask =
+    f <= 0
+      ? "linear-gradient(#0000, #0000)"
+      : `conic-gradient(from 0deg at 50% 50%, #000 0turn ${f}turn, #0000 ${f + 0.008}turn 1turn)`;
   const phrases = Math.floor(hits / NAMU.length); // 나무아미타불 몇 편
 
   return (
@@ -299,7 +303,7 @@ export default function MoktakPage() {
                 className="block"
                 style={{ animation: hits > 0 ? "mk-hit 0.16s ease-out" : "none" }}
               >
-                {/* 실물 렌더 — 코드로 깎은 것보다 낫다. 없으면 SVG 로 돌아간다 */}
+                {/* 3D 일러스트 — 코드로 깎은 것보다 낫다. 없으면 SVG 로 돌아간다 */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/obj/moktak.png"
@@ -398,7 +402,7 @@ export default function MoktakPage() {
             )}
           </p>
 
-          {/* ── 염주 — 넘긴 알이 금빛 보리로 물든다 ── */}
+          {/* ── 염주 — 넘긴 만큼 줄이 금빛 보리로 물든다 ── */}
           <div className="rise rise-d2 mt-3 flex flex-col items-center">
             <div
               onPointerDown={onPointerDown}
@@ -427,91 +431,52 @@ export default function MoktakPage() {
                 />
               </svg>
 
-              {/* 실 */}
-              <span
-                aria-hidden
-                className="absolute rounded-full border-2 border-[#221912]"
-                style={{
-                  left: BOX / 2 - R,
-                  top: BOX / 2 - R,
-                  width: R * 2,
-                  height: R * 2,
-                  maskImage:
-                    "linear-gradient(to bottom, black 45%, rgba(0,0,0,0.15) 80%, transparent)",
-                  WebkitMaskImage:
-                    "linear-gradient(to bottom, black 45%, rgba(0,0,0,0.15) 80%, transparent)",
-                }}
-              />
+              {/* 염주 — 굴리면 돈다 */}
+              <div className="absolute inset-0 grid place-items-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/obj/bead.png"
+                  alt=""
+                  aria-hidden
+                  draggable={false}
+                  className="block h-[262px] w-[262px] object-contain"
+                  style={{
+                    transform: `rotate(${angle}deg)`,
+                    transition: "transform 0.16s ease-out",
+                    filter: "drop-shadow(0 10px 26px rgba(0,0,0,0.55))",
+                  }}
+                />
+              </div>
 
-              {/* 고리 */}
+              {/* 물든 만큼 금빛 — 위에서 시계방향으로 차오른다 */}
               <div
-                className="absolute inset-0"
-                style={{
-                  transform: `rotate(${angle}deg)`,
-                  transition: "transform 0.16s ease-out",
-                }}
+                aria-hidden
+                className="pointer-events-none absolute inset-0 grid place-items-center"
+                style={{ maskImage: goldMask, WebkitMaskImage: goldMask }}
               >
-                {Array.from({ length: RING }, (_, k) => {
-                  const mother = k === 0; // 모주
-                  const bodhi = k < topIdx; // 이미 넘긴 알 — 보리로 물들었다
-                  const eff = (((k * STEP + angle) % 360) + 360) % 360;
-                  const fromTop = Math.min(eff, 360 - eff);
-                  const nearTop = Math.max(0, 1 - fromTop / 46);
-                  const vis = Math.max(0, 1 - fromTop / 132);
-                  const size = (mother ? 34 : 26) * (1 + nearTop * 0.32);
-                  return (
-                    <span
-                      key={k}
-                      aria-hidden
-                      className="absolute left-1/2 top-1/2"
-                      style={{ transform: `rotate(${k * STEP}deg) translateY(${-R}px)` }}
-                    >
-                      <span
-                        className="block rounded-full"
-                        style={{
-                          width: size,
-                          height: size,
-                          marginLeft: -size / 2,
-                          marginTop: -size / 2,
-                          transform: `rotate(${-(k * STEP + angle)}deg)`,
-                          transition:
-                            "transform 0.16s ease-out, width 0.16s, height 0.16s, margin 0.16s, background 0.5s ease-out, box-shadow 0.5s",
-                          // 번뇌는 먹빛 자단, 넘긴 알은 금빛 보리
-                          background: mother
-                            ? "radial-gradient(circle at 35% 28%, #f3d98d, #cfa757 42%, #8a662a 78%, #57411a)"
-                            : bodhi
-                              ? "radial-gradient(circle at 35% 28%, #ffe6a0, #dda01c 46%, #9a6c12 82%, #5c400a)"
-                              : "radial-gradient(circle at 35% 28%, #8a5c34, #573620 50%, #33200f 85%, #1d1108)",
-                          // 1px 테두리 — 흰 바탕에서도 알이 또렷하게 선다
-                          boxShadow: bodhi
-                            ? "0 0 0 1px rgba(122,84,10,0.45), 0 4px 12px rgba(221,160,28,0.4), inset 0 -3px 6px rgba(90,60,0,0.4)"
-                            : "0 0 0 1px rgba(30,17,8,0.5), 0 4px 9px rgba(0,0,0,0.5), inset 0 -3px 6px rgba(0,0,0,0.4)",
-                          opacity: vis,
-                        }}
-                      />
-                    </span>
-                  );
-                })}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/obj/bead.png"
+                  alt=""
+                  draggable={false}
+                  className="block h-[262px] w-[262px] object-contain"
+                  style={{
+                    transform: `rotate(${angle}deg)`,
+                    transition: "transform 0.16s ease-out",
+                    filter:
+                      "sepia(1) saturate(2.6) hue-rotate(-8deg) brightness(1.32) contrast(1.04) drop-shadow(0 0 16px rgba(217,180,91,0.45))",
+                  }}
+                />
               </div>
 
               {/* 지금 넘기는 자리 */}
               <span
                 aria-hidden
                 className="absolute left-1/2 -translate-x-1/2 text-gold-soft"
-                style={{ top: 16, fontSize: 11, letterSpacing: "0.2em" }}
+                style={{ top: 14, fontSize: 11, letterSpacing: "0.2em" }}
               >
                 ▼
               </span>
-
-              {/* 가운데 — 번뇌즉보리 */}
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <p className="font-serif text-[15px] tracking-[0.3em] text-gold-soft">
-                  煩惱卽菩提
-                </p>
-                <p className="mt-1.5 break-keep text-center text-[11px] leading-5 text-hanji-faint">
-                  넘긴 알이 금빛으로 물듭니다
-                </p>
-              </div>
             </div>
 
             <p className="mt-3 text-[11.5px] tracking-[0.2em] text-hanji-faint">

@@ -85,25 +85,20 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#eceef1",
+  themeColor: "#0d0b09",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
+    // 낮 모드는 접었다 — 밤 하나로 간다.
+    // 서버에서부터 같은 값을 새겨 첫 그림이 깜빡이지도, 수화(hydration)가
+    // 어긋나지도 않게 한다.
     <html
       lang="ko"
+      data-theme=""
       className={`${serifKR.variable} ${sansKR.variable} h-full antialiased`}
     >
       <body className="flex h-dvh overflow-hidden">
-        {/* 첫 그리기 전에 색상 모드를 새긴다 — 밤/낮이 깜빡이지 않게.
-            기본은 낮(한지). 'dark' 로 저장한 사람만 먹빛으로 연다.
-            열쇠는 lib/theme.ts 의 THEME_KEY 와 같아야 한다. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "try{document.documentElement.dataset.theme=''}catch(e){}",
-          }}
-        />
         <ConfirmProvider>
         {/* 발자국 장부 — 화면에 아무것도 그리지 않고, 다녀간 날만 적는다 */}
         <VisitLedger />
