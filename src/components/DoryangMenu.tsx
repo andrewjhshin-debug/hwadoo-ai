@@ -142,7 +142,7 @@ export default function DoryangMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "닫기" : "도량 한눈에"}
         aria-expanded={open}
-        className="notes-fab fixed bottom-[92px] right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 bg-ink-2/95 shadow-[0_12px_34px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/70 active:scale-95 md:bottom-8 md:right-8"
+        className="notes-fab fixed bottom-[88px] right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-gold/40 bg-ink-2/95 shadow-[0_12px_34px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/70 active:scale-95 md:bottom-8 md:right-8 md:h-14 md:w-14"
       >
         <span
           aria-hidden

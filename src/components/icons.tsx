@@ -58,6 +58,51 @@ export function LotusMark({ className = "w-5 h-5", stroke = "currentColor" }: Ic
   );
 }
 
+// 연등(蓮燈) — 연꽃 공양. 연꽃 로고와 한 화면에 서므로 **등**으로 갈랐다.
+// 연꽃 공양은 꽃을 놓는 일이 아니라 등을 밝히는 일이다 — 뜻도 이쪽이 맞다.
+export function Yeondeung({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* 매다는 줄과 갓 */}
+      <path d="M12 2.4v1.9" />
+      <path d="M8.2 5.6h7.6" />
+      {/* 등 몸통 — 연꽃 봉오리를 세운 결 */}
+      <path d="M12 5.6c3.1 1.7 4.6 3.9 4.6 6.5 0 2.9-2 4.9-4.6 4.9s-4.6-2-4.6-4.9c0-2.6 1.5-4.8 4.6-6.5z" />
+      {/* 안의 불꽃 */}
+      <path d="M12 9.7c1 .9 1.5 1.8 1.5 2.7 0 1-.7 1.7-1.5 1.7s-1.5-.7-1.5-1.7c0-.9.5-1.8 1.5-2.7z" opacity="0.9" />
+      {/* 아래 술 */}
+      <path d="M12 17v2.4" opacity="0.75" />
+      <path d="M10.2 21.4h3.6" opacity="0.5" />
+    </svg>
+  );
+}
+
+// 일원상(一圓相) — 뜰. 한 붓에 그은 원, 끝이 닫히지 않는다.
+// 아래 띠의 홈 자리에 연꽃을 또 놓으면 한 화면에 같은 문양이 셋이 된다.
+export function Enso({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeLinecap="round"
+      className={className}
+    >
+      {/* 굵기가 살짝 변하는 붓질 — 두 획으로 나눠 그린다 */}
+      <path d="M14.6 3.9a8.6 8.6 0 1 0 5.1 8.9" strokeWidth="1.9" />
+      <path d="M19.7 12.8a8.6 8.6 0 0 0-2.6-6.4" strokeWidth="1.1" opacity="0.55" />
+    </svg>
+  );
+}
+
 // 목탁(木鐸) — 선지식의 한마디
 export function Moktak({ className = "w-4 h-4" }: IconProps) {
   return (

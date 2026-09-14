@@ -103,7 +103,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* 발자국 장부 — 화면에 아무것도 그리지 않고, 다녀간 날만 적는다 */}
         <VisitLedger />
         <Sidebar />
-        <div className="obang-aura flex-1 overflow-x-hidden overflow-y-auto pt-16 pb-[76px] md:pb-0 md:pt-0">
+        <div className="obang-aura flex-1 overflow-x-hidden overflow-y-auto pt-16 pb-[150px] md:pb-0 md:pt-0">
           {/* 본문은 적어도 한 화면을 채운다 — 그래야 아래 띠(사업자 표기)가
               첫 화면에 끼어들지 않고, 내려야 나온다.
               min-h-full 은 스크롤 통의 **블록** 자식에서만 안전하다 —

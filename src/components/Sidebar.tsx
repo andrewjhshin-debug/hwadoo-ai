@@ -47,6 +47,7 @@ import {
   SeonMaster,
   Person,
   Teacup,
+  Yeondeung,
 } from "./icons";
 
 type NavItem = {
@@ -280,11 +281,11 @@ export default function Sidebar() {
           <Link
             href="/lotus"
             onClick={go("/lotus")}
-            aria-label="연꽃 상점"
-            title="연꽃 상점"
+            aria-label="연꽃 공양"
+            title="연꽃 공양 — 등을 밝히다"
             className="p-2 text-hanji-dim transition-colors hover:text-gold-soft"
           >
-            <LotusMark className="h-6 w-6" stroke="#D9B45B" />
+            <Yeondeung className="h-6 w-6" stroke="#D9B45B" />
           </Link>
           <Link
             href="/letters"

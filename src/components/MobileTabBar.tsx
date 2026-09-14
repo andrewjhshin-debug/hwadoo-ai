@@ -8,37 +8,23 @@
 // 햄버거 서랍과 내 도량의 서비스 그리드에서 닿는다.
 // ────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import NotesDrawer from "@/components/NotesDrawer";
 import { useHasNews } from "@/lib/notices";
-import { Dharmachakra, Person, LotusMark, Iljumun, Banga, Bojagi } from "./icons";
+import { Dharmachakra, Person, Enso, Iljumun, Bojagi } from "./icons";
 
 const TABS = [
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/goods", label: "굿즈", Icon: Bojagi },
-  { href: "/", label: "뜰", Icon: LotusMark },
+  { href: "/", label: "뜰", Icon: Enso },
   { href: "/pilgrimage", label: "절로", Icon: Iljumun },
   { href: "/settings", label: "내 도량", Icon: Person },
 ];
 
-// 이 화면들은 사유의 방을 화면 안에 이미 두고 있다 —
-// FAB와 서랍을 두 벌 띄우지 않도록 여기서는 접는다.
-// 만다라는 색칠 공간이 좁아 떠 있는 단추가 자꾸 겹친다 — 아예 띄우지 않는다.
-// 모임 게시판·쪽지는 아래 고정 입력창이 떠서 FAB 와 겹친다 — 접는다.
-// 연꽃 공양(결제) 화면은 상품 단추의 가격 자리를 FAB 가 가려 접는다.
-// 목탁과 염주는 화면 전체가 손끝 놀이터라 — 떠 있는 단추가 거슬린다, 접는다.
-const OWN_NOTES = ["/", "/room", "/try", "/mandala", "/gathering", "/letters", "/lotus", "/moktak", "/bae"];
-
 export default function MobileTabBar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [notesOpen, setNotesOpen] = useState(false);
   const hasNews = useHasNews(); // 새 소식 — 내 도량 탭에 점 하나
-
-  // 사유의 방을 스스로 가진 화면에서는 FAB도 서랍도 내지 않는다
-  const showNotes = !OWN_NOTES.includes(pathname);
 
   // 눌린 대로 그 화면을 연다 — 같은 경로여도 새로 그린다
   const go = (href: string) => (e: React.MouseEvent) => {
@@ -51,17 +37,6 @@ export default function MobileTabBar() {
 
   return (
     <>
-      {/* 오른쪽 아래 고정 — 사유의 방 FAB (탭 바 위에 뜬다) */}
-      {showNotes && (
-        <button
-          onClick={() => setNotesOpen(true)}
-          aria-label="사유의 방 열기"
-          className="notes-fab btn-obang fixed bottom-[88px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:hidden"
-        >
-          <Banga className="h-6 w-6 text-gold-soft" />
-        </button>
-      )}
-
       {/* 하단 고정 탭 바 */}
       <nav className="mobile-tabbar fixed inset-x-0 bottom-0 z-40 flex h-[76px] items-stretch border-t border-ink-3 bg-ink-2/95 backdrop-blur md:hidden">
         {TABS.map(({ href, label, Icon }) => {
@@ -89,10 +64,6 @@ export default function MobileTabBar() {
           );
         })}
       </nav>
-
-      {showNotes && (
-        <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
-      )}
     </>
   );
 }
