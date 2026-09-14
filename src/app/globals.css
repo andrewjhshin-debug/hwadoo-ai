@@ -27,100 +27,89 @@ html:not([data-theme="dark"]) {
   background: #ffffff;
 }
 
-/* ─── 낮(데이) 모드 — 흰 종이에 먹 글씨, 포인트는 석간주(石間硃) ─── */
+/* ─── 낮(데이) 모드 — 흰 종이에 먹, 포인트도 회색(석간주 붉음은 걷어냈다) ─── */
 html[data-theme="light"] {
-  --color-ink: #ffffff; /* 종이 — 깨끗한 흰색 (당근처럼 밝게) */
-  --color-ink-2: #f6f4f0; /* 패널 — 아주 옅은 미색 */
-  --color-ink-3: rgba(122, 26, 18, 0.18); /* 경계선 — 옅은 벽돌빛 */
-  --color-hanji: #171009; /* 먹 — 본문 글, 거의 검정 */
-  --color-hanji-dim: #4a3d30; /* 옅은 먹 — 그래도 또렷하게 */
-  --color-hanji-faint: #7d6f5e; /* 아주 옅은 먹 — 읽히는 선까지만 */
-  --color-gold: #8a2318; /* 포인트 — 짙은 벽돌빛 붉음 */
-  --color-gold-soft: #6e1710; /* 더 짙은 석간주 */
-  --color-vermilion: #a8321f;
+  --color-ink: #ffffff; /* 종이 */
+  --color-ink-2: #f5f5f4; /* 패널 — 아주 옅은 회색 */
+  --color-ink-3: rgba(24, 24, 27, 0.12); /* 경계선 */
+  --color-hanji: #1c1c1e; /* 본문 — 거의 검정 */
+  --color-hanji-dim: #55555c; /* 보조 */
+  --color-hanji-faint: #8e8e96; /* 아주 옅게 */
+  --color-gold: #3f3f46; /* 포인트 — 짙은 회색(먹) */
+  --color-gold-soft: #6b6b73; /* 옅은 회색 */
+  --color-vermilion: #57575e; /* 알림 점도 회색으로 */
+  --color-obang-blue: #7a7a82;
 }
 
 html[data-theme="light"] .question-glow {
   text-shadow: none;
 }
 
-/* 낮의 로고 — 단청 석간주의 깊은 붉은 그라데이션 */
-html[data-theme="light"] .text-obang {
-  background: none;
-  -webkit-text-fill-color: currentColor;
-  color: #7a1a12; /* 단색 — 짙은 벽돌빛 */
-}
+/* 낮의 로고 — 먹 한 가지 */
+html[data-theme="light"] .text-obang,
 html[data-theme="light"] .text-gold-grad {
   background: none;
   -webkit-text-fill-color: currentColor;
-  color: #7a1a12;
+  color: #1c1c1e;
 }
 
-/* 낮의 알약 버튼 테두리 — 짙은 붉은 계열로 */
+/* 낮의 알약 버튼 — 회색 테두리, 채움은 흰 종이 */
 html[data-theme="light"] .btn-obang {
-  background: linear-gradient(var(--color-ink-2), var(--color-ink-2))
-      padding-box,
-    linear-gradient(120deg, #6e1008, #4a0a04, #2a0603) border-box;
+  background: linear-gradient(var(--color-ink), var(--color-ink)) padding-box,
+    linear-gradient(120deg, #3f3f46, #6b6b73, #a1a1aa) border-box;
 }
 
-/* 낮에는 금색으로 그려진 문양들을 짙은 붉은색으로 바꾼다
-   (CSS의 stroke가 SVG 속성보다 우선한다) */
+/* 금색으로 그려진 문양들을 먹으로 (CSS stroke 가 SVG 속성보다 우선한다) */
 html[data-theme="light"] svg[stroke="#D9B45B"] {
-  stroke: #6e1710;
+  stroke: #3f3f46;
 }
 html[data-theme="light"] svg[stroke="#B99A54"] {
-  stroke: #4f0f0a;
+  stroke: #6b6b73;
 }
-/* 일원상 원의 그라데이션도 짙은 붉은 계열로 (그라데이션은 살린다) */
+/* 일원상도 먹의 농담으로 */
 html[data-theme="light"] #enso-g stop:nth-child(1) {
-  stop-color: #9c2f21;
+  stop-color: #2f2f35;
 }
 html[data-theme="light"] #enso-g stop:nth-child(2) {
-  stop-color: #5e120c;
+  stop-color: #5c5c64;
 }
 html[data-theme="light"] #enso-g stop:nth-child(3) {
-  stop-color: #2d3f5e;
+  stop-color: #9a9aa2;
 }
 
-/* 낮의 두두 — 금빛 물음표가 흰 종이에서 묻히므로 한 단 진하게.
-   id 가 uid 로 갈리므로(dj_gold_home 등) 앞자리로 잡는다. */
-html[data-theme="light"] linearGradient[id^="dj_gold"] stop:nth-child(1) {
-  stop-color: #e0a83e;
-}
-html[data-theme="light"] linearGradient[id^="dj_gold"] stop:nth-child(2) {
-  stop-color: #bd7d1c;
-}
-html[data-theme="light"] linearGradient[id^="dj_gold"] stop:nth-child(3) {
-  stop-color: #8a560d;
-}
-
-/* 낮의 달 — 흰 종이 위에서도 보이도록 */
+/* 낮의 달 */
 html[data-theme="light"] .moon {
   background: radial-gradient(
     circle at 66% 40%,
-    #6e1710 0 44%,
-    rgba(110, 23, 16, 0.16) 46% 100%
+    #4a4a52 0 44%,
+    rgba(74, 74, 82, 0.15) 46% 100%
   );
-  box-shadow: 0 0 8px rgba(110, 23, 16, 0.3);
+  box-shadow: 0 0 8px rgba(74, 74, 82, 0.25);
 }
 
-/* 낮의 오라 — 흰 종이에 아주 옅은 붉은 기운만 */
+/* 낮의 오라 — 색을 빼고 아주 옅은 회색 기운만 */
 html[data-theme="light"] .obang-aura {
   background: radial-gradient(
-      620px 380px at 50% 28%,
-      rgba(138, 35, 24, 0.16),
-      transparent 68%
+      640px 400px at 50% 26%,
+      rgba(24, 24, 27, 0.055),
+      transparent 70%
     ),
     radial-gradient(
-      520px 380px at 15% 85%,
-      rgba(110, 23, 16, 0.11),
-      transparent 68%
-    ),
-    radial-gradient(
-      520px 380px at 85% 80%,
-      rgba(94, 60, 45, 0.08),
-      transparent 68%
+      520px 380px at 14% 86%,
+      rgba(24, 24, 27, 0.035),
+      transparent 70%
     );
+}
+
+/* 낮의 두두 — 회색 화면에서 유일한 온기. 금빛 물음표만 한 단 진하게 남긴다. */
+html[data-theme="light"] linearGradient[id^="dj_gold"] stop:nth-child(1) {
+  stop-color: #eab54a;
+}
+html[data-theme="light"] linearGradient[id^="dj_gold"] stop:nth-child(2) {
+  stop-color: #c28f22;
+}
+html[data-theme="light"] linearGradient[id^="dj_gold"] stop:nth-child(3) {
+  stop-color: #8a5f10;
 }
 
 body {
@@ -336,14 +325,14 @@ body {
   }
 }
 
-/* 낮 모드 — 석간주 계열로 */
+/* 낮 모드 — 먹의 농담으로 */
 html[data-theme="light"] .notes-panel {
   background:
     linear-gradient(var(--color-ink-2), var(--color-ink-2)) padding-box,
-    linear-gradient(140deg, #8a2318, #5e120c 50%, #2d3f5e) border-box;
+    linear-gradient(140deg, #3f3f46, #6b6b73 50%, #a1a1aa) border-box;
   box-shadow:
-    0 24px 60px rgba(90, 18, 12, 0.22),
-    0 0 34px rgba(110, 23, 16, 0.12);
+    0 24px 60px rgba(24, 24, 27, 0.16),
+    0 0 34px rgba(24, 24, 27, 0.07);
 }
 
 /* 답을 쓰는 동안에는 사유의 방 떠 있는 단추를 감춘다 — 입력창과 겹치지 않게 */
@@ -371,10 +360,10 @@ body[data-writing] .mobile-tabbar {
 html[data-theme="light"] .confirm-panel {
   background:
     linear-gradient(var(--color-ink-2), var(--color-ink-2)) padding-box,
-    linear-gradient(140deg, #8a2318, #5e120c 55%, #2d3f5e) border-box;
+    linear-gradient(140deg, #3f3f46, #6b6b73 55%, #a1a1aa) border-box;
   box-shadow:
-    0 26px 70px rgba(90, 18, 12, 0.24),
-    0 0 36px rgba(110, 23, 16, 0.1);
+    0 26px 70px rgba(24, 24, 27, 0.2),
+    0 0 36px rgba(24, 24, 27, 0.08);
 }
 
 /* 색판이 아래에 붙박이일 때도 사유의 방 단추를 감춘다 */
