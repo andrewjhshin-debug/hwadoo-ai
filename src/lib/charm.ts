@@ -119,64 +119,12 @@ export function hasCharm(id: CharmId): boolean {
   return !!loadCharms()[id];
 }
 
-// ── 그림 — 황지에 주사 ─────────────────────────────────────────
-// 부적마다 획이 달라야 하므로 id 로 붓질을 갈라 그린다.
-// 뜻이 있는 글자는 쓰지 않는다 — 부적 특유의 전서체 느낌만 낸다.
+// ── 그림 ────────────────────────────────────────────────────
+// 실제 그리는 일은 charmArt.ts 가 맡는다 — 관·본문·봉인의 삼단.
 
-const GLYPH: Record<CharmId, string> = {
-  // 곧게 뻗는 획 — 멈추지 않는 걸음
-  jeongjin: `<path d="M34 30 H66"/><path d="M50 30 V74"/>
-    <path d="M36 50 H64"/><path d="M40 88 L50 74 L60 88"/>
-    <path d="M38 104 H62"/>`,
-  // 돌아 나가는 획 — 안에서 밖으로
-  hoehyang: `<path d="M50 28 C30 40 30 62 50 62 C70 62 70 84 50 96"/>
-    <path d="M34 32 H66"/><path d="M36 100 H64"/>
-    <circle cx="50" cy="62" r="6" fill="none"/>`,
-  // 두 획이 만나 매듭 — 닿음
-  inyeon: `<path d="M36 30 C36 56 64 56 64 30"/>
-    <path d="M36 100 C36 74 64 74 64 100"/>
-    <path d="M50 52 V78"/><path d="M40 65 H60"/>`,
-  // 가라앉는 획 — 고요
-  ansim: `<path d="M32 34 H68"/><path d="M50 34 V70"/>
-    <path d="M38 70 C44 82 56 82 62 70"/>
-    <path d="M42 96 H58"/>`,
-  // 벌린 획 — 몸으로 짓는 힘
-  unryeok: `<path d="M50 26 V60"/><path d="M30 44 L50 60 L70 44"/>
-    <path d="M34 74 H66"/><path d="M40 74 L34 102"/><path d="M60 74 L66 102"/>`,
-  // 길게 뻗는 획 — 먼 길
-  cheonli: `<path d="M34 32 H66"/><path d="M50 32 V102"/>
-    <path d="M34 56 C42 68 58 68 66 56"/>
-    <path d="M38 86 H62"/>`,
-};
+import { renderCharm } from "./charmArt";
 
-/** 부적 한 장 — 노란 종이에 붉은 획. uid 로 id 충돌을 막는다. */
+/** 부적 한 장. 한 화면에 여러 장이면 uid 를 달리 준다. */
 export function charmSvg(id: CharmId, uid = ""): string {
-  const c = CHARM_BY_ID[id];
-  const svg = `<svg viewBox="0 0 100 150" class="charm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="cm_paper" x1="0" y1="0" x2="0.6" y2="1">
-      <stop offset="0" stop-color="#ffe14f"/>
-      <stop offset="0.5" stop-color="#f5cf2c"/>
-      <stop offset="1" stop-color="#e0b41c"/>
-    </linearGradient>
-    <filter id="cm_ink" x="-20%" y="-20%" width="140%" height="140%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="t"/>
-      <feDisplacementMap in="SourceGraphic" in2="t" scale="1.6"/>
-    </filter>
-    <filter id="cm_shadow" x="-30%" y="-20%" width="160%" height="150%">
-      <feDropShadow dx="1" dy="2.5" stdDeviation="2.4" flood-color="#7a5a00" flood-opacity="0.3"/>
-    </filter>
-  </defs>
-  <g filter="url(#cm_shadow)">
-    <rect x="6" y="4" width="88" height="142" rx="3" fill="url(#cm_paper)"/>
-    <rect x="6" y="4" width="88" height="142" rx="3" fill="none" stroke="rgba(160,110,0,0.35)" stroke-width="1"/>
-  </g>
-  <g filter="url(#cm_ink)" stroke="#b3200f" stroke-width="3.4" stroke-linecap="round"
-     stroke-linejoin="round" fill="none">
-    ${GLYPH[id]}
-  </g>
-  <text x="50" y="130" text-anchor="middle" font-size="13" fill="#b3200f"
-        font-family="'Noto Serif KR',serif" letter-spacing="1">${c.hanja.slice(0, 2)}</text>
-</svg>`;
-  return uid ? svg.replace(/cm_([a-z]+)/g, `cm_$1_${uid}`) : svg;
+  return renderCharm(id, CHARM_BY_ID[id].hanja.slice(0, 1), uid);
 }
