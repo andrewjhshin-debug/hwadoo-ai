@@ -49,9 +49,12 @@ export type MeritLedger = {
   by: Partial<Record<MeritSource, number>>;
   /** 남에게 회향한 공덕 — 총합에서 빠지지 않는다. 준 만큼 따로 센다 */
   given: number;
+  /** 연꽃으로 바꾸며 쓴 공덕 — 총합은 그대로 두고 잔고에서만 뺀다.
+      쓴다고 자리가 내려가면 아무도 안 쓴다. */
+  spent?: number;
 };
 
-const EMPTY: MeritLedger = { total: 0, by: {}, given: 0 };
+const EMPTY: MeritLedger = { total: 0, by: {}, given: 0, spent: 0 };
 
 export function loadMerit(): MeritLedger {
   if (typeof window === "undefined") return { ...EMPTY };
@@ -63,6 +66,7 @@ export function loadMerit(): MeritLedger {
       total: typeof p.total === "number" && p.total > 0 ? Math.floor(p.total) : 0,
       by: p.by && typeof p.by === "object" ? p.by : {},
       given: typeof p.given === "number" && p.given > 0 ? Math.floor(p.given) : 0,
+      spent: typeof p.spent === "number" && p.spent > 0 ? Math.floor(p.spent) : 0,
     };
   } catch {
     return { ...EMPTY };
@@ -101,6 +105,34 @@ export function addMerit(
     crossed: Math.floor(l.total / ROUND) > Math.floor(before / ROUND),
     round: Math.floor(l.total / ROUND),
   };
+}
+
+// ── 연꽃으로 바꾸기 ────────────────────────────────────────
+// 연꽃은 천 원에 파는 재화다. 공덕은 공짜로 쌓이니 환율을 크게 잡아야
+// 파는 쪽이 죽지 않는다. 백팔의 쉰 배 — 백팔배로 치면 열여섯 번쯤.
+// 열심히 해서 한 주에 한 송이. 그쯤이라야 바꾸는 맛이 난다.
+export const LOTUS_PRICE = 5400;
+
+/** 지금 쓸 수 있는 공덕 — 쌓은 것에서 쓴 것을 뺀다 */
+export function meritBalance(l: MeritLedger = loadMerit()): number {
+  return Math.max(0, l.total - (l.spent ?? 0));
+}
+
+/** 바꿀 수 있는 연꽃 수 */
+export function exchangeable(l: MeritLedger = loadMerit()): number {
+  return Math.floor(meritBalance(l) / LOTUS_PRICE);
+}
+
+/**
+ * 공덕을 쓴다. 모자라면 아무 일도 없다(false).
+ * 자리(rank)는 총합으로 매기므로 바꿔도 내려가지 않는다.
+ */
+export function spendMerit(n: number): boolean {
+  const l = loadMerit();
+  if (n <= 0 || meritBalance(l) < n) return false;
+  l.spent = (l.spent ?? 0) + Math.floor(n);
+  save(l);
+  return true;
 }
 
 /** 남에게 돌린다 — 대승의 자리. 총합은 줄지 않고, 준 몫이 따로 쌓인다 */

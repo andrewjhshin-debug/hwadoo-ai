@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Dudu from "@/components/Dudu";
+import { FACE_BY_ID, loadMe, ME_EVENT } from "@/lib/me";
 import {
   addMerit,
   loadMerit,
@@ -68,20 +69,24 @@ export default function DailyPractice() {
   const [total, setTotal] = useState(0);
   const [streak, setStreak] = useState(0);
   const [got, setGot] = useState(0); // 방금 받은 상
+  const [me, setMe] = useState<ReturnType<typeof loadMe>>(null);
 
   const refresh = useCallback(() => {
     setTotal(loadMerit().total);
     setStreak(streakOf());
     setBook(loadDaily());
+    setMe(loadMe());
   }, []);
 
   useEffect(() => {
     refresh();
     window.addEventListener(MERIT_EVENT, refresh);
     window.addEventListener(DAILY_EVENT, refresh);
+    window.addEventListener(ME_EVENT, refresh);
     return () => {
       window.removeEventListener(MERIT_EVENT, refresh);
       window.removeEventListener(DAILY_EVENT, refresh);
+      window.removeEventListener(ME_EVENT, refresh);
     };
   }, [refresh]);
 
@@ -111,15 +116,22 @@ export default function DailyPractice() {
       {/* ── 나무 — 지금 어디까지 왔나 ── */}
       <div className="rounded-[16px] border border-ink-3 bg-ink-2/50 px-5 py-5">
         <div className="flex items-center gap-4">
-          <Dudu
-            stage={stage}
-            mood={finished ? "joy" : "default"}
-            uid="doryang"
-            className="h-[92px] w-[92px] shrink-0"
-          />
+          {/* 내가 고른 얼굴 — 없으면 자리 그림 */}
+          {me ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={FACE_BY_ID[me.face].src}
+              alt=""
+              className="h-[92px] w-[92px] shrink-0 rounded-full"
+            />
+          ) : (
+            <Dudu stage={stage} uid="doryang" className="h-[92px] w-[92px] shrink-0" />
+          )}
           <div className="min-w-0 flex-1">
             <p className="flex items-baseline gap-2">
-              <span className="font-serif text-[20px] leading-none text-hanji">나무</span>
+              <span className="font-serif text-[20px] leading-none text-hanji">
+                {me ? me.name : "나무"}
+              </span>
               <span className="text-[12.5px] text-gold">
                 {rank.hanja} · {rank.name}
               </span>

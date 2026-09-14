@@ -30,7 +30,6 @@ import {
   DM_SEEN_EVENT,
 } from "@/lib/dm";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
-import Halo from "./Halo";
 import {
   Banga,
   Bojagi,
@@ -63,7 +62,6 @@ const NAV_PRACTICE: NavItem[] = [
   // 손잡고 절로 — 사찰 지도·다가오는 날, 모임은 그 짝
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
   { href: "/gathering", label: "인연 — 함께 갈 이", Icon: Person },
-  { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/mandala", label: "만다라", Icon: Mandala },
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
   { href: "/empty", label: "비움", Icon: Moktak },
@@ -89,10 +87,8 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
       { href: "/community", label: "연지원 — 커뮤니티", Icon: LotusPond },
-      { href: "/lotus", label: "연꽃 공양", Icon: LotusMark },
       { href: "/tea", label: "차 한 잔", Icon: Teacup },
       { href: "/goods", label: "굿즈", Icon: Bojagi },
-      { href: "/rank", label: "오늘의 정진", Icon: Dharmachakra },
     ],
   },
 ];
@@ -109,7 +105,6 @@ export default function Sidebar() {
   const [loginBusy, setLoginBusy] = useState(false);
   const hasNews = useHasNews(); // 새 소식 — 점 하나로만 말한다
   const [dmUnread, setDmUnread] = useState(0); // 안 읽은 쪽지 — 봉투 위 점
-  const [light, setLight] = useState(false); // 낮(한지) ↔ 밤(먹빛)
 
   // 안 읽은 쪽지 살피기 — 로그인하면 이따금(90초) + 창에 돌아올 때 + 읽은 직후
   useEffect(() => {
@@ -139,15 +134,9 @@ export default function Sidebar() {
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
-    setLight(document.documentElement.dataset.theme === "light");
+    // 낮 모드는 접었다 — 밤 하나로 간다
+    applyTheme(false);
   }, []);
-
-  // 밤 ↔ 낮 — 문서에 새기고 장부에 적는다 (layout 의 첫 그리기 스크립트가 같은 열쇠를 읽는다)
-  const toggleTheme = () => {
-    const next = !light;
-    setLight(next);
-    applyTheme(next);
-  };
 
   const toggleCollapsed = () => {
     const next = !collapsed;
@@ -274,37 +263,19 @@ export default function Sidebar() {
             )}
           </svg>
         </button>
-        {/* 가운데 — 표식 + 화두 로고 (절대 중앙).
-            법륜 바퀴는 어느 절이나 쓴다 — 끊긴 광배가 우리 것이다 */}
+        {/* 가운데 — 연꽃 + 화두 로고 (절대 중앙) */}
         <Link
           href="/"
           onClick={go("/")}
           className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5"
         >
-          <Halo progress={0.28} face={false} weight={9} className="h-[26px] w-[26px]" />
+          <LotusMark className="h-7 w-7" stroke="#D9B45B" />
           <span className="text-gold-grad font-serif text-xl font-semibold tracking-[0.35em]">
             화두
           </span>
         </Link>
         {/* 오른쪽 — 밤/낮 · 연꽃 상점 · 쪽지 */}
         <div className="ml-auto flex items-center">
-          <button
-            onClick={toggleTheme}
-            aria-label={light ? "밤 모드로 바꾸기" : "낮 모드로 바꾸기"}
-            title={light ? "밤으로" : "낮으로"}
-            className="p-2 text-hanji-dim transition-colors hover:text-gold-soft"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-              {light ? (
-                <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z" />
-              ) : (
-                <>
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
-                </>
-              )}
-            </svg>
-          </button>
           <Link
             href="/lotus"
             onClick={go("/lotus")}
@@ -354,7 +325,7 @@ export default function Sidebar() {
         >
           {!slim && (
             <Link href="/" onClick={go("/")} className="flex items-center gap-2.5">
-              <Halo progress={0.28} face={false} weight={9} className="h-[26px] w-[26px]" />
+              <LotusMark className="h-7 w-7" stroke="#D9B45B" />
               <span className="text-gold-grad font-serif text-lg font-semibold tracking-[0.35em]">
                 화두
               </span>
@@ -363,6 +334,33 @@ export default function Sidebar() {
           <div className={`flex items-center ${slim ? "flex-col gap-1" : "gap-0.5"}`}>
             {/* 마이 페이지 · 내 도량 — 오른쪽 위.
                 걸음 뱃지는 아래 로그인 영역에만 — 여기에는 새 소식 점만 뜬다 */}
+            {/* 연꽃 · 쪽지 — 낮/밤 단추가 있던 자리 */}
+            <Link
+              href="/lotus"
+              onClick={go("/lotus")}
+              title="연꽃 공양"
+              aria-label="연꽃 공양"
+              className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
+            >
+              <LotusMark className="h-4 w-4" />
+            </Link>
+            {dmVisible(user?.uid) && (
+              <Link
+                href="/letters"
+                onClick={go("/letters")}
+                title={dmUnread > 0 ? `쪽지 ${dmUnread}` : "쪽지함"}
+                aria-label="쪽지함"
+                className="relative p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
+              >
+                <Letter className="h-4 w-4" />
+                {dmUnread > 0 && (
+                  <span
+                    aria-hidden
+                    className="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
+                  />
+                )}
+              </Link>
+            )}
             <Link
               href="/settings"
               onClick={go("/settings")}
@@ -378,26 +376,6 @@ export default function Sidebar() {
                 />
               )}
             </Link>
-            {/* 밤 ↔ 낮 — 먹빛 도량과 한지 도량을 오간다 */}
-            <button
-              onClick={toggleTheme}
-              title={light ? "밤으로" : "낮으로"}
-              aria-label={light ? "밤 모드로 바꾸기" : "낮 모드로 바꾸기"}
-              className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                {light ? (
-                  /* 낮이면 달을 보여준다 — 누르면 밤으로 */
-                  <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z" />
-                ) : (
-                  /* 밤이면 해를 보여준다 — 누르면 낮으로 */
-                  <>
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
-                  </>
-                )}
-              </svg>
-            </button>
             <button
               onClick={toggleCollapsed}
               title={slim ? "펼치기" : "접기"}
@@ -466,8 +444,6 @@ export default function Sidebar() {
               )}
               <nav className="flex flex-col gap-0.5">
                 {items.map(renderItem)}
-                {title === "나눔" && dmVisible(user?.uid) &&
-                  renderItem({ href: "/letters", label: "쪽지함", Icon: Letter })}
               </nav>
             </div>
           ))}

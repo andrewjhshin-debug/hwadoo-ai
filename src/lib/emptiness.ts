@@ -24,7 +24,9 @@ const MAX_ENTRIES = 800;
 /** 한 줄은 한 줄이다 — 길면 일기가 아니라 글이 된다 */
 export const NOTE_MAX = 60;
 
-export type EmptyKind = "jichul" | "soyu" | "jipchak" | "salsaeng";
+// 무소유·무집착은 뺐다 — 매일 한 줄씩 적게 하면 아무도 안 적는다.
+// 도장 둘만 남긴다. 누르기만 하면 되는 것이라야 매일 한다.
+export type EmptyKind = "jichul" | "salsaeng";
 
 /** 도장은 누르면 끝, 한 줄은 적어야 남는다 */
 export type EmptyMode = "stamp" | "note";
@@ -52,28 +54,6 @@ export const EMPTINESSES: Emptiness[] = [
     act: "안 썼어요",
     done: "안 쓴 날",
     unit: "일 이어 옴",
-  },
-  {
-    id: "soyu",
-    name: "무소유",
-    hanja: "無所有",
-    mark: "有",
-    mode: "note",
-    ask: "오늘 무엇을 내보냈나요.",
-    act: "적기",
-    done: "내보냄",
-    unit: "가지 덜어냄",
-  },
-  {
-    id: "jipchak",
-    name: "무집착",
-    hanja: "無執着",
-    mark: "執",
-    mode: "note",
-    ask: "오늘 무엇을 놓았나요.",
-    act: "적기",
-    done: "놓음",
-    unit: "가지 놓음",
   },
   {
     id: "salsaeng",

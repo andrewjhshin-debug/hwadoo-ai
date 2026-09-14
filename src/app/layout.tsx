@@ -96,7 +96,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{if(localStorage.getItem('hwadoo-theme')!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}",
+              "try{document.documentElement.dataset.theme=''}catch(e){}",
           }}
         />
         <ConfirmProvider>

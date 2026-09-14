@@ -18,16 +18,13 @@ import {
   EMPTINESSES,
   EMPTY_BY_ID,
   EMPTY_EVENT,
-  NOTE_MAX,
   dayKeyOf,
   daysTouchedInMonth,
   emptyDayKey,
   entriesOf,
-  eraseEmpty,
   hasStamp,
   loadEmpty,
   monthlyEmptiness,
-  noteEmpty,
   recentDays,
   streakOf,
   toggleStamp,
@@ -65,19 +62,6 @@ export default function EmptyPage() {
     setLog(loadEmpty());
   };
 
-  const write = (kind: EmptyKind, text: string) => {
-    if (!noteEmpty(kind, text)) return false;
-    clickBead(0.5);
-    buzz(8);
-    setLog(loadEmpty());
-    return true;
-  };
-
-  const erase = (kind: EmptyKind, day: string, note: string) => {
-    eraseEmpty(kind, day, note);
-    setLog(loadEmpty());
-  };
-
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-6 pb-16 pt-10 md:pt-14">
       <p className="rise font-serif text-[68px] font-light leading-none text-gold-grad">
@@ -107,8 +91,6 @@ export default function EmptyPage() {
                 view={view}
                 onView={setView}
                 onStamp={stamp}
-                onWrite={write}
-                onErase={erase}
               />
             ))}
           </div>
@@ -120,7 +102,7 @@ export default function EmptyPage() {
             </p>
           )}
 
-          <Past log={log} today={today} onErase={erase} />
+          <Past log={log} today={today} />
         </>
       )}
     </div>
@@ -137,8 +119,6 @@ function Card({
   view,
   onView,
   onStamp,
-  onWrite,
-  onErase,
 }: {
   e: Emptiness;
   log: EmptyEntry[];
@@ -147,8 +127,6 @@ function Card({
   view: { y: number; m: number };
   onView: (v: { y: number; m: number }) => void;
   onStamp: (kind: EmptyKind, day: string) => void;
-  onWrite: (kind: EmptyKind, text: string) => boolean;
-  onErase: (kind: EmptyKind, day: string, note: string) => void;
 }) {
   const on = hasStamp(e.id, today, log);
   const mine = entriesOf(e.id, today, log);
@@ -209,142 +187,48 @@ function Card({
             {on ? e.done : e.act}
           </button>
 
-          {e.id === "jichul" ? (
-            <Strip log={log} today={today} />
-          ) : (
+          {/* 달력 — 접어 두고 볼 때만 편다. 지난 날도 눌러 채울 수 있다 */}
+          <details className="group mt-4">
+            <summary className="flex cursor-pointer list-none items-center justify-center gap-1.5 py-1 text-[11.5px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim [&::-webkit-details-marker]:hidden">
+              달력으로 보기
+              <span
+                aria-hidden
+                className="text-[12px] transition-transform duration-200 group-open:rotate-180"
+              >
+                ⌄
+              </span>
+            </summary>
             <Calendar
+              kind={e.id}
               log={log}
               today={today}
               view={view}
               onView={onView}
               onStamp={onStamp}
             />
-          )}
+          </details>
         </>
-      ) : (
-        <Writer
-          e={e}
-          mine={mine}
-          today={today}
-          onWrite={onWrite}
-          onErase={onErase}
-        />
-      )}
+      ) : null}
     </section>
   );
 }
 
-// ── 한 줄 쓰기 — 무소유 · 무집착 ────────────────────────────
-
-function Writer({
-  e,
-  mine,
-  today,
-  onWrite,
-  onErase,
-}: {
-  e: Emptiness;
-  mine: EmptyEntry[];
-  today: string;
-  onWrite: (kind: EmptyKind, text: string) => boolean;
-  onErase: (kind: EmptyKind, day: string, note: string) => void;
-}) {
-  const [draft, setDraft] = useState("");
-
-  return (
-    <>
-      <form
-        onSubmit={(ev) => {
-          ev.preventDefault();
-          if (onWrite(e.id, draft)) setDraft("");
-        }}
-        className="mt-4 flex items-center gap-3 border-b border-ink-3 pb-2 transition-colors focus-within:border-gold/40"
-      >
-        <input
-          value={draft}
-          onChange={(ev) => setDraft(ev.target.value)}
-          maxLength={NOTE_MAX}
-          aria-label={e.ask}
-          placeholder={e.id === "soyu" ? "낡은 외투 한 벌" : "지난 일 하나"}
-          className="min-w-0 flex-1 bg-transparent font-serif text-[14px] font-light text-hanji outline-none placeholder:text-hanji-faint"
-        />
-        <button
-          type="submit"
-          disabled={!draft.trim()}
-          className="shrink-0 rounded-full border border-gold/50 px-4 py-1.5 text-[11.5px] tracking-[0.2em] text-gold transition-colors hover:bg-gold/10 disabled:border-ink-3 disabled:text-hanji-faint"
-        >
-          {e.act}
-        </button>
-      </form>
-
-      {mine.length > 0 && (
-        <ul className="mt-3.5 flex flex-col gap-2">
-          {mine.map((x, i) => (
-            <li key={`${x.note}-${i}`} className="flex items-start gap-2.5">
-              <span
-                aria-hidden
-                className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-gold/70"
-              />
-              <span className="min-w-0 flex-1 break-keep text-[13px] font-light leading-6 text-hanji-dim">
-                {x.note}
-              </span>
-              <button
-                onClick={() => onErase(e.id, today, x.note)}
-                aria-label="지우기"
-                className="shrink-0 p-1 text-hanji-faint transition-colors hover:text-vermilion"
-              >
-                <Cross />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
-  );
-}
-
-// ── 최근 열나흘 — 무지출의 점 ───────────────────────────────
-
-function Strip({ log, today }: { log: EmptyEntry[]; today: string }) {
-  const set = new Set(
-    log.filter((x) => x.kind === "jichul").map((x) => x.day)
-  );
-  const [y, m, d] = today.split("-").map(Number);
-  const days = Array.from({ length: 14 }, (_, i) => {
-    const t = new Date(y, m - 1, d - 13 + i);
-    return emptyDayKey(t.getTime());
-  });
-
-  return (
-    <div className="mt-4 flex items-center gap-1.5" aria-hidden>
-      {days.map((k) => (
-        <span
-          key={k}
-          className={`h-[6px] flex-1 rounded-full ${
-            set.has(k) ? "bg-gold" : "bg-gold/12"
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
-
-// ── 달력 — 무살생 ───────────────────────────────────────────
-
 function Calendar({
+  kind,
   log,
   today,
   view,
   onView,
   onStamp,
 }: {
+  kind: EmptyKind;
   log: EmptyEntry[];
   today: string;
   view: { y: number; m: number };
   onView: (v: { y: number; m: number }) => void;
   onStamp: (kind: EmptyKind, day: string) => void;
 }) {
-  const marks = monthlyEmptiness(view.y, view.m, "salsaeng", log);
+  const marks = monthlyEmptiness(view.y, view.m, kind, log);
   const count = marks.filter((d) => d.count > 0).length;
   const lead = new Date(view.y, view.m - 1, 1).getDay(); // 1일 앞의 빈 칸
   const thisMonth = today.slice(0, 7) === `${view.y}-${String(view.m).padStart(2, "0")}`;
@@ -381,7 +265,7 @@ function Calendar({
           return (
             <button
               key={key}
-              onClick={() => onStamp("salsaeng", key)}
+              onClick={() => onStamp(kind, key)}
               disabled={future}
               aria-label={`${view.m}월 ${day}일${c > 0 ? " 절밥" : ""}`}
               className={`grid aspect-square place-items-center rounded-full text-[11px] leading-none transition-colors ${
@@ -415,11 +299,9 @@ function Calendar({
 function Past({
   log,
   today,
-  onErase,
 }: {
   log: EmptyEntry[];
   today: string;
-  onErase: (kind: EmptyKind, day: string, note: string) => void;
 }) {
   const days = recentDays(10, log).filter((d) => d.day !== today);
   const total = daysTouchedInMonth(
@@ -454,7 +336,6 @@ function Past({
         <ul className="mt-5 flex flex-col gap-5">
           {days.map(({ day, entries }) => {
             const stamps = entries.filter((x) => !x.note);
-            const notes = entries.filter((x) => x.note);
             return (
               <li key={day} className="flex gap-4 border-t border-ink-3 pt-4">
                 <p className="w-[54px] shrink-0 font-serif text-[12px] leading-6 text-hanji-faint">
@@ -473,29 +354,6 @@ function Past({
                       ))}
                     </p>
                   )}
-                  {notes.map((x, i) => (
-                    <p
-                      key={`${x.note}-${i}`}
-                      className="flex items-start gap-2.5"
-                    >
-                      <span
-                        aria-hidden
-                        className="mt-[3px] shrink-0 font-serif text-[11px] leading-5 text-gold-soft"
-                      >
-                        {EMPTY_BY_ID[x.kind].mark}
-                      </span>
-                      <span className="min-w-0 flex-1 break-keep text-[13px] font-light leading-6 text-hanji-dim">
-                        {x.note}
-                      </span>
-                      <button
-                        onClick={() => onErase(x.kind, day, x.note)}
-                        aria-label="지우기"
-                        className="shrink-0 p-1 text-hanji-faint transition-colors hover:text-vermilion"
-                      >
-                        <Cross />
-                      </button>
-                    </p>
-                  ))}
                 </div>
               </li>
             );
@@ -539,22 +397,6 @@ function Check() {
       aria-hidden
     >
       <path d="M5 12.5 10 17.5 19 6.5" />
-    </svg>
-  );
-}
-
-function Cross() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      className="h-3 w-3"
-      aria-hidden
-    >
-      <path d="M6 6 18 18M18 6 6 18" />
     </svg>
   );
 }
