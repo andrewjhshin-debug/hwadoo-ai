@@ -300,7 +300,7 @@ export default function MoktakPage() {
                 style={{ animation: hits > 0 ? "mk-hit 0.16s ease-out" : "none" }}
               >
                 <span
-                  className="block h-[228px] w-[322px]"
+                  className="block h-[236px] w-[340px]"
                   dangerouslySetInnerHTML={{ __html: MOKTAK_SVG }}
                 />
               </span>
