@@ -74,6 +74,15 @@ const PRESS_WARM = "active:border-vermilion/60 active:bg-vermilion/10 active:tex
 const TOOL =
   "rounded-full border bg-ink-2/70 px-1.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors sm:px-2.5";
 
+// 아이콘 단추 — 글자 대신 그림 하나. 모바일 도구줄이 360px 화면에서 두 줄로
+// 접히면 판이 그만큼 쪼그라든다. 이름은 지우지 않고 aria-label·title 로 접어 둔다.
+const TOOL_ICON =
+  "inline-flex items-center justify-center rounded-full border bg-ink-2/70 px-2 py-1 backdrop-blur-sm transition-colors";
+
+// 판 바깥(데스크톱 sm+) 세로 스택 단추 — 아이콘 한 개 + 짧은 이름
+const SIDE =
+  "inline-flex items-center gap-1.5 rounded-full border bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors";
+
 // 가이드 선 폴백 — CSS 변수(--m-guide)를 아직 못 읽었을 때 쓰는 밤 금선 값
 const GUIDE_FALLBACK = "rgba(217,180,91,0.12)";
 
@@ -296,6 +305,34 @@ function PaletteBar({
   );
 }
 
+// ══════════════ 아이콘 ══════════════
+// 이모지를 쓰지 않는 이유 — 기기마다 다른 그림이 나오고, 만다라 옆에서 격이 깨진다.
+// currentColor 만 쓰므로 낮·밤 어느 쪽에서도 글자색을 그대로 따라간다.
+function Icon({ d, className = "h-3 w-3" }: { d: string; className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d={d} />
+    </svg>
+  );
+}
+const I_DROP = "M8 2.3c2.3 2.7 3.7 4.6 3.7 6.2a3.7 3.7 0 1 1-7.4 0C4.3 6.9 5.7 5 8 2.3Z"; // 색칠 — 물감 한 방울
+const I_PEN = "M3 13h2l7.3-7.3a1.6 1.6 0 0 0-2.3-2.3L3 10.7Z"; // 그리기 — 붓
+const I_RESET =
+  "M13.5 8a5.5 5.5 0 1 1-11 0 5.5 5.5 0 1 1 11 0M8.9 8a0.9 0.9 0 1 1-1.8 0 0.9 0.9 0 1 1 1.8 0"; // 원위치 — 과녁
+const I_UNDO = "M5.6 4.2 2.6 7.2l3 3M2.6 7.2h6.6a3.5 3.5 0 0 1 0 7H6.4"; // 되돌리기
+const I_REDO = "M10.4 4.2l3 3-3 3M13.4 7.2H6.8a3.5 3.5 0 0 0 0 7h2.8"; // 다시하기
+const I_MOVE =
+  "M8 2.4v11.2M2.4 8h11.2M6.4 4 8 2.4 9.6 4M6.4 12 8 13.6 9.6 12M4 6.4 2.4 8 4 9.6M12 6.4 13.6 8 12 9.6"; // 옮기기 — 사방 화살
+
 // ══════════════ 페이지 ══════════════
 export default function MandalaPage() {
   const [mode, setMode] = useState<"color" | "draw">("color");
@@ -320,27 +357,41 @@ export default function MandalaPage() {
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-2 py-3 sm:px-4 sm:py-6">
       <style>{THEME_CSS}</style>
 
-      {/* 상단 — 모바일은 색칠/그리기 토글만, 한자 장식과 제목은 데스크톱에서만 */}
-      <div className="rise flex items-center gap-4">
-        <h1 className="hidden text-xs tracking-[0.4em] text-gold-soft sm:block">
-          曼陀羅 · 만다라
+      {/* 상단 — 겹을 둘로 줄였다: [한자 뱃지 + 이름](데스크톱) · [알약 세그먼트].
+          모바일은 판이 스크롤 없이 들어와야 하니 제목 줄을 통째로 접는다 */}
+      <div className="rise flex items-center gap-3 sm:gap-4">
+        <h1 className="hidden items-center gap-2 sm:flex">
+          <span
+            aria-hidden="true"
+            title="曼陀羅"
+            className="flex h-6 w-6 items-center justify-center rounded-full border border-gold/40 font-serif text-[11px] text-gold"
+          >
+            曼
+          </span>
+          <span className="text-xs tracking-[0.3em] text-hanji-dim">만다라</span>
         </h1>
-        <div className="flex items-center gap-1.5">
+        {/* 알약 세그먼트 — 고른 쪽만 먹으로 채운다. 껍데기 여백(p-0.5)만큼 버튼
+            여백을 줄여 높이는 전과 같다 — 판 크기 계산(390px 예약)을 흔들지 않는다 */}
+        <div className="flex items-center gap-0.5 rounded-full border border-ink-3 bg-ink-2/60 p-0.5">
           <button
             onClick={() => changeMode("color")}
-            className={`rounded-full border px-3 py-1.5 text-[11px] tracking-[0.1em] transition-colors ${PRESS} ${
-              mode === "color" ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
+            aria-pressed={mode === "color"}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] tracking-[0.1em] transition-colors ${
+              mode === "color" ? "bg-hanji text-ink" : "text-hanji-dim hover:text-hanji"
             }`}
           >
-            🎨 색칠
+            <Icon d={I_DROP} />
+            색칠
           </button>
           <button
             onClick={() => changeMode("draw")}
-            className={`rounded-full border px-3 py-1.5 text-[11px] tracking-[0.1em] transition-colors ${PRESS} ${
-              mode === "draw" ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
+            aria-pressed={mode === "draw"}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] tracking-[0.1em] transition-colors ${
+              mode === "draw" ? "bg-hanji text-ink" : "text-hanji-dim hover:text-hanji"
             }`}
           >
-            ✍ 그리기
+            <Icon d={I_PEN} />
+            그리기
           </button>
         </div>
       </div>
@@ -741,32 +792,36 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     <>
       {/* 도구줄 — 토글 바로 아래, 모바일 전용. 판 위에는 아무것도 얹지 않는다 —
           캡처하면 만다라만. 데스크톱(sm+)은 세 버튼 모두 판 바깥에 있으니 통째로 접는다 */}
-      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-1 sm:hidden">
+      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-1.5 sm:hidden">
         <button
           onClick={resetView}
           aria-label="원위치(더블탭)"
-          className={`${TOOL} ${PRESS} ${
+          title="원위치 — 더블탭으로도 됩니다"
+          className={`${TOOL_ICON} ${PRESS} ${
             zoomed ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint"
           }`}
         >
-          원위치
+          <Icon d={I_RESET} className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={undo}
           disabled={!canUndo || scattering}
           aria-label="되돌리기"
-          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint disabled:opacity-40`}
+          title="되돌리기"
+          className={`${TOOL_ICON} ${PRESS} border-ink-3 text-hanji-faint disabled:opacity-40`}
         >
-          되돌리기
+          <Icon d={I_UNDO} className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={redo}
           disabled={!canRedo || scattering}
           aria-label="다시하기"
-          className={`${TOOL} ${PRESS} border-ink-3 text-hanji-faint disabled:opacity-40`}
+          title="다시하기"
+          className={`${TOOL_ICON} ${PRESS} border-ink-3 text-hanji-faint disabled:opacity-40`}
         >
-          다시하기
+          <Icon d={I_REDO} className="h-3.5 w-3.5" />
         </button>
+        {/* 비우기만 글자로 남긴다 — 되돌릴 수 없는 일에는 이름이 붙어 있어야 한다 */}
         <button
           onClick={askClear}
           disabled={scattering}
@@ -822,27 +877,31 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           <button
             onClick={resetView}
             aria-label="원위치(더블탭)"
-            className={`rounded-full border bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors ${PRESS} ${
+            title="원위치 — 더블탭으로도 됩니다"
+            className={`${SIDE} ${PRESS} ${
               zoomed ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint hover:text-hanji"
             }`}
           >
-            ⊙ 원위치(더블탭)
+            <Icon d={I_RESET} />
+            원위치
           </button>
           <button
             onClick={undo}
             disabled={!canUndo || scattering}
             aria-label="되돌리기"
-            className={`rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
+            className={`${SIDE} ${PRESS} border-ink-3 text-hanji-faint enabled:hover:text-hanji disabled:opacity-40`}
           >
-            ↩ 되돌리기
+            <Icon d={I_UNDO} />
+            되돌리기
           </button>
           <button
             onClick={redo}
             disabled={!canRedo || scattering}
             aria-label="다시하기"
-            className={`rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
+            className={`${SIDE} ${PRESS} border-ink-3 text-hanji-faint enabled:hover:text-hanji disabled:opacity-40`}
           >
-            ↪ 다시하기
+            <Icon d={I_REDO} />
+            다시하기
           </button>
         </div>
         {/* 데스크톱(sm+) 전용 — 판 오른쪽 바깥(16px 간격) 비우기 */}
@@ -856,9 +915,26 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
         </button>
       </div>
 
-      {/* 판 바로 아래 — 진행 표시 */}
-      <p className="mt-2 text-[11px] tracking-[0.2em] text-hanji-faint">
-        {filledCount} / {built.cellKeys.length} 칸
+      {/* 판 바로 아래 — 진행. 칠한 수를 명조로 세우고 가는 금선 하나로 잰다.
+          줄 수는 전과 같은 한 줄이라 세로 예산(390px 예약)이 그대로다 */}
+      <p className="mt-2 flex w-full max-w-[240px] items-center gap-2.5 text-hanji-faint">
+        <span className="font-serif text-[15px] leading-none text-gold tabular-nums">
+          {filledCount}
+        </span>
+        <span className="sr-only">/</span>
+        <span aria-hidden="true" className="h-[3px] flex-1 overflow-hidden rounded-full bg-gold/15">
+          <span
+            className="block h-full rounded-full bg-gold transition-[width] duration-300"
+            style={{
+              width: `${
+                built.cellKeys.length ? (filledCount / built.cellKeys.length) * 100 : 0
+              }%`,
+            }}
+          />
+        </span>
+        <span className="text-[10px] tracking-[0.15em] tabular-nums">
+          {built.cellKeys.length} 칸
+        </span>
       </p>
 
       {/* 문양 칩 — 가운데 정렬, 폭을 넘치면 가로 스크롤 */}
@@ -868,6 +944,7 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
             <button
               key={t.key}
               title={t.hanja}
+              aria-pressed={tplIdx === i}
               onClick={() => {
                 if (scattering || tplIdx === i) return;
                 // 문양이 바뀌면 되돌리기·다시하기 더미도 비운다 — 남의 판을 되돌리지 않게
@@ -878,7 +955,9 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
                 setTplIdx(i);
               }}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] tracking-widest transition-colors ${PRESS} ${
-                tplIdx === i ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
+                tplIdx === i
+                  ? "border-gold/50 bg-gold/10 text-gold"
+                  : "border-ink-3 text-hanji-dim hover:text-hanji"
               }`}
             >
               {t.name}
@@ -1323,39 +1402,45 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
       {/* 도구줄 — 토글 바로 아래. 판 위에는 아무것도 얹지 않는다 — 캡처하면 만다라만.
           원위치·되돌리기·옮기기·비우기는 모바일 전용, 데스크톱(sm+)에선 판 바깥에 있다.
           붓 굵기는 여기 — 거울 옆이 아니라 토글 곁에서 고른다 */}
-      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-1">
+      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-1.5">
         <button
           onClick={resetView}
           aria-label="원위치(더블탭)"
-          className={`${TOOL} ${PRESS} m-tool border-ink-3 text-hanji-faint sm:hidden`}
+          title="원위치 — 더블탭으로도 됩니다"
+          className={`${TOOL_ICON} ${PRESS} m-tool border-ink-3 text-hanji-faint sm:hidden`}
         >
-          원위치
+          <Icon d={I_RESET} className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={undo}
           disabled={!canUndo || scattering}
           aria-label="되돌리기"
-          className={`${TOOL} ${PRESS} m-tool border-ink-3 text-hanji-faint disabled:opacity-40 sm:hidden`}
+          title="되돌리기"
+          className={`${TOOL_ICON} ${PRESS} m-tool border-ink-3 text-hanji-faint disabled:opacity-40 sm:hidden`}
         >
-          되돌리기
+          <Icon d={I_UNDO} className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={redo}
           disabled={!canRedo || scattering}
           aria-label="다시하기"
-          className={`${TOOL} ${PRESS} m-tool border-ink-3 text-hanji-faint disabled:opacity-40 sm:hidden`}
+          title="다시하기"
+          className={`${TOOL_ICON} ${PRESS} m-tool border-ink-3 text-hanji-faint disabled:opacity-40 sm:hidden`}
         >
-          다시하기
+          <Icon d={I_REDO} className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={() => setPanMode((v) => !v)}
           aria-label="손으로 옮기기"
-          className={`${TOOL} ${PRESS} m-tool sm:hidden ${
+          title="손으로 옮기기"
+          aria-pressed={panMode}
+          className={`${TOOL_ICON} ${PRESS} m-tool sm:hidden ${
             panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint"
           }`}
         >
-          옮기기
+          <Icon d={I_MOVE} className="h-3.5 w-3.5" />
         </button>
+        {/* 비우기만 글자로 — 되돌릴 수 없는 일에는 이름이 붙어 있어야 한다 */}
         <button
           onClick={askClear}
           disabled={scattering}
@@ -1379,9 +1464,9 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         />
       </div>
 
-      {/* 안내는 데스크톱에만 — 모바일은 한 화면에 다 들어오도록 아낀다 */}
+      {/* 안내는 데스크톱에만, 그것도 한 마디만 — 모바일은 한 화면에 다 들어오도록 아낀다 */}
       <p className="mt-2 hidden text-center text-[11px] leading-5 text-hanji-faint sm:block">
-        손끝으로 그으면, 여러 갈래로 함께 피어납니다.
+        손끝을 따라 여러 갈래로 피어납니다.
       </p>
 
       {/* 만다라 판 — 판 위에는 아무 버튼도 없다. 색칠 모드와 같은 결.
@@ -1415,34 +1500,41 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
           <button
             onClick={resetView}
             aria-label="원위치(더블탭)"
-            className={`rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors hover:text-hanji ${PRESS}`}
+            title="원위치 — 더블탭으로도 됩니다"
+            className={`${SIDE} ${PRESS} border-ink-3 text-hanji-faint hover:text-hanji`}
           >
-            ⊙ 원위치(더블탭)
+            <Icon d={I_RESET} />
+            원위치
           </button>
           <button
             onClick={undo}
             disabled={!canUndo || scattering}
             aria-label="되돌리기"
-            className={`rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
+            className={`${SIDE} ${PRESS} border-ink-3 text-hanji-faint enabled:hover:text-hanji disabled:opacity-40`}
           >
-            ↩ 되돌리기
+            <Icon d={I_UNDO} />
+            되돌리기
           </button>
           <button
             onClick={redo}
             disabled={!canRedo || scattering}
             aria-label="다시하기"
-            className={`rounded-full border border-ink-3 bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] text-hanji-faint backdrop-blur-sm transition-colors enabled:hover:text-hanji disabled:opacity-40 ${PRESS}`}
+            className={`${SIDE} ${PRESS} border-ink-3 text-hanji-faint enabled:hover:text-hanji disabled:opacity-40`}
           >
-            ↪ 다시하기
+            <Icon d={I_REDO} />
+            다시하기
           </button>
           <button
             onClick={() => setPanMode((v) => !v)}
             aria-label="손으로 옮기기"
-            className={`rounded-full border bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors ${PRESS} ${
+            title="손으로 옮기기"
+            aria-pressed={panMode}
+            className={`${SIDE} ${PRESS} ${
               panMode ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-faint hover:text-hanji"
             }`}
           >
-            ✋ 손으로 옮기기
+            <Icon d={I_MOVE} />
+            옮기기
           </button>
         </div>
         {/* 데스크톱(sm+) 전용 — 판 오른쪽 바깥(16px 간격) 비우기 */}
@@ -1463,8 +1555,12 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
           <button
             key={n}
             onClick={() => setSegments(n)}
-            className={`m-chip rounded-full border px-2.5 py-1 text-[11px] transition-colors ${PRESS} ${
-              segments === n ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
+            aria-pressed={segments === n}
+            aria-label={`${n} 갈래`}
+            className={`m-chip rounded-full border px-2.5 py-1 text-[11px] tabular-nums transition-colors ${PRESS} ${
+              segments === n
+                ? "border-gold/50 bg-gold/10 text-gold"
+                : "border-ink-3 text-hanji-dim hover:text-hanji"
             }`}
           >
             {n}
@@ -1472,8 +1568,11 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         ))}
         <button
           onClick={() => setMirror((v) => !v)}
+          aria-pressed={mirror}
           className={`m-chip rounded-full border px-2.5 py-1 text-[11px] transition-colors ${PRESS} ${
-            mirror ? "border-gold/60 text-gold" : "border-ink-3 text-hanji-dim hover:text-hanji"
+            mirror
+              ? "border-gold/50 bg-gold/10 text-gold"
+              : "border-ink-3 text-hanji-dim hover:text-hanji"
           }`}
         >
           거울

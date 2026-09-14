@@ -8,6 +8,16 @@
 //   섞이지 않게. 체험 한 번으로 '이뭣고'를 영영 못 받으면 안 된다.
 // · 사유의 방 메모도 여기서 함께 써 보고, 회향 시 답과 같이 남는다
 // · 카운트다운 문구는 단계가 바뀌어도 고정 — 화면이 흔들리지 않게
+//
+// [리뉴얼 메모 — 왜 이렇게 고쳤나]
+// · 첫인상이 여기서 갈린다. 물음이 화면에서 가장 큰 것이 되어야 해서,
+//   머리글의 네 겹(한자 + 번호칩 넷 + 이름 넷 + 구분선)을 진행 고리 하나와
+//   지금 걸음 이름 하나, 두 겹으로 줄였다. 걸음 이름 넷은 지운 게 아니라
+//   진행 막대의 sr-only 로 옮겼다 — 스크린리더에는 그대로 읽힌다.
+// · 간화선 지침과 선사 어록은 한 글자도 줄이지 않았다. <details> 로
+//   접기만 했다 — 펼치면 예전 그대로다.
+// · 기다림이 이 수행의 핵심 경험이라, 남은 날을 68px 숫자로 세웠다.
+//   설명을 줄인 자리를 숫자와 여백이 대신 채운다.
 // ────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
@@ -33,20 +43,22 @@ const TRY_STUDENT_ID = "st-lie";
 
 type Step = "choose" | "received" | "pondering" | "ripened" | "writing" | "done";
 
-// 걸음마다 뜨는 체험 안내
+// 걸음마다 뜨는 체험 안내 — 뜻은 그대로 두고 문장만 짧게 다시 썼다.
+// 이 자리는 두 줄 고정이라 길면 화면이 흔들린다.
 const GUIDE: Record<Step, string> = {
   choose: "먼저 화두를 받아 보세요.",
-  received:
-    "화두를 받았습니다. 본래는 이대로 며칠이 흘러야 합니다 — 체험에서는 눌러서 건너뜁니다.",
-  pondering:
-    "사유의 시간입니다. 떠오르는 것은 사유의 방에 적어 두세요 — 그 단상은 마지막에 답과 함께 기록에 남습니다.",
-  ripened: "달이 찼습니다. 이제 붓을 들어 답을 씁니다.",
-  writing:
-    "정답은 없습니다. 지금 보이는 만큼만 써 보세요 — 사유의 방에 남긴 단상도 함께 저장됩니다.",
-  done: "한 바퀴를 돌았습니다 — 이 체험은 지난 화두에 첫 기록으로 남습니다.",
+  received: "본래는 며칠이 흘러야 합니다 — 체험에서는 눌러서 건너뜁니다.",
+  pondering: "떠오르는 것은 사유의 방에 적어 두세요. 답과 함께 남습니다.",
+  // '달이 찼다'는 말은 위 카드가 큰 글씨로 이미 하고 있다 — 여기선 할 일만
+  ripened: "이제 붓을 들어 답을 씁니다.",
+  writing: "정답은 없습니다. 지금 보이는 만큼만 써 보세요.",
+  done: "한 바퀴를 돌았습니다.",
 };
 
 const STEPS = ["화두를 받다", "사유하다", "달이 차오르다", "회향하다"];
+
+// 진행 고리의 둘레 — strokeDasharray 로 걸음만큼만 칠한다
+const RING = 2 * Math.PI * 17;
 
 // 앞뒤로 오가는 걸음 이름
 const NAV: Partial<Record<Step, { prev: string; next: string }>> = {
@@ -55,6 +67,28 @@ const NAV: Partial<Record<Step, { prev: string; next: string }>> = {
   ripened: { prev: "사유하다", next: "붓을 들다" },
   writing: { prev: "달이 차오르다", next: "" },
 };
+
+// 접기 머리 — 브라우저 기본 삼각형을 지우고 우리 화살표를 쓴다
+const SUMMARY =
+  "flex cursor-pointer list-none items-center gap-2 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:text-hanji [&::-webkit-details-marker]:hidden";
+
+// 접기 화살표 — 이모지 대신 직접 그린다
+function Chevron() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180"
+    >
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
 
 export default function TryPage() {
   const confirm = useConfirm();
@@ -162,78 +196,89 @@ export default function TryPage() {
 
   // 자리만 있는 버튼 (헷갈리지 않게 안내만)
   const dead =
-    "cursor-default border border-ink-3 px-5 py-2.5 text-xs tracking-[0.15em] text-hanji-faint opacity-60";
+    "cursor-default rounded-full border border-ink-3 px-4 py-1.5 text-[11px] tracking-[0.12em] text-hanji-faint opacity-60";
 
   return (
-    <div className="relative flex flex-1 flex-col items-center px-6 pb-16 pt-4 text-center md:pb-10 md:pt-12">
-      {/* ── 늘 위에 있는 체험 표시 ── */}
-      <div className="w-full max-w-2xl">
-        <p className="text-center text-[11px] tracking-[0.4em] text-gold-soft">
-          體驗 · 체험하기
-        </p>
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-          {STEPS.map((label, i) => {
-            const n = i + 1;
-            const done = n < stepNo;
-            const now = n === stepNo;
-            return (
-              <div key={label} className="flex items-center gap-2">
-                <span
-                  className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
-                    now
-                      ? "bg-gold/25 font-medium text-gold"
-                      : done
-                        ? "bg-gold/10 text-gold-soft"
-                        : "border border-ink-3 text-hanji-faint"
-                  }`}
-                >
-                  {n}
-                </span>
-                <span
-                  className={`text-[11px] tracking-wide ${
-                    now ? "text-hanji" : "text-hanji-faint"
-                  }`}
-                >
-                  {label}
-                </span>
-                {n < STEPS.length && (
-                  <span className="text-hanji-faint">·</span>
-                )}
-              </div>
-            );
-          })}
+    <div className="relative flex flex-1 flex-col items-center px-6 pb-16 pt-5 text-center md:pb-10 md:pt-10">
+      {/* ── 늘 위에 있는 진행 고리 — 네 걸음 중 몇째인지 한눈에 ── */}
+      <header className="w-full max-w-md">
+        <div className="flex items-center justify-center gap-3.5">
+          <div className="relative h-11 w-11 shrink-0">
+            <svg viewBox="0 0 40 40" className="h-full w-full -rotate-90">
+              <circle
+                cx="20"
+                cy="20"
+                r="17"
+                fill="none"
+                strokeWidth="2"
+                stroke="currentColor"
+                className="text-ink-3"
+              />
+              <circle
+                cx="20"
+                cy="20"
+                r="17"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                stroke="currentColor"
+                className="text-gold"
+                strokeDasharray={`${(stepNo / STEPS.length) * RING} ${RING}`}
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center font-serif text-[15px] font-light tabular-nums text-gold">
+              {stepNo}
+            </span>
+          </div>
+          <div className="text-left">
+            <p className="text-[10px] tracking-[0.42em] text-gold-soft">體驗</p>
+            <p className="mt-0.5 text-[14px] tracking-[0.12em] text-hanji">
+              {STEPS[stepNo - 1]}
+            </p>
+          </div>
         </div>
-        <div className="mt-3 h-px w-full bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
-      </div>
+
+        {/* 걸음 막대 — 이름 넷은 지우지 않고 스크린리더에 그대로 남긴다 */}
+        <ol
+          className="mt-4 flex items-center gap-1.5"
+          aria-label="체험의 네 걸음"
+        >
+          {STEPS.map((label, i) => (
+            <li
+              key={label}
+              aria-current={i + 1 === stepNo ? "step" : undefined}
+              className={`h-[5px] flex-1 rounded-full transition-colors ${
+                i + 1 <= stepNo ? "bg-gold" : "bg-ink-3"
+              }`}
+            >
+              <span className="sr-only">{label}</span>
+            </li>
+          ))}
+        </ol>
+      </header>
 
       {/* ── 1. 화두 받기 전 — 홈과 같은 화면 ── */}
       {step === "choose" && (
-        <section className="rise mt-6 flex flex-col items-center">
-          <Enso size={140} />
-          <h1 className="text-obang rise rise-d1 mt-6 font-serif text-[42px] font-semibold leading-none tracking-[0.5em] [text-indent:0.5em]">
+        <section className="rise mt-12 flex flex-col items-center">
+          <Enso size={136} />
+          <h1 className="text-obang rise rise-d1 mt-7 font-serif text-[46px] font-semibold leading-none tracking-[0.5em] [text-indent:0.5em]">
             화두
           </h1>
-          <p className="rise rise-d1 mt-2.5 text-[10px] tracking-[0.6em] text-gold-soft">
+          <p className="rise rise-d1 mt-3 text-[10px] tracking-[0.6em] text-gold-soft">
             HWADU
           </p>
-          <p className="rise rise-d1 mt-6 text-[13.5px] font-light tracking-[0.1em] text-hanji-dim">
+          <p className="rise rise-d1 mt-7 max-w-xs break-keep text-[13.5px] font-light leading-7 tracking-[0.06em] text-hanji-dim">
             &ldquo;{SLOGAN}&rdquo;
           </p>
-          <div className="rise rise-d2 my-10 flex items-center gap-3.5 opacity-80">
-            <div className="h-px w-[110px] bg-gradient-to-r from-transparent to-gold/45" />
-            <Dharmachakra className="h-[18px] w-[18px]" stroke="#B99A54" />
-            <div className="h-px w-[110px] bg-gradient-to-r from-gold/45 to-transparent" />
-          </div>
-          <button
-            onClick={receive}
-            className="btn-obang rise rise-d2 inline-flex items-center gap-2.5 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
-          >
-            <Lotus className="h-[18px] w-[18px]" stroke="#D9B45B" />
-            <span>새 화두 받기</span>
-          </button>
 
-          {/* 누구의 화두인가 — 성인 / 학생·어린이 (홈과 같은 알약 스위치) */}
-          <div className="rise rise-d3 mt-7 inline-flex rounded-full border border-ink-3 bg-ink-2 p-1 text-xs">
+          <div className="rise rise-d2 my-9 flex items-center gap-3.5 opacity-80">
+            <div className="h-px w-[90px] bg-gradient-to-r from-transparent to-gold/45" />
+            <Dharmachakra className="h-[18px] w-[18px]" stroke="#B99A54" />
+            <div className="h-px w-[90px] bg-gradient-to-r from-gold/45 to-transparent" />
+          </div>
+
+          {/* 누구의 화두인가 — 고르고 나서 받는다 (홈과 같은 알약 스위치) */}
+          <div className="rise rise-d2 inline-flex rounded-full border border-ink-3 bg-ink-2 p-1 text-xs">
             {(
               [
                 { key: "adult", label: "성인의 화두" },
@@ -258,88 +303,109 @@ export default function TryPage() {
               );
             })}
           </div>
+
+          <button
+            onClick={receive}
+            className="btn-obang rise rise-d3 mt-6 inline-flex items-center gap-2.5 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
+          >
+            <Lotus className="h-[18px] w-[18px]" stroke="#D9B45B" />
+            <span>새 화두 받기</span>
+          </button>
         </section>
       )}
 
       {/* ── 회향을 마쳤다 ── */}
       {step === "done" && hwadu && (
         <section className="rise mt-10 flex w-full max-w-2xl flex-col items-center">
-          {/* 화두 — 나의 답 위에 */}
+          {/* 화두 — 나의 답 위에. 한자는 금테 뱃지 하나로 */}
           {hwadu.hanja && (
-            <p className="text-xs tracking-[0.6em] text-hanji-faint">
+            <span className="rounded-full border border-gold/35 px-4 py-1 text-[11px] tracking-[0.35em] text-gold-soft [text-indent:0.35em]">
               {hwadu.hanja}
-            </p>
+            </span>
           )}
-          <div className="question-glow mt-5 w-full">
+          <div className="question-glow mt-6 w-full">
             <Question text={hwadu.question} className="text-hanji" />
           </div>
 
-          <div className="mt-10 w-full border-t border-ink-3 pt-8" />
-          <p className="text-xs tracking-[0.4em] text-gold-soft">
-            回向 · 나의 답
-          </p>
-          <p className="mt-5 whitespace-pre-line font-serif text-[15px] font-light leading-9 text-hanji">
-            {answer}
-          </p>
-
-          {shareDone && (
-            <p className="mt-6 text-[12.5px] leading-6 text-gold-soft">
-              나눔에 부쳤습니다. 도량에서 살펴본 뒤 다른 수행자에게 열립니다.
+          {/* 나의 답 — 카드 하나에 하나만 */}
+          <div className="mt-10 w-full max-w-xl rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-7 text-left">
+            <p className="text-[11px] tracking-[0.4em] text-gold-soft">
+              回向 · 나의 답
             </p>
-          )}
-          {shareError && (
-            <p className="mt-6 text-[12.5px] leading-6 text-vermilion">
-              {shareError}
+            <p className="mt-4 whitespace-pre-line break-keep font-serif text-[15px] font-light leading-9 text-hanji">
+              {answer}
             </p>
-          )}
-
-          {/* 사유의 방에 적어 둔 단상도 함께 */}
-          {memo.trim() && (
-            <div className="mt-8 w-full max-w-xl border-t border-ink-3 pt-6 text-left">
-              <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-                사유의 방에 적어 둔 단상
+            {shareDone && (
+              <p className="mt-5 text-[12.5px] leading-6 text-gold-soft">
+                나눔에 부쳤습니다. 도량에서 살펴본 뒤 다른 수행자에게 열립니다.
               </p>
-              <p className="mt-3 whitespace-pre-line break-keep text-[13.5px] font-light leading-7 text-hanji-dim">
+            )}
+            {shareError && (
+              <p className="mt-5 text-[12.5px] leading-6 text-vermilion">
+                {shareError}
+              </p>
+            )}
+          </div>
+
+          {/* 사유의 방에 적어 둔 단상 — 지우지 않고 접어 둔다 */}
+          {memo.trim() && (
+            <details className="group mt-3 w-full max-w-xl rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-4 text-left">
+              <summary className={SUMMARY}>
+                <span>사유의 방에 적어 둔 단상</span>
+                <span className="ml-auto">
+                  <Chevron />
+                </span>
+              </summary>
+              <p className="mt-4 whitespace-pre-line break-keep text-[13.5px] font-light leading-7 text-hanji-dim">
                 {memo}
               </p>
-            </div>
+            </details>
           )}
 
-          <div className="mt-12 w-full border-t border-ink-3 pt-10">
-            <p className="text-xs tracking-[0.4em] text-hanji-dim">
-              옛 스승들은 이렇게 일렀습니다
-            </p>
-          </div>
-          <div className="mt-8 flex w-full max-w-xl flex-col gap-8 text-left">
-            {hwadu.masters.map((m, i) => (
-              <figure key={m.name + i}>
-                <blockquote className="break-keep font-serif text-[15px] font-light leading-9 text-hanji">
-                  {m.text}
-                </blockquote>
-                <figcaption className="mt-3 text-right text-xs tracking-widest text-hanji-dim">
-                  — {m.name}
-                  {m.era && <span className="text-hanji-faint"> · {m.era}</span>}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+          {/* 옛 스승들의 말 — 한 글자도 줄이지 않고 접기만 했다 */}
+          <details className="group mt-3 w-full max-w-xl rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-4 text-left">
+            <summary className={SUMMARY}>
+              <span>옛 스승들은 이렇게 일렀습니다</span>
+              <span className="ml-auto flex items-center gap-2">
+                <span className="text-[11px] tabular-nums text-hanji-faint">
+                  {hwadu.masters.length}
+                </span>
+                <Chevron />
+              </span>
+            </summary>
+            <div className="mt-6 flex flex-col gap-8">
+              {hwadu.masters.map((m, i) => (
+                <figure key={m.name + i}>
+                  <blockquote className="break-keep font-serif text-[15px] font-light leading-9 text-hanji">
+                    {m.text}
+                  </blockquote>
+                  <figcaption className="mt-3 text-right text-xs tracking-widest text-hanji-dim">
+                    — {m.name}
+                    {m.era && (
+                      <span className="text-hanji-faint"> · {m.era}</span>
+                    )}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </details>
 
           <div className="mt-12 w-full border-t border-ink-3 pt-8">
             <p className="text-[13px] leading-7 text-hanji-dim">
               {kept ? (
                 <>
-                  체험하기 화두는{" "}
+                  이 체험은{" "}
                   <Link
                     href="/archive"
                     className="text-gold-soft underline decoration-gold/30 underline-offset-4"
                   >
                     지난 화두
                   </Link>
-                  에 첫 기록으로 남습니다.
+                  에 첫 기록으로 남았습니다.
                 </>
               ) : (
                 <>
-                  체험의 첫 기록은 이미{" "}
+                  첫 기록은 이미{" "}
                   <Link
                     href="/archive"
                     className="text-gold-soft underline decoration-gold/30 underline-offset-4"
@@ -349,12 +415,12 @@ export default function TryPage() {
                   에 있습니다 — 이번 것은 따로 쌓지 않았습니다.
                 </>
               )}
-              <br />본래의 화두는 며칠을 품은 뒤에야 붓을 들 수 있습니다.
             </p>
-            <p className="mt-3 text-xs leading-6 text-hanji-faint">
+            <p className="mt-2 text-[11px] leading-6 text-hanji-faint">
+              본래의 화두는 며칠을 품은 뒤에야 붓을 들 수 있습니다.
               {memo.trim()
-                ? "사유의 방에 적어 둔 단상도 답과 함께 남았습니다."
-                : "사유의 방에 적어 둔 단상도 회향과 함께 남습니다."}
+                ? " 사유의 방 단상도 답과 함께 남았습니다."
+                : " 사유의 방 단상도 회향과 함께 남습니다."}
             </p>
             <Link
               href="/"
@@ -368,27 +434,28 @@ export default function TryPage() {
 
       {/* ── 2·3·4. 화두를 들고 있는 화면 — 실제와 똑같이 ── */}
       {hwadu && step !== "choose" && step !== "done" && (
-        <section className="rise mt-3 flex w-full max-w-2xl flex-col items-center">
+        <section className="rise mt-9 flex w-full max-w-2xl flex-col items-center">
+          {/* 한자 뱃지 — 금테 안에 화두의 한자 */}
           {hwadu.hanja && (
-            <p className="text-xs tracking-[0.6em] text-hanji-faint">
+            <span className="rounded-full border border-gold/35 px-4 py-1 text-[11px] tracking-[0.35em] text-gold-soft [text-indent:0.35em]">
               {hwadu.hanja}
-            </p>
+            </span>
           )}
-          <div className="question-glow mt-4 w-full">
-            <Question text={hwadu.question} max={42} className="text-hanji" />
+          <div className="question-glow mt-6 w-full">
+            <Question text={hwadu.question} max={52} className="text-hanji" />
           </div>
           {hwadu.context && (
-            <p className="mt-4 text-xs tracking-wider text-hanji-faint">
+            <p className="mt-4 max-w-md break-keep text-xs leading-6 tracking-wider text-hanji-faint">
               {hwadu.context}
             </p>
           )}
 
           {step === "writing" ? (
             /* 답을 쓰다 — AI 채팅 포맷 */
-            <div className="mt-8 w-full max-w-xl">
+            <div className="mt-9 w-full max-w-xl">
               {/* 안내 말풍선 */}
               <div className="flex flex-col items-start">
-                <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-ink-2/40 px-4 py-3">
+                <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-ink-2/60 px-4 py-3">
                   <p className="text-left text-[12.5px] leading-6 text-hanji-dim">
                     며칠을 품고 계셨습니다. 무엇이 보였습니까.
                     <br />아래에 답을 적어, 회향해 보세요.
@@ -399,6 +466,7 @@ export default function TryPage() {
               <div className="mt-6 flex items-end gap-2">
                 <button
                   onClick={prev}
+                  aria-label={NAV.writing?.prev}
                   className="shrink-0 pb-2 text-[11px] tracking-wider text-hanji-faint transition-colors hover:text-hanji-dim"
                 >
                   ←
@@ -424,35 +492,55 @@ export default function TryPage() {
                   회향
                 </button>
               </div>
-              <p className="mt-2 text-right text-[10px] text-hanji-faint">
-                {answer.length} / {MAX_ANSWER} · 사유의 방에 남긴 단상도 함께 남습니다
+              {/* 단상이 함께 남는다는 안내는 사유의 방 안에 온전히 있다 — 여기선 한 마디만 */}
+              <p className="mt-2 text-right text-[10px] tabular-nums text-hanji-faint">
+                {answer.length} / {MAX_ANSWER} · 단상도 함께 남습니다
               </p>
             </div>
           ) : (
             <>
+              {/* 남은 날 — 기다림이 이 수행의 핵심이라 가장 크게 세운다 */}
+              <div className="mt-8 w-full max-w-sm rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-7">
+                {step === "ripened" ? (
+                  <>
+                    <span className="moon mx-auto block" />
+                    <p className="mt-5 font-serif text-[24px] font-light leading-none text-hanji">
+                      달이 차올랐습니다
+                    </p>
+                    <p className="mt-3 text-[12.5px] tracking-wide text-hanji-dim">
+                      이제 답을 쓸 수 있습니다
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-baseline justify-center gap-2.5">
+                      <span className="font-serif text-[68px] font-light leading-none tabular-nums text-hanji">
+                        {days}
+                      </span>
+                      <span className="text-[13px] tracking-[0.2em] text-hanji-dim">
+                        일 남음
+                      </span>
+                    </div>
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[12px] font-light tracking-wide text-hanji-dim">
+                      <span className="moon" />
+                      <span>
+                        달이 차오르는 {durationLabel(days)} 뒤, 답을 쓸 수
+                        있습니다
+                      </span>
+                    </div>
+                    <p className="mt-2 text-[11px] tabular-nums tracking-[0.14em] text-hanji-faint">
+                      {days}일 00시간 00분 00초
+                    </p>
+                  </>
+                )}
+              </div>
+
               {/* 함께 드는 이들 */}
               <p className="mt-4 text-[12px] tracking-wide text-gold-soft">
                 이 물음을 든 사람은, 지금 그대뿐입니다
               </p>
 
-              {/* 달 + 카운트다운 — 문구 고정(흔들리지 않게) */}
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-[13.5px] font-light tracking-wide text-hanji-dim">
-                <span className="moon" />
-                {step === "ripened" ? (
-                  <span>달이 차올랐습니다. 이제 답을 쓸 수 있습니다</span>
-                ) : (
-                  <span>
-                    달이 차오르는 {durationLabel(days)} 뒤, 답을 쓸 수 있습니다
-                    ·{" "}
-                    <span className="tabular-nums text-hanji">
-                      {days}일 00시간 00분 00초
-                    </span>{" "}
-                    남음
-                  </span>
-                )}
-              </div>
-
-              {/* 체험 안내 — 남은 시간 바로 아래. 두 줄 고정 높이 */}
+              {/* 체험 안내 — 두 줄 고정 높이(화면이 흔들리지 않게) */}
               <p className="mt-3 flex min-h-[2.75rem] max-w-md items-start justify-center break-keep text-[12.5px] leading-6 text-gold-soft">
                 <span className="mr-1.5 shrink-0 text-[11px] tracking-[0.2em]">
                   체험 ·
@@ -460,25 +548,18 @@ export default function TryPage() {
                 <span>{GUIDE[step]}</span>
               </p>
 
-              <p className="mt-2 text-xs leading-6 tracking-[0.04em] text-hanji-faint">
-                서두르지 마세요. 질문에는 정답이 없습니다.
-                <br />
-                생각으로 찾아낸 것은 답이 아닙니다. 생각하기보다 끝까지 하는
-                힘이 중요합니다.
-              </p>
-
               {/* 걸음 옮기기 — 앞뒤로 오갈 수 있게 */}
               {NAV[step] && (
-                <div className="mt-5 flex items-center justify-center gap-3">
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
                   <button
                     onClick={prev}
-                    className="border border-ink-3 px-5 py-2.5 text-[12.5px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                    className="rounded-full border border-ink-3 px-5 py-2.5 text-[12.5px] tracking-[0.12em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
                   >
                     ← {NAV[step]!.prev}
                   </button>
                   <button
                     onClick={next}
-                    className="btn-obang px-7 py-2.5 text-[12.5px] tracking-[0.15em] text-hanji transition-opacity hover:opacity-90"
+                    className="btn-obang px-7 py-2.5 text-[12.5px] tracking-[0.12em] text-hanji transition-opacity hover:opacity-90"
                   >
                     {NAV[step]!.next} →
                   </button>
@@ -487,7 +568,7 @@ export default function TryPage() {
 
               {/* 오늘의 참구법 — 사유 단계에서만 */}
               {step === "pondering" && (
-                <div className="mt-8 w-full max-w-md border border-ink-3 bg-ink-2/50 px-6 py-5">
+                <div className="mt-9 w-full max-w-md rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-5">
                   <p className="text-[11px] tracking-[0.34em] text-gold-soft">
                     오늘의 참구법 · {dayNo}일째
                   </p>
@@ -500,22 +581,21 @@ export default function TryPage() {
 
               {/* 기간 바꾸기 — 사유 단계에서만 */}
               {step === "pondering" && (
-                <div className="mt-7">
-                  <div className="flex flex-wrap items-center justify-center gap-2.5">
-                    {[1, 3, 7, 21, 108].map((d) => (
-                      <button
-                        key={d}
-                        onClick={() => setDays(d)}
-                        className={`border px-4 py-2 text-xs tracking-[0.15em] transition-colors ${
-                          days === d
-                            ? "border-gold/60 text-gold"
-                            : "border-ink-3 text-hanji-dim hover:text-hanji"
-                        }`}
-                      >
-                        {durationLabel(d)}
-                      </button>
-                    ))}
-                  </div>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                  {[1, 3, 7, 21, 108].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setDays(d)}
+                      aria-pressed={days === d}
+                      className={`rounded-full border px-4 py-1.5 text-[11.5px] tracking-[0.12em] transition-colors ${
+                        days === d
+                          ? "border-gold/60 bg-gold/10 text-gold"
+                          : "border-ink-3 text-hanji-dim hover:text-hanji"
+                      }`}
+                    >
+                      {durationLabel(d)}
+                    </button>
+                  ))}
                 </div>
               )}
 
@@ -523,7 +603,7 @@ export default function TryPage() {
               {step !== "ripened" && (
                 <button
                   onClick={() => setNotesOpen((v) => !v)}
-                  className={`mt-10 flex items-center gap-2.5 border px-7 py-3 text-[13px] tracking-[0.2em] transition-colors ${
+                  className={`mt-9 flex items-center gap-2.5 rounded-full border px-7 py-3 text-[13px] tracking-[0.18em] transition-colors ${
                     notesOpen
                       ? "border-gold/60 bg-gold/10 text-gold"
                       : "border-gold/40 text-hanji hover:bg-gold/10"
@@ -536,33 +616,47 @@ export default function TryPage() {
                 </button>
               )}
 
-              {/* 자리만 있는 버튼들 + 내려놓다(활성) */}
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              {/* 간화선 지침 — 한 글자도 줄이지 않고 접기만 했다 */}
+              <details className="group mt-8 w-full max-w-md">
+                <summary className={`${SUMMARY} justify-center`}>
+                  <span>참구하는 법</span>
+                  <Chevron />
+                </summary>
+                <p className="mt-4 break-keep text-xs leading-6 tracking-[0.04em] text-hanji-faint">
+                  서두르지 마세요. 질문에는 정답이 없습니다.
+                  <br />
+                  생각으로 찾아낸 것은 답이 아닙니다. 생각하기보다 끝까지 하는
+                  힘이 중요합니다.
+                </p>
+              </details>
+
+              {/* 아직 열리지 않은 자리 + 내려놓다 — 조용한 발치에 모은다 */}
+              <div className="mt-14 flex flex-wrap items-center justify-center gap-2.5">
                 <span className={dead}>선지식의 한마디</span>
                 <span className={dead}>나도 화두 던지기</span>
+                <button
+                  onClick={async () => {
+                    const ok = await confirm(
+                      "이 화두를 내려놓으시겠습니까?",
+                      "체험이 처음으로 돌아갑니다.",
+                      { confirm: "내려놓다", cancel: "머무르다" }
+                    );
+                    if (ok) {
+                      setHwadu(null);
+                      setNotesOpen(false);
+                      setMemo("");
+                      setAnswer("");
+                      setDays(3);
+                      setShareDone(false);
+                      setShareError("");
+                      setStep("choose");
+                    }
+                  }}
+                  className="rounded-full border border-ink-3 px-4 py-1.5 text-[11px] tracking-[0.12em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion"
+                >
+                  이 화두를 내려놓다
+                </button>
               </div>
-              <button
-                onClick={async () => {
-                  const ok = await confirm(
-                    "이 화두를 내려놓으시겠습니까?",
-                    "체험이 처음으로 돌아갑니다.",
-                    { confirm: "내려놓다", cancel: "머무르다" }
-                  );
-                  if (ok) {
-                    setHwadu(null);
-                    setNotesOpen(false);
-                    setMemo("");
-                    setAnswer("");
-                    setDays(3);
-                    setShareDone(false);
-                    setShareError("");
-                    setStep("choose");
-                  }
-                }}
-                className="mt-10 border border-ink-3 px-7 py-2.5 text-xs tracking-[0.15em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion"
-              >
-                이 화두를 내려놓다
-              </button>
             </>
           )}
         </section>

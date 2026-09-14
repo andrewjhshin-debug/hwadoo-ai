@@ -27,15 +27,24 @@ export default function Dudu({ stage, mood = "default", uid, className }: Props)
   useEffect(() => {
     if (stage === undefined) return;
     let alive = true;
-    const src = `/dudu/${stage}.png`;
-    const img = new Image();
-    img.onload = () => {
-      if (alive) setArt(src);
+    // 그림이 아직 안 들어온 자리는 **바로 아래 자리의 그림**으로 대신한다.
+    // 한 자리만 비어도 코드 그림으로 떨어지면 결이 튀어서, 여섯 장이
+    // 다 차기 전까지는 아래로 한 칸씩 내려가며 있는 것을 찾는다.
+    const probe = (s: number) => {
+      if (!alive) return;
+      if (s < 0) {
+        setArt(null); // 한 장도 없다 — 코드로 그린 두두로
+        return;
+      }
+      const src = `/dudu/${s}.png`;
+      const img = new Image();
+      img.onload = () => {
+        if (alive) setArt(src);
+      };
+      img.onerror = () => probe(s - 1);
+      img.src = src;
     };
-    img.onerror = () => {
-      if (alive) setArt(null);
-    };
-    img.src = src;
+    probe(stage);
     return () => {
       alive = false;
     };
