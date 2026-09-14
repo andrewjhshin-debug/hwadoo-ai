@@ -299,8 +299,22 @@ export default function MoktakPage() {
                 className="block"
                 style={{ animation: hits > 0 ? "mk-hit 0.16s ease-out" : "none" }}
               >
+                {/* 실물 렌더 — 코드로 깎은 것보다 낫다. 없으면 SVG 로 돌아간다 */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/obj/moktak.png"
+                  alt=""
+                  aria-hidden
+                  onError={(e) => {
+                    const el = e.currentTarget;
+                    el.style.display = "none";
+                    const fb = el.nextElementSibling as HTMLElement | null;
+                    if (fb) fb.style.display = "block";
+                  }}
+                  className="block h-[300px] w-[300px] object-contain"
+                />
                 <span
-                  className="block h-[236px] w-[340px]"
+                  className="hidden h-[236px] w-[340px]"
                   dangerouslySetInnerHTML={{ __html: MOKTAK_SVG }}
                 />
               </span>
