@@ -9,6 +9,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Enso from "@/components/Enso";
+import { dongja } from "@/lib/dongja";
+import { inRound, loadMerit, ROUND } from "@/lib/merit";
 import NotesDrawer from "@/components/NotesDrawer";
 import { useConfirm } from "@/components/Confirm";
 import { Banga, Dharmachakra, Lotus, Teacup } from "@/components/icons";
@@ -94,6 +96,7 @@ function dropDraft(hwaduId: string) {
 export default function Home() {
   const confirm = useConfirm();
   const [store, setStore] = useState<Store | null>(null);
+  const [merit, setMerit] = useState(0); // 공덕 — 첫 화면의 수행 줄에 보인다
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState("");
   const [showSettings, setShowSettings] = useState(false);
@@ -120,6 +123,18 @@ export default function Home() {
     const next = merge(loadStore());
     setStore(next);
     return saveStore(next);
+  }, []);
+
+  // 공덕 — 뜰에 들어올 때, 그리고 다른 방에서 쌓고 돌아왔을 때
+  useEffect(() => {
+    const read = () => setMerit(loadMerit().total);
+    read();
+    window.addEventListener("focus", read);
+    window.addEventListener("hwadu-merit-updated", read);
+    return () => {
+      window.removeEventListener("focus", read);
+      window.removeEventListener("hwadu-merit-updated", read);
+    };
   }, []);
 
   // 회향을 마친 화두를 서고로 보낸다 — 화면은 '새 화두 받기'로 돌아간다
@@ -461,7 +476,46 @@ export default function Home() {
             );
           })}
         </div>
-        <div className="mt-14 flex gap-2.5 opacity-60">
+        {/* 오늘의 수행 — 두두가 공덕을 들고 방으로 이어 준다 */}
+        <div className="rise rise-d3 mt-10 w-full max-w-sm rounded-[16px] border border-ink-3 bg-ink-2/40 px-4 py-4">
+          <div className="flex items-center gap-3">
+            <span
+              className="block h-12 w-12 shrink-0"
+              dangerouslySetInnerHTML={{
+                __html: dongja(merit >= ROUND ? "bright" : "default", "home"),
+              }}
+            />
+            <div className="min-w-0 flex-1 text-left">
+              <p className="text-[11.5px] tracking-wide text-hanji-faint">
+                오늘의 수행 · 공덕{" "}
+                <span className="text-gold-soft">{merit.toLocaleString("ko-KR")}</span>
+              </p>
+              <div className="mt-1.5 h-[4px] overflow-hidden rounded-full bg-ink-3">
+                <div
+                  className="h-full rounded-full bg-gold transition-[width] duration-300"
+                  style={{ width: `${(inRound(merit) / ROUND) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {[
+              { href: "/bae", label: "백팔배" },
+              { href: "/moktak", label: "목탁·염주" },
+              { href: "/breath", label: "호흡" },
+            ].map((x) => (
+              <Link
+                key={x.href}
+                href={x.href}
+                className="rounded-[10px] border border-ink-3 py-2.5 text-center text-[12.5px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+              >
+                {x.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-10 flex gap-2.5 opacity-60">
           <i className="h-[5px] w-[5px] rounded-full bg-obang-blue" />
           <i className="h-[5px] w-[5px] rounded-full bg-vermilion" />
           <i className="h-[5px] w-[5px] rounded-full bg-gold" />
