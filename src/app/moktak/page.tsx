@@ -305,10 +305,8 @@ export default function MoktakPage() {
                 />
               </span>
             </button>
-            <p className="mt-1 break-keep text-center text-[11.5px] leading-5 text-hanji-faint">
-              {hits === 0
-                ? "목탁을 눌러 보세요"
-                : "물고기는 눈을 감지 않아요 — 목탁에 물고기를 새기는 까닭"}
+            <p className="mt-1 text-[12px] tracking-[0.25em] text-hanji-faint">
+              {hits === 0 ? "눌러 보세요" : ""}
             </p>
           </div>
 

@@ -11,8 +11,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { dongja } from "@/lib/dongja";
-import { addMerit, loadMerit } from "@/lib/merit";
+import Dudu from "@/components/Dudu";
+import { addMerit, loadMerit, stageOf } from "@/lib/merit";
 import { grantCharm } from "@/lib/charm";
 import { buzz, strikeJukbi, strikeMoktak } from "@/lib/sound";
 
@@ -145,10 +145,7 @@ export default function BaePage() {
         </svg>
         <span className="absolute inset-0 flex flex-col items-center justify-center">
           {done ? (
-            <span
-              className="block h-[150px] w-[150px]"
-              dangerouslySetInnerHTML={{ __html: dongja("bright", "bae") }}
-            />
+            <Dudu stage={stageOf(merit)} mood="joy" uid="bae" className="h-[150px] w-[150px]" />
           ) : (
             <>
               <span className="font-serif text-[68px] leading-none text-hanji">

@@ -9,7 +9,7 @@
 // · 실시간이 아니라 새로고침으로 숨을 고른다 — 서버를 아끼는 뼈대.
 // ─────────────────────────────────────────────────────────────
 
-import { dongja } from "@/lib/dongja";
+import Dudu from "@/components/Dudu";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { User } from "firebase/auth";
@@ -380,10 +380,7 @@ export default function LettersPage() {
         ) : talks.length === 0 && waiting.length === 0 ? (
           <li className="break-keep px-1 py-5 text-[14px] leading-7 text-hanji-faint">
             <span className="flex flex-col items-center gap-3 py-10">
-              <span
-                className="block h-[104px] w-[104px] opacity-90"
-                dangerouslySetInnerHTML={{ __html: dongja("rest", "letters") }}
-              />
+              <Dudu stage={0} mood="rest" uid="letters" className="h-[112px] w-[112px] opacity-90" />
               <span className="block break-keep text-center text-[13.5px] leading-7 text-hanji-dim">
                 아직 오간 쪽지가 없어요.
                 <br />

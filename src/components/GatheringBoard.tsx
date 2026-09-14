@@ -51,7 +51,7 @@ import {
   type DmThread,
 } from "@/lib/dm";
 import { TEMPLES } from "@/lib/pilgrimage";
-import { dongja } from "@/lib/dongja";
+import Dudu from "@/components/Dudu";
 import { grantCharm } from "@/lib/charm";
 import { addMerit } from "@/lib/merit";
 import { LotusMark } from "@/components/icons";
@@ -1400,10 +1400,7 @@ export default function GatheringBoard({
           </li>
         ) : sorted.length === 0 ? (
           <li className="flex flex-col items-center gap-3 px-4 py-12">
-            <span
-              className="block h-[104px] w-[104px] opacity-90"
-              dangerouslySetInnerHTML={{ __html: dongja("tilt", "empty") }}
-            />
+            <Dudu stage={0} mood="tilt" uid="empty" className="h-[112px] w-[112px] opacity-90" />
             <p className="break-keep text-center text-[13.5px] leading-7 text-hanji-dim">
               아직 아무도 없네요.
               <br />

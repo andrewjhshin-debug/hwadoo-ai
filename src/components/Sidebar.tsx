@@ -281,7 +281,7 @@ export default function Sidebar() {
           onClick={go("/")}
           className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5"
         >
-          <Halo progress={0.28} className="h-8 w-8" weight={7} />
+          <Halo progress={0.28} face={false} weight={9} className="h-[26px] w-[26px]" />
           <span className="text-gold-grad font-serif text-xl font-semibold tracking-[0.35em]">
             화두
           </span>
@@ -354,7 +354,7 @@ export default function Sidebar() {
         >
           {!slim && (
             <Link href="/" onClick={go("/")} className="flex items-center gap-2.5">
-              <Halo progress={0.28} className="h-[30px] w-[30px]" weight={7} />
+              <Halo progress={0.28} face={false} weight={9} className="h-[26px] w-[26px]" />
               <span className="text-gold-grad font-serif text-lg font-semibold tracking-[0.35em]">
                 화두
               </span>

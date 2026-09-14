@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { dongja } from "@/lib/dongja";
+import Dudu from "@/components/Dudu";
 
 export const metadata: Metadata = {
   title: "간화선이란? — 화두",
@@ -80,10 +80,7 @@ export default function GanhwaseonPage() {
 
       {/* 첫 화면 — 두두 하나와 한 문장. 여기서는 더 읽히려 하지 않는다. */}
       <div className="rise rise-d1 mt-10 flex flex-col items-center">
-        <span
-          className="block h-[104px] w-[104px]"
-          dangerouslySetInnerHTML={{ __html: dongja("default", "gh") }}
-        />
+        <Dudu stage={0} uid="gh" className="h-[112px] w-[112px]" />
         <p className="question-glow mt-5 break-keep text-center font-serif text-[26px] font-light leading-[1.55] text-hanji">
           질문 하나를 품고 사는 것.
           <br />
