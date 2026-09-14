@@ -14,6 +14,16 @@
 name: android
 
 on:
+  # 앱과 관계있는 파일이 바뀌면 저절로 빌드한다 — 늘 최신 설치 파일이
+  # Artifacts 에 놓이고, 앱이 깨졌는지도 그때그때 드러난다.
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "capacitor.config.ts"
+      - "capacitor-www/**"
+      - "package.json"
+      - ".github/workflows/android.yml"
   workflow_dispatch:
     inputs:
       versionName:
@@ -65,7 +75,7 @@ jobs:
         working-directory: android
         env:
           HWADU_VERSION_CODE: ${{ github.run_number }}
-          HWADU_VERSION_NAME: ${{ inputs.versionName }}
+          HWADU_VERSION_NAME: ${{ inputs.versionName || '1.0.0' }}
           HWADU_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           HWADU_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           HWADU_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
