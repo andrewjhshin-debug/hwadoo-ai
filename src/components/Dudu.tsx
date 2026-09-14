@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 두두 한 장 — 그림이 있으면 그림을, 없으면 코드로 그린 두두를 쓴다.
+// 나무 한 장 — 그림이 있으면 그림을, 없으면 코드로 그린 나무를 쓴다.
 //
 // public/dudu/{자리번호}.png 를 넣어 두면 그 자리부터 그림으로 바뀐다.
 // (0 동자 · 1 사미 · 2 수좌 · 3 선사 · 4 보살 · 5 부처)
@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { dongja, type Mood } from "@/lib/dongja";
 
 type Props = {
-  /** 자리 번호 0~5. 없으면 그림을 찾지 않고 코드 두두만 쓴다 */
+  /** 자리 번호 0~5. 없으면 그림을 찾지 않고 코드 나무만 쓴다 */
   stage?: number;
   mood?: Mood;
   /** 한 화면에 여러 장일 때 그라디언트 id 가 겹치지 않게 */
@@ -33,7 +33,7 @@ export default function Dudu({ stage, mood = "default", uid, className }: Props)
     const probe = (s: number) => {
       if (!alive) return;
       if (s < 0) {
-        setArt(null); // 한 장도 없다 — 코드로 그린 두두로
+        setArt(null); // 한 장도 없다 — 코드로 그린 나무로
         return;
       }
       const src = `/dudu/${s}.png`;

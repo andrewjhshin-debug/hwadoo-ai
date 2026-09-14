@@ -78,7 +78,7 @@ export default function GanhwaseonPage() {
         看話禪 · 간화선
       </h1>
 
-      {/* 첫 화면 — 두두 하나와 한 문장. 여기서는 더 읽히려 하지 않는다. */}
+      {/* 첫 화면 — 나무 하나와 한 문장. 여기서는 더 읽히려 하지 않는다. */}
       <div className="rise rise-d1 mt-10 flex flex-col items-center">
         <Dudu stage={0} uid="gh" className="h-[112px] w-[112px]" />
         <p className="question-glow mt-5 break-keep text-center font-serif text-[26px] font-light leading-[1.55] text-hanji">

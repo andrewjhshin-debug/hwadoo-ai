@@ -519,7 +519,7 @@ export default function Home() {
             );
           })}
         </div>
-        {/* 두두 — 공덕이 쌓이면 자란다. 동자에서 부처까지 여섯 자리.
+        {/* 나무 — 공덕이 쌓이면 자란다. 동자에서 부처까지 여섯 자리.
             카드째로 내 도량으로 가는 문이다 — 오늘의 세 가지가 거기 있다.
             (안쪽 수행 세 칸은 Link 중첩이 되지 않도록 카드 밖 형제로 둔다) */}
         <div className="rise rise-d3 mt-10 w-full max-w-sm">
@@ -1101,7 +1101,7 @@ export default function Home() {
           </p>
         </details>
 
-        {/* 기다리는 동안 — 갈 곳. 내 도량(두두·공덕·오늘의 세 가지)도 여기서 */}
+        {/* 기다리는 동안 — 갈 곳. 내 도량(나무·공덕·오늘의 세 가지)도 여기서 */}
         {!unlocked && (
           <div className="mt-7 flex flex-wrap items-center justify-center gap-2 text-[12px]">
             {[

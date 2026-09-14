@@ -529,7 +529,7 @@ export default function MoktakPage() {
         </div>
       </Link>
 
-      {/* 한 바퀴를 넘었다 — 두두가 잠깐 나온다 */}
+      {/* 한 바퀴를 넘었다 — 나무가 잠깐 나온다 */}
       {round !== null && (
         <div
           role="status"

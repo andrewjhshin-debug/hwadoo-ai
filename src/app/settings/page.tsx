@@ -777,7 +777,7 @@ export default function SettingsPage() {
         道場 · 내 도량
       </h1>
 
-      {/* ── 오늘 하루 — 두두 · 이어 온 날 · 오늘의 세 가지.
+      {/* ── 오늘 하루 — 나무 · 이어 온 날 · 오늘의 세 가지.
              매일 들어올 이유는 맨 위에 있어야 한다 ── */}
       <div className="mt-7">
         <DailyPractice />

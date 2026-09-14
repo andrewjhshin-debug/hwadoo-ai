@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// 두두(斗頭) — 화두의 동자승. 화두 캐릭터의 원본은 여기 하나뿐이다.
+// 나무(南無) — 화두의 동자승. 화두 캐릭터의 원본은 여기 하나뿐이다.
 //
 // 왜 동자승인가 —
 // 경쟁 캐릭터(@kimbuddhaa)는 "부처", 곧 이미 깨달은 쪽에 서 있다.
@@ -181,7 +181,7 @@ const SPARK = `<g stroke="url(#dj_gold)" stroke-width="3.6" stroke-linecap="roun
 </g>`;
 
 /**
- * 두두 한 장 — 표정을 골라 SVG 마크업을 받는다.
+ * 나무 한 장 — 표정을 골라 SVG 마크업을 받는다.
  * 한 화면에 여러 장을 놓을 때는 uid 를 달리 넘겨 id 충돌을 막는다.
  */
 export function dongja(mood: Mood = "default", uid = ""): string {
@@ -196,4 +196,5 @@ export function dongja(mood: Mood = "default", uid = ""): string {
   return uid ? svg.replace(/dj_([a-z0-9]+)/g, `dj_$1_${uid}`) : svg;
 }
 
-export const DONGJA_NAME = "두두";
+/** 캐릭터 이름 — 南無(귀의한다) 이자 나무(木). 보리수 아래서 깨달았다. */
+export const DONGJA_NAME = "나무";

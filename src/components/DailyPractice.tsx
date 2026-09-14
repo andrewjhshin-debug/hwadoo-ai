@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 // 오늘 하루 — 내 도량 맨 위에 놓이는 판.
 //
-// 두두가 크게 앉아 있고, 옆에 지금 자리와 다음 자리까지의 걸음.
+// 나무가 크게 앉아 있고, 옆에 지금 자리와 다음 자리까지의 걸음.
 // 아래로 이어 온 날(精進)과 오늘의 세 가지.
 //
 // 매일 들어올 이유를 만들되, 놓쳤다고 야단치지 않는다 —
@@ -108,7 +108,7 @@ export default function DailyPractice() {
 
   return (
     <section className="rise">
-      {/* ── 두두 — 지금 어디까지 왔나 ── */}
+      {/* ── 나무 — 지금 어디까지 왔나 ── */}
       <div className="rounded-[16px] border border-ink-3 bg-ink-2/50 px-5 py-5">
         <div className="flex items-center gap-4">
           <Dudu
@@ -119,7 +119,7 @@ export default function DailyPractice() {
           />
           <div className="min-w-0 flex-1">
             <p className="flex items-baseline gap-2">
-              <span className="font-serif text-[20px] leading-none text-hanji">두두</span>
+              <span className="font-serif text-[20px] leading-none text-hanji">나무</span>
               <span className="text-[12.5px] text-gold">
                 {rank.hanja} · {rank.name}
               </span>

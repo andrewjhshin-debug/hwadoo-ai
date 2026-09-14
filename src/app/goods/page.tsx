@@ -150,10 +150,15 @@ export default function GoodsPage() {
 
       {/* 대가성 고지 — 공정거래위원회 심사지침에 따른 필수 문구.
           문장은 원문 그대로, 자리만 맨 아래로 내리고 작게 둔다 */}
-      <p className="mt-10 break-keep rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3 text-center text-[11px] leading-5 text-hanji-faint">
-        이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를
-        제공받습니다.
-      </p>
+      <div className="mt-10 rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3.5">
+        <p className="break-keep text-center text-[12px] leading-6 text-hanji-dim">
+          받은 수수료의 <span className="text-gold">일부는 사찰과 불교 단체에 기부</span>합니다.
+        </p>
+        <p className="mt-2 break-keep text-center text-[11px] leading-5 text-hanji-faint">
+          이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를
+          제공받습니다.
+        </p>
+      </div>
 
       <div className="mt-8 text-center">
         <Link
