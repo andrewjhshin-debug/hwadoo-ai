@@ -464,7 +464,7 @@ function Composer({
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-ink">
       <div className="flex items-center justify-between border-b border-ink-3 px-5 py-3">
-        <p className="text-[13px] text-gold-soft">모멘트 걸기</p>
+        <p className="text-[13px] text-gold-soft">시절인연 걸기</p>
         <button onClick={onClose} className="rounded-full p-1.5 text-hanji-dim hover:text-hanji">
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
             <path d="M6 6l12 12M18 6L6 18" />
@@ -476,7 +476,7 @@ function Composer({
         <div className="mx-auto w-full max-w-lg px-5 py-5">
           {!user ? (
             <div className="rounded-[16px] border border-ink-3 px-5 py-10 text-center">
-              <p className="text-[13px] text-hanji-dim">모멘트는 로그인한 분만 걸 수 있습니다.</p>
+              <p className="text-[13px] text-hanji-dim">시절인연은 로그인한 분만 걸 수 있습니다.</p>
               <button
                 onClick={() => void loginWithGoogle()}
                 className="mt-4 rounded-full border border-gold/45 px-4 py-2 text-[12.5px] text-gold"
@@ -643,7 +643,7 @@ export function MomentTeaser() {
         <path d="M8 6l1.4-2h5.2L16 6" strokeLinejoin="round" />
       </svg>
       <span className="min-w-0 flex-1">
-        <span className="block text-[12.5px] text-hanji">모멘트 — 절에 다녀온 한 장</span>
+        <span className="block text-[12.5px] text-hanji">시절인연 — 절에 다녀온 한 장</span>
         <span className="block text-[11px] text-hanji-faint">
           사진 걸고 해시태그 달면 공덕이 쌓입니다
         </span>

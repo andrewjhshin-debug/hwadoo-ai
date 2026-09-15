@@ -38,6 +38,7 @@ import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
+import Info from "@/components/Info";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import MeritExchange from "@/components/MeritExchange";
 import { CHARMS, charmSvg, grantCharm, loadCharms } from "@/lib/charm";
@@ -291,6 +292,7 @@ export default function SettingsPage() {
   const [lampList, setLampList] = useState<Lamp[]>([]);
   const [giveLeft, setGiveLeft] = useState(GIVE_PER_DAY);
   const [giveTo, setGiveTo] = useState(""); // 이름을 적어 돌릴 때
+  const [returnedCount, setReturnedCount] = useState(0);
   const [room, setRoom] = useState({ earned: 0, cap: DAILY_TOTAL_CAP, left: DAILY_TOTAL_CAP });
   const [charms, setCharms] = useState<Record<string, number | undefined>>({});
   const [receivedCount, setReceivedCount] = useState(0);
@@ -390,11 +392,14 @@ export default function SettingsPage() {
     setLampList(lamps());
     setGiveLeft(giveLeftToday());
     setRoom(todayRoom());
+    setReturnedCount(loadStore().history.length);
   }, []);
 
-  // 지금 서 있는 도와 한 칸 위 — 공덕이 곷 자리다
-  const myRealm = realmOf(merit.total);
-  const upRealm = nextRealm(merit.total);
+  // 지금 서 있는 도와 한 칸 위 — 공덕과 회향한 화두 수를 함께 본다.
+  // 서랍(localStorage)은 그릴 때 읽으면 안 된다 — 서버가 그린 첫 화면과
+  // 어긋나 하이드레이션이 깨진다. 아래 effect 에서 읽어 담아 둔 값을 쓴다.
+  const myRealm = realmOf(merit.total, returnedCount);
+  const upRealm = nextRealm(merit.total, returnedCount);
 
   // 회향 — 한 번에 백팔, 하루 세 번. 총합은 줄지 않는다(대승의 셈).
   // 돌린 만큼 앞으로 쌓는 공덕이 빨라진다 — 그래야 누를 이유가 생긴다.
@@ -874,8 +879,15 @@ export default function SettingsPage() {
           {isAdminAccount(user)
             ? "뒷방 주인의 자리 — 여섯 도가 모두 열려 있습니다."
             : upRealm
-              ? `${upRealm.to.name}까지 공덕 ${upRealm.left.toLocaleString("ko-KR")} · 이틀 넘게 쉬면 흐려집니다`
-              : "가장 높은 자리 — 쉬면 가장 빨리 흐려집니다"}
+              ? `${upRealm.to.name}까지 공덕 ${upRealm.left.toLocaleString("ko-KR")}` +
+                (upRealm.needMore > 0 ? ` · 화두 ${upRealm.needMore}개` : "")
+              : "가장 높은 자리"}
+          <Info title="六道 · 자리" className="ml-1.5">
+            자리는 <b className="text-hanji">공덕</b>과 <b className="text-hanji">회향한 화두 수</b>,
+            둘 다 넘겨야 오릅니다. 목탁만 두드려서는 오르지 않습니다.
+            <br />
+            이틀 넘게 안 오면 공덕이 깎여 자리도 내려갑니다.
+          </Info>
         </p>
       </section>
 

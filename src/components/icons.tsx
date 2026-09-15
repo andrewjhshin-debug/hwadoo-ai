@@ -58,17 +58,108 @@ export function LotusMark({ className = "w-5 h-5", stroke = "currentColor" }: Ic
   );
 }
 
-// 연등(蓮燈) — 브랜드 표식. 화두 글자 왼쪽에 서는 그 문양이다.
+// 연꽃(蓮花) — 연꽃 공양의 표식.
 //
-// 세 번 고쳤다. 앞의 둘은 둘 다 **매달린 등**을 그리려다 전구·풍선이 됐다.
-// 까닭은 분명하다 — 둥근 몸통 하나를 24칸에 넣으면 그냥 둥근 것이 된다.
-// 등이라는 걸 알리는 건 매다는 줄도 술도 아니고 **불**이다.
+// 다섯 번 고쳤다. 앞의 넷은 「매달린 등」을 금빛 선으로 그리려다 차례로
+// 전구·풍선·촛불이 됐다. 까닭은 하나였다 — 먹빛 화면에 금빛 선 몇 줄로는
+// 형태가 안 선다. 그래서 세 가지를 바꿨다.
+//   ① 선을 버리고 **채운다**. 실루엣이 곧 형태가 되게.
+//   ② 금을 버리고 **연꽃 분홍**을 쓴다. 온통 금인 머리띠에서 이것만 색이면
+//      찾기 쉽고, 무엇보다 연꽃은 원래 분홍이다.
+//   ③ 밑동을 비워 두지 않는다. **초록 잎**을 깔아야 꽃이 물 위에 앉는다.
 //
-// 그래서 뜻으로 돌아갔다. 연등 = 연꽃(蓮) + 불(燈).
-// 연꽃 받침 위로 불이 솟는다. 불은 채워서 16px 에서도 먼저 눈에 걸리고,
-// 받침은 선으로 비워 두어 불이 도드라진다.
-// 연꽃공양의 Lotus 와 겹치지 않는다 — 저쪽은 활짝 핀 꽃 하나, 이쪽은 불이 주인이다.
-export function Yeondeung({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+// 꽃잎 다섯 · 잎 넷. 일곱 잎도 그려 봤지만 20px 에서 잎끼리 엉겼다 —
+// 다섯이 작은 자리에서 가장 또렷하다.
+// 뒤에서 앞으로 겹쳐 올리는 차례가 곧 원근이라, 그림자 없이 부풀어 보인다.
+// 가운데 금빛 점은 꽃술. 이게 있어야 작은 자리에서도 '꽃'으로 읽힌다.
+//
+// stroke 를 받긴 하나 쓰지 않는다 — 이 표식은 제 색을 갖는다.
+export function Yeonkkot({ className = "w-5 h-5" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <defs>
+        {/* 바깥일수록 짙고, 안쪽일수록 밝다 — 꽃은 속이 환하다 */}
+        <linearGradient id="hw-lt-1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#EE87B2" />
+          <stop offset="100%" stopColor="#AE3A6F" />
+        </linearGradient>
+        <linearGradient id="hw-lt-2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#F49EC2" />
+          <stop offset="100%" stopColor="#C64F85" />
+        </linearGradient>
+        <linearGradient id="hw-lt-3" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FBC4DA" />
+          <stop offset="100%" stopColor="#DE6699" />
+        </linearGradient>
+        <linearGradient id="hw-lf-1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#7EC067" />
+          <stop offset="100%" stopColor="#2F6E36" />
+        </linearGradient>
+        <linearGradient id="hw-lf-2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#63A852" />
+          <stop offset="100%" stopColor="#245A2B" />
+        </linearGradient>
+      </defs>
+      {/* 물 위의 잎 넷 — 꽃보다 먼저 깔린다 */}
+      <path
+        d="M12 19 C8.4 14.88 9.77 10.38 12 9.2 C14.23 10.38 15.6 14.88 12 19Z"
+        transform="rotate(100 12 19)"
+        fill="url(#hw-lf-1)"
+      />
+      <path
+        d="M12 19 C8.4 14.88 9.77 10.38 12 9.2 C14.23 10.38 15.6 14.88 12 19Z"
+        transform="rotate(-100 12 19)"
+        fill="url(#hw-lf-1)"
+      />
+      <path
+        d="M12 19 C9 15.98 10.14 12.66 12 11.8 C13.86 12.66 15 15.98 12 19Z"
+        transform="rotate(124 12 19)"
+        fill="url(#hw-lf-2)"
+      />
+      <path
+        d="M12 19 C9 15.98 10.14 12.66 12 11.8 C13.86 12.66 15 15.98 12 19Z"
+        transform="rotate(-124 12 19)"
+        fill="url(#hw-lf-2)"
+      />
+      {/* 바깥 꽃잎 둘 */}
+      <path
+        d="M12 19 C8.7 14.13 9.95 8.79 12 7.4 C14.05 8.79 15.3 14.13 12 19Z"
+        transform="rotate(70 12 19)"
+        fill="url(#hw-lt-1)"
+      />
+      <path
+        d="M12 19 C8.7 14.13 9.95 8.79 12 7.4 C14.05 8.79 15.3 14.13 12 19Z"
+        transform="rotate(-70 12 19)"
+        fill="url(#hw-lt-1)"
+      />
+      {/* 안쪽 꽃잎 둘 */}
+      <path
+        d="M12 19 C8.5 12.99 9.83 6.42 12 4.7 C14.17 6.42 15.5 12.99 12 19Z"
+        transform="rotate(34 12 19)"
+        fill="url(#hw-lt-2)"
+      />
+      <path
+        d="M12 19 C8.5 12.99 9.83 6.42 12 4.7 C14.17 6.42 15.5 12.99 12 19Z"
+        transform="rotate(-34 12 19)"
+        fill="url(#hw-lt-2)"
+      />
+      {/* 가운데 한 장 — 가장 밝다 */}
+      <path
+        d="M12 19 C8.3 12.2 9.71 4.74 12 2.8 C14.29 4.74 15.7 12.2 12 19Z"
+        fill="url(#hw-lt-3)"
+      />
+      {/* 꽃술 */}
+      <ellipse cx="12" cy="17.4" rx="2" ry="1.3" fill="#F6D98A" />
+    </svg>
+  );
+}
+
+// 놓다(放) — 「내가 던지는 화두」.
+//
+// 죽비를 그려 뒀더니 아무도 죽비로 읽지 않았다(막대 하나는 막대일 뿐이다).
+// 뜻으로 갈아탔다 — 물음을 던지는 일은 **물에 돌을 놓는 일**이다.
+// 손을 떠난 것 하나가 떠 있고, 아래로 파문 두 겹. 그게 전부다.
+export function Nohda({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -79,17 +170,40 @@ export function Yeondeung({ className = "w-5 h-5", stroke = "currentColor" }: Ic
       strokeLinejoin="round"
       className={className}
     >
-      {/* 불 — 채운다. 이 한 덩이가 '등'이라는 말을 다 한다 */}
-      <path
-        d="M12 2.2c2 2.4 3 4.4 3 6.1 0 1.85-1.35 3.2-3 3.2s-3-1.35-3-3.2c0-1.7 1-3.7 3-6.1z"
-        fill={stroke}
-        stroke="none"
-      />
-      {/* 가운데 꽃잎 — 불을 받치는 잔 */}
-      <path d="M12 13.1c1.55 0 2.75 1.4 2.75 3.3 0 2.35-1.2 4-2.75 5.4-1.55-1.4-2.75-3.05-2.75-5.4 0-1.9 1.2-3.3 2.75-3.3z" />
-      {/* 좌우로 벌어진 꽃잎 */}
-      <path d="M9.35 16.9c-2-.2-3.65-1.45-4.45-3.4 2.15-.5 3.85.4 4.7 2.5" />
-      <path d="M14.65 16.9c2-.2 3.65-1.45 4.45-3.4-2.15-.5-3.85.4-4.7 2.5" />
+      {/* 손을 떠난 물음 */}
+      <circle cx="12" cy="8.4" r="2.5" fill={stroke} stroke="none" />
+      <path d="M16.8 4.6c-1.2-.9-2.8-1.3-4.5-1.3" opacity="0.55" />
+      {/* 퍼지는 파문 */}
+      <path d="M7.3 15.6c1.8 1.1 7.6 1.1 9.4 0" opacity="0.65" />
+      <path d="M4.8 18.2c2.3 1.5 12.1 1.5 14.4 0" />
+    </svg>
+  );
+}
+
+// 저울(天秤) — 「불심 투자」.
+//
+// 코끼리를 걸어 뒀는데 투자와도 탐·진·치와도 이어지지 않았다.
+// 이 방이 하는 일은 사고파는 것이 아니라 **달아 보는 것**이다 —
+// 오늘 내 마음에 탐이 몇 냥, 진이 몇 냥인지. 그래서 저울.
+export function Jeoul({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M12 6.4v13.4" />
+      <path d="M7.2 19.8h9.6" />
+      <path d="M4.4 8.4h15.2" />
+      {/* 양쪽 접시 */}
+      <path d="M4.4 8.4 2.4 13.1a2.9 2.9 0 0 0 4 0z" />
+      <path d="M19.6 8.4l2 4.7a2.9 2.9 0 0 1-4 0z" />
+      {/* 가운데 추 */}
+      <circle cx="12" cy="5.2" r="1.5" fill={stroke} stroke="none" />
     </svg>
   );
 }

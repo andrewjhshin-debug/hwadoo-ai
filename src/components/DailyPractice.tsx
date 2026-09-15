@@ -22,6 +22,8 @@ import {
   rankOf,
   stageOf,
 } from "@/lib/merit";
+import Info from "@/components/Info";
+import { loadStore } from "@/lib/store";
 import {
   allDone,
   claimDaily,
@@ -32,7 +34,6 @@ import {
   missionsOf,
   nextKnot,
   streakOf,
-  streakSay,
   type DailyBook,
 } from "@/lib/daily";
 
@@ -102,9 +103,11 @@ export default function DailyPractice() {
   const rank = rankOf(total);
   const stage = stageOf(total);
   // 계급은 육도다 — 나무 자리는 그 곁에 작게 붙는다
-  const realm = realmOf(total);
-  const up = nextRealm(total);
-  const pct = Math.round(realmProgress(total) * 100);
+  // 자리는 공덕만으로 오르지 않는다 — 회향한 화두 수도 같이 본다
+  const returned = loadStore().history.length;
+  const realm = realmOf(total, returned);
+  const up = nextRealm(total, returned);
+  const pct = Math.round(realmProgress(total, returned) * 100);
 
   const saveName = () => {
     const bad = setName(draft);
@@ -161,7 +164,7 @@ export default function DailyPractice() {
                   onClick={saveName}
                   className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-[11.5px] text-gold transition-colors hover:bg-gold/15"
                 >
-                  짓다
+                  확인
                 </button>
               </div>
             ) : (
@@ -172,13 +175,10 @@ export default function DailyPractice() {
                     setNameErr(null);
                     setEditing(true);
                   }}
-                  title="법명 고치기"
-                  className="font-serif text-[20px] leading-none text-hanji transition-colors hover:text-gold"
+                  title="눌러서 고치기"
+                  className="font-serif text-[20px] leading-none text-hanji underline decoration-dotted decoration-hanji-faint/50 underline-offset-[5px] transition-colors hover:text-gold hover:decoration-gold/60"
                 >
                   {me ? me.name : "나무"}
-                  <span className="ml-1.5 align-middle text-[11px] text-hanji-faint">
-                    고쳐쓰기
-                  </span>
                 </button>
                 <span className="text-[11.5px] text-hanji-faint">
                   {rank.hanja} · {rank.name}
@@ -196,10 +196,21 @@ export default function DailyPractice() {
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <p className="mt-1.5 text-[10.5px] text-hanji-faint">
-              {up
-                ? `${up.to.name}까지 공덕 ${up.left.toLocaleString("ko-KR")}`
-                : "가장 높은 자리 — 쉬면 가장 빨리 흐려집니다"}
+            <p className="mt-1.5 flex items-center gap-1.5 text-[10.5px] text-hanji-faint">
+              <span className="min-w-0 flex-1 truncate">
+                {up
+                  ? up.needMore > 0 && up.left === 0
+                    ? `${up.to.name}까지 화두 ${up.needMore}개`
+                    : `${up.to.name}까지 공덕 ${up.left.toLocaleString("ko-KR")}` +
+                      (up.needMore > 0 ? ` · 화두 ${up.needMore}개` : "")
+                  : "가장 높은 자리"}
+              </span>
+              <Info title="六道 · 자리">
+                자리는 <b className="text-hanji">공덕</b>과 <b className="text-hanji">회향한 화두 수</b>,
+                둘 다 넘겨야 오릅니다.
+                <br />
+                이틀 넘게 안 오면 공덕이 깎여 자리도 내려갑니다.
+              </Info>
             </p>
           </div>
 
@@ -227,8 +238,14 @@ export default function DailyPractice() {
         {/* ── 퇴전 ── 쉬었는데 아무 말도 안 하면 숫자가 줄어든 까닭을 모른다 */}
         {fade.cut > 0 && (
           <p className="mt-3.5 break-keep rounded-[10px] border border-vermilion/35 bg-vermilion/[0.07] px-3.5 py-2.5 text-[11.5px] leading-5 text-hanji-dim">
-            {fade.gap}일 쉬는 동안 공덕 {fade.cut.toLocaleString("ko-KR")}이 흐려졌어요 —
-            닦지 않으면 흐려집니다(退轉). 오늘 한 가지만 해도 멈춥니다.
+            {fade.gap}일 쉬는 동안 공덕 {fade.cut.toLocaleString("ko-KR")}이 줄었어요.
+            오늘 한 가지만 해도 멈춥니다.
+            <Info title="退轉 · 줄어드는 까닭" className="ml-1.5">
+              하루는 그냥 넘어갑니다. <b className="text-hanji">이틀째부터</b> 하루에
+              4%씩 줄고, 오래 쉴수록 더 줄어요(최대 25%).
+              <br />
+              들어와서 뭐라도 하나 하면 그날로 멈춥니다.
+            </Info>
           </p>
         )}
 
@@ -237,10 +254,12 @@ export default function DailyPractice() {
           <Flame lit={streak > 0} />
           <p className="min-w-0 flex-1 break-keep text-[12px] leading-5 text-hanji-dim">
             <span className="font-serif text-[16px] text-hanji">{streak}</span>
-            <span className="text-hanji-faint">일째 </span>
-            {streakSay(streak)}
+            <span className="text-hanji-faint">일 이어 왔어요</span>
             {knot && (
-              <span className="text-hanji-faint"> · {knot.at}일까지 {knot.left}일</span>
+              <span className="text-hanji-faint">
+                {" "}
+                · {knot.left}일 더 하면 {knot.at}일
+              </span>
             )}
           </p>
         </div>

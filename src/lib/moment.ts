@@ -234,7 +234,7 @@ export async function createMoment(d: MomentDraft): Promise<MomentPosted> {
   const what = d.what.trim().slice(0, WHAT_MAX);
   if (!place) throw new Error("어느 절이었는지 적어 주십시오");
   if (!what) throw new Error("무엇을 하셨는지 한 줄 적어 주십시오");
-  if (/https?:\/\//i.test(what)) throw new Error("모멘트에는 링크를 실을 수 없습니다");
+  if (/https?:\/\//i.test(what)) throw new Error("시절인연에는 링크를 실을 수 없습니다");
 
   const { thumb, photo, ratio } = await shrink(d.file);
 

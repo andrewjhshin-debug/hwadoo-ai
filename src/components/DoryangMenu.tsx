@@ -21,9 +21,9 @@ import {
   Book,
   Breath,
   Dharmachakra,
-  Elephant,
+  Jeoul,
   Iljumun,
-  Jukbi,
+  Nohda,
   Letter,
   Lotus,
   LotusMark,
@@ -35,6 +35,7 @@ import {
   SeonMaster,
   Seogo,
   Teacup,
+  Yeonkkot,
 } from "./icons";
 import { inRound, loadMerit, rankOf, ROUND } from "@/lib/merit";
 import { streakOf } from "@/lib/daily";
@@ -63,7 +64,7 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     title: "수행",
     hanja: "行",
     doors: [
-      { href: "/moktak", label: "목탁과 염주", say: "손끝으로 세다", Icon: Moktak },
+      { href: "/moktak", label: "목탁·염주·싱잉볼", say: "손끝으로 세다", Icon: Moktak },
       { href: "/sambae", label: "삼배", say: "서른 초면 된다", Icon: Banga },
       { href: "/bae", label: "백팔배", say: "백여덟 번 굽히다", Icon: Banga },
       { href: "/breath", label: "호흡 명상", say: "들이쉬고 내쉬다", Icon: Breath },
@@ -79,7 +80,7 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     doors: [
       { href: "/ganhwaseon", label: "간화선이란?", say: "물음을 드는 법", Icon: Dharmachakra },
       { href: "/masters", label: "선지식의 한마디", say: "옛 어른의 말", Icon: SeonMaster },
-      { href: "/tamjinchi", label: "불심 투자", say: "탐·진·치를 보다", Icon: Elephant },
+      { href: "/tamjinchi", label: "불심 투자", say: "탐·진·치를 보다", Icon: Jeoul },
     ],
   },
   {
@@ -89,8 +90,8 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
       { href: "/pilgrimage", label: "손잡고 절로", say: "가까운 절", Icon: Iljumun },
       { href: "/gathering", label: "인연", say: "함께 갈 이", Icon: Person },
       { href: "/community", label: "연지원", say: "묻고 답하다", Icon: LotusPond },
-      { href: "/moment", label: "모멘트", say: "절에 다녀온 한 장", Icon: Moment },
-      { href: "/my-hwadu", label: "내가 던지는 화두", say: "물음을 놓다", Icon: Jukbi },
+      { href: "/moment", label: "시절인연", say: "절에 다녀온 한 장", Icon: Moment },
+      { href: "/my-hwadu", label: "내가 던지는 화두", say: "물음을 놓다", Icon: Nohda },
       { href: "/letters", label: "쪽지함", say: "주고받은 말", Icon: Letter },
       { href: "/tea", label: "차 한 잔", say: "잠깐 쉬다", Icon: Teacup },
     ],
@@ -100,7 +101,7 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     hanja: "我",
     doors: [
       { href: "/settings", label: "내 도량", say: "공덕과 부적", Icon: Person },
-      { href: "/lotus", label: "연꽃 공양", say: "등을 밝히다", Icon: Lotus },
+      { href: "/lotus", label: "연꽃 공양", say: "등을 밝히다", Icon: Yeonkkot },
       { href: "/goods", label: "굿즈", say: "손에 쥐는 것", Icon: Bojagi },
     ],
   },

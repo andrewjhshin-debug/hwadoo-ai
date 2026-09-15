@@ -35,6 +35,7 @@ import {
   type RealmColor,
 } from "@/lib/realm";
 import { loadMerit } from "@/lib/merit";
+import { loadStore } from "@/lib/store";
 
 type Tab = "merit" | "sutra";
 
@@ -83,12 +84,14 @@ export default function RankPage() {
   const [who, setWho] = useState<string | null | undefined>(undefined);
   // 내 쌓은 공덕 — 육도는 남과 견주는 것이 아니라 이 숫자로 정해진다
   const [merit0, setMerit0] = useState(0);
+  const [returned0, setReturned0] = useState(0);
   const pushed = useRef(false);
 
   // 날짜와 서랍을 읽는 일은 붙고 난 뒤에 — 서버가 그린 첫 그림과 어긋나지 않게
   useEffect(() => {
     setReady(true);
     setMerit0(loadMerit().total);
+    setReturned0(loadStore().history.length);
   }, []);
   useEffect(() => onAuthStateChanged(auth, (u) => setWho(u?.uid ?? null)), []);
 
@@ -151,9 +154,11 @@ export default function RankPage() {
   const inList = rows.some((r) => r.me);
 
   // ── 육도 — 남과 견주는 게 아니라 내가 쌓은 공덕이 곧 자리다 ──
-  const myRealm = realmOf(merit0);
-  const step = nextRealm(merit0);
-  const climbed = realmProgress(merit0);
+  // 자리는 공덕만으로 오르지 않는다 — 회향한 화두 수도 같이 본다.
+  // 서랍은 effect 에서 읽는다(서버 첫 그림과 어긋나지 않게).
+  const myRealm = realmOf(merit0, returned0);
+  const step = nextRealm(merit0, returned0);
+  const climbed = realmProgress(merit0, returned0);
 
   const people = board?.people ?? 0;
 

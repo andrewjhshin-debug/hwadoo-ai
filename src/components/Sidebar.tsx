@@ -36,9 +36,9 @@ import {
   Book,
   Breath,
   Dharmachakra,
-  Elephant,
+  Jeoul,
   Iljumun,
-  Jukbi,
+  Nohda,
   Letter,
   LotusMark,
   LotusPond,
@@ -48,7 +48,7 @@ import {
   Seogo,
   Person,
   Teacup,
-  Yeondeung,
+  Yeonkkot,
 } from "./icons";
 
 type NavItem = {
@@ -68,7 +68,7 @@ const NAV_PRACTICE: NavItem[] = [
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
   { href: "/empty", label: "비움", Icon: Moktak },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
-  { href: "/moktak", label: "목탁과 염주", Icon: Moktak },
+  { href: "/moktak", label: "목탁·염주·싱잉볼", Icon: Moktak },
   { href: "/sambae", label: "삼배", Icon: Banga },
   { href: "/bae", label: "백팔배", Icon: Banga },
   { href: "/sutra", label: "경전 외우기", Icon: Book },
@@ -84,13 +84,13 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/ganhwaseon", label: "간화선이란?", Icon: Dharmachakra },
       { href: "/masters", label: "선지식의 한마디", Icon: SeonMaster },
-      { href: "/tamjinchi", label: "불심 투자", Icon: Elephant },
+      { href: "/tamjinchi", label: "불심 투자", Icon: Jeoul },
     ],
   },
   {
     title: "나눔",
     items: [
-      { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Jukbi },
+      { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Nohda },
       { href: "/community", label: "연지원 — 커뮤니티", Icon: LotusPond },
       { href: "/tea", label: "차 한 잔", Icon: Teacup },
       { href: "/goods", label: "굿즈", Icon: Bojagi },
@@ -288,7 +288,7 @@ export default function Sidebar() {
             title="연꽃 공양 — 등을 밝히다"
             className="p-2 text-hanji-dim transition-colors hover:text-gold-soft"
           >
-            <Yeondeung className="h-6 w-6" stroke="#D9B45B" />
+            <Yeonkkot className="h-6 w-6" />
           </Link>
           <Link
             href="/letters"
@@ -357,7 +357,7 @@ export default function Sidebar() {
               aria-label="연꽃 공양"
               className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
             >
-              <Yeondeung className="h-4 w-4" />
+              <Yeonkkot className="h-4 w-4" />
             </Link>
             {dmVisible(user?.uid) && (
               <Link
@@ -440,7 +440,7 @@ export default function Sidebar() {
                 : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
             } ${slim ? "justify-center px-0" : "px-3"}`}
           >
-            <Elephant className="h-[16px] w-[16px] opacity-75" />
+            <Jeoul className="h-[16px] w-[16px] opacity-75" />
             {!slim && <span>체험하기</span>}
           </Link>
 

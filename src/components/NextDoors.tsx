@@ -19,9 +19,9 @@ import {
   Book,
   Breath,
   Dharmachakra,
-  Elephant,
+  Jeoul,
   Iljumun,
-  Jukbi,
+  Nohda,
   Lotus,
   LotusMark,
   LotusPond,
@@ -32,6 +32,7 @@ import {
   Moment,
   SeonMaster,
   Teacup,
+  Yeonkkot,
 } from "./icons";
 
 type Door = {
@@ -42,7 +43,7 @@ type Door = {
 };
 
 const D: Record<string, Door> = {
-  moktak: { href: "/moktak", label: "목탁과 염주", say: "손끝으로 세다", Icon: Moktak },
+  moktak: { href: "/moktak", label: "목탁·염주·싱잉볼", say: "손끝으로 세다", Icon: Moktak },
   sambae: { href: "/sambae", label: "삼배", say: "서른 초면 된다", Icon: Banga },
   bae: { href: "/bae", label: "백팔배", say: "백여덟 번 굽히다", Icon: Banga },
   breath: { href: "/breath", label: "호흡 명상", say: "들이쉬고 내쉬다", Icon: Breath },
@@ -58,12 +59,12 @@ const D: Record<string, Door> = {
   pilgrimage: { href: "/pilgrimage", label: "손잡고 절로", say: "가까운 절", Icon: Iljumun },
   gathering: { href: "/gathering", label: "인연", say: "함께 갈 이", Icon: Person },
   community: { href: "/community", label: "연지원", say: "묻고 답하다", Icon: LotusPond },
-  moment: { href: "/moment", label: "모멘트", say: "절에 다녀온 한 장", Icon: Moment },
-  myHwadu: { href: "/my-hwadu", label: "내가 던지는 화두", say: "물음을 놓다", Icon: Jukbi },
+  moment: { href: "/moment", label: "시절인연", say: "절에 다녀온 한 장", Icon: Moment },
+  myHwadu: { href: "/my-hwadu", label: "내가 던지는 화두", say: "물음을 놓다", Icon: Nohda },
   ganhwaseon: { href: "/ganhwaseon", label: "간화선이란?", say: "물음을 드는 법", Icon: Dharmachakra },
   masters: { href: "/masters", label: "선지식의 한마디", say: "옛 어른의 말", Icon: SeonMaster },
-  tamjinchi: { href: "/tamjinchi", label: "불심 투자", say: "탐·진·치를 보다", Icon: Elephant },
-  lotus: { href: "/lotus", label: "연꽃 공양", say: "등을 밝히다", Icon: Lotus },
+  tamjinchi: { href: "/tamjinchi", label: "불심 투자", say: "탐·진·치를 보다", Icon: Jeoul },
+  lotus: { href: "/lotus", label: "연꽃 공양", say: "등을 밝히다", Icon: Yeonkkot },
   goods: { href: "/goods", label: "굿즈", say: "손에 쥐는 것", Icon: Bojagi },
   tea: { href: "/tea", label: "차 한 잔", say: "잠깐 쉬다", Icon: Teacup },
 };
