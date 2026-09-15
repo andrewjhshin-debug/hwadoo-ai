@@ -198,12 +198,15 @@ export default function PilgrimagePage() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-16 pt-8 md:pt-12">
       {/* ── 머리 — 두 겹으로만. 오른쪽에 내 연꽃을 걸어 둔다:
-             인연에 손을 내밀 때 한 송이씩 나가므로, 쓰는 자리에서 보여야 한다 ── */}
-      <div className="rise relative flex items-center justify-center">
-        <p className="text-center text-[13px] tracking-[0.5em] text-gold-soft">
+             인연에 손을 내밀 때 한 송이씩 나가므로, 쓰는 자리에서 보여야 한다.
+             알약을 absolute 로 띄워 뒀더니 공덕까지 붙어 넓어지면서 제목 위로
+             올라탔다. 이제 제자리를 준다 — 제목은 남은 폭 한가운데. ── */}
+      <div className="rise flex items-center gap-2">
+        <span aria-hidden className="w-0 shrink-0 sm:w-[86px]" />
+        <p className="min-w-0 flex-1 truncate text-center text-[13px] tracking-[0.28em] text-gold-soft sm:tracking-[0.5em]">
           巡禮 · 손잡고 절로
         </p>
-        <LotusCount className="absolute right-0" />
+        <LotusCount className="shrink-0" />
       </div>
       <p className="question-glow rise rise-d1 mt-7 text-center font-serif text-[26px] font-light leading-[1.7] text-hanji">
         가까운 절에,

@@ -414,9 +414,13 @@ export default function CandleHall() {
         }
       `}</style>
 
-      <div className="relative flex items-center justify-center">
-        <h1 className="text-center text-xs tracking-[0.5em] text-gold-soft">燭 · 초 공양</h1>
-        <LotusCount className="absolute right-0" />
+      {/* 알약이 넓어지면 제목 위로 올라탄다 — 한 줄에 제자리를 준다 */}
+      <div className="flex items-center gap-2">
+        <span aria-hidden className="w-0 shrink-0 sm:w-[86px]" />
+        <h1 className="min-w-0 flex-1 truncate text-center text-xs tracking-[0.5em] text-gold-soft">
+          燭 · 초 공양
+        </h1>
+        <LotusCount className="shrink-0" />
       </div>
 
       <p className="mt-6 break-keep text-center text-[13px] leading-7 text-hanji-dim">

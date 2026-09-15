@@ -813,25 +813,28 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto w-full max-w-xl flex-1 px-6 py-12">
-      {/* 머리 오른쪽에 내 연꽃 — 아래쪽에도 한 줄 있지만 거기까지 내려가야
-          보였다. 쓰는 자리마다 보여야 하는 숫자는 맨 위에 둔다. */}
-      <div className="relative flex items-center justify-center">
+      {/* 머리 — 왼쪽 공유, 가운데 이름, 오른쪽 내 연꽃·공덕.
+          셋을 absolute 로 띄워 뒀더니 알약이 넓어지면서 이름 위로 올라탔다.
+          이제 한 줄에 제자리를 준다 — 이름은 남은 폭 한가운데. */}
+      <div className="flex items-center gap-2">
         {/* 공유 — 리포트 안에 묻혀 있던 것을 꺼냈다. 남에게 보일 만한 것은
-            맨 위에 있어야 누른다. 올해치가 아직 없으면 그리지 않는다. */}
-        {yearReport && (
+            맨 위에 있어야 누른다. 올해치가 아직 없으면 자리만 비워 둔다. */}
+        {yearReport ? (
           <button
             onClick={() => void shareYear(yearReport)}
             title={`${yearReport.year}년 내 걸음 공유`}
             aria-label="올해의 걸음 공유"
-            className="absolute left-0 grid h-7 w-7 place-items-center rounded-full border border-ink-3 text-hanji-faint transition-colors hover:border-gold/45 hover:text-gold-soft"
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-ink-3 text-hanji-faint transition-colors hover:border-gold/45 hover:text-gold-soft"
           >
             <Share className="h-3.5 w-3.5" />
           </button>
+        ) : (
+          <span aria-hidden className="h-7 w-7 shrink-0" />
         )}
-        <h1 className="text-center text-xs tracking-[0.5em] text-gold-soft">
+        <h1 className="min-w-0 flex-1 truncate text-center text-xs tracking-[0.5em] text-gold-soft">
           道場 · 내 도량
         </h1>
-        <LotusCount className="absolute right-0" />
+        <LotusCount className="shrink-0" />
       </div>
       {yearShareMsg && (
         <p className="mt-2 break-all text-center text-[11px] leading-5 text-hanji-faint">

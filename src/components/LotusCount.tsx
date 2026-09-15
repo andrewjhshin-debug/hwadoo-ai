@@ -112,10 +112,12 @@ export default function LotusCount({
       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-ink-3 bg-ink-2/50 px-2.5 py-1 text-[11.5px] text-hanji-dim transition-colors hover:border-gold/45 hover:text-hanji ${className}`}
     >
       <Yeonkkot className="h-[15px] w-[15px]" />
+      {/* 좁은 화면에서는 「송이 · 공덕」 글자를 접는다 — 알약이 넓어지면
+          머리줄의 제목과 겹친다. 아이콘이 연꽃을, 功 이 공덕을 말한다. */}
       {n !== null && (
         <>
           <span className="tabular-nums">{n.toLocaleString("ko-KR")}</span>
-          <span className="text-hanji-faint">송이</span>
+          <span className="hidden text-hanji-faint sm:inline">송이</span>
         </>
       )}
       {merit && m !== null && (
@@ -125,8 +127,11 @@ export default function LotusCount({
               |
             </span>
           )}
+          <span aria-hidden className="font-serif text-[10px] text-hanji-faint sm:hidden">
+            功
+          </span>
           <span className="tabular-nums text-gold-soft">{m.toLocaleString("ko-KR")}</span>
-          <span className="text-hanji-faint">공덕</span>
+          <span className="hidden text-hanji-faint sm:inline">공덕</span>
         </>
       )}
     </Link>
