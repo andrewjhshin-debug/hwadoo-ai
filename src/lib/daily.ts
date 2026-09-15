@@ -22,10 +22,19 @@ export type DailyKey = MeritSource | "visit";
 export type DailyBook = {
   day: string; // "YYYY-MM-DD"
   by: Partial<Record<DailyKey, number>>;
+  /**
+   * 오늘 그 갈래로 **실제로 붙은 공덕**.
+   * by 는 횟수다 — 「목탁 쉰네 번」 같은 미션이 그걸 센다. 그런데 천장은
+   * 횟수로 세면 안 된다. addMerit 은 부적·회향 배수를 먹인 값을 적립하는데
+   * 천장 쪽은 맨값(값×횟수)만 깎고 있었다. 배수 2.16 짜리 정진자는
+   * 하루 천장 2,160 을 4,665 로 늘려 쓰고 있었다는 뜻이다.
+   * 그래서 붙은 값을 그대로 적는 칸을 따로 둔다.
+   */
+  got?: Partial<Record<DailyKey, number>>;
   claimed: boolean; // 세 가지를 다 마치고 공덕을 받았는가
 };
 
-const EMPTY = (day: string): DailyBook => ({ day, by: {}, claimed: false });
+const EMPTY = (day: string): DailyBook => ({ day, by: {}, got: {}, claimed: false });
 
 // ── 오늘의 세 가지 ──────────────────────────────────────────
 
@@ -101,6 +110,7 @@ export function loadDaily(): DailyBook {
     return {
       day: today,
       by: p.by && typeof p.by === "object" ? p.by : {},
+      got: p.got && typeof p.got === "object" ? p.got : {},
       claimed: p.claimed === true,
     };
   } catch {
@@ -118,10 +128,14 @@ function save(b: DailyBook) {
 }
 
 /** 하루치에 한 획 — addMerit 이 부른다. 여기 말고 따로 부를 일은 없다 */
-export function noteDaily(key: DailyKey, times = 1) {
+export function noteDaily(key: DailyKey, times = 1, gained = 0) {
   if (typeof window === "undefined") return;
   const b = loadDaily();
   b.by[key] = (b.by[key] ?? 0) + times;
+  if (gained > 0) {
+    if (!b.got) b.got = {};
+    b.got[key] = (b.got[key] ?? 0) + gained;
+  }
   save(b);
 }
 

@@ -214,10 +214,13 @@ export default function BreathPage() {
   const finish = () => {
     const elapsed = performance.now() - startRef.current;
     // 10초 = 1식. 한 호흡을 채 못 채웠어도, 앉았던 숨 하나는 쳐 준다.
-    setBreaths(Math.max(1, Math.floor(elapsed / CYCLE_MS)));
+    const n = Math.max(1, Math.floor(elapsed / CYCLE_MS));
+    setBreaths(n);
     setStage("done");
     void audioRef.current?.suspend(); // 소리도 함께 내려놓는다
-    recordMeditation(); // 이달의 마음이 이 걸음을 세도록
+    // 공덕은 판이 아니라 **식마다** 붙는다 — 여섯 식에 끊고 다시 여는 것이
+    // 이득이 되면 안 된다. 오래 앉은 사람이 더 가져가야 맞다.
+    recordMeditation(Date.now(), n);
     // 공덕이 하루 장부에 적힌 뒤라야 오늘치가 맞다 — 그래서 여기서 다시 읽는다
     setToday(loadDaily().by.breath ?? 0);
   };

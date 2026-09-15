@@ -543,7 +543,7 @@ export default function Home() {
               <Dudu
                 stage={stageOf(merit)}
                 mood={
-                  merit >= 3240 ? "joy" : merit >= 108 ? "bright" : "default"
+                  merit >= 1620 ? "joy" : merit >= 108 ? "bright" : "default"
                 }
                 uid="home"
                 className="block h-[58px] w-[58px] shrink-0"

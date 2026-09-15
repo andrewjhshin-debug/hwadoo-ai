@@ -12,9 +12,14 @@ export const MEDITATIONS_KEY = "hwadu.meditations.v1";
 // 최대 400회치 — 넘치면 오래된 것부터 버린다
 const MAX_MEDITATIONS = 400;
 
-// 한 판을 마쳤다 — 지금 시각을 적는다
-export function recordMeditation(t: number = Date.now()) {
-  addMerit("breath"); // 한 판에 공덕 21
+/**
+ * 한 판을 마쳤다 — 지금 시각을 적는다.
+ * breaths 는 이번 판에 쉰 숨(식)의 수. 공덕은 **식마다** 붙는다 —
+ * 판으로 한 몫을 주면 여섯 식에 끊고 다시 여는 게 이득이 되어,
+ * 앉아 있는 사람이 여닫는 사람보다 손해를 본다.
+ */
+export function recordMeditation(t: number = Date.now(), breaths = 1) {
+  addMerit("breath", Math.max(1, Math.round(breaths))); // 한 식에 공덕 21
   grantCharm("ansim"); // 처음 마친 사람에게 안심부
   try {
     const list = loadMeditations();

@@ -84,6 +84,11 @@ export default function MoktakPage() {
   const ringTimer = useRef<number | null>(null);
 
   const ringBowl = () => {
+    // 울고 있는 동안엔 다시 못 친다.
+    // 예전엔 곧바로 앞 소리를 재우고 새로 쳤다 — 그래서 십오 초짜리 여운을
+    // 가진 물건이 초당 두 번 치는 물건이 됐고, 한 타 21 이라는 값의 근거가
+    // 거짓말이 됐다(열 초에 하루 천장의 18%). 여운을 듣는 것까지가 한 번이다.
+    if (ringing) return;
     const secs = strikeBowl(vol, tone);
     if (!secs) return;
     earn("bowl");

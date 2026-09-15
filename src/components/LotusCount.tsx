@@ -8,7 +8,7 @@
 // 안쪽에만 적혀 있었다 — 정작 쓰는 자리에서는 몇 송이 쥐었는지 알 수 없었다.
 //
 // 공덕도 함께 붙인다. 둘은 한 몸이다 —
-// **공덕 3,240 이 연꽃 한 송이**(merit.ts LOTUS_PRICE). 나란히 두지 않으면
+// **공덕 6,480 이 연꽃 한 송이**(merit.ts LOTUS_PRICE). 나란히 두지 않으면
 // 「이거 모아서 뭐 하는 건데」가 남는다. 누르면 바꾸는 자리로 간다.
 //
 // 지갑은 서버에 있다(wallets/{uid}). 로그인 전에는 연꽃을 그리지 않는다 —
@@ -64,7 +64,7 @@ export default function LotusCount({
     };
   }, [read]);
 
-  // 공덕은 이 기기의 장무 — 그리기 중에 읽으면 서버/브라우저가 어긋난다
+  // 공덕은 이 기기의 장부 — 그리기 중에 읽으면 서버/브라우저가 어긋난다
   useEffect(() => {
     if (!merit) return;
     const readMerit = () => setM(loadMerit().total);
@@ -93,9 +93,11 @@ export default function LotusCount({
         {n !== null && <span className="tabular-nums">{n.toLocaleString("ko-KR")}</span>}
         {merit && m !== null && (
           <>
-            <span aria-hidden className="text-gold/35">
-              ·
-            </span>
+            {n !== null && (
+              <span aria-hidden className="text-gold/35">
+                ·
+              </span>
+            )}
             <span className="tabular-nums text-hanji-faint">{m.toLocaleString("ko-KR")}</span>
           </>
         )}
@@ -118,9 +120,11 @@ export default function LotusCount({
       )}
       {merit && m !== null && (
         <>
-          <span aria-hidden className="text-ink-3">
-            |
-          </span>
+          {n !== null && (
+            <span aria-hidden className="text-ink-3">
+              |
+            </span>
+          )}
           <span className="tabular-nums text-gold-soft">{m.toLocaleString("ko-KR")}</span>
           <span className="text-hanji-faint">공덕</span>
         </>

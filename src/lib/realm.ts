@@ -76,7 +76,25 @@ export type Realm = {
   color: RealmColor;
 };
 
-/** 아래에서 위로 */
+/**
+ * 아래에서 위로.
+ *
+ * 2026-09 다시 잡았다. 앞은 촘촘하게, 뒤는 벌어지게 —
+ * 첫날 한 칸, 사흘째 한 칸, 그다음은 열흘·여섯 주·석 달.
+ *   아귀 432    첫 자리에서 대여섯 분이면 닿는다(호흡 한 판 252 + 화두 회향 108
+ *               + 목탁 쉰네 번 54 + 삼배 21 = 435). 첫날 한 칸이 안 오르면
+ *               이튿날이 없다. 예전 1,080 은 첫 세션에 열한 분을 요구했다.
+ *   축생 1,620  가볍게 하는 사람(하루 600 남짓) 기준 사흘째.
+ *               사흘을 아무 일 없이 보내면 지운다.
+ *   수라 21,600 하루에 쉬는 숨의 수. 보통 사람 열흘 남짓.
+ *   인간 84,000 팔만사천 — 번뇌의 수. 여섯 주.
+ *   천상 194,400 백팔을 천팔백 바퀴. 보통 사람 석 달, 가볍게 하면 여덟 달.
+ * 예전엔 천상도가 여섯 주였다 — 아침저녁으로 여는 앱을 한 달 반에
+ * 다 태워 버리는 셈이었다. 「개쉽노」는 첫 세션이 아니라 여섯째 주에 온다.
+ *
+ * 공덕만으로는 못 오른다. 회향한 화두 수(needReturned)를 함께 넘겨야 한다 —
+ * 목탁을 아무리 두드려도 물음을 품지 않으면 그 자리에 선다.
+ */
 export const REALMS: Realm[] = [
   {
     id: "jiok",
@@ -93,9 +111,9 @@ export const REALMS: Realm[] = [
     name: "아귀도",
     hanja: "餓鬼",
     mark: "鬼",
-    need: 1080,
+    need: 432,
     needReturned: 1,
-    why: "백팔을 열 바퀴",
+    why: "백팔을 네 바퀴 — 첫 자리에서 대여섯 분",
     say: "목마름이 깊을수록 한 모금이 큽니다",
     color: "hanji-dim",
   },
@@ -104,9 +122,9 @@ export const REALMS: Realm[] = [
     name: "축생도",
     hanja: "畜生",
     mark: "畜",
-    need: 5400,
-    needReturned: 3,
-    why: "백팔을 쉰 바퀴",
+    need: 1620,
+    needReturned: 2,
+    why: "백팔을 열다섯 바퀴 — 사흘째",
     say: "몸이 먼저 움직이기 시작했습니다",
     color: "hanji",
   },
@@ -115,9 +133,9 @@ export const REALMS: Realm[] = [
     name: "수라도",
     hanja: "修羅",
     mark: "修",
-    need: 10800,
+    need: 21600,
     needReturned: 7,
-    why: "백팔을 백 바퀴",
+    why: "하루에 쉬는 숨의 수",
     say: "다투는 자리입니다. 한 칸 위가 보입니다",
     color: "vermilion",
   },
@@ -126,9 +144,9 @@ export const REALMS: Realm[] = [
     name: "인간도",
     hanja: "人間",
     mark: "人",
-    need: 21600,
+    need: 84000,
     needReturned: 15,
-    why: "하루에 쉬는 숨의 수",
+    why: "팔만사천 — 번뇌의 수",
     say: "수행하기 가장 좋은 자리입니다",
     color: "gold-soft",
   },
@@ -137,9 +155,9 @@ export const REALMS: Realm[] = [
     name: "천상도",
     hanja: "天上",
     mark: "天",
-    need: 84000,
+    need: 194400,
     needReturned: 30,
-    why: "팔만사천 — 번뇌의 수",
+    why: "백팔을 천팔백 바퀴 — 석 달은 걸린다",
     say: "높은 자리일수록 빨리 흐려집니다",
     color: "gold",
   },

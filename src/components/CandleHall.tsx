@@ -24,6 +24,7 @@ import LotusCount, { pingLotus } from "@/components/LotusCount";
 import Info from "@/components/Info";
 import { Yeonkkot } from "@/components/icons";
 import {
+  alreadyPrayed,
   BURN_DAYS,
   CANDLE_PRICE,
   NAME_MAX,
@@ -125,7 +126,9 @@ function Slip({
   const w = wishOf(c.kind);
   const mine = me?.uid === c.uid;
   const [busy, setBusy] = useState(false);
+  // 이미 손 모은 초는 다시 안 센다 — 그리기 중에 서랍을 읽으면 물이 어긋난다
   const [done, setDone] = useState(false);
+  useEffect(() => setDone(alreadyPrayed(c.id)), [c.id]);
 
   const pray = async () => {
     if (busy || done || mine || !me) return;

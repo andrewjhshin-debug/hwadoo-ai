@@ -211,10 +211,40 @@ export async function fetchMyCandles(): Promise<Candle[]> {
 /**
  * 같이 빌어 준다 — 남의 초에만. 내 초에 내가 손 모으는 건 셈이 아니다.
  * 돌려주는 값은 이번에 붙은 공덕(0 이면 오늘 몫을 다 쓴 것).
+ *
+ * 한 초에 한 번뿐이다. 없으면 같은 초를 스무 번 눌러 천장을 긁는다 —
+ * 그건 비는 게 아니라 단추 누르기다. 장부는 이 브라우저에 적는다
+ * (서버에 사람마다 표를 만들면 문서가 초 수 × 사람 수로 불어난다).
  */
+const PRAYED_KEY = "hwadu.candle.prayed.v1";
+
+function prayedSet(): Set<string> {
+  try {
+    const raw = window.localStorage.getItem(PRAYED_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+/** 이 초에 이미 손을 모았는가 */
+export function alreadyPrayed(id: string): boolean {
+  if (typeof window === "undefined") return false;
+  return prayedSet().has(id);
+}
+
 export async function prayWith(c: Candle): Promise<number> {
   const u = auth.currentUser;
   if (!u || u.uid === c.uid) return 0;
+  if (alreadyPrayed(c.id)) return 0;
   await updateDoc(doc(db, "candles", c.id), { hapjang: increment(1) });
+  try {
+    const set = prayedSet();
+    set.add(c.id);
+    // 꺼진 초까지 이고 갈 일은 없다 — 뒤에서부터 오백 개만 남긴다
+    window.localStorage.setItem(PRAYED_KEY, JSON.stringify([...set].slice(-500)));
+  } catch {
+    /* 서랍이 막혀 있어도 빈 일은 빈 일이다 */
+  }
   return addMerit("candle").gained;
 }
