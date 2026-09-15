@@ -61,14 +61,16 @@ export default function LotusCount({
   if (n === null) return null;
 
   if (look === "line") {
+    // 맨 글자로 두었더니 곁의 아이콘들에 묻혔다. 옅은 금 테를 둘러
+    // 「눌러서 가는 자리」임을 드러낸다.
     return (
       <Link
         href="/lotus"
-        title="연꽃 공양으로"
-        className={`inline-flex items-center gap-1 align-middle text-[11.5px] text-hanji-dim transition-colors hover:text-gold ${className}`}
+        title="내 연꽃 — 눌러서 연꽃 공양으로"
+        className={`inline-flex shrink-0 items-center gap-1 rounded-full border border-gold/25 bg-gold/[0.07] py-[3px] pl-[5px] pr-2 align-middle text-[11px] text-gold-soft transition-colors hover:border-gold/55 hover:bg-gold/15 ${className}`}
       >
-        <Yeonkkot className="h-[13px] w-[13px]" />
-        {n.toLocaleString("ko-KR")}
+        <Yeonkkot className="h-[14px] w-[14px]" />
+        <span className="tabular-nums">{n.toLocaleString("ko-KR")}</span>
       </Link>
     );
   }

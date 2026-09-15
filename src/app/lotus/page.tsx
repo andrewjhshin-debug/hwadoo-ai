@@ -72,7 +72,17 @@ const DEFAULT_PRODUCT =
 
 const won = (n: number) => n.toLocaleString("ko-KR") + "원";
 
-/** 지금 내가 쥔 연꽃 — 로그인했을 때만 뜬다 */
+/**
+ * 지금 내가 쥔 연꽃.
+ *
+ * 처음엔 「지금 0송이 가지고 있어요」 한 줄로만 적었더니, 사러 온 자리에서
+ * 제일 중요한 숫자가 안내문처럼 흘러갔다. 연꽃은 이 도량의 재화다 —
+ * 지갑을 열었을 때 잔고가 보이듯 **한 칸으로 서 있어야** 한다.
+ *
+ * 숫자를 크게 하나, 그 아래 어디에 쓰이는지 한 줄, 뒤로 옅은 금빛 무리.
+ * 로그인 전에는 그리지 않는다 — 0 이라고 적으면 '없다'는 말이 되는데
+ * 사실은 '아직 모른다'이다.
+ */
 function MyLotus() {
   const [n, setN] = useState<number | null>(null);
   useEffect(() => {
@@ -86,11 +96,36 @@ function MyLotus() {
   }, []);
   if (n === null) return null;
   return (
-    <p className="mt-3 flex items-center gap-1.5 text-[12.5px] text-hanji-dim">
-      <Yeonkkot className="h-4 w-4" />
-      지금 <span className="font-serif text-[17px] leading-none text-gold">{n.toLocaleString("ko-KR")}</span>
-      송이 가지고 있어요
-    </p>
+    <div className="relative mt-6 w-full max-w-[19rem] overflow-hidden rounded-[18px] border border-gold/25 bg-ink-2/60 px-5 py-4">
+      {/* 옅은 금빛 무리 — 잔고가 놓인 자리에 온기를 준다 */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(217,180,91,.18) 0%, transparent 68%)",
+        }}
+      />
+      <div className="relative flex items-center gap-3.5">
+        <Yeonkkot className="h-9 w-9 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-[10.5px] tracking-[0.3em] text-hanji-faint">
+            내 연꽃
+          </p>
+          <p className="mt-0.5 flex items-baseline gap-1">
+            <span className="font-serif text-[30px] leading-none text-gold tabular-nums">
+              {n.toLocaleString("ko-KR")}
+            </span>
+            <span className="text-[12px] text-hanji-dim">송이</span>
+          </p>
+        </div>
+      </div>
+      <p className="relative mt-3 border-t border-ink-3 pt-2.5 text-[11px] leading-5 text-hanji-faint">
+        {n > 0
+          ? "쪽지 한 통 · 등 한 번 · 인연 한 손길에 한 송이씩 나갑니다"
+          : "공덕을 모아 바꾸거나, 아래에서 공양할 수 있습니다"}
+      </p>
+    </div>
   );
 }
 

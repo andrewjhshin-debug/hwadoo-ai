@@ -30,6 +30,7 @@ import {
   DM_SEEN_EVENT,
 } from "@/lib/dm";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
+import LotusCount from "@/components/LotusCount";
 import {
   Banga,
   Bojagi,
@@ -324,19 +325,35 @@ export default function Sidebar() {
           slim ? "w-[68px] px-2" : "w-[264px] px-4"
         } ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
-        {/* 브랜드 + 접기 */}
-        <div
-          className={`mb-4 hidden shrink-0 items-center md:flex ${slim ? "justify-center" : "justify-between px-2"}`}
-        >
+        {/* 브랜드 + 접기.
+            한 줄에 이름과 아이콘 다섯을 다 밀어 넣었더니 264px 안에서
+            「화두」가 두 줄로 접혔다. 줄을 갈랐다 — 위는 이름과 접기,
+            아래는 아이콘과 내 연꽃 수. 이름은 절대 접히지 않게 nowrap. */}
+        <div className={`mb-4 hidden shrink-0 flex-col md:flex ${slim ? "items-center gap-1.5" : "gap-2"}`}>
           {!slim && (
-            <Link href="/" onClick={go("/")} className="flex items-center gap-2.5">
-              <LotusMark className="h-7 w-7" stroke="#D9B45B" />
-              <span className="text-gold-grad font-serif text-lg font-semibold tracking-[0.35em]">
-                화두
-              </span>
-            </Link>
+            <div className="flex items-center justify-between px-2">
+              <Link href="/" onClick={go("/")} className="flex shrink-0 items-center gap-2.5">
+                <LotusMark className="h-7 w-7 shrink-0" stroke="#D9B45B" />
+                <span className="text-gold-grad whitespace-nowrap font-serif text-lg font-semibold tracking-[0.26em]">
+                  화두
+                </span>
+              </Link>
+              <button
+                onClick={toggleCollapsed}
+                title="접기"
+                aria-label="사이드바 접기"
+                className="shrink-0 p-1.5 text-hanji-faint transition-colors hover:text-hanji-dim"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4">
+                  <path d="M15 5l-7 7 7 7" />
+                </svg>
+              </button>
+            </div>
           )}
-          <div className={`flex items-center ${slim ? "flex-col gap-1" : "gap-0.5"}`}>
+          <div
+            className={`flex items-center ${slim ? "flex-col gap-1" : "justify-between gap-0.5 px-1.5"}`}
+          >
+            <div className={`flex items-center ${slim ? "flex-col gap-1" : "gap-0.5"}`}>
             {/* 마이 페이지 · 내 도량 — 오른쪽 위.
                 걸음 뱃지는 아래 로그인 영역에만 — 여기에는 새 소식 점만 뜬다 */}
             {/* 연꽃 · 쪽지 — 낮/밤 단추가 있던 자리 */}
@@ -357,7 +374,7 @@ export default function Sidebar() {
               aria-label="연꽃 공양"
               className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
             >
-              <Yeonkkot className="h-4 w-4" />
+              <Yeonkkot className="h-[19px] w-[19px]" />
             </Link>
             {dmVisible(user?.uid) && (
               <Link
@@ -391,16 +408,21 @@ export default function Sidebar() {
                 />
               )}
             </Link>
-            <button
-              onClick={toggleCollapsed}
-              title={slim ? "펼치기" : "접기"}
-              aria-label={slim ? "사이드바 펼치기" : "사이드바 접기"}
-              className="p-1.5 text-hanji-faint transition-colors hover:text-hanji-dim"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4">
-                {slim ? <path d="M9 5l7 7-7 7" /> : <path d="M15 5l-7 7 7 7" />}
-              </svg>
-            </button>
+            {slim && (
+              <button
+                onClick={toggleCollapsed}
+                title="펼치기"
+                aria-label="사이드바 펼치기"
+                className="p-1.5 text-hanji-faint transition-colors hover:text-hanji-dim"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4">
+                  <path d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+            </div>
+            {/* 내 연꽃 — 웹에도 있어야 한다. 폰에서만 보이면 반쪽이다 */}
+            {!slim && <LotusCount look="line" />}
           </div>
         </div>
 
