@@ -122,27 +122,40 @@ export default function MeritExchange() {
         <LotusMark className="h-[18px] w-[18px] text-gold-soft" />
       </div>
 
-      {/* 지금 잔고 */}
-      <p className="mt-3 font-serif text-[68px] font-light leading-none tabular-nums text-hanji">
-        {num(balance)}
-      </p>
-      <p className="mt-1.5 text-[11px] text-hanji-faint">지금 쓸 수 있는 공덕</p>
+      {/* 같은 숫자를 세 번 말하고 있었다 —
+            큰 잔고(바로 위 「공덕」 칸에 이미 있다) ·
+            「3,240 공덕 = 한 송이 · 한나절이면 한 송이」 ·
+            「한 송이까지 2,088」 ·
+            「공덕 2,088을 더 쌓으면 한 송이예요」
+          남길 것은 하나뿐이다 — **한 송이까지 얼마 남았나.**
+          그 아래 단추가 눌리는지 아닌지가 나머지를 다 말해 준다. */}
+      <div className="mt-3.5 flex items-baseline justify-between gap-3">
+        <p className="text-[12.5px] text-hanji-dim">
+          {can > 0 ? (
+            <>
+              바꿀 수 있는 연꽃{" "}
+              <span className="font-serif text-[22px] leading-none text-gold">{can}</span>
+              <span className="text-hanji-faint"> 송이</span>
+            </>
+          ) : (
+            <>
+              한 송이까지{" "}
+              <span className="font-serif text-[22px] leading-none text-gold tabular-nums">
+                {num(toNext)}
+              </span>
+            </>
+          )}
+        </p>
+        <p className="shrink-0 text-[11px] tabular-nums text-hanji-faint">
+          {num(balance)} / {num(LOTUS_PRICE)}
+        </p>
+      </div>
 
-      {/* 다음 한 송이까지 */}
-      <div className="mt-4 h-[6px] overflow-hidden rounded-full bg-ink-3">
+      <div className="mt-2 h-[6px] overflow-hidden rounded-full bg-ink-3">
         <div
           className="h-full rounded-full bg-gold transition-[width] duration-500"
           style={{ width: `${pct}%` }}
         />
-      </div>
-      <div className="mt-2 flex items-baseline justify-between gap-3">
-        <p className="text-[11px] text-hanji-faint">
-          {num(LOTUS_PRICE)} 공덕 = 연꽃 한 송이
-          <span className="ml-1.5 text-hanji-faint/70">· 한나절이면 한 송이</span>
-        </p>
-        <p className="shrink-0 text-[11px] tabular-nums text-hanji-dim">
-          {can > 0 ? `다음 한 송이까지 ${num(toNext)}` : `한 송이까지 ${num(toNext)}`}
-        </p>
       </div>
 
       {/* 바꾸기 — 바꾸어 받은 연꽃은 돈으로 돌아가지 않는다.
@@ -159,8 +172,8 @@ export default function MeritExchange() {
             </Link>
           </p>
         ) : can < 1 ? (
-          <p className="break-keep text-[12px] leading-6 text-hanji-dim">
-            공덕 {num(toNext)}을 더 쌓으면 한 송이예요.
+          <p className="break-keep text-[12px] leading-6 text-hanji-faint">
+            반나절쯤 붙들면 한 송이가 됩니다.
           </p>
         ) : (
           <>

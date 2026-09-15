@@ -427,3 +427,15 @@ export function SeonMaster({ className = "w-4 h-4", stroke = "currentColor" }: I
     </svg>
   );
 }
+
+/** 나눔 — 한 점에서 두 점으로 건너간다. 14px 에서도 뭉치지 않게 점을 크게 */
+export function Share({ className = "w-4 h-4", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path d="M8.6 10.9 15.4 7.4M8.6 13.1l6.8 3.5" stroke={stroke} strokeWidth="1.3" />
+      <circle cx="6" cy="12" r="2.5" stroke={stroke} strokeWidth="1.4" />
+      <circle cx="17.6" cy="6.2" r="2.5" stroke={stroke} strokeWidth="1.4" />
+      <circle cx="17.6" cy="17.8" r="2.5" stroke={stroke} strokeWidth="1.4" />
+    </svg>
+  );
+}

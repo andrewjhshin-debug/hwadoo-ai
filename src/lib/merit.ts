@@ -423,13 +423,17 @@ export function giveBonus(l: MeritLedger = loadMerit()): number {
 // 서비스이니, 캐릭터도 옷이 아니라 자리가 바뀌어야 맞다.
 // 마지막에 머리 위 물음표가 광배(光背)로 바뀐다 — 물음이 답이 되는 자리.
 
+// 문턱은 육도(realm.ts REALMS)와 **같다.** 전에는 따로 놀아서 10,800 에
+// 이미 부처가 되었는데 천상도는 한참 남아 있었다 — 사다리가 둘이면
+// 어느 쪽을 봐야 할지 알 수 없다. 이름만 둘이고 자리는 하나다.
+//   나무 자리는 「내 그림이 얼마나 자랐나」, 육도는 「내가 어디에 서 있나」.
 export const RANKS = [
   { need: 0, hanja: "童", name: "동자", say: "이제 막 산문에 들었어요" },
-  { need: 108, hanja: "沙", name: "사미", say: "물음 하나를 품기 시작했어요" },
-  { need: 540, hanja: "首", name: "수좌", say: "앉는 일이 몸에 붙었어요" },
-  { need: 1080, hanja: "禪", name: "선사", say: "흔들림이 눈에 띄게 줄었어요" },
-  { need: 3240, hanja: "薩", name: "보살", say: "이제 남의 몫까지 돕니다" },
-  { need: 10800, hanja: "佛", name: "부처", say: "물음표가 광배가 되었어요" },
+  { need: 1080, hanja: "沙", name: "사미", say: "물음 하나를 품기 시작했어요" },
+  { need: 5400, hanja: "首", name: "수좌", say: "앉는 일이 몸에 붙었어요" },
+  { need: 10800, hanja: "禪", name: "선사", say: "흔들림이 눈에 띄게 줄었어요" },
+  { need: 21600, hanja: "薩", name: "보살", say: "이제 남의 몫까지 돕니다" },
+  { need: 84000, hanja: "佛", name: "부처", say: "물음표가 광배가 되었어요" },
 ] as const;
 
 export type Rank = (typeof RANKS)[number];

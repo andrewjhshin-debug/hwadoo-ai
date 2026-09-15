@@ -84,6 +84,7 @@ import {
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
 import { loadMeditations } from "@/lib/meditation";
 import {
+  Share,
   Person,
   Teacup,
   Book,
@@ -294,6 +295,7 @@ export default function SettingsPage() {
   const [giveLeft, setGiveLeft] = useState(GIVE_PER_DAY);
   const [giveTo, setGiveTo] = useState(""); // 이름을 적어 돌릴 때
   const [returnedCount, setReturnedCount] = useState(0);
+  const [span, setSpan] = useState<"month" | "year">("month");
   const [room, setRoom] = useState({ earned: 0, cap: DAILY_TOTAL_CAP, left: DAILY_TOTAL_CAP });
   const [charms, setCharms] = useState<Record<string, number | undefined>>({});
   const [receivedCount, setReceivedCount] = useState(0);
@@ -811,11 +813,28 @@ export default function SettingsPage() {
       {/* 머리 오른쪽에 내 연꽃 — 아래쪽에도 한 줄 있지만 거기까지 내려가야
           보였다. 쓰는 자리마다 보여야 하는 숫자는 맨 위에 둔다. */}
       <div className="relative flex items-center justify-center">
+        {/* 공유 — 리포트 안에 묻혀 있던 것을 꺼냈다. 남에게 보일 만한 것은
+            맨 위에 있어야 누른다. 올해치가 아직 없으면 그리지 않는다. */}
+        {yearReport && (
+          <button
+            onClick={() => void shareYear(yearReport)}
+            title={`${yearReport.year}년 내 걸음 공유`}
+            aria-label="올해의 걸음 공유"
+            className="absolute left-0 grid h-7 w-7 place-items-center rounded-full border border-ink-3 text-hanji-faint transition-colors hover:border-gold/45 hover:text-gold-soft"
+          >
+            <Share className="h-3.5 w-3.5" />
+          </button>
+        )}
         <h1 className="text-center text-xs tracking-[0.5em] text-gold-soft">
           道場 · 내 도량
         </h1>
         <LotusCount className="absolute right-0" />
       </div>
+      {yearShareMsg && (
+        <p className="mt-2 break-all text-center text-[11px] leading-5 text-hanji-faint">
+          {yearShareMsg}
+        </p>
+      )}
 
       {/* ── 오늘 하루 — 나무 · 이어 온 날 · 오늘의 세 가지.
              매일 들어올 이유는 맨 위에 있어야 한다 ── */}
@@ -965,13 +984,31 @@ export default function SettingsPage() {
                 오늘 <span className="text-gold">{giveLeft}</span>/{GIVE_PER_DAY}번
               </p>
             </div>
+            {/* 「내 공덕은 줄지 않는데 돌린 만큼 빨라진다」 — 읽고 나서
+                「그래서 누가 받는 건데?」가 남았다. 셋을 나눠 적는다:
+                무엇을 하는 것인가 · 누가 받는가 · 나에게 무엇이 남는가. */}
             <p className="mt-2.5 break-keep text-[12.5px] leading-6 text-hanji-dim">
-              한 번에 공덕 <span className="text-hanji">{GIVE_UNIT}</span>을 남에게
-              돌립니다. <span className="text-hanji">내 공덕은 줄지 않습니다</span> —
-              촛불로 촛불을 붙여도 내 불은 그대로인 것과 같습니다.
-              <br />
-              대신 돌린 만큼 앞으로 쌓는 공덕이 빨라집니다.
+              내가 쌓은 공덕을 <span className="text-hanji">누군가를 위해 빌어 주는 일</span>
+              입니다. 한 번에 {GIVE_UNIT}.
             </p>
+            <ul className="mt-2 flex flex-col gap-1 text-[11.5px] leading-5 text-hanji-faint">
+              <li>
+                · 받는 사람 — <span className="text-hanji-dim">내가 적은 그 사람</span>.
+                앱 안의 다른 수행자에게 가는 것이 아닙니다. 옛 절의 축원처럼,
+                마음에 둔 이의 이름을 걸어 두는 자리입니다.
+              </li>
+              <li>
+                · 내 공덕 — <span className="text-hanji-dim">한 톨도 줄지 않습니다.</span>{" "}
+                촛불로 촛불을 붙여도 내 불은 그대로인 것과 같습니다.
+              </li>
+              <li>
+                · 나에게 남는 것 —{" "}
+                <span className="text-hanji-dim">
+                  앞으로 쌓는 공덕이 빨라집니다(적립 배수 {GIVE_UNIT}마다 +2%, 최대 +20%).
+                </span>{" "}
+                지금 <span className="text-gold">×{giveBonus().toFixed(2)}</span>
+              </li>
+            </ul>
 
             <div className="mt-3 flex flex-wrap gap-2">
               {["모든 중생", "아픈 이", "먼저 가신 분", "오늘 만날 사람"].map((t) => (
@@ -1209,39 +1246,68 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <Fold title="지난 걸음" note="이달의 마음 · 올해의 마음">
-      {/* ── 이달의 마음 — 이번 달의 걸음을 로컬 기록으로 센다 ── */}
+      {/* ── 마음 리포트 ─────────────────────────────────────────
+          전에는 「이달의 마음」과 「올해의 마음」이 따로 두 칸이었다.
+          그런데 둘이 **똑같은 지표 셋**(받은 화두·호흡 명상·함께한 날)을
+          위아래로 되풀이하고 있었다. 게다가 호흡 명상은 안 쓰는 사람에겐
+          늘 0 이라 칸 하나가 통째로 죽어 있었다.
+
+          한 판으로 합치고 기간은 알약으로 가른다. 지표도 실제로 움직이는
+          것들로 갈아 끼웠다 — 받은 화두 · 회향 · 공덕 · 함께한 날. */}
+      <Fold title="마음 리포트" note="이 달 · 올해">
       <section className={`rise rise-d1 ${sectionGap}`}>
-        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-          이달의 마음
-        </p>
-        <div className="mt-4 border-t border-ink-3 pt-5">
-          {!report ||
-          (report.returned === 0 &&
-            report.days === 0 &&
-            report.meditations === 0 &&
-            held.length === 0) ? (
-            <p className="text-[13px] leading-7 text-hanji-dim">
-              이번 달의 걸음이 아직 없습니다.
-            </p>
-          ) : (
-            <>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { n: report.returned, unit: "", label: "받은 화두" },
-                  { n: report.meditations, unit: "", label: "호흡 명상" },
-                  { n: report.days, unit: "일", label: "함께한 날" },
-                ].map((c) => (
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] tracking-[0.3em] text-hanji-faint">心 · 마음</p>
+          <div className="inline-flex rounded-full border border-ink-3 bg-ink-2/50 p-0.5">
+            {(
+              [
+                ["month", "이 달"],
+                ["year", "올해"],
+              ] as const
+            ).map(([k, label]) => (
+              <button
+                key={k}
+                onClick={() => setSpan(k)}
+                aria-pressed={span === k}
+                className={`rounded-full px-3.5 py-1 text-[11.5px] transition-colors ${
+                  span === k ? "bg-gold/15 text-gold" : "text-hanji-faint hover:text-hanji-dim"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {(() => {
+          const r = span === "year" ? yearReport : report;
+          const empty =
+            !r || (r.returned === 0 && r.days === 0 && r.meditations === 0 && held.length === 0);
+          if (empty) {
+            return (
+              <p className="mt-4 border-t border-ink-3 pt-5 text-[13px] leading-7 text-hanji-dim">
+                {span === "year" ? "올해" : "이번 달"}의 걸음이 아직 없습니다.
+              </p>
+            );
+          }
+          const cells = [
+            { n: r.returned, unit: "", label: "받은 화두" },
+            { n: journalCount, unit: "", label: "회향한 화두" },
+            { n: merit.total, unit: "", label: "쌓은 공덕" },
+            { n: r.days, unit: "일", label: "함께한 날" },
+          ];
+          return (
+            <div className="mt-4 border-t border-ink-3 pt-5">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {cells.map((c) => (
                   <div
                     key={c.label}
                     className="rounded-[12px] border border-ink-3 bg-ink-2/40 px-2 py-4 text-center"
                   >
-                    <p className="font-serif text-[24px] font-light leading-none text-gold">
-                      {c.n}
+                    <p className="font-serif text-[24px] font-light leading-none text-gold tabular-nums">
+                      {c.n.toLocaleString("ko-KR")}
                       {c.unit && (
-                        <span className="ml-0.5 text-[13px] text-hanji-dim">
-                          {c.unit}
-                        </span>
+                        <span className="ml-0.5 text-[13px] text-hanji-dim">{c.unit}</span>
                       )}
                     </p>
                     <p className="mt-2 text-[10px] tracking-[0.15em] text-hanji-faint">
@@ -1251,8 +1317,9 @@ export default function SettingsPage() {
                 ))}
               </div>
 
-              {/* 이 달의 흐름 — 받은 화두·호흡 명상을 한 그래프에, 선으로 겹쳐 */}
-              {chart &&
+              {/* 흐름은 이 달에만 — 올해치 일별 그래프는 너무 잘게 부서진다 */}
+              {span === "month" &&
+                chart &&
                 (() => {
                   const lines = [
                     { label: "받은 화두", values: chart.returned },
@@ -1266,13 +1333,9 @@ export default function SettingsPage() {
                   );
                 })()}
 
-              {/* 품어온 시간 — 지금 품는 중인 것과, 가장 최근에 내린 것.
-                  나머지는 지난 화두(서고)에서 본다 */}
               {held.length > 0 && (
                 <div className="mt-5">
-                  <p className="text-[11px] tracking-[0.2em] text-hanji-faint">
-                    품어온 시간
-                  </p>
+                  <p className="text-[11px] tracking-[0.2em] text-hanji-faint">품어온 시간</p>
                   <ul className="mt-2.5 space-y-2">
                     {[held.find((h) => h.current), held.find((h) => !h.current)]
                       .filter((h): h is HeldItem => Boolean(h))
@@ -1287,54 +1350,10 @@ export default function SettingsPage() {
                   </Link>
                 </div>
               )}
-            </>
-          )}
-        </div>
-      </section>
-
-      {/* ── 올해의 마음 — 연말에 한 장으로 보는 누적 요약. 공유하기 좋게 카드처럼 ── */}
-      {yearReport &&
-        (yearReport.returned > 0 ||
-          yearReport.meditations > 0 ||
-          yearReport.days > 0) && (
-          <section className={`rise rise-d1 ${sectionGap}`}>
-            <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-              올해의 마음
-            </p>
-            <div className="mt-4 rounded-[16px] border border-gold/30 bg-gold/5 px-6 py-7 text-center">
-              <p className="font-serif text-[15px] tracking-[0.15em] text-gold-soft">
-                {yearReport.year}년
-              </p>
-              <div className="mt-5 grid grid-cols-3 gap-2">
-                {[
-                  { n: yearReport.returned, label: "받은 화두" },
-                  { n: yearReport.meditations, label: "호흡 명상" },
-                  { n: yearReport.days, label: "함께한 날" },
-                ].map((c) => (
-                  <div key={c.label}>
-                    <p className="font-serif text-[26px] font-light leading-none text-gold">
-                      {c.n}
-                    </p>
-                    <p className="mt-2 text-[10px] tracking-[0.15em] text-hanji-faint">
-                      {c.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => shareYear(yearReport)}
-                className="mt-6 rounded-[10px] border border-gold/40 px-5 py-2 text-[11.5px] tracking-[0.2em] text-gold-soft transition-colors hover:bg-gold/10"
-              >
-                공유하기
-              </button>
-              {yearShareMsg && (
-                <p className="mt-2.5 text-[11px] text-hanji-faint">
-                  {yearShareMsg}
-                </p>
-              )}
             </div>
-          </section>
-        )}
+          );
+        })()}
+      </section>
 
       </Fold>
 

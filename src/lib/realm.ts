@@ -14,6 +14,19 @@
 // 이건 벌이 아니라 이치다 — 닦지 않으면 흐려진다.
 // 깎는 셈은 merit.ts 가 쥔다. 여기는 자리만 가른다.
 //
+// 문턱의 수에는 **뜻이 있다.** 처음엔 하루치(3,240)의 배수로 잡았는데
+// 그건 우리 사정일 뿐 수행자에게는 아무 말도 하지 않는 수였다.
+// 그래서 셈을 버리고 뜻을 골랐다 —
+//   1,080  백팔을 열 바퀴
+//   5,400  백팔을 쉰 바퀴
+//  10,800  백팔을 백 바퀴
+//  21,600  사람이 하루에 쉬는 숨의 수 (백팔의 이백 배)
+//  84,000  팔만사천 — 번뇌의 수이자 그만큼의 법문
+//
+// 나무 자리(merit.ts RANKS)와 **같은 문턱**을 쓴다. 전에는 둘이 따로 놀아
+// 10,800 에서 이미 부처가 되었는데 천상도는 한참 남아 있었다 —
+// 사다리가 둘이면 어느 쪽을 봐야 할지 알 수 없다.
+//
 // 문턱은 두 가지를 함께 본다 — **공덕**과 **회향한 화두 수**.
 //
 // 처음엔 공덕만 봤더니 하루 만에 수라도까지 올라갔다. 하루 천장이 3,240 인데
@@ -54,6 +67,8 @@ export type Realm = {
   need: number;
   /** 이 자리에 들려면 회향(답을 써서 마친)한 화두 수 — 없으면 0 */
   needReturned?: number;
+  /** 이 수가 왜 이 수인가 — 화면이 한 줄로 알려 준다 */
+  why?: string;
   /** 그 자리에 선 사람에게 건네는 한 줄 */
   say: string;
   color: RealmColor;
@@ -67,6 +82,7 @@ export const REALMS: Realm[] = [
     hanja: "地獄",
     mark: "獄",
     need: 0,
+    why: "여기서 시작한다",
     say: "바닥에서 시작하면 오를 일만 남습니다",
     color: "hanji-faint",
   },
@@ -75,8 +91,9 @@ export const REALMS: Realm[] = [
     name: "아귀도",
     hanja: "餓鬼",
     mark: "鬼",
-    need: 3240,
+    need: 1080,
     needReturned: 1,
+    why: "백팔을 열 바퀴",
     say: "목마름이 깊을수록 한 모금이 큽니다",
     color: "hanji-dim",
   },
@@ -85,8 +102,9 @@ export const REALMS: Realm[] = [
     name: "축생도",
     hanja: "畜生",
     mark: "畜",
-    need: 12960,
+    need: 5400,
     needReturned: 3,
+    why: "백팔을 쉰 바퀴",
     say: "몸이 먼저 움직이기 시작했습니다",
     color: "hanji",
   },
@@ -95,8 +113,9 @@ export const REALMS: Realm[] = [
     name: "수라도",
     hanja: "修羅",
     mark: "修",
-    need: 32400,
+    need: 10800,
     needReturned: 7,
+    why: "백팔을 백 바퀴",
     say: "다투는 자리입니다. 한 칸 위가 보입니다",
     color: "vermilion",
   },
@@ -105,8 +124,9 @@ export const REALMS: Realm[] = [
     name: "인간도",
     hanja: "人間",
     mark: "人",
-    need: 81000,
+    need: 21600,
     needReturned: 15,
+    why: "하루에 쉬는 숨의 수",
     say: "수행하기 가장 좋은 자리입니다",
     color: "gold-soft",
   },
@@ -115,8 +135,9 @@ export const REALMS: Realm[] = [
     name: "천상도",
     hanja: "天上",
     mark: "天",
-    need: 194400,
+    need: 84000,
     needReturned: 30,
+    why: "팔만사천 — 번뇌의 수",
     say: "높은 자리일수록 빨리 흐려집니다",
     color: "gold",
   },
