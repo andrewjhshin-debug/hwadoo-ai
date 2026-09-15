@@ -265,30 +265,79 @@ export default function MoktakPage() {
         }
         .moktak-svg { display: block; width: 100%; height: 100%; }
 
-        /* 그릇의 울림 — 소리가 나는 동안 파문이 번진다.
-           세 겹을 시차로 띄워 놓으면 끊기지 않고 이어진다. */
+        /* ── 그릇의 울림 ────────────────────────────────────────
+           처음엔 얇은 고리 셋을 띄웠는데 먹빛 화면에서 거의 안 보였다.
+           소리를 눈으로도 들리게 하려면 세 겹이 함께 움직여야 한다 —
+             ① 파문   퍼져 나가는 금빛 고리 넷 (굵게, 번지게)
+             ② 숨     그릇 뒤에서 부풀었다 가라앉는 금빛 무리
+             ③ 떨림   그릇 자체가 아주 살짝 커졌다 작아진다
+           떨림의 주기(1.3초)는 실제 맥놀이(0.7~2Hz)에 맞춰 잡았다. */
+
+        /* ① 파문 */
         .bowl-wave {
           position: absolute;
           left: 50%;
-          top: 52%;
-          width: 150px;
-          height: 46px;
-          margin-left: -75px;
-          margin-top: -23px;
+          top: 62%;
+          width: 190px;
+          height: 58px;
+          margin-left: -95px;
+          margin-top: -29px;
           border-radius: 50%;
-          border: 1px solid rgba(217, 180, 91, 0.55);
-          animation: bowl-ring 2.6s ease-out infinite;
+          border: 2px solid rgba(233, 201, 124, 0.85);
+          box-shadow:
+            0 0 22px rgba(217, 180, 91, 0.45),
+            inset 0 0 16px rgba(217, 180, 91, 0.25);
+          animation: bowl-ring 3.2s cubic-bezier(0.16, 0.6, 0.3, 1) infinite;
           pointer-events: none;
         }
-        .bowl-wave-2 { animation-delay: 0.87s; }
-        .bowl-wave-3 { animation-delay: 1.74s; }
+        .bowl-wave-2 { animation-delay: 0.8s; }
+        .bowl-wave-3 { animation-delay: 1.6s; }
+        .bowl-wave-4 { animation-delay: 2.4s; }
         @keyframes bowl-ring {
-          0%   { transform: scale(0.72); opacity: 0; }
-          18%  { opacity: 0.6; }
-          100% { transform: scale(2.1); opacity: 0; }
+          0%   { transform: scale(0.55); opacity: 0; border-width: 2.5px; }
+          12%  { opacity: 0.9; }
+          60%  { opacity: 0.45; }
+          100% { transform: scale(3.1); opacity: 0; border-width: 0.5px; }
         }
+
+        /* ② 숨 — 그릇 뒤의 무리 */
+        .bowl-breath {
+          position: absolute;
+          left: 50%;
+          top: 52%;
+          width: 300px;
+          height: 300px;
+          margin-left: -150px;
+          margin-top: -150px;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle,
+            rgba(247, 214, 124, 0.3) 0%,
+            rgba(217, 180, 91, 0.12) 42%,
+            transparent 70%
+          );
+          animation: bowl-breath 1.3s ease-in-out infinite;
+          pointer-events: none;
+        }
+        @keyframes bowl-breath {
+          0%, 100% { transform: scale(0.88); opacity: 0.55; }
+          50%      { transform: scale(1.12); opacity: 1; }
+        }
+
+        /* ③ 떨림 — 그릇 자체 */
+        .bowl-shiver {
+          animation: bowl-shiver 1.3s ease-in-out infinite;
+        }
+        @keyframes bowl-shiver {
+          0%, 100% { transform: scale(1); }
+          50%      { transform: scale(1.022); }
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .bowl-wave { animation: none; opacity: 0.25; }
+          .bowl-wave,
+          .bowl-breath,
+          .bowl-shiver { animation: none; }
+          .bowl-wave { opacity: 0.3; }
         }
       `}</style>
 
@@ -325,17 +374,31 @@ export default function MoktakPage() {
           <p className="rise rise-d1 mt-1 font-serif text-[68px] font-light leading-none text-hanji">
             {hits.toLocaleString("ko-KR")}
           </p>
+          {/* 「…8편 · 고르게 치면 合」 은 설명서였다. 무엇이 세어지고 있는지,
+              내가 지금 잘하고 있는지가 한눈에 안 들어왔다.
+              · 치기 전에는 **무엇을 하는 것인지** 한 줄
+              · 치는 중에는 **몇 편 왔는지** (여섯 번이 한 편)
+              · 박자가 맞는 동안에는 **그것만** 크게 — 칭찬은 짧아야 힘이 있다 */}
           <p className="rise rise-d1 mt-2.5 flex items-center gap-2 text-[12.5px] tracking-wide">
             {combo >= 2 ? (
               <>
                 <span className="rounded-full bg-gold px-2.5 py-[3px] font-serif text-[13px] leading-none text-ink">
                   合
                 </span>
-                <span className="text-gold">{combo}타 이어짐 — 박자가 고릅니다</span>
+                <span className="text-gold">박자가 맞고 있어요 · {combo}번째</span>
               </>
+            ) : hits === 0 ? (
+              <span className="text-hanji-faint">
+                여섯 번 치면 한 편 — 나·무·아·미·타·불
+              </span>
             ) : (
               <span className="text-hanji-faint">
-                「나무아미타불」 {phrases.toLocaleString("ko-KR")}편 · 고르게 치면 合
+                나무아미타불{" "}
+                <span className="text-hanji-dim">
+                  {phrases.toLocaleString("ko-KR")}편
+                </span>
+                {" · 남은 "}
+                {NAMU.length - (hits % NAMU.length)}번
               </span>
             )}
           </p>
@@ -611,9 +674,12 @@ export default function MoktakPage() {
             {/* 울림 — 소리가 나는 동안만 파문이 번진다 */}
             {ringing && (
               <>
+                {/* 숨은 파문보다 뒤에 깔린다 */}
+                <span className="bowl-breath" />
                 <span className="bowl-wave" />
                 <span className="bowl-wave bowl-wave-2" />
                 <span className="bowl-wave bowl-wave-3" />
+                <span className="bowl-wave bowl-wave-4" />
               </>
             )}
             {/* 3D 일러스트 — 벡터로 그려 봤지만 목탁·염주 옆에 두니 결이 달랐다.
@@ -630,11 +696,7 @@ export default function MoktakPage() {
                 const fb = el.nextElementSibling as HTMLElement | null;
                 if (fb) fb.style.display = "block";
               }}
-              className="block h-full w-full object-contain"
-              style={{
-                transform: ringing ? "scale(1.015)" : "scale(1)",
-                transition: "transform .5s ease-out",
-              }}
+              className={`relative block h-full w-full object-contain ${ringing ? "bowl-shiver" : ""}`}
             />
             <svg viewBox="0 0 250 250" className="hidden h-full w-full">
               <ellipse cx="125" cy="150" rx="78" ry="22" fill="#8c3626" />
