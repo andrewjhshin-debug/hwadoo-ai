@@ -32,14 +32,9 @@ function GatheringInner() {
             만 19세 이상만 이용할 수 있습니다 · 익명 법명으로 활동합니다
           </p>
 
-          {/* 다가오는 절 행사 — "언제 갈까"가 있어야 "같이 갈래요"가 나온다.
-              부처님오신날·백중 같은 음력 날은 셈으로, 절별 행사는 적어 둔 표로. */}
-          <div className="rise rise-d1 mt-6 px-5 sm:px-0">
-            <TempleEvents limit={5} days={150} />
-          </div>
         </>
       )}
-      <section className={view === "list" ? "rise rise-d1 mt-4" : ""}>
+      <section className={view === "list" ? "rise rise-d1 mt-5" : ""}>
         <GatheringBoard
           initialTemple={temple}
           initialDate={date}
@@ -47,6 +42,16 @@ function GatheringInner() {
           onViewChange={setView}
         />
       </section>
+
+      {/* 다가오는 절 행사 — 아래로 내렸다.
+          위에 두었더니 게시판에 오려던 사람이 달력을 먼저 다섯 칸 읽어야 했다.
+          여긴 모임 판이다. 글이 먼저 오고, 날짜는 "언제 갈까"가 궁금해진
+          다음에 보면 된다. */}
+      {view === "list" && (
+        <div className="rise rise-d2 mt-10 px-5 sm:px-0">
+          <TempleEvents limit={5} days={150} />
+        </div>
+      )}
     </div>
   );
 }

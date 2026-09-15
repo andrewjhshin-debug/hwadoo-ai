@@ -378,6 +378,40 @@ service cloud.firestore {
 
     // 열어 두면 콘솔 한 줄로 공덕·연꽃·인증이 조작된다.
 
+    // 초 공양 — 법당의 초와 회향의 등.
+    // 값(연꽃)은 클라이언트가 지갑에서 거두므로 여기서 다시 셀 수 없다.
+    // 대신 **거짓으로 오래 태우지 못하게** until 을 가둔다 —
+    // 초는 49일, 등은 이레. 그 위로 적으면 아예 안 써진다.
+    match /candles/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.tier in ['candle', 'light']
+        && request.resource.data.forName is string
+        && request.resource.data.forName.size() > 0
+        && request.resource.data.forName.size() <= 20
+        && request.resource.data.wish is string
+        && request.resource.data.wish.size() <= 120
+        && request.resource.data.born is string
+        && request.resource.data.born.size() <= 4
+        && request.resource.data.hapjang == 0
+        && request.resource.data.until is int
+        && request.resource.data.until > 0
+        // 50일 · 8일 — 시계가 조금 어긋나도 걸리지 않게 하루씩 여유를 뒀다
+        && request.resource.data.until <= request.time.toMillis()
+             + (request.resource.data.tier == 'candle' ? 4320000000 : 691200000);
+      // 같이 빌기 — 로그인한 사람이 ±1. 그 밖의 칸은 못 건드린다.
+      allow update: if isAdmin()
+        || (request.auth != null
+            && request.resource.data.diff(resource.data)
+                 .affectedKeys().hasOnly(['hapjang'])
+            && request.resource.data.hapjang is int
+            && (request.resource.data.hapjang == resource.data.get('hapjang', 0) + 1
+                || request.resource.data.hapjang == resource.data.get('hapjang', 0) - 1));
+      allow delete: if isAdmin()
+        || (request.auth != null && request.auth.uid == resource.data.uid);
+    }
+
     // 우리 절 — 같은 절 다니는 사람 수만 서버가 세어 내준다(/api/temple)
     match /temple-members/{uid} {
       allow read, write: if false;

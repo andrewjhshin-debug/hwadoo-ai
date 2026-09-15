@@ -40,6 +40,8 @@
 // 물음이지 두드리기가 아니다.
 // ─────────────────────────────────────────────────────────────
 
+import { isOwner } from "./merit";
+
 export type RealmId =
   | "jiok" // 지옥도
   | "agwi" // 아귀도
@@ -154,6 +156,8 @@ export const REALM_BY_ID: Record<RealmId, Realm> = Object.fromEntries(
  * returned 를 안 주면 화두 조건은 묻지 않는다(옛 부름과 표 뽑기용).
  */
 export function realmOf(merit: number, returned = Infinity): Realm {
+  // 뒷방 주인은 늘 꼭대기 — merit.ts setOwner 가 켠다
+  if (isOwner()) return REALMS[REALMS.length - 1];
   let here = REALMS[0];
   for (const r of REALMS) {
     if (merit >= r.need && returned >= (r.needReturned ?? 0)) here = r;

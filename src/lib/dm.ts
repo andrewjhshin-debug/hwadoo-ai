@@ -239,9 +239,13 @@ export async function sendMessage(
 
 // ── 연꽃 지갑 ────────────────────────────────────────────
 
+/** 뒷방 주인이 늘 쥐고 있는 수 — 기능을 시험하려면 마르지 않아야 한다 */
+export const OWNER_LOTUS = 999;
+
 export async function getLotus(): Promise<number> {
   const u = auth.currentUser;
   if (!u) return 0;
+  if (isAdminAccount(u)) return OWNER_LOTUS;
   try {
     const snap = await getDoc(doc(db, "wallets", u.uid));
     const n = snap.exists() ? snap.data().lotus : 0;
@@ -257,6 +261,8 @@ export async function getLotus(): Promise<number> {
 export async function spendLotus(): Promise<boolean> {
   const u = auth.currentUser;
   if (!u) return false;
+  // 주인의 지갑은 줄지 않는다 — 시험 삼아 초를 스무 자루 켜도 되어야 한다
+  if (isAdminAccount(u)) return true;
   const ref = doc(db, "wallets", u.uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {

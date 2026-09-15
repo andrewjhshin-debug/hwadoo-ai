@@ -35,6 +35,8 @@ import {
 import { decrementHolding } from "./holding";
 import { resetVisits } from "@/components/VisitLedger";
 import { resetMeditations } from "./meditation";
+import { isAdminAccount } from "./config";
+import { setOwner } from "./merit";
 
 // Firestore는 undefined 값을 거부한다 — JSON 왕복으로 걷어낸다
 function clean<T>(value: T): T {
@@ -283,6 +285,8 @@ function stopSync() {
 
 export function watchAuth(cb: (user: User | null) => void): () => void {
   return onAuthStateChanged(auth, (user) => {
+    // 뒷방 주인 깃발 — 자리(육도·계급)와 연꽃이 이걸 본다
+    setOwner(isAdminAccount(user));
     if (user) {
       // 여러 화면이 저마다 부르더라도 계정당 한 번만 시작한다
       const begin = (retry: boolean) => {

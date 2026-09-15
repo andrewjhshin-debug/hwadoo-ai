@@ -70,7 +70,8 @@ import {
   type ThrownStat,
 } from "@/lib/thrown";
 import { fetchMyApprovedAnswerCount } from "@/lib/community";
-import { initPresence, watchOnlineCount } from "@/lib/presence";
+// 접속 표는 사이드바가 올린다(모든 화면에 있으므로) — 여기선 세기만 한다
+import { watchOnlineCount } from "@/lib/presence";
 import { submitFeedback } from "@/lib/feedback";
 import { dmVisible, getLotus } from "@/lib/dm";
 import { loadEmailOptOut, setEmailOptOut } from "@/lib/mailPrefs";
@@ -83,6 +84,7 @@ import {
 } from "@/lib/install";
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
 import { loadMeditations } from "@/lib/meditation";
+import { hangLight } from "@/lib/candle";
 import {
   Share,
   Person,
@@ -418,7 +420,10 @@ export default function SettingsPage() {
     setMerit(l);
     setLampList(lamps());
     setGiveLeft(giveLeftToday());
-    setGaveMsg(`${to}에게 공덕 ${GIVE_UNIT}을 돌렸습니다 — 등 하나가 켜졌어요.`);
+    // 「그래서 그게 어디 걸리는데?」 — 법당에 이레 동안 등으로 걸린다.
+    // 실패해도 회향은 이미 끝난 일이라 기다리지 않고 보낸다.
+    void hangLight(to);
+    setGaveMsg(`${to}에게 공덕 ${GIVE_UNIT}을 돌렸습니다 — 법당에 등이 켜졌어요.`);
     window.setTimeout(() => setGaveMsg(""), 5000);
   };
 
@@ -674,10 +679,8 @@ export default function SettingsPage() {
 
   // 실시간 접속자 추적
   useEffect(() => {
-    const stopPresence = initPresence();
     const stopWatch = watchOnlineCount(setOnlineCount);
     return () => {
-      stopPresence();
       stopWatch();
     };
   }, []);
@@ -984,29 +987,31 @@ export default function SettingsPage() {
                 오늘 <span className="text-gold">{giveLeft}</span>/{GIVE_PER_DAY}번
               </p>
             </div>
-            {/* 「내 공덕은 줄지 않는데 돌린 만큼 빨라진다」 — 읽고 나서
-                「그래서 누가 받는 건데?」가 남았다. 셋을 나눠 적는다:
-                무엇을 하는 것인가 · 누가 받는가 · 나에게 무엇이 남는가. */}
+            {/* 세 줄로 줄였다. 처음엔 「받는 사람 · 내 공덕 · 나에게 남는 것」을
+                각각 두어 문장씩 풀어 썼는데, 접힘 하나가 설명서가 됐다.
+                남길 것은 셋뿐이다 — 누가 받나, 내 것은 주나, 나는 뭘 얻나.
+                나머지는 ⓘ 안으로. */}
             <p className="mt-2.5 break-keep text-[12.5px] leading-6 text-hanji-dim">
-              내가 쌓은 공덕을 <span className="text-hanji">누군가를 위해 빌어 주는 일</span>
-              입니다. 한 번에 {GIVE_UNIT}.
+              내 공덕을 <span className="text-hanji">누군가의 이름에 걸어 두는 일</span>.
+              한 번에 {GIVE_UNIT}.
             </p>
-            <ul className="mt-2 flex flex-col gap-1 text-[11.5px] leading-5 text-hanji-faint">
+            <ul className="mt-2.5 flex flex-col gap-[3px] text-[11.5px] leading-5 text-hanji-faint">
+              <li>받는 이는 <span className="text-hanji-dim">내가 적은 그 사람</span></li>
+              <li>내 공덕은 <span className="text-hanji-dim">줄지 않는다</span></li>
               <li>
-                · 받는 사람 — <span className="text-hanji-dim">내가 적은 그 사람</span>.
-                앱 안의 다른 수행자에게 가는 것이 아닙니다. 옛 절의 축원처럼,
-                마음에 둔 이의 이름을 걸어 두는 자리입니다.
+                걸리는 자리는{" "}
+                <Link href="/candle" className="text-gold-soft underline underline-offset-2">
+                  법당
+                </Link>{" "}
+                — 이레 동안 등으로 탄다
               </li>
               <li>
-                · 내 공덕 — <span className="text-hanji-dim">한 톨도 줄지 않습니다.</span>{" "}
-                촛불로 촛불을 붙여도 내 불은 그대로인 것과 같습니다.
-              </li>
-              <li>
-                · 나에게 남는 것 —{" "}
-                <span className="text-hanji-dim">
-                  앞으로 쌓는 공덕이 빨라집니다(적립 배수 {GIVE_UNIT}마다 +2%, 최대 +20%).
-                </span>{" "}
-                지금 <span className="text-gold">×{giveBonus().toFixed(2)}</span>
+                앞으로 쌓는 것이 <span className="text-hanji-dim">빨라진다</span>{" "}
+                <span className="text-gold">×{giveBonus().toFixed(2)}</span>
+                <Info title="적립 배수" className="ml-1">
+                  회향 {GIVE_UNIT}마다 +2%, 최대 +20%. 불을 나눠 줘도 내 불은
+                  그대로인 것과 같습니다 — 옛 절의 축원이 그랬습니다.
+                </Info>
               </li>
             </ul>
 

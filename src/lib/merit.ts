@@ -32,6 +32,7 @@ export type MeritSource =
   | "sutra" // 경전 외우기 — 한 마디(21)씩 곱해 쓴다
   | "moment" // 모멘트 — 절에서 찍은 한 장을 연지원에 건다
   | "bowl" // 싱잉볼 한 번 — 치고 여운을 듣는다
+  | "candle" // 초 공양 — 남의 초에 같이 빌어 줌
   | "daily"; // 오늘의 세 가지를 다 마침
 
 /** 무엇을 하면 얼마나 쌓이는가 */
@@ -52,6 +53,9 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   // 싱잉볼은 한 번 치면 십몇 초를 운다. 연타할 수 있는 물건이 아니다 —
   // 그래서 한 번의 값을 절 한 배와 같이 두었다.
   bowl: 3,
+  // 남의 초 앞에서 같이 손을 모으는 일 — 품은 안 들지만 마음은 든다.
+  // 내 초를 올리는 일에는 공덕을 붙이지 않는다. 그건 연꽃으로 이미 치렀다.
+  candle: 9,
   daily: 54, // 오늘의 세 가지 — 반 바퀴
 };
 
@@ -81,6 +85,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   sutra: 1620, // 반야심경 다섯 번
   moment: 126, // 시절인연 여섯 장
   bowl: 324, // 싱잉볼 백여덟 번
+  candle: 108, // 초 열둘 — 그 이상은 손만 모으는 셈이 된다
   daily: 54, // 오늘의 세 가지 — 하루 한 번뿐
 };
 
@@ -438,7 +443,23 @@ export const RANKS = [
 
 export type Rank = (typeof RANKS)[number];
 
+// ── 뒷방 주인 ────────────────────────────────────────────────
+// 주인은 이 도량의 모든 자리를 열어 두고 본다. 자리를 올리려고 목탁을
+// 두드리고 있을 수는 없다 — 화면을 고치려면 꼭대기가 어떻게 보이는지
+// 늘 눈앞에 있어야 한다. 그래서 자리·그림·연꽃만 얹는다.
+// **장부(loadMerit)는 건드리지 않는다.** 숫자를 부풀리면 저울이 망가진다.
+let owner = false;
+
+/** 로그인 흐름(sync.ts watchAuth)이 한 번 켜 준다 */
+export function setOwner(v: boolean) {
+  owner = v;
+}
+export function isOwner(): boolean {
+  return owner;
+}
+
 export function rankOf(total: number): Rank {
+  if (owner) return RANKS[RANKS.length - 1];
   let r: Rank = RANKS[0];
   for (const x of RANKS) if (total >= x.need) r = x;
   return r;
@@ -446,6 +467,7 @@ export function rankOf(total: number): Rank {
 
 /** 지금 자리의 번호 — 0(동자) ~ 5(부처). 그림을 고를 때 쓴다 */
 export function stageOf(total: number): number {
+  if (owner) return RANKS.length - 1;
   let i = 0;
   RANKS.forEach((x, k) => {
     if (total >= x.need) i = k;
@@ -484,5 +506,6 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   sutra: "경전 외우기",
   moment: "시절인연",
   bowl: "싱잉볼",
+  candle: "초 공양",
   daily: "오늘의 세 가지",
 };

@@ -55,7 +55,8 @@ import {
   type SharedAnswer,
 } from "@/lib/community";
 import { applyBankOverride, fetchAdminContent } from "@/lib/adminContent";
-import { initPresence, watchOnlineCount } from "@/lib/presence";
+// 접속 표는 사이드바가 올린다(모든 화면에 있으므로) — 여기선 세기만 한다
+import { watchOnlineCount } from "@/lib/presence";
 
 // 나눔 물음창의 작은 안내 — 공유하면 무엇이 일어나는지
 const SHARE_NOTE =
@@ -264,10 +265,8 @@ export default function Home() {
 
   // 실시간 접속자 추적 — 탭이 열리면 등록, 닫히면 서버가 자동 삭제
   useEffect(() => {
-    const stopPresence = initPresence();
     const stopWatch = watchOnlineCount(setOnlineCount);
     return () => {
-      stopPresence();
       stopWatch();
     };
   }, []);

@@ -52,6 +52,9 @@ import {
   type DmThread,
 } from "@/lib/dm";
 import { TEMPLES } from "@/lib/pilgrimage";
+
+/** 목록에 있는 절 이름 — 고른 것인지 직접 적은 것인지 가르는 데 쓴다 */
+const TEMPLE_NAMES: string[] = TEMPLES.map((t) => t.name);
 import Dudu from "@/components/Dudu";
 import { grantCharm } from "@/lib/charm";
 import { addMerit } from "@/lib/merit";
@@ -1270,19 +1273,46 @@ export default function GatheringBoard({
             />
             {/* 어느 절로, 언제 — 전부 선택 */}
             <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                value={temple}
-                onChange={(e) => setTemple(e.target.value)}
-                list="gathering-temples"
-                maxLength={30}
-                placeholder="절 (선택)"
-                className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[15px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
-              />
-              <datalist id="gathering-temples">
-                {TEMPLES.map((t) => (
-                  <option key={t.name + t.address} value={t.name} />
-                ))}
-              </datalist>
+              {/* 절 — 골라 쓴다.
+                  예전엔 빈 칸에 datalist 만 물려 두었는데, 브라우저가 화살표를
+                  안 그려 주니 아무도 목록이 있는 줄 몰랐다. 그냥 빈 칸으로 보였고
+                  「봉은사」「서울 봉은사」「봉은사(삼성동)」이 제각각 올라왔다.
+                  목록에서 고르게 하면 이름이 하나로 모이고, 절 이름으로 거르는
+                  일도 그제야 맞아떨어진다. 없는 절은 「직접 적기」로. */}
+              <div className="min-w-0 flex-1">
+                <select
+                  value={TEMPLE_NAMES.includes(temple) || temple === "" ? temple : "__etc"}
+                  onChange={(e) => setTemple(e.target.value === "__etc" ? " " : e.target.value)}
+                  aria-label="절 고르기"
+                  className={`w-full appearance-none rounded-[10px] border border-ink-3 bg-transparent bg-[length:11px] bg-[right_16px_center] bg-no-repeat px-4 py-3 pr-10 text-[15px] outline-none transition-colors focus:border-gold/40 ${
+                    temple ? "text-hanji" : "text-hanji-faint"
+                  }`}
+                  style={{
+                    backgroundImage:
+                      "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%238a8175' stroke-width='1.6'><path d='M1 1.5 6 6.5 11 1.5'/></svg>\")",
+                  }}
+                >
+                  <option value="">절 고르기 (선택)</option>
+                  {TEMPLES.map((t) => (
+                    <option key={t.name + t.address} value={t.name} className="bg-ink-2">
+                      {t.name} · {t.region}
+                    </option>
+                  ))}
+                  <option value="__etc" className="bg-ink-2">
+                    목록에 없어요 — 직접 적기
+                  </option>
+                </select>
+                {!TEMPLE_NAMES.includes(temple) && temple !== "" && (
+                  <input
+                    value={temple.trim()}
+                    onChange={(e) => setTemple(e.target.value)}
+                    maxLength={30}
+                    autoFocus
+                    placeholder="절 이름을 적어 주세요"
+                    className="mt-2 w-full rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[15px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+                  />
+                )}
+              </div>
               <input
                 type="date"
                 value={date}
