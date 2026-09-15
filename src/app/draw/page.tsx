@@ -130,6 +130,9 @@ export default function DrawPage() {
     clickBead(0.55);
     buzz(10);
     setGot(f);
+    // 서랍을 **그 자리에서** 다시 읽는다. 900ms 뒤에 읽으면 그사이에
+    // ‘오늘 것이 비었는데 패만 뒤집혔다’고 본 아래 효과가 바로 되돌려 버렸다.
+    setBook(loadDraw());
     setFlipped(true);
     // 반쯤 돌았을 때 목탁 한 방 — 소리가 그림보다 먼저 오면 김이 샌다
     window.setTimeout(() => strikeMoktak(0.55), 330);

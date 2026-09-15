@@ -53,12 +53,10 @@ export default function MyHwaduPage() {
         내가 던지는 화두
       </h1>
       <p className="rise rise-d1 mt-7 text-center font-serif text-lg font-light leading-9 text-hanji">
-        이번에는, 그대가 묻는 차례입니다.
+        이번엔 내가 묻는다.
       </p>
       <p className="rise rise-d1 mt-3 text-center text-[13px] leading-7 text-hanji-dim">
-        여기 적힌 물음은 걸러진 뒤, 언젠가 어느 낯선 이의 화면에
-        <br className="hidden sm:block" />
-        오늘의 화두로 떠오릅니다.
+        적어 두면 살핌본 뒤, 누군가의 오늘 화두로 나갑니다.
       </p>
 
       {justThrown ? (

@@ -41,7 +41,9 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   hwadu: 108, // 화두 하나를 회향하면 한 바퀴
   temple: 54,
   gathering: 9,
-  sutra: 21, // 경전 한 마디 — 삼귀의 1배, 사홍서원 2배, 반야심경 6배
+  // 경전은 빡세다 — 반야심경을 끝까지 치려면 몇 분은 걸린다.
+  // 목탁 한 번과 같은 저울에 올리면 아무도 안 외운다.
+  sutra: 54, // 경전 한 마디 — 삼귀의 1배, 사홍서원 2배, 반야심경 6배
   daily: 54, // 오늘의 세 가지 — 반 바퀴
 };
 
@@ -61,7 +63,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   hwadu: 216, // 화두는 하루 둘까지
   temple: 108, // 절은 하루 두 곳까지
   gathering: 27, // 인연 글·댓글 셋
-  sutra: 126, // 경전 여섯 마디
+  sutra: 324, // 경전 여섯 마디 — 반야심경 한 번이면 참다
   daily: 54, // 오늘의 세 가지 — 하루 한 번뿐
 };
 

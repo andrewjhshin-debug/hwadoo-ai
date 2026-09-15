@@ -7,6 +7,7 @@ import MobileTabBar from "@/components/MobileTabBar";
 import DoryangMenu from "@/components/DoryangMenu";
 import NextDoors from "@/components/NextDoors";
 import MeritBar from "@/components/MeritBar";
+import MeritToast from "@/components/MeritToast";
 import ConfirmProvider from "@/components/Confirm";
 import VisitLedger from "@/components/VisitLedger";
 import InstallBanner from "@/components/InstallBanner";
@@ -174,6 +175,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <MobileTabBar />
         {/* 도량 한눈에 — 오른쪽 아래 단추 하나로 방 전부를 펼친다 */}
         <DoryangMenu />
+        {/* 공덕이 붙는 순간 — +N 이 뜨고, 자리가 오르면 화면이 한 번 열린다 */}
+        <MeritToast />
         {/* 홈 화면에 담기 — 세션마다 한 번, 탭바 위에 낮게 깔려 묻는다 */}
         <InstallBanner />
         </ConfirmProvider>

@@ -6,10 +6,8 @@
 // 백팔배는 마음먹어야 하지만 삼배는 서른 초면 된다.
 // 문턱이 없어야 매일 한다 — 그래서 이 방이 있다.
 //
-// 절하는 법 두 가지 —
-//  · 눌러서   폰을 들고 있지 않아도 된다. 단추를 세 번.
-//  · 숙여서   폰을 쥐고 실제로 절한다. 기울기(deviceorientation)로 센다.
-//    iOS 는 권한을 물어야 해서, 물어보고 안 되면 조용히 눌러서로 남는다.
+// 절은 눌러서 한다. 기울기로 세는 「숙여서」를 두었다가 걸었다 —
+// 기기마다 값이 달라 잘 안 세지고, 안 세는 단추는 없니만 못하다.
 //
 // 절할 때마다 광배가 한 겹씩 밝아지고, 셋을 채우면 금빛이 퍼진다.
 // 광배는 그림이 아니라 SVG 다 — 그래야 한 겹씩 살아난다.
@@ -21,21 +19,16 @@ import { addMerit, inRound, loadMerit, ROUND } from "@/lib/merit";
 import { buzz, strikeJukbi, strikeMoktak } from "@/lib/sound";
 import { BOWS, doneToday, finishSambae, loadSambae, TO } from "@/lib/sambae";
 
-type Mode = "tap" | "bend";
-
 export default function SambaePage() {
   const [n, setN] = useState(0); // 이번 판에 몇 배
-  const [mode, setMode] = useState<Mode>("tap");
   const [rounds, setRounds] = useState(0);
   const [total, setTotal] = useState(0);
   const [merit, setMerit] = useState(0);
   const [done, setDone] = useState(false);
   const [glow, setGlow] = useState(0); // 방금 절한 표시
-  const [tilt, setTilt] = useState<"none" | "asking" | "on" | "no">("none");
 
   const nRef = useRef(0);
   nRef.current = n;
-  const downRef = useRef(false); // 숙였다가 펴야 한 배
 
   useEffect(() => {
     const b = loadSambae();
@@ -67,46 +60,10 @@ export default function SambaePage() {
     }
   }, []);
 
-  // 숙여서 — 기울기로 센다. 앞으로 60도 넘게 숙였다가 펴면 한 배.
-  useEffect(() => {
-    if (mode !== "bend" || tilt !== "on") return;
-    const onTilt = (e: DeviceOrientationEvent) => {
-      const beta = e.beta ?? 0; // 앞뒤 기울기
-      if (!downRef.current && beta > 62) downRef.current = true;
-      else if (downRef.current && beta < 28) {
-        downRef.current = false;
-        bow();
-      }
-    };
-    window.addEventListener("deviceorientation", onTilt);
-    return () => window.removeEventListener("deviceorientation", onTilt);
-  }, [mode, tilt, bow]);
-
-  const askTilt = async () => {
-    setMode("bend");
-    type IOS = { requestPermission?: () => Promise<"granted" | "denied"> };
-    const D = window.DeviceOrientationEvent as unknown as IOS | undefined;
-    if (!D) {
-      setTilt("no");
-      return;
-    }
-    if (typeof D.requestPermission === "function") {
-      setTilt("asking");
-      try {
-        setTilt((await D.requestPermission()) === "granted" ? "on" : "no");
-      } catch {
-        setTilt("no");
-      }
-      return;
-    }
-    setTilt("on");
-  };
-
   const again = () => {
     nRef.current = 0;
     setN(0);
     setDone(false);
-    downRef.current = false;
   };
 
   return (
@@ -116,27 +73,6 @@ export default function SambaePage() {
         @keyframes sb-spread { 0%{transform:scale(.86);opacity:.55} 100%{transform:scale(1.5);opacity:0} }
         @keyframes sb-breathe { 0%,100%{opacity:.20} 50%{opacity:.40} }
       `}</style>
-
-      {/* ── 갈래 ── */}
-      <div className="rise flex w-full max-w-[300px] rounded-full border border-ink-3 bg-ink-2/50 p-1">
-        {(
-          [
-            ["tap", "눌러서"],
-            ["bend", "숙여서"],
-          ] as const
-        ).map(([k, label]) => (
-          <button
-            key={k}
-            onClick={() => (k === "bend" ? void askTilt() : (setMode("tap"), setTilt("none")))}
-            aria-pressed={mode === k}
-            className={`flex-1 rounded-full py-2.5 text-[14px] tracking-[0.2em] transition-colors ${
-              mode === k ? "bg-hanji text-ink" : "text-hanji-faint hover:text-hanji-dim"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
 
       <p className="rise rise-d1 mt-8 text-[12px] tracking-[0.35em] text-hanji-faint">
         三拜 · 삼배
@@ -151,8 +87,8 @@ export default function SambaePage() {
 
       {/* ── 불상 ── */}
       <button
-        onClick={mode === "tap" ? bow : undefined}
-        disabled={done || mode === "bend"}
+        onClick={bow}
+        disabled={done}
         aria-label="한 배"
         className="rise rise-d2 relative mt-4 block select-none outline-none disabled:cursor-default"
         style={{ WebkitTapHighlightColor: "transparent" }}
@@ -217,17 +153,7 @@ export default function SambaePage() {
       </button>
 
       <p className="mt-2 text-[12px] tracking-[0.2em] text-hanji-faint">
-        {done
-          ? ""
-          : mode === "tap"
-            ? "불상을 눌러 한 배"
-            : tilt === "on"
-              ? "폰을 쥐고 숙였다 펴세요"
-              : tilt === "asking"
-                ? "기울기를 여는 중…"
-                : tilt === "no"
-                  ? "이 기기에서는 기울기를 못 읽어요"
-                  : ""}
+        {done ? "" : "불상을 눌러 한 배"}
       </p>
 
       {/* ── 마쳤다 ── */}

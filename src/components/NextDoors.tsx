@@ -51,7 +51,7 @@ const D: Record<string, Door> = {
   draw: { href: "/draw", label: "오늘의 운세", say: "한 장을 뒤집다", Icon: Lotus },
   rank: { href: "/rank", label: "육도 랭킹", say: "지금 내 자리", Icon: Dharmachakra },
   settings: { href: "/settings", label: "내 도량", say: "공덕과 부적", Icon: Person },
-  archive: { href: "/archive", label: "서고", say: "지나온 화두", Icon: Seogo },
+  archive: { href: "/archive", label: "서고", say: "지난 화두", Icon: Seogo },
   room: { href: "/room", label: "사유의 방", say: "떠오르는 것을 적다", Icon: Banga },
   home: { href: "/", label: "뜰", say: "화두를 받는 자리", Icon: LotusMark },
   pilgrimage: { href: "/pilgrimage", label: "손잡고 절로", say: "가까운 절", Icon: Iljumun },

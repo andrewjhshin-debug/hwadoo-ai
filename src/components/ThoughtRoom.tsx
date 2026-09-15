@@ -303,11 +303,11 @@ export default function ThoughtRoom({
                   onTouchEnd={clearHold}
                   onTouchMove={clearHold}
                   onTouchCancel={clearHold}
-                  onContextMenu={(e) => {
-                    // 길게 누르면 뜨는 기기 기본 메뉴는 막는다
-                    if (held === i) e.preventDefault();
-                  }}
-                  className="block w-full rounded-[16px] rounded-tl-[4px] border border-ink-3 bg-ink-2/70 px-4 py-3 text-left transition-colors hover:border-gold/35"
+                  onContextMenu={(e) => e.preventDefault()}
+                  // 길게 누르면 iOS 는 복사 막대를, 안드로이드는 글자 선택을 열어
+                  // 드러내기와 같이 뜨는다. 누르는 면은 선택되지 않게 한다.
+                  style={{ WebkitTouchCallout: "none" }}
+                  className="block w-full select-none rounded-[16px] rounded-tl-[4px] border border-ink-3 bg-ink-2/70 px-4 py-3 text-left transition-colors hover:border-gold/35"
                 >
                   <p className="whitespace-pre-line break-keep text-[14.5px] leading-8 text-hanji">
                     {t.text}
@@ -322,20 +322,20 @@ export default function ThoughtRoom({
                 {editing !== i && (
                   <span
                     className={`flex items-center gap-2.5 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 ${
-                      held === i ? "opacity-100" : "opacity-40"
+                      held === i ? "opacity-100" : "opacity-80"
                     }`}
                   >
                     <button
                       onClick={() => openEdit(i, t.text)}
                       aria-label="이 말 수정"
-                      className="text-[10.5px] text-hanji-faint transition-colors hover:text-gold focus-visible:text-gold"
+                      className="text-[10.5px] text-hanji-dim transition-colors hover:text-gold focus-visible:text-gold"
                     >
                       수정
                     </button>
                     <button
                       onClick={() => void remove(i)}
                       aria-label="이 말 지움"
-                      className="text-[10.5px] text-hanji-faint transition-colors hover:text-vermilion focus-visible:text-vermilion"
+                      className="text-[10.5px] text-hanji-dim transition-colors hover:text-vermilion focus-visible:text-vermilion"
                     >
                       지움
                     </button>

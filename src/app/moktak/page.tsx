@@ -119,6 +119,24 @@ export default function MoktakPage() {
 
   const hit = () => strike(true);
 
+  // 자동 목탁을 틀어 둔 채 염주로 넘가거나 앱을 나가면 소리만 따라온다 —
+  // 끜 수 없는 소리는 수행이 아니라 소음이다. 둘 다 그 자리에서 끔는다.
+  useEffect(() => {
+    if (tab !== "moktak") setAuto(false);
+  }, [tab]);
+
+  useEffect(() => {
+    const hush = () => {
+      if (document.visibilityState === "hidden") setAuto(false);
+    };
+    document.addEventListener("visibilitychange", hush);
+    window.addEventListener("pagehide", hush);
+    return () => {
+      document.removeEventListener("visibilitychange", hush);
+      window.removeEventListener("pagehide", hush);
+    };
+  }, []);
+
   // 자동 목탁 — 사람 손처럼 박자를 아주 살짝 흔든다
   useEffect(() => {
     if (!auto) return;

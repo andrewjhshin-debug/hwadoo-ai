@@ -73,9 +73,8 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/bae", label: "백팔배", Icon: Banga },
   { href: "/sutra", label: "경전 외우기", Icon: Book },
   { href: "/draw", label: "오늘의 운세", Icon: LotusMark },
-  { href: "/rank", label: "육도 랭킹", Icon: Dharmachakra },
   { href: "/room", label: "사유의 방", Icon: Banga },
-  { href: "/archive", label: "서고", Icon: Seogo },
+  { href: "/archive", label: "서고 — 지난 화두", Icon: Seogo },
 ];
 
 // 말씀 · 나눔 — 구획 제목과 함께 아래에 잇는다
@@ -341,14 +340,24 @@ export default function Sidebar() {
             {/* 마이 페이지 · 내 도량 — 오른쪽 위.
                 걸음 뱃지는 아래 로그인 영역에만 — 여기에는 새 소식 점만 뜬다 */}
             {/* 연꽃 · 쪽지 — 낮/밤 단추가 있던 자리 */}
+            {/* 육도 랭킹 — 매일 보는 자리니 목록 속이 아니라 위 줄에 */}
+            <Link
+              href="/rank"
+              onClick={go("/rank")}
+              title="육도 랭킹"
+              aria-label="육도 랭킹"
+              className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
+            >
+              <Dharmachakra className="h-4 w-4" />
+            </Link>
             <Link
               href="/lotus"
               onClick={go("/lotus")}
-              title="연꽃 공양"
+              title="연꽃 공양 — 등을 밝히다"
               aria-label="연꽃 공양"
               className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
             >
-              <LotusMark className="h-4 w-4" />
+              <Yeondeung className="h-4 w-4" />
             </Link>
             {dmVisible(user?.uid) && (
               <Link

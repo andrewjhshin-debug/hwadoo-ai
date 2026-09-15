@@ -69,7 +69,7 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
       { href: "/sutra", label: "경전 외우기", say: "입에 붙이다", Icon: Book },
       { href: "/mandala", label: "만다라", say: "색을 앉히다", Icon: Mandala },
       { href: "/empty", label: "비움", say: "쓰지 않은 하루", Icon: Moktak },
-      { href: "/archive", label: "서고", say: "지나온 화두", Icon: Seogo },
+      { href: "/archive", label: "서고", say: "지난 화두", Icon: Seogo },
     ],
   },
   {

@@ -110,7 +110,7 @@ export default function MyTemplePicker({ className = "" }: { className?: string 
               </p>
               {/* 셈이 오기 전에는 자리만 비워 둔다 — 줄이 생겼다 사라지면 카드가 들썩인다 */}
               {/* 셈에는 나도 들어 있다 — 그래서 둘 이상일 때만 수를 세워 보인다 */}
-              <p className="mt-1 h-[16px] text-[12px] leading-4 text-hanji-faint">
+              <p className="mt-1 min-h-[16px] text-[12px] leading-4 text-hanji-faint">
                 {mates === null ? (
                   ""
                 ) : mates > 1 ? (
@@ -122,7 +122,7 @@ export default function MyTemplePicker({ className = "" }: { className?: string 
                     명
                   </>
                 ) : (
-                  "이 절에 다니는 사람 · 나 혼자예요"
+                  "아직 나 혼자예요"
                 )}
               </p>
             </div>
