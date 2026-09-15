@@ -23,6 +23,7 @@ import { useConfirm } from "@/components/Confirm";
 import LotusCount, { pingLotus } from "@/components/LotusCount";
 import Info from "@/components/Info";
 import { Yeonkkot } from "@/components/icons";
+import { isAdminAccount } from "@/lib/config";
 import {
   alreadyPrayed,
   BURN_DAYS,
@@ -35,6 +36,7 @@ import {
   fetchMyCandles,
   lightCandle,
   prayWith,
+  removeCandle,
   wishOf,
   type Candle,
   type WishId,
@@ -117,12 +119,15 @@ function Slip({
   me,
   onClose,
   onPrayed,
+  onRemoved,
 }: {
   c: Candle;
   me: User | null;
   onClose: () => void;
   onPrayed: (gained: number) => void;
+  onRemoved: () => void;
 }) {
+  const confirm = useConfirm();
   const w = wishOf(c.kind);
   const mine = me?.uid === c.uid;
   const [busy, setBusy] = useState(false);
@@ -170,10 +175,26 @@ function Slip({
         </p>
         <p className="mt-2 break-keep text-[14px] leading-7 text-hanji-dim">{c.wish}</p>
 
-        <p className="mt-5 border-t border-ink-3 pt-3 text-[11px] text-hanji-faint">
-          {c.by}
-          {c.byHanja ? ` ${c.byHanja}` : ""} 올림 · 같이 빈 사람 {c.hapjang}
-        </p>
+        <div className="mt-5 flex items-center justify-between gap-3 border-t border-ink-3 pt-3">
+          <p className="min-w-0 truncate text-[11px] text-hanji-faint">
+            {c.by}
+            {c.byHanja ? ` ${c.byHanja}` : ""} 올림 · 같이 빈 사람 {c.hapjang}
+          </p>
+          {/* 내리기 — 올린 사람과 뒷방 주인만. 법당은 남의 이름이 걸리는
+              자리라 욕설·장난은 바로 치울 수 있어야 한다. */}
+          {(mine || isAdminAccount(me)) && (
+            <button
+              onClick={async () => {
+                if (!(await confirm("이 초를 내릴까요?", "다시 켤 수 없습니다."))) return;
+                await removeCandle(c.id);
+                onRemoved();
+              }}
+              className="shrink-0 text-[11px] text-hanji-faint underline underline-offset-2 transition-colors hover:text-vermilion"
+            >
+              {mine ? "내리기" : "치우기"}
+            </button>
+          )}
+        </div>
 
         <div className="mt-5 flex gap-2">
           {!mine && (
@@ -516,6 +537,11 @@ export default function CandleHall() {
           onClose={() => setOpen(null)}
           onPrayed={(g) => {
             setSaid(g > 0 ? `같이 빌었습니다 · 공덕 ${g}` : "같이 빌었습니다");
+            setOpen(null);
+            load();
+          }}
+          onRemoved={() => {
+            setSaid("초를 내렸습니다.");
             setOpen(null);
             load();
           }}

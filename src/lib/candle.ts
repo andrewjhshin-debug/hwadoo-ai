@@ -27,6 +27,7 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   increment,
@@ -206,6 +207,14 @@ export async function fetchMyCandles(): Promise<Candle[]> {
   const mine = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Candle, "id">) }));
   // 색인을 하나 더 만들지 않으려고 정렬은 여기서 한다(내 것은 많아야 몇 십 개다)
   return mine.sort((a, b) => b.until - a.until);
+}
+
+/**
+ * 초를 내린다 — 올린 사람과 뒷방 주인만(firestore.rules 가 같은 줄로 막는다).
+ * 법당은 남의 이름이 걸리는 자리라 욕설·장난은 바로 치울 수 있어야 한다.
+ */
+export async function removeCandle(id: string): Promise<void> {
+  await deleteDoc(doc(db, "candles", id));
 }
 
 /**

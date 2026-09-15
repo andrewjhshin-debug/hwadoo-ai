@@ -209,7 +209,7 @@ export default function DailyPractice() {
                 자리는 <b className="text-hanji">공덕</b>과 <b className="text-hanji">회향한 화두 수</b>,
                 둘 다 넘겨야 오릅니다.
                 <br />
-                이틀 넘게 안 오면 공덕이 깎여 자리도 내려갑니다.
+                발길이 뜸해지면 공덕이 조금씩 흐려집니다.
               </Info>
             </p>
           </div>
@@ -241,7 +241,7 @@ export default function DailyPractice() {
             {fade.gap}일 쉬는 동안 공덕 {fade.cut.toLocaleString("ko-KR")}이 줄었어요.
             오늘 한 가지만 해도 멈춥니다.
             <Info title="退轉 · 줄어드는 까닭" className="ml-1.5">
-              하루는 그냥 넘어갑니다. <b className="text-hanji">이틀째부터</b> 하루에
+              하루는 그냥 넘어갑니다. <b className="text-hanji">그 뒤로는</b> 하루에
               4%씩 줄고, 오래 쉴수록 더 줄어요(최대 25%).
               <br />
               들어와서 뭐라도 하나 하면 그날로 멈춥니다.

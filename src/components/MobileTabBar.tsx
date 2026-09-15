@@ -3,7 +3,9 @@
 // ────────────────────────────────────────────────────────────────
 // 모바일 전용 — 화면 하단에 고정되는 주요 탭 5개 + 사유의 방 FAB.
 // 스크롤과 무관하게 늘 같은 자리에 머문다(fixed). md 이상에서는 숨김.
-// 5개 탭: 간화선 · 굿즈 · 뜰(홈) · 절로 · 내 도량
+// 6개 탭: 간화선 · 법당 · 뜰(홈) · 절로 · 내 도량 · 굿즈
+// 법당(초 공양)을 들였다 — 연꽃을 쓰는 자리가 서랍 속에만 있으면 아무도
+// 안 켠다. 여섯이 되면서 칸이 좁아져 글자를 한 눈금 줄였다.
 // 나머지 방(체험하기·사유의 방·만다라·차 한 잔·차담회·화두 던지기·연지원)은
 // 햄버거 서랍과 내 도량의 서비스 그리드에서 닿는다.
 // ────────────────────────────────────────────────────────────────
@@ -11,14 +13,15 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useHasNews } from "@/lib/notices";
-import { Dharmachakra, Person, Enso, Iljumun, Bojagi } from "./icons";
+import { Dharmachakra, Person, Enso, Iljumun, Bojagi, LotusMark } from "./icons";
 
 const TABS = [
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
-  { href: "/goods", label: "굿즈", Icon: Bojagi },
+  { href: "/candle", label: "법당", Icon: LotusMark },
   { href: "/", label: "뜰", Icon: Enso },
   { href: "/pilgrimage", label: "절로", Icon: Iljumun },
   { href: "/settings", label: "내 도량", Icon: Person },
+  { href: "/goods", label: "굿즈", Icon: Bojagi },
 ];
 
 export default function MobileTabBar() {
@@ -46,12 +49,12 @@ export default function MobileTabBar() {
               key={href}
               href={href}
               onClick={go(href)}
-              className={`flex flex-1 flex-col items-center justify-center gap-1.5 text-[12.5px] tracking-wide transition-colors ${
+              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1.5 text-[11px] tracking-tight transition-colors ${
                 active ? "text-gold" : "text-hanji-faint hover:text-hanji-dim"
               }`}
             >
               <span className="relative">
-                <Icon className="h-[24px] w-[24px]" />
+                <Icon className="h-[22px] w-[22px]" />
                 {href === "/settings" && hasNews && (
                   <span
                     aria-hidden

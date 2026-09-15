@@ -173,7 +173,7 @@ export default function MeritExchange() {
           </p>
         ) : can < 1 ? (
           <p className="break-keep text-[12px] leading-6 text-hanji-faint">
-            반나절쯤 붙들면 한 송이가 됩니다.
+            사흘쯤 이어 가면 한 송이가 됩니다.
           </p>
         ) : (
           <>

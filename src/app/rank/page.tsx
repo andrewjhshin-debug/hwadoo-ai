@@ -260,7 +260,7 @@ export default function RankPage() {
                 <span className="text-gold">{step.to.name}</span>까지 {gap}
               </>
             ) : (
-              "가장 높은 자리입니다 — 쉬면 가장 빨리 흐려집니다"
+              "가장 높은 자리입니다 — 높을수록 빨리 흐려집니다"
             )}
           </p>
         </div>

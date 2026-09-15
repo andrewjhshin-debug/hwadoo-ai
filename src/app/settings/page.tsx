@@ -411,7 +411,11 @@ export default function SettingsPage() {
   const give = (to: string) => {
     const l = giveMerit(to, GIVE_UNIT);
     if (!l) {
-      setGaveMsg("오늘 몫을 다 돌렸어요 — 내일 또 밝힐 수 있어요.");
+      setGaveMsg(
+        giveLeftToday() <= 0
+          ? "오늘 몫을 다 돌렸어요 — 내일 또 밝힐 수 있어요."
+          : `공덕이 모자랍니다 — 한 번에 ${GIVE_UNIT}이 듭니다.`
+      );
       window.setTimeout(() => setGaveMsg(""), 5000);
       return;
     }
@@ -917,7 +921,7 @@ export default function SettingsPage() {
             자리는 <b className="text-hanji">공덕</b>과 <b className="text-hanji">회향한 화두 수</b>,
             둘 다 넘겨야 오릅니다. 목탁만 두드려서는 오르지 않습니다.
             <br />
-            이틀 넘게 안 오면 공덕이 깎여 자리도 내려갑니다.
+            발길이 뜸해지면 공덕이 조금씩 흐려집니다.
           </Info>
         </p>
       </section>
@@ -1000,7 +1004,14 @@ export default function SettingsPage() {
             </p>
             <ul className="mt-2.5 flex flex-col gap-[3px] text-[11.5px] leading-5 text-hanji-faint">
               <li>받는 이는 <span className="text-hanji-dim">내가 적은 그 사람</span></li>
-              <li>내 공덕은 <span className="text-hanji-dim">줄지 않는다</span></li>
+              <li>
+                <span className="text-hanji-dim">자리는 그대로</span>, 쥔 몫에서 {GIVE_UNIT}
+                <Info title="줄어드는 것" className="ml-1">
+                  육도와 계급은 <span className="text-hanji">쌓은 공덕</span>으로 매깁니다 —
+                  회향해도 내려가지 않습니다. 줄어드는 것은 연꽃으로 바꿀 수 있는 몫입니다.
+                  불을 나눠 줘도 내 불은 안 꺼지지만, 초는 닳습니다.
+                </Info>
+              </li>
               <li>
                 걸리는 자리는{" "}
                 <Link href="/candle" className="text-gold-soft underline underline-offset-2">
@@ -1012,8 +1023,8 @@ export default function SettingsPage() {
                 앞으로 쌓는 것이 <span className="text-hanji-dim">빨라진다</span>{" "}
                 <span className="text-gold">×{giveBonus().toFixed(2)}</span>
                 <Info title="적립 배수" className="ml-1">
-                  회향 {GIVE_UNIT}마다 +2%, 최대 +20%. 불을 나눠 줘도 내 불은
-                  그대로인 것과 같습니다 — 옛 절의 축원이 그랬습니다.
+                  회향 {GIVE_UNIT}마다 +2%, 최대 +20%. 쓰면 느려지는 게 아니라
+                  앞으로가 빨라집니다 — 나눌수록 커진다는 말을 숫자로 옮긴 자리입니다.
                 </Info>
               </li>
             </ul>
