@@ -133,6 +133,17 @@ function countdownParts(ms: number): { value: string; unit: string }[] {
 const FOLD =
   "cursor-pointer list-none [&::-webkit-details-marker]:hidden";
 
+// 물음의 길이에 따라 활자의 기준을 달리 잡는다.
+// 짧은 물음은 벽보처럼 크게, 긴 물음은 한 단계 낮춰 한 화면에 들어오게.
+// 한 크기로 밀어붙이면 긴 화두가 좁은 화면에서 열 줄 넘게 흘러
+// 글자만 크고 읽히지는 않는다.
+function questionFit(text: string): { min: number; max: number } {
+  const n = text.replace(/\s+/g, " ").trim().length;
+  if (n <= 40) return { min: 34, max: 88 };
+  if (n <= 62) return { min: 29, max: 80 };
+  return { min: 25, max: 72 };
+}
+
 export default function Home() {
   const confirm = useConfirm();
   const [store, setStore] = useState<Store | null>(null);
@@ -479,7 +490,8 @@ export default function Home() {
             HWADU
           </span>
         </div>
-        <p className="rise-sharp rise-s1 mt-5 max-w-[19rem] break-keep text-[12.5px] font-light leading-6 tracking-[0.04em] text-hanji-faint">
+        {/* 곁의 한 줄 — 이름보다 훨씬 작게. 다만 읽히지 않을 만큼 흐리지는 않게 */}
+        <p className="rise-sharp rise-s1 mt-5 max-w-[19rem] break-keep text-[12.5px] font-light leading-6 tracking-[0.04em] text-hanji-dim">
           &ldquo;{SLOGAN}&rdquo;
         </p>
         <div className="rise-sharp rise-s2 my-8 flex items-center gap-3 opacity-70">
@@ -610,7 +622,7 @@ export default function Home() {
             回向 · 나의 답
           </p>
           {/* 이 화면의 주인공은 내가 쓴 답 — 아래 접힌 것들과 무게를 벌린다 */}
-          <p className="hwadu-body sheen-once mt-9 whitespace-pre-line break-keep font-serif text-[clamp(18px,5vw,23px)] text-hanji">
+          <p className="hwadu-body mt-9 whitespace-pre-line break-keep font-serif text-[clamp(18px,5vw,23px)] text-hanji">
             {current.journal}
           </p>
 
@@ -893,12 +905,12 @@ export default function Home() {
             {hwadu.hanja}
           </span>
         )}
-        {/* 오직 이것만 보는 자리 — 활자를 끝까지 키운다 */}
-        <div className="question-glow hwadu-q sheen-once mt-10 w-full max-w-2xl">
+        {/* 오직 이것만 보는 자리 — 곁에 아무것도 없으니 상한만 더 연다 */}
+        <div className="question-glow hwadu-q mt-10 w-full max-w-2xl">
           <Question
             text={sessionQuestion(current)}
-            min={38}
-            max={104}
+            min={questionFit(sessionQuestion(current)).min}
+            max={questionFit(sessionQuestion(current)).max + 16}
             className="text-hanji"
           />
         </div>
@@ -946,11 +958,11 @@ export default function Home() {
         )}
         {/* 질문 — 이 화면에서 눈이 갈 곳은 여기 하나.
             활자를 키우고 자간·행간을 눌러 한 덩어리로 세운다(.hwadu-q). */}
-        <div className="question-glow hwadu-q sheen-once mt-8 w-full">
+        <div className="question-glow hwadu-q mt-8 w-full">
           <Question
             text={sessionQuestion(current)}
-            min={34}
-            max={88}
+            min={questionFit(sessionQuestion(current)).min}
+            max={questionFit(sessionQuestion(current)).max}
             className="text-hanji"
           />
         </div>

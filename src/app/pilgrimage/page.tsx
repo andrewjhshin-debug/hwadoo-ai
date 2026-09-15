@@ -21,6 +21,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MyTemplePicker from "@/components/MyTemplePicker";
+import TempleProof from "@/components/TempleProof";
 import {
   REGIONS,
   TEMPLES,
@@ -217,8 +218,13 @@ export default function PilgrimagePage() {
         산문은 누구에게나 열려 있습니다.
       </p>
 
-      {/* ── 내가 다니는 절 — 같은 절 다니는 사람끼리 알아본다 ── */}
+      {/* ── 우리 절 — 같은 절 다니는 사람끼리 알아본다 ── */}
       <MyTemplePicker className="rise rise-d1 mt-6" />
+
+      {/* ── 다녀왔다는 표 — 절 안에 서 있을 때만 눌린다(위치 500m).
+           사진이나 체크가 아니라 위치로 놓은 까닭은, 그것만이
+           "갔다"를 거짓말 없이 말해 주기 때문이다. ── */}
+      <TempleProof className="rise rise-d1 mt-4" />
 
       {/* ── 이름난 도량 (지도) ── */}
       <section className="rise rise-d2 mt-12">

@@ -68,7 +68,7 @@ export default function EmptyPage() {
         空
       </p>
       <p className="rise mt-5 text-[11px] tracking-[0.5em] text-gold-soft">
-        비움 — 네 갈래
+        비움 — 무한한 가능성
       </p>
       <p className="question-glow rise rise-d1 mt-7 text-center font-serif text-xl font-light leading-[1.9] text-hanji">
         쥐고 있던 것 하나를 내려놓습니다.

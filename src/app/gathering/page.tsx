@@ -10,6 +10,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import GatheringBoard from "@/components/GatheringBoard";
+import TempleEvents from "@/components/TempleEvents";
 
 function GatheringInner() {
   const sp = useSearchParams();
@@ -30,6 +31,12 @@ function GatheringInner() {
           <p className="rise rise-d1 mt-2.5 px-5 text-center text-[11.5px] tracking-wide text-hanji-faint sm:px-0">
             만 19세 이상만 이용할 수 있습니다 · 익명 법명으로 활동합니다
           </p>
+
+          {/* 다가오는 절 행사 — "언제 갈까"가 있어야 "같이 갈래요"가 나온다.
+              부처님오신날·백중 같은 음력 날은 셈으로, 절별 행사는 적어 둔 표로. */}
+          <div className="rise rise-d1 mt-6 px-5 sm:px-0">
+            <TempleEvents limit={5} days={150} />
+          </div>
         </>
       )}
       <section className={view === "list" ? "rise rise-d1 mt-4" : ""}>
