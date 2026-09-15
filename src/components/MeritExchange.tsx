@@ -25,7 +25,7 @@ import { buzz, strikeMoktak } from "@/lib/sound";
 import { LotusMark } from "@/components/icons";
 
 /** 한 번에 청할 수 있는 송이 수 — 서버의 하루 묶음과 같은 값 */
-const PER_TRY = 3;
+const PER_TRY = 1; // 서버도 하루 한 송이다 — 둘이 어긋나면 헛바람을 썼다
 
 const num = (n: number) => n.toLocaleString("ko-KR");
 
@@ -138,13 +138,15 @@ export default function MeritExchange() {
       <div className="mt-2 flex items-baseline justify-between gap-3">
         <p className="text-[11px] text-hanji-faint">
           {num(LOTUS_PRICE)} 공덕 = 연꽃 한 송이
+          <span className="ml-1.5 text-hanji-faint/70">· 한나절이면 한 송이</span>
         </p>
         <p className="shrink-0 text-[11px] tabular-nums text-hanji-dim">
           {can > 0 ? `다음 한 송이까지 ${num(toNext)}` : `한 송이까지 ${num(toNext)}`}
         </p>
       </div>
 
-      {/* 바꾸기 */}
+      {/* 바꾸기 — 바꾸어 받은 연꽃은 돈으로 돌아가지 않는다.
+          그건 당연한 것이지만, 적어 두지 않으면 오해하는 사람이 생긴다. */}
       <div className="mt-4 border-t border-ink-3 pt-4">
         {!user ? (
           <p className="break-keep text-[12px] leading-6 text-hanji-dim">
@@ -169,11 +171,9 @@ export default function MeritExchange() {
             >
               {busy ? "바꾸는 중" : `연꽃 ${want}송이로 바꾸기`}
             </button>
-            {can > PER_TRY && (
-              <p className="mt-2 text-center text-[11px] text-hanji-faint">
-                하루 세 송이까지
-              </p>
-            )}
+            <p className="mt-2 text-center text-[11px] leading-5 text-hanji-faint">
+              하루 한 송이까지 · 바꾸어 받은 연꽃은 돈으로 돌려주지 않아요
+            </p>
           </>
         )}
 

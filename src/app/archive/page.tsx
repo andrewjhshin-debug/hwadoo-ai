@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { flatQuestion, getHwadu, sessionQuestion, sessionTitle } from "@/lib/hwadu";
-import { plainThoughts } from "@/lib/thoughts";
+import { parseThoughts, whenLabel } from "@/lib/thoughts";
 import {
   dayCount,
   formatDate,
@@ -313,9 +313,14 @@ export default function ArchivePage() {
                       </div>
                     ) : (
                       s.journal && (
-                        <blockquote className="mt-5 whitespace-pre-line break-keep border-l border-gold/30 pl-5 text-sm font-light leading-8 text-hanji">
-                          {s.journal}
-                        </blockquote>
+                        <div className="mt-5">
+                          <p className="mb-2 text-[10.5px] tracking-[0.3em] text-gold-soft">
+                            廻向 · 내가 쓴 답
+                          </p>
+                          <blockquote className="whitespace-pre-line break-keep border-l-2 border-gold/45 pl-5 text-sm font-light leading-8 text-hanji">
+                            {s.journal}
+                          </blockquote>
+                        </div>
                       )
                     )}
 
@@ -326,15 +331,30 @@ export default function ArchivePage() {
                         {s.journalAt && ` · ${shortDate(s.journalAt)} 회향`}
                       </p>
 
+                      {/* 사유의 방 단상 — 답과 한 덩어리로 보이면 안 된다.
+                          품는 동안 흘린 말과, 끝에 쓴 답은 다른 것이다. */}
                       {s.notes && !editing && (
                         <details className="group mt-3">
                           <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-hanji-dim [&::-webkit-details-marker]:hidden">
-                            단상
+                            <span className="font-serif text-gold-soft">思</span>
+                            사유의 방에 남긴 단상
                             <Chevron />
                           </summary>
-                          <p className="mt-2 whitespace-pre-line pl-1 text-[13px] leading-7 text-hanji-dim">
-                            {plainThoughts(s.notes)}
-                          </p>
+                          <div className="mt-2.5 rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3">
+                            {parseThoughts(s.notes).map((t, i) => (
+                              <p
+                                key={`${t.at}-${i}`}
+                                className="whitespace-pre-line break-keep border-b border-ink-3 py-2 text-[13px] leading-7 text-hanji-dim last:border-b-0"
+                              >
+                                {t.text}
+                                {t.at > 0 && (
+                                  <span className="ml-2 align-middle text-[10px] text-hanji-faint">
+                                    {whenLabel(t.at)}
+                                  </span>
+                                )}
+                              </p>
+                            ))}
+                          </div>
                         </details>
                       )}
 

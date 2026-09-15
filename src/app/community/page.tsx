@@ -4,11 +4,13 @@
 // ────────────────────────────────────────────────────────────────
 
 import Board from "@/components/Board";
+import { MomentTeaser } from "@/components/MomentBoard";
 
 export default function CommunityPage() {
   return (
     <Board
       board="community"
+      lead={<MomentTeaser />}
       bowedKey="hwadoo-bowed-v1"
       texts={{
         heading: "蓮池院 · 연지원",

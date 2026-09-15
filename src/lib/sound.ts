@@ -285,6 +285,141 @@ export function clickBead(vol: number) {
   o3.stop(t + 0.08);
 }
 
+// ── 싱잉볼(magic bowl) — 한 번 치면 오래 운다 ─────────────────
+//
+// 목탁은 나무라 녹음을 썼다. 싱잉볼은 반대다 — 금속 그릇의 소리는
+// **몇 개의 배음과 아주 긴 감쇠**가 거의 전부라, 빚는 편이 녹음보다 낫다.
+// 녹음은 30초짜리라 파일이 무겁고 자르면 꼬리가 뚝 끊긴다.
+//
+// 싱잉볼의 결 세 가지를 그대로 옮겼다 —
+//  ① 배음이 정수배가 아니다. 1 : 2.74 : 5.40 : 8.93 — 종·그릇의 비율이다.
+//     정수배로 깔면 오르간이 된다.
+//  ② **울렁임(beating)**. 그릇은 완벽한 동그라미가 아니어서 같은 모드가
+//     아주 조금 어긋난 두 주파수로 갈린다. 그 차(0.7~2Hz)가 「우- 웅- 우- 웅-」
+//     하는 맥놀이다. 이게 없으면 그냥 신시사이저 소리다.
+//  ③ 높은 배음일수록 먼저 죽는다. 그래서 시간이 갈수록 소리가 둥글어진다.
+//
+// 채로 때린 순간의 「탁」도 아주 짧게 얹는다 — 그게 없으면 소리가
+// 어디선가 스르륵 생겨난 것처럼 들린다.
+
+/** 배음 비율 · 처음 세기 · 감쇠(초) · 갈라짐(Hz) */
+const BOWL_MODES: [ratio: number, gain: number, decay: number, split: number][] = [
+  [1, 0.42, 14, 0.7],
+  [2.74, 0.3, 9.5, 1.1],
+  [5.4, 0.16, 5.5, 1.7],
+  [8.93, 0.075, 3.2, 2.3],
+  [13.3, 0.03, 1.8, 3.1],
+];
+
+/** 그릇의 기본음 — 큰 그릇일수록 낮다. 셋을 돌려 쓴다(작은·중간·큰) */
+export const BOWL_TONES = [
+  { id: "small", label: "작은 그릇", hz: 288 },
+  { id: "mid", label: "중간 그릇", hz: 210 },
+  { id: "big", label: "큰 그릇", hz: 146 },
+] as const;
+
+export type BowlTone = (typeof BOWL_TONES)[number]["id"];
+
+/** 지금 울고 있는 그릇 — 다시 치면 앞 소리를 부드럽게 재운다 */
+let bowlStop: (() => void) | null = null;
+
+/** 울고 있는가 — 화면이 「그치기」 단추를 보일지 정한다 */
+export function bowlRinging(): boolean {
+  return bowlStop !== null;
+}
+
+/** 여운을 남기고 그친다 (손바닥으로 그릇을 감싸 쥐듯) */
+export function hushBowl(sec = 1.1) {
+  bowlStop?.();
+  bowlStop = null;
+  void sec;
+}
+
+/**
+ * 싱잉볼을 한 번 친다. 이미 울고 있으면 앞 소리를 재우고 새로 친다.
+ * 돌려주는 값은 이 소리가 몇 초쯤 갈지 — 화면이 여운을 그릴 때 쓴다.
+ */
+export function strikeBowl(vol: number, tone: BowlTone = "mid"): number {
+  const ac = audio();
+  if (!ac) return 0;
+  const base = BOWL_TONES.find((b) => b.id === tone)?.hz ?? 210;
+  const t = ac.currentTime;
+
+  // 앞 소리는 짧게 재운다 — 뚝 끊지 않는다
+  bowlStop?.();
+
+  const out = ac.createGain();
+  out.gain.value = vol;
+  out.connect(master(ac));
+  // 잔향 — 법당 울림을 조금만 태운다
+  const send = ac.createGain();
+  send.gain.value = 0.5;
+  out.connect(send);
+  send.connect(hall(ac));
+
+  const nodes: { osc: OscillatorNode[]; g: GainNode } = { osc: [], g: out };
+  let longest = 0;
+
+  for (const [ratio, gain, decay, split] of BOWL_MODES) {
+    longest = Math.max(longest, decay);
+    // 한 모드를 두 갈래로 — 이 미세한 어긋남이 맥놀이를 만든다
+    for (const side of [-0.5, 0.5]) {
+      const o = ac.createOscillator();
+      o.type = "sine";
+      o.frequency.value = base * ratio + side * split;
+      const g = ac.createGain();
+      // 때린 순간 솟았다가 길게 사그라든다
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.012 + ratio * 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+      o.connect(g);
+      g.connect(out);
+      o.start(t);
+      o.stop(t + decay + 0.1);
+      nodes.osc.push(o);
+    }
+  }
+
+  // 채가 닿는 순간 — 아주 짧은 금속 긁힘
+  const hit = ac.createBufferSource();
+  hit.buffer = noise(ac);
+  const bp = ac.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = base * 6;
+  bp.Q.value = 1.1;
+  const hg = ac.createGain();
+  hg.gain.setValueAtTime(0.5, t);
+  hg.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  hit.connect(bp);
+  bp.connect(hg);
+  hg.connect(out);
+  hit.start(t);
+
+  // 그치기 — 소리를 1초쯤에 걸쳐 재우고 발을 뺀다
+  let done = false;
+  const stop = () => {
+    if (done) return;
+    done = true;
+    const now = ac.currentTime;
+    try {
+      out.gain.cancelScheduledValues(now);
+      out.gain.setValueAtTime(Math.max(0.0001, out.gain.value), now);
+      out.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+      for (const o of nodes.osc) o.stop(now + 1.2);
+    } catch {
+      /* 이미 끝난 소리 */
+    }
+    if (bowlStop === stop) bowlStop = null;
+  };
+  bowlStop = stop;
+  // 제 수명을 다하면 스스로 물러난다
+  window.setTimeout(() => {
+    if (bowlStop === stop) bowlStop = null;
+  }, (longest + 0.3) * 1000);
+
+  return longest;
+}
+
 export function buzz(ms: number) {
   try {
     navigator.vibrate?.(ms);

@@ -14,6 +14,12 @@
 // 2026-08-23 v5: posts 작성자 수정 허용 필드에 category 추가
 // 2026-08-24 v6: orders — 연꽃 계좌이체 주문
 //
+// 2026-09-15 v10:
+// · moments / moment-photos — 모멘트(절에 다녀온 한 장).
+//   「그 자리」 도장(verified·meters)은 브라우저가 못 적는다 —
+//   만들 때 false 로 굳히고, /api/moment-stamp 가 좌표를 다시 재어 뒤집는다.
+//   사진은 문서 안에 담기므로 글자 수 천장을 규칙에서 눌러 둔다.
+//
 // 2026-09-15 v9:
 // · 서버만 만지는 문서들을 명시해 잠그고 적어 둔다 —
 //   temple-members(우리 절) · temple-proofs(절 다녀왔다는 표) ·
@@ -307,6 +313,69 @@ service cloud.firestore {
     //
     // 아래 문서들은 전부 firebase-admin(서버)으로만 쓴다. Admin SDK 는
     // 이 규칙을 지나치므로, 브라우저에는 한 칸도 열지 않는다.
+    // ── 모멘트 — 절에 다녀온 한 장 ────────────────────────────
+    // 사진은 Storage 대신 문서 안에 담는다(moment.ts 참고). 그래서
+    // 글자 수 천장을 여기서 눌러 둔다 — 한 사람이 문서 하나에 몇 MB 를
+    // 밀어 넣지 못하게.
+    //
+    // 「그 자리」 도장은 브라우저의 몫이 아니다 —
+    // 만들 때 verified 는 반드시 false, meters 는 null.
+    // 뒤집는 것은 관리자 권한으로 도는 /api/moment-stamp 뿐이다.
+    match /moments/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.place is string
+        && request.resource.data.place.size() > 0
+        && request.resource.data.place.size() <= 30
+        && request.resource.data.what is string
+        && request.resource.data.what.size() > 0
+        && request.resource.data.what.size() <= 200
+        && request.resource.data.thumb is string
+        && request.resource.data.thumb.size() <= 220000
+        && request.resource.data.tags is list
+        && request.resource.data.tags.size() <= 5
+        && request.resource.data.hapjang == 0
+        && request.resource.data.verified == false
+        && request.resource.data.meters == null;
+      allow update: if isAdmin()
+        // 합장 — 로그인, ±1
+        || (request.auth != null
+            && request.resource.data.diff(resource.data)
+                 .affectedKeys().hasOnly(['hapjang'])
+            && request.resource.data.hapjang is int
+            && (request.resource.data.hapjang == resource.data.get('hapjang', 0) + 1
+                || request.resource.data.hapjang == resource.data.get('hapjang', 0) - 1))
+        // 본인 손질 — 글·절 이름·해시태그만. 도장은 건드릴 수 없다.
+        || (request.auth != null
+            && request.auth.uid == resource.data.uid
+            && request.resource.data.diff(resource.data)
+                 .affectedKeys().hasOnly(['what', 'place', 'tags']));
+      allow delete: if isAdmin()
+        || (request.auth != null && request.auth.uid == resource.data.uid);
+
+      // 합장 — 계정당 한 번, 토글
+      match /likes/{uid} {
+        allow read: if true;
+        allow create: if request.auth != null && request.auth.uid == uid;
+        allow update: if false;
+        allow delete: if isAdmin()
+          || (request.auth != null && request.auth.uid == uid);
+      }
+    }
+
+    // 모멘트의 큰 그림 — 목록은 이 칸을 읽지 않는다. 펼쳤을 때만 한 장.
+    match /moment-photos/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.photo is string
+        && request.resource.data.photo.size() <= 900000;
+      allow update: if false;
+      allow delete: if isAdmin()
+        || (request.auth != null && request.auth.uid == resource.data.uid);
+    }
+
     // 열어 두면 콘솔 한 줄로 공덕·연꽃·인증이 조작된다.
 
     // 우리 절 — 같은 절 다니는 사람 수만 서버가 세어 내준다(/api/temple)

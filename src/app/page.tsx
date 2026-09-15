@@ -804,9 +804,11 @@ export default function Home() {
   // ── 붓을 들었다 — 답 쓰기 ─────────────────────────────
   if (writing && unlocked) {
     return (
-      // 답 쓰는 동안에는 이 화면이 본문 높이를 그대로 쓴다 (h-full).
-      // 아래 띠는 감춰 두므로(globals.css: body[data-writing] footer) 겹칠 것이 없다.
-      <div className="flex h-full min-h-0 flex-1 flex-col">
+      // 답 쓰는 자리는 **한 겹 띄워** 화면을 통째로 쓴다.
+      // 본문 흐름 안에 두었더니 바깥 스크롤 통이 같이 움직여, 아래 회향 단추가
+      // 화면 밖으로 밀려났다(폰에서 저장이 안 보였다). 띄워 두면 입력줄은
+      // 언제나 화면 맨 아래에 붙어 있다.
+      <div className="fixed inset-0 z-50 flex flex-col bg-ink">
         {/* 채팅형 회향 — 위: 화두(물음)와 대화, 아래: 입력창.
             입력창은 흐름 안의 형제라 화면을 덮지 않고, 위 대화는 스스로 스크롤한다. */}
         <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-6 sm:px-6">
@@ -832,22 +834,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 사유의 방에 남긴 단상 — 답을 쓰는 동안 곁에 둔다 */}
-            {current.notes && (
-              <div className="flex flex-col items-start">
-                <span className="mb-1.5 text-[10px] tracking-[0.3em] text-gold-soft">
-                  사유의 방에 남긴 단상
-                </span>
-                <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-gold/25 bg-ink-2/40 px-4 py-3">
-                  <p className="whitespace-pre-line break-keep text-[13px] leading-7 text-hanji-dim">
-                    {plainThoughts(current.notes)}
-                  </p>
-                </div>
-                <span className="mt-1.5 text-[10px] text-hanji-faint">
-                  이 단상은 회향과 함께 기록에 남습니다
-                </span>
-              </div>
-            )}
+            {/* 사유의 방 단상은 여기에 두지 않는다 — 섞이면 어느 것이
+                내 답인지 흐려진다. 단상은 서고에서 따로 펼쳐 본다. */}
           </div>
         </div>
         {/* 아래 입력창 — 화면 아래에 앉되, 대화를 덮지 않는다 */}

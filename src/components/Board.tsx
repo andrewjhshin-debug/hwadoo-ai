@@ -8,6 +8,7 @@
 // 우리 도량의 먹빛·금·한지 톤은 그대로.
 // ────────────────────────────────────────────────────────────────
 
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import { isAdminAccount } from "@/lib/config";
@@ -56,10 +57,13 @@ function shortDate(sec?: number): string {
 
 export default function Board({
   board,
+  lead,
   bowedKey,
   texts,
 }: {
   board: BoardKind;
+  /** 머리말 바로 아래 끼워 넣을 한 칸 (연지원의 모멘트 줄 같은 것) */
+  lead?: ReactNode;
   bowedKey: string;
   texts: BoardTexts;
 }) {
@@ -171,6 +175,8 @@ export default function Board({
           </button>
         )}
       </div>
+
+      {lead}
 
       {/* 글쓰기 폼 */}
       {user === null && (
