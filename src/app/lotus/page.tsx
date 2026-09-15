@@ -21,7 +21,8 @@ import Link from "next/link";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { BANK_INFO, CONTACT_EMAIL } from "@/lib/config";
-import { FIRST_GRANT } from "@/lib/dm";
+import { FIRST_GRANT, getLotus } from "@/lib/dm";
+import { Yeonkkot } from "@/components/icons";
 import { createOrder } from "@/lib/orders";
 import { LotusMark } from "@/components/icons";
 
@@ -70,6 +71,28 @@ const DEFAULT_PRODUCT =
   PRODUCTS.find((p) => p.best) ?? PRODUCTS[0];
 
 const won = (n: number) => n.toLocaleString("ko-KR") + "원";
+
+/** 지금 내가 쥔 연꽃 — 로그인했을 때만 뜬다 */
+function MyLotus() {
+  const [n, setN] = useState<number | null>(null);
+  useEffect(() => {
+    const off = watchAuth((u) => {
+      if (!u) return setN(null);
+      void getLotus()
+        .then(setN)
+        .catch(() => setN(null));
+    });
+    return off;
+  }, []);
+  if (n === null) return null;
+  return (
+    <p className="mt-3 flex items-center gap-1.5 text-[12.5px] text-hanji-dim">
+      <Yeonkkot className="h-4 w-4" />
+      지금 <span className="font-serif text-[17px] leading-none text-gold">{n.toLocaleString("ko-KR")}</span>
+      송이 가지고 있어요
+    </p>
+  );
+}
 
 export default function LotusPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -131,6 +154,9 @@ export default function LotusPage() {
         <h1 className="mt-4 text-xs tracking-[0.5em] text-gold-soft">
           연꽃 공양
         </h1>
+        {/* 사러 온 자리에서 제일 먼저 궁금한 것은 「지금 내가 몇 송이인가」다.
+            아래 지갑 칸까지 내려가야 보이던 것을 머리에 올렸다. */}
+        <MyLotus />
       </header>
 
       {/* ── 걸음 — 셋 중 어디쯤인지 막대 하나로 ── */}
