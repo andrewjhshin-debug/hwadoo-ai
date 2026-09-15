@@ -39,6 +39,7 @@ import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
 import Info from "@/components/Info";
+import LotusCount from "@/components/LotusCount";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import MeritExchange from "@/components/MeritExchange";
 import { CHARMS, charmSvg, grantCharm, loadCharms } from "@/lib/charm";
@@ -807,9 +808,14 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto w-full max-w-xl flex-1 px-6 py-12">
-      <h1 className="text-center text-xs tracking-[0.5em] text-gold-soft">
-        道場 · 내 도량
-      </h1>
+      {/* 머리 오른쪽에 내 연꽃 — 아래쪽에도 한 줄 있지만 거기까지 내려가야
+          보였다. 쓰는 자리마다 보여야 하는 숫자는 맨 위에 둔다. */}
+      <div className="relative flex items-center justify-center">
+        <h1 className="text-center text-xs tracking-[0.5em] text-gold-soft">
+          道場 · 내 도량
+        </h1>
+        <LotusCount className="absolute right-0" />
+      </div>
 
       {/* ── 오늘 하루 — 나무 · 이어 온 날 · 오늘의 세 가지.
              매일 들어올 이유는 맨 위에 있어야 한다 ── */}

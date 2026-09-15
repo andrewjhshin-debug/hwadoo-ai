@@ -60,96 +60,49 @@ export function LotusMark({ className = "w-5 h-5", stroke = "currentColor" }: Ic
 
 // 연꽃(蓮花) — 연꽃 공양의 표식.
 //
-// 다섯 번 고쳤다. 앞의 넷은 「매달린 등」을 금빛 선으로 그리려다 차례로
-// 전구·풍선·촛불이 됐다. 까닭은 하나였다 — 먹빛 화면에 금빛 선 몇 줄로는
-// 형태가 안 선다. 그래서 세 가지를 바꿨다.
-//   ① 선을 버리고 **채운다**. 실루엣이 곧 형태가 되게.
-//   ② 금을 버리고 **연꽃 분홍**을 쓴다. 온통 금인 머리띠에서 이것만 색이면
-//      찾기 쉽고, 무엇보다 연꽃은 원래 분홍이다.
-//   ③ 밑동을 비워 두지 않는다. **초록 잎**을 깔아야 꽃이 물 위에 앉는다.
+// 여섯 번 고쳤다. 앞의 넷은 「매달린 등」을 금빛 선으로 그리려다 차례로
+// 전구·풍선·촛불이 됐고, 다섯 번째는 아예 Three.js 로 진짜 3D 를 구웠다.
+// 그런데 3D 가 더 나빴다 — 24px 로 줄이면 꽃잎이 서로 엉켜 분홍 얼룩이 된다.
+// 큰 그림에서 좋은 것과 작은 자리에서 좋은 것은 다르다.
 //
-// 꽃잎 다섯 · 잎 넷. 일곱 잎도 그려 봤지만 20px 에서 잎끼리 엉겼다 —
-// 다섯이 작은 자리에서 가장 또렷하다.
-// 뒤에서 앞으로 겹쳐 올리는 차례가 곧 원근이라, 그림자 없이 부풀어 보인다.
-// 가운데 금빛 점은 꽃술. 이게 있어야 작은 자리에서도 '꽃'으로 읽힌다.
+// 그래서 미니멀로 돌아왔다. 다만 납작하지 않게 —
+// 꽃잎마다 위에서 아래로 한 겹 어둡게 흘려(두 정지점) 부피를 암시한다.
+// 그림자도, 겹침도 그리지 않는다. 실루엣과 색만으로 선다.
+//
+//   꽃잎 다섯(가운데 하나 · 안쪽 둘 · 바깥 둘) + 잎 둘 + 금빛 꽃술.
+//   분홍은 이 도량에서 여기만 쓴다 — 온통 금인 머리띠에서 혼자 눈에 걸리게.
 //
 // stroke 를 받긴 하나 쓰지 않는다 — 이 표식은 제 색을 갖는다.
 export function Yeonkkot({ className = "w-5 h-5" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden>
       <defs>
-        {/* 바깥일수록 짙고, 안쪽일수록 밝다 — 꽃은 속이 환하다 */}
-        <linearGradient id="hw-lt-1" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#EE87B2" />
-          <stop offset="100%" stopColor="#AE3A6F" />
+        <linearGradient id="hw-lt-c" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FFB3D0" />
+          <stop offset="100%" stopColor="#E4689B" />
         </linearGradient>
-        <linearGradient id="hw-lt-2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#F49EC2" />
-          <stop offset="100%" stopColor="#C64F85" />
+        <linearGradient id="hw-lt-s" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#EE86AF" />
+          <stop offset="100%" stopColor="#C74C7E" />
         </linearGradient>
-        <linearGradient id="hw-lt-3" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FBC4DA" />
-          <stop offset="100%" stopColor="#DE6699" />
-        </linearGradient>
-        <linearGradient id="hw-lf-1" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#7EC067" />
-          <stop offset="100%" stopColor="#2F6E36" />
-        </linearGradient>
-        <linearGradient id="hw-lf-2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#63A852" />
-          <stop offset="100%" stopColor="#245A2B" />
+        <linearGradient id="hw-lt-g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#5FB262" />
+          <stop offset="100%" stopColor="#2F7A3A" />
         </linearGradient>
       </defs>
-      {/* 물 위의 잎 넷 — 꽃보다 먼저 깔린다 */}
+      {/* 잎 둘 — 꽃보다 먼저 깔린다 */}
+      <path d="M4 15.4c2.4-.7 5-.2 7.4 1.5-2.3 1.7-5 2-7.4.9z" fill="url(#hw-lt-g)" />
+      <path d="M20 15.4c-2.4-.7-5-.2-7.4 1.5 2.3 1.7 5 2 7.4.9z" fill="url(#hw-lt-g)" />
+      {/* 바깥 꽃잎 둘 — 낮게 벌어진다 */}
+      <path d="M8.8 14.3C6.5 12.3 5.4 10.1 5.3 8.1c2.3.5 3.9 1.9 4.9 4.2z" fill="url(#hw-lt-s)" />
+      <path d="M15.2 14.3c2.3-2 3.4-4.2 3.5-6.2-2.3.5-3.9 1.9-4.9 4.2z" fill="url(#hw-lt-s)" />
+      {/* 가운데 꽃잎 — 가장 밝다 */}
       <path
-        d="M12 19 C8.4 14.88 9.77 10.38 12 9.2 C14.23 10.38 15.6 14.88 12 19Z"
-        transform="rotate(100 12 19)"
-        fill="url(#hw-lf-1)"
-      />
-      <path
-        d="M12 19 C8.4 14.88 9.77 10.38 12 9.2 C14.23 10.38 15.6 14.88 12 19Z"
-        transform="rotate(-100 12 19)"
-        fill="url(#hw-lf-1)"
-      />
-      <path
-        d="M12 19 C9 15.98 10.14 12.66 12 11.8 C13.86 12.66 15 15.98 12 19Z"
-        transform="rotate(124 12 19)"
-        fill="url(#hw-lf-2)"
-      />
-      <path
-        d="M12 19 C9 15.98 10.14 12.66 12 11.8 C13.86 12.66 15 15.98 12 19Z"
-        transform="rotate(-124 12 19)"
-        fill="url(#hw-lf-2)"
-      />
-      {/* 바깥 꽃잎 둘 */}
-      <path
-        d="M12 19 C8.7 14.13 9.95 8.79 12 7.4 C14.05 8.79 15.3 14.13 12 19Z"
-        transform="rotate(70 12 19)"
-        fill="url(#hw-lt-1)"
-      />
-      <path
-        d="M12 19 C8.7 14.13 9.95 8.79 12 7.4 C14.05 8.79 15.3 14.13 12 19Z"
-        transform="rotate(-70 12 19)"
-        fill="url(#hw-lt-1)"
-      />
-      {/* 안쪽 꽃잎 둘 */}
-      <path
-        d="M12 19 C8.5 12.99 9.83 6.42 12 4.7 C14.17 6.42 15.5 12.99 12 19Z"
-        transform="rotate(34 12 19)"
-        fill="url(#hw-lt-2)"
-      />
-      <path
-        d="M12 19 C8.5 12.99 9.83 6.42 12 4.7 C14.17 6.42 15.5 12.99 12 19Z"
-        transform="rotate(-34 12 19)"
-        fill="url(#hw-lt-2)"
-      />
-      {/* 가운데 한 장 — 가장 밝다 */}
-      <path
-        d="M12 19 C8.3 12.2 9.71 4.74 12 2.8 C14.29 4.74 15.7 12.2 12 19Z"
-        fill="url(#hw-lt-3)"
+        d="M12 3.4c2.05 2.75 3.05 4.9 3.05 6.7 0 2.15-1.37 3.65-3.05 3.65S8.95 12.25 8.95 10.1c0-1.8 1-3.95 3.05-6.7z"
+        fill="url(#hw-lt-c)"
       />
       {/* 꽃술 */}
-      <ellipse cx="12" cy="17.4" rx="2" ry="1.3" fill="#F6D98A" />
+      <ellipse cx="12" cy="13.3" rx="2" ry="1.25" fill="#F7D97E" />
     </svg>
   );
 }

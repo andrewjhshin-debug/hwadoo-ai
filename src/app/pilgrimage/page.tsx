@@ -19,6 +19,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import LotusCount from "@/components/LotusCount";
 import { useRouter } from "next/navigation";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import TempleProof from "@/components/TempleProof";
@@ -196,10 +197,14 @@ export default function PilgrimagePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-16 pt-8 md:pt-12">
-      {/* ── 머리 — 두 겹으로만 ── */}
-      <p className="rise text-center text-[13px] tracking-[0.5em] text-gold-soft">
-        巡禮 · 손잡고 절로
-      </p>
+      {/* ── 머리 — 두 겹으로만. 오른쪽에 내 연꽃을 걸어 둔다:
+             인연에 손을 내밀 때 한 송이씩 나가므로, 쓰는 자리에서 보여야 한다 ── */}
+      <div className="rise relative flex items-center justify-center">
+        <p className="text-center text-[13px] tracking-[0.5em] text-gold-soft">
+          巡禮 · 손잡고 절로
+        </p>
+        <LotusCount className="absolute right-0" />
+      </div>
       <p className="question-glow rise rise-d1 mt-7 text-center font-serif text-[26px] font-light leading-[1.7] text-hanji">
         가까운 절에,
         <br />

@@ -9,6 +9,7 @@
 // ────────────────────────────────────────────────────────────────
 
 import type { ReactNode } from "react";
+import LotusCount from "@/components/LotusCount";
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import { isAdminAccount } from "@/lib/config";
@@ -166,6 +167,8 @@ export default function Board({
             {texts.sub}
           </p>
         </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {user && <LotusCount />}
         {user && !writing && (
           <button
             onClick={() => setWriting(true)}
@@ -174,6 +177,7 @@ export default function Board({
             {texts.write}
           </button>
         )}
+        </div>
       </div>
 
       {lead}

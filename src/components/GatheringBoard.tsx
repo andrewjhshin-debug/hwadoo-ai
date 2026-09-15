@@ -55,7 +55,7 @@ import { TEMPLES } from "@/lib/pilgrimage";
 import Dudu from "@/components/Dudu";
 import { grantCharm } from "@/lib/charm";
 import { addMerit } from "@/lib/merit";
-import { LotusMark } from "@/components/icons";
+import { LotusMark, Yeonkkot } from "@/components/icons";
 import { useConfirm } from "@/components/Confirm";
 
 // 눈 — 조회 수. 가는 선으로 옅게.
@@ -1388,7 +1388,7 @@ export default function GatheringBoard({
           href="/lotus"
           className="inline-flex items-center gap-1.5 rounded-[10px] border border-ink-3 px-3.5 py-2 text-[13.5px] tracking-[0.1em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
         >
-          <LotusMark className="h-[17px] w-[17px]" stroke="#D9B45B" />
+          <Yeonkkot className="h-[17px] w-[17px]" />
           연꽃{user && lotusBal !== null ? ` ${lotusBal}` : ""}
         </Link>
         <button
