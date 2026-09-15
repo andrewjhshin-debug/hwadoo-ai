@@ -14,6 +14,15 @@
 // 2026-08-23 v5: posts 작성자 수정 허용 필드에 category 추가
 // 2026-08-24 v6: orders — 연꽃 계좌이체 주문
 //
+// 2026-09-15 v9:
+// · 서버만 만지는 문서들을 명시해 잠그고 적어 둔다 —
+//   temple-members(우리 절) · temple-proofs(절 다녀왔다는 표) ·
+//   merit-exchange(공덕→연꽃 하루 상한) · sutra-clears(경전 완주) ·
+//   rank-daily · rank-sutra(순위) · notify-limits(알림 상한)
+//   모두 firebase-admin 으로만 쓴다. Admin SDK 는 규칙을 지나치므로
+//   여기서는 **브라우저를 전부 막는다**. Firestore 기본값도 거절이지만,
+//   적어 두어야 다음 사람이 ‘까물령나’ 하고 열지 않는다.
+//
 // 2026-09-12 v8:
 // · push-tokens 에 bells(예불 종 시각 목록) 필드 — create 허용 필드에 추가,
 //   bells 한 칸만 고치는 update 허용 (문서 ID = 토큰, 추측 불가한 값)
@@ -292,6 +301,46 @@ service cloud.firestore {
         && request.auth.uid == request.resource.data.byUid
         && request.resource.data.status == "open";
       allow read, update, delete: if isAdmin();
+    }
+
+    // ── 서버만 만지는 것들 ──────────────────────────────────────
+    //
+    // 아래 문서들은 전부 firebase-admin(서버)으로만 쓴다. Admin SDK 는
+    // 이 규칙을 지나치므로, 브라우저에는 한 칸도 열지 않는다.
+    // 열어 두면 콘솔 한 줄로 공덕·연꽃·인증이 조작된다.
+
+    // 우리 절 — 같은 절 다니는 사람 수만 서버가 세어 내준다(/api/temple)
+    match /temple-members/{uid} {
+      allow read, write: if false;
+    }
+
+    // 절 다녀왔다는 표 — 서버가 좌표로 거리를 다시 재고 적는다
+    // (/api/temple-proof). 목록도 서버가 법명만 골라 내준다.
+    match /temple-proofs/{id} {
+      allow read, write: if false;
+    }
+
+    // 공덕 → 연꽃 하루 상한 자국 (/api/lotus/exchange)
+    match /merit-exchange/{id} {
+      allow read, write: if false;
+    }
+
+    // 경전 완주 — 같은 경전을 두 번 쳐도 연꽃은 한 번 (/api/lotus/sutra)
+    match /sutra-clears/{id} {
+      allow read, write: if false;
+    }
+
+    // 하루 순위 · 외우기 순위 (/api/rank)
+    match /rank-daily/{id} {
+      allow read, write: if false;
+    }
+    match /rank-sutra/{id} {
+      allow read, write: if false;
+    }
+
+    // 알림 발송 상한 (/api/push/*)
+    match /notify-limits/{id} {
+      allow read, write: if false;
     }
   }
 }
