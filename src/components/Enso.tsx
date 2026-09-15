@@ -15,9 +15,11 @@ export default function Enso({ size = 150 }: { size?: number }) {
       >
         <defs>
           <linearGradient id="enso-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#E9CD82" />
-            <stop offset=".5" stopColor="#C1553B" />
-            <stop offset="1" stopColor="#5E7FB2" />
+            {/* 한 획에 오방색을 다 담았더니 분홍·보라가 먼저 보였다.
+                일원상은 붓 한 획이다 — 먹의 짙고 옅음처럼 금의 밝고 어두움만 둔다. */}
+            <stop offset="0" stopColor="#F4E2B7" />
+            <stop offset=".46" stopColor="#D9B45B" />
+            <stop offset="1" stopColor="#8E6C2C" />
           </linearGradient>
         </defs>
         <circle

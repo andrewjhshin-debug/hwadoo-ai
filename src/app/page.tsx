@@ -479,16 +479,14 @@ export default function Home() {
         <div className="rise-sharp">
           <Enso size={116} />
         </div>
-        {/* 머리글은 두 겹까지 — 이름 한 줄, 슬로건 한 줄.
-            자간으로 흩어 놓았던 이름을 크게 키워 한 덩어리로 세운다.
-            흩어진 작은 글씨보다, 붙여 세운 큰 글씨가 멀리서도 이름으로 읽힌다. */}
-        <div className="rise-sharp rise-s1 mt-4 flex items-baseline justify-center gap-2.5">
-          <h1 className="text-obang font-serif text-[clamp(58px,17vw,82px)] font-semibold leading-[0.88] tracking-[-0.03em]">
+        {/* 이름 한 줄, 슬로건 한 줄.
+            HWADU 를 옆에 달았더니 이름이 한쪽으로 밀려 가운데를 잃었다.
+            로마자는 뺀다 — 이 도량의 이름은 두 글자로 족하다.
+            크기도 한 단 내렸다. 화면을 가득 메우면 이름이 아니라 간판이 된다. */}
+        <div className="rise-sharp rise-s1 mt-5 flex justify-center">
+          <h1 className="text-obang font-serif text-[clamp(46px,13vw,64px)] font-medium leading-[1.02] tracking-[0.06em] [text-indent:0.06em]">
             화두
           </h1>
-          <span className="text-[10px] tracking-[0.42em] text-gold-soft">
-            HWADU
-          </span>
         </div>
         {/* 곁의 한 줄 — 이름보다 훨씬 작게. 다만 읽히지 않을 만큼 흐리지는 않게 */}
         <p className="rise-sharp rise-s1 mt-5 max-w-[19rem] break-keep text-[12.5px] font-light leading-6 tracking-[0.04em] text-hanji-dim">
@@ -525,8 +523,8 @@ export default function Home() {
                 onClick={() => update((base) => ({ ...base, audience: o.key }))}
                 className={`tap rounded-full px-5 py-2.5 tracking-[0.1em] transition-colors ${
                   active
-                    ? "bg-gold font-medium text-ink"
-                    : "bg-transparent text-hanji-faint"
+                    ? "border border-gold/55 bg-gold/15 font-medium text-gold"
+                    : "border border-transparent bg-transparent text-hanji-faint"
                 }`}
               >
                 {o.label}
@@ -618,11 +616,28 @@ export default function Home() {
     return (
       <div className="flex flex-1 flex-col items-center px-5 py-12 sm:py-14">
         <section className="rise-sharp flex w-full max-w-2xl flex-col items-center text-center">
-          <p className="rounded-full border border-gold/30 px-4 py-1 text-[10px] tracking-[0.34em] text-gold-soft">
-            回向 · 나의 답
+          {/* 물음이 먼저다.
+              답만 덜렁 띄워 놨더니 무엇에 대한 답인지가 사라졌다 —
+              「SjGtg」 넉 자만 남은 화면은 아무 말도 하지 않는다.
+              그래서 화두를 위에, 가로줄 하나 긋고, 그 아래 내 답. */}
+          {hwadu?.hanja && (
+            <span className="rounded-full border border-gold/25 px-4 py-1 font-serif text-[10px] tracking-[0.42em] text-gold-soft [text-indent:0.42em]">
+              {hwadu.hanja}
+            </span>
+          )}
+          <p className="hwadu-body mt-5 whitespace-pre-line break-keep font-serif text-[clamp(17px,4.4vw,21px)] leading-[1.9] text-hanji-dim">
+            {sessionQuestion(current)}
           </p>
-          {/* 이 화면의 주인공은 내가 쓴 답 — 아래 접힌 것들과 무게를 벌린다 */}
-          <p className="hwadu-body mt-9 whitespace-pre-line break-keep font-serif text-[clamp(18px,5vw,23px)] text-hanji">
+
+          {/* 물음과 답을 가르는 금 — 붓을 내려놓은 자리 */}
+          <span className="mt-8 flex items-center gap-3 text-[10px] tracking-[0.34em] text-gold-soft">
+            <i className="h-px w-10 bg-gradient-to-r from-transparent to-gold/45" />
+            回向 · 나의 답
+            <i className="h-px w-10 bg-gradient-to-l from-transparent to-gold/45" />
+          </span>
+
+          {/* 답은 물음보다 밝게 — 이 화면의 주인공이다 */}
+          <p className="hwadu-body mt-5 whitespace-pre-line break-keep font-serif text-[clamp(18px,5vw,23px)] text-hanji">
             {current.journal}
           </p>
 
