@@ -585,7 +585,7 @@ export default function MoktakPage() {
           </p>
 
           {/* 그릇 고르기 — 클수록 낮게 운다 */}
-          <div className="rise rise-d1 mt-6 flex gap-2">
+          <div className="rise rise-d1 mt-5 flex gap-2">
             {BOWL_TONES.map((b) => (
               <button
                 key={b.id}
@@ -606,7 +606,7 @@ export default function MoktakPage() {
           <button
             onClick={ringBowl}
             aria-label="싱잉볼 치기"
-            className="rise rise-d2 relative mt-5 flex h-[198px] w-[268px] items-center justify-center outline-none"
+            className="rise rise-d2 relative mt-1 flex h-[300px] w-[330px] items-center justify-center outline-none"
           >
             {/* 울림 — 소리가 나는 동안만 파문이 번진다 */}
             {ringing && (
@@ -616,133 +616,30 @@ export default function MoktakPage() {
                 <span className="bowl-wave bowl-wave-3" />
               </>
             )}
-            {/* 위쪽 빈 칸은 잘라 낸다 — 그릇이 통을 꽉 채우도록 */}
-            <svg viewBox="8 60 234 173" className="relative h-full w-full">
-              <defs>
-                {/* 놋쇠 몸통 — 가로로 밝고 어두운 띠가 갈마들어야 둥글어 보인다 */}
-                <linearGradient id="bowlBrass" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#7c5a1e" />
-                  <stop offset="8%" stopColor="#c59a3c" />
-                  <stop offset="21%" stopColor="#fbeec0" />
-                  <stop offset="33%" stopColor="#e0b754" />
-                  <stop offset="50%" stopColor="#b98e2f" />
-                  <stop offset="65%" stopColor="#edc76a" />
-                  <stop offset="79%" stopColor="#fff2cd" />
-                  <stop offset="92%" stopColor="#b6862c" />
-                  <stop offset="100%" stopColor="#6d4e1a" />
-                </linearGradient>
-                {/* 아래로 갈수록 어두워진다 — 빛은 위에서 온다 */}
-                {/* 아래로 갈수록 살짝만 어둡게. 진하게 덮었더니 놋쇠가
-                    올리브색으로 죽었다 — 금속은 어두운 데서도 빛을 문다. */}
-                <linearGradient id="bowlShade" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#000" stopOpacity="0" />
-                  <stop offset="62%" stopColor="#000" stopOpacity="0.06" />
-                  <stop offset="100%" stopColor="#2a1c06" stopOpacity="0.34" />
-                </linearGradient>
-                {/* 그릇 안 — 깊을수록 어둡고, 먼 벽에 빛이 닿는다 */}
-                <radialGradient id="bowlIn" cx="0.5" cy="0.18" r="0.95">
-                  <stop offset="0%" stopColor="#b18f42" />
-                  <stop offset="34%" stopColor="#5c451a" />
-                  <stop offset="72%" stopColor="#2e2210" />
-                  <stop offset="100%" stopColor="#7a5d24" />
-                </radialGradient>
-                {/* 방석 */}
-                <radialGradient id="cushTop" cx="0.42" cy="0.3" r="0.8">
-                  <stop offset="0%" stopColor="#b4503a" />
-                  <stop offset="62%" stopColor="#8c3626" />
-                  <stop offset="100%" stopColor="#5a1d13" />
-                </radialGradient>
-                {/* 바닥 그림자 */}
-                <radialGradient id="floorShade" cx="0.5" cy="0.5" r="0.5">
-                  <stop offset="0%" stopColor="#000" stopOpacity="0.62" />
-                  <stop offset="100%" stopColor="#000" stopOpacity="0" />
-                </radialGradient>
-              </defs>
-
-              {/* 바닥에 드리운 그늘 */}
-              <ellipse cx="127" cy="210" rx="92" ry="20" fill="url(#floorShade)" />
-
-              {/* 방석 — 두께가 있어야 그릇이 얹힌 것으로 보인다.
-                  옆구리를 한 겹 깔고 그 위에 윗면을 얹는다. */}
-              <path d="M47 196v9a78 21 0 0 0 156 0v-9z" fill="#68231708" />
-              <path d="M47 196v9a78 21 0 0 0 156 0v-9z" fill="#6d2718" />
-              <ellipse cx="125" cy="196" rx="78" ry="21" fill="url(#cushTop)" />
-              <ellipse cx="125" cy="194" rx="66" ry="15" fill="#000" opacity="0.26" />
-
-              {/* 그릇 몸통 */}
-              <path d="M49 96c0 49 34 89 76 89s76-40 76-89z" fill="url(#bowlBrass)" />
-              <path d="M49 96c0 49 34 89 76 89s76-40 76-89z" fill="url(#bowlShade)" />
-              {/* 두드려 편 자국 — 가로로 난 얕은 띠 */}
-              {[114, 132, 150, 166].map((y, n) => {
-                const k = (y - 96) / 89;
-                const half = 76 * Math.sqrt(Math.max(0, 1 - k * k));
-                return (
-                  <path
-                    key={y}
-                    d={`M${125 - half} ${y}q${half} ${7 - n} ${half * 2} 0`}
-                    fill="none"
-                    stroke="#3d2c0f"
-                    strokeWidth="1.1"
-                    opacity="0.22"
-                  />
-                );
-              })}
-              {/* 왼쪽 어깨에 든 빛 한 줄 */}
-              <path
-                d="M69 104c2 26 11 46 25 58"
-                fill="none"
-                stroke="#fff0c6"
-                strokeWidth="6"
-                strokeLinecap="round"
-                opacity="0.2"
-              />
-              {/* 방석에 닿는 자리 — 어둡게 눌러 붙인다 */}
-              <ellipse cx="125" cy="180" rx="34" ry="11" fill="#1a1207" opacity="0.5" />
-
-              {/* 아가리 */}
-              <ellipse cx="125" cy="96" rx="76" ry="22" fill="url(#bowlIn)" />
-              {/* 테 — 위쪽은 밝고 아래쪽은 어둡다 (금속의 두께) */}
-              <path
-                d="M49 96a76 22 0 0 1 152 0"
-                fill="none"
-                stroke="#fff4d2"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-              <path
-                d="M49 96a76 22 0 0 0 152 0"
-                fill="none"
-                stroke="#7a5b22"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-              />
-              {/* 안쪽 벽에 비친 빛 */}
-              <path
-                d="M74 103c11 8 28 12 47 12"
-                fill="none"
-                stroke="#d9b45b"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                opacity="0.32"
-              />
-
-              {/* 방석 — 앞쪽 테두리가 그릇 앞을 살짝 감싼다 */}
-              <path
-                d="M47 196a78 21 0 0 0 156 0"
-                fill="url(#cushTop)"
-                stroke="#5a1d13"
-                strokeWidth="1"
-              />
-              <path
-                d="M51 199a74 17 0 0 0 148 0"
-                fill="none"
-                stroke="#d9b45b"
-                strokeWidth="1.2"
-                opacity="0.45"
-              />
-
-              {/* 채는 그리지 않는다. 방석에 반쯤 묻혀 숟가락처럼 보였다 —
-                  그릇 하나만 놓여 있는 편이 낫다. */}
+            {/* 3D 일러스트 — 벡터로 그려 봤지만 목탁·염주 옆에 두니 결이 달랐다.
+                놋쇠 그릇은 돌림면이라 단면 하나로 정확히 깎인다(_틀/bowl3d.html).
+                못 불러오면 아래 단순한 그림으로 물러선다. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/obj/bowl.png"
+              alt=""
+              aria-hidden
+              onError={(e) => {
+                const el = e.currentTarget;
+                el.style.display = "none";
+                const fb = el.nextElementSibling as HTMLElement | null;
+                if (fb) fb.style.display = "block";
+              }}
+              className="block h-full w-full object-contain"
+              style={{
+                transform: ringing ? "scale(1.015)" : "scale(1)",
+                transition: "transform .5s ease-out",
+              }}
+            />
+            <svg viewBox="0 0 250 250" className="hidden h-full w-full">
+              <ellipse cx="125" cy="150" rx="78" ry="22" fill="#8c3626" />
+              <path d="M49 96c0 49 34 89 76 89s76-40 76-89z" fill="#c69c43" />
+              <ellipse cx="125" cy="96" rx="76" ry="22" fill="#5c451a" />
             </svg>
           </button>
 
