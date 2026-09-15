@@ -9,7 +9,7 @@
 // · 화면이 꺼지면 셈이 끊기므로, 하는 동안 화면을 깨워 둔다(Wake Lock).
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Dudu from "@/components/Dudu";
 import { addMerit, loadMerit, stageOf } from "@/lib/merit";
@@ -27,6 +27,8 @@ const MARKS: Record<number, string> = {
   107: "마지막 한 배.",
 };
 
+import { makeBowSense, type BowSense, type BowSenseState } from "@/lib/bowSense";
+
 export default function BaePage() {
   const [count, setCount] = useState(0);
   const [vol, setVol] = useState(0.8);
@@ -36,6 +38,11 @@ export default function BaePage() {
   const [done, setDone] = useState(false);
   const [merit, setMerit] = useState(0);
 
+  // 몸으로 세기 — 폰을 쥐고 실제로 절하면 기울기가 그 몸짓을 그린다
+  const [sense, setSense] = useState<BowSenseState>("idle");
+  const [depth, setDepth] = useState(0); // 지금 얼마나 숙였나 0~1
+  const senseRef = useRef<BowSense | null>(null);
+
   const autoRef = useRef({ on: false, spb: 4.0, vol: 0.8 });
   autoRef.current = { on: auto, spb, vol };
   const lockRef = useRef<WakeLockSentinel | null>(null);
@@ -43,7 +50,7 @@ export default function BaePage() {
   useEffect(() => setMerit(loadMerit().total), []);
 
   // 한 배 — 세고, 공덕을 쌓고, 마디마다 한 마디 건넨다
-  const bow = () => {
+  const bow = useCallback(() => {
     setCount((n) => {
       if (n >= FULL) return n;
       const next = n + 1;
@@ -62,7 +69,7 @@ export default function BaePage() {
       }
       return next;
     });
-  };
+  }, []);
 
   // 죽비 — 박자를 이끈다. 소리와 셈이 함께 간다.
   useEffect(() => {
@@ -102,6 +109,44 @@ export default function BaePage() {
     };
   }, [count]);
 
+  // 몸으로 세기를 켠다. iOS 는 사람이 눌러야 권한을 물을 수 있어 단추에 물린다.
+  const toggleSense = useCallback(async () => {
+    if (senseRef.current) {
+      senseRef.current.stop();
+      senseRef.current = null;
+      return;
+    }
+    const s = makeBowSense({
+      onBow: () => {
+        strikeJukbi(autoRef.current.vol);
+        bow();
+      },
+      onState: setSense,
+      onDepth: setDepth,
+    });
+    senseRef.current = s;
+    const ok = await s.start();
+    if (!ok) senseRef.current = null;
+  }, [bow]);
+
+  // 화면을 떠나면 센서도 끈다 — 켜 둔 채 나가면 배터리만 먹는다
+  useEffect(() => {
+    return () => {
+      senseRef.current?.stop();
+      senseRef.current = null;
+    };
+  }, []);
+
+  // 죽비를 켜면 몸으로 세기는 끈다 — 둘이 함께 세면 두 번 센다
+  useEffect(() => {
+    if (auto && senseRef.current) {
+      senseRef.current.stop();
+      senseRef.current = null;
+    }
+  }, [auto]);
+
+  const senseOn = sense === "ready" || sense === "down" || sense === "calibrating";
+
   const reset = () => {
     setCount(0);
     setDone(false);
@@ -116,7 +161,7 @@ export default function BaePage() {
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-8 md:pt-12">
       <p className="rise text-xs tracking-[0.5em] text-gold-soft">百八拜 · 백팔배</p>
       <p className="rise rise-d1 mt-3 text-[12.5px] tracking-[0.15em] text-hanji-dim">
-        일어설 때마다 한 번
+        {senseOn ? "폰을 쥐고 절하세요 — 일어설 때마다 한 배" : "일어설 때마다 한 번"}
       </p>
 
       {/* 셈판 — 큰 원 하나가 전부다 */}
@@ -155,7 +200,15 @@ export default function BaePage() {
                 / {FULL}
               </span>
               <span className="mt-4 text-[11.5px] tracking-[0.2em] text-gold-soft">
-                {count === 0 ? "눌러서 시작" : `${left} 남음`}
+                {sense === "calibrating"
+                  ? "선 자세를 재는 중…"
+                  : sense === "down"
+                    ? "일어서면 한 배"
+                    : count === 0
+                      ? senseOn
+                        ? "절하면 세어져요"
+                        : "눌러서 시작"
+                      : `${left} 남음`}
               </span>
             </>
           )}
@@ -192,7 +245,57 @@ export default function BaePage() {
         </div>
       ) : (
         <div className="rise rise-d3 mt-2 w-full max-w-sm space-y-4 rounded-[14px] border border-ink-3 bg-ink-2/40 px-5 py-5">
-          <div className="flex items-center justify-between">
+          {/* ── 몸으로 세기 ──
+              손가락으로 백여덟 번 누르는 건 수행이 아니다. 폰을 쥐고 실제로
+              절하면 기울기가 그 몸짓을 그리니, 일어설 때마다 한 배로 친다. */}
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] tracking-[0.2em] text-hanji-dim">
+                몸으로 세기 — 폰을 쥐고 절하기
+              </span>
+              <button
+                role="switch"
+                aria-checked={senseOn}
+                aria-label="몸으로 세기"
+                onClick={() => void toggleSense()}
+                disabled={auto}
+                className={`relative h-[26px] w-[46px] rounded-full border transition-colors disabled:opacity-40 ${
+                  senseOn ? "border-gold bg-gold" : "border-hanji-faint bg-transparent"
+                }`}
+              >
+                <span
+                  aria-hidden
+                  className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full transition-transform duration-200 ${
+                    senseOn ? "translate-x-5 bg-ink" : "bg-hanji-faint"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* 살아 있다는 표 — 숙일수록 차오른다. 이게 없으면 고장 난 줄 안다 */}
+            {senseOn && (
+              <div className="mt-3 h-[5px] overflow-hidden rounded-full bg-ink-3">
+                <div
+                  className="h-full rounded-full bg-gold transition-[width] duration-100"
+                  style={{ width: `${Math.round(depth * 100)}%` }}
+                />
+              </div>
+            )}
+
+            <p className="mt-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
+              {sense === "denied"
+                ? "기울기를 쓰려면 권한이 필요해요. 눌러서 세셔도 됩니다."
+                : sense === "unsupported"
+                  ? "이 기기에서는 기울기를 못 읽어요. 눌러서 세셔도 됩니다."
+                  : sense === "asking"
+                    ? "권한을 묻는 중…"
+                    : senseOn
+                      ? "폰을 손에 쥐거나 가슴에 붙이고 절하세요."
+                      : "손가락 대신 몸으로. 폰을 쥐고 절하면 저절로 세어져요."}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between border-t border-ink-3 pt-4">
             <span className="text-[12px] tracking-[0.2em] text-hanji-dim">
               죽비 — 박자 이끌기
             </span>

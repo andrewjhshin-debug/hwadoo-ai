@@ -38,6 +38,7 @@ import {
   type GatheringCategory,
   type Post,
 } from "@/lib/community";
+import InyeonThread from "@/components/InyeonThread";
 import { loadStore } from "@/lib/store";
 import { watchAuth } from "@/lib/sync";
 import { isAdminAccount } from "@/lib/config";
@@ -1005,6 +1006,8 @@ export default function GatheringBoard({
     const ids = new Set(all.map((c) => c.id));
     const tops = all.filter((c) => !c.parentId || !ids.has(c.parentId));
     const childrenOf = (id: string) => all.filter((c) => c.parentId === id);
+    // 청실홍실 — 글을 올린 이와 처음 붙은 다른 사람. 그 둘이 이어진 자리다.
+    const tied = all.find((c) => c.authorUid && c.authorUid !== p.authorUid);
 
     return (
       <div className="px-4 pb-28 sm:px-0 md:pb-0">
@@ -1075,6 +1078,18 @@ export default function GatheringBoard({
             <span>{stamp(p.createdAt)}</span>
           </span>
         </div>
+
+        {/* 청실홍실 — 함께 가겠다는 이가 붙으면 실이 걸린다 */}
+        {tied && (
+          <div className="mt-4">
+            <InyeonThread
+              leftName={p.authorName}
+              rightName={tied.authorName}
+              leftGender={p.gender}
+              rightGender={tied.gender}
+            />
+          </div>
+        )}
 
         {/* 내용 */}
         <p
