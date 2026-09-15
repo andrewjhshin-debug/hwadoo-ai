@@ -30,7 +30,7 @@ import {
   DM_SEEN_EVENT,
 } from "@/lib/dm";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
-import { initPresence, watchOnlineCount } from "@/lib/presence";
+import { initPresence } from "@/lib/presence";
 import LotusCount from "@/components/LotusCount";
 import {
   Banga,
@@ -108,24 +108,16 @@ export default function Sidebar() {
   const router = useRouter();
   const [open, setOpen] = useState(false); // 모바일 서랍
   const [collapsed, setCollapsed] = useState(false); // 데스크톱 접힘
-  const [online, setOnline] = useState(0); // 지금 도량에 앉은 수
   const [history, setHistory] = useState<Session[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loginBusy, setLoginBusy] = useState(false);
   const hasNews = useHasNews(); // 새 소식 — 점 하나로만 말한다
   const [dmUnread, setDmUnread] = useState(0); // 안 읽은 쪽지 — 봉투 위 점
 
-  // 지금 도량에 앉은 수 — 실시간(RTDB). 혼자 하는 앱이 아니라는 표시다.
-  // 예전엔 뜰과 내 도량에서만 표를 올렸다. 그래서 목탁을 치고 있는 사람은
-  // 아무 데도 없는 사람이 됐다. 사이드바는 모든 화면에 있으니 여기서 올린다.
-  useEffect(() => {
-    const stop = initPresence();
-    const off = watchOnlineCount(setOnline);
-    return () => {
-      stop();
-      off();
-    };
-  }, []);
+  // 접속 표를 올린다 — 모든 화면에 있는 부품이 맡아야 목탁 치는 사람도 세어진다.
+  // 숫자를 여기 걸어 두진 않는다. 「● 2」는 무슨 수인지 알 수 없어
+  // 아무 말도 하지 않았다. 세는 일은 뜰과 육도 랭킹이 쓴다.
+  useEffect(() => initPresence(), []);
 
   // 안 읽은 쪽지 살피기 — 로그인하면 이따금(90초) + 창에 돌아올 때 + 읽은 직후
   useEffect(() => {
@@ -353,20 +345,6 @@ export default function Sidebar() {
                   화두
                 </span>
               </Link>
-              {/* 지금 도량에 몇이 앉아 있는가 — 이름 곁의 빈자리에.
-                  혼자 하는 앱이 아니라는 것을 늘 보이게 두는 편이 낫다. */}
-              {online > 0 && (
-                <span
-                  title={`지금 도량에 ${online}명`}
-                  className="ml-auto mr-1 inline-flex shrink-0 items-center gap-1 text-[10.5px] text-hanji-faint"
-                >
-                  <span className="relative flex h-[5px] w-[5px]">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold/70" />
-                    <span className="relative inline-flex h-[5px] w-[5px] rounded-full bg-gold" />
-                  </span>
-                  <span className="tabular-nums">{online}</span>
-                </span>
-              )}
               <button
                 onClick={toggleCollapsed}
                 title="접기"
