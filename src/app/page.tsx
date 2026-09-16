@@ -890,24 +890,40 @@ export default function Home() {
       // 아래 탭 바(76)와 떠 있는 단추가 「되돌아가기」를 덮고 있었다.
       // 아래를 넉넉히 비우면 가운데 정렬이 그만큼 위로 올라가, 머리 쪽
       // 빈 자리도 같이 줄어든다 — 두 불편이 한 번에 풀린다.
-      // 오직 화두 하나. 한자 알약도 떼고, 아래 띠와 도량 단추도 감춘다.
+      // 오직 화두 하나. 아래 띠와 도량 단추는 감추고, 곁의 알약들도 뗀다.
       // 남는 것은 셋뿐이다 — 물음 · 되돌아가기 · 왼쪽 아래 사유의 방.
-      <div className="relative flex flex-1 flex-col items-center justify-center px-5 pb-[calc(96px+env(safe-area-inset-bottom,0px))] pt-6 text-center md:pb-16 md:pt-12">
-        {/* 오직 이것만 보는 자리 — 곁에 아무것도 없으니 상한만 더 연다 */}
-        <div className="question-glow hwadu-q w-full max-w-2xl">
-          <Question
-            text={sessionQuestion(current)}
-            min={questionFit(sessionQuestion(current)).min}
-            max={questionFit(sessionQuestion(current)).max + 16}
-            className="text-hanji"
-          />
-        </div>
-        <button
-          onClick={() => setFocusMode(false)}
-          className="tap mt-12 rounded-full border border-ink-3 px-7 py-3 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
-        >
-          되돌아가기
-        </button>
+      //
+      // ★ 물음의 자리는 **한 픽셀도 안 움직인다.**
+      //   처음엔 한자 알약까지 지우고 가운데로 몰았더니, 단추 한 번에 글이
+      //   위로 훌쩍 뛰어 멀미가 났다. 들어가고 나오는 일로 읽던 자리를
+      //   잃으면 안 된다. 그래서 바깥 상자·안쪽 구획·알약 자리를 앞 화면과
+      //   똑같이 두고, 한자만 **자리를 남긴 채 지운다**(invisible).
+      <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center sm:justify-center sm:py-12">
+        <section className="flex w-full max-w-2xl flex-col items-center">
+          {/* 한자 — 보이지 않게 두되 자리는 그대로. 이게 멀미를 막는 전부다 */}
+          {hwadu?.hanja && (
+            <span
+              aria-hidden
+              className="invisible rounded-full border border-gold/25 px-4 py-1 font-serif text-[10px] tracking-[0.42em] [text-indent:0.42em]"
+            >
+              {hwadu.hanja}
+            </span>
+          )}
+          <div className="question-glow hwadu-q mt-8 w-full">
+            <Question
+              text={sessionQuestion(current)}
+              min={questionFit(sessionQuestion(current)).min}
+              max={questionFit(sessionQuestion(current)).max}
+              className="text-hanji"
+            />
+          </div>
+          <button
+            onClick={() => setFocusMode(false)}
+            className="tap mt-12 rounded-full border border-ink-3 px-7 py-3 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
+          >
+            되돌아가기
+          </button>
+        </section>
 
         {/* 사유의 방 FAB — 화두만 보기 전용.
             오른쪽에 두었더니 늘 떠 있는 도량 메뉴 단추와 **같은 자리에 겹쳤다**
