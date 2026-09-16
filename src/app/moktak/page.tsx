@@ -51,13 +51,17 @@ const ARC_PATH =
  *
  * 나무아미타불 하나만 두었는데, 한국 절에서 목탁 치며 제일 많이 하는 것은
  * 사실 **관세음보살**이다. 정근은 절마다 때마다 다르니 고르게 둔다.
- * 글자 수가 곧 한 편의 길이라 여섯 번 · 다섯 번 · 여섯 번으로 제각각이다.
+ *
+ * 다섯을 늘어놓았다가 셋으로 줄였다. 칩이 다섯이면 고르는 일이 일이 되고,
+ * 무엇보다 손안에서 한 줄을 넘겨 가로로 흘러야 했다. 셋이면 한눈에 든다 —
+ * 관음(제일 많이 든다) · 아미타(정토) · 육자진언(짧고 누구나 안다).
+ * 석가모니불·지장보살은 뺐다. 더 필요해지면 그때 되돌린다.
+ *
+ * 글자 수가 곧 한 편의 길이라 다섯 번 · 여섯 번 · 여섯 번으로 제각각이다.
  */
 const JEONGGEUN = [
   { id: "gwaneum", name: "관세음보살", ch: ["관", "세", "음", "보", "살"] },
   { id: "amita", name: "나무아미타불", ch: ["나", "무", "아", "미", "타", "불"] },
-  { id: "seokga", name: "석가모니불", ch: ["석", "가", "모", "니", "불"] },
-  { id: "jijang", name: "지장보살", ch: ["지", "장", "보", "살"] },
   { id: "om", name: "옴 마니 반메 훔", ch: ["옴", "마", "니", "반", "메", "훔"] },
 ] as const;
 
@@ -444,7 +448,7 @@ export default function MoktakPage() {
           </p>
 
           {/* 정근 고르기 — 무엇을 외며 칠까. 가로로 흘려 둔다(다섯이라 넘친다) */}
-          <div className="rise rise-d1 -mx-5 mt-3 flex gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="rise rise-d1 mt-3 flex w-full max-w-sm gap-1.5">
             {JEONGGEUN.map((g) => (
               <button
                 key={g.id}
@@ -456,7 +460,7 @@ export default function MoktakPage() {
                     /* 서랍이 막혀도 오늘은 칠 수 있다 */
                   }
                 }}
-                className={`shrink-0 rounded-full border px-3 py-1.5 text-[11.5px] transition-colors ${
+                className={`flex-1 rounded-full border px-2 py-1.5 text-[11.5px] transition-colors ${
                   geunId === g.id
                     ? "border-gold/60 bg-gold/15 text-gold"
                     : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
