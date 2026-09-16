@@ -91,7 +91,7 @@ export default function SambaePage() {
         onClick={bow}
         disabled={done}
         aria-label="한 배"
-        className="rise rise-d2 relative mt-4 block select-none outline-none disabled:cursor-default"
+        className="rise rise-d2 relative mt-2 block select-none outline-none disabled:cursor-default"
         style={{ WebkitTapHighlightColor: "transparent" }}
       >
         {/* 광배 — 절마다 한 겹씩 밝아진다. 그림이 아니라 SVG 라야 살아난다 */}
@@ -147,20 +147,20 @@ export default function SambaePage() {
             src="/obj/buddha.png"
             alt=""
             aria-hidden
-            className="block h-[300px] w-[300px] object-contain"
+            className="block h-[232px] w-[232px] object-contain"
             style={{ filter: `drop-shadow(0 0 ${18 + n * 14}px rgba(217,180,91,${0.18 + n * 0.14}))` }}
           />
         </span>
       </button>
 
-      <p className="mt-2 text-[12px] tracking-[0.2em] text-hanji-faint">
+      <p className="mt-1 h-5 text-[12px] tracking-[0.2em] text-hanji-faint">
         {done ? "" : "불상을 눌러 한 배"}
       </p>
 
       {/* ── 마쳤다 ── */}
       {done && (
-        <div className="rise mt-5 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 py-5 text-center">
-          <p className="font-serif text-[30px] leading-none text-gold">+9</p>
+        <div className="rise mt-3 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 py-4 text-center">
+          <p className="font-serif text-[26px] leading-none text-gold">+9</p>
           <p className="mt-1.5 text-[11.5px] tracking-[0.2em] text-hanji-faint">공덕</p>
           <p className="mt-3 break-keep text-[12.5px] leading-6 text-hanji-dim">
             오늘 {rounds}번째 삼배예요.
@@ -185,7 +185,7 @@ export default function SambaePage() {
       {/* ── 공덕 ── */}
       <Link
         href="/settings"
-        className="rise rise-d3 mt-8 w-full max-w-sm rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3.5 transition-colors hover:border-gold/40"
+        className="rise rise-d3 mt-4 w-full max-w-sm rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3 transition-colors hover:border-gold/40"
       >
         <div className="flex items-baseline justify-between text-[11.5px] tracking-wide">
           <span className="flex items-center gap-1 text-hanji-faint">

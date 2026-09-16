@@ -119,7 +119,6 @@ export default function MeritExchange() {
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
           공덕을 연꽃으로
         </p>
-        <LotusMark className="h-[18px] w-[18px] text-gold-soft" />
       </div>
 
       {/* 같은 숫자를 세 번 말하고 있었다 —

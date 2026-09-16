@@ -840,7 +840,6 @@ export default function AdminPage() {
     { key: "feedback", label: "죽비", count: feedback.length },
     { key: "donors", label: "차 한 잔", count: content.donors.length },
     { key: "reports", label: "신고함", count: reports.filter((r) => r.status === "open").length },
-    { key: "orders", label: "주문", count: orders.filter((o) => o.status === "pending").length },
   ];
 
   // 은행 화두 손질 — 저장·숨김·(덮어쓴 것) 원래대로
@@ -878,25 +877,7 @@ export default function AdminPage() {
         <p className="mt-3 text-center text-xs text-vermilion">{error}</p>
       )}
 
-      {/* 메일 시험 발송 — Resend 연결이 살아 있는지 그 자리에서 확인 */}
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-2 border border-ink-3 px-4 py-3 text-xs">
-        <span className="text-hanji-faint tracking-[0.1em]">메일 시험</span>
-        <input
-          type="email"
-          value={mailTo}
-          onChange={(e) => setMailTo(e.target.value)}
-          placeholder="받을 이메일"
-          className="border border-ink-3 bg-transparent px-3 py-1.5 text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40"
-        />
-        <button
-          onClick={sendTestMail}
-          disabled={mailBusy || !mailTo.trim()}
-          className="border border-gold/50 px-4 py-1.5 tracking-[0.1em] text-gold transition-colors hover:bg-gold/10 disabled:opacity-40"
-        >
-          {mailBusy ? "보내는 중…" : "시험 메일 보내기"}
-        </button>
-        {mailResult && <span className="text-hanji-dim">{mailResult}</span>}
-      </div>
+
 
       {/* 다섯 구획 + 선지식의 한마디 + 죽비 + 차 한 잔 */}
       <nav className="mt-8 flex flex-wrap justify-center gap-2">
@@ -1700,7 +1681,7 @@ export default function AdminPage() {
       </div>
 
       <p className="mt-14 border-t border-ink-3 pt-8 text-center text-[11px] leading-6 text-hanji-faint">
-        연지원(커뮤니티)의 글·댓글은 각 글에서 직접 내릴 수 있습니다.
+
       </p>
     </div>
   );

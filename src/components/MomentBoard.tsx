@@ -161,12 +161,14 @@ export default function MomentBoard() {
           </p>
         </div>
       ) : (
-        <div className="columns-2 gap-3 md:columns-3">
+        // 사진마다 비율이 달라 흘려 두었더니 격자가 들쭉날쭉했다.
+        // 한 칸씩 정사각으로 잘라 세운다 — 줄이 맞아야 절 사진이 절 사진으로 보인다.
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           {rows.map((m) => (
             <button
               key={m.id}
               onClick={() => setOpen(m)}
-              className="mb-3 block w-full break-inside-avoid overflow-hidden rounded-[14px] border border-ink-3 bg-ink-2/50 text-left transition-colors hover:border-gold/35"
+              className="block w-full overflow-hidden rounded-[14px] border border-ink-3 bg-ink-2/50 text-left transition-colors hover:border-gold/35"
             >
               <div className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -175,7 +177,7 @@ export default function MomentBoard() {
                   alt={`${m.place} — ${m.what}`}
                   loading="lazy"
                   className="w-full"
-                  style={{ aspectRatio: m.ratio || 1 }}
+                  style={{ aspectRatio: 1 }}
                 />
                 {m.verified && (
                   <span className="absolute left-2 top-2">

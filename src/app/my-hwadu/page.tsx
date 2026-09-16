@@ -53,10 +53,10 @@ export default function MyHwaduPage() {
         내가 던지는 화두
       </h1>
       <p className="rise rise-d1 mt-7 text-center font-serif text-lg font-light leading-9 text-hanji">
-        이번엔 내가 묻는다.
+        물음 하나를 놓고 갑니다.
       </p>
       <p className="rise rise-d1 mt-3 text-center text-[13px] leading-7 text-hanji-dim">
-        적어 두면 살핌본 뒤, 누군가의 오늘 화두로 나갑니다.
+        살펴본 뒤, 누군가의 오늘 화두로 나갑니다.
       </p>
 
       {justThrown ? (
@@ -87,7 +87,7 @@ export default function MyHwaduPage() {
             <p className="text-[11px] leading-5 text-hanji-faint">
               {error
                 ? "던지지 못했습니다 — 잠시 후 다시 시도해 주세요"
-                : "좋은 화두는 짧고, 답이 없습니다"}
+                : "짧을수록 좋습니다"}
             </p>
             <button
               onClick={toss}

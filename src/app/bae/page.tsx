@@ -39,7 +39,10 @@ export default function BaePage() {
   const [done, setDone] = useState(false);
   const [merit, setMerit] = useState(0);
 
-  // 몸으로 세기 — 폰을 쥐고 실제로 절하면 기울기가 그 몸짓을 그린다
+  // 몸으로 세기 — 폰을 지니고 실제로 절하면 기울기가 그 몸짓을 그린다.
+  // **이게 기본이다.** 손가락으로 백여덟 번 두드리는 건 절이 아니라 터치다.
+  // 「쥐고」라는 말은 안 쓴다 — 손에 쥐어야만 되는 줄 알고 접는 사람이 있었다.
+  // 주머니에 넣어도, 가슴에 붙여도 똑같이 세어진다.
   const [sense, setSense] = useState<BowSenseState>("idle");
   const [depth, setDepth] = useState(0); // 지금 얼마나 숙였나 0~1
   const senseRef = useRef<BowSense | null>(null);
@@ -167,7 +170,7 @@ export default function BaePage() {
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-8 md:pt-12">
       <p className="rise text-xs tracking-[0.5em] text-gold-soft">百八拜 · 백팔배</p>
       <p className="rise rise-d1 mt-3 text-[12.5px] tracking-[0.15em] text-hanji-dim">
-        {senseOn ? "폰을 쥐고 절하세요 — 일어설 때마다 한 배" : "일어설 때마다 한 번"}
+        {senseOn ? "폰을 지니고 절하세요 — 일어설 때마다 한 배" : "일어설 때마다 한 번"}
       </p>
 
       {/* 셈판 — 큰 원 하나가 전부다 */}
@@ -252,12 +255,12 @@ export default function BaePage() {
       ) : (
         <div className="rise rise-d3 mt-2 w-full max-w-sm space-y-4 rounded-[14px] border border-ink-3 bg-ink-2/40 px-5 py-5">
           {/* ── 몸으로 세기 ──
-              손가락으로 백여덟 번 누르는 건 수행이 아니다. 폰을 쥐고 실제로
+              손가락으로 백여덟 번 누르는 건 수행이 아니다. 폰을 지니고 실제로
               절하면 기울기가 그 몸짓을 그리니, 일어설 때마다 한 배로 친다. */}
           <div>
             <div className="flex items-center justify-between">
               <span className="text-[12px] tracking-[0.2em] text-hanji-dim">
-                몸으로 세기 — 폰을 쥐고 절하기
+                몸으로 세기 — 지니고 절하면 저절로
               </span>
               <button
                 role="switch"

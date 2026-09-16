@@ -1171,8 +1171,11 @@ export default function GatheringBoard({
           </p>
         </div>
 
-        {/* 댓글 쓰기 — 모바일은 아래 탭 바로 위에 고정 (내려진 글은 닫힘) */}
-        <div className="fixed inset-x-0 bottom-[76px] z-[45] border-t border-ink-3 bg-ink-2/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:mt-5 md:border-0 md:bg-transparent md:p-0">
+        {/* 댓글 쓰기 — 모바일은 아래 탭 바로 위에 고정 (내려진 글은 닫힘).
+            오른쪽에 떠 있는 도량 단추가 「남기기」를 덮고 있었다. 단추 자리만큼
+            오른쪽을 비운다(단추 48 + 좌우 여유). 넓은 화면에서는 단추가
+            바닥 구석에 있으니 그대로 둔다. */}
+        <div className="fixed inset-x-0 bottom-[76px] z-[45] border-t border-ink-3 bg-ink-2/95 py-2.5 pl-4 pr-[74px] backdrop-blur md:static md:z-auto md:mt-5 md:border-0 md:bg-transparent md:p-0">
           {p.deleted ? (
             <p className="break-keep text-center text-[11px] leading-5 text-hanji-faint md:text-left">
               내려진 글에는 새 댓글을 달 수 없습니다.

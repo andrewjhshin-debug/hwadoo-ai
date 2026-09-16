@@ -158,16 +158,22 @@ export default function TempleProof({
         </div>
       )}
 
-      {/* 다녀간 이들 */}
+      {/* 어떻게 인증되나 — 묻기 전에 말해 둔다 */}
+      {!said && (
+        <p className="mt-2.5 break-keep text-[11.5px] leading-5 text-hanji-faint">
+          절에 닿으면 <span className="text-hanji-dim">위치(GPS)로 확인</span>하고
+          공덕을 드립니다. 하루 한 번.
+        </p>
+      )}
+
+      {/* 다녀간 이들 — 아무도 없으면 칸을 세우지 않는다.
+          「아직 아무도 없어요」만 남은 빈 칸은 자리만 먹는다. */}
+      {list.length > 0 && (
       <div className="mt-5 border-t border-ink-3 pt-3">
         <p className="text-[10.5px] tracking-[0.3em] text-hanji-faint">
           다녀간 이
         </p>
-        {list.length === 0 ? (
-          <p className="mt-2 text-[12.5px] text-hanji-faint">
-            {here ? "아직 아무도 없어요" : "우리 절을 정하면 보여요"}
-          </p>
-        ) : (
+        {(
           <ul className="mt-1.5">
             {list.map((v, i) => (
               <li
@@ -183,6 +189,7 @@ export default function TempleProof({
           </ul>
         )}
       </div>
+      )}
     </section>
   );
 }
