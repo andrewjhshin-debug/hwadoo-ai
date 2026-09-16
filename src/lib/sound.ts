@@ -120,51 +120,124 @@ export function warmMoktak() {
   if (ac) loadMoktak(ac);
 }
 
+// ── 빠르기가 소리를 바꾼다 ──────────────────────────────────
+//
+// 진짜 목탁은 한 번 칠 때와 잔발로 굴릴 때가 딴 소리다. 까닭은 셋이다.
+//   ① 채가 몸통을 막는다. 잔발은 채가 나무 위에 자주 얹히니 속 빈 통이
+//      낮은 소리를 다 울 틈이 없다 — 「똥」이 아니라 「똑」이 된다.
+//   ② 잔발은 손목만 쓴다. 약하게 치니 낮은 마디가 덜 살고, 상대적으로
+//      채가 닿는 「딱」이 도드라져 소리가 높게 들린다.
+//   ③ 앞 소리가 채 가시기 전에 다음이 온다. 꼬리가 잘린다.
+//
+// 그래서 친 간격(IOI)을 재어 그대로 옮긴다.
+//   느리게  = 낮고 굵고 길게, 방 울림도 넉넉히
+//   잔발    = 높고 마르고 짧게, 방 울림은 거의 없이, 앞 소리는 눌러 끈다
+// 잔발이 이어질수록 한 눈금씩 더 조인다(또-또-도-도-도).
+
+/** 마지막으로 친 때 (ac.currentTime) */
+let lastHit = -99;
+/** 이번 잔발에서 몇 번째인가 */
+let rollN = 0;
+/** 지금 울고 있는 소리 — 잔발이면 눌러 끈다 */
+let ringing: { g: GainNode; src: AudioBufferSourceNode } | null = null;
+
+/** 이 간격이면 잔발로 친다 */
+const ROLL_GAP = 0.34;
+/** 가장 빠른 잔발 */
+const FAST_GAP = 0.07;
+
 export function strikeMoktak(vol: number) {
   const ac = audio();
   if (!ac) return;
   loadMoktak(ac);
+
+  const t = ac.currentTime;
+  const gap = t - lastHit;
+  lastHit = t;
+
+  // 0 = 한 번 툭 · 1 = 가장 빠른 잔발
+  const speed = Math.max(0, Math.min(1, (ROLL_GAP - gap) / (ROLL_GAP - FAST_GAP)));
+  rollN = gap < ROLL_GAP ? Math.min(rollN + 1, 10) : 0;
+  const roll = rollN / 10; // 잔발이 얼마나 이어졌나
+
   if (!moktakBuf) {
-    synthMoktak(ac, vol);
+    synthMoktak(ac, vol, speed);
     return;
   }
 
-  const t = ac.currentTime;
+  // 앞 소리 누르기 — 채가 나무에 얹히는 그 순간
+  if (ringing && speed > 0.2) {
+    const { g } = ringing;
+    const off = 0.004 + 0.02 * (1 - speed); // 빠를수록 매몰차게
+    try {
+      g.gain.cancelScheduledValues(t);
+      g.gain.setValueAtTime(g.gain.value, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + off);
+    } catch {
+      /* 이미 끝난 소리 */
+    }
+  }
+
   const src = ac.createBufferSource();
   src.buffer = moktakBuf;
-  // 나무는 칠 때마다 조금씩 다르다 — 반음의 몇 분의 일만 흔든다
-  src.playbackRate.value = 0.97 + Math.random() * 0.06;
+  // 나무는 칠 때마다 조금씩 다르다(±3%). 거기에 빠르기를 얹는다 —
+  // 빠를수록 짧고 높게. 잔발이 이어지면 반 눈금 더.
+  src.playbackRate.value =
+    (0.985 + Math.random() * 0.03) * (1 + 0.2 * speed + 0.055 * roll);
+
+  // 낮은 통울림을 깎는다 — 잔발은 「딱」만 남는다
+  const hp = ac.createBiquadFilter();
+  hp.type = "highpass";
+  hp.frequency.value = 80 + 520 * speed + 140 * roll;
+  hp.Q.value = 0.7;
 
   const out = ac.createGain();
-  out.gain.value = vol * 1.15;
-  src.connect(out);
+  // 잔발은 손목만 쓴다 — 절반 남짓으로 여린다
+  out.gain.value = vol * 1.15 * (1 - 0.42 * speed) * (1 - 0.16 * roll);
+
+  src.connect(hp);
+  hp.connect(out);
   out.connect(master(ac));
 
-  // 방의 울림 — 소리 뒤에 남는 꼬리
+  // 방의 울림 — 잔발일수록 거의 보내지 않는다. 안 그러면 죽이 된다.
   const send = ac.createGain();
-  send.gain.value = vol * 0.3;
+  send.gain.value = vol * 0.3 * (1 - 0.82 * speed);
   out.connect(send);
   send.connect(hall(ac));
 
   src.start(t);
+
+  // 꼬리 자르기 — 빠르면 다음 타가 오기 전에 스스로 잦아든다
+  const tail = 0.62 - 0.44 * speed;
+  out.gain.setValueAtTime(out.gain.value, t + tail * 0.55);
+  out.gain.exponentialRampToValueAtTime(0.0001, t + tail);
+  src.stop(t + tail + 0.03);
+
+  ringing = { g: out, src };
+  src.onended = () => {
+    if (ringing?.src === src) ringing = null;
+  };
 }
 
 // ── 빚은 목탁 — 음원이 없을 때만 ────────────────────────────
 // 딱(채가 닿는 표면) + 퍽(때리는 힘) + 통(속 빈 구멍) + 어긋난 배음 넷.
 // 나무는 짧게 끝난다 — 길게 끌면 종이 된다.
-function synthMoktak(ac: AudioContext, vol: number) {
+function synthMoktak(ac: AudioContext, vol: number, speed = 0) {
   const t = ac.currentTime;
 
   const out = ac.createGain();
-  out.gain.value = vol * 1.5;
+  // 잔발은 여리게 — 음원 있을 때와 같은 결(strikeMoktak 주석 참고)
+  out.gain.value = vol * 1.5 * (1 - 0.42 * speed);
   out.connect(master(ac));
 
   const send = ac.createGain();
-  send.gain.value = vol * 0.34;
+  send.gain.value = vol * 0.34 * (1 - 0.82 * speed);
   out.connect(send);
   send.connect(hall(ac));
 
-  const drift = 0.96 + Math.random() * 0.08;
+  // 빠를수록 높고 짧게 — 속 빈 통이 낮은 소리를 다 울 틈이 없다
+  const drift = (0.96 + Math.random() * 0.08) * (1 + 0.22 * speed);
+  const shrink = 1 - 0.5 * speed;
   const burst = (dur: number) => {
     const s = ac.createBufferSource();
     s.buffer = noise(ac);
@@ -207,8 +280,8 @@ function synthMoktak(ac: AudioContext, vol: number) {
     bp.Q.value = 7;
     const g = ac.createGain();
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.85, t + 0.008);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+    g.gain.exponentialRampToValueAtTime(0.85 * (1 - 0.55 * speed), t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24 * shrink);
     s.connect(bp);
     bp.connect(g);
     g.connect(out);
