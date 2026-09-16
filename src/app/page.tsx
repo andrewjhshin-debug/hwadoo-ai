@@ -244,8 +244,12 @@ export default function Home() {
     fetchAdminContent().catch(() => {});
   }, [archiveCurrent]);
 
-  // 화두만 보기 상태를 기억한다
+  // 화두만 보기 상태를 기억한다.
+  // 같은 자리에서 문서 뿌리에 표를 붙인다 — 아래 띠(MobileTabBar)와 떠 있는
+  // 도량 단추(DoryangMenu)가 그 표를 보고 스스로 사라진다(globals.css).
+  // 두 부품 모두 이 화면 밖에 사는지라, 여기서 직접 감출 길이 없다.
   useEffect(() => {
+    document.documentElement.dataset.focus = focusMode ? "1" : "";
     if (focusMode) window.localStorage.setItem("hwadoo-focus", "1");
     else window.localStorage.removeItem("hwadoo-focus");
   }, [focusMode]);
@@ -886,14 +890,11 @@ export default function Home() {
       // 아래 탭 바(76)와 떠 있는 단추가 「되돌아가기」를 덮고 있었다.
       // 아래를 넉넉히 비우면 가운데 정렬이 그만큼 위로 올라가, 머리 쪽
       // 빈 자리도 같이 줄어든다 — 두 불편이 한 번에 풀린다.
-      <div className="relative flex flex-1 flex-col items-center justify-center px-5 pb-[calc(132px+env(safe-area-inset-bottom,0px))] pt-6 text-center md:pb-16 md:pt-12">
-        {hwadu?.hanja && (
-          <span className="rounded-full border border-gold/25 px-4 py-1 font-serif text-[10px] tracking-[0.42em] text-gold-soft [text-indent:0.42em]">
-            {hwadu.hanja}
-          </span>
-        )}
+      // 오직 화두 하나. 한자 알약도 떼고, 아래 띠와 도량 단추도 감춘다.
+      // 남는 것은 셋뿐이다 — 물음 · 되돌아가기 · 왼쪽 아래 사유의 방.
+      <div className="relative flex flex-1 flex-col items-center justify-center px-5 pb-[calc(96px+env(safe-area-inset-bottom,0px))] pt-6 text-center md:pb-16 md:pt-12">
         {/* 오직 이것만 보는 자리 — 곁에 아무것도 없으니 상한만 더 연다 */}
-        <div className="question-glow hwadu-q mt-10 w-full max-w-2xl">
+        <div className="question-glow hwadu-q w-full max-w-2xl">
           <Question
             text={sessionQuestion(current)}
             min={questionFit(sessionQuestion(current)).min}
@@ -1117,7 +1118,6 @@ export default function Home() {
             {[
               { href: "/masters", label: "선지식의 한마디" },
               { href: "/my-hwadu", label: "나도 화두 던지기" },
-              { href: "/settings", label: "오늘의 세 가지" },
             ].map((x) => (
               <Link
                 key={x.href}

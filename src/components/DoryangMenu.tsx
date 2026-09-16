@@ -17,6 +17,8 @@ import { usePathname } from "next/navigation";
 import NotesDrawer from "@/components/NotesDrawer";
 import {
   Banga,
+  Jeol,
+  Jeol108,
   Bojagi,
   Book,
   Breath,
@@ -31,6 +33,7 @@ import {
   Moment,
   Mandala,
   Moktak,
+  Yeomju,
   Person,
   SeonMaster,
   Seogo,
@@ -67,9 +70,9 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     title: "수행",
     hanja: "行",
     doors: [
-      { href: "/moktak", label: "목탁·염주·싱잉볼", say: "손끝으로 세다", Icon: Moktak },
-      { href: "/sambae", label: "삼배", say: "서른 초면 된다", Icon: Banga },
-      { href: "/bae", label: "백팔배", say: "백여덟 번 굽히다", Icon: Banga },
+      { href: "/moktak", label: "목탁·염주·싱잉볼", say: "손끝으로 세다", Icon: Yeomju },
+      { href: "/sambae", label: "삼배", say: "서른 초면 된다", Icon: Jeol },
+      { href: "/bae", label: "백팔배", say: "백여덟 번 굽히다", Icon: Jeol108 },
       { href: "/breath", label: "호흡 명상", say: "들이쉬고 내쉬다", Icon: Breath },
       { href: "/sutra", label: "경전 외우기", say: "입에 붙이다", Icon: Book },
       { href: "/mandala", label: "만다라", say: "색을 앉히다", Icon: Mandala },
@@ -158,8 +161,15 @@ export default function DoryangMenu() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "닫기" : "도량 한눈에"}
+        title={
+          open
+            ? "닫기"
+            : online && online > 0
+              ? `도량 한눈에 · 지금 ${online}명이 들어와 있습니다`
+              : "도량 한눈에"
+        }
         aria-expanded={open}
-        className="notes-fab fixed right-4 z-50 bottom-[calc(76px+env(safe-area-inset-bottom,0px)+18px)] flex h-12 w-12 items-center justify-center rounded-full border border-gold/40 bg-ink-2/95 shadow-[0_12px_34px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/70 active:scale-95 md:bottom-8 md:right-8 md:h-14 md:w-14"
+        className="doryang-fab notes-fab fixed right-4 z-50 bottom-[calc(76px+env(safe-area-inset-bottom,0px)+18px)] flex h-12 w-12 items-center justify-center rounded-full border border-gold/40 bg-ink-2/95 shadow-[0_12px_34px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/70 active:scale-95 md:bottom-8 md:right-8 md:h-14 md:w-14"
       >
         <span
           aria-hidden

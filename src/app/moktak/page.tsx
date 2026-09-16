@@ -84,12 +84,25 @@ export default function MoktakPage() {
   const [ringing, setRinging] = useState(false);
   const ringTimer = useRef<number | null>(null);
 
+  const stopBowl = () => {
+    hushBowl();
+    if (ringTimer.current) window.clearTimeout(ringTimer.current);
+    setRinging(false);
+  };
+
   const ringBowl = () => {
     // 울고 있는 동안엔 다시 못 친다.
     // 예전엔 곧바로 앞 소리를 재우고 새로 쳤다 — 그래서 십오 초짜리 여운을
     // 가진 물건이 초당 두 번 치는 물건이 됐고, 한 타 21 이라는 값의 근거가
     // 거짓말이 됐다(열 초에 하루 천장의 18%). 여운을 듣는 것까지가 한 번이다.
-    if (ringing) return;
+    // 울고 있을 때 다시 누르면 **그친다.** 손으로 감싸 재우는 것과 같은 일이라
+    // 단추를 찾아 내려갈 까닭이 없다. 곧바로 새로 치지는 않는다 —
+    // 그러면 여운 십오 초짜리 물건이 초당 두 번 치는 물건이 되고,
+    // 한 타 21 이라는 값의 근거가 거짓말이 된다.
+    if (ringing) {
+      stopBowl();
+      return;
+    }
     const secs = strikeBowl(vol, tone);
     if (!secs) return;
     earn("bowl");
@@ -98,12 +111,6 @@ export default function MoktakPage() {
     setRinging(true);
     if (ringTimer.current) window.clearTimeout(ringTimer.current);
     ringTimer.current = window.setTimeout(() => setRinging(false), secs * 1000);
-  };
-
-  const stopBowl = () => {
-    hushBowl();
-    if (ringTimer.current) window.clearTimeout(ringTimer.current);
-    setRinging(false);
   };
 
   // ── 염주 ──────────────────────────────────────────────────
@@ -715,14 +722,18 @@ export default function MoktakPage() {
             {ringing ? "울리는 중 — 끝까지 들어 보세요" : "그릇을 눌러 한 번"}
           </p>
 
-          {ringing && (
-            <button
-              onClick={stopBowl}
-              className="mt-3 rounded-full border border-ink-3 px-4 py-2 text-[11.5px] text-hanji-dim transition-colors hover:text-hanji"
-            >
-              손으로 감싸 그치기
-            </button>
-          )}
+          {/* 이 단추는 울릴 때만 보이지만 **자리는 늘 잡아 둔다.**
+              나타났다 사라지면 아래 공덕 줄이 그만큼 위아래로 뛴다. */}
+          <div className="mt-3 flex h-[36px] items-center">
+            {ringing && (
+              <button
+                onClick={stopBowl}
+                className="rounded-full border border-ink-3 px-4 py-2 text-[11.5px] text-hanji-dim transition-colors hover:text-hanji"
+              >
+                손으로 감싸 그치기
+              </button>
+            )}
+          </div>
         </>
       )}
 

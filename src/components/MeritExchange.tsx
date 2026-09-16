@@ -177,7 +177,7 @@ export default function MeritExchange() {
           </p>
         ) : can < 1 ? (
           <p className="break-keep text-[12px] leading-6 text-hanji-faint">
-            사흘쯤 이어 가면 한 송이가 됩니다.
+            오늘 몫을 다 채우면 한 송이가 됩니다.
           </p>
         ) : (
           <>
@@ -189,7 +189,9 @@ export default function MeritExchange() {
               {busy ? "바꾸는 중" : `연꽃 ${want}송이로 바꾸기`}
             </button>
             <p className="mt-2 text-center text-[11px] leading-5 text-hanji-faint">
-              하루 한 송이까지 · 바꾸어 받은 연꽃은 돈으로 돌려주지 않아요
+              하루 한 송이 · 자정(00시)에 새로 시작합니다
+              <br />
+              바꾸어 받은 연꽃은 돈으로 돌려주지 않아요
             </p>
           </>
         )}

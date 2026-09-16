@@ -27,6 +27,7 @@ import {
   LotusPond,
   Mandala,
   Moktak,
+  Yeomju,
   Person,
   Seogo,
   Moment,
@@ -34,6 +35,8 @@ import {
   Teacup,
   Yeonkkot,
   Baru,
+  Jeol,
+  Jeol108,
 } from "./icons";
 
 type Door = {
@@ -44,9 +47,9 @@ type Door = {
 };
 
 const D: Record<string, Door> = {
-  moktak: { href: "/moktak", label: "목탁·염주·싱잉볼", say: "손끝으로 세다", Icon: Moktak },
-  sambae: { href: "/sambae", label: "삼배", say: "서른 초면 된다", Icon: Banga },
-  bae: { href: "/bae", label: "백팔배", say: "백여덟 번 굽히다", Icon: Banga },
+  moktak: { href: "/moktak", label: "목탁·염주·싱잉볼", say: "손끝으로 세다", Icon: Yeomju },
+  sambae: { href: "/sambae", label: "삼배", say: "서른 초면 된다", Icon: Jeol },
+  bae: { href: "/bae", label: "백팔배", say: "백여덟 번 굽히다", Icon: Jeol108 },
   breath: { href: "/breath", label: "호흡 명상", say: "들이쉬고 내쉬다", Icon: Breath },
   sutra: { href: "/sutra", label: "경전 외우기", say: "입에 붙이다", Icon: Book },
   mandala: { href: "/mandala", label: "만다라", say: "색을 앉히다", Icon: Mandala },

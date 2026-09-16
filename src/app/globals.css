@@ -718,3 +718,13 @@ body[data-install-banner] .obang-aura {
     transform: none;
   }
 }
+
+/* ── 화두만 보기 ──────────────────────────────────────────────
+   오직 물음 하나만 남기는 자리다. 아래 띠(MobileTabBar)와 떠 있는
+   도량 단추(DoryangMenu)는 뜰 화면 바깥에 살아서 거기서 감출 길이 없다.
+   문서 뿌리의 data-focus 를 보고 스스로 사라지게 한다.
+   남는 것은 셋뿐 — 물음 · 되돌아가기 · 왼쪽 아래 사유의 방. */
+html[data-focus="1"] .mobile-tabbar,
+html[data-focus="1"] .doryang-fab {
+  display: none !important;
+}

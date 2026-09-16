@@ -880,7 +880,7 @@ export default function SettingsPage() {
             <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
               {room.left <= 0
                 ? "오늘 몫이 찼어요. 내일 또 이어 가세요."
-                : `스물한 분쯤 붙들면 오늘 몫이 찹니다.`}
+                : `갈래를 고루 돌면 오늘 몫이 찹니다 — 다 채우면 연꽃 한 송이.`}
             </p>
           </div>
 

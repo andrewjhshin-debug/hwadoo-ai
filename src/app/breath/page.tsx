@@ -363,26 +363,6 @@ export default function BreathPage() {
             {soundButton}
           </div>
 
-          {/* 안내는 지우지 않고 접었다 — 처음 앉는 사람만 펴 보면 된다 */}
-          <details className="mt-5 w-full rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3 text-left">
-            <summary className="cursor-pointer list-none text-[12.5px] text-hanji-dim marker:hidden">
-              <span className="text-gold-soft">＋</span> 처음이신가요
-            </summary>
-            <div className="mt-3 space-y-2.5 border-t border-ink-3 pt-3">
-              <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
-                날숨을 들숨보다 길게 — 몸이 스스로 가라앉습니다. 넷을 세며
-                천천히 들이쉬고, 여섯을 세며 길게 내쉽니다.
-              </p>
-              <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
-                화면을 보지 않아도 됩니다. 숨소리가 차오르면 들숨, 잦아들면
-                날숨입니다.
-              </p>
-              <p className="break-keep text-[12px] leading-6 text-hanji-faint">
-                열 번을 세는 동안이 한 식(息)입니다. 한 판을 마치면 공덕{" "}
-                {MERIT_VALUE.breath}이 쌓여요.
-              </p>
-            </div>
-          </details>
         </div>
       )}
 
@@ -429,6 +409,31 @@ export default function BreathPage() {
             {soundButton}
           </div>
         </div>
+      )}
+
+      {/* 안내는 지우지 않고 접었다 — 처음 앉는 사람만 펴 보면 된다.
+          한 판을 마쳤다고 사라지지 않는다. 한 판은 삼 분이고, 그 사이에
+          안내를 다 외우는 사람은 없다. 숨 쉬는 동안만 비운다. */}
+      {stage !== "breathing" && (
+        <details className="rise rise-d3 mt-5 w-full max-w-[300px] rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3 text-left">
+          <summary className="cursor-pointer list-none text-[12.5px] text-hanji-dim marker:hidden">
+            <span className="text-gold-soft">＋</span> 처음이신가요
+          </summary>
+          <div className="mt-3 space-y-2.5 border-t border-ink-3 pt-3">
+            <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
+              날숨을 들숨보다 길게 — 몸이 스스로 가라앉습니다. 넷을 세며
+              천천히 들이쉬고, 여섯을 세며 길게 내쉽니다.
+            </p>
+            <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
+              화면을 보지 않아도 됩니다. 숨소리가 차오르면 들숨, 잦아들면
+              날숨입니다.
+            </p>
+            <p className="break-keep text-[12px] leading-6 text-hanji-faint">
+              열 번을 세는 동안이 한 식(息)입니다. 한 판을 마치면 공덕{" "}
+              {MERIT_VALUE.breath}이 쌓여요.
+            </p>
+          </div>
+        </details>
       )}
     </div>
   );

@@ -583,3 +583,61 @@ export function Baru({ className = "w-5 h-5", stroke = "currentColor" }: IconPro
     </svg>
   );
 }
+
+// 절(拜) — 「삼배」.
+//
+// 반가사유상(Banga)을 걸어 두었는데, 사유의 방·삼배·백팔배 셋이 **같은 그림**이었다.
+// 사유의 방은 앉아서 생각하는 자리이고 이쪽은 몸을 굽히는 자리다. 뜻이 다르면
+// 그림도 달라야 한다. 오체투지로 엎드린 옆모습 — 머리가 바닥에 닿고 등이 꺾인다.
+export function Jeol({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* 머리 — 바닥 가까이 */}
+      <circle cx="6.6" cy="13.2" r="2.1" />
+      {/* 등 — 앞으로 깊이 꺾인다 */}
+      <path d="M8.6 14.2c2.6-.5 4.5-1.9 5.6-4.1" />
+      {/* 접은 다리 */}
+      <path d="M14.2 10.1c1.3.6 2.3 1.9 3 3.9" />
+      <path d="M17.2 14c-1.2 2-2.9 3.2-5.1 3.6" />
+      {/* 바닥에 댄 손 */}
+      <path d="M4.2 17.6h4.2" opacity="0.75" />
+      {/* 바닥 */}
+      <path d="M2.6 20.4h18.8" opacity="0.4" />
+    </svg>
+  );
+}
+
+// 백팔배(百八拜) — 절에 알 셋을 붙인다.
+// 삼배와 같은 몸짓이라 그림을 나누지 않고, 「세는 절」이라는 표만 더한다.
+export function Jeol108({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <circle cx="6.6" cy="13.2" r="2.1" />
+      <path d="M8.6 14.2c2.6-.5 4.5-1.9 5.6-4.1" />
+      <path d="M14.2 10.1c1.3.6 2.3 1.9 3 3.9" />
+      <path d="M17.2 14c-1.2 2-2.9 3.2-5.1 3.6" />
+      <path d="M4.2 17.6h4.2" opacity="0.75" />
+      <path d="M2.6 20.4h18.8" opacity="0.4" />
+      {/* 세는 알 셋 — 한 번이 아니라 거듭한다는 표 */}
+      <circle cx="15.6" cy="4.4" r="1.15" fill={stroke} stroke="none" />
+      <circle cx="19" cy="5.4" r="1.15" fill={stroke} stroke="none" opacity="0.72" />
+      <circle cx="21.2" cy="7.8" r="1.15" fill={stroke} stroke="none" opacity="0.48" />
+    </svg>
+  );
+}
