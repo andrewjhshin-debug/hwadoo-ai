@@ -15,7 +15,7 @@
 // 남의 소원이 내 것과 다르다는 게 한눈에 보여야 한다.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
@@ -241,12 +241,25 @@ function Light({
   const [err, setErr] = useState<string | null>(null);
   const w = wishOf(kind);
 
+  // 이 창 한 번에 표 하나. 답을 못 받고 다시 눌러도 같은 표라서
+  // 서버가 두 번째를 「이미 서 있다」로 끝낸다 — 연꽃은 한 송이만 나간다.
+  const key = useRef<string | null>(null);
+
   const go = async () => {
     if (busy) return;
+    // 표는 여기서 뽑는다 — 그리기 중에 뽑으면 Math.random 이 순수하지 않아
+    // 다시 그릴 때마다 달라진다(react-hooks/purity). 단추를 누른 뒤라야
+    // 한 번 정해지고, 재시도에도 같은 표가 간다.
+    if (key.current == null) {
+      key.current =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID().replace(/-/g, "")
+          : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`;
+    }
     setErr(null);
     setBusy(true);
     try {
-      const r = await lightCandle({ forName, born, kind, wish });
+      const r = await lightCandle({ forName, born, kind, wish }, key.current ?? "");
       if (!r) {
         setErr("연꽃이 모자랍니다");
         return;
@@ -378,6 +391,9 @@ export default function CandleHall() {
 
   const load = useCallback(() => {
     setHallErr(null);
+    // 다시 읽는 동안은 「세는 중…」 — 옛 빈 배열을 그대로 두면
+    // 고장이 잠깐 「초가 없습니다」로 되돌아간다
+    setList(null);
     void fetchCandles()
       .then(setList)
       .catch((e: unknown) => {

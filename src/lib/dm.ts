@@ -31,11 +31,12 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { anonName } from "./anonName";
-import { ADMIN_UID, DM_ENABLED, isAdminAccount } from "./config";
+import { ADMIN_UID, DM_ENABLED, FIRST_GRANT, isAdminAccount } from "./config";
 import type { Post } from "./community";
 
-// 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 초기엔 후하게
-export const FIRST_GRANT = 3;
+// 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 셈은 config.ts 에 있다.
+// 여기서 그대로 다시 내보내므로 부르던 쪽은 손댈 것이 없다.
+export { FIRST_GRANT } from "./config";
 
 // 푸시 한 방 — 서버(/api/push/notify)가 받는 이를 검증해 쏜다.
 // 실패는 조용히 삼킨다 — 알림은 곁가지, 본 흐름을 막지 않는다.

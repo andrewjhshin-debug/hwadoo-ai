@@ -54,6 +54,14 @@ export function isAdminAccount(
   return !!u.email && ADMIN_EMAILS.includes(u.email.toLowerCase());
 }
 
+// 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 초기엔 후하게.
+// dm.ts 가 아니라 여기 둔다. dm.ts 는 ./firebase 를 무는데 그 파일은
+// 불러오는 순간 initializeApp() 을 돌려, 서버 라우트가 값 하나 쓰겠다고
+// 물면 브라우저용 Firebase 가 서버에서 깨어난다.
+// ※ firestore.rules 의 wallets create 가 「정확히 3송이」로 못박고 있다 —
+//   이 값을 바꾸면 규칙도 같이 고쳐야 한다.
+export const FIRST_GRANT = 3;
+
 // 쪽지(게시판 연등 1:1 서신) — 2026-08-20 전면 개방.
 // 닫을 일이 생기면 false 로 — Firestore 규칙의 dmOpen() 도 함께 닫는다.
 export const DM_ENABLED = true;

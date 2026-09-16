@@ -44,41 +44,29 @@ import { anonName } from "./anonName";
 import { loadStore } from "./store";
 import { rankHanjaFor } from "./badges";
 import { addMerit } from "./merit";
-import { spendLotus } from "./dm";
+import {
+  LIGHT_DAYS,
+  NAME_MAX,
+  PAGE,
+  WISH_MAX,
+  type WishId,
+} from "./candleSpec";
 
-/** 초 한 자루의 값 — 연꽃 */
-export const CANDLE_PRICE = 1;
+// 치수는 candleSpec.ts 에 있다 — /api/candle/light 도 같은 자를 쓴다.
+// 여기서 그대로 다시 내보내므로 부르던 쪽은 손댈 것이 없다.
+export {
+  CANDLE_PRICE,
+  BURN_DAYS,
+  LIGHT_DAYS,
+  NAME_MAX,
+  WISH_MAX,
+  PAGE,
+  WISHES,
+  wishOf,
+} from "./candleSpec";
+export type { WishId } from "./candleSpec";
 
-/** 초가 며칠 타는가 — 사십구재의 49 */
-export const BURN_DAYS = 49;
-/** 회향 등이 며칠 타는가 — 이레(七日). 초보다 짧고 값도 안 든다 */
-export const LIGHT_DAYS = 7;
 const DAY = 86_400_000;
-
-export const NAME_MAX = 20;
-export const WISH_MAX = 120;
-/** 한 번에 받아 오는 자루 수 */
-export const PAGE = 30;
-
-/**
- * 무엇을 빌었는가 — 초의 빛깔이 갈린다.
- * 「기타」를 두지 않았다. 고르기 싫은 사람은 평안을 고르면 된다 —
- * 칸이 하나 더 있으면 다들 그 칸으로 도망가고 법당이 회색이 된다.
- */
-export const WISHES = [
-  { id: "health", label: "건강", hanja: "康", hue: 148, say: "아프지 않기를" },
-  { id: "pass", label: "합격", hanja: "第", hue: 42, say: "붙기를" },
-  { id: "peace", label: "평안", hanja: "安", hue: 28, say: "무탈하기를" },
-  { id: "rest", label: "극락왕생", hanja: "往", hue: 268, say: "편히 가시기를" },
-  { id: "mend", label: "화해", hanja: "和", hue: 200, say: "풀리기를" },
-  { id: "luck", label: "뜻대로", hanja: "願", hue: 340, say: "이루어지기를" },
-] as const;
-
-export type WishId = (typeof WISHES)[number]["id"];
-
-export function wishOf(id: string) {
-  return WISHES.find((w) => w.id === id) ?? WISHES[2];
-}
 
 export type Candle = {
   id: string;
@@ -113,16 +101,31 @@ export function daysLeft(c: Candle): number {
 }
 
 /**
- * 초를 올린다. 연꽃 한 송이가 나간다 —
- * **연꽃부터 거두고** 글을 적는다. 반대로 하면 글만 남고 값을 못 받는 수가 있다.
+ * 초를 올린다. 연꽃 한 송이가 나간다.
+ *
+ * 값을 치르는 일과 초를 세우는 일을 **서버가 한 트랜잭션에 묶는다**
+ * (/api/candle/light). 예전에는 브라우저가 둘로 나눠 했다 —
+ * 연꽃을 먼저 빼고 그다음 문서를 썼다. 그 사이에서 엎어지면 연꽃만
+ * 사라졌고, wallets 규칙이 「본인은 1 감소만」이라 되돌릴 길도 없었다.
+ * 실제로 candles 규칙이 콘솔에 안 올라가 있던 동안 그 일이 났다.
+ * 이제 둘 다 되거나 둘 다 안 된다.
+ *
  * 연꽃이 모자라면 아무것도 쓰지 않고 null 을 돌려준다(화면이 공양으로 안내한다).
  */
-export async function lightCandle(d: {
-  forName: string;
-  born: string;
-  kind: WishId;
-  wish: string;
-}): Promise<{ id: string } | null> {
+export async function lightCandle(
+  d: {
+    forName: string;
+    born: string;
+    kind: WishId;
+    wish: string;
+  },
+  /**
+   * 이 초 한 자루의 표. 같은 표로 두 번 보내면 서버가 두 번째를
+   * 「이미 서 있다」로 끝낸다 — 답을 못 받고 다시 눌러도 연꽃은 한 송이만
+   * 나간다. 화면이 창을 열 때 한 번 뽑아 두고 재시도에도 같은 것을 쓴다.
+   */
+  key: string
+): Promise<{ id: string } | null> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
 
@@ -132,23 +135,33 @@ export async function lightCandle(d: {
   const born = (d.born.match(/\d{4}/)?.[0] ?? "").slice(0, 4);
   if (!forName || !wish) throw new Error("이름과 기원을 적어 주세요");
 
-  if (!(await spendLotus())) return null;
-
   const me = loadMe();
-  const ref = await addDoc(collection(db, "candles"), {
-    tier: "candle",
-    uid: u.uid,
-    by: me?.name || anonName(),
-    byHanja: rankHanjaFor(loadStore().history.length, u) ?? null,
-    forName,
-    born,
-    kind: d.kind,
-    wish,
-    hapjang: 0,
-    until: Date.now() + BURN_DAYS * DAY,
-    createdAt: serverTimestamp(),
+  const res = await fetch("/api/candle/light", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${await u.getIdToken()}`,
+    },
+    body: JSON.stringify({
+      forName,
+      born,
+      kind: d.kind,
+      wish,
+      // 보이기용 — 서버가 길이만 깎아 그대로 적는다
+      by: me?.name || anonName(),
+      byHanja: rankHanjaFor(loadStore().history.length, u) ?? null,
+      key,
+    }),
   });
-  return { id: ref.id };
+
+  // 연꽃이 모자란 것은 고장이 아니다 — 화면이 공양으로 안내한다
+  if (res.status === 402) return null;
+  if (!res.ok) {
+    const why = await res.json().catch(() => ({}));
+    throw new Error(`초를 세우지 못했습니다 (${why?.error ?? res.status})`);
+  }
+  const { id } = (await res.json()) as { id: string };
+  return { id };
 }
 
 /**
