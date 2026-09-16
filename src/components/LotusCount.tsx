@@ -75,10 +75,14 @@ export default function LotusCount({
 
   if (n === null && m === null) return null;
 
+  // 여기 적히는 공덕은 **쌓은 총량**이다(계급을 매기는 그 수).
+  // 예전엔 그 옆에 「6,480이면 한 송이」를 붙여 두었는데, 바꿀 때 쓰는 수는
+  // 총량이 아니라 남은 몫이라 서로 어긋났다 — 회향·교환을 해 본 사람일수록
+  // 알약의 숫자로는 연꽃이 안 바뀐다. 환율은 바꾸는 자리(/lotus)에서만 말한다.
   const title =
     n === null
-      ? `공덕 ${(m ?? 0).toLocaleString("ko-KR")} — ${LOTUS_PRICE.toLocaleString("ko-KR")}이면 연꽃 한 송이`
-      : `연꽃 ${n}송이 · 공덕 ${(m ?? 0).toLocaleString("ko-KR")} — ${LOTUS_PRICE.toLocaleString("ko-KR")}이면 한 송이`;
+      ? `쌓은 공덕 ${(m ?? 0).toLocaleString("ko-KR")}`
+      : `연꽃 ${n}송이 · 쌓은 공덕 ${(m ?? 0).toLocaleString("ko-KR")}`;
 
   if (look === "line") {
     // 맨 글자로 두었더니 곁의 아이콘들에 묻혔다. 옅은 금 테를 둘러

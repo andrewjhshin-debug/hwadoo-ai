@@ -238,13 +238,18 @@ export default function DailyPractice() {
         {/* ── 퇴전 ── 쉬었는데 아무 말도 안 하면 숫자가 줄어든 까닭을 모른다 */}
         {fade.cut > 0 && (
           <p className="mt-3.5 break-keep rounded-[10px] border border-vermilion/35 bg-vermilion/[0.07] px-3.5 py-2.5 text-[11.5px] leading-5 text-hanji-dim">
-            {fade.gap}일 쉬는 동안 공덕 {fade.cut.toLocaleString("ko-KR")}이 줄었어요.
+            {fade.gap}일 쉬는 동안 공덕 {fade.cut.toLocaleString("ko-KR")}이 흐려졌어요.
             오늘 한 가지만 해도 멈춥니다.
-            <Info title="退轉 · 줄어드는 까닭" className="ml-1.5">
+            <Info title="退轉 · 흐려지는 까닭" className="ml-1.5">
               하루는 그냥 넘어갑니다. <b className="text-hanji">그 뒤로는</b> 하루에
-              4%씩 줄고, 오래 쉴수록 더 줄어요(최대 25%).
+              4%씩 흐려지고, 오래 쉴수록 더 흐려져요(최대 25%).
               <br />
               들어와서 뭐라도 하나 하면 그날로 멈춥니다.
+              <br />
+              <br />
+              공덕이 흐려지는 자리는 여기 하나뿐입니다. <b className="text-hanji">
+              남에게 회향해도 내 공덕은 줄지 않아요</b> — 촛불로 촛불을 붙여도
+              내 불은 안 꺼지니까요.
             </Info>
           </p>
         )}

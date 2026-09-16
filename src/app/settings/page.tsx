@@ -411,11 +411,8 @@ export default function SettingsPage() {
   const give = (to: string) => {
     const l = giveMerit(to, GIVE_UNIT);
     if (!l) {
-      setGaveMsg(
-        giveLeftToday() <= 0
-          ? "오늘 몫을 다 돌렸어요 — 내일 또 밝힐 수 있어요."
-          : `공덕이 모자랍니다 — 한 번에 ${GIVE_UNIT}이 듭니다.`
-      );
+      // 회향은 이제 공덕을 안 쓴다 — 막는 것은 하루 세 번뿐이다
+      setGaveMsg("오늘 몫을 다 돌렸어요 — 내일 또 밝힐 수 있어요.");
       window.setTimeout(() => setGaveMsg(""), 5000);
       return;
     }
@@ -427,7 +424,7 @@ export default function SettingsPage() {
     // 「그래서 그게 어디 걸리는데?」 — 법당에 이레 동안 등으로 걸린다.
     // 실패해도 회향은 이미 끝난 일이라 기다리지 않고 보낸다.
     void hangLight(to);
-    setGaveMsg(`${to}에게 공덕 ${GIVE_UNIT}을 돌렸습니다 — 법당에 등이 켜졌어요.`);
+    setGaveMsg(`${to}에게 공덕을 돌렸습니다 — 법당에 등이 켜졌어요. 내 공덕은 그대로입니다.`);
     window.setTimeout(() => setGaveMsg(""), 5000);
   };
 
@@ -929,7 +926,7 @@ export default function SettingsPage() {
       {/* ── 공덕(功德) — 쌓고, 남에게 돌린다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-          공덕 — 쌓은 것, 나눈 것
+          공덕 — 쌓은 것, 돌린 것
         </p>
         <div className="mt-4 border-t border-ink-3 pt-5">
           <div>
@@ -1010,16 +1007,24 @@ export default function SettingsPage() {
                 나머지는 ⓘ 안으로. */}
             <p className="mt-2.5 break-keep text-[12.5px] leading-6 text-hanji-dim">
               내 공덕을 <span className="text-hanji">누군가의 이름에 걸어 두는 일</span>.
-              한 번에 {GIVE_UNIT}.
+              <span className="text-hanji"> 내 공덕은 줄지 않습니다.</span>
             </p>
             <ul className="mt-2.5 flex flex-col gap-[3px] text-[11.5px] leading-5 text-hanji-faint">
               <li>받는 이는 <span className="text-hanji-dim">내가 적은 그 사람</span></li>
               <li>
-                <span className="text-hanji-dim">자리는 그대로</span>, 쥔 몫에서 {GIVE_UNIT}
-                <Info title="줄어드는 것" className="ml-1">
-                  육도와 계급은 <span className="text-hanji">쌓은 공덕</span>으로 매깁니다 —
-                  회향해도 내려가지 않습니다. 줄어드는 것은 연꽃으로 바꿀 수 있는 몫입니다.
-                  불을 나눠 줘도 내 불은 안 꺼지지만, 초는 닳습니다.
+                <span className="text-hanji-dim">내 공덕은 한 톨도 안 줄어든다</span>
+                <Info title="그럼 무엇이 줄어드나" className="ml-1">
+                  아무것도 안 줄어듭니다. 촛불로 촛불을 붙여도 내 불은 안 꺼집니다 —
+                  그게 회향(廻向)입니다.
+                  <br />
+                  <br />
+                  공덕이 줄어드는 자리는 하나뿐입니다. <span className="text-hanji">
+                  발길이 뜸할 때</span> — 닦지 않으면 물러난다는 퇴전(退轉)입니다.
+                  남 때문에 줄어드는 일은 없고, 나 때문에만 줄어듭니다.
+                  <br />
+                  <br />
+                  남을 위해 <span className="text-hanji">쓰는 몫은 연꽃</span>입니다 —
+                  초 한 자루, 등 하나, 쪽지 한 통.
                 </Info>
               </li>
               <li>
@@ -1033,7 +1038,7 @@ export default function SettingsPage() {
                 앞으로 쌓는 것이 <span className="text-hanji-dim">빨라진다</span>{" "}
                 <span className="text-gold">×{giveBonus().toFixed(2)}</span>
                 <Info title="적립 배수" className="ml-1">
-                  회향 {GIVE_UNIT}마다 +2%, 최대 +20%. 쓰면 느려지는 게 아니라
+                  회향 {GIVE_UNIT}마다 +2%, 최대 +20%. 돌려도 줄지 않는데
                   앞으로가 빨라집니다 — 나눌수록 커진다는 말을 숫자로 옮긴 자리입니다.
                 </Info>
               </li>

@@ -18,6 +18,7 @@ import {
   stageProgress,
 } from "@/lib/merit";
 import NotesDrawer from "@/components/NotesDrawer";
+import BeopdangCard from "@/components/BeopdangCard";
 import { useConfirm } from "@/components/Confirm";
 import { Banga, Dharmachakra, Lotus, Teacup } from "@/components/icons";
 import {
@@ -597,6 +598,11 @@ export default function Home() {
           </div>
         </div>
 
+        {/* 법당 — 공덕이 가 닿는 끝. 내려오다 반드시 지나가는 자리에 둔다 */}
+        <div className="mt-12 flex w-full justify-center">
+          <BeopdangCard />
+        </div>
+
         <div className="mt-12 flex gap-2.5 opacity-50">
           <i className="h-[5px] w-[5px] rounded-full bg-obang-blue" />
           <i className="h-[5px] w-[5px] rounded-full bg-vermilion" />
@@ -1161,6 +1167,11 @@ export default function Home() {
             ))}
           </div>
         )}
+
+        {/* 법당 — 내가 켠 불에 누가 손을 모았는지 여기서 돌아온다 */}
+        <div className="mt-12 flex w-full justify-center">
+          <BeopdangCard />
+        </div>
 
         {/* 내려놓기 — 멀찍이, 흐리게. 찾으면 보이는 자리면 된다 */}
         <button
