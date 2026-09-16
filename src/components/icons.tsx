@@ -580,8 +580,6 @@ export function Baru({ className = "w-5 h-5", stroke = "currentColor" }: IconPro
       {/* 굽 */}
       <path d="M9.6 20.2h4.8" opacity="0.7" />
       <path d="M12 17.7v2.5" opacity="0.7" />
-      {/* 비어 있다는 한 점 — 아가리 위로 아무것도 없음을 긋는 짧은 획 */}
-      <path d="M8.6 6.2c1-1.1 2.1-1.7 3.4-1.7s2.4.6 3.4 1.7" opacity="0.3" />
     </svg>
   );
 }
