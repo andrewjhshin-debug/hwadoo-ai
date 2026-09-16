@@ -1,0 +1,34 @@
+{
+  "//": "복합 색인. 없으면 해당 질의가 FAILED_PRECONDITION 으로 죽고 화면은 조용히 빈 목록이 된다 — 인연 글이 안 올라가 보이던 원인이 이것이었다. 고쳤으면 npm run rules:deploy 로 규칙과 함께 올린다.",
+  "indexes": [
+    {
+      "//": "인연·연지원 목록 — fetchPosts(board). 이게 없어서 매번 대체 경로(전체 200개 훑기)로 떨어졌다.",
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "board", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "화두별 남의 답 — fetchSharedAnswers(hwaduId)",
+      "collectionGroup": "shared-answers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "hwaduId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "모멘트 태그별 — fetchMoments(tag)",
+      "collectionGroup": "moments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tags", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

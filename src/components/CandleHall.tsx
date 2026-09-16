@@ -52,9 +52,9 @@ function Flame({ hue, seed }: { hue: number; seed: number }) {
   const delay = `${(seed % 17) * 0.13}s`;
   const dur = `${1.5 + (seed % 7) * 0.11}s`;
   return (
-    <span className="relative block h-[26px] w-[14px]">
+    <span className="relative block h-[30px] w-[16px]">
       <span
-        className="candle-glow absolute left-1/2 top-1/2 h-[46px] w-[46px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="candle-glow absolute left-1/2 top-1/2 h-[56px] w-[56px] -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
           background: `radial-gradient(circle, hsla(${hue},95%,68%,.5) 0%, hsla(${hue},95%,60%,.16) 42%, transparent 70%)`,
           animationDelay: delay,
@@ -62,7 +62,7 @@ function Flame({ hue, seed }: { hue: number; seed: number }) {
         }}
       />
       <span
-        className="candle-flame absolute bottom-0 left-1/2 h-[26px] w-[13px] -translate-x-1/2"
+        className="candle-flame absolute bottom-0 left-1/2 h-[30px] w-[15px] -translate-x-1/2"
         style={{
           background: `linear-gradient(to top, hsl(${hue},95%,72%), #ffe9a8 46%, #fffbe9)`,
           animationDelay: delay,
@@ -87,25 +87,51 @@ function Stick({
 }) {
   const w = wishOf(c.kind);
   const left = daysLeft(c);
-  // 오래 탄 초는 짧아진다 — 49일 중 얼마나 남았는지가 키로 보인다
-  const tall = 34 + Math.round((left / BURN_DAYS) * 42);
+  // 길쭉한 막대는 초가 아니라 막대였다. 절 법당의 초는 **짧고 두껍다** —
+  // 폭을 키우고 키를 줄인다. 오래 탄 초는 짧아지되 바닥은 남긴다.
+  const tall = 26 + Math.round((left / BURN_DAYS) * 26);
   return (
     <button
       onClick={onOpen}
       title={`${c.forName} — ${w.label}`}
-      className="group flex w-[62px] shrink-0 flex-col items-center gap-1 pt-1"
+      className="group flex w-[74px] shrink-0 flex-col items-center gap-1 pt-1"
     >
       <Flame hue={w.hue} seed={i * 7 + c.forName.length} />
+      {/* 초 — 흰 밀랍. 빛깔은 심지 언저리에만 옅게 물든다.
+          몸통에 세로 결 두 줄을 넣어야 원통으로 보인다(납작한 네모 방지). */}
       <span
-        className="w-[15px] rounded-t-[3px] rounded-b-[2px] transition-transform group-hover:-translate-y-[2px]"
+        className="relative block w-[34px] rounded-[4px] transition-transform group-hover:-translate-y-[2px]"
         style={{
           height: tall,
-          background: `linear-gradient(180deg, hsl(${w.hue},34%,88%), hsl(${w.hue},26%,72%) 62%, hsl(${w.hue},22%,58%))`,
-          boxShadow: `0 0 18px hsla(${w.hue},90%,65%,.28)`,
+          background:
+            `linear-gradient(90deg, rgba(120,104,84,.42) 0%, rgba(255,252,246,.97) 26%,` +
+            ` #fffdf8 48%, rgba(246,240,228,.95) 70%, rgba(120,104,84,.34) 100%)`,
+          boxShadow:
+            `0 0 26px hsla(${w.hue},92%,66%,.30), inset 0 -6px 10px rgba(120,100,70,.18)`,
+        }}
+      >
+        {/* 녹은 윗면 — 타원 한 조각. 이것 하나로 원통이 된다 */}
+        <span
+          className="absolute left-1/2 top-[-4px] h-[9px] w-[34px] -translate-x-1/2 rounded-[50%]"
+          style={{
+            background: `radial-gradient(60% 100% at 50% 40%, hsla(${w.hue},70%,84%,.95), #f3ece0 70%, #dcd2c0)`,
+          }}
+        />
+        {/* 심지 자리 — 타들어 간 자국 */}
+        <span
+          className="absolute left-1/2 top-[-2px] h-[5px] w-[7px] -translate-x-1/2 rounded-[50%]"
+          style={{ background: "rgba(70,56,40,.55)" }}
+        />
+      </span>
+      {/* 촛농 받침 — 놋쇠 접시 */}
+      <span
+        className="h-[5px] w-[42px] rounded-[3px]"
+        style={{
+          background: "linear-gradient(180deg, #b79a5e, #6d5a33)",
+          boxShadow: "0 3px 8px rgba(0,0,0,.45)",
         }}
       />
-      <span className="h-[3px] w-[24px] rounded-full bg-ink-3" />
-      <span className="max-w-[60px] truncate text-[10px] leading-4 text-hanji-faint">
+      <span className="max-w-[72px] truncate text-[10px] leading-4 text-hanji-faint">
         {c.forName}
       </span>
     </button>

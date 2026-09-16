@@ -901,7 +901,10 @@ export default function Home() {
   // 화두만 보기 — 오직 화두 하나만, 되돌아가기 버튼과 함께
   if (focusMode) {
     return (
-      <div className="relative flex flex-1 flex-col items-center justify-center px-5 py-16 text-center">
+      // 아래 탭 바(76)와 떠 있는 단추가 「되돌아가기」를 덮고 있었다.
+      // 아래를 넉넉히 비우면 가운데 정렬이 그만큼 위로 올라가, 머리 쪽
+      // 빈 자리도 같이 줄어든다 — 두 불편이 한 번에 풀린다.
+      <div className="relative flex flex-1 flex-col items-center justify-center px-5 pb-[calc(132px+env(safe-area-inset-bottom,0px))] pt-6 text-center md:pb-16 md:pt-12">
         {hwadu?.hanja && (
           <span className="rounded-full border border-gold/25 px-4 py-1 font-serif text-[10px] tracking-[0.42em] text-gold-soft [text-indent:0.42em]">
             {hwadu.hanja}
@@ -918,7 +921,7 @@ export default function Home() {
         </div>
         <button
           onClick={() => setFocusMode(false)}
-          className="tap mt-16 rounded-full border border-ink-3 px-7 py-3 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
+          className="tap mt-12 rounded-full border border-ink-3 px-7 py-3 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
         >
           되돌아가기
         </button>
