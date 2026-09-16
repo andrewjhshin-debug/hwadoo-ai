@@ -19,6 +19,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Info from "@/components/Info";
 import { MOKTAK_SVG } from "./moktakSvg";
 import Dudu from "@/components/Dudu";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
@@ -730,13 +731,24 @@ export default function MoktakPage() {
         href="/settings"
         className="rise rise-d3 mt-8 w-full max-w-sm rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3.5 transition-colors hover:border-gold/40"
       >
+        {/* 재는 자가 둘이라 늘 헷갈렸다 — 맨 위 금선은 연꽃 한 송이까지,
+            이 줄은 백팔 한 바퀴. 쌓인 공덕 숫자(2,329 같은)는 뗐다.
+            그 수로는 할 일이 달라지지 않고, 세 번째 숫자만 늘 뿐이다. */}
         <div className="flex items-baseline justify-between text-[11.5px] tracking-wide">
-          <span className="text-hanji-faint">공덕 功德</span>
-          <span className="text-gold-soft">
-            {merit.toLocaleString("ko-KR")}
-            <span className="ml-1 text-hanji-faint">
-              · 이번 바퀴 {inRound(merit)}/{ROUND}
-            </span>
+          <span className="flex items-center gap-1 text-hanji-faint">
+            백팔 한 바퀴
+              <Info title="줄이 둘인 까닭" className="ml-1">
+                <span className="text-hanji">맨 위 가는 금선</span>은 연꽃 한 송이까지입니다 —
+                예순 바퀴를 채우면 한 송이가 여뭅니다.
+                <br />
+                <br />
+                <span className="text-hanji">이 줄</span>은 백팔 한 바퀴입니다. 한 바퀴를 채울
+                때마다 동자가 한마디 합니다. 둘 다 같은 공덕을 재고, 자만 다릅니다.
+              </Info>
+          </span>
+          <span className="text-gold-soft tabular-nums">
+            {inRound(merit)}
+            <span className="text-hanji-faint">/{ROUND}</span>
           </span>
         </div>
         <div className="mt-1.5 h-[5px] overflow-hidden rounded-full bg-ink-3">

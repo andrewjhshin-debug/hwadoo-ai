@@ -18,7 +18,6 @@ import {
   stageProgress,
 } from "@/lib/merit";
 import NotesDrawer from "@/components/NotesDrawer";
-import BeopdangCard from "@/components/BeopdangCard";
 import { useConfirm } from "@/components/Confirm";
 import { Banga, Dharmachakra, Lotus, Teacup } from "@/components/icons";
 import {
@@ -33,7 +32,7 @@ import { fetchPublicHwadu, markSeen, type PublicHwadu } from "@/lib/thrown";
 import { plainThoughts } from "@/lib/thoughts";
 import {
   decrementHolding,
-  fetchHoldingCount,
+
   incrementHolding,
 } from "@/lib/holding";
 import { todayGuide } from "@/lib/guidance";
@@ -57,7 +56,6 @@ import {
 } from "@/lib/community";
 import { applyBankOverride, fetchAdminContent } from "@/lib/adminContent";
 // 접속 표는 사이드바가 올린다(모든 화면에 있으므로) — 여기선 세기만 한다
-import { watchOnlineCount } from "@/lib/presence";
 
 // 나눔 물음창의 작은 안내 — 공유하면 무엇이 일어나는지
 const SHARE_NOTE =
@@ -156,8 +154,6 @@ export default function Home() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
-  const [holdingCount, setHoldingCount] = useState<number | null>(null);
-  const [onlineCount, setOnlineCount] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [sharedAnswers, setSharedAnswers] = useState<SharedAnswer[]>([]);
   // 나눔에 부쳤는지 — 회향 화면에 조용히 알린다
@@ -254,23 +250,8 @@ export default function Home() {
     else window.localStorage.removeItem("hwadoo-focus");
   }, [focusMode]);
 
-  // 지금 이 물음을 몇 명이 들고 있는가
-  useEffect(() => {
-    const id = store?.current?.hwaduId;
-    if (!id) {
-      setHoldingCount(null);
-      return;
-    }
-    fetchHoldingCount(id).then(setHoldingCount);
-  }, [store?.current?.hwaduId]);
-
-  // 실시간 접속자 추적 — 탭이 열리면 등록, 닫히면 서버가 자동 삭제
-  useEffect(() => {
-    const stopWatch = watchOnlineCount(setOnlineCount);
-    return () => {
-      stopWatch();
-    };
-  }, []);
+  // 지금 도량에 몇이 있는지는 **떠 있는 단추(DoryangMenu)**가 센다 —
+  // 뜰 한복판에 「도량에 3명」이라고 적어 두었더니 낯간지러웠다.
 
   // 저장소가 바뀌면 화면도 곧바로 따라간다.
   // 다른 기기(동기화)·다른 창(storage)·같은 창의 다른 화면(사유의 방) 모두.
@@ -596,11 +577,6 @@ export default function Home() {
               </Link>
             ))}
           </div>
-        </div>
-
-        {/* 법당 — 공덕이 가 닿는 끝. 내려오다 반드시 지나가는 자리에 둔다 */}
-        <div className="mt-12 flex w-full justify-center">
-          <BeopdangCard />
         </div>
 
         <div className="mt-12 flex gap-2.5 opacity-50">
@@ -932,13 +908,16 @@ export default function Home() {
           되돌아가기
         </button>
 
-        {/* 사유의 방 FAB — MobileTabBar와 동일한 스타일, 화두만 보기 전용 */}
+        {/* 사유의 방 FAB — 화두만 보기 전용.
+            오른쪽에 두었더니 늘 떠 있는 도량 메뉴 단추와 **같은 자리에 겹쳤다**
+            (DoryangMenu 도 right-4, 같은 높이다). 둘 다 떠 있어야 하는 단추라
+            하나를 없앨 수는 없으니 이쪽을 왼쪽으로 옮긴다. */}
         <button
           onClick={() => setNotesOpen(true)}
           aria-label="사유의 방 열기"
-          className="notes-fab btn-obang fixed bottom-[88px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:bottom-8 md:right-8"
+          className="notes-fab btn-obang fixed bottom-[calc(76px+env(safe-area-inset-bottom,0px)+18px)] left-4 z-40 flex h-12 w-12 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:bottom-8 md:left-8 md:h-14 md:w-14"
         >
-          <Banga className="h-6 w-6 text-gold-soft" />
+          <Banga className="h-5 w-5 text-gold-soft md:h-6 md:w-6" />
         </button>
         <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
       </div>
@@ -994,24 +973,7 @@ export default function Home() {
           >
             화두만 보기
           </button>
-          {(holdingCount !== null ||
-            (onlineCount !== null && onlineCount > 0)) && (
-            <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] tracking-wide text-hanji-faint">
-              {holdingCount !== null && (
-                <span>
-                  {holdingCount >= 2
-                    ? `함께 든 이 ${holdingCount}명`
-                    : "이 물음을 든 사람은 그대뿐"}
-                </span>
-              )}
-              {holdingCount !== null &&
-                onlineCount !== null &&
-                onlineCount > 0 && <span aria-hidden>·</span>}
-              {onlineCount !== null && onlineCount > 0 && (
-                <span>도량에 {onlineCount}명</span>
-              )}
-            </p>
-          )}
+
         </div>
 
         {/* 달 — 찼으면 상자를 걷고 한 줄로 알린다. 그 자리의 주인공은
@@ -1167,11 +1129,6 @@ export default function Home() {
             ))}
           </div>
         )}
-
-        {/* 법당 — 내가 켠 불에 누가 손을 모았는지 여기서 돌아온다 */}
-        <div className="mt-12 flex w-full justify-center">
-          <BeopdangCard />
-        </div>
 
         {/* 내려놓기 — 멀찍이, 흐리게. 찾으면 보이는 자리면 된다 */}
         <button

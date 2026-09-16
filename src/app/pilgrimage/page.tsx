@@ -240,13 +240,6 @@ export default function PilgrimagePage() {
           <p className="text-[13px] tracking-[0.3em] text-hanji-faint">
             이름난 도량
           </p>
-          {/* 칩을 고를 때마다 숫자가 바뀐다 — 설명 대신 숫자로 알린다 */}
-          <p className="flex items-baseline gap-1 leading-none">
-            <span className="font-serif text-[30px] font-light text-gold">
-              {temples.length}
-            </span>
-            <span className="text-[12px] text-hanji-faint">곳</span>
-          </p>
         </div>
 
         {/* 지역 칩 + 템플스테이 토글 — AND 조합 */}

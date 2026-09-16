@@ -120,14 +120,6 @@ export default function MomentBoard() {
             걸기
           </button>
         </div>
-        <p className="mt-2 text-[12.5px] leading-6 text-hanji-dim">
-          사진 한 장, 어디였는지, 무엇을 했는지.
-          <br className="sm:hidden" />
-          <span className="text-hanji-faint">
-            {" "}
-            절에서 올리면 <span className="text-gold-soft">그 자리</span> 도장이 찍히고 공덕도 갑절입니다.
-          </span>
-        </p>
       </header>
 
       {/* 해시태그 발 — 가로로 흘려 둔다 */}
@@ -167,12 +159,6 @@ export default function MomentBoard() {
           <p className="text-[13px] text-hanji-dim">
             {tag ? `#${tag} 로 걸린 장면이 아직 없습니다.` : "아직 걸린 장면이 없습니다."}
           </p>
-          <button
-            onClick={() => setWriting(true)}
-            className="mt-4 rounded-full border border-gold/45 px-4 py-2 text-[12.5px] text-gold transition-colors hover:bg-gold/12"
-          >
-            첫 한 장 걸기
-          </button>
         </div>
       ) : (
         <div className="columns-2 gap-3 md:columns-3">

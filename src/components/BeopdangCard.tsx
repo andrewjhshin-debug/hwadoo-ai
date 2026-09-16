@@ -80,7 +80,7 @@ export default function BeopdangCard() {
   return (
     <Link
       href="/candle"
-      className="tap block w-full max-w-sm rounded-[18px] border border-ink-3 bg-ink-2/40 px-5 py-4 text-left transition-colors hover:border-gold/40"
+      className="tap block w-full rounded-[18px] border border-ink-3 bg-ink-2/40 px-5 py-4 text-left transition-colors hover:border-gold/40"
     >
       <style>{`
         .candle-flame {
@@ -125,9 +125,6 @@ export default function BeopdangCard() {
               <span className="text-gold-soft">모두 {got.toLocaleString("ko-KR")}명</span>
             </p>
           )}
-          <p className="mt-2.5 text-[11.5px] leading-5 text-hanji-faint">
-            얼굴도 모르는 이들이 당신이 켠 불 앞에서 손을 모았습니다.
-          </p>
         </>
       ) : (
         // ② 아직 없으면 — 지금 타고 있는 불을 보여 준다
@@ -146,11 +143,11 @@ export default function BeopdangCard() {
           <p className="mt-3 break-keep text-[12.5px] leading-6 text-hanji-dim">
             {burning && burning.length > 0 ? (
               <>
-                지금 <span className="text-gold-soft">{burning.length}자루</span>가 남의
-                이름을 걸고 타고 있습니다.
+                지금 <span className="text-gold-soft">{burning.length}자루</span>가 타고
+                있습니다.
               </>
             ) : (
-              <>연꽃 한 송이로 초를 켭니다. 내 이름이 아니라 남의 이름을 적는 자리입니다.</>
+              <>연꽃 한 송이로 초 한 자루.</>
             )}
           </p>
         </>

@@ -35,10 +35,13 @@ import {
   SeonMaster,
   Seogo,
   Teacup,
-  Yeonkkot,
+  YeonkkotGold,
+  Baru,
+  Chotbul,
 } from "./icons";
 import { inRound, loadMerit, rankOf, ROUND } from "@/lib/merit";
 import { streakOf } from "@/lib/daily";
+import { watchOnlineCount } from "@/lib/presence";
 
 type Door = {
   href?: string;
@@ -70,7 +73,7 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
       { href: "/breath", label: "호흡 명상", say: "들이쉬고 내쉬다", Icon: Breath },
       { href: "/sutra", label: "경전 외우기", say: "입에 붙이다", Icon: Book },
       { href: "/mandala", label: "만다라", say: "색을 앉히다", Icon: Mandala },
-      { href: "/empty", label: "비움", say: "쓰지 않은 하루", Icon: Moktak },
+      { href: "/empty", label: "비움", say: "쓰지 않은 하루", Icon: Baru },
       { href: "/archive", label: "서고", say: "지난 화두", Icon: Seogo },
     ],
   },
@@ -89,10 +92,10 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     doors: [
       // 법당이 여기 없어서 폰에서는 초를 켤 길이 아예 없었다.
       // 공덕이 가 닿는 끝자리라 「함께」의 맨 앞에 세운다.
-      { href: "/candle", label: "법당 — 초 공양", say: "남의 이름을 걸다", Icon: Yeonkkot },
+      { href: "/candle", label: "법당 — 초 공양", say: "초 한 자루", Icon: Chotbul },
       { href: "/pilgrimage", label: "손잡고 절로", say: "가까운 절", Icon: Iljumun },
       { href: "/gathering", label: "인연", say: "함께 갈 이", Icon: Person },
-      { href: "/community", label: "연지원", say: "묻고 답하다", Icon: LotusPond },
+      { href: "/community", label: "연지원 — 커뮤니티", say: "묻고 답하다", Icon: LotusPond },
       { href: "/moment", label: "시절인연", say: "절에 다녀온 한 장", Icon: Moment },
       { href: "/my-hwadu", label: "내가 던지는 화두", say: "물음을 놓다", Icon: Nohda },
       { href: "/letters", label: "쪽지함", say: "주고받은 말", Icon: Letter },
@@ -104,8 +107,8 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     hanja: "我",
     doors: [
       { href: "/settings", label: "내 도량", say: "공덕과 부적", Icon: Person },
-      { href: "/lotus", label: "연꽃 공양", say: "등을 밝히다", Icon: Yeonkkot },
-      { href: "/goods", label: "굿즈", say: "손에 쥐는 것", Icon: Bojagi },
+      { href: "/lotus", label: "연꽃 공양", say: "등을 밝히다", Icon: YeonkkotGold },
+      { href: "/goods", label: "굿즈", say: "불교용품", Icon: Bojagi },
     ],
   },
 ];
@@ -115,7 +118,14 @@ export default function DoryangMenu() {
   const [notes, setNotes] = useState(false);
   const [merit, setMerit] = useState(0);
   const [days, setDays] = useState(0);
+  // 지금 도량에 몇이 있나 — 단추에 얹는다.
+  // 뜰 한복판에 「도량에 3명」이라고 적어 두었더니 낯간지러웠다.
+  // 수를 없앨 것은 아니고(혼자가 아니라는 건 봐야 한다) 자리를 옮긴 것이다 —
+  // 늘 떠 있는 단추 어깨에 작게 붙으면 눈에 걸리지 않고 언제든 보인다.
+  const [online, setOnline] = useState<number | null>(null);
   const here = usePathname();
+
+  useEffect(() => watchOnlineCount(setOnline), []);
 
   // 판을 열 때마다 셈을 다시 읽는다 — 열자마자 오늘 것이 보여야 한다
   useEffect(() => {
@@ -169,6 +179,12 @@ export default function DoryangMenu() {
             />
           ))}
         </span>
+        {/* 지금 도량에 있는 사람 수 — 판이 열려 있을 땐 가린다 */}
+        {!open && online !== null && online > 0 && (
+          <span className="absolute -right-1 -top-1 grid h-[19px] min-w-[19px] place-items-center rounded-full border border-gold/45 bg-ink px-1 text-[10px] font-medium leading-none tabular-nums text-gold">
+            {online > 99 ? "99+" : online}
+          </span>
+        )}
       </button>
 
       {/* ── 판 ── */}

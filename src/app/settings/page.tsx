@@ -40,6 +40,7 @@ import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
 import Info from "@/components/Info";
 import LotusCount from "@/components/LotusCount";
+import BeopdangCard from "@/components/BeopdangCard";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import MeritExchange from "@/components/MeritExchange";
 import { CHARMS, charmSvg, loadCharms } from "@/lib/charm";
@@ -208,77 +209,6 @@ const SERVICES: ServiceItem[] = [
 
 // 이 달의 흐름 — 여러 갈래를 한 그래프에 선으로 겹쳐 그린다.
 // 범례를 누르면 그 선만 또렷해지고 나머지는 흐려진다 — 다시 누르면 원래대로.
-const LINE_DASH = ["", "3,2.5", "1,2.5"]; // 실선 · 파선 · 점선 — 겹쳐도 갈래가 갈린다
-
-function MonthLineChart({
-  series,
-}: {
-  series: { label: string; values: number[] }[];
-}) {
-  const [pick, setPick] = useState<number | null>(null);
-  const W = 300;
-  const H = 56;
-  const PAD = 4;
-  const max = Math.max(1, ...series.flatMap((s) => s.values));
-  const span = Math.max(1, (series[0]?.values.length ?? 1) - 1);
-  const points = (values: number[]) =>
-    values
-      .map(
-        (v, i) => `${(i / span) * W},${H - PAD - (v / max) * (H - PAD * 2)}`
-      )
-      .join(" ");
-  const total = (values: number[]) => values.reduce((a, b) => a + b, 0);
-  const opacityOf = (idx: number) =>
-    pick === null ? 1 - idx * 0.25 : pick === idx ? 1 : 0.15;
-
-  return (
-    <div>
-      <div className="flex flex-wrap items-center gap-4">
-        {series.map((s, idx) => (
-          <button
-            key={s.label}
-            onClick={() => setPick((p) => (p === idx ? null : idx))}
-            className="flex items-center gap-1.5 text-[11px] tracking-[0.1em] transition-opacity"
-            style={{ opacity: pick === null || pick === idx ? 1 : 0.4 }}
-          >
-            <span
-              className="h-[2px] w-4 shrink-0 rounded-full bg-gold"
-              style={{ opacity: 1 - idx * 0.25 }}
-            />
-            <span className="text-hanji-dim">{s.label}</span>
-            <span className="text-hanji-faint">{total(s.values)}</span>
-          </button>
-        ))}
-      </div>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        className="mt-2 h-14 w-full"
-        role="img"
-        aria-label={`${series.map((s) => s.label).join("·")} — 이번 달 날짜별 그래프`}
-      >
-        {/* 뒤에서부터 그려 앞쪽(첫 갈래)이 맨 위에 오게 */}
-        {[...series].reverse().map((s, revIdx) => {
-          const idx = series.length - 1 - revIdx;
-          return (
-            <polyline
-              key={s.label}
-              points={points(s.values)}
-              fill="none"
-              stroke="var(--color-gold)"
-              strokeWidth={pick === idx ? 2.25 : 1.5}
-              strokeDasharray={LINE_DASH[idx % LINE_DASH.length]}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity={opacityOf(idx)}
-            />
-          );
-        })}
-      </svg>
-    </div>
-  );
-}
-
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   // 음양 — 인연 게시판에 표시될 나의 문양
@@ -1087,6 +1017,13 @@ export default function SettingsPage() {
               </details>
             )}
           </div>
+
+          {/* 법당 한 칸 — 내가 켠 불에 누가 손을 모았는지 여기서 돌아온다.
+              한동안 뜰(홈)에 두었는데, 뜰은 화두를 드는 자리라 그 아래에
+              또 다른 살림이 붙으면 물음이 흐려졌다. 공덕·회향 옆이 제자리다. */}
+          <div className="mt-4">
+            <BeopdangCard />
+          </div>
         </div>
       </section>
 
@@ -1116,21 +1053,6 @@ export default function SettingsPage() {
         </div>
         {/* 나눔의 흔적 + 실시간 접속자 + 연꽃 */}
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 px-1">
-          {user && myLotus !== null && (
-            <Link
-              href="/lotus"
-              className="text-[11px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-gold-soft"
-            >
-              내 연꽃 <span className="text-gold">{myLotus}</span>송이
-            </Link>
-          )}
-          {onlineCount !== null && onlineCount > 0 && (
-            <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
-              지금 도량에{" "}
-              <span className="text-hanji-dim">{onlineCount}</span>
-              명이 함께 있습니다
-            </p>
-          )}
           {user && myAnswerCount !== null && myAnswerCount > 0 && (
             <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
               회향이{" "}
@@ -1179,9 +1101,6 @@ export default function SettingsPage() {
             );
           })}
         </div>
-        <p className="mt-4 break-keep text-[11.5px] leading-6 text-hanji-faint">
-          부적은 팔지 않습니다.
-        </p>
       </section>
 
       {/* ── 내 절 ── */}
@@ -1303,22 +1222,6 @@ export default function SettingsPage() {
                 ))}
               </div>
 
-              {/* 흐름은 이 달에만 — 올해치 일별 그래프는 너무 잘게 부서진다 */}
-              {span === "month" &&
-                chart &&
-                (() => {
-                  const lines = [
-                    { label: "받은 화두", values: chart.returned },
-                    { label: "호흡 명상", values: chart.meditations },
-                  ];
-                  if (!lines.some((l) => l.values.some((v) => v > 0))) return null;
-                  return (
-                    <div className="mt-5">
-                      <MonthLineChart series={lines} />
-                    </div>
-                  );
-                })()}
-
               {held.length > 0 && (
                 <div className="mt-5">
                   <p className="text-[11px] tracking-[0.2em] text-hanji-faint">품어온 시간</p>
@@ -1376,33 +1279,6 @@ export default function SettingsPage() {
             />
           </button>
         </div>
-        {/* 이메일 알림 — 화두 익음·쪽지 청 메일. 로그인해야 보인다 */}
-        {user && (
-          <div className="mt-4 flex items-center justify-between gap-4">
-            <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-              알림 — 이메일
-            </p>
-            <button
-              role="switch"
-              aria-checked={mailOn}
-              aria-label="이메일 알림"
-              onClick={handleMailToggle}
-              disabled={mailBusy}
-              className={`relative h-[26px] w-[46px] shrink-0 rounded-full border transition-colors disabled:opacity-40 ${
-                mailOn
-                  ? "border-gold bg-gold"
-                  : "border-hanji-faint bg-transparent hover:border-hanji-dim"
-              }`}
-            >
-              <span
-                aria-hidden
-                className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full transition-transform duration-200 ${
-                  mailOn ? "translate-x-5 bg-ink" : "bg-hanji-faint"
-                }`}
-              />
-            </button>
-          </div>
-        )}
         {/* 예불 종 — 하루 네 번, 정해진 시각의 알림. 문안(푸시)이 켜져 있어야 온다 */}
         <div className="mt-5 rounded-[12px] border border-ink-3 px-4 py-4">
           <p className="text-[11px] tracking-[0.3em] text-hanji-faint">

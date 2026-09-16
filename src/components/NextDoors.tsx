@@ -33,6 +33,7 @@ import {
   SeonMaster,
   Teacup,
   Yeonkkot,
+  Baru,
 } from "./icons";
 
 type Door = {
@@ -49,7 +50,7 @@ const D: Record<string, Door> = {
   breath: { href: "/breath", label: "호흡 명상", say: "들이쉬고 내쉬다", Icon: Breath },
   sutra: { href: "/sutra", label: "경전 외우기", say: "입에 붙이다", Icon: Book },
   mandala: { href: "/mandala", label: "만다라", say: "색을 앉히다", Icon: Mandala },
-  empty: { href: "/empty", label: "비움", say: "쓰지 않은 하루", Icon: Moktak },
+  empty: { href: "/empty", label: "비움", say: "쓰지 않은 하루", Icon: Baru },
   draw: { href: "/draw", label: "오늘의 운세", say: "한 장을 뒤집다", Icon: Lotus },
   rank: { href: "/rank", label: "정진 랭킹", say: "지금 내 자리", Icon: Dharmachakra },
   settings: { href: "/settings", label: "내 도량", say: "공덕과 부적", Icon: Person },

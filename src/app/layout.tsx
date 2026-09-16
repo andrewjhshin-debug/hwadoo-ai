@@ -5,7 +5,6 @@ import { Analytics } from "@vercel/analytics/next";
 import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import DoryangMenu from "@/components/DoryangMenu";
-import NextDoors from "@/components/NextDoors";
 import MeritBar from "@/components/MeritBar";
 import MeritToast from "@/components/MeritToast";
 import ConfirmProvider from "@/components/Confirm";
@@ -120,8 +119,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {/* 본문은 꼭 한 화면을 채운다 — 그래야 아래 띠가 내려야 나온다 */}
           <div className="flex min-h-full flex-col pt-16 md:pt-0">
             <main className="flex flex-1 flex-col">{children}</main>
-            {/* 이어지는 방 — 화면을 다 쓰고 내려오면 다음 문 셋이 나온다 */}
-            <NextDoors />
           </div>
           {/* 아래 띠 — 아래 탭 바(76)와 떠 있는 메뉴 단추 자리를 여기서 비운다 */}
           <footer className="border-t border-ink-3 px-6 pb-[150px] pt-5 md:pb-9">

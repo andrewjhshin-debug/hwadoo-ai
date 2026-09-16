@@ -439,3 +439,149 @@ export function Share({ className = "w-4 h-4", stroke = "currentColor" }: IconPr
     </svg>
   );
 }
+
+// 초 한 자루(燭) — 「법당 — 초 공양」.
+//
+// 연꽃(분홍)을 걸어 두었더니 도량 메뉴에서 혼자 색이 튀었다. 게다가
+// 바로 아래 「연꽃 공양」과 같은 그림이라 두 문이 같은 곳으로 보였다.
+// 이 문이 하는 일은 **초를 켜는 일**이니 초를 건다. 색은 도량의 금빛으로.
+//
+// 불꽃은 속(옅은 금)과 겉(짙은 금) 두 겹. 몸통은 짧고 두껍다 —
+// 법당 촛대의 초가 그렇게 생겼다(CandleHall 과 같은 비례).
+export function Chotbul({ className = "w-5 h-5" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      {/* 불꽃 — 겉 */}
+      <path
+        d="M12 2.2c2.3 2.5 3.4 4.3 3.4 5.9 0 1.95-1.5 3.3-3.4 3.3S8.6 10.05 8.6 8.1c0-1.6 1.1-3.4 3.4-5.9z"
+        fill="#E9C46A"
+      />
+      {/* 불꽃 — 속 */}
+      <path
+        d="M12 5.1c1.15 1.5 1.7 2.6 1.7 3.5 0 1.1-.75 1.85-1.7 1.85s-1.7-.75-1.7-1.85c0-.9.55-2 1.7-3.5z"
+        fill="#FFF3CF"
+      />
+      {/* 심지 */}
+      <path d="M12 11.1v1.5" stroke="#8A6B2E" strokeWidth="1.2" strokeLinecap="round" />
+      {/* 밀랍 — 짧고 두껍다 */}
+      <rect x="8.4" y="12.5" width="7.2" height="7.2" rx="1.1" fill="#D9B45C" />
+      <rect x="8.4" y="12.5" width="2.4" height="7.2" rx="1.1" fill="#F2DDA2" />
+      {/* 받침 */}
+      <ellipse cx="12" cy="20.4" rx="6.2" ry="1.5" fill="#B08A3C" />
+    </svg>
+  );
+}
+
+// 금빛 연꽃 — 「연꽃 공양」.
+//
+// 분홍 연꽃(Yeonkkot)은 머리띠의 잔고 표식으로 남겨 둔다. 도량 메뉴에서는
+// 문 열여덟 개가 모두 금빛 선인데 여기만 분홍이라 광고처럼 튀었다.
+// 같은 꽃을 도량의 금빛으로 다시 그린다.
+export function YeonkkotGold({ className = "w-5 h-5" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      {/* 잎 둘 */}
+      <path d="M4 15.4c2.4-.7 5-.2 7.4 1.5-2.3 1.7-5 2-7.4.9z" fill="#8A6B2E" />
+      <path d="M20 15.4c-2.4-.7-5-.2-7.4 1.5 2.3 1.7 5 2 7.4.9z" fill="#7A5D26" />
+      {/* 바깥 꽃잎 둘 */}
+      <path d="M8.8 14.3C6.5 12.3 5.4 10.1 5.3 8.1c2.3.5 3.9 1.9 4.9 4.2z" fill="#C9A455" />
+      <path d="M15.2 14.3c2.3-2 3.4-4.2 3.5-6.2-2.3.5-3.9 1.9-4.9 4.2z" fill="#B08A3C" />
+      {/* 가운데 꽃잎 */}
+      <path
+        d="M12 3.4c2.05 2.75 3.05 4.9 3.05 6.7 0 2.15-1.37 3.65-3.05 3.65S8.95 12.25 8.95 10.1c0-1.8 1-3.95 3.05-6.7z"
+        fill="#EBCE86"
+      />
+      {/* 꽃술 */}
+      <ellipse cx="12" cy="13.3" rx="2" ry="1.25" fill="#FFF3CF" />
+    </svg>
+  );
+}
+
+// 보리수 잎(菩提樹葉) — 「뜰」.
+//
+// 일원상(Enso)을 걸어 두었는데, 아래 띠에서 14px 로 줄면 그냥 동그라미다 —
+// 「절로(일주문)」·「간화선(법륜)」과 나란히 서면 뜻이 제일 안 읽혔다.
+// 뜰은 화두가 걸려 있는 자리이고, 그 나무가 보리수다. 잎 하나면 족하다.
+// 끝이 길게 빠지는 것(drip tip)이 보리수 잎의 생김이라 멀리서도 갈린다.
+export function BodhiLeaf({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* 잎 — 아래가 넓고 위로 갈수록 좁아지다 끝이 뾰족하게 빠진다 */}
+      <path d="M12 2.4c.9 2.1 1.4 3.3 1.4 3.3 3.6 1.1 5.6 3.8 5.6 6.8 0 3.5-3.1 6.2-7 6.2s-7-2.7-7-6.2c0-3 2-5.7 5.6-6.8 0 0 .5-1.2 1.4-3.3z" />
+      {/* 잎맥 — 가운데 한 줄과 곁줄 둘 */}
+      <path d="M12 8.2v10.5" opacity="0.7" />
+      <path d="M12 12.1 8.9 9.9M12 12.1l3.1-2.2" opacity="0.45" />
+      {/* 잎자루 */}
+      <path d="M12 18.7v2.9" opacity="0.7" />
+    </svg>
+  );
+}
+
+// 염주(數珠) — 「공덕」.
+//
+// 목탁 하나를 걸어 두었는데 이 칸은 목탁·염주·싱잉볼 셋이 사는 자리다.
+// 게다가 같은 목탁 그림이 「비움」에도 걸려 있어 두 문이 한 그림이었다.
+// 알을 꿴 고리는 **세는 일** 자체를 가리킨다 — 셋을 다 아우른다.
+// 알을 다 그리지 않는다(여덟이면 족하다). 스물넷을 그리면 점무늬가 된다.
+export function Yeomju({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  const beads = [];
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
+    beads.push(
+      <circle
+        key={i}
+        cx={(12 + Math.cos(a) * 7).toFixed(2)}
+        cy={(12.6 + Math.sin(a) * 7).toFixed(2)}
+        r={i === 0 ? 2.1 : 1.45}
+        fill={stroke}
+        stroke="none"
+        opacity={i === 0 ? 1 : 0.85}
+      />
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      {/* 실 — 알 뒤로 지나간다 */}
+      <circle cx="12" cy="12.6" r="7" stroke={stroke} strokeWidth="1" opacity="0.35" />
+      {beads}
+    </svg>
+  );
+}
+
+// 발우(鉢盂) — 「비움」.
+//
+// 비움에 목탁이 걸려 있었다(공덕과 같은 그림이었다). 비움이 하는 일은
+// 쓰지 않은 하루를 세는 것이고, 절에서 비움을 가리키는 물건은 **빈 그릇**이다.
+// 발우공양의 그 발우 — 다 먹고 물 한 모금으로 헹궈 비워 두는 그릇.
+// 안을 비워 두는 것이 이 그림의 전부라, 안쪽에 아무것도 그리지 않는다.
+export function Baru({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* 아가리 */}
+      <path d="M4.2 9.4h15.6" />
+      {/* 그릇 — 아래로 좁아진다 */}
+      <path d="M5.4 9.4c.5 5.4 2.9 8.3 6.6 8.3s6.1-2.9 6.6-8.3" />
+      {/* 굽 */}
+      <path d="M9.6 20.2h4.8" opacity="0.7" />
+      <path d="M12 17.7v2.5" opacity="0.7" />
+      {/* 비어 있다는 한 점 — 아가리 위로 아무것도 없음을 긋는 짧은 획 */}
+      <path d="M8.6 6.2c1-1.1 2.1-1.7 3.4-1.7s2.4.6 3.4 1.7" opacity="0.3" />
+    </svg>
+  );
+}

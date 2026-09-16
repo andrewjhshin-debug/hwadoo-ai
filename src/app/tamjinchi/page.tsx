@@ -39,8 +39,8 @@ import {
   type TamjinchiBook,
 } from "@/lib/tamjinchi";
 
-const RING_R = 104;
-const RING_BOX = 224;
+const RING_R = 88;
+const RING_BOX = 192;
 const RING_C = 2 * Math.PI * RING_R;
 
 // 숨 리듬 — 들숨 4초, 날숨 6초. 호흡 명상과 같은 결이되 이 화면의 것은
@@ -90,16 +90,13 @@ export default function TamjinchiPage() {
       <h1 className="rise rise-d1 mt-2 break-keep font-serif text-lg font-light text-hanji">
         사기 전에, 마음을 본다
       </h1>
-      <p className="rise rise-d1 mt-1.5 break-keep text-[12px] text-hanji-faint">
-        종목은 안 알려드립니다. 마음만 봅니다.
-      </p>
 
       {/* 뼈대 — 삼독이 곧 손실의 세 가지 원인. 설명은 여기 한 번뿐이다 */}
-      <div className="rise rise-d2 mt-6 grid w-full grid-cols-3 gap-2">
+      <div className="rise rise-d2 mt-4 grid w-full grid-cols-3 gap-2">
         {POISONS.map((p) => (
           <div
             key={p.id}
-            className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-2 py-3 text-center"
+            className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-2 py-2.5 text-center"
           >
             <span
               aria-hidden
@@ -116,7 +113,7 @@ export default function TamjinchiPage() {
       </div>
 
       {/* 알약 세그먼트 — 고른 쪽만 먹으로 채운다 */}
-      <div className="rise rise-d2 mt-6 flex w-full rounded-full border border-ink-3 bg-ink-2/50 p-1">
+      <div className="rise rise-d2 mt-4 flex w-full rounded-full border border-ink-3 bg-ink-2/50 p-1">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -134,7 +131,7 @@ export default function TamjinchiPage() {
         ))}
       </div>
 
-      <div className="mt-8 w-full">
+      <div className="mt-5 w-full">
         {tab === "pause" && (
           <Pause book={book} onNote={(held) => setBook(notePause(held))} />
         )}
@@ -215,8 +212,21 @@ function Pause({
 
   return (
     <div className="flex flex-col items-center text-center">
+      {/* 고리 자체가 단추다 — 「세기 시작」을 따로 찾아 누르게 하면
+          화면이 길어지고, 무엇보다 눈이 이미 가 있는 자리가 여기다. */}
       <div
-        className="relative flex items-center justify-center"
+        role={phase === "ready" ? "button" : undefined}
+        tabIndex={phase === "ready" ? 0 : undefined}
+        onClick={phase === "ready" ? begin : undefined}
+        onKeyDown={
+          phase === "ready"
+            ? (e) => (e.key === "Enter" || e.key === " ") && begin()
+            : undefined
+        }
+        aria-label={phase === "ready" ? "백여덟 세기 시작" : undefined}
+        className={`relative flex items-center justify-center ${
+          phase === "ready" ? "cursor-pointer transition-transform active:scale-95" : ""
+        }`}
         style={{ width: RING_BOX, height: RING_BOX }}
       >
         <svg
@@ -269,25 +279,18 @@ function Pause({
       </div>
 
       {phase === "ready" && (
-        <>
-          <p className="mt-5 break-keep text-[13px] leading-6 text-hanji-dim">
-            사기 전에 백여덟을 셉니다. 원이 커지면 들이쉬고, 작아지면 내쉬세요.
-          </p>
-          <button
-            type="button"
-            onClick={begin}
-            className="btn-obang mt-5 px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
-          >
-            세기 시작
-          </button>
-        </>
+        <p className="mt-4 break-keep text-[12.5px] leading-6 text-hanji-dim">
+          <span className="text-hanji">고리를 누르면 백여덟을 셉니다.</span>
+          <br />
+          원이 커지면 들이쉬고, 작아지면 내쉬세요.
+        </p>
       )}
 
       {phase === "count" && (
         <button
           type="button"
           onClick={() => setPhase("ready")}
-          className="mt-5 rounded-full border border-ink-3 px-9 py-3 text-[13px] tracking-[0.3em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          className="mt-4 rounded-full border border-ink-3 px-9 py-2.5 text-[13px] tracking-[0.3em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
         >
           그만두기
         </button>
@@ -482,7 +485,7 @@ function Confession({
 
   return (
     <div>
-      <div className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-5">
+      <div className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-4">
         <div className="flex gap-2">
           {DEEDS.map((d) => (
             <button
@@ -501,7 +504,7 @@ function Confession({
           ))}
         </div>
 
-        <p className="mt-5 text-[11.5px] tracking-[0.2em] text-hanji-faint">
+        <p className="mt-4 text-[11.5px] tracking-[0.2em] text-hanji-faint">
           그때 움직인 것
         </p>
         <div className="mt-2 flex gap-2">
@@ -524,19 +527,20 @@ function Confession({
           ))}
         </div>
 
-        <div className="mt-5 border-t border-ink-3 pt-4">
+        <div className="mt-4 border-t border-ink-3 pt-3.5">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, TEXT_MAX))}
-            rows={3}
+            rows={2}
             placeholder="무엇이 나를 움직였나요"
             className="journal-area text-[15px]"
           />
         </div>
 
         <div className="mt-3 flex items-center justify-between">
+          {/* 글자 수는 얼마 안 남았을 때만 — 늘 띄워 두면 쓰기 전부터 재게 된다 */}
           <span className="text-[11px] tabular-nums text-hanji-faint">
-            {text.length}/{TEXT_MAX}
+            {text.length > TEXT_MAX - 30 ? `${TEXT_MAX - text.length}자 남음` : ""}
           </span>
           <button
             type="button"

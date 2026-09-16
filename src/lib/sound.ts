@@ -626,7 +626,18 @@ export function wakeBreath() {
   audio();
 }
 
-// 죽비(竹篦) — 대나무를 쳐서 내는 마른 딱 소리. 절의 박자를 이끈다.
+// 죽비(竹篦) + 종울림 — 삼배의 소리.
+//
+// 처음엔 마른 딱 소리 하나였다. 절 한 번에 0.1초짜리 잡음 한 점이라,
+// 큰절을 올리는 몸짓에 견주면 너무 가벼웠다 — 소리가 손톱 튕기는 것 같았다.
+//
+// 그래서 두 겹으로 앉혔다.
+//   ① 죽비  마른 파열음. 박자를 이끄는 것은 여전히 이쪽이다(짧게, 여리게).
+//   ② 울림  낮은 범종 한 점. 배음을 정수배가 아니라 **살짝 어긋나게** 쌓는다 —
+//           실제 종은 배음이 어긋나 있어서 그 어긋남이 맥놀이(beating)를 만들고,
+//           그게 「신비롭다」고 느끼는 소리의 정체다. 정수배로 쌓으면 오르간이 된다.
+//   꼬리는 2초 가까이 끈다. 절 한 번에 걸리는 시간이 그쯤이라, 다음 절을
+//   시작할 즈음 앞 소리가 막 사라진다.
 export function strikeJukbi(vol: number) {
   const ac = audio();
   if (!ac) return;
@@ -635,7 +646,7 @@ export function strikeJukbi(vol: number) {
   out.gain.value = vol;
   out.connect(ac.destination);
 
-  // 마른 파열음 — 높은 대역 노이즈를 아주 짧게
+  // ① 죽비 — 마른 파열음. 울림이 생겼으니 이쪽은 눌러 둔다
   const src = ac.createBufferSource();
   src.buffer = noise(ac);
   const bp = ac.createBiquadFilter();
@@ -643,8 +654,8 @@ export function strikeJukbi(vol: number) {
   bp.frequency.value = 2300 + Math.random() * 400;
   bp.Q.value = 0.8;
   const g = ac.createGain();
-  g.gain.setValueAtTime(0.9, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
+  g.gain.setValueAtTime(0.55, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
   src.connect(bp);
   bp.connect(g);
   g.connect(out);
@@ -658,10 +669,54 @@ export function strikeJukbi(vol: number) {
   o.frequency.exponentialRampToValueAtTime(f * 0.6, t + 0.07);
   const g2 = ac.createGain();
   g2.gain.setValueAtTime(0.0001, t);
-  g2.gain.exponentialRampToValueAtTime(0.34, t + 0.003);
+  g2.gain.exponentialRampToValueAtTime(0.22, t + 0.003);
   g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
   o.connect(g2);
   g2.connect(out);
   o.start(t);
   o.stop(t + 0.12);
+
+  // ② 범종 한 점 — 어긋난 배음 넷.
+  //   2.76·5.40·8.93 은 실제 종(종형 진동체)의 배음비에 가깝다.
+  //   딱 떨어지지 않는 수라 서로 맥놀이를 만든다.
+  const base = 108 + Math.random() * 4; // 낮게 — 가슴에 닿는 자리
+  const PARTIALS: Array<[number, number, number]> = [
+    [1, 0.5, 2.1],     // [배음비, 크기, 꼬리(초)]
+    [2.0, 0.26, 1.7],
+    [2.76, 0.2, 1.35],
+    [5.4, 0.1, 0.85],
+    [8.93, 0.05, 0.5],
+  ];
+  const bell = ac.createGain();
+  bell.gain.value = 0.62;
+  bell.connect(out);
+  for (const [ratio, amp, tail] of PARTIALS) {
+    const p = ac.createOscillator();
+    p.type = "sine";
+    p.frequency.setValueAtTime(base * ratio, t);
+    // 아주 조금 처진다 — 금속이 식듯이
+    p.frequency.exponentialRampToValueAtTime(base * ratio * 0.995, t + tail);
+    const pg = ac.createGain();
+    pg.gain.setValueAtTime(0.0001, t);
+    pg.gain.exponentialRampToValueAtTime(amp, t + 0.012);
+    pg.gain.exponentialRampToValueAtTime(0.0001, t + tail);
+    p.connect(pg);
+    pg.connect(bell);
+    p.start(t);
+    p.stop(t + tail + 0.05);
+  }
+
+  // 맥놀이 한 겹 — 같은 음을 아주 조금 어긋나게 겹쳐 둔다.
+  // 이 한 줄이 「신비롭다」의 팔 할이다.
+  const beat = ac.createOscillator();
+  beat.type = "sine";
+  beat.frequency.value = base * 2.0 + 0.7;
+  const bg = ac.createGain();
+  bg.gain.setValueAtTime(0.0001, t);
+  bg.gain.exponentialRampToValueAtTime(0.16, t + 0.02);
+  bg.gain.exponentialRampToValueAtTime(0.0001, t + 1.7);
+  beat.connect(bg);
+  bg.connect(bell);
+  beat.start(t);
+  beat.stop(t + 1.8);
 }

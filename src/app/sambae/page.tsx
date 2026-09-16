@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Info from "@/components/Info";
 import { addMerit, inRound, loadMerit, ROUND } from "@/lib/merit";
 import { buzz, strikeJukbi, strikeMoktak } from "@/lib/sound";
 import { BOWS, doneToday, finishSambae, loadSambae, TO } from "@/lib/sambae";
@@ -187,15 +188,20 @@ export default function SambaePage() {
         className="rise rise-d3 mt-8 w-full max-w-sm rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3.5 transition-colors hover:border-gold/40"
       >
         <div className="flex items-baseline justify-between text-[11.5px] tracking-wide">
-          <span className="text-hanji-faint">
-            공덕 功德
-            {total > 0 && <span className="ml-2">· 삼배 {total.toLocaleString("ko-KR")}판</span>}
+          <span className="flex items-center gap-1 text-hanji-faint">
+            백팔 한 바퀴
+              <Info title="줄이 둘인 까닭" className="ml-1">
+                <span className="text-hanji">맨 위 가는 금선</span>은 연꽃 한 송이까지입니다 —
+                예순 바퀴를 채우면 한 송이가 여뭅니다.
+                <br />
+                <br />
+                <span className="text-hanji">이 줄</span>은 백팔 한 바퀴입니다. 한 바퀴를 채울
+                때마다 동자가 한마디 합니다. 둘 다 같은 공덕을 재고, 자만 다릅니다.
+              </Info>
           </span>
-          <span className="text-gold-soft">
-            {merit.toLocaleString("ko-KR")}
-            <span className="ml-1 text-hanji-faint">
-              · 이번 바퀴 {inRound(merit)}/{ROUND}
-            </span>
+          <span className="text-gold-soft tabular-nums">
+            {inRound(merit)}
+            <span className="text-hanji-faint">/{ROUND}</span>
           </span>
         </div>
         <div className="mt-1.5 h-[5px] overflow-hidden rounded-full bg-ink-3">
