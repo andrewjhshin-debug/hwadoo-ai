@@ -720,3 +720,54 @@ export function strikeJukbi(vol: number) {
   beat.start(t);
   beat.stop(t + 1.8);
 }
+
+// ── 소리 내어 읽기(音聲) ───────────────────────────────────────
+//
+// 삼귀의는 원래 **소리 내어** 하는 것이다. 글로만 떠 있으면 눈으로 읽고 만다.
+//
+// 지금은 브라우저가 가진 목소리(Web Speech)를 쓴다. 안드로이드·아이폰의
+// 기본 한국어 목소리라 길 안내 톤이고, 스님 목소리가 아니다 —
+// **음원(mp3)이 들어오면 이 함수만 갈아 끼우면 된다.** 부르는 쪽은 그대로 둔다.
+//   public/voice/sambae-1.mp3 … 를 놓고 여기서 new Audio(...).play() 로 바꾼다.
+//
+// 브라우저가 못 읽으면 조용히 지나간다 — 절은 소리가 없어도 절이다.
+
+let voiceOn = true;
+
+export function setVoice(on: boolean) {
+  voiceOn = on;
+  if (!on) hushVoice();
+}
+
+export function voiceReady(): boolean {
+  return typeof window !== "undefined" && "speechSynthesis" in window;
+}
+
+/** 읽던 것을 멈춘다 — 다음 절이 앞말을 밟지 않게 */
+export function hushVoice() {
+  try {
+    window.speechSynthesis?.cancel();
+  } catch {
+    /* 없으면 없는 대로 */
+  }
+}
+
+/** 한 줄을 읽는다. 느리게, 낮게 — 예불의 결에 맞춘다. */
+export function speak(text: string) {
+  if (!voiceOn || !voiceReady() || !text) return;
+  try {
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "ko-KR";
+    u.rate = 0.82; // 또박또박
+    u.pitch = 0.9; // 조금 낮게
+    u.volume = 1;
+    // 한국어 목소리가 여럿이면 기본을 쓴다 — 고르기 시작하면 기기마다 달라진다
+    const ko = synth.getVoices().find((v) => v.lang?.startsWith("ko"));
+    if (ko) u.voice = ko;
+    synth.speak(u);
+  } catch {
+    /* 못 읽어도 절은 이미 했다 */
+  }
+}

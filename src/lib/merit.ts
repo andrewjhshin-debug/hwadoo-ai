@@ -33,6 +33,7 @@ export type MeritSource =
   | "moment" // 모멘트 — 절에서 찍은 한 장을 연지원에 건다
   | "bowl" // 싱잉볼 한 번 — 치고 여운을 듣는다
   | "candle" // 초 공양 — 남의 초에 같이 빌어 줌
+  | "mandala" // 만다라 — 한 장을 끝까지 칠함
   | "daily"; // 오늘의 세 가지를 다 마침
 
 /**
@@ -74,6 +75,9 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   // 돌아오는 것은 초가 아니라 **마음**이다. 남이 지은 선을 기뻐하는 것이
   // 그 자체로 공덕이라는 게 수희공덕(隨喜功德) — 보현행원의 다섯째 원이다.
   // 그래서 값을 치른 초(연꽃)에는 공덕을 안 주고, 남의 초에 손 모으는 데만 준다.
+  // 만다라 한 장 — 문양에 따라 백육십 칸 남짓을 손끝으로 채운다.
+  // 이십 분 안팎이 걸리니 백팔배(756) 와 호흡 한 판(378) 사이가 맞다.
+  mandala: 540,
   candle: 9,
   daily: 108,
 };
@@ -106,6 +110,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   sutra: 1620, // 반야심경 다섯 편(15분)
   moment: 864,
   bowl: 486,
+  mandala: 1080, // 하루 두 장
   candle: 162,
   daily: 324, // 오늘의 세 가지 — 하루 한 번뿐
 };
@@ -635,4 +640,5 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   bowl: "싱잉볼",
   candle: "초 공양",
   daily: "오늘의 세 가지",
+  mandala: "만다라",
 };

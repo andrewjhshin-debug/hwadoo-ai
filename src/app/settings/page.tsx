@@ -1066,6 +1066,9 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* ── 우리 절 — 부적보다 앞이다. 매일 보는 것은 이쪽이다 ── */}
+      <MyTemplePicker className={sectionGap} />
+
       {/* ── 부적 — 수행하다 얻는 노란 종이. 도량 벽에 건다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
@@ -1093,9 +1096,6 @@ export default function SettingsPage() {
           })}
         </div>
       </section>
-
-      {/* ── 내 절 ── */}
-      <MyTemplePicker className={`rise rise-d1 ${sectionGap}`} />
 
       {/* ── 서비스 — 걸음 바로 아래, 멀리 내리지 않아도 닿게 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>

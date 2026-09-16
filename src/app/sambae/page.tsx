@@ -17,7 +17,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Info from "@/components/Info";
 import { addMerit, inRound, loadMerit, ROUND } from "@/lib/merit";
-import { buzz, strikeJukbi, strikeMoktak } from "@/lib/sound";
+import { buzz, hushVoice, setVoice, speak, strikeJukbi, strikeMoktak, voiceReady } from "@/lib/sound";
 import { BOWS, doneToday, finishSambae, loadSambae, TO } from "@/lib/sambae";
 
 export default function SambaePage() {
@@ -31,11 +31,27 @@ export default function SambaePage() {
   const nRef = useRef(0);
   nRef.current = n;
 
+  // 소리 내어 읽기 — 삼귀의는 원래 입으로 하는 것이다.
+  // 기본은 켬. 한 번 끄면 이 기기가 기억한다.
+  const [readAloud, setReadAloud] = useState(true);
+  const readRef = useRef(true);
+  readRef.current = readAloud;
+
   useEffect(() => {
     const b = loadSambae();
     setRounds(b.rounds);
     setTotal(b.total);
     setMerit(loadMerit().total);
+    try {
+      const off = window.localStorage.getItem("hwadu.sambae.voice") === "off";
+      if (off) {
+        setReadAloud(false);
+        setVoice(false);
+      }
+    } catch {
+      /* 못 읽으면 켠 채로 */
+    }
+    return () => hushVoice();
   }, []);
 
   // 한 배
@@ -48,6 +64,11 @@ export default function SambaePage() {
     strikeJukbi(0.7);
     buzz(14);
     window.setTimeout(() => setGlow(0), 420);
+    // 죽비가 울린 뒤에 읽는다 — 소리가 겹치면 둘 다 안 들린다
+    if (readRef.current) {
+      const line = TO[Math.min(next - 1, BOWS - 1)]?.say;
+      if (line) window.setTimeout(() => speak(line), 220);
+    }
 
     if (next >= BOWS) {
       // 한 판 — 공덕은 절 세 번 몫
@@ -62,9 +83,22 @@ export default function SambaePage() {
   }, []);
 
   const again = () => {
+    hushVoice();
     nRef.current = 0;
     setN(0);
     setDone(false);
+  };
+
+  const toggleVoice = () => {
+    const on = !readAloud;
+    setReadAloud(on);
+    setVoice(on);
+    if (!on) hushVoice();
+    try {
+      window.localStorage.setItem("hwadu.sambae.voice", on ? "on" : "off");
+    } catch {
+      /* 못 적어도 이번 판은 그대로 간다 */
+    }
   };
 
   return (
@@ -82,9 +116,36 @@ export default function SambaePage() {
         {n}
         <span className="ml-1 align-middle text-[20px] text-hanji-faint">/ {BOWS}</span>
       </p>
-      <p className="rise rise-d1 mt-2.5 h-6 text-[13px] tracking-wide text-gold-soft">
-        {done ? "삼배를 마쳤습니다" : TO[Math.min(n, BOWS - 1)].say}
-      </p>
+      <div className="rise rise-d1 mt-2.5 flex h-6 items-center justify-center gap-2">
+        <p className="text-[13px] tracking-wide text-gold-soft">
+          {done ? "삼배를 마쳤습니다" : TO[Math.min(n, BOWS - 1)].say}
+        </p>
+        {voiceReady() && (
+          <button
+            onClick={toggleVoice}
+            aria-pressed={readAloud}
+            aria-label={readAloud ? "소리 내어 읽기 끄기" : "소리 내어 읽기 켜기"}
+            title={readAloud ? "소리 내어 읽기 — 켬" : "소리 내어 읽기 — 끔"}
+            className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-colors ${
+              readAloud
+                ? "border-gold/50 text-gold"
+                : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
+            }`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" className="h-3 w-3">
+              <path d="M4 9.5h3l4-3.2v11.4l-4-3.2H4z" />
+              {readAloud ? (
+                <>
+                  <path d="M15.5 9.2a4 4 0 0 1 0 5.6" />
+                  <path d="M18 6.8a7.4 7.4 0 0 1 0 10.4" opacity="0.6" />
+                </>
+              ) : (
+                <path d="M16 9.5l4.5 5M20.5 9.5l-4.5 5" />
+              )}
+            </svg>
+          </button>
+        )}
+      </div>
 
       {/* ── 불상 ── */}
       <button

@@ -35,6 +35,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { PALETTE, TEMPLATES, buildMandala } from "@/lib/mandala";
 import { useConfirm } from "@/components/Confirm";
+import { addMerit } from "@/lib/merit";
 
 const ERASE = "erase";
 // v3 — 문양 엔진이 바뀌어 칸 key 가 다르다. 옛 저장(fills)과 섞지 않는다.
@@ -532,6 +533,40 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     [built, fills]
   );
 
+  // ── 다 칠했다 ──
+  // 한 칸씩 줄 때마다 셈이 되어 색칠이 노동이 된다. **끝냈을 때 한 번만** 준다.
+  // 같은 문양을 지웠다 다시 칠해 또 받을 수는 없다 — 이 기기에 문양별로 적어 둔다.
+  const [justDone, setJustDone] = useState(0);
+  const doneOnce = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("hwadu.mandala.done.v1");
+      if (raw) doneOnce.current = new Set(JSON.parse(raw) as string[]);
+    } catch {
+      /* 못 읽으면 이번 판부터 센다 */
+    }
+  }, []);
+  useEffect(() => {
+    const keys = built.cellKeys.length;
+    if (!hydrated || !keys || filledCount < keys) return;
+    const mark = `t${tplIdx}`;
+    if (doneOnce.current.has(mark)) return;
+    doneOnce.current.add(mark);
+    try {
+      window.localStorage.setItem(
+        "hwadu.mandala.done.v1",
+        JSON.stringify([...doneOnce.current])
+      );
+    } catch {
+      /* 못 적으면 다음에 또 줄 수 있다 — 그 정도는 봐준다 */
+    }
+    const r = addMerit("mandala");
+    if (r.gained > 0) {
+      setJustDone(r.gained);
+      window.setTimeout(() => setJustDone(0), 4200);
+    }
+  }, [filledCount, built, hydrated, tplIdx]);
+
   // ── 확대·이동 ──
   const applyView = () => {
     const inner = innerRef.current;
@@ -914,6 +949,15 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
           {scattering ? "흩어지는 중…" : "비우기"}
         </button>
       </div>
+
+      {justDone > 0 && (
+        <p
+          role="status"
+          className="rise mt-2 rounded-full border border-gold/45 bg-gold/10 px-4 py-1.5 text-[12px] tracking-wide text-gold"
+        >
+          한 장을 다 칠했습니다 — 공덕 {justDone.toLocaleString("ko-KR")}
+        </p>
+      )}
 
       {/* 판 바로 아래 — 진행. 칠한 수를 명조로 세우고 가는 금선 하나로 잰다.
           줄 수는 전과 같은 한 줄이라 세로 예산(390px 예약)이 그대로다 */}

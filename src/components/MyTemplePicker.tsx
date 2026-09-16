@@ -94,18 +94,19 @@ export default function MyTemplePicker({ className = "" }: { className?: string 
   const canWrite = typed.length > 0 && !isKnownTemple(typed);
 
   return (
-    <section
-      className={`rise rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4 ${className}`}
+    // 카드 안에 「우리 절」이라는 작은 글자가 또 들어 있어 제목이 둘로 보였다.
+    // 서비스·부적과 같은 결로 — 제목 한 줄과 가로선, 그 아래가 내용이다.
+    <section className={`rise ${className}`}>
+      <p className="text-[11px] tracking-[0.3em] text-hanji-faint">우리 절</p>
+      <div
+      className="mt-4 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4"
     >
       {!open ? (
         <div className="flex items-center gap-3.5">
           <TempleMark lit={!!name} />
           {name ? (
             <div className="min-w-0 flex-1">
-              <p className="text-[10.5px] tracking-[0.3em] text-hanji-faint">
-                우리 절
-              </p>
-              <p className="mt-1 truncate font-serif text-[20px] font-light leading-tight text-hanji">
+              <p className="truncate font-serif text-[20px] font-light leading-tight text-hanji">
                 {name}
               </p>
               {/* 셈이 오기 전에는 자리만 비워 둔다 — 줄이 생겼다 사라지면 카드가 들썩인다 */}
@@ -205,6 +206,7 @@ export default function MyTemplePicker({ className = "" }: { className?: string 
           </div>
         </div>
       )}
+      </div>
     </section>
   );
 }

@@ -46,12 +46,32 @@ const ARC_PATH =
   "A146 146 0 0 0 304 158 A146 146 0 0 0 158 12";
 
 // 염불 여섯 자 — 목탁을 칠 때마다 한 자씩
-const NAMU = ["나", "무", "아", "미", "타", "불"] as const;
+/**
+ * 정근(精勤) — 목탁을 치며 외는 말.
+ *
+ * 나무아미타불 하나만 두었는데, 한국 절에서 목탁 치며 제일 많이 하는 것은
+ * 사실 **관세음보살**이다. 정근은 절마다 때마다 다르니 고르게 둔다.
+ * 글자 수가 곧 한 편의 길이라 여섯 번 · 다섯 번 · 여섯 번으로 제각각이다.
+ */
+const JEONGGEUN = [
+  { id: "gwaneum", name: "관세음보살", ch: ["관", "세", "음", "보", "살"] },
+  { id: "amita", name: "나무아미타불", ch: ["나", "무", "아", "미", "타", "불"] },
+  { id: "seokga", name: "석가모니불", ch: ["석", "가", "모", "니", "불"] },
+  { id: "jijang", name: "지장보살", ch: ["지", "장", "보", "살"] },
+  { id: "om", name: "옴 마니 반메 훔", ch: ["옴", "마", "니", "반", "메", "훔"] },
+] as const;
+
+const JEONGGEUN_KEY = "hwadu.jeonggeun.v1";
 
 type Pop = { id: number; ch: string; dx: number; rot: number };
 
 export default function MoktakPage() {
   const [tab, setTab] = useState<"moktak" | "yeomju" | "bowl">("moktak");
+  // 무엇을 외며 칠까 — 이 기기에 적어 둔다
+  const [geunId, setGeunId] = useState<string>(JEONGGEUN[0].id);
+  const geun = JEONGGEUN.find((g) => g.id === geunId) ?? JEONGGEUN[0];
+  const geunRef = useRef(geun);
+  geunRef.current = geun;
   const [vol, setVol] = useState(0.8);
 
   // 공덕
@@ -124,6 +144,12 @@ export default function MoktakPage() {
     const b = loadDaily();
     setMerit(loadMerit().total);
     setHits(b.by.moktak ?? 0);
+    try {
+      const saved = window.localStorage.getItem(JEONGGEUN_KEY);
+      if (saved && JEONGGEUN.some((g) => g.id === saved)) setGeunId(saved);
+    } catch {
+      /* 못 읽으면 관세음보살 */
+    }
     setTotal(b.by.bead ?? 0);
     setBowlHits(b.by.bowl ?? 0);
   }, []);
@@ -132,7 +158,8 @@ export default function MoktakPage() {
   const strike = (byHand: boolean) => {
     strikeMoktak(autoRef.current.vol);
     setHits((n) => {
-      const ch = NAMU[n % NAMU.length];
+      const say = geunRef.current.ch;
+      const ch = say[n % say.length];
       const id = ++popId.current;
       setPops((p) => [
         ...p.slice(-7),
@@ -253,7 +280,7 @@ export default function MoktakPage() {
     f <= 0
       ? "linear-gradient(#0000, #0000)"
       : `conic-gradient(from 0deg at 50% 50%, #000 0turn ${f}turn, #0000 ${f + 0.008}turn 1turn)`;
-  const phrases = Math.floor(hits / NAMU.length); // 나무아미타불 몇 편
+  const phrases = Math.floor(hits / geun.ch.length); // 몇 편 왔나
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
@@ -402,22 +429,46 @@ export default function MoktakPage() {
               </>
             ) : hits === 0 ? (
               <span className="text-hanji-faint">
-                여섯 번 치면 한 편 — 나·무·아·미·타·불
+                {geun.ch.length}번 치면 한 편 — {geun.ch.join("·")}
               </span>
             ) : (
               <span className="text-hanji-faint">
-                나무아미타불{" "}
+                {geun.name}{" "}
                 <span className="text-hanji-dim">
                   {phrases.toLocaleString("ko-KR")}편
                 </span>
                 {" · 남은 "}
-                {NAMU.length - (hits % NAMU.length)}번
+                {geun.ch.length - (hits % geun.ch.length)}번
               </span>
             )}
           </p>
 
+          {/* 정근 고르기 — 무엇을 외며 칠까. 가로로 흘려 둔다(다섯이라 넘친다) */}
+          <div className="rise rise-d1 -mx-5 mt-3 flex gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {JEONGGEUN.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => {
+                  setGeunId(g.id);
+                  try {
+                    window.localStorage.setItem(JEONGGEUN_KEY, g.id);
+                  } catch {
+                    /* 서랍이 막혀도 오늘은 칠 수 있다 */
+                  }
+                }}
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-[11.5px] transition-colors ${
+                  geunId === g.id
+                    ? "border-gold/60 bg-gold/15 text-gold"
+                    : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
+                }`}
+              >
+                {g.name}
+              </button>
+            ))}
+          </div>
+
           {/* ── 목탁 ── */}
-          <div className="rise rise-d2 relative mt-4 flex flex-col items-center">
+          <div className="rise rise-d2 relative mt-3 flex flex-col items-center">
             {/* 떠오르는 글자 */}
             <span aria-hidden className="pointer-events-none absolute left-1/2 top-2 z-10">
               {pops.map((p) => (
