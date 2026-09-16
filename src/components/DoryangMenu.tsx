@@ -87,6 +87,9 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     title: "함께",
     hanja: "同",
     doors: [
+      // 법당이 여기 없어서 폰에서는 초를 켤 길이 아예 없었다.
+      // 공덕이 가 닿는 끝자리라 「함께」의 맨 앞에 세운다.
+      { href: "/candle", label: "법당 — 초 공양", say: "남의 이름을 걸다", Icon: Yeonkkot },
       { href: "/pilgrimage", label: "손잡고 절로", say: "가까운 절", Icon: Iljumun },
       { href: "/gathering", label: "인연", say: "함께 갈 이", Icon: Person },
       { href: "/community", label: "연지원", say: "묻고 답하다", Icon: LotusPond },

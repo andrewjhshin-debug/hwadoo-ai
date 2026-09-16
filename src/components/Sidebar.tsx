@@ -75,7 +75,7 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/bae", label: "백팔배", Icon: Banga },
   { href: "/sutra", label: "경전 외우기", Icon: Book },
   { href: "/draw", label: "오늘의 운세", Icon: LotusMark },
-  { href: "/candle", label: "초 공양", Icon: LotusMark },
+  { href: "/candle", label: "법당 — 초 공양", Icon: LotusMark },
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/archive", label: "서고 — 지난 화두", Icon: Seogo },
 ];
