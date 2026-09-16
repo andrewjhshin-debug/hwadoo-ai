@@ -52,27 +52,83 @@ function Flame({ hue, seed }: { hue: number; seed: number }) {
   const delay = `${(seed % 17) * 0.13}s`;
   const dur = `${1.5 + (seed % 7) * 0.11}s`;
   return (
-    <span className="relative block h-[30px] w-[16px]">
+    <span className="relative block h-[24px] w-[13px]">
       <span
-        className="candle-glow absolute left-1/2 top-1/2 h-[56px] w-[56px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="candle-glow absolute left-1/2 top-[62%] h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
-          background: `radial-gradient(circle, hsla(${hue},95%,68%,.5) 0%, hsla(${hue},95%,60%,.16) 42%, transparent 70%)`,
+          background: `radial-gradient(circle, hsla(${hue},70%,72%,.28) 0%, rgba(255,178,80,.22) 34%, transparent 70%)`,
+          animationDelay: delay,
+          animationDuration: dur,
+        }}
+      />
+      {/* 불꽃은 늘 호박빛이다 — 법당에 무지개 불은 없다.
+          무엇을 빌었는지는 뒤에 깔린 무리 색으로만 스민다. */}
+      <span
+        className="candle-flame absolute bottom-0 left-1/2 h-[24px] w-[12px] -translate-x-1/2"
+        style={{
+          background: "linear-gradient(to top, #ffb64a, #ffe08a 40%, #fffaea 82%)",
           animationDelay: delay,
           animationDuration: dur,
         }}
       />
       <span
-        className="candle-flame absolute bottom-0 left-1/2 h-[30px] w-[15px] -translate-x-1/2"
-        style={{
-          background: `linear-gradient(to top, hsl(${hue},95%,72%), #ffe9a8 46%, #fffbe9)`,
-          animationDelay: delay,
-          animationDuration: dur,
-        }}
-      />
-      <span
-        className="absolute bottom-[1px] left-1/2 h-[9px] w-[5px] -translate-x-1/2 rounded-full bg-obang-blue/70 blur-[1px]"
+        className="absolute bottom-0 left-1/2 h-[7px] w-[4px] -translate-x-1/2 rounded-full bg-obang-blue/50 blur-[1.2px]"
       />
     </span>
+  );
+}
+
+/**
+ * 연꽃 받침 — 꽃잎 아홉 장을 부채꼴로 크게 펼친다.
+ * 좁게 그리면 초 몸통(36)에 가려 덩어리로 보인다. 바깥 잎을 거의 눕히고
+ * 어둡게 눌러야 겹이 생겨 「꽃」으로 읽힌다.
+ * 물감(gradient)은 법당이 한 번만 깔아 둔다(CandleDefs) — 초마다 defs 를
+ * 그리면 문서에 같은 id 가 수십 개 생기고, 그러면 뒤엣것이 앞것의 물감을
+ * 빼앗는다(연꽃 아이콘에서 한 번 겪었다).
+ */
+function LotusBase() {
+  const petals = [];
+  for (let k = -4; k <= 4; k++) {
+    const a = k * 20;
+    const L = 25 - Math.abs(k) * 1.4;
+    const w = 8.5 - Math.abs(k) * 0.5;
+    const b = (1 - (Math.abs(k) / 4) * 0.3).toFixed(2);
+    petals.push(
+      <path
+        key={k}
+        d={`M32 23 C ${32 - w} ${23 - L * 0.55}, ${32 - w * 0.55} ${23 - L * 0.9}, 32 ${23 - L} C ${32 + w * 0.55} ${23 - L * 0.9}, ${32 + w} ${23 - L * 0.55}, 32 23 Z`}
+        transform={`rotate(${a} 32 23)`}
+        fill="url(#hw-petal)"
+        stroke="rgba(78,60,22,.6)"
+        strokeWidth=".55"
+        style={{ filter: `brightness(${b})` }}
+      />
+    );
+  }
+  return (
+    <svg width="64" height="28" viewBox="0 0 64 28" className="-mt-[5px] block overflow-visible" aria-hidden>
+      {petals}
+      <ellipse cx="32" cy="23.5" rx="21" ry="4" fill="url(#hw-lotusbase)" />
+    </svg>
+  );
+}
+
+/** 놋쇠 물감 한 벌 — 법당에 한 번만 깐다 */
+function CandleDefs() {
+  return (
+    <svg width="0" height="0" aria-hidden className="absolute">
+      <defs>
+        <linearGradient id="hw-petal" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fbeaba" />
+          <stop offset="48%" stopColor="#cfa95d" />
+          <stop offset="100%" stopColor="#775d26" />
+        </linearGradient>
+        <linearGradient id="hw-lotusbase" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#e9d094" />
+          <stop offset="100%" stopColor="#654f22" />
+        </linearGradient>
+      </defs>
+    </svg>
   );
 }
 
@@ -87,51 +143,57 @@ function Stick({
 }) {
   const w = wishOf(c.kind);
   const left = daysLeft(c);
-  // 길쭉한 막대는 초가 아니라 막대였다. 절 법당의 초는 **짧고 두껍다** —
-  // 폭을 키우고 키를 줄인다. 오래 탄 초는 짧아지되 바닥은 남긴다.
-  const tall = 26 + Math.round((left / BURN_DAYS) * 26);
+  // 법당 초는 짧고 두껍다. 오래 탄 초는 짧아지되 바닥은 남는다.
+  const tall = 22 + Math.round((left / BURN_DAYS) * 22);
+  // 셋에 하나씩 뒤로 물린다 — 줄이 평평하면 촛대가 아니라 울타리다.
+  // 그림만 물리고 이름 줄은 안 건드린다(이름이 들쭉날쭉하면 지저분하다).
+  const depth = i % 3 === 1 ? "back" : i % 3 === 2 ? "mid" : "front";
+  const art =
+    depth === "back"
+      ? "translate-y-[-18px] scale-[.86] opacity-70 blur-[.4px]"
+      : depth === "mid"
+        ? "translate-y-[-8px] scale-[.94] opacity-[.87]"
+        : "";
+
   return (
     <button
       onClick={onOpen}
       title={`${c.forName} — ${w.label}`}
-      className="group flex w-[74px] shrink-0 flex-col items-center gap-1 pt-1"
+      className="group flex w-[62px] shrink-0 flex-col items-center"
     >
-      <Flame hue={w.hue} seed={i * 7 + c.forName.length} />
-      {/* 초 — 흰 밀랍. 빛깔은 심지 언저리에만 옅게 물든다.
-          몸통에 세로 결 두 줄을 넣어야 원통으로 보인다(납작한 네모 방지). */}
+      {/* 그림 상자 — 높이를 못박아 두어야 깊이를 줘도 이름 줄이 한 줄로 선다 */}
       <span
-        className="relative block w-[34px] rounded-[4px] transition-transform group-hover:-translate-y-[2px]"
-        style={{
-          height: tall,
-          background:
-            `linear-gradient(90deg, rgba(120,104,84,.42) 0%, rgba(255,252,246,.97) 26%,` +
-            ` #fffdf8 48%, rgba(246,240,228,.95) 70%, rgba(120,104,84,.34) 100%)`,
-          boxShadow:
-            `0 0 26px hsla(${w.hue},92%,66%,.30), inset 0 -6px 10px rgba(120,100,70,.18)`,
-        }}
+        className={`flex h-[100px] flex-col items-end justify-end transition-transform group-hover:-translate-y-[3px] ${art}`}
       >
-        {/* 녹은 윗면 — 타원 한 조각. 이것 하나로 원통이 된다 */}
+        <Flame hue={w.hue} seed={i * 7 + c.forName.length} />
+        {/* 밀랍 — 흰 초. 빛깔은 무리에만 옅게 스민다(법당 불빛은 다 호박색이다) */}
         <span
-          className="absolute left-1/2 top-[-4px] h-[9px] w-[34px] -translate-x-1/2 rounded-[50%]"
+          className="relative mt-[3px] block w-[36px] rounded-[4px]"
           style={{
-            background: `radial-gradient(60% 100% at 50% 40%, hsla(${w.hue},70%,84%,.95), #f3ece0 70%, #dcd2c0)`,
+            height: tall,
+            background:
+              "linear-gradient(90deg, rgba(146,126,96,.55) 0%, #fdf6e7 22%," +
+              " #fffdf6 46%, #f4ecda 72%, rgba(146,126,96,.45) 100%)",
+            boxShadow: `0 0 34px hsla(${w.hue},80%,66%,.22), inset 0 -8px 12px rgba(120,100,70,.15)`,
           }}
-        />
-        {/* 심지 자리 — 타들어 간 자국 */}
-        <span
-          className="absolute left-1/2 top-[-2px] h-[5px] w-[7px] -translate-x-1/2 rounded-[50%]"
-          style={{ background: "rgba(70,56,40,.55)" }}
-        />
+        >
+          {/* 녹아 오목해진 윗면 */}
+          <span
+            className="absolute left-1/2 top-[-5px] h-[10px] w-[36px] -translate-x-1/2 rounded-[50%]"
+            style={{
+              background:
+                "radial-gradient(58% 100% at 50% 34%, #fff3cf, #efe6d4 66%, #d4c9b4)",
+            }}
+          />
+          {/* 심지 자국 */}
+          <span
+            className="absolute left-1/2 top-0 h-[4px] w-[6px] -translate-x-1/2 rounded-[50%]"
+            style={{ background: "rgba(62,48,32,.62)" }}
+          />
+        </span>
+        <LotusBase />
       </span>
-      {/* 촛농 받침 — 놋쇠 접시 */}
-      <span
-        className="h-[5px] w-[42px] rounded-[3px]"
-        style={{
-          background: "linear-gradient(180deg, #b79a5e, #6d5a33)",
-          boxShadow: "0 3px 8px rgba(0,0,0,.45)",
-        }}
-      />
-      <span className="max-w-[72px] truncate text-[10px] leading-4 text-hanji-faint">
+      <span className="mt-[5px] max-w-[60px] truncate text-[9.5px] leading-4 text-hanji-faint">
         {c.forName}
       </span>
     </button>
@@ -524,7 +586,25 @@ export default function CandleHall() {
       {/* ── 촛대 ── */}
       <section className="mt-9">
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">타고 있는 초</p>
-        <div className="mt-3 rounded-[16px] border border-ink-3 bg-gradient-to-b from-ink-2/70 to-ink-2/20 px-3 pb-3 pt-2">
+        {/* 촛대 — 모이면 빛이 고여야 한다. 초 하나하나가 예쁜 것보다
+            **여럿이 섰을 때 한 덩어리로 타오르는 것**이 법당의 그림이다.
+            그래서 뒤에 공통 무리를 깔고, 초는 셋에 하나씩 뒤로 물린다. */}
+        <div className="relative mt-3 overflow-hidden rounded-[16px] border border-ink-3 px-3 pb-3 pt-2"
+             style={{
+               background:
+                 "radial-gradient(130% 92% at 50% 118%, rgba(66,44,18,.6), rgba(16,13,10,.3) 58%, transparent)",
+             }}>
+          <CandleDefs />
+          {/* 고인 빛 — 초들 뒤에 깔리는 한 겹. 초가 늘수록 진해 보인다 */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-[-10%] bottom-[34px] h-[160px]"
+            style={{
+              background:
+                "radial-gradient(50% 100% at 50% 100%, rgba(255,192,98,.34), rgba(255,160,54,.12) 44%, transparent 70%)",
+              filter: "blur(16px)",
+            }}
+          />
           {list === null ? (
             <p className="py-10 text-center text-[12px] text-hanji-faint">불을 세는 중…</p>
           ) : hallErr ? (
@@ -551,7 +631,7 @@ export default function CandleHall() {
               <span className="text-hanji-faint">첫 자루를 올려 보세요.</span>
             </p>
           ) : (
-            <div className="flex flex-wrap items-end justify-center gap-x-1 gap-y-4">
+            <div className="relative flex flex-wrap justify-center gap-y-4">
               {list.map((c, i) => (
                 <Stick key={c.id} c={c} i={i} onOpen={() => setOpen(c)} />
               ))}
