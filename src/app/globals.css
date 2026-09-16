@@ -625,7 +625,7 @@ body[data-writing] [aria-label="홈 화면에 담기 안내"] {
    사유의 방 FAB 는 배너 위로 올라서고, 스크롤 바닥 여백은 배너 높이만큼
    깊어진다. 배너(약 62px)가 탭 바 위(76px)에 앉기 때문이다. */
 body[data-install-banner] .notes-fab {
-  bottom: 152px;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px) + 80px);
 }
 body[data-install-banner] .obang-aura {
   padding-bottom: 140px;

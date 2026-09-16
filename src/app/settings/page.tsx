@@ -933,32 +933,42 @@ export default function SettingsPage() {
         </p>
         <div className="mt-4 border-t border-ink-3 pt-5">
           <div>
+            {/* 자 하나만 둔다.
+                예전엔 넉 줄이 저마다 다른 자로 재고 있었다 — 총 공덕, 이번
+                백팔 바퀴(17/108), 오늘 몫(1,188/2,160), 연꽃까지(1,637/6,480).
+                게다가 화면 맨 위 실선까지 다섯째 자였다. 어느 게 무슨 뜻인지
+                아무도 몰랐다.
+                「백팔 바퀴」를 버렸다 — 세어 봐야 할 일이 달라지지 않는 수였다.
+                남은 것은 셋, 저마다 묻는 것이 다르다:
+                  오늘 얼마나 했나 · 연꽃까지 얼마 남았나 · 내 자리는 어디인가 */}
             <p className="flex items-baseline gap-2">
               <span className="font-serif text-[30px] leading-none text-gold">
                 {merit.total.toLocaleString("ko-KR")}
               </span>
               <span className="text-[12px] text-hanji-dim">
-                이번 바퀴 {inRound(merit.total)}/{ROUND}
-                {merit.total >= ROUND &&
-                  ` · 백팔 ${Math.floor(merit.total / ROUND)}바퀴`}
+                지금까지 쌓은 공덕
               </span>
             </p>
-            <div className="mt-2.5 h-[5px] overflow-hidden rounded-full bg-ink-3">
+
+            {/* ① 오늘 — 이 자리의 자는 「오늘 얼마나 했나」 하나뿐이다 */}
+            <div className="mt-4 flex items-baseline justify-between text-[11.5px]">
+              <span className="text-hanji-faint">오늘</span>
+              <span className={room.left > 0 ? "text-hanji-dim" : "text-gold"}>
+                {room.earned.toLocaleString("ko-KR")} / {DAILY_TOTAL_CAP.toLocaleString("ko-KR")}
+              </span>
+            </div>
+            <div className="mt-1.5 h-[5px] overflow-hidden rounded-full bg-ink-3">
               <div
                 className="h-full rounded-full bg-gold transition-[width] duration-300"
-                style={{ width: `${(inRound(merit.total) / ROUND) * 100}%` }}
+                style={{
+                  width: `${Math.min(100, (room.earned / DAILY_TOTAL_CAP) * 100)}%`,
+                }}
               />
             </div>
-
-            {/* 하루 천장 — 목탁만 천 번 두드려 연꽃을 따는 판이 되지 않게 */}
-            <p className="mt-2.5 text-[11px] leading-5 text-hanji-faint">
-              오늘 쌓은 공덕{" "}
-              <span className={room.left > 0 ? "text-hanji-dim" : "text-gold"}>
-                {room.earned.toLocaleString("ko-KR")}
-              </span>
-              {" / "}
-              {DAILY_TOTAL_CAP.toLocaleString("ko-KR")}
-              {room.left <= 0 && " — 오늘 몫이 찼어요. 내일 또 이어 가세요"}
+            <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
+              {room.left <= 0
+                ? "오늘 몫이 찼어요. 내일 또 이어 가세요."
+                : `스물한 분쯤 붙들면 오늘 몫이 찹니다.`}
             </p>
           </div>
 

@@ -3,31 +3,41 @@
 // ────────────────────────────────────────────────────────────────
 // 공덕 줄 — 화면 맨 위에 붙어 있는 금빛 실 한 가닥.
 //
-// 어느 방에 있든 지금 백팔 바퀴가 얼마나 찼는지 보인다. 숫자를 또 적으면
-// 화면마다 같은 말이 겹치니, 말 대신 **선 하나**로만 말한다.
-// 목탁을 칠 때마다 이 선이 조금씩 길어진다 — 그게 쌓이는 맛이다.
+// 이 선이 재는 것은 하나다 — **연꽃 한 송이까지 얼마나 왔나.**
 //
-// 한 바퀴(108)를 넘기면 한 번 번쩍하고 처음으로 돌아간다.
+// 예전엔 「백팔 한 바퀴」를 재고 오른쪽 끝에 몇 바퀴째인지 적었다.
+// 그런데 그 수로는 할 일이 달라지지 않는다. 백팔 바퀴를 채워도 아무 일이
+// 안 일어나니, 차오르는 것만 보이고 무엇이 차는지는 안 보였다.
+// 게다가 내 도량에는 이미 자가 셋 더 있었다(오늘 몫·연꽃·자리) — 넷째 자가
+// 화면 맨 위에 늘 붙어 있으니 어느 것이 무슨 뜻인지 아무도 몰랐다.
+//
+// 이제 연꽃 하나만 잰다. 어느 방에서 목탁을 치든 이 선이 길어지고,
+// 끝까지 차면 한 번 번쩍한 뒤 처음으로 돌아간다 — 한 송이가 여물었다는 뜻.
+// 숫자는 적지 않는다. 몇 송이 쥐었는지는 연꽃 알약이 말한다.
+//
 // 스크롤을 따라 붙어 있되(sticky), 손안에서는 위 머리 띠 아래에 선다.
 // ────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { inRound, loadMerit, MERIT_EVENT, ROUND } from "@/lib/merit";
+import { LOTUS_PRICE, meritBalance, MERIT_EVENT } from "@/lib/merit";
 
 export default function MeritBar() {
-  const [total, setTotal] = useState<number | null>(null);
+  const [bal, setBal] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
   const last = useRef(0);
 
   const read = useCallback(() => {
-    const t = loadMerit().total;
-    // 한 바퀴를 넘었다 — 한 번 번쩍인다
-    if (last.current && Math.floor(t / ROUND) > Math.floor(last.current / ROUND)) {
+    const b = meritBalance();
+    // 한 송이가 여물었다 — 한 번 번쩍인다
+    if (
+      last.current &&
+      Math.floor(b / LOTUS_PRICE) > Math.floor(last.current / LOTUS_PRICE)
+    ) {
       setFlash(true);
-      window.setTimeout(() => setFlash(false), 900);
+      window.setTimeout(() => setFlash(false), 1200);
     }
-    last.current = t;
-    setTotal(t);
+    last.current = b;
+    setBal(b);
   }, []);
 
   useEffect(() => {
@@ -37,12 +47,12 @@ export default function MeritBar() {
   }, [read]);
 
   // 서버가 그린 첫 그림과 어긋나지 않게 — 읽기 전에는 빈 줄만
-  const pct = total === null ? 0 : (inRound(total) / ROUND) * 100;
-  const round = total === null ? 0 : Math.floor(total / ROUND);
+  const pct = bal === null ? 0 : ((bal % LOTUS_PRICE) / LOTUS_PRICE) * 100;
 
   return (
     <div
       aria-hidden
+      title="연꽃 한 송이까지"
       className="pointer-events-none sticky top-16 z-30 h-[2px] w-full bg-ink-3/60 md:top-0"
     >
       <style>{`
@@ -55,15 +65,9 @@ export default function MeritBar() {
           boxShadow: flash
             ? "0 0 14px 2px rgba(217,180,91,0.85)"
             : "0 0 6px rgba(217,180,91,0.35)",
-          animation: flash ? "mb-flash .9s ease-out" : "none",
+          animation: flash ? "mb-flash 1.2s ease-out" : "none",
         }}
       />
-      {/* 몇 바퀴째인지 — 아주 작게, 오른쪽 끝에. 말이 아니라 표식이다 */}
-      {round > 0 && (
-        <span className="absolute right-2 top-[3px] font-serif text-[9px] leading-none text-gold-soft/70">
-          {round}
-        </span>
-      )}
     </div>
   );
 }
