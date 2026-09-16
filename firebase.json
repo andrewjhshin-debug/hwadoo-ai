@@ -1,0 +1,6 @@
+{
+  "//": "규칙을 손으로 콘솔에 붙여넣는 동안 candles 블록이 통째로 누락돼 초 공양이 죽어 있었다. 이제 한 줄로 올린다 — npm run rules:deploy",
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

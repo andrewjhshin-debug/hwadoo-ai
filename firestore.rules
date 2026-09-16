@@ -2,6 +2,17 @@
 // 화두 Firestore 규칙 — 전문(全文). 콘솔 > Firestore > 규칙 탭의
 // 내용을 이 파일로 통째로 바꿔 넣고 [게시]하면 된다.
 //
+// ★ 블록을 더했으면 **아래 변경기록에 한 줄을 반드시 남긴다.**
+//   v11 의 candles 가 기록 없이 들어왔다가 게시를 통째로 건너뛰었고,
+//   초 공양이 몇 날 동안 조용히 죽어 있었다(읽기 403). 기록이 없으면
+//   게시했는지 안 했는지 아무도 되짚을 수 없다. 기록이 곧 점검표다.
+//
+// 2026-09-16 v11:
+// · candles — 초 공양(49일)과 회향의 등(7일). 값은 브라우저가 지갑에서
+//   거두므로 여기서는 until 상한만 가둔다. 같이 빌기는 hapjang ±1 한 칸.
+// · isAdmin() 에 andrewjhshin@gmail.com 추가 —
+//   src/lib/config.ts 의 ADMIN_EMAILS 에는 있는데 규칙에만 빠져 있었다.
+//
 // 2026-08-20 통합본 v3:
 // · posts 작성자 수정 허용 필드에 meetTime·lantern 추가
 // · posts/{id}/likes/{uid} — 합장(좋아요) 계정당 한 번의 증거 문서
@@ -52,10 +63,15 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // 뒷방 주인인가 — 본계정(UID) 또는 부계정(검증된 이메일)
+    // ※ 이 이메일 목록은 src/lib/config.ts 의 ADMIN_EMAILS 와 **같아야 한다.**
+    //   앱에서만 주인이고 규칙에서는 남이면, 뒷방 단추가 보이는데 눌리지 않는다.
     function isAdmin() {
       return request.auth != null
         && (request.auth.uid == "HvYY1QPhLiMLc5NezM1jt0QdUiM2"
-            || (request.auth.token.email == "iphonecharging1@gmail.com"
+            || (request.auth.token.email in [
+                  "iphonecharging1@gmail.com",
+                  "andrewjhshin@gmail.com"
+                ]
                 && request.auth.token.email_verified == true));
     }
 

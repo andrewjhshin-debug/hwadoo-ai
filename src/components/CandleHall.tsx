@@ -369,13 +369,24 @@ export default function CandleHall() {
   const [open, setOpen] = useState<Candle | null>(null);
   const [lighting, setLighting] = useState(false);
   const [said, setSaid] = useState<string | null>(null);
+  // 법당을 못 연 까닭. 빈 배열과 갈라 둔다 —
+  // 규칙이 막혀 있는데 「아직 켜진 초가 없습니다」라고 적으면
+  // 고장이 정상으로 둔갑한다. 이번에 초 공양이 안 되는 걸
+  // 아무도 못 짚은 이유가 정확히 이 한 줄이었다.
+  const [hallErr, setHallErr] = useState<string | null>(null);
   const confirm = useConfirm();
 
   const load = useCallback(() => {
+    setHallErr(null);
     void fetchCandles()
       .then(setList)
-      .catch(() => setList([]));
-    void fetchMyCandles().then(setMine).catch(() => setMine([]));
+      .catch((e: unknown) => {
+        setList([]);
+        setHallErr(e instanceof Error ? e.message : String(e));
+      });
+    void fetchMyCandles()
+      .then(setMine)
+      .catch(() => setMine([]));
   }, []);
 
   useEffect(() => {
@@ -474,6 +485,23 @@ export default function CandleHall() {
         <div className="mt-3 rounded-[16px] border border-ink-3 bg-gradient-to-b from-ink-2/70 to-ink-2/20 px-3 pb-3 pt-2">
           {list === null ? (
             <p className="py-10 text-center text-[12px] text-hanji-faint">불을 세는 중…</p>
+          ) : hallErr ? (
+            // 못 연 것과 비어 있는 것은 다른 일이다
+            <div className="py-10 text-center">
+              <p className="text-[12.5px] leading-7 text-vermilion/90">
+                법당을 열지 못했습니다.
+              </p>
+              <p className="mt-1 break-all px-2 text-[10.5px] leading-5 text-hanji-faint">
+                {hallErr}
+              </p>
+              <button
+                type="button"
+                onClick={load}
+                className="mt-3 rounded-full border border-ink-3 px-3.5 py-1 text-[11px] text-hanji-dim transition-colors hover:border-gold/45 hover:text-hanji"
+              >
+                다시 열기
+              </button>
+            </div>
           ) : list.length === 0 ? (
             <p className="py-10 text-center text-[12.5px] leading-7 text-hanji-dim">
               아직 켜진 초가 없습니다.

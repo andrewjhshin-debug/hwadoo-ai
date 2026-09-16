@@ -177,8 +177,11 @@ export async function hangLight(forName: string): Promise<void> {
       until: Date.now() + LIGHT_DAYS * DAY,
       createdAt: serverTimestamp(),
     });
-  } catch {
-    /* 등은 덤이다 */
+  } catch (e) {
+    // 등은 덤이라 회향 자체를 되돌리지는 않는다. 그래도 **아무 자국도
+    // 안 남기면 안 된다** — 규칙이 막혀 등이 한 번도 안 걸린 적이 있었는데
+    // 통째로 삼키느라 아무도 몰랐다.
+    console.warn("[candle] 회향 등을 걸지 못했습니다", e);
   }
 }
 
