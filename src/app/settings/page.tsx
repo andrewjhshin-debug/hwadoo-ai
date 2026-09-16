@@ -211,8 +211,6 @@ const SERVICES: ServiceItem[] = [
 // 범례를 누르면 그 선만 또렷해지고 나머지는 흐려진다 — 다시 누르면 원래대로.
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
-  // 음양 — 인연 게시판에 표시될 나의 문양
-  const [gender, setGender] = useState<"m" | "f" | undefined>(undefined);
   // 이메일 알림 — 켜짐이 기본, users/{uid}.emailOptOut 로 끈다
   const [mailOn, setMailOn] = useState(true);
   const [mailBusy, setMailBusy] = useState(false);
@@ -412,7 +410,6 @@ export default function SettingsPage() {
       // 나의 걸음 — 받은 화두 수(지금 든 것·내려놓은 것까지),
       // 회향해 지난 화두에 남은 수, 함께한 날수
       const s = loadStore();
-      setGender(s.gender);
       const past = s.history.length;
       setJournalCount(past);
       // store.received 가 참값이지만, 이 값이 없던 시절의 기록도 있어
@@ -602,12 +599,6 @@ export default function SettingsPage() {
       stopWatch();
     };
   }, []);
-
-  // 음양 고르기 — 저장소에 적으면 계정으로도 함께 올라간다
-  const chooseGender = (g: "m" | "f") => {
-    setGender(g);
-    saveStore({ ...loadStore(), gender: g });
-  };
 
   // 구글 로그인 — 팝업이 막히거나 닫히면 그 까닭을 알린다
   const handleLogin = async () => {
@@ -1406,46 +1397,9 @@ export default function SettingsPage() {
         </section>
       )}
 
-      <Fold title="그 밖에" note="음양 · 차 한 잔 · 죽비 · 내가 던진 화두 · 로그인 · 도량 안내">
-      {/* ── 음양 — 인연 게시판에 표시될 나의 문양 ── */}
-      <section className={`rise rise-d1 ${sectionGap}`}>
-        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-          음양 — 나의 문양
-        </p>
-        <div className="mt-4 flex gap-3 border-t border-ink-3 pt-5">
-          <button
-            onClick={() => chooseGender("m")}
-            aria-pressed={gender === "m"}
-            className={`flex flex-1 items-center justify-center gap-2.5 rounded-[10px] border px-4 py-3 text-[14px] tracking-[0.15em] transition-colors ${
-              gender === "m"
-                ? "border-gold/60 bg-gold/10 text-gold"
-                : "border-ink-3 text-hanji-dim hover:text-hanji"
-            }`}
-          >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-gold/50 bg-gold/10 font-serif text-[13px] text-gold">
-              陽
-            </span>
-            남
-          </button>
-          <button
-            onClick={() => chooseGender("f")}
-            aria-pressed={gender === "f"}
-            className={`flex flex-1 items-center justify-center gap-2.5 rounded-[10px] border px-4 py-3 text-[14px] tracking-[0.15em] transition-colors ${
-              gender === "f"
-                ? "border-gold/60 bg-gold/10 text-gold"
-                : "border-ink-3 text-hanji-dim hover:text-hanji"
-            }`}
-          >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-hanji-faint/60 bg-ink-2 font-serif text-[13px] text-hanji-dim">
-              陰
-            </span>
-            여
-          </button>
-        </div>
-        <p className="mt-2.5 break-keep text-[11px] leading-5 text-hanji-faint">
-          인연 게시판의 글·댓글에 陽/陰 문양으로만 표시됩니다.
-        </p>
-      </section>
+      <Fold title="그 밖에" note="차 한 잔 · 죽비 · 내가 던진 화두 · 로그인 · 도량 안내">
+      {/* 음양 고르기는 뺐다 — 가입할 때 이미 받는다.
+          같은 것을 두 군데서 물으면 어느 쪽이 참인지 알 수 없다. */}
 
       {/* ── 차 한 잔 — 바로 송금 ── */}
       <section className={`rise rise-d2 ${sectionGap}`}>
