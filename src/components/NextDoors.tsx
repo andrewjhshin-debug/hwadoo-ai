@@ -51,7 +51,7 @@ const D: Record<string, Door> = {
   mandala: { href: "/mandala", label: "만다라", say: "색을 앉히다", Icon: Mandala },
   empty: { href: "/empty", label: "비움", say: "쓰지 않은 하루", Icon: Moktak },
   draw: { href: "/draw", label: "오늘의 운세", say: "한 장을 뒤집다", Icon: Lotus },
-  rank: { href: "/rank", label: "육도 랭킹", say: "지금 내 자리", Icon: Dharmachakra },
+  rank: { href: "/rank", label: "정진 랭킹", say: "지금 내 자리", Icon: Dharmachakra },
   settings: { href: "/settings", label: "내 도량", say: "공덕과 부적", Icon: Person },
   archive: { href: "/archive", label: "서고", say: "지난 화두", Icon: Seogo },
   room: { href: "/room", label: "사유의 방", say: "떠오르는 것을 적다", Icon: Banga },

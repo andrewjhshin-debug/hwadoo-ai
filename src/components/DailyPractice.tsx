@@ -19,6 +19,7 @@ import {
   addMerit,
   loadMerit,
   MERIT_EVENT,
+  rankByNeed,
   rankOf,
   stageOf,
 } from "@/lib/merit";
@@ -180,15 +181,13 @@ export default function DailyPractice() {
                 >
                   {me ? me.name : "나무"}
                 </button>
-                <span className="text-[11.5px] text-hanji-faint">
-                  {rank.hanja} · {rank.name}
-                </span>
+
               </p>
             )}
             {nameErr && <p className="mt-1 text-[11px] text-vermilion">{nameErr}</p>}
 
             <p className="mt-1.5 break-keep text-[11.5px] leading-5 text-hanji-faint">
-              {realm.say}
+              {rank.say}
             </p>
             <div className="mt-2.5 h-[6px] overflow-hidden rounded-full bg-ink-3">
               <div
@@ -200,12 +199,12 @@ export default function DailyPractice() {
               <span className="min-w-0 flex-1 truncate">
                 {up
                   ? up.needMore > 0 && up.left === 0
-                    ? `${up.to.name}까지 화두 ${up.needMore}개`
-                    : `${up.to.name}까지 공덕 ${up.left.toLocaleString("ko-KR")}` +
+                    ? `${rankByNeed(up.to.need).name}까지 화두 ${up.needMore}개`
+                    : `${rankByNeed(up.to.need).name}까지 공덕 ${up.left.toLocaleString("ko-KR")}` +
                       (up.needMore > 0 ? ` · 화두 ${up.needMore}개` : "")
                   : "가장 높은 자리"}
               </span>
-              <Info title="六道 · 자리">
+              <Info title="자리">
                 자리는 <b className="text-hanji">공덕</b>과 <b className="text-hanji">회향한 화두 수</b>,
                 둘 다 넘겨야 오릅니다.
                 <br />
@@ -214,10 +213,15 @@ export default function DailyPractice() {
             </p>
           </div>
 
-          {/* 육도 — 지금 내 계급. 프로필 오른쪽에 크게 세운다 */}
+          {/* 지금 내 자리 — 프로필 오른쪽에 크게 세운다.
+              한동안 여기에 육도(獄·鬼·畜…)를 걸었다. 사다리가 둘이라
+              이름 옆의 「童 · 동자」와 나란히 서서 어느 쪽이 내 자리인지
+              알 수 없었고, 무엇보다 **사람에게 지옥도·아귀도라고 부르고
+              있었다.** 육도는 오르는 계단이 아니라 벗어나야 할 굴레다.
+              자리를 재는 셈은 그대로 두고 이름만 바꿔 건다(rankByNeed). */}
           <Link
             href="/rank"
-            title={`${realm.name} · 육도 랭킹으로`}
+            title={`${rank.name} · 랭킹으로`}
             className="flex shrink-0 flex-col items-center gap-1.5"
           >
             <span
@@ -227,10 +231,10 @@ export default function DailyPractice() {
                   : "border border-gold/35 text-gold-soft hover:border-gold/70"
               }`}
             >
-              {realm.mark}
+              {rank.hanja}
             </span>
             <span className="text-[10.5px] leading-none text-hanji-faint">
-              {realm.name}
+              {rank.name}
             </span>
           </Link>
         </div>

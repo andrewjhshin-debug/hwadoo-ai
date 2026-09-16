@@ -42,15 +42,14 @@ import Info from "@/components/Info";
 import LotusCount from "@/components/LotusCount";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import MeritExchange from "@/components/MeritExchange";
-import { CHARMS, charmSvg, grantCharm, loadCharms } from "@/lib/charm";
+import { CHARMS, charmSvg, loadCharms } from "@/lib/charm";
 import { nextRealm, realmOf, REALMS } from "@/lib/realm";
 import {
   DAILY_TOTAL_CAP,
   giveBonus,
-  giveLeftToday,
-  giveMerit,
-  GIVE_PER_DAY,
-  GIVE_UNIT,
+  giveDays,
+  rankByNeed,
+  rounds,
   inRound,
   lamps,
   loadMerit,
@@ -84,7 +83,6 @@ import {
 } from "@/lib/install";
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
 import { loadMeditations } from "@/lib/meditation";
-import { hangLight } from "@/lib/candle";
 import {
   Share,
   Person,
@@ -292,10 +290,10 @@ export default function SettingsPage() {
   const [bells, setBells] = useState<string[]>([]);
   // 공덕 — 도량에서 한 일이 모두 여기로 쌓인다
   const [merit, setMerit] = useState({ total: 0, by: {} as Partial<Record<MeritSource, number>>, given: 0 });
-  const [gaveMsg, setGaveMsg] = useState("");
   const [lampList, setLampList] = useState<Lamp[]>([]);
-  const [giveLeft, setGiveLeft] = useState(GIVE_PER_DAY);
-  const [giveTo, setGiveTo] = useState(""); // 이름을 적어 돌릴 때
+  // 회향 장부는 서랍(localStorage)에 있다. 그릴 때 읽으면 서버가 그린
+  // 첫 화면과 어긋나 하이드레이션이 깨진다 — effect 에서 담아 두고 쓴다.
+  const [giving, setGiving] = useState({ days: 0, bonus: 1 });
   const [returnedCount, setReturnedCount] = useState(0);
   const [span, setSpan] = useState<"month" | "year">("month");
   const [room, setRoom] = useState({ earned: 0, cap: DAILY_TOTAL_CAP, left: DAILY_TOTAL_CAP });
@@ -395,7 +393,7 @@ export default function SettingsPage() {
     setMerit(loadMerit());
     setCharms(loadCharms());
     setLampList(lamps());
-    setGiveLeft(giveLeftToday());
+    setGiving({ days: giveDays(), bonus: giveBonus() });
     setRoom(todayRoom());
     setReturnedCount(loadStore().history.length);
   }, []);
@@ -406,27 +404,16 @@ export default function SettingsPage() {
   const myRealm = realmOf(merit.total, returnedCount);
   const upRealm = nextRealm(merit.total, returnedCount);
 
-  // 회향 — 한 번에 백팔, 하루 세 번. 총합은 줄지 않는다(대승의 셈).
-  // 돌린 만큼 앞으로 쌓는 공덕이 빨라진다 — 그래야 누를 이유가 생긴다.
-  const give = (to: string) => {
-    const l = giveMerit(to, GIVE_UNIT);
-    if (!l) {
-      // 회향은 이제 공덕을 안 쓴다 — 막는 것은 하루 세 번뿐이다
-      setGaveMsg("오늘 몫을 다 돌렸어요 — 내일 또 밝힐 수 있어요.");
-      window.setTimeout(() => setGaveMsg(""), 5000);
-      return;
-    }
-    grantCharm("hoehyang"); // 처음 돌린 사람에게 회향부
-    setCharms(loadCharms());
-    setMerit(l);
-    setLampList(lamps());
-    setGiveLeft(giveLeftToday());
-    // 「그래서 그게 어디 걸리는데?」 — 법당에 이레 동안 등으로 걸린다.
-    // 실패해도 회향은 이미 끝난 일이라 기다리지 않고 보낸다.
-    void hangLight(to);
-    setGaveMsg(`${to}에게 공덕을 돌렸습니다 — 법당에 등이 켜졌어요. 내 공덕은 그대로입니다.`);
-    window.setTimeout(() => setGaveMsg(""), 5000);
-  };
+  // 회향하는 자리는 **법당 하나뿐이다.**
+  //
+  // 한동안 여기서도 돌릴 수 있었다. 이름을 적으면 법당에 등이 사흘 걸렸다.
+  // 그런데 문이 둘이면 둘 다 흐려진다 — 설정에서 돌린 회향은 어디로 갔는지
+  // 안 보이고(등 하나가 남의 초 사이에 섞일 뿐이다), 법당에서 돌린 회향은
+  // 설정 장부와 어긋났다. 무엇보다 「공덕이 뭔지 모르겠다」는 말은
+  // **부은 것이 눈앞에서 밝아지지 않아서** 나온 말이었다.
+  //
+  // 그래서 이 칸은 **장부**만 맡는다 — 얼마나 돌렸나, 배수는 얼마나 붙었나,
+  // 어디에 돌렸나. 돌리는 일은 법당의 여섯 자리(HallSeats)에서 한다.
 
   // 종 하나를 켜고 끈다 — 서랍과 토큰 문서에 같이 적는다
   const toggleBell = (id: string) => {
@@ -849,14 +836,19 @@ export default function SettingsPage() {
         <DailyPractice />
       </div>
 
-      {/* ── 육도(六道) — 처음 온 사람은 지옥도에서 시작해 공덕으로 오른다.
-           예전엔 회향 수로 세 자리만 보였는데, 셋만 보이면 사다리가 아니다.
+      {/* ── 자리(位) — 동자에서 시작해 공덕과 화두로 오른다.
            여섯을 다 깔아 두어야 지금 어디쯤인지, 다음이 어딘지 한눈에 든다.
-           프로필 바로 아래 — 계급은 위에 있어야 계급이다. ── */}
+           프로필 바로 아래 — 계급은 위에 있어야 계급이다.
+
+           한동안 이 칸에 육도(지옥도·아귀도·축생도…)를 깔았다. 뗐다 —
+           육도는 오르는 사다리가 아니라 벗어나야 할 굴레이고, 목표는
+           천상도가 아니라 그 밖이다. 천상도조차 복이 다하면 떨어진다.
+           게다가 사람에게 「지금 당신은 지옥도, 다음은 아귀도」라고 말하는
+           화면이었다. 문턱(realm.ts REALMS)은 그대로 쓰고 이름만 바꾼다. ── */}
       <section className={`rise ${sectionGap}`}>
         <div className="flex items-baseline justify-between">
           <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-            六道 — 지금 내 자리
+            位 — 지금 내 자리
           </p>
           <Link
             href="/rank"
@@ -866,7 +858,9 @@ export default function SettingsPage() {
           </Link>
         </div>
         <div className="mt-4 grid grid-cols-6 gap-1.5 border-t border-ink-3 pt-5">
-          {REALMS.map((r) => {
+          {REALMS.map((realmSeat) => {
+            // 문턱은 육도가 쥐고, 이름은 자리에서 가져온다(merit.rankByNeed)
+            const r = { ...rankByNeed(realmSeat.need), id: realmSeat.id, mark: rankByNeed(realmSeat.need).hanja };
             // 뒷방 주인은 모든 자리가 밝다 — 도량 주인의 자리
             const got = isAdminAccount(user) || merit.total >= r.need;
             const here = isAdminAccount(user)
@@ -909,12 +903,12 @@ export default function SettingsPage() {
         </div>
         <p className="mt-3 break-keep text-[11.5px] leading-5 text-hanji-faint">
           {isAdminAccount(user)
-            ? "뒷방 주인의 자리 — 여섯 도가 모두 열려 있습니다."
+            ? "뒷방 주인의 자리 — 여섯 자리가 모두 열려 있습니다."
             : upRealm
-              ? `${upRealm.to.name}까지 공덕 ${upRealm.left.toLocaleString("ko-KR")}` +
+              ? `${rankByNeed(upRealm.to.need).name}까지 공덕 ${upRealm.left.toLocaleString("ko-KR")}` +
                 (upRealm.needMore > 0 ? ` · 화두 ${upRealm.needMore}개` : "")
               : "가장 높은 자리"}
-          <Info title="六道 · 자리" className="ml-1.5">
+          <Info title="位 · 자리" className="ml-1.5">
             자리는 <b className="text-hanji">공덕</b>과 <b className="text-hanji">회향한 화두 수</b>,
             둘 다 넘겨야 오릅니다. 목탁만 두드려서는 오르지 않습니다.
             <br />
@@ -990,29 +984,36 @@ export default function SettingsPage() {
           </div>
 
           {/* ── 회향(廻向) ──
-              내 것은 줄지 않는다(대승의 셈). 대신 하루 세 번뿐이고,
-              돌린 만큼 앞으로 쌓는 공덕이 빨라진다 — 나눌수록 커진다. */}
+              내 것은 줄지 않고 값도 안 든다(대승의 셈). 막는 것은
+              「한 자리에 하루 한 번」뿐. 돌리는 일은 법당에서 하고
+              여기는 장부만 본다. */}
           <div className="mt-5 rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-4">
             <div className="flex items-baseline justify-between gap-3">
               <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
                 廻向 · 회향
               </p>
               <p className="text-[11px] text-hanji-faint">
-                오늘 <span className="text-gold">{giveLeft}</span>/{GIVE_PER_DAY}번
+                이레 중 <span className="text-gold">{giving.days}</span>일
               </p>
             </div>
             {/* 세 줄로 줄였다. 처음엔 「받는 사람 · 내 공덕 · 나에게 남는 것」을
                 각각 두어 문장씩 풀어 썼는데, 접힘 하나가 설명서가 됐다.
                 남길 것은 셋뿐이다 — 누가 받나, 내 것은 주나, 나는 뭘 얻나.
                 나머지는 ⓘ 안으로. */}
-            <p className="mt-2.5 break-keep text-[12.5px] leading-6 text-hanji-dim">
-              내 공덕을 <span className="text-hanji">누군가의 이름에 걸어 두는 일</span>.
-              <span className="text-hanji"> 내 공덕은 줄지 않습니다.</span>
-            </p>
-            <ul className="mt-2.5 flex flex-col gap-[3px] text-[11.5px] leading-5 text-hanji-faint">
-              <li>받는 이는 <span className="text-hanji-dim">내가 적은 그 사람</span></li>
+            {/* 이 세 줄이 앱 전체의 셈이다 — 법당(HallSeats)과 **같은 문장**으로
+                둔다. 같은 일을 두 곳에서 다르게 적으면 그 순간부터
+                「뭐가 뭔지 모르겠다」가 시작된다. */}
+            <ul className="mt-2.5 flex flex-col gap-1 text-[12px] leading-6 text-hanji-dim">
               <li>
-                <span className="text-hanji-dim">내 공덕은 한 톨도 안 줄어든다</span>
+                수행하면 <span className="text-hanji">공덕</span>이 쌓입니다 — 내가 걸은 거리
+              </li>
+              <li>
+                예순 바퀴가 차면 <span className="text-hanji">연꽃</span> 한 송이가 여뭅니다 —
+                열매를 따도 걸은 거리는 안 줄어듭니다
+              </li>
+              <li>
+                연꽃 한 송이로 <span className="text-hanji">초</span> 한 자루.{" "}
+                <span className="text-hanji">회향은 값이 들지 않습니다</span>
                 <Info title="그럼 무엇이 줄어드나" className="ml-1">
                   아무것도 안 줄어듭니다. 촛불로 촛불을 붙여도 내 불은 안 꺼집니다 —
                   그게 회향(廻向)입니다.
@@ -1024,83 +1025,34 @@ export default function SettingsPage() {
                   <br />
                   <br />
                   남을 위해 <span className="text-hanji">쓰는 몫은 연꽃</span>입니다 —
-                  초 한 자루, 등 하나, 쪽지 한 통.
-                </Info>
-              </li>
-              <li>
-                걸리는 자리는{" "}
-                <Link href="/candle" className="text-gold-soft underline underline-offset-2">
-                  법당
-                </Link>{" "}
-                — 이레 동안 등으로 탄다
-              </li>
-              <li>
-                앞으로 쌓는 것이 <span className="text-hanji-dim">빨라진다</span>{" "}
-                <span className="text-gold">×{giveBonus().toFixed(2)}</span>
-                <Info title="적립 배수" className="ml-1">
-                  회향 {GIVE_UNIT}마다 +2%, 최대 +20%. 돌려도 줄지 않는데
-                  앞으로가 빨라집니다 — 나눌수록 커진다는 말을 숫자로 옮긴 자리입니다.
+                  초 한 자루, 쪽지 한 통.
                 </Info>
               </li>
             </ul>
+            <p className="mt-2.5 break-keep text-[11.5px] leading-5 text-hanji-faint">
+              가 닿는 자리는{" "}
+              <Link href="/candle" className="text-gold-soft underline underline-offset-2">
+                법당
+              </Link>
+              의 여섯 자리. 요즘 돌리고 있으면 앞으로 쌓는 것이 빨라집니다{" "}
+              <span className="text-gold">×{giving.bonus.toFixed(2)}</span> — 쉬면 저절로
+              내려갑니다.
+            </p>
 
-            <div className="mt-3 flex flex-wrap gap-2">
-              {["모든 중생", "아픈 이", "먼저 가신 분", "오늘 만날 사람"].map((t) => (
-                <button
-                  key={t}
-                  onClick={() => give(t)}
-                  disabled={giveLeft <= 0}
-                  className="rounded-full border border-gold/45 px-3.5 py-1.5 text-[12px] text-gold transition-colors hover:bg-gold/10 disabled:border-ink-3 disabled:text-hanji-faint"
-                >
-                  {t}에게
-                </button>
-              ))}
-            </div>
-
-            {/* 이름을 적어 돌린다 — 마음에 둔 사람이 있으면 그 이름으로 */}
-            <div className="mt-3 flex items-center gap-2">
-              <input
-                value={giveTo}
-                onChange={(e) => setGiveTo(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && giveTo.trim() && giveLeft > 0) {
-                    give(giveTo.trim());
-                    setGiveTo("");
-                  }
-                }}
-                maxLength={24}
-                placeholder="이름을 적어 돌리기"
-                aria-label="회향할 이름"
-                className="min-w-0 flex-1 rounded-lg border border-ink-3 bg-ink/40 px-3 py-2 text-[13px] text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/50"
-              />
-              <button
-                onClick={() => {
-                  if (!giveTo.trim() || giveLeft <= 0) return;
-                  give(giveTo.trim());
-                  setGiveTo("");
-                }}
-                disabled={!giveTo.trim() || giveLeft <= 0}
-                className="shrink-0 rounded-full border border-gold/45 px-4 py-2 text-[12px] text-gold transition-colors hover:bg-gold/15 disabled:border-ink-3 disabled:text-hanji-faint"
-              >
-                돌리다
-              </button>
-            </div>
-
-            {gaveMsg && (
-              <p className="mt-3 break-keep text-[12px] leading-6 text-gold-soft">
-                {gaveMsg}
-              </p>
-            )}
+            {/* 돌리는 일은 법당에서 — 여기는 장부만 본다 */}
+            <Link
+              href="/candle"
+              className="mt-3 flex items-center justify-between gap-3 rounded-full border border-gold/45 px-4 py-2.5 text-[12.5px] text-gold transition-colors hover:bg-gold/10"
+            >
+              <span>법당에서 회향하기</span>
+              <span aria-hidden>→</span>
+            </Link>
 
             {merit.given > 0 && (
               <p className="mt-3 border-t border-ink-3 pt-3 text-[11.5px] leading-5 text-hanji-faint">
                 지금까지 돌린 공덕{" "}
-                <span className="text-hanji">{merit.given.toLocaleString("ko-KR")}</span>
-                {" · "}
-                적립 배수{" "}
-                <span className="text-gold">
-                  ×{giveBonus(merit as never).toFixed(2)}
-                </span>
+                <span className="text-hanji">{rounds(merit.given).toLocaleString("ko-KR")}</span>
+                바퀴
               </p>
             )}
 

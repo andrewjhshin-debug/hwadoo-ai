@@ -22,6 +22,7 @@ import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { useConfirm } from "@/components/Confirm";
 import LotusCount, { pingLotus } from "@/components/LotusCount";
 import Info from "@/components/Info";
+import HallSeats from "@/components/HallSeats";
 import { Yeonkkot } from "@/components/icons";
 import { isAdminAccount } from "@/lib/config";
 import {
@@ -574,8 +575,8 @@ export default function CandleHall() {
           초 켜기 · 연꽃 {CANDLE_PRICE}
         </button>
         <Info title="초 공양">
-          연꽃 한 송이에 초 한 자루. <span className="text-hanji">{BURN_DAYS}일</span> 동안 탑니다
-          — 사십구재의 그 49입니다. 남의 초에 같이 손을 모으면 공덕이 쌓입니다.
+          연꽃 한 송이에 초 한 자루. <span className="text-hanji">{BURN_DAYS}일</span> 동안 탑니다.
+          남의 초에 같이 손을 모으면 내 공덕이 쌓입니다.
         </Info>
       </div>
 
@@ -583,8 +584,13 @@ export default function CandleHall() {
         <p className="mt-4 text-center text-[12px] text-gold-soft">{said}</p>
       )}
 
+      {/* ── 함께 켜는 초 — 회향이 모이는 여섯 자리 ──
+          초 공양(연꽃 → 남의 이름)보다 먼저 세운다. 공덕만 있으면 값 없이
+          할 수 있는 일이라, 처음 온 사람이 붙을 자리는 이쪽이다. */}
+      <HallSeats />
+
       {/* ── 촛대 ── */}
-      <section className="mt-9">
+      <section className="mt-10">
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">타고 있는 초</p>
         {/* 촛대 — 모이면 빛이 고여야 한다. 초 하나하나가 예쁜 것보다
             **여럿이 섰을 때 한 덩어리로 타오르는 것**이 법당의 그림이다.
@@ -642,10 +648,21 @@ export default function CandleHall() {
         </div>
       </section>
 
-      {/* ── 내가 올린 초 ── */}
+      {/* ── 내가 올린 초 ── 접어 둔다.
+          자루가 늘면 이 목록이 법당보다 길어져 화면이 장부가 된다.
+          몇 자루인지는 접힌 채로도 보이니 펴야 할 까닭이 있을 때만 편다. */}
       {mine.length > 0 && (
         <section className="mt-9">
-          <p className="text-[11px] tracking-[0.3em] text-hanji-faint">내가 올린 초</p>
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-[12px] border border-ink-3 px-3.5 py-2.5 text-[11px] tracking-[0.3em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji-dim [&::-webkit-details-marker]:hidden">
+              <span>내가 올린 초</span>
+              <span className="flex items-center gap-2 tracking-normal">
+                <span className="tabular-nums text-gold-soft">{mine.length}</span>
+                <span aria-hidden className="transition-transform group-open:rotate-180">
+                  ⌄
+                </span>
+              </span>
+            </summary>
           <ul className="mt-3 flex flex-col gap-1.5">
             {mine.map((c) => {
               const w = wishOf(c.kind);
@@ -677,6 +694,7 @@ export default function CandleHall() {
               );
             })}
           </ul>
+          </details>
         </section>
       )}
 

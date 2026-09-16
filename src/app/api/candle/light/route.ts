@@ -148,7 +148,7 @@ export async function POST(req: Request) {
         kind,
         wish,
         hapjang: 0,
-        // 서버 시계로 잰다 — 기기 시계가 어긋나도 마흔아흐레는 마흔아흐레다
+        // 서버 시계로 잰다 — 기기 시계가 어긋나도 사흘은 사흘이다
         until: Date.now() + BURN_DAYS * DAY,
         createdAt: FieldValue.serverTimestamp(),
       });

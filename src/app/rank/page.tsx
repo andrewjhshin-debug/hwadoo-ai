@@ -7,7 +7,7 @@
 // 이름은 법명이라 부담이 없다 — 진 사람이 창피할 일이 없어야
 // 다음 날 또 온다.
 //
-// 등수 위에 육도(六道)를 얹는다. 등수 하나는 그냥 숫자지만 도(道)는 자리다.
+// 등수 위에 자리(位)를 얹는다. 등수 하나는 그냥 숫자지만 자리는 자리다.
 // 어제의 순위로만 매기니 매일 갈리고, 갈리니까 매일 들어온다.
 // 한 칸 위까지 몇 계단·공덕 얼마인지를 숫자로 박아 둔다 — 그게 손을 움직인다.
 //
@@ -34,7 +34,7 @@ import {
   REALMS,
   type RealmColor,
 } from "@/lib/realm";
-import { loadMerit } from "@/lib/merit";
+import { loadMerit, rankByNeed } from "@/lib/merit";
 import { loadStore } from "@/lib/store";
 
 type Tab = "merit" | "sutra";
@@ -279,10 +279,12 @@ export default function RankPage() {
           </p>
         ) : (
           <>
-            {/* 육도 사다리 — 어디까지 왔고 다음 칸이 얼마인지 */}
+            {/* 자리 사다리 — 어디까지 왔고 다음 칸이 얼마인지.
+                문턱은 REALMS 가 쥐고 이름만 자리에서 가져온다(merit.rankByNeed).
+                육도는 오르는 계단이 아니라 벗어나야 할 굴레라, 등급표로 쓰지 않는다. */}
             <div className="rise mb-6 rounded-[14px] border border-ink-3 bg-ink-2/50 px-3 py-3.5">
               <p className="px-1 pb-3 text-[10.5px] tracking-[0.25em] text-hanji-faint">
-                六道 · 공덕이 곧 자리
+                位 · 공덕이 곧 자리
               </p>
               <div className="flex gap-1">
                 {REALMS.map((r) => {
@@ -300,7 +302,7 @@ export default function RankPage() {
                           on ? "text-gold" : got ? TONE[r.color] : "text-hanji-faint opacity-45"
                         }`}
                       >
-                        {r.mark}
+                        {rankByNeed(r.need).hanja}
                       </span>
                       <p className="mt-1.5 text-[9.5px] leading-none tabular-nums text-hanji-faint">
                         {r.need === 0 ? "시작" : won(r.need)}

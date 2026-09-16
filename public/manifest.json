@@ -4,8 +4,8 @@
   "description": "모두가 AI에게 묻는 시대, 화두는 당신에게 묻는다.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#eceef1",
-  "theme_color": "#eceef1",
+  "background_color": "#0d0b09",
+  "theme_color": "#0d0b09",
   "lang": "ko",
   "icons": [
     {
@@ -26,5 +26,13 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "id": "/",
+  "scope": "/",
+  "orientation": "portrait",
+  "categories": [
+    "lifestyle",
+    "education",
+    "health"
   ]
 }

@@ -57,7 +57,7 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
       { href: "/", label: "뜰", say: "화두를 받는 자리", Icon: LotusMark },
       { label: "사유의 방", say: "떠오르는 것을 적다", Icon: Banga, act: "notes" },
       { href: "/draw", label: "오늘의 운세", say: "한 장을 뒤집다", Icon: Lotus },
-      { href: "/rank", label: "육도 랭킹", say: "어제의 자리", Icon: Dharmachakra },
+      { href: "/rank", label: "정진 랭킹", say: "어제의 자리", Icon: Dharmachakra },
     ],
   },
   {

@@ -69,6 +69,11 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   sutra: 54,
   moment: 54,
   bowl: 21,
+  // 남의 초 앞에서 같이 손을 모으는 일.
+  // 「공덕 → 연꽃 → 초 → 공덕」으로 돌아오니 순환 아니냐는 말이 있었는데,
+  // 돌아오는 것은 초가 아니라 **마음**이다. 남이 지은 선을 기뻐하는 것이
+  // 그 자체로 공덕이라는 게 수희공덕(隨喜功德) — 보현행원의 다섯째 원이다.
+  // 그래서 값을 치른 초(연꽃)에는 공덕을 안 주고, 남의 초에 손 모으는 데만 준다.
   candle: 9,
   daily: 108,
 };
@@ -349,6 +354,20 @@ export function addMerit(
 // 처음 한 송이는 반드시 벌리게 두고, 열 송이는 못 벌게 막는다.
 export const LOTUS_PRICE = 6480;
 
+/**
+ * 공덕을 「바퀴」로 읽는다 — 108 이 이 앱의 하나뿐인 단위다.
+ *
+ * 화면에 6,480 · 2,160 · 432 · 108 이 한꺼번에 떠 있으면 통화가 여럿으로
+ * 보인다. 실은 전부 108 의 배수다(6,480 = 108×60, 2,160 = 108×20).
+ * 한 번이라도 그렇게 적어 두면 「108 이 뭔지」를 따로 설명할 일이 없다.
+ */
+export function rounds(n: number): number {
+  return Math.floor(Math.max(0, n) / ROUND);
+}
+
+/** 연꽃 한 송이가 몇 바퀴인가 — 예순 */
+export const LOTUS_ROUNDS = LOTUS_PRICE / ROUND;
+
 /** 지금 쓸 수 있는 공덕 — 쌓은 것에서 쓴 것을 뺀다 */
 export function meritBalance(l: MeritLedger = loadMerit()): number {
   return Math.max(0, l.total - (l.spent ?? 0));
@@ -391,8 +410,15 @@ export function spendMerit(n: number): boolean {
 /** 한 번 돌리는 몫 */
 export const GIVE_UNIT = 108;
 
-/** 하루에 돌릴 수 있는 횟수 */
-export const GIVE_PER_DAY = 3;
+/**
+ * 하루에 돌릴 수 있는 횟수.
+ *
+ * **막는 일은 이제 서버가 한다** — 한 자리에 하루 한 번, 자리가 여섯이라
+ * 하루 여섯 번이다(hallSpec.POUR_PER_SEAT_PER_DAY, /api/merit/give).
+ * 기기의 셈으로 막으면 기기를 바꿔 우회할 수 있고, 무엇보다 「오늘 몇 명」이
+ * 부풀어 버린다. 이 상수는 옛 화면이 남아 있을 때를 받쳐 주는 값으로만 둔다.
+ */
+export const GIVE_PER_DAY = 6;
 
 export const GIVE_KEY = "hwadu.give.v1";
 
@@ -477,12 +503,35 @@ export function giveMerit(to: string, n: number = GIVE_UNIT): MeritLedger | null
 }
 
 /**
- * 회향으로 얻는 적립 배수 — 108 돌릴 때마다 2%, 최대 20%.
+ * 회향으로 얻는 적립 배수 — **최근 이레 중 회향한 날수**로 잰다.
+ *
+ * 한동안 누적(given)으로 쟀다. 108 돌릴 때마다 +2%, 최대 +20% —
+ * 그러면 상한이 회향 열 번이고, 하루 세 번이면 **나흘째에 천장**이다.
+ * 설정에 묻혀 있을 땐 아무도 몰랐지만, 회향을 법당 맨 앞으로 끌어올리는
+ * 순간 「돌릴수록 빨라진다」는 약속이 나흘 만에 끝나고 닷새째부터는
+ * 아무 보람 없는 단추가 된다. 매일 올 자리를 만들면서 나흘짜리 곡선을
+ * 붙여 둘 수는 없다.
+ *
+ * 그래서 「얼마나 많이 했나」가 아니라 「요즘 하고 있나」로 바꿨다.
+ * 천장에 닿아도 유지하려면 계속 와야 하고, 하루 쉬면 이레 뒤 저절로
+ * 내려간다. 닦지 않으면 물러난다는 퇴전(退轉)과 같은 결이다.
+ *
+ * 값은 날마다 +3%, 이레를 다 채우면 ×1.21 — 옛 천장(×1.20)과 비슷하다.
  * 부적 배수와 곱해 쓴다.
  */
-export function giveBonus(l: MeritLedger = loadMerit()): number {
-  const steps = Math.floor((l.given ?? 0) / GIVE_UNIT);
-  return 1 + Math.min(0.2, steps * 0.02);
+export const GIVE_WINDOW = 7;
+
+export function giveBonus(_l: MeritLedger = loadMerit()): number {
+  void _l; // 셈이 장부에서 등(燈)으로 옮겨 갔다 — 부르던 쪽은 안 고치려고 남겨 둔다
+  const cut = Date.now() - GIVE_WINDOW * 86_400_000;
+  const days = new Set(loadLamps().filter((l) => l.at >= cut).map((l) => dayOf(l.at)));
+  return 1 + Math.min(0.21, days.size * 0.03);
+}
+
+/** 최근 이레 중 회향한 날수 — 화면에 「이레 중 나흘」로 적는다 */
+export function giveDays(): number {
+  const cut = Date.now() - GIVE_WINDOW * 86_400_000;
+  return new Set(loadLamps().filter((l) => l.at >= cut).map((l) => dayOf(l.at))).size;
 }
 
 // ── 진화(進化) — 공덕이 쌓이면 나무가 자란다 ───────────────────
@@ -504,6 +553,19 @@ export const RANKS = [
 ] as const;
 
 export type Rank = (typeof RANKS)[number];
+
+/**
+ * 문턱이 같은 자리를 찾는다 — 육도(realm.ts)와 이 사다리는 **문턱이 같다.**
+ *
+ * 화면에는 이쪽 이름만 쓴다. 육도는 오르는 계단이 아니라 벗어나야 할
+ * 굴레이고(목표는 천상도가 아니라 그 밖이다), 무엇보다 사람에게
+ * 「지금 당신은 아귀도입니다, 다음은 축생도입니다」라고 말할 수는 없다.
+ * 자리를 재는 셈(공덕 + 회향한 화두 수)은 realm.ts 가 그대로 쥐고,
+ * 이 함수는 그 결과에 붙일 **이름만** 바꿔 준다.
+ */
+export function rankByNeed(need: number): Rank {
+  return RANKS.find((r) => r.need === need) ?? RANKS[0];
+}
 
 // ── 뒷방 주인 ────────────────────────────────────────────────
 // 주인은 이 도량의 모든 자리를 열어 두고 본다. 자리를 올리려고 목탁을

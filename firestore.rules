@@ -7,13 +7,26 @@
 //   초 공양이 몇 날 동안 조용히 죽어 있었다(읽기 403). 기록이 없으면
 //   게시했는지 안 했는지 아무도 되짚을 수 없다. 기록이 곧 점검표다.
 //
+// 2026-09-17 v14:
+// · hall/{seatId} — 함께 켜는 초 여섯 자리(아픈 이·먼저 가신 분·시험·
+//   마음·멀어진 사이·모든 중생). **읽기는 누구나, 쓰기는 서버만.**
+//   모두가 겹쳐 쓰는 한 칸이라 브라우저에 열어 주면 콘솔 한 줄로
+//   오늘 공덕이 백만이 된다. /api/merit/give 가 트랜잭션으로 적는다.
+// · giving/{uid}_{날짜} — 하루 세 번 셈. 본인만 읽고, 쓰기는 서버만.
+// · gifts/{uid}_{표} — 같은 요청 두 번 막는 멱등표. 아무도 못 읽는다.
+//
+// 2026-09-17 v13:
+// · candles 등(tier 'light')의 until 상한을 8일 → 4일로. 초·등 모두 사흘만
+//   탄다(candleSpec.ts BURN_DAYS/LIGHT_DAYS). 49일은 뜻은 맞아도 법당에
+//   다시 올 까닭을 없앴다 — 오래 타는 것보다 자주 오는 쪽을 골랐다.
+//
 // 2026-09-16 v12:
 // · candles create — 브라우저는 tier 'light'(회향 등, 공짜)만 세운다.
 //   값이 드는 tier 'candle' 은 /api/candle/light 가 지갑 차감과 한
 //   트랜잭션으로 쓴다(Admin SDK). 나눠 쓰다 연꽃만 사라지던 길을 닫았다.
 //
 // 2026-09-16 v11:
-// · candles — 초 공양(49일)과 회향의 등(7일). 같이 빌기는 hapjang ±1 한 칸.
+// · candles — 초 공양과 회향의 등. 같이 빌기는 hapjang ±1 한 칸.
 // · isAdmin() 에 andrewjhshin@gmail.com 추가 —
 //   src/lib/config.ts 의 ADMIN_EMAILS 에는 있는데 규칙에만 빠져 있었다.
 //
@@ -422,9 +435,9 @@ service cloud.firestore {
         && request.resource.data.hapjang == 0
         && request.resource.data.until is int
         && request.resource.data.until > 0
-        // 등은 이레. 기기 시계가 조금 어긋나도 걸리지 않게 하루를 얹어 8일.
-        // (초의 49일 상한은 여기 없다 — 초는 서버가 제 시계로 잰다)
-        && request.resource.data.until <= request.time.toMillis() + 691200000;
+        // 등은 사흘. 기기 시계가 조금 어긋나도 걸리지 않게 하루를 얹어 4일.
+        // (초의 날수 상한은 여기 없다 — 초는 서버가 제 시계로 잰다)
+        && request.resource.data.until <= request.time.toMillis() + 345600000;
       // 같이 빌기 — 로그인한 사람이 ±1. 그 밖의 칸은 못 건드린다.
       allow update: if isAdmin()
         || (request.auth != null
@@ -468,6 +481,27 @@ service cloud.firestore {
 
     // 알림 발송 상한 (/api/push/*)
     match /notify-limits/{id} {
+      allow read, write: if false;
+    }
+
+    // ── 함께 켜는 초 — 회향이 모이는 여섯 자리 ──────────────
+    // 법당 문 앞의 촛대다. 누구나 보되 아무도 못 적는다.
+    // 적는 길은 /api/merit/give 하나뿐이고, 거기서 하루 세 번을 센다.
+    // (초 공양 candles 와 달리 문서가 여섯 개로 고정이라, 한 번
+    //  더럽혀지면 지우고 다시 세울 것이 없다 — 그래서 더 꽉 잠근다)
+    match /hall/{seatId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 하루 세 번 셈 — 내 것만 본다(오늘 몇 번 남았나를 앱이 묻는다)
+    match /giving/{id} {
+      allow read: if request.auth != null && id.split('_')[0] == request.auth.uid;
+      allow write: if false;
+    }
+
+    // 멱등표 — 서버끼리만 쓰는 표라 읽을 일도 없다
+    match /gifts/{id} {
       allow read, write: if false;
     }
   }

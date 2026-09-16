@@ -364,12 +364,12 @@ export default function Sidebar() {
             {/* 마이 페이지 · 내 도량 — 오른쪽 위.
                 걸음 뱃지는 아래 로그인 영역에만 — 여기에는 새 소식 점만 뜬다 */}
             {/* 연꽃 · 쪽지 — 낮/밤 단추가 있던 자리 */}
-            {/* 육도 랭킹 — 매일 보는 자리니 목록 속이 아니라 위 줄에 */}
+            {/* 정진 랭킹 — 매일 보는 자리니 목록 속이 아니라 위 줄에 */}
             <Link
               href="/rank"
               onClick={go("/rank")}
-              title="육도 랭킹"
-              aria-label="육도 랭킹"
+              title="정진 랭킹"
+              aria-label="정진 랭킹"
               className="p-1.5 text-hanji-faint transition-colors hover:text-gold-soft"
             >
               <Dharmachakra className="h-4 w-4" />

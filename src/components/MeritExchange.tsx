@@ -146,8 +146,12 @@ export default function MeritExchange() {
             </>
           )}
         </p>
-        <p className="shrink-0 text-[11px] tabular-nums text-hanji-faint">
+        {/* 6,480 이 어디서 온 수인지 한 번은 말해 준다 — 백팔의 예순 바퀴다.
+            이 앱의 수는 전부 108 의 배수인데(하루치 2,160 = 스무 바퀴),
+            화면이 그걸 한 번도 안 말해서 통화가 여럿인 것처럼 보였다. */}
+        <p className="shrink-0 text-right text-[11px] tabular-nums text-hanji-faint">
           {num(balance)} / {num(LOTUS_PRICE)}
+          <span className="block text-[10px] tracking-normal">백팔 예순 바퀴</span>
         </p>
       </div>
 

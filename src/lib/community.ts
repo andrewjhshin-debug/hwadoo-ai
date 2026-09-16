@@ -53,7 +53,7 @@ export type Post = {
   authorName: string;
   authorUid: string;
   gender?: "m" | "f" | null; // 음양 문양 — m=陽, f=陰 (안 골랐으면 없음)
-  rankHanja?: string | null; // 걸음 뱃지 한 글자(人·修·天) — 쓸 때의 걸음을 스냅샷
+  rankHanja?: string | null; // 걸음 뱃지 한 글자(尋·跡·牛) — 쓸 때의 걸음을 스냅샷
   deleted?: boolean; // 내려진 글 — 자리는 남고 댓글도 남는다
   hapjang: number;
   commentCount: number;
@@ -75,7 +75,7 @@ export type Comment = {
   authorName: string;
   authorUid: string;
   gender?: "m" | "f" | null; // 음양 문양
-  rankHanja?: string | null; // 걸음 뱃지 한 글자(人·修·天) — 쓸 때의 걸음을 스냅샷
+  rankHanja?: string | null; // 걸음 뱃지 한 글자(尋·跡·牛) — 쓸 때의 걸음을 스냅샷
   deleted?: boolean; // 지운 댓글 — '삭제된 댓글입니다'로 자리만 남는다
   parentId?: string | null; // 대댓글이면 어느 댓글에 단 것인지
   up?: number; // 좋아요
