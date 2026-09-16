@@ -158,11 +158,14 @@ export default function TempleProof({
         </div>
       )}
 
-      {/* 어떻게 인증되나 — 묻기 전에 말해 둔다 */}
+      {/* 어떻게 되는 일인가 — 묻기 전에 말해 둔다.
+          「위치(GPS)로 확인합니다」라고 적었더니 기계 설명서 같았다.
+          하는 사람 입장에서는 GPS 를 켜는 일이 아니라 **절에 가는 일**이다.
+          그 말로 적는다. */}
       {!said && (
         <p className="mt-2.5 break-keep text-[11.5px] leading-5 text-hanji-faint">
-          절에 닿으면 <span className="text-hanji-dim">위치(GPS)로 확인</span>하고
-          공덕을 드립니다. 하루 한 번.
+          <span className="text-hanji-dim">절에 도착해서 누르면</span> 인증됩니다.
+          하루 한 번, 공덕도 드려요.
         </p>
       )}
 
