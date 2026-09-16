@@ -1,16 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { goodsCount, liveItems, liveShelves, type Goods } from "@/lib/goods";
 
 // ─────────────────────────────────────────────────────────────
 // 굿즈 — 수행 곁에 둘 만한 물건들.
-// · 쿠팡 파트너스 링크로 잇는다 — iframe 배너 대신 우리 결의 격자 카드.
-// · 상품 이미지는 쿠팡 썸네일 서버(t5c.coupangcdn.com)의 주소를 그대로 쓴다.
-//   coupa.ng 링크를 따라가면 리다이렉트 주소의 image 파라미터에서 얻는다 —
-//   /thumbnails/remote/{W}x{H}ex/image/{경로} 꼴이라 크기는 주소로 조절.
-// · 격자 — 모바일 2칸, 넓어지면 3칸. 칸을 크게 잡아야 표지가 산다.
-// · 대가성 문구는 공정거래위원회 심사지침에 따른 필수 고지 — 지우면 안 된다.
-//   글자는 그대로 두고 자리만 맨 아래로 내렸다. 머리에 설명이 겹치면
-//   물건이 안 보이기 때문. (문구 자체는 한 글자도 손대지 않는다)
+//
+// ■ 무엇이 달라졌나
+//   예전엔 물건 셋이 격자 한 판에 나란했다. 책 · 책 · 책. 그래서 이 자리가
+//   「제휴 링크 세 개」로만 읽혔다. 물건은 물건끼리 놓으면 광고가 되고,
+//   **하는 일 곁에 놓으면 준비물**이 된다. 그래서 선반을 앱의 방에 맞췄다 —
+//   절하는 자리 · 소리 내는 것 · 손에 쥐는 것 · 사르는 것 · 읽고 쓰는 것 ·
+//   방에 두는 것. 선반마다 「왜 여기 있는지」 한 줄과 그 방으로 가는 문을 단다.
+//
+// ■ 목록은 여기 없다
+//   물건은 src/lib/goods.ts 에 있다. 링크가 빈 물건은 그리지 않는다 —
+//   링크를 적는 순간 저절로 걸린다(빈 칸을 지우거나 되돌릴 일이 없다).
+//
+// ■ 그림이 없는 물건
+//   쿠팡 썸네일 주소를 못 구했으면 비워 둬도 된다. 그 자리에 한자 도장을
+//   세운다. 빈 회색 네모보다 낫고, 격자 높이도 안 무너진다.
+//
+// ■ 대가성 문구는 공정거래위원회 심사지침에 따른 필수 고지다 — 지우면 안 된다.
+//   글자는 한 자도 손대지 않고 자리만 맨 아래에 둔다.
 // ─────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
@@ -23,48 +34,6 @@ export const metadata: Metadata = {
     url: "/goods",
   },
 };
-
-type Goods = {
-  id: string;
-  tag: string; // 책 · 좌복 · 향 …
-  name: string;
-  note: string; // 한두 문장 — 담백하게 (세 줄에서 잘린다)
-  img: string; // 쿠팡 상품 이미지 (정사각 썸네일)
-  url: string; // 쿠팡 파트너스 직행 링크 (link.coupang.com/a/…) —
-  // coupa.ng 는 배너 위젯 페이지로 가므로 쓰지 않는다.
-  // 리다이렉트 주소의 link 파라미터에서 직행 링크를 얻는다 (추적 코드 포함).
-};
-
-const GOODS: Goods[] = [
-  {
-    id: "book-buddha-words",
-    tag: "책",
-    name: "초역 부처의 말",
-    note: "코이케 류노스케. 부처의 말을 짧게 추려, 아무 쪽이나 펴서 읽기 좋습니다.",
-    img: "https://t5c.coupangcdn.com/thumbnails/remote/492x492ex/image/retail-product-api/A00077021/250194790/268392228/main/9791193506516_L.jpg",
-    url: "https://link.coupang.com/a/goeYjLKPpQ",
-  },
-  {
-    id: "book-buddha-lessons",
-    tag: "책",
-    name: "부처님 말씀대로 살아보니",
-    note: "토니 페르난도. 인생이 가벼워지는 15가지 불교 수업.",
-    img: "https://t5c.coupangcdn.com/thumbnails/remote/492x492ex/image/retail/images/63160356377690-742fecc5-eefd-4e0a-a330-932d18c12656.jpg",
-    url: "https://link.coupang.com/a/gojlTssRvo",
-  },
-  {
-    id: "book-sea-broken",
-    tag: "책",
-    name: "천 번을 부서져도 그대는 여전히 바다다",
-    note: "정상교. 내 삶을 사랑하게 하는 붓다의 말.",
-    img: "https://t5c.coupangcdn.com/thumbnails/remote/492x492ex/image/retail-product-api/A00077021/356253657/377147819/main/9791191731798_L.jpg",
-    url: "https://link.coupang.com/a/grs88qXt0K",
-  },
-  // ── 받아 둔 링크 두 개 — 상품명·이미지가 오면 위 형식대로 넣는다 ──
-  // 쿠팡은 봇 접근을 막아 상품명과 썸네일을 자동으로 못 읽어 온다.
-  //   https://link.coupang.com/a/g2v8SgScyO  (상품 8123777368 / item 23053834471)
-  //   https://link.coupang.com/a/g2wbnn4BO0  (상품 9181647726 / item 27078016787)
-];
 
 /** 바깥으로 나가는 링크 표시 — 이모지 대신 직접 그린 화살 */
 function OutArrow() {
@@ -85,7 +54,75 @@ function OutArrow() {
   );
 }
 
+/**
+ * 그림 자리. 사진이 있으면 사진, 없으면 선반의 도장 글자.
+ * 도장은 가운데에 크게 하나 — 작게 넣으면 「그림이 안 떴다」로 보인다.
+ */
+function Cover({ g, hanja }: { g: Goods; hanja: string }) {
+  if (g.img) {
+    return (
+      <span className="block overflow-hidden bg-ink-2">
+        {/* 외부 CDN 이미지 — next/image 없이 그대로 단다 */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={g.img}
+          alt={g.name}
+          loading="lazy"
+          className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+        />
+      </span>
+    );
+  }
+  return (
+    <span
+      className="flex aspect-square w-full items-center justify-center bg-ink-2"
+      style={{
+        backgroundImage:
+          "radial-gradient(70% 70% at 50% 40%, rgba(217,180,91,.09), transparent 70%)",
+      }}
+      aria-hidden
+    >
+      <span className="font-serif text-[40px] font-light leading-none text-gold/35 transition-colors duration-500 group-hover:text-gold/60">
+        {g.seal ?? hanja}
+      </span>
+    </span>
+  );
+}
+
+function Card({ g, hanja }: { g: Goods; hanja: string }) {
+  return (
+    <a
+      href={g.url}
+      target="_blank"
+      rel="nofollow sponsored noopener noreferrer"
+      className="group flex flex-col overflow-hidden rounded-[14px] border border-ink-3 bg-ink-2/50 transition-colors hover:border-gold/40"
+    >
+      <Cover g={g} hanja={hanja} />
+      <span className="flex flex-1 flex-col p-3">
+        <span className="line-clamp-2 break-keep text-[13px] leading-5 text-hanji">
+          {g.name}
+        </span>
+        <span className="mt-1 line-clamp-3 break-keep text-[11px] leading-[17px] text-hanji-faint">
+          {g.note}
+        </span>
+        {/* 갈래와 화살을 한 줄로 눌러 둔다 — 글줄 수를 늘리지 않으려고 */}
+        <span className="mt-auto flex items-center justify-between gap-2 pt-3">
+          <span className="rounded-full border border-gold/30 px-2 py-px text-[9px] leading-tight tracking-wider text-gold-soft">
+            {g.tag}
+          </span>
+          <span className="text-hanji-faint transition-colors group-hover:text-gold">
+            <OutArrow />
+          </span>
+        </span>
+      </span>
+    </a>
+  );
+}
+
 export default function GoodsPage() {
+  const shelves = liveShelves();
+  const n = goodsCount();
+
   return (
     <div className="mx-auto w-full max-w-4xl flex-1 px-6 py-12">
       {/* 머리 — 한자 뱃지 + 제목 두 겹까지만. 오른쪽 큰 숫자가 설명 한 줄을 대신한다 */}
@@ -100,57 +137,48 @@ export default function GoodsPage() {
         </div>
         <p className="shrink-0 text-right leading-none">
           <span className="font-serif text-[52px] font-light leading-none text-hanji sm:text-[68px]">
-            {GOODS.length}
+            {n}
           </span>
           <span className="ml-1 text-[12px] text-hanji-faint">가지</span>
         </p>
       </header>
 
-      {/* 격자 — 한 물건이 한 칸, 아래로 계속 이어진다 */}
-      <div className="rise rise-d1 mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {GOODS.map((g) => (
-          <a
-            key={g.id}
-            href={g.url}
-            target="_blank"
-            rel="nofollow sponsored noopener noreferrer"
-            className="group flex flex-col overflow-hidden rounded-[14px] border border-ink-3 bg-ink-2/50 transition-colors hover:border-gold/40"
-          >
-            <span className="block overflow-hidden bg-ink-2">
-              {/* 외부 CDN 이미지 — next/image 없이 그대로 단다 */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={g.img}
-                alt={g.name}
-                loading="lazy"
-                className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-              />
-            </span>
-            <span className="flex flex-1 flex-col p-3">
-              <span className="line-clamp-2 break-keep text-[13px] leading-5 text-hanji">
-                {g.name}
+      {/* 선반마다 한 칸 — 이름·까닭 한 줄·그 방으로 가는 문, 그리고 격자 */}
+      {shelves.map((s, i) => (
+        <section key={s.id} className={`rise rise-d${Math.min(i + 1, 3)} mt-12`}>
+          <div className="flex items-baseline justify-between gap-3 border-b border-ink-3 pb-2.5">
+            <h2 className="flex items-baseline gap-2">
+              <span className="font-serif text-[13px] font-light text-gold/70">
+                {s.hanja}
               </span>
-              {/* 세 줄까지 — 칸이 커졌으니 설명을 잘라 없애지 않고 다 보여 준다 */}
-              <span className="mt-1 line-clamp-3 break-keep text-[11px] leading-[17px] text-hanji-faint">
-                {g.note}
+              <span className="font-serif text-[17px] font-light text-hanji">
+                {s.title}
               </span>
-              {/* 갈래와 화살을 한 줄로 눌러 둔다 — 글줄 수를 늘리지 않으려고 */}
-              <span className="mt-auto flex items-center justify-between gap-2 pt-3">
-                <span className="rounded-full border border-gold/30 px-2 py-px text-[9px] leading-tight tracking-wider text-gold-soft">
-                  {g.tag}
-                </span>
-                <span className="text-hanji-faint transition-colors group-hover:text-gold">
-                  <OutArrow />
-                </span>
-              </span>
-            </span>
-          </a>
-        ))}
-      </div>
+            </h2>
+            {s.href && (
+              <Link
+                href={s.href}
+                className="shrink-0 text-[11px] text-hanji-faint transition-colors hover:text-gold"
+              >
+                그 자리로 →
+              </Link>
+            )}
+          </div>
+          <p className="mt-2.5 break-keep text-[12px] leading-[19px] text-hanji-dim">
+            {s.why}
+          </p>
+
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {liveItems(s).map((g) => (
+              <Card key={g.id} g={g} hanja={s.hanja} />
+            ))}
+          </div>
+        </section>
+      ))}
 
       {/* 대가성 고지 — 공정거래위원회 심사지침에 따른 필수 문구.
           문장은 원문 그대로, 자리만 맨 아래로 내리고 작게 둔다 */}
-      <div className="mt-10 rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3.5">
+      <div className="mt-12 rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3.5">
         <p className="break-keep text-center text-[12px] leading-6 text-hanji-dim">
           받은 수수료의 <span className="text-gold">일부는 사찰과 불교 단체에 기부</span>합니다.
         </p>
