@@ -157,21 +157,47 @@ function Stick({
             }}
           />
         )}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/obj/candle.png"
-          alt=""
-          aria-hidden
-          className="relative block h-auto w-full object-contain"
-          style={{
-            transform: `scale(${scale})`,
-            transformOrigin: "50% 100%",
-            filter: left
-              ? `drop-shadow(0 0 ${8 + left * 4}px hsla(${w.hue},80%,66%,.3))`
-              : "grayscale(.7) brightness(.5)",
-            opacity: left ? 1 : 0.45,
-          }}
-        />
+        <span
+          className="relative block w-full"
+          style={{ transform: `scale(${scale})`, transformOrigin: "50% 100%" }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/obj/candle.png"
+            alt=""
+            aria-hidden
+            className="block h-auto w-full object-contain"
+            style={{
+              filter: left
+                ? `drop-shadow(0 0 ${8 + left * 4}px hsla(${w.hue},80%,66%,.3))`
+                : "grayscale(.7) brightness(.5)",
+              opacity: left ? 1 : 0.45,
+            }}
+          />
+        {/* 빛깔 한 겹 — 그림 위에 얹고 초 모양대로만 오려 낸다(mask).
+            무엇을 빌었는지가 무리에만 스미니 줄지어 서면 다 같은 초였다.
+            섞는 결은 color 다 — 밝고 어두운 결(3D 음영)은 그대로 두고
+            색만 갈아 끼운다. 옅게 얹어야 밀랍이 밀랍으로 남는다. */}
+          {left > 0 && (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background: `hsl(${w.hue} 72% 58%)`,
+                mixBlendMode: "color",
+                opacity: 0.42,
+                WebkitMaskImage: "url(/obj/candle.png)",
+                maskImage: "url(/obj/candle.png)",
+                WebkitMaskSize: "contain",
+                maskSize: "contain",
+                WebkitMaskRepeat: "no-repeat",
+                maskRepeat: "no-repeat",
+                WebkitMaskPosition: "center",
+                maskPosition: "center",
+              }}
+            />
+          )}
+        </span>
       </span>
       <span className="mt-[3px] max-w-[64px] truncate text-[9.5px] leading-4 text-hanji-faint">
         {c.forName}
@@ -382,7 +408,11 @@ function Light({
           ))}
         </div>
 
-        <p className="mt-6 text-[11px] tracking-[0.2em] text-hanji-faint">누구를 위해</p>
+        {/* 「누구를 위해」만 두면 남의 이름만 받는 칸으로 읽힌다.
+            제 이름으로 켜는 일도 흔하니 둘 다 열어 둔다. */}
+        <p className="mt-6 text-[11px] tracking-[0.2em] text-hanji-faint">
+          누구를 위해 <span className="tracking-normal text-hanji-faint/70">— 내 이름도 됩니다</span>
+        </p>
         <div className="mt-2 flex gap-2">
           <input
             value={forName}
@@ -539,10 +569,13 @@ export default function CandleHall() {
         <LotusCount className="shrink-0" />
       </div>
 
+      {/* 「내 이름이 아니라 누군가의 이름」이라고 못 박아 두었다. 틀렸다 —
+          절에서 제 이름으로 초를 켜는 일은 흔하고, 막을 까닭도 없다.
+          이름을 적고 한 줄 비는 자리라고만 말한다. */}
       <p className="mt-6 break-keep text-center text-[13px] leading-7 text-hanji-dim">
         법당 한쪽에 초를 켜 두고 옵니다.
         <br />
-        <span className="text-hanji">내 이름이 아니라 누군가의 이름</span>을 적는 자리입니다.
+        <span className="text-hanji">이름 하나와 바라는 한 줄</span>을 적는 자리입니다.
       </p>
 
       <div className="mt-5 flex items-center justify-center gap-2">
@@ -563,13 +596,8 @@ export default function CandleHall() {
         <p className="mt-4 text-center text-[12px] text-gold-soft">{said}</p>
       )}
 
-      {/* ── 함께 켜는 초 — 회향이 모이는 여섯 자리 ──
-          초 공양(연꽃 → 남의 이름)보다 먼저 세운다. 공덕만 있으면 값 없이
-          할 수 있는 일이라, 처음 온 사람이 붙을 자리는 이쪽이다. */}
-      <HallSeats />
-
       {/* ── 촛대 ── */}
-      <section className="mt-10">
+      <section className="mt-9">
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">타고 있는 초</p>
         {/* 촛대 — 모이면 빛이 고여야 한다. 초 하나하나가 예쁜 것보다
             **여럿이 섰을 때 한 덩어리로 타오르는 것**이 법당의 그림이다.
@@ -626,6 +654,13 @@ export default function CandleHall() {
           <div className="mt-2 h-[6px] rounded-full bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
         </div>
       </section>
+
+
+      {/* ── 함께 켜는 초 — 회향이 모이는 여섯 자리 ──
+          한때 촛대보다 위에 세웠다. 값 없이 할 수 있는 일이라 처음 온
+          사람이 붙을 자리라 여겼는데, 법당에 들어와 제일 먼저 볼 것은
+          **이미 타고 있는 불**이다. 남이 켜 둔 불을 보고 나서 내 차례가 온다. */}
+      <HallSeats />
 
       {/* ── 내가 올린 초 ── 접어 둔다.
           자루가 늘면 이 목록이 법당보다 길어져 화면이 장부가 된다.

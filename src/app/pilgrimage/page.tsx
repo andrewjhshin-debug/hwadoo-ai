@@ -211,20 +211,22 @@ export default function PilgrimagePage() {
         <p className="min-w-0 flex-1 truncate text-center text-[13px] tracking-[0.28em] text-gold-soft sm:tracking-[0.5em]">
           巡禮 · 손잡고 절로
         </p>
-        <span className="w-0 shrink-0 text-right text-[11px] text-hanji-faint sm:w-[86px]">
+        {/* 오른쪽 위 — 손안에서도 보인다. 제목 아래 가운데에 한 줄로 깔았더니
+            제목과 큰 글 사이를 가로막았다. 모서리에 작게 붙는 편이 맞다. */}
+        <span
+          title="지금 도량에 들어와 있는 사람"
+          className="inline-flex shrink-0 items-center gap-1 rounded-full border border-ink-3 px-2.5 py-1 text-[11px] text-hanji-faint sm:w-[86px] sm:justify-center"
+        >
           {online !== null && online > 0 ? (
             <>
+              <span aria-hidden className="text-gold-soft">◍</span>
               <span className="tabular-nums text-gold-soft">{online}</span>명
             </>
-          ) : null}
+          ) : (
+            <span aria-hidden className="opacity-0">·</span>
+          )}
         </span>
       </div>
-      {online !== null && online > 0 && (
-        <p className="rise mt-1 text-center text-[11px] text-hanji-faint">
-          지금 도량에 <span className="tabular-nums text-gold-soft">{online}</span>명이
-          들어와 있습니다
-        </p>
-      )}
       <p className="question-glow rise rise-d1 mt-7 text-center font-serif text-[26px] font-light leading-[1.7] text-hanji">
         가까운 절에,
         <br />

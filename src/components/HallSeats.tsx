@@ -129,6 +129,28 @@ function BigCandle({ hue, on }: { hue: number; on: number }) {
           transition: "filter .7s ease-out, opacity .7s",
         }}
       />
+        {/* 빛깔 한 겹 — 그림 위에 얹고 초 모양대로만 오려 낸다(mask).
+            무엇을 빌었는지가 무리에만 스미니 줄지어 서면 다 같은 초였다.
+            섞는 결은 color 다 — 밝고 어두운 결(3D 음영)은 그대로 두고
+            색만 갈아 끼운다. 옅게 얹어야 밀랍이 밀랍으로 남는다. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `hsl(${hue} 72% 58%)`,
+          mixBlendMode: "color",
+          opacity: on > 0 ? 0.44 : 0.16,
+          transition: "opacity .7s",
+          WebkitMaskImage: "url(/obj/candle.png)",
+          maskImage: "url(/obj/candle.png)",
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+        }}
+      />
     </span>
   );
 }
