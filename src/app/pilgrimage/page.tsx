@@ -19,8 +19,8 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import LotusCount from "@/components/LotusCount";
 import { useRouter } from "next/navigation";
+import { watchOnlineCount } from "@/lib/presence";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import TempleProof from "@/components/TempleProof";
 import {
@@ -106,6 +106,9 @@ function RoofMark({ className = "" }: { className?: string }) {
 export default function PilgrimagePage() {
   const router = useRouter();
   const [events, setEvents] = useState<PilgrimEvent[]>([]);
+  // 지금 도량에 몇이 들어와 있나 — 같이 갈 사람을 찾는 방이라 여기가 제자리다
+  const [online, setOnline] = useState<number | null>(null);
+  useEffect(() => watchOnlineCount(setOnline), []);
   const [region, setRegion] = useState<Region | "전체">("전체");
   const [stayOnly, setStayOnly] = useState(false);
 
@@ -197,17 +200,31 @@ export default function PilgrimagePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-16 pt-8 md:pt-12">
-      {/* ── 머리 — 두 겹으로만. 오른쪽에 내 연꽃을 걸어 둔다:
-             인연에 손을 내밀 때 한 송이씩 나가므로, 쓰는 자리에서 보여야 한다.
-             알약을 absolute 로 띄워 뒀더니 공덕까지 붙어 넓어지면서 제목 위로
-             올라탔다. 이제 제자리를 준다 — 제목은 남은 폭 한가운데. ── */}
+      {/* ── 머리 ──
+             연꽃·공덕 알약을 여기 걸어 뒀는데, 이 방에서 쓰는 셈이 아니다.
+             연꽃은 법당과 쪽지에서 쓰고, 여기서 하는 일은 절에 가는 것이다.
+             대신 **지금 도량에 몇이 들어와 있는지**를 건다 — 떠 있는 단추
+             어깨에 붙은 수보다 여기가 제자리다. 혼자가 아니라는 말이
+             「같이 갈 사람」을 찾는 방의 첫 줄에 있어야 한다. */}
       <div className="rise flex items-center gap-2">
         <span aria-hidden className="w-0 shrink-0 sm:w-[86px]" />
         <p className="min-w-0 flex-1 truncate text-center text-[13px] tracking-[0.28em] text-gold-soft sm:tracking-[0.5em]">
           巡禮 · 손잡고 절로
         </p>
-        <LotusCount className="shrink-0" />
+        <span className="w-0 shrink-0 text-right text-[11px] text-hanji-faint sm:w-[86px]">
+          {online !== null && online > 0 ? (
+            <>
+              <span className="tabular-nums text-gold-soft">{online}</span>명
+            </>
+          ) : null}
+        </span>
       </div>
+      {online !== null && online > 0 && (
+        <p className="rise mt-1 text-center text-[11px] text-hanji-faint">
+          지금 도량에 <span className="tabular-nums text-gold-soft">{online}</span>명이
+          들어와 있습니다
+        </p>
+      )}
       <p className="question-glow rise rise-d1 mt-7 text-center font-serif text-[26px] font-light leading-[1.7] text-hanji">
         가까운 절에,
         <br />

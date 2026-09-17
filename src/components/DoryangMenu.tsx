@@ -32,7 +32,6 @@ import {
   LotusPond,
   Moment,
   Mandala,
-  Moktak,
   Yeomju,
   Person,
   SeonMaster,
@@ -189,12 +188,8 @@ export default function DoryangMenu() {
             />
           ))}
         </span>
-        {/* 지금 도량에 있는 사람 수 — 판이 열려 있을 땐 가린다 */}
-        {!open && online !== null && online > 0 && (
-          <span className="absolute -right-1 -top-1 grid h-[19px] min-w-[19px] place-items-center rounded-full border border-gold/45 bg-ink px-1 text-[10px] font-medium leading-none tabular-nums text-gold">
-            {online > 99 ? "99+" : online}
-          </span>
-        )}
+        {/* 접속자 수는 여기 안 적는다 — 단추 어깨에 숫자만 있으면
+            무슨 수인지 알 길이 없다. 「손잡고 절로」 머리로 옮겼다. */}
       </button>
 
       {/* ── 판 ── */}

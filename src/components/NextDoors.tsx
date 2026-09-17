@@ -26,7 +26,6 @@ import {
   LotusMark,
   LotusPond,
   Mandala,
-  Moktak,
   Yeomju,
   Person,
   Seogo,

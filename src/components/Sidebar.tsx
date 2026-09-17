@@ -45,12 +45,17 @@ import {
   LotusMark,
   LotusPond,
   Mandala,
-  Moktak,
   SeonMaster,
   Seogo,
   Person,
   Teacup,
   Yeonkkot,
+  Baru,
+  BodhiLeaf,
+  Chotbul,
+  Jeol,
+  Jeol108,
+  Yeomju,
 } from "./icons";
 
 type NavItem = {
@@ -68,14 +73,14 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/gathering", label: "인연 — 함께 갈 이", Icon: Person },
   { href: "/mandala", label: "만다라", Icon: Mandala },
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
-  { href: "/empty", label: "비움", Icon: Moktak },
+  { href: "/empty", label: "비움", Icon: Baru },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
-  { href: "/moktak", label: "목탁·염주·싱잉볼", Icon: Moktak },
-  { href: "/sambae", label: "삼배", Icon: Banga },
-  { href: "/bae", label: "백팔배", Icon: Banga },
+  { href: "/moktak", label: "목탁·염주·싱잉볼", Icon: Yeomju },
+  { href: "/sambae", label: "삼배", Icon: Jeol },
+  { href: "/bae", label: "백팔배", Icon: Jeol108 },
   { href: "/sutra", label: "경전 외우기", Icon: Book },
   { href: "/draw", label: "오늘의 운세", Icon: LotusMark },
-  { href: "/candle", label: "법당 — 초 공양", Icon: LotusMark },
+  { href: "/candle", label: "법당 — 초 공양", Icon: Chotbul },
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/archive", label: "서고 — 지난 화두", Icon: Seogo },
 ];
