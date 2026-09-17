@@ -88,6 +88,41 @@ export type Comment = {
 // 한 번에 보여 주는 글 수
 const PAGE = 60;
 
+// ── 마지막으로 본 목록을 적어 둔다 ────────────────────────────
+//
+// 글이 「지워졌다」고 느끼는 일이 있었다. 실제로는 하나도 안 지워졌고,
+// 읽어 오는 길이 한 번 막혔을 뿐이었다. 그런데 화면에는 빈 목록이 떴다 —
+// 사람 눈에는 그게 곧 「내 글이 사라졌다」다.
+//
+// 그래서 성공할 때마다 목록을 서랍에 적어 둔다. 다음에 못 읽어 오면
+// 빈 화면 대신 **마지막으로 본 목록**을 내놓는다. 낡은 것을 보여 주는 편이
+// 없는 것처럼 보이는 것보다 낫다 — 글은 서버에 그대로 있으니까.
+const CACHE_KEY = "hwadu.posts.cache.v1";
+
+function cacheKey(board: Board) {
+  return `${CACHE_KEY}.${board}`;
+}
+
+function putCache(board: Board, posts: Post[]) {
+  try {
+    window.localStorage.setItem(cacheKey(board), JSON.stringify(posts.slice(0, 60)));
+  } catch {
+    /* 서랍이 막혀도 목록은 이미 보여 줬다 */
+  }
+}
+
+/** 마지막으로 본 목록 — 없으면 빈 배열 */
+export function cachedPosts(board: Board = "community"): Post[] {
+  try {
+    const raw = window.localStorage.getItem(cacheKey(board));
+    if (!raw) return [];
+    const v = JSON.parse(raw) as unknown;
+    return Array.isArray(v) ? (v as Post[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchPosts(board: Board = "community"): Promise<Post[]> {
   let posts: Post[];
   try {
@@ -110,8 +145,14 @@ export async function fetchPosts(board: Board = "community"): Promise<Post[]> {
   // board 필드가 붙기 전의 옛 글은 연지원 소속인데 where로는 잡히지 않는다.
   // 옛 글은 모두 board가 붙은 글보다 오래되었으므로, 목록이 덜 찼을 때만 훑어 합친다.
   // (옛 글에 board: "community"를 채워 넣는 일회성 정리가 끝나면 이 갈래는 지워도 된다)
-  if (board === "community" && posts.length < PAGE) return sweepLegacy(board, posts);
-  return posts.slice(0, PAGE);
+  if (board === "community" && posts.length < PAGE) {
+    const merged = await sweepLegacy(board, posts);
+    putCache(board, merged);
+    return merged;
+  }
+  const out = posts.slice(0, PAGE);
+  putCache(board, out);
+  return out;
 }
 
 // 최신 200개를 받아 board로 거른 뒤 이미 받은 글과 합친다 (board 없는 옛 글 포함)
@@ -126,7 +167,9 @@ async function sweepLegacy(board: Board, found: Post[]): Promise<Post[]> {
     if ((p.board ?? "community") === board && !seen.has(p.id)) posts.push(p);
   }
   posts.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
-  return posts.slice(0, PAGE);
+  const out = posts.slice(0, PAGE);
+  putCache(board, out);
+  return out;
 }
 
 export async function createPost(title: string, body: string, board: Board = "community") {

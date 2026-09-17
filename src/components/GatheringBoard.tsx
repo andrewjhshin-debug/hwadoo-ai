@@ -27,6 +27,7 @@ import {
   deletePost,
   fetchComments,
   fetchMyLike,
+  cachedPosts,
   fetchPosts,
   GATHERING_CATEGORIES,
   likePost,
@@ -422,7 +423,13 @@ export default function GatheringBoard({
         setPosts(list);
         setLoadError(false);
       })
-      .catch(() => setLoadError(true));
+      .catch(() => {
+        // 못 읽어 왔다고 빈 화면을 내놓지 않는다 — 마지막으로 본 목록을 세운다.
+        // 글은 서버에 그대로 있다. 낡은 것을 보여 주는 편이 없는 것처럼
+        // 보이는 것보다 낫다.
+        setPosts((now) => now ?? cachedPosts("gathering"));
+        setLoadError(true);
+      });
   };
   useEffect(refresh, []);
 
@@ -475,6 +482,13 @@ export default function GatheringBoard({
 
   // 글쓰기 자격 — 로그인 + 1회향 (글·댓글 공통)
   const qualified = !!user && returnedCount >= 1;
+
+  // 지금 무언가 거르고 있는가 — 「없다」와 「걸러서 안 보인다」를 가르는 표
+  const filtering = genderFilter !== "all" || categoryFilter !== "all";
+  const clearFilters = () => {
+    setGenderFilter("all");
+    setCategoryFilter("all");
+  };
 
   const sorted = useMemo(() => {
     const list = (posts ?? []).filter(
@@ -1414,6 +1428,16 @@ export default function GatheringBoard({
             />
             양만 보기
           </label>
+          {/* 거르고 있으면 눈에 걸리게 — 켜 둔 줄 모르고 「글이 없어졌다」고
+              여기는 일이 있었다. 누르면 한 번에 풀린다. */}
+          {filtering && (
+            <button
+              onClick={clearFilters}
+              className="ml-1 shrink-0 rounded-full border border-gold/55 bg-gold/15 px-2.5 py-1 text-[11px] text-gold transition-colors hover:bg-gold/25"
+            >
+              거르는 중 · 풀기 ✕
+            </button>
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
         {/* 연꽃 잔고 — 누르면 연꽃 공양(구매)으로 */}
@@ -1438,13 +1462,47 @@ export default function GatheringBoard({
       </div>
 
       <ul className="divide-y divide-ink-3/60 border-y border-ink-3/60">
-        {posts === null ? (
+        {/* ★ 못 읽어 온 것을 먼저 본다.
+            앞서는 posts === null 을 먼저 보느라, 읽기가 엎어지면
+            「살펴보는 중…」에 영영 갇혔다. */}
+        {loadError ? (
+          <li className="flex flex-col items-start gap-2.5 px-4 py-6">
+            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+              지금 목록을 불러오지 못했습니다.
+              <br />
+              <span className="text-hanji-faint">
+                글은 그대로 있습니다 — 사라진 것이 아닙니다.
+              </span>
+            </p>
+            <button
+              onClick={refresh}
+              className="rounded-full border border-gold/45 px-4 py-2 text-[12px] text-gold transition-colors hover:bg-gold/10"
+            >
+              다시 불러오기
+            </button>
+          </li>
+        ) : posts === null ? (
           <li className="px-4 py-4 text-[13px] leading-7 text-hanji-faint">
             글을 살펴보는 중…
           </li>
-        ) : loadError ? (
-          <li className="px-4 py-4 text-[13px] leading-7 text-hanji-faint">
-            게시판이 잠시 닫혀 있습니다. 잠시 후 다시 들러 주세요.
+        ) : sorted.length === 0 && filtering ? (
+          /* ★ 거른 탓에 안 보이는 것을 「없다」고 말하면 안 된다.
+              「음만 보기」를 켜 둔 채 「아직 아무도 없네요」를 보고
+              **글이 지워진 줄 알았다.** 있는 것을 없다고 한 셈이다. */
+          <li className="flex flex-col items-center gap-3 px-4 py-10">
+            <p className="break-keep text-center text-[13.5px] leading-7 text-hanji-dim">
+              거른 조건에 맞는 글이 없습니다.
+              <br />
+              <span className="text-hanji-faint">
+                글 {(posts ?? []).filter((p) => !p.deleted).length}건이 걸러져 있습니다.
+              </span>
+            </p>
+            <button
+              onClick={clearFilters}
+              className="rounded-full border border-gold/50 px-5 py-2 text-[12.5px] text-gold transition-colors hover:bg-gold/12"
+            >
+              전체 보기
+            </button>
           </li>
         ) : sorted.length === 0 ? (
           <li className="flex flex-col items-center gap-3 px-4 py-12">
