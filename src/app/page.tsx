@@ -917,21 +917,23 @@ export default function Home() {
               className="text-hanji"
             />
           </div>
-          {/* 두 문을 나란히 — 떠 있는 동그란 단추는 뗐다.
+          {/* 두 문을 위아래로 — 떠 있는 동그란 단추는 뗐다.
               화면 구석에 혼자 떠 있으면 무슨 단추인지 알 수가 없고,
-              물음만 남기자는 이 화면의 뜻과도 어긋난다. */}
-          <div className="mt-12 flex items-center gap-2.5">
+              물음만 남기자는 이 화면의 뜻과도 어긋난다.
+              나란히 놓았더니 둘이 같은 무게로 보였는데, 이 화면에서 할 일은
+              물음을 받아 적는 쪽이다. 사유의 방을 아래에 크게 세운다. */}
+          <div className="mt-11 flex w-full max-w-[320px] flex-col items-center gap-3">
             <button
               onClick={() => setFocusMode(false)}
-              className="tap rounded-full border border-ink-3 px-6 py-3 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
+              className="tap rounded-full border border-ink-3 px-6 py-2.5 text-[11px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
             >
               되돌아가기
             </button>
             <button
               onClick={() => setNotesOpen(true)}
-              className="tap flex items-center gap-2 rounded-full border border-gold/35 px-5 py-3 text-[11.5px] tracking-[0.2em] text-gold-soft transition-colors hover:border-gold/70 hover:text-gold"
+              className="tap flex w-full items-center justify-center gap-2.5 rounded-full border border-gold/45 bg-gold/[0.07] px-6 py-4 text-[14px] tracking-[0.18em] text-gold-soft transition-colors hover:border-gold/75 hover:bg-gold/15 hover:text-gold"
             >
-              <Banga className="h-4 w-4" />
+              <Banga className="h-5 w-5" />
               사유의 방
             </button>
           </div>
