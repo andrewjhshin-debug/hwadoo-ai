@@ -96,48 +96,38 @@ function saveName(seat: string, day: string, name: string) {
 // ── 그림 ────────────────────────────────────────────────────
 
 /**
- * 큰 초 한 자루 — 자리마다 하나.
+ * 큰 초 한 자루 — 자리마다 하나. 그림 한 장(3D 밀랍 + 금빛 연꽃 받침).
+ *
  * `on` 은 1 을 넘을 수 있다(hallSpec.halo). 자르지 않고 그대로 태워야
  * 백 사람 모인 자리가 열 사람 자리보다 실제로 크게 탄다.
+ * 초 자체는 안 물들인다 — 무엇을 빈 자리인지는 뒤에 고인 빛으로만 스민다.
  */
 function BigCandle({ hue, on }: { hue: number; on: number }) {
-  const lit = Math.max(0.1, on);
+  const lit = Math.max(0.08, on);
   return (
-    <span className="relative block h-[44px] w-[30px] shrink-0">
+    <span className="relative block h-[52px] w-[46px] shrink-0">
       <span
-        className="hs-glow absolute left-1/2 top-[16px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="hs-glow absolute left-1/2 top-[22px] -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
-          width: 30 + lit * 40,
-          height: 30 + lit * 40,
-          opacity: Math.min(1, 0.3 + lit * 0.7),
-          transition: "width .7s cubic-bezier(.2,.8,.3,1), height .7s cubic-bezier(.2,.8,.3,1), opacity .7s",
-          background: `radial-gradient(circle, hsla(${hue},72%,74%,.4) 0%, rgba(255,178,80,.24) 36%, transparent 70%)`,
+          width: 34 + lit * 48,
+          height: 34 + lit * 48,
+          opacity: Math.min(1, 0.22 + lit * 0.78),
+          transition:
+            "width .7s cubic-bezier(.2,.8,.3,1), height .7s cubic-bezier(.2,.8,.3,1), opacity .7s",
+          background: `radial-gradient(circle, hsla(${hue},72%,74%,.42) 0%, rgba(255,178,80,.26) 36%, transparent 70%)`,
         }}
       />
-      <span
-        className="hs-flame absolute left-1/2 -translate-x-1/2"
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/obj/candle.png"
+        alt=""
+        aria-hidden
+        className="relative block h-auto w-full object-contain"
         style={{
-          bottom: 21,
-          width: 8 + Math.round(lit * 2.5),
-          height: 12 + Math.round(lit * 9),
-          opacity: Math.min(1, 0.45 + lit * 0.55),
-          transition: "width .7s cubic-bezier(.2,.8,.3,1), height .7s cubic-bezier(.2,.8,.3,1)",
-          background: "linear-gradient(to top, #ffb64a, #ffe08a 40%, #fffaea 82%)",
+          filter: `drop-shadow(0 0 ${6 + lit * 20}px hsla(${hue},80%,66%,${Math.min(0.55, 0.12 + lit * 0.4)}))`,
+          opacity: on > 0 ? 1 : 0.5,
+          transition: "filter .7s ease-out, opacity .7s",
         }}
-      />
-      <span
-        className="absolute bottom-0 left-1/2 block h-[21px] w-[19px] -translate-x-1/2 rounded-[3px]"
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(146,126,96,.55) 0%, #fdf6e7 24%," +
-            " #fffdf6 48%, #f4ecda 74%, rgba(146,126,96,.45) 100%)",
-          boxShadow: `0 0 ${16 + lit * 24}px hsla(${hue},80%,66%,${Math.min(0.5, 0.1 + lit * 0.28)})`,
-          transition: "box-shadow .7s ease-out",
-        }}
-      />
-      <span
-        className="absolute bottom-[19px] left-1/2 h-[6px] w-[19px] -translate-x-1/2 rounded-[50%]"
-        style={{ background: "radial-gradient(58% 100% at 50% 34%, #fff3cf, #e6dcc7)" }}
       />
     </span>
   );

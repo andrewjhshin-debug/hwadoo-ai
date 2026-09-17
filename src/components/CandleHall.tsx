@@ -79,41 +79,6 @@ function Flame({ hue, seed }: { hue: number; seed: number }) {
   );
 }
 
-/**
- * 연꽃 받침 — 꽃잎 아홉 장을 부채꼴로 크게 펼친다.
- * 좁게 그리면 초 몸통(36)에 가려 덩어리로 보인다. 바깥 잎을 거의 눕히고
- * 어둡게 눌러야 겹이 생겨 「꽃」으로 읽힌다.
- * 물감(gradient)은 법당이 한 번만 깔아 둔다(CandleDefs) — 초마다 defs 를
- * 그리면 문서에 같은 id 가 수십 개 생기고, 그러면 뒤엣것이 앞것의 물감을
- * 빼앗는다(연꽃 아이콘에서 한 번 겪었다).
- */
-function LotusBase() {
-  const petals = [];
-  for (let k = -4; k <= 4; k++) {
-    const a = k * 20;
-    const L = 25 - Math.abs(k) * 1.4;
-    const w = 8.5 - Math.abs(k) * 0.5;
-    const b = (1 - (Math.abs(k) / 4) * 0.3).toFixed(2);
-    petals.push(
-      <path
-        key={k}
-        d={`M32 23 C ${32 - w} ${23 - L * 0.55}, ${32 - w * 0.55} ${23 - L * 0.9}, 32 ${23 - L} C ${32 + w * 0.55} ${23 - L * 0.9}, ${32 + w} ${23 - L * 0.55}, 32 23 Z`}
-        transform={`rotate(${a} 32 23)`}
-        fill="url(#hw-petal)"
-        stroke="rgba(78,60,22,.6)"
-        strokeWidth=".55"
-        style={{ filter: `brightness(${b})` }}
-      />
-    );
-  }
-  return (
-    <svg width="64" height="28" viewBox="0 0 64 28" className="-mt-[5px] block overflow-visible" aria-hidden>
-      {petals}
-      <ellipse cx="32" cy="23.5" rx="21" ry="4" fill="url(#hw-lotusbase)" />
-    </svg>
-  );
-}
-
 /** 놋쇠 물감 한 벌 — 법당에 한 번만 깐다 */
 function CandleDefs() {
   return (
@@ -133,6 +98,20 @@ function CandleDefs() {
   );
 }
 
+/**
+ * 초 한 자루 — 그림 한 장(3D 밀랍 + 금빛 연꽃 받침).
+ *
+ * 코드로 깎아 봤다. 사다리꼴 몇 개와 타원으로는 밀랍이 안 나온다 —
+ * 멀리서 보면 하얀 막대고, 가까이 보면 종이 인형이다. 목탁·염주·싱잉볼과
+ * 같은 결로 3D 한 장을 쓴다.
+ *
+ * 불꽃도 그림 안에 있다. 흔드는 대신 **무리만 숨 쉬게** 한다 —
+ * 스무 자루가 제각각 춤추면 법당이 아니라 전광판이다.
+ *
+ * 빛깔은 무엇을 빌었느냐로 갈리되, 초에는 안 입힌다.
+ * 법당 불빛은 다 호박색이다 — 무엇을 빌었는지는 뒤에 깔린 무리로만 스민다.
+ * 오래 탄 초는 조금 작아지고, 꺼진 초는 빛을 잃는다.
+ */
 function Stick({
   c,
   i,
@@ -144,57 +123,57 @@ function Stick({
 }) {
   const w = wishOf(c.kind);
   const left = daysLeft(c);
-  // 법당 초는 짧고 두껍다. 오래 탄 초는 짧아지되 바닥은 남는다.
-  const tall = 22 + Math.round((left / BURN_DAYS) * 22);
+  // 다 탄 초는 짧아진다 — 크게 줄이면 줄이 들쭉날쭉해지니 한 뼘만
+  const scale = 0.86 + (left / BURN_DAYS) * 0.14;
   // 셋에 하나씩 뒤로 물린다 — 줄이 평평하면 촛대가 아니라 울타리다.
   // 그림만 물리고 이름 줄은 안 건드린다(이름이 들쭉날쭉하면 지저분하다).
   const depth = i % 3 === 1 ? "back" : i % 3 === 2 ? "mid" : "front";
   const art =
     depth === "back"
-      ? "translate-y-[-18px] scale-[.86] opacity-70 blur-[.4px]"
+      ? "translate-y-[-14px] scale-[.84] opacity-80"
       : depth === "mid"
-        ? "translate-y-[-8px] scale-[.94] opacity-[.87]"
+        ? "translate-y-[-6px] scale-[.93] opacity-[.92]"
         : "";
 
   return (
     <button
       onClick={onOpen}
       title={`${c.forName} — ${w.label}`}
-      className="group flex w-[62px] shrink-0 flex-col items-center"
+      className="group flex w-[66px] shrink-0 flex-col items-center"
     >
       {/* 그림 상자 — 높이를 못박아 두어야 깊이를 줘도 이름 줄이 한 줄로 선다 */}
       <span
-        className={`flex h-[100px] flex-col items-end justify-end transition-transform group-hover:-translate-y-[3px] ${art}`}
+        className={`relative flex h-[96px] w-full items-end justify-center transition-transform group-hover:-translate-y-[3px] ${art}`}
       >
-        <Flame hue={w.hue} seed={i * 7 + c.forName.length} />
-        {/* 밀랍 — 흰 초. 빛깔은 무리에만 옅게 스민다(법당 불빛은 다 호박색이다) */}
-        <span
-          className="relative mt-[3px] block w-[36px] rounded-[4px]"
-          style={{
-            height: tall,
-            background:
-              "linear-gradient(90deg, rgba(146,126,96,.55) 0%, #fdf6e7 22%," +
-              " #fffdf6 46%, #f4ecda 72%, rgba(146,126,96,.45) 100%)",
-            boxShadow: `0 0 34px hsla(${w.hue},80%,66%,.22), inset 0 -8px 12px rgba(120,100,70,.15)`,
-          }}
-        >
-          {/* 녹아 오목해진 윗면 */}
+        {/* 고인 빛 — 무엇을 빌었는지가 여기로만 스민다 */}
+        {left > 0 && (
           <span
-            className="absolute left-1/2 top-[-5px] h-[10px] w-[36px] -translate-x-1/2 rounded-[50%]"
+            aria-hidden
+            className="candle-glow pointer-events-none absolute bottom-[26px] left-1/2 h-[72px] w-[72px] -translate-x-1/2 rounded-full"
             style={{
-              background:
-                "radial-gradient(58% 100% at 50% 34%, #fff3cf, #efe6d4 66%, #d4c9b4)",
+              background: `radial-gradient(circle, hsla(${w.hue},72%,72%,.3) 0%, rgba(255,178,80,.2) 36%, transparent 70%)`,
+              animationDelay: `${(i % 17) * 0.13}s`,
+              animationDuration: `${2.2 + (i % 7) * 0.13}s`,
             }}
           />
-          {/* 심지 자국 */}
-          <span
-            className="absolute left-1/2 top-0 h-[4px] w-[6px] -translate-x-1/2 rounded-[50%]"
-            style={{ background: "rgba(62,48,32,.62)" }}
-          />
-        </span>
-        <LotusBase />
+        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/obj/candle.png"
+          alt=""
+          aria-hidden
+          className="relative block h-auto w-full object-contain"
+          style={{
+            transform: `scale(${scale})`,
+            transformOrigin: "50% 100%",
+            filter: left
+              ? `drop-shadow(0 0 ${8 + left * 4}px hsla(${w.hue},80%,66%,.3))`
+              : "grayscale(.7) brightness(.5)",
+            opacity: left ? 1 : 0.45,
+          }}
+        />
       </span>
-      <span className="mt-[5px] max-w-[60px] truncate text-[9.5px] leading-4 text-hanji-faint">
+      <span className="mt-[3px] max-w-[64px] truncate text-[9.5px] leading-4 text-hanji-faint">
         {c.forName}
       </span>
     </button>
