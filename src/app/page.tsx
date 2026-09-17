@@ -917,25 +917,26 @@ export default function Home() {
               className="text-hanji"
             />
           </div>
-          <button
-            onClick={() => setFocusMode(false)}
-            className="tap mt-12 rounded-full border border-ink-3 px-7 py-3 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
-          >
-            되돌아가기
-          </button>
+          {/* 두 문을 나란히 — 떠 있는 동그란 단추는 뗐다.
+              화면 구석에 혼자 떠 있으면 무슨 단추인지 알 수가 없고,
+              물음만 남기자는 이 화면의 뜻과도 어긋난다. */}
+          <div className="mt-12 flex items-center gap-2.5">
+            <button
+              onClick={() => setFocusMode(false)}
+              className="tap rounded-full border border-ink-3 px-6 py-3 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
+            >
+              되돌아가기
+            </button>
+            <button
+              onClick={() => setNotesOpen(true)}
+              className="tap flex items-center gap-2 rounded-full border border-gold/35 px-5 py-3 text-[11.5px] tracking-[0.2em] text-gold-soft transition-colors hover:border-gold/70 hover:text-gold"
+            >
+              <Banga className="h-4 w-4" />
+              사유의 방
+            </button>
+          </div>
         </section>
 
-        {/* 사유의 방 FAB — 화두만 보기 전용.
-            오른쪽에 두었더니 늘 떠 있는 도량 메뉴 단추와 **같은 자리에 겹쳤다**
-            (DoryangMenu 도 right-4, 같은 높이다). 둘 다 떠 있어야 하는 단추라
-            하나를 없앨 수는 없으니 이쪽을 왼쪽으로 옮긴다. */}
-        <button
-          onClick={() => setNotesOpen(true)}
-          aria-label="사유의 방 열기"
-          className="notes-fab btn-obang fixed bottom-[calc(76px+env(safe-area-inset-bottom,0px)+18px)] left-4 z-40 flex h-12 w-12 items-center justify-center rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.5)] md:bottom-8 md:left-8 md:h-14 md:w-14"
-        >
-          <Banga className="h-5 w-5 text-gold-soft md:h-6 md:w-6" />
-        </button>
         <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
       </div>
     );

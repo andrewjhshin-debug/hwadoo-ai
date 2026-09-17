@@ -415,7 +415,7 @@ export default function MoktakPage() {
           <p className="rise rise-d1 mt-8 text-[12px] tracking-[0.35em] text-hanji-faint">
             오늘 울린 목탁
           </p>
-          <p className="rise rise-d1 mt-1 font-serif text-[68px] font-light leading-none text-hanji">
+          <p className="rise rise-d1 mt-1 font-serif text-[56px] font-light leading-none text-hanji">
             {hits.toLocaleString("ko-KR")}
           </p>
           {/* 「…8편 · 고르게 치면 合」 은 설명서였다. 무엇이 세어지고 있는지,
@@ -423,7 +423,7 @@ export default function MoktakPage() {
               · 치기 전에는 **무엇을 하는 것인지** 한 줄
               · 치는 중에는 **몇 편 왔는지** (여섯 번이 한 편)
               · 박자가 맞는 동안에는 **그것만** 크게 — 칭찬은 짧아야 힘이 있다 */}
-          <p className="rise rise-d1 mt-2.5 flex items-center gap-2 text-[12.5px] tracking-wide">
+          <p className="rise rise-d1 mt-1.5 flex items-center gap-2 text-[12.5px] tracking-wide">
             {combo >= 2 ? (
               <>
                 <span className="rounded-full bg-gold px-2.5 py-[3px] font-serif text-[13px] leading-none text-ink">
@@ -447,32 +447,8 @@ export default function MoktakPage() {
             )}
           </p>
 
-          {/* 정근 고르기 — 무엇을 외며 칠까. 가로로 흘려 둔다(다섯이라 넘친다) */}
-          <div className="rise rise-d1 mt-3 flex w-full max-w-sm gap-1.5">
-            {JEONGGEUN.map((g) => (
-              <button
-                key={g.id}
-                onClick={() => {
-                  setGeunId(g.id);
-                  try {
-                    window.localStorage.setItem(JEONGGEUN_KEY, g.id);
-                  } catch {
-                    /* 서랍이 막혀도 오늘은 칠 수 있다 */
-                  }
-                }}
-                className={`flex-1 rounded-full border px-2 py-1.5 text-[11.5px] transition-colors ${
-                  geunId === g.id
-                    ? "border-gold/60 bg-gold/15 text-gold"
-                    : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
-                }`}
-              >
-                {g.name}
-              </button>
-            ))}
-          </div>
-
           {/* ── 목탁 ── */}
-          <div className="rise rise-d2 relative mt-3 flex flex-col items-center">
+          <div className="rise rise-d2 relative mt-1 flex flex-col items-center">
             {/* 떠오르는 글자 */}
             <span aria-hidden className="pointer-events-none absolute left-1/2 top-2 z-10">
               {pops.map((p) => (
@@ -500,7 +476,7 @@ export default function MoktakPage() {
               {/* 바닥 빛무리 — 칠수록 살아난다 */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[240px] w-[240px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[310px] w-[310px] -translate-x-1/2 -translate-y-1/2 rounded-full"
                 style={{
                   background:
                     "radial-gradient(circle, var(--color-gold) 0%, transparent 62%)",
@@ -536,7 +512,7 @@ export default function MoktakPage() {
                     const fb = el.nextElementSibling as HTMLElement | null;
                     if (fb) fb.style.display = "block";
                   }}
-                  className="block h-[300px] w-[300px] object-contain"
+                  className="block h-[376px] w-[376px] object-contain"
                 />
                 <span
                   className="hidden h-[236px] w-[340px]"
@@ -547,6 +523,31 @@ export default function MoktakPage() {
             <p className="mt-1 text-[12px] tracking-[0.25em] text-hanji-faint">
               {hits === 0 ? "눌러 보세요" : ""}
             </p>
+          {/* 정근 고르기 — 무엇을 외며 칠까.
+              목탁 위에 두었더니 셈과 목탁 사이를 갈라 놓아, 치는 동안 눈이
+              칩으로 자꾸 올라갔다. 고르는 일은 치기 전에 한 번뿐이니 아래로 뺀다 */}
+          <div className="rise rise-d3 mt-2 flex w-full max-w-sm gap-1.5">
+            {JEONGGEUN.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => {
+                  setGeunId(g.id);
+                  try {
+                    window.localStorage.setItem(JEONGGEUN_KEY, g.id);
+                  } catch {
+                    /* 서랍이 막혀도 오늘은 칠 수 있다 */
+                  }
+                }}
+                className={`flex-1 rounded-full border px-2 py-1.5 text-[11.5px] transition-colors ${
+                  geunId === g.id
+                    ? "border-gold/60 bg-gold/15 text-gold"
+                    : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
+                }`}
+              >
+                {g.name}
+              </button>
+            ))}
+          </div>
           </div>
 
           {/* 자동 목탁 */}

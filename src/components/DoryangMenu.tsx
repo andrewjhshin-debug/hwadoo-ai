@@ -226,6 +226,18 @@ export default function DoryangMenu() {
               />
             </div>
 
+            {/* 단추 어깨에 붙은 수가 무엇인지 — 여기서 말해 준다.
+                손안에서는 툴팁이 안 뜨니 숫자만 덩그러니 남아 있었다. */}
+            {online !== null && online > 0 && (
+              <p className="dm-card mt-2.5 text-[11.5px] text-hanji-faint">
+                지금 도량에{" "}
+                <span className="tabular-nums text-gold-soft">
+                  {online.toLocaleString("ko-KR")}
+                </span>
+                명이 들어와 있습니다
+              </p>
+            )}
+
             {YARDS.map((yard, yi) => (
               <section key={yard.title} className="mt-9">
                 <p
