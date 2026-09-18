@@ -22,7 +22,7 @@ import { loadStore, type Session } from "@/lib/store";
 import { useHasNews } from "@/lib/notices";
 import { applyTheme } from "@/lib/theme";
 import { rankHanjaFor } from "@/lib/badges";
-import { isAdminAccount } from "@/lib/config";
+import { isAdminAccount, BETA } from "@/lib/config";
 import {
   countDmUnread,
   dmVisible,
@@ -37,6 +37,7 @@ import {
   Bojagi,
   Book,
   Breath,
+  Hasim,
   Ilwonsang,
   Dharmachakra,
   Jeoul,
@@ -80,7 +81,7 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/empty", label: "비움", Icon: Baru },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
   { href: "/mung", label: "멍 — 아무것도 안 하기", Icon: Ilwonsang },
-  { href: "/hasim", label: "하심 — 끝없이 내려가기", Icon: Baru },
+  { href: "/hasim", label: "하심 — 끝없이 내려가기", Icon: Hasim },
   { href: "/moktak", label: "목탁·염주·싱잉볼", Icon: Yeomju },
   { href: "/sambae", label: "삼배", Icon: Jeol },
   { href: "/bae", label: "백팔배", Icon: Jeol108 },
@@ -300,6 +301,14 @@ export default function Sidebar() {
           <span className="text-gold-grad font-serif text-xl font-semibold tracking-[0.35em]">
             화두
           </span>
+          {/* 형: 「일 커지기 전에 베타테스트라고 두고」 —
+              정식으로 열 때 config.ts 의 BETA 를 false 로 */}
+          {BETA && (
+            <span className="rounded-full border border-gold/35 px-1.5 py-[1px] text-[9px] tracking-[0.18em] text-gold-soft/80">
+              BETA
+            </span>
+          )}
+
         </Link>
         {/* 오른쪽 — 밤/낮 · 연꽃 상점 · 쪽지 */}
         <div className="ml-auto flex items-center">
@@ -354,10 +363,16 @@ export default function Sidebar() {
           {!slim && (
             <div className="flex items-center justify-between px-2">
               <Link href="/" onClick={go("/")} className="flex shrink-0 items-center gap-2.5">
-                <Beopryun className="h-7 w-7 shrink-0" stroke="#D9B45B" />
+                <Beopryun className="h-6 w-6 shrink-0" stroke="#D9B45B" />
                 <span className="text-gold-grad whitespace-nowrap font-serif text-lg font-semibold tracking-[0.26em]">
                   화두
                 </span>
+                {BETA && (
+                  <span className="rounded-full border border-gold/35 px-1.5 py-[1px] text-[9px] tracking-[0.18em] text-gold-soft/80">
+                    BETA
+                  </span>
+                )}
+
               </Link>
               <button
                 onClick={toggleCollapsed}

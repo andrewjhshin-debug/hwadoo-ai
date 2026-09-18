@@ -125,23 +125,20 @@ export function LotusMark({ className = "w-5 h-5", stroke = "currentColor" }: Ic
 //   꽃잎 다섯(가운데 하나 · 바깥 둘 · 잎 둘) + 금빛 꽃술.
 //   분홍은 이 도량에서 여기만 쓴다 — 온통 금인 머리띠에서 혼자 눈에 걸리게.
 //
-// stroke 를 받긴 하나 쓰지 않는다 — 이 표식은 제 색을 갖는다.
+// 연꽃 문장(紋章) — 동그라미 여덟이 짜인 고리 안에 연꽃 한 송이.
+//
+// 형이 보여 준 그 문양 그대로다. 예전엔 연꽃 한 송이만 덩그러니 있어
+// 이모지처럼 보였다. 고리를 두르니 문장(紋章)이 된다.
+// 고리는 금빛, 꽃잎은 분홍, 잎은 초록 — 화두의 빛깔 그대로.
+//
+// 겹치는 자리를 끊어 엮은 것처럼 보이게 하는데, 그 끊는 줄은 **바탕색**이다.
+// 밤낮이 바뀌면 바탕도 바뀌므로 `--color-ink-1` 을 물려 쓴다.
+//
+// 빚는 자리: `_틀/ttleul.mjs`
 export function Yeonkkot({ className = "w-5 h-5" }: IconProps) {
   return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      {/* 잎 둘 — 꽃보다 먼저 깔린다 */}
-      <path d="M4 15.4c2.4-.7 5-.2 7.4 1.5-2.3 1.7-5 2-7.4.9z" fill="#3E8C48" />
-      <path d="M20 15.4c-2.4-.7-5-.2-7.4 1.5 2.3 1.7 5 2 7.4.9z" fill="#2E7439" />
-      {/* 바깥 꽃잎 둘 — 짙게 */}
-      <path d="M8.8 14.3C6.5 12.3 5.4 10.1 5.3 8.1c2.3.5 3.9 1.9 4.9 4.2z" fill="#D2578A" />
-      <path d="M15.2 14.3c2.3-2 3.4-4.2 3.5-6.2-2.3.5-3.9 1.9-4.9 4.2z" fill="#BE4678" />
-      {/* 가운데 꽃잎 — 가장 밝다 */}
-      <path
-        d="M12 3.4c2.05 2.75 3.05 4.9 3.05 6.7 0 2.15-1.37 3.65-3.05 3.65S8.95 12.25 8.95 10.1c0-1.8 1-3.95 3.05-6.7z"
-        fill="#F49CC2"
-      />
-      {/* 꽃술 */}
-      <ellipse cx="12" cy="13.3" rx="2" ry="1.25" fill="#F7D97E" />
+    <svg viewBox="0 0 64 64" className={className} aria-hidden>
+      <path d="M32.00 2.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="var(--color-ink-1,#12100E)" stroke-width="5.300000000000001"/><path d="M32.00 2.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="#D9B45B" stroke-width="2.1"/><path d="M46.50 8.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="var(--color-ink-1,#12100E)" stroke-width="5.300000000000001"/><path d="M46.50 8.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="#D9B45B" stroke-width="2.1"/><path d="M52.50 22.80a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="var(--color-ink-1,#12100E)" stroke-width="5.300000000000001"/><path d="M52.50 22.80a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="#D9B45B" stroke-width="2.1"/><path d="M46.50 37.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="var(--color-ink-1,#12100E)" stroke-width="5.300000000000001"/><path d="M46.50 37.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="#D9B45B" stroke-width="2.1"/><path d="M32.00 43.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="var(--color-ink-1,#12100E)" stroke-width="5.300000000000001"/><path d="M32.00 43.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="#D9B45B" stroke-width="2.1"/><path d="M17.50 37.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="var(--color-ink-1,#12100E)" stroke-width="5.300000000000001"/><path d="M17.50 37.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="#D9B45B" stroke-width="2.1"/><path d="M11.50 22.80a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="var(--color-ink-1,#12100E)" stroke-width="5.300000000000001"/><path d="M11.50 22.80a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="#D9B45B" stroke-width="2.1"/><path d="M17.50 8.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="var(--color-ink-1,#12100E)" stroke-width="5.300000000000001"/><path d="M17.50 8.30a9.20 9.20 0 1 1 0 18.40a9.20 9.20 0 1 1 0 -18.40" fill="none" stroke="#D9B45B" stroke-width="2.1"/><circle cx="42.91" cy="5.67" r="1.5" fill="#D9B45B"/><circle cx="58.33" cy="21.09" r="1.5" fill="#D9B45B"/><circle cx="58.33" cy="42.91" r="1.5" fill="#D9B45B"/><circle cx="42.91" cy="58.33" r="1.5" fill="#D9B45B"/><circle cx="21.09" cy="58.33" r="1.5" fill="#D9B45B"/><circle cx="5.67" cy="42.91" r="1.5" fill="#D9B45B"/><circle cx="5.67" cy="21.09" r="1.5" fill="#D9B45B"/><circle cx="21.09" cy="5.67" r="1.5" fill="#D9B45B"/><path d="M32.00 41.00Q27.18 45.10 21.66 42.82Q26.07 38.80 32.00 41.00Z" fill="#4E9A56" stroke="#4E9A56" stroke-width="1.2"/><path d="M32.00 41.00Q37.93 38.80 42.34 42.82Q36.82 45.10 32.00 41.00Z" fill="#4E9A56" stroke="#4E9A56" stroke-width="1.2"/><path d="M32.00 41.00Q27.40 32.42 32.00 24.50Q36.60 32.42 32.00 41.00Z" fill="#E682AC" stroke="#C85B8C" stroke-width="1.7" stroke-linejoin="round"/><path d="M32.00 41.00Q24.05 37.64 23.07 29.57Q30.67 32.47 32.00 41.00Z" fill="#E682AC" stroke="#C85B8C" stroke-width="1.7" stroke-linejoin="round"/><path d="M32.00 41.00Q33.33 32.47 40.93 29.57Q39.95 37.64 32.00 41.00Z" fill="#E682AC" stroke="#C85B8C" stroke-width="1.7" stroke-linejoin="round"/><path d="M32.00 41.00Q24.89 42.69 20.59 37.29Q27.24 35.46 32.00 41.00Z" fill="#C85B8C" stroke="#C85B8C" stroke-width="1.7" stroke-linejoin="round"/><path d="M32.00 41.00Q36.76 35.46 43.41 37.29Q39.11 42.69 32.00 41.00Z" fill="#C85B8C" stroke="#C85B8C" stroke-width="1.7" stroke-linejoin="round"/><path d="M24.50 41.40Q32.00 45.20 39.50 41.40" fill="none" stroke="#C85B8C" stroke-width="1.7" stroke-linecap="round"/>
     </svg>
   );
 }
@@ -632,6 +629,26 @@ export function Yeomju({ className = "w-5 h-5", stroke = "currentColor" }: IconP
 // 쓰지 않은 하루를 세는 것이고, 절에서 비움을 가리키는 물건은 **빈 그릇**이다.
 // 발우공양의 그 발우 — 다 먹고 물 한 모금으로 헹궈 비워 두는 그릇.
 // 안을 비워 두는 것이 이 그림의 전부라, 안쪽에 아무것도 그리지 않는다.
+// 하심(下心) — 「下」한 글자. 가로획 하나, 끝없이 내려가는 세로획,
+// 그 오른쪽의 점. 방 안에서 하는 일이 그대로 그림이다.
+export function Hasim({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      className={className}
+    >
+      <path d="M4.2 5.6h14" />
+      {/* 세로획은 화면 밖으로 나가듯 끝까지 내린다 */}
+      <path d="M11.4 5.6V21" />
+      <path d="M15.4 10.6h2.6" />
+    </svg>
+  );
+}
+
 export function Baru({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
   return (
     <svg

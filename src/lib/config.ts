@@ -11,6 +11,17 @@ export const SITE_URL = "https://www.hwa-du.com";
 export const SLOGAN = "모두가 AI에게 묻는 시대, 화두는 당신에게 묻는다.";
 export const SITE_TAGLINE = "AI는 답하지 않습니다. 당신에게 묻습니다.";
 
+// ── 문 여닫기 ────────────────────────────────────────────────
+// 형: 「사람들 막 들어온다. 일 커지기 전에 베타테스트라고 두고
+//      차 한 잔만 열어두고 연꽃 공양은 일단 닫아. 내가 열라고 하면 바로 열고」
+//
+// **여는 법은 이 한 줄을 true 로 바꾸는 것뿐이다.** 들머리를 여기저기
+// 지워 두면 다시 열 때 빠뜨린다. 문만 잠근다.
+export const LOTUS_OPEN = false;
+
+/** 베타 딱지 — 정식으로 열 때 false */
+export const BETA = true;
+
 // 차 한 잔(찻값 결제) 링크 — 주소가 정해지면 여기만 바꾸면 된다.
 // null 이면 "찻자리를 마련하고 있습니다"로 표시된다.
 export const DONATION_URL: string | null = "https://qr.kakaopay.com/Fdo2KqicH";

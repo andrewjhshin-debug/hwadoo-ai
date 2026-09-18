@@ -763,6 +763,31 @@ export default function SettingsPage() {
         </p>
       )}
 
+      {/* ── 누구로 들어와 있나 · 나가는 문 ──
+          로그아웃 단추는 이 긴 화면의 **맨 아래**에 있었다. 폰에서는
+          엄지로 한참 굴려야 닿아, 형이 「모바일에서 로그아웃이 안 보인다」
+          했다. 맞다 — 나가는 문은 눈에 보이는 데 있어야 한다.
+          계정 줄과 함께 맨 위로 올린다. 아래 것은 그대로 둔다(익숙한
+          사람이 찾던 자리를 없애지는 않는다). ── */}
+      {user && (
+        <div className="mt-5 flex items-center justify-between gap-3 rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3">
+          <div className="min-w-0">
+            <p className="truncate text-[13px] text-hanji">
+              {user.displayName ?? "수행자"}님
+            </p>
+            <p className="mt-0.5 truncate text-[11.5px] text-hanji-faint">
+              {user.email ?? "이메일 없음"}
+            </p>
+          </div>
+          <button
+            onClick={() => logout().catch(() => {})}
+            className="shrink-0 rounded-full border border-ink-3 px-4 py-2 text-[11.5px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion"
+          >
+            로그아웃
+          </button>
+        </div>
+      )}
+
       {/* ── 오늘 하루 — 나무 · 이어 온 날 · 오늘의 세 가지.
              매일 들어올 이유는 맨 위에 있어야 한다 ── */}
       <div className="mt-7">

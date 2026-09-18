@@ -22,6 +22,7 @@ import {
   Bojagi,
   Book,
   Breath,
+  Hasim,
   Ilwonsang,
   Dharmachakra,
   Jeoul,
@@ -77,6 +78,9 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
       { href: "/bae", label: "백팔배", say: "백여덟 번 굽히다", Icon: Jeol108 },
       { href: "/breath", label: "호흡 명상", say: "들이쉬고 내쉬다", Icon: Breath },
       { href: "/mung", label: "멍", say: "아무것도 안 하기", Icon: Ilwonsang },
+      // 웹 서랍에만 있고 폰 차림표에 빠져 있었다 — 형: 「모바일앱에선
+      // 하심 왜 안 뜸?」. 모든 방은 두 곳 다에 있어야 한다.
+      { href: "/hasim", label: "하심", say: "끝없이 내려가기", Icon: Hasim },
       { href: "/sutra", label: "경전 외우기", say: "입에 붙이다", Icon: Book },
       { href: "/mandala", label: "만다라", say: "색을 앉히다", Icon: Mandala },
       { href: "/empty", label: "비움", say: "쓰지 않은 하루", Icon: Baru },

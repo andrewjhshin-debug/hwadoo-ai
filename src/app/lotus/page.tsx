@@ -18,6 +18,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { LOTUS_OPEN } from "@/lib/config";
+import { YeonkkotGold } from "@/components/icons";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { BANK_INFO, CONTACT_EMAIL } from "@/lib/config";
@@ -130,6 +132,48 @@ function MyLotus() {
 }
 
 export default function LotusPage() {
+  // ── 문이 잠겼으면 여기서 멎는다 ──
+  // 형이 「일 커지기 전에 연꽃 공양은 일단 닫아」라 했다. 들머리를
+  // 여기저기 지우는 대신 **문 하나만** 잠근다 — 열 때 빠뜨릴 데가 없다.
+  // 여는 법: `src/lib/config.ts` 의 LOTUS_OPEN 을 true 로.
+  if (!LOTUS_OPEN) return <LotusClosed />;
+  return <LotusInner />;
+}
+
+function LotusClosed() {
+  return (
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-6 py-20 text-center">
+      <YeonkkotGold className="h-12 w-12 opacity-70" />
+      <h1 className="mt-5 font-serif text-xl font-light text-hanji">
+        연꽃 공양은 잠시 닫았습니다
+      </h1>
+      <p className="mt-3 break-keep text-[13.5px] leading-7 text-hanji-dim">
+        지금 화두는 베타테스트 중입니다.
+        <br />
+        공양 자리는 채비가 끝나는 대로 다시 엽니다.
+      </p>
+      <p className="mt-6 break-keep text-[12.5px] leading-6 text-hanji-faint">
+        그 사이에도 수행은 그대로입니다 — 공덕은 쌓이고,
+        <br />
+        쌓인 공덕으로 연꽃을 얻는 길은 열려 있습니다.
+      </p>
+      <Link
+        href="/tea"
+        className="btn-obang mt-8 px-7 py-3 text-[13px] tracking-[0.25em] text-hanji"
+      >
+        차 한 잔
+      </Link>
+      <Link
+        href="/"
+        className="mt-4 text-[12px] tracking-[0.25em] text-hanji-faint transition-colors hover:text-hanji-dim"
+      >
+        뜰로 돌아가기
+      </Link>
+    </div>
+  );
+}
+
+function LotusInner() {
   const [user, setUser] = useState<User | null>(null);
   const [picked, setPicked] = useState<Product>(DEFAULT_PRODUCT);
   const [agree, setAgree] = useState(false);
