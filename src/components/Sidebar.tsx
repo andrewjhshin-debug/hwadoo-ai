@@ -100,7 +100,9 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/empty", label: "비움", Icon: Baru },
   { href: "/moment", label: "시절인연 — 절에서 찍은 한 장", Icon: Moment },
   { href: "/rank", label: "정진 랭킹", Icon: Dharmachakra },
-  { href: "/archive", label: "서고 — 지난 화두", Icon: Seogo },
+  // 「서고 — 지난 화두」를 뺐다. 바로 아래 「지난 화두 · 기록 보기 N」이
+  // 같은 /archive 로 가고 있었다 — 한 서랍에 같은 문이 둘이면 둘 다 안
+  // 눌린다. 세는 숫자가 붙은 아래쪽만 남긴다(형: 「겹치네, 탭에서 지우자」).
   { href: "/lotus", label: "연꽃 공양", Icon: YeonkkotGold },
 ];
 
