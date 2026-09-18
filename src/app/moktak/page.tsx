@@ -448,7 +448,7 @@ export default function MoktakPage() {
           </p>
 
           {/* ── 목탁 ── */}
-          <div className="rise rise-d2 relative mt-1 flex flex-col items-center">
+          <div className="rise rise-d2 relative mt-2 flex flex-col items-center">
             {/* 떠오르는 글자 */}
             <span aria-hidden className="pointer-events-none absolute left-1/2 top-2 z-10">
               {pops.map((p) => (
@@ -476,7 +476,7 @@ export default function MoktakPage() {
               {/* 바닥 빛무리 — 칠수록 살아난다 */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[310px] w-[310px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full"
                 style={{
                   background:
                     "radial-gradient(circle, var(--color-gold) 0%, transparent 62%)",
@@ -512,7 +512,10 @@ export default function MoktakPage() {
                     const fb = el.nextElementSibling as HTMLElement | null;
                     if (fb) fb.style.display = "block";
                   }}
-                  className="block h-[376px] w-[376px] object-contain"
+                  // 그림이 가로로 길다(1024×559). 정사각 박스에 넣었더니
+                  // object-contain 이 위아래를 팔십 몇 픽셀씩 비워, 숫자와
+                  // 목탁 사이가 휑했다. 폭만 주고 높이는 비율에 맡긴다.
+                  className="block h-auto w-[356px] max-w-[92vw] object-contain"
                 />
                 <span
                   className="hidden h-[236px] w-[340px]"
@@ -520,7 +523,7 @@ export default function MoktakPage() {
                 />
               </span>
             </button>
-            <p className="mt-1 text-[12px] tracking-[0.25em] text-hanji-faint">
+            <p className="mt-0.5 text-[12px] tracking-[0.25em] text-hanji-faint">
               {hits === 0 ? "눌러 보세요" : ""}
             </p>
           {/* 정근 고르기 — 무엇을 외며 칠까.
