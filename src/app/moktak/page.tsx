@@ -84,7 +84,11 @@ const SKINS = {
     { id: "wood", name: "나무", src: "/obj/bead.png", dot: "#a8703f" },
     { id: "jade", name: "먹옥", src: "/obj/bead-jade.png", dot: "#3f5a4a" },
   ],
-  bowl: [{ id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" }],
+  bowl: [
+    { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
+    { id: "indigo", name: "쪽빛", src: "/obj/bowl-indigo.png", dot: "#3b3560" },
+    { id: "verdigris", name: "청동녹", src: "/obj/bowl-verdigris.png", dot: "#5f9a93" },
+  ],
 } as const;
 
 type SkinKind = keyof typeof SKINS;
