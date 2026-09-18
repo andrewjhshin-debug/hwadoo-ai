@@ -19,7 +19,6 @@ import {
   dayKey,
   drawFortune,
   fmtLeft,
-  FORTUNE_MERIT,
   loadDraw,
   msToMidnight,
   poisonOf,
@@ -192,13 +191,8 @@ export default function DrawPage() {
       {/* ── 얹힌 것 ── */}
       {/* 「이어서 N일」 칩을 뗐다 — 오늘 한 번 뽑으면 그만인 자리에
           날수를 세어 보이면 끊길까 봐 누르게 된다. 운세는 숙제가 아니다. */}
-      {open && (
-        <ul className="rise rise-d3 mt-6 flex flex-wrap items-center justify-center gap-2 text-[11.5px]">
-          <li className="rounded-full border border-gold/45 px-3 py-1.5 text-gold">
-            공덕 +{FORTUNE_MERIT}
-          </li>
-        </ul>
-      )}
+      {/* 「공덕 +21」 칩이 여기 있었다. 뗐다 — 형: 「운세는 공덕 주지마」
+          한 장 뒤집는 데 값이 붙으면 하루 한 번 눌러야 하는 숙제가 된다. */}
 
       {open && got && (
         <>
@@ -211,12 +205,8 @@ export default function DrawPage() {
             <p className="mt-2 break-keep font-serif text-[14px] leading-7 text-hanji">
               {got.opener}
             </p>
-            <Link
-              href="/pilgrimage"
-              className="mt-3 inline-block text-[12px] text-gold underline-offset-4 hover:underline"
-            >
-              손잡고 절로
-            </Link>
+            {/* 「손잡고 절로」로 끌고 가던 끈도 뗐다.
+                형: 「지금 뭐 딴 거 유도하지 말고」 — 읽고 하루를 살면 된다. */}
           </div>
         </>
       )}
