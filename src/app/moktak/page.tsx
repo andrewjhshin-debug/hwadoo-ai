@@ -45,7 +45,8 @@ const BOX = 316;
  * 제미나이가 구워 준 그림에서 고리가 이 비율로 납작하다. 돌릴 때 이만큼
  * 폈다가 다시 눌러야 「고리가 도는」 것으로 보인다.
  */
-const WIDE_SQUASH = 0.6;
+/** 가로형 고리에 세울 알의 수 — 백여덟의 네 몫(실제 손염주가 그렇다) */
+const RING_BEADS = 27;
 const ARC = 2 * Math.PI * 146; // 바깥 진행 고리 둘레
 // 알이 왼쪽으로 넘어가므로 진행 고리도 왼쪽으로 차오른다 — 반시계로 그린 원
 const ARC_PATH =
@@ -837,46 +838,49 @@ export default function MoktakPage() {
                 />
               </svg>
 
-              {/* ── 가로형 살갗 ──
-                  세로 그림(고리를 정면에서 본 것)과 3D 그림(비스듬히 누운
-                  고리)은 결이 아주 달라, 그냥 바꿔 끼우면 툭 튄다.
-                  두 겹을 겹쳐 두고 **투명도로 건너간다**. 한쪽이 사라지는
-                  동안 다른 쪽이 떠오르니 눈이 따라간다.
+              {/* ── 가로형 — 알을 따로 세워 **진짜로 돌린다** ──
+                  통짜 그림을 돌렸더니 접시가 기우뚱했고, 눌린 만큼 폈다
+                  돌리면 알이 찌그러졌다. 형: 「원근법을 주라고. 앞에 알이
+                  뒤로 가면 뒤로 가고, 뒤에 알이 앞으로 오면 커지고」
 
-                  누운 고리는 평면에서 돌리면(rotate) 접시가 찌그러진다.
-                  Y 축으로 돌려야(rotateY) 진짜 고리가 도는 것처럼 보인다. */}
-              <div
-                // grid + place-items-center 안에서는 칸이 내용에 맞춰
-                // 좁아져 퍼센트 폭이 0 으로 접힌다(그림이 안 보였다).
-                // flex 로 바꾸면 퍼센트가 통의 폭을 기준으로 잡힌다.
-                className="pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-300"
-                style={{ opacity: beadWide ? 1 : 0 }}
-                aria-hidden
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={skinSrc("bead")}
-                  alt=""
-                  draggable={false}
-                  className="block w-[96%] object-contain"
-                  style={{
-                    // 누운 고리를 **제 평면 안에서** 돌린다.
-                    //
-                    // 처음엔 rotateY 에 각을 물렸다가 90도에서 날이 서서
-                    // 사라졌고, 그다음엔 좌우로 살짝 흔들기만 했다. 형:
-                    // 「가로형 염주도 돌아가도록 해야지 회전. 세로형이랑 같게」
-                    //
-                    // 그림은 위에서 비스듬히 본 **타원 고리**다. 평면에서
-                    // 그냥 rotate 하면 접시가 기우뚱한다. 눌린 만큼 세로로
-                    // 펴서(1/K) 동그라미로 만든 뒤 돌리고, 다시 눌러(K)
-                    // 제자리에 놓는다 — 그러면 고리가 제 평면에서 돈다.
-                    // CSS 변환은 오른쪽부터 먹으니 이 차례가 맞다.
-                    transform: `scaleY(${WIDE_SQUASH}) rotate(${angle}deg) scaleY(${(1 / WIDE_SQUASH).toFixed(4)})`,
-                    transition: "transform 0.22s ease-out",
-                    filter: "drop-shadow(0 12px 30px rgba(0,0,0,0.55))",
-                  }}
-                />
-              </div>
+                  그림 한 장으로는 못 한다. **알 한 알을 따로 떼어**(제미나이)
+                  타원 위에 스물넷을 세운다. 각자 제자리에서 —
+                    앞(아래)으로 올수록 커지고 밝고 위에 겹치고,
+                    뒤(위)로 갈수록 작아지고 어둡고 뒤에 깔린다.
+                  넘긴 만큼 금빛으로 물든다. 세로형이 하던 그 일을 그대로. */}
+              {beadWide && (
+                <div aria-hidden className="pointer-events-none absolute inset-0">
+                  {Array.from({ length: RING_BEADS }, (_, i) => {
+                    // 0 = 맨 위(뒤) · 180 = 맨 아래(앞)
+                    const t = ((i / RING_BEADS) * 360 + angle) * (Math.PI / 180);
+                    const front = (1 - Math.cos(t)) / 2; // 0 뒤 · 1 앞
+                    const sc = 0.62 + 0.52 * front;
+                    // 물든 알 — 넘긴 만큼 앞에서부터 차오른다
+                    const lit = i < Math.round((pos / BEADS) * RING_BEADS);
+                    return (
+                      <img
+                        // eslint-disable-next-line @next/next/no-img-element
+                        key={i}
+                        src="/obj/bead-paw-one.png"
+                        alt=""
+                        draggable={false}
+                        className="absolute block"
+                        style={{
+                          left: `${50 + 40 * Math.sin(t)}%`,
+                          top: `${50 - 23 * Math.cos(t)}%`,
+                          width: `${17 * sc}%`,
+                          transform: "translate(-50%, -50%)",
+                          zIndex: Math.round(front * 100),
+                          transition: "left .18s ease-out, top .18s ease-out, width .18s ease-out",
+                          filter: lit
+                            ? `sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(${(1.06 + 0.22 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
+                            : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))`,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              )}
 
               {/* 염주 — 굴리면 돈다 */}
               <div
