@@ -1,6 +1,46 @@
+import { useId } from "react";
+
 // 도량의 문양들 — 전부 불교적 상징으로.
 // 법륜·연꽃·목탁·반가사유상·죽비·연등·찻잔·일주문
 type IconProps = { className?: string; stroke?: string };
+
+// ── 화두 마크 — 법륜(法輪) ───────────────────────────────────
+//
+// 형: 「클로드 챗지피티 느낌나게 우리 화두 로고도 법륜 바퀴륜을
+//      저렇게 한번 간지나게」 → 「쳇지피티처럼 테두리만 두고 가운데는
+//      뚫린 느낌」
+//
+// 테 + 살 여덟(팔정도) + 바퀴통을 한 덩이로 빚고, **속을 파내** 윤곽선만
+// 남겼다. 파내는 법은 불리언 연산이 아니라 가리개(mask)다 —
+//   흰색: 같은 길을 굵게 그어 바깥으로 부풀린 것
+//   검은색: 원래 길
+// 둘의 차이가 곧 테두리 띠다. 속이 **진짜로 비어** 있어서 밤낮 어느
+// 바탕에 얹어도 그 바탕이 비친다(색을 박아 두면 낮에 검은 얼룩이 된다).
+//
+// 빚는 자리: `_틀/beopryun4.mjs`
+const BEOPRYUN_D =
+  "M32.00 8.30a23.7 23.7 0 1 1 0 47.40a23.7 23.7 0 1 1 0 -47.40ZM32.00 12.70a19.299999999999997 19.299999999999997 0 1 0 0 38.60a19.299999999999997 19.299999999999997 0 1 0 0 -38.60ZM29.70 26.00L30.80 8.30L33.20 8.30L34.30 26.00ZM34.62 26.13L47.91 14.39L49.61 16.09L37.87 29.38ZM38.00 29.70L55.70 30.80L55.70 33.20L38.00 34.30ZM37.87 34.62L49.61 47.91L47.91 49.61L34.62 37.87ZM34.30 38.00L33.20 55.70L30.80 55.70L29.70 38.00ZM29.38 37.87L16.09 49.61L14.39 47.91L26.13 34.62ZM26.00 34.30L8.30 33.20L8.30 30.80L26.00 29.70ZM26.13 29.38L14.39 16.09L16.09 14.39L29.38 26.13ZM32.00 25.60a6.4 6.4 0 1 1 0 12.80a6.4 6.4 0 1 1 0 -12.80Z";
+
+export function Beopryun({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  // 한 화면에 여러 개 놓여도 가리개가 안 엉키게 이름을 따로 준다
+  const id = useId().replace(/:/g, "");
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden>
+      <mask id={id} maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+        <path
+          d={BEOPRYUN_D}
+          fill="#fff"
+          stroke="#fff"
+          strokeWidth="4.6"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+        <path d={BEOPRYUN_D} fill="#000" />
+      </mask>
+      <rect width="64" height="64" fill={stroke} mask={`url(#${id})`} />
+    </svg>
+  );
+}
 
 // 법륜(法輪) — 여덟 바퀴살의 수레바퀴 · 간화선이란?
 export function Dharmachakra({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {

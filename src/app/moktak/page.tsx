@@ -435,9 +435,12 @@ export default function MoktakPage() {
           22% { transform: translateY(-18px) scale(1.12); opacity: 1; }
           100% { transform: translateY(-96px) scale(0.94); opacity: 0; }
         }
+        /* 목탁 뒤 빛무리 — 형: 「너무 과하다 좀만 톤다운」.
+           절반으로 낮췄다(0.16~0.34 → 0.07~0.15). 목탁이 빛에 묻혀
+           살갗 빛깔이 안 보이던 게 진짜 문제였다. */
         @keyframes mk-glow {
-          0%, 100% { opacity: 0.16; }
-          50% { opacity: 0.34; }
+          0%, 100% { opacity: 0.07; }
+          50% { opacity: 0.15; }
         }
         .moktak-svg { display: block; width: 100%; height: 100%; }
 
@@ -608,10 +611,10 @@ export default function MoktakPage() {
               {/* 바닥 빛무리 — 칠수록 살아난다 */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[230px] w-[230px] -translate-x-1/2 -translate-y-1/2 rounded-full"
                 style={{
                   background:
-                    "radial-gradient(circle, var(--color-gold) 0%, transparent 62%)",
+                    "radial-gradient(circle, var(--color-gold) 0%, transparent 58%)",
                   animation: "mk-glow 3.4s ease-in-out infinite",
                 }}
               />
@@ -912,24 +915,30 @@ export default function MoktakPage() {
             </svg>
           </button>
 
-          <div className="rise rise-d2 mt-1 flex items-center justify-center gap-3">
-            <p className="text-[11.5px] tracking-[0.2em] text-hanji-faint">
-              {ringing ? "울리는 중 — 끝까지 들어 보세요" : "그릇을 눌러 한 번"}
-            </p>
+          {/* 말은 지웠다.
+              형: 「가운데 문구가 칠 때 멈출 때 막 바뀌니까 멀미난다」
+              「그릇을 눌러 한 번」 ↔ 「울리는 중 — 끝까지 들어 보세요」가
+              누를 때마다 갈아 끼워졌다. 그릇 하나 놓고 누르라는 걸 굳이
+              적어 줄 필요도 없다. 살갗 고르는 점만 남긴다. */}
+          <div className="rise rise-d2 mt-1 flex items-center justify-center">
             <SkinDots kind="bowl" pick={skin.bowl} onPick={pickSkin("bowl")} />
           </div>
 
-          {/* 이 단추는 울릴 때만 보이지만 **자리는 늘 잡아 둔다.**
-              나타났다 사라지면 아래 공덕 줄이 그만큼 위아래로 뛴다. */}
+          {/* 그치는 단추는 **처음부터 그 자리에 있다.**
+              울릴 때만 나타나게 했더니 그것도 튀어나왔다 사라졌다 했다.
+              안 울릴 때는 눌러도 아무 일 없으니 흐리게만 둔다. */}
           <div className="mt-2 flex h-[34px] items-center">
-            {ringing && (
-              <button
-                onClick={stopBowl}
-                className="rounded-full border border-ink-3 px-4 py-2 text-[11.5px] text-hanji-dim transition-colors hover:text-hanji"
-              >
-                손으로 감싸 그치기
-              </button>
-            )}
+            <button
+              onClick={stopBowl}
+              disabled={!ringing}
+              className={`rounded-full border border-ink-3 px-4 py-2 text-[11.5px] transition-colors ${
+                ringing
+                  ? "text-hanji-dim hover:text-hanji"
+                  : "cursor-default text-hanji-faint/40"
+              }`}
+            >
+              손으로 감싸 그치기
+            </button>
           </div>
         </>
       )}
