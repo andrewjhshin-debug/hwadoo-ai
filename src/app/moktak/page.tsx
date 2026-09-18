@@ -81,8 +81,14 @@ const SKINS = {
     { id: "jade", name: "옥", src: "/obj/moktak-jade.png", dot: "#a8d8c0" },
   ],
   bead: [
+    // 앞의 둘은 **세로**(고리를 정면에서 본 그림), 뒤의 셋은 **가로**
+    // (3D 로 구운, 비스듬히 누운 고리). 살갗을 누르면 세로↔가로가
+    // 자연스럽게 넘어간다 — `wide` 가 그 갈림길이다.
     { id: "wood", name: "나무", src: "/obj/bead.png", dot: "#a8703f" },
     { id: "jade", name: "먹옥", src: "/obj/bead-jade.png", dot: "#3f5a4a" },
+    { id: "obsidian", name: "흑요석", src: "/obj/bead-obsidian.png", dot: "#2b2f36", wide: true },
+    { id: "sutra", name: "나무아미타불", src: "/obj/bead-sutra.png", dot: "#b07a45", wide: true },
+    { id: "paw", name: "젤리", src: "/obj/bead-paw.png", dot: "#f6a8bc", wide: true },
   ],
   bowl: [
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
@@ -140,6 +146,11 @@ export default function MoktakPage() {
     (SKINS[kind] as readonly { id: string; src: string }[]).find(
       (k) => k.id === skin[kind]
     )?.src ?? SKINS[kind][0].src;
+  /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
+  const beadWide = (
+    SKINS.bead as readonly { id: string; wide?: boolean }[]
+  ).some((k) => k.id === skin.bead && k.wide);
+
   const pickSkin = (kind: SkinKind) => (id: string) => {
     setSkin((s) => {
       const next = { ...s, [kind]: id };
@@ -781,8 +792,16 @@ export default function MoktakPage() {
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
+              // 형: 「노트북 100% 기준으로 밑에 안 짤리고 한 번에 보이게」
+              // 316px 로 못박아 두었더니 720px 짜리 화면에서 이백 남짓
+              // 넘쳤다. 화면 키에 따라 줄어들게 둔다 — 넓은 화면에서는
+              // 그대로 316, 낮은 화면에서는 저절로 작아진다.
               className="relative touch-none select-none"
-              style={{ width: BOX, height: BOX, cursor: "grab" }}
+              style={{
+                width: "min(316px, 30vh, 86vw)",
+                height: "min(316px, 30vh, 86vw)",
+                cursor: "grab",
+              }}
               aria-label="염주 굴리기 — 왼쪽으로 쓸거나 톡 누르면 한 알"
             >
               {/* 바깥 진행 고리 — 백팔이 차오른다 */}
@@ -804,15 +823,51 @@ export default function MoktakPage() {
                 />
               </svg>
 
+              {/* ── 가로형 살갗 ──
+                  세로 그림(고리를 정면에서 본 것)과 3D 그림(비스듬히 누운
+                  고리)은 결이 아주 달라, 그냥 바꿔 끼우면 툭 튄다.
+                  두 겹을 겹쳐 두고 **투명도로 건너간다**. 한쪽이 사라지는
+                  동안 다른 쪽이 떠오르니 눈이 따라간다.
+
+                  누운 고리는 평면에서 돌리면(rotate) 접시가 찌그러진다.
+                  Y 축으로 돌려야(rotateY) 진짜 고리가 도는 것처럼 보인다. */}
+              <div
+                // grid + place-items-center 안에서는 칸이 내용에 맞춰
+                // 좁아져 퍼센트 폭이 0 으로 접힌다(그림이 안 보였다).
+                // flex 로 바꾸면 퍼센트가 통의 폭을 기준으로 잡힌다.
+                className="pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-300"
+                style={{ opacity: beadWide ? 1 : 0, perspective: 900 }}
+                aria-hidden
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={skinSrc("bead")}
+                  alt=""
+                  draggable={false}
+                  className="block w-[96%] object-contain"
+                  style={{
+                    // 돌린 각을 그대로 rotateY 에 물렸더니 90도에서 **날이
+                    // 서서 사라졌다**(폭 0). 누운 고리를 평면에서 돌릴 수는
+                    // 없으니, 세는 결에 맞춰 좌우로 살짝 흔들기만 한다.
+                    transform: `rotateY(${(Math.sin((angle * Math.PI) / 180) * 15).toFixed(2)}deg)`,
+                    transition: "transform 0.22s ease-out",
+                    filter: "drop-shadow(0 12px 30px rgba(0,0,0,0.55))",
+                  }}
+                />
+              </div>
+
               {/* 염주 — 굴리면 돈다 */}
-              <div className="absolute inset-0 grid place-items-center">
+              <div
+                className="absolute inset-0 grid place-items-center transition-opacity duration-300"
+                style={{ opacity: beadWide ? 0 : 1 }}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={skinSrc("bead")}
                   alt=""
                   aria-hidden
                   draggable={false}
-                  className="block h-[262px] w-[262px] object-contain"
+                  className="block h-[83%] w-[83%] object-contain"
                   style={{
                     transform: `rotate(${angle}deg)`,
                     transition: "transform 0.16s ease-out",
@@ -825,14 +880,19 @@ export default function MoktakPage() {
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 grid place-items-center"
-                style={{ maskImage: goldMask, WebkitMaskImage: goldMask }}
+                style={{
+                  maskImage: goldMask,
+                  WebkitMaskImage: goldMask,
+                  opacity: beadWide ? 0 : 1,
+                  transition: "opacity .3s",
+                }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={skinSrc("bead")}
                   alt=""
                   draggable={false}
-                  className="block h-[262px] w-[262px] object-contain"
+                  className="block h-[83%] w-[83%] object-contain"
                   style={{
                     transform: `rotate(${angle}deg)`,
                     transition: "transform 0.16s ease-out",
