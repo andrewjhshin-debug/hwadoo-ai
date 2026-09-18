@@ -11,9 +11,11 @@
 // 햄버거 서랍과 내 도량의 서비스 그리드에서 닿는다.
 // ────────────────────────────────────────────────────────────────
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useHasNews } from "@/lib/notices";
+import { watchOnlineCount } from "@/lib/presence";
 import { Dharmachakra, Person, BodhiLeaf, Iljumun, Yeomju } from "./icons";
 
 const TABS = [
@@ -28,6 +30,12 @@ export default function MobileTabBar() {
   const pathname = usePathname();
   const router = useRouter();
   const hasNews = useHasNews(); // 새 소식 — 내 도량 탭에 점 하나
+
+  // 지금 도량에 몇인지 — 「절로」 아이콘 어깨에 동그라미로 앉힌다.
+  // 서랍 메뉴에만 적어 두었더니 아무도 안 봤다. 사람이 있는 걸 알아야
+  // 인연 글을 쓴다.
+  const [online, setOnline] = useState(0);
+  useEffect(() => watchOnlineCount(setOnline), []);
 
   // 눌린 대로 그 화면을 연다 — 같은 경로여도 새로 그린다
   const go = (href: string) => (e: React.MouseEvent) => {
@@ -55,6 +63,14 @@ export default function MobileTabBar() {
             >
               <span className="relative">
                 <Icon className="h-[24px] w-[24px]" />
+                {href === "/pilgrimage" && online > 0 && (
+                  <span
+                    aria-label={`지금 도량에 ${online}명`}
+                    className="absolute -right-2.5 -top-1.5 grid h-[16px] min-w-[16px] place-items-center rounded-full border border-gold/60 bg-ink-2 px-[3px] text-[9.5px] font-medium leading-none text-gold tabular-nums"
+                  >
+                    {online > 99 ? "99+" : online}
+                  </span>
+                )}
                 {href === "/settings" && hasNews && (
                   <span
                     aria-hidden

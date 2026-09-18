@@ -24,7 +24,6 @@ import {
   msToMidnight,
   poisonOf,
   stampOf,
-  streakDays,
   type DrawBook,
   type Fortune,
   type PoisonCard,
@@ -143,7 +142,6 @@ export default function DrawPage() {
 
   const open = Boolean(book.today && got);
   const p = got ? poisonOf(got.poison) : null;
-  const run = streakDays(book);
   // 오늘 것은 위에 이미 있다 — 자취에 두 번 적지 않는다
   const trail = (book.today ? book.log.slice(1) : book.log).slice(0, 5);
 
@@ -192,43 +190,20 @@ export default function DrawPage() {
       </div>
 
       {/* ── 얹힌 것 ── */}
-      {(open || run > 0) && (
+      {/* 「이어서 N일」 칩을 뗐다 — 오늘 한 번 뽑으면 그만인 자리에
+          날수를 세어 보이면 끊길까 봐 누르게 된다. 운세는 숙제가 아니다. */}
+      {open && (
         <ul className="rise rise-d3 mt-6 flex flex-wrap items-center justify-center gap-2 text-[11.5px]">
-          {open && (
-            <li className="rounded-full border border-gold/45 px-3 py-1.5 text-gold">
-              공덕 +{FORTUNE_MERIT}
-            </li>
-          )}
-          {run > 0 && (
-            <li className="rounded-full border border-ink-3 px-3 py-1.5 text-hanji-dim">
-              이어서 {run}일
-            </li>
-          )}
+          <li className="rounded-full border border-gold/45 px-3 py-1.5 text-gold">
+            공덕 +{FORTUNE_MERIT}
+          </li>
         </ul>
       )}
 
-      {open && got && p && (
+      {open && got && (
         <>
-          {/* ── 처방 ── */}
-          <p className="mt-7 max-w-[284px] break-keep text-center text-[13px] leading-6 text-hanji-dim">
-            {p.cure}
-          </p>
-          <Link
-            href={p.href}
-            className="btn-obang mt-3.5 block w-full max-w-[284px] py-3 text-center text-[13px] tracking-[0.15em] text-hanji transition-opacity hover:opacity-90"
-          >
-            {p.go}
-          </Link>
-
-          {/* ── 오늘의 한 마디 ── */}
-          <figure className="mt-10 max-w-[284px]">
-            <p className="break-keep text-center font-serif text-[15px] leading-8 text-hanji">
-              {got.saying}
-            </p>
-            <figcaption className="mt-2.5 text-center text-[11px] tracking-wide text-hanji-faint">
-              {got.by}
-            </figcaption>
-          </figure>
+          {/* 처방 한 줄과 「비움으로」 단추, 그 아래 어록 한 편을 다 내렸다.
+              한 장 뽑고 나면 읽을 것이 셋이라 정작 카드가 안 읽혔다. */}
 
           {/* ── 오늘의 말문 — 절에서 건넬 첫 마디 ── */}
           <div className="mt-9 w-full max-w-[284px] rounded-[14px] border border-ink-3 bg-ink-2/50 p-4">

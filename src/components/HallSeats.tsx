@@ -102,6 +102,11 @@ function saveName(seat: string, day: string, name: string) {
  * 백 사람 모인 자리가 열 사람 자리보다 실제로 크게 탄다.
  * 초 자체는 안 물들인다 — 무엇을 빈 자리인지는 뒤에 고인 빛으로만 스민다.
  */
+// candle.png(1024×559) 안에서 불꽃은 y 86~163 — 세로로 15.4%~29.2%.
+// 몸통은 그 위를 잘라 내고, 불꽃은 그 띠만 남겨 따로 흔든다(.wick).
+const FLAME_CUT = "inset(29.2% 0 0 0)";
+const FLAME_ONLY = "inset(13% 0 70.8% 0)";
+
 function BigCandle({ hue, on }: { hue: number; on: number }) {
   const lit = Math.max(0.08, on);
   return (
@@ -117,6 +122,7 @@ function BigCandle({ hue, on }: { hue: number; on: number }) {
           background: `radial-gradient(circle, hsla(${hue},72%,74%,.42) 0%, rgba(255,178,80,.26) 36%, transparent 70%)`,
         }}
       />
+      {/* 몸통 — 불꽃(위 29.2%)은 잘라 내고 그린다 */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/obj/candle.png"
@@ -124,11 +130,27 @@ function BigCandle({ hue, on }: { hue: number; on: number }) {
         aria-hidden
         className="relative block h-auto w-full object-contain"
         style={{
+          clipPath: FLAME_CUT,
           filter: `drop-shadow(0 0 ${6 + lit * 20}px hsla(${hue},80%,66%,${Math.min(0.55, 0.12 + lit * 0.4)}))`,
           opacity: on > 0 ? 1 : 0.5,
           transition: "filter .7s ease-out, opacity .7s",
         }}
       />
+      {/* 불꽃 — 따로 얹어 흔든다. 아직 어두운 자리는 불이 없다 */}
+      {on > 0 && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src="/obj/candle.png"
+          alt=""
+          aria-hidden
+          className="wick pointer-events-none absolute left-0 top-0 block h-auto w-full object-contain"
+          style={{
+            clipPath: FLAME_ONLY,
+            transformOrigin: "50% 29.2%",
+            animationDuration: `${1.5 + (hue % 5) * 0.17}s`,
+          }}
+        />
+      )}
         {/* 빛깔 한 겹 — 그림 위에 얹고 초 모양대로만 오려 낸다(mask).
             무엇을 빌었는지가 무리에만 스미니 줄지어 서면 다 같은 초였다.
             섞는 결은 color 다 — 밝고 어두운 결(3D 음영)은 그대로 두고
@@ -137,9 +159,10 @@ function BigCandle({ hue, on }: { hue: number; on: number }) {
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          background: `hsl(${hue} 72% 58%)`,
+          clipPath: FLAME_CUT,
+          background: `hsl(${hue} 78% 54%)`,
           mixBlendMode: "color",
-          opacity: on > 0 ? 0.44 : 0.16,
+          opacity: on > 0 ? 0.78 : 0.2,
           transition: "opacity .7s",
           WebkitMaskImage: "url(/obj/candle.png)",
           maskImage: "url(/obj/candle.png)",
@@ -391,11 +414,7 @@ export default function HallSeats() {
         )}
       </div>
 
-      <p className="mt-2 break-keep text-[12px] leading-6 text-hanji-dim">
-        손을 모으면 그 자리에 <span className="text-hanji">불이 하나 늘어납니다</span>. 값이 들지
-        않습니다 — 아직 아무것도 안 하셨어도 됩니다.
-      </p>
-
+      {/* 안내 두 줄을 뗐다 — 자리 이름만 봐도 무엇을 하는 곳인지 읽힌다 */}
       <div className="mt-3 flex flex-col gap-1.5">
         {SEAT_ROW.map((s) => (
           <SeatRow
@@ -441,13 +460,6 @@ export default function HallSeats() {
           )}
         </div>
       )}
-
-      {/* 기복으로 미끄러지지 않게 긋는 선 — 지우지 말 것 */}
-      <p className="mt-3 break-keep text-center text-[11px] leading-5 text-hanji-faint">
-        불이 밝다고 더 잘 이루어지지는 않습니다.
-        <br />
-        이 마음에 오늘 몇이 함께했는지를 보여 줄 뿐입니다.
-      </p>
 
       {/* ── 손 모으기 ── */}
       {pick && (

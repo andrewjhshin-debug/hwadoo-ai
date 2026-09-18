@@ -920,21 +920,23 @@ export default function Home() {
           {/* 두 문을 위아래로 — 떠 있는 동그란 단추는 뗐다.
               화면 구석에 혼자 떠 있으면 무슨 단추인지 알 수가 없고,
               물음만 남기자는 이 화면의 뜻과도 어긋난다.
-              나란히 놓았더니 둘이 같은 무게로 보였는데, 이 화면에서 할 일은
-              물음을 받아 적는 쪽이다. 사유의 방을 아래에 크게 세운다. */}
-          <div className="mt-11 flex w-full max-w-[320px] flex-col items-center gap-3">
-            <button
-              onClick={() => setFocusMode(false)}
-              className="tap rounded-full border border-ink-3 px-6 py-2.5 text-[11px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
-            >
-              되돌아가기
-            </button>
+              차례를 뒤집었다 — 물음을 읽고 이어서 할 일은 받아 적는 쪽이니
+              사유의 방이 먼저 닿는 자리에 온다. 되돌아가기는 그 아래.
+              둘을 붙여 두니 큰 단추를 누르려다 작은 쪽을 스쳤다 — 사이를
+              한 뼘(gap-6) 벌려 손가락이 헷갈릴 일을 없앤다. */}
+          <div className="mt-11 flex w-full max-w-[320px] flex-col items-center gap-6">
             <button
               onClick={() => setNotesOpen(true)}
               className="tap flex w-full items-center justify-center gap-2.5 rounded-full border border-gold/45 bg-gold/[0.07] px-6 py-4 text-[14px] tracking-[0.18em] text-gold-soft transition-colors hover:border-gold/75 hover:bg-gold/15 hover:text-gold"
             >
               <Banga className="h-5 w-5" />
               사유의 방
+            </button>
+            <button
+              onClick={() => setFocusMode(false)}
+              className="tap rounded-full border border-ink-3 px-6 py-2.5 text-[11px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
+            >
+              되돌아가기
             </button>
           </div>
         </section>

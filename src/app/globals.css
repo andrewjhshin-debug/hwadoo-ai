@@ -728,3 +728,38 @@ html[data-focus="1"] .mobile-tabbar,
 html[data-focus="1"] .doryang-fab {
   display: none !important;
 }
+
+/* ── 그림 초의 불꽃 ────────────────────────────────────────────────
+   candle.png 한 장을 두 겹으로 쓴다. 몸통은 위 29.2% 를 잘라 내고,
+   같은 그림을 한 겹 더 얹어 그 띠(불꽃)만 남겨 흔든다. 도는 축은
+   심지 자리(transform-origin: 50% 29.2%)다 — 어긋나면 불이 뜬다.
+   법당(CandleHall)과 함께 켜는 초(HallSeats)가 같이 쓴다. */
+.wick {
+  animation-name: wick-flicker;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+@keyframes wick-flicker {
+  0%   { transform: scale(1, 1)      rotate(0deg);    opacity: 1; }
+  17%  { transform: scale(.95, 1.07) rotate(-1.4deg); opacity: .92; }
+  35%  { transform: scale(1.04, .96) rotate(1.1deg);  opacity: 1; }
+  52%  { transform: scale(.97, 1.05) rotate(-.7deg);  opacity: .88; }
+  71%  { transform: scale(1.03, .98) rotate(1.5deg);  opacity: 1; }
+  88%  { transform: scale(.98, 1.03) rotate(-.5deg);  opacity: .95; }
+  100% { transform: scale(1, 1)      rotate(0deg);    opacity: 1; }
+}
+/* 촛대의 무리 — 가로만 가운데를 잡는다(세로까지 끌면 불이 초에서 뜬다) */
+.stick-halo {
+  animation-name: stick-breathe;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes stick-breathe {
+  0%, 100% { opacity: .8;  transform: translateX(-50%) scale(1); }
+  37%      { opacity: 1;   transform: translateX(-50%) scale(1.16); }
+  68%      { opacity: .66; transform: translateX(-50%) scale(.92); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wick, .stick-halo { animation: none; }
+}

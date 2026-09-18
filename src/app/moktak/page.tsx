@@ -712,15 +712,15 @@ export default function MoktakPage() {
       ) : (
         <>
           {/* ── 싱잉볼 — 치고, 듣는다 ── */}
-          <p className="rise rise-d1 mt-8 text-[12px] tracking-[0.35em] text-hanji-faint">
+          <p className="rise rise-d1 mt-5 text-[12px] tracking-[0.35em] text-hanji-faint">
             오늘 울린 그릇
           </p>
-          <p className="rise rise-d1 mt-1 font-serif text-[68px] font-light leading-none text-hanji">
+          <p className="rise rise-d1 mt-1 font-serif text-[56px] font-light leading-none text-hanji">
             {bowlHits.toLocaleString("ko-KR")}
           </p>
 
           {/* 그릇 고르기 — 클수록 낮게 운다 */}
-          <div className="rise rise-d1 mt-5 flex gap-2">
+          <div className="rise rise-d1 mt-3.5 flex gap-2">
             {BOWL_TONES.map((b) => (
               <button
                 key={b.id}
@@ -741,7 +741,7 @@ export default function MoktakPage() {
           <button
             onClick={ringBowl}
             aria-label="싱잉볼 치기"
-            className="rise rise-d2 relative mt-1 flex h-[300px] w-[330px] items-center justify-center outline-none"
+            className="rise rise-d2 relative mt-0.5 flex h-[248px] w-[262px] max-w-[78vw] items-center justify-center outline-none"
           >
             {/* 울림 — 소리가 나는 동안만 파문이 번진다 */}
             {ringing && (
@@ -777,13 +777,13 @@ export default function MoktakPage() {
             </svg>
           </button>
 
-          <p className="rise rise-d2 mt-2 text-[11.5px] tracking-[0.2em] text-hanji-faint">
+          <p className="rise rise-d2 mt-1 text-[11.5px] tracking-[0.2em] text-hanji-faint">
             {ringing ? "울리는 중 — 끝까지 들어 보세요" : "그릇을 눌러 한 번"}
           </p>
 
           {/* 이 단추는 울릴 때만 보이지만 **자리는 늘 잡아 둔다.**
               나타났다 사라지면 아래 공덕 줄이 그만큼 위아래로 뛴다. */}
-          <div className="mt-3 flex h-[36px] items-center">
+          <div className="mt-2 flex h-[34px] items-center">
             {ringing && (
               <button
                 onClick={stopBowl}
@@ -799,7 +799,7 @@ export default function MoktakPage() {
       {/* ── 공덕 — 아래에 얇게 ── */}
       <Link
         href="/settings"
-        className="rise rise-d3 mt-8 w-full max-w-sm rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3.5 transition-colors hover:border-gold/40"
+        className="rise rise-d3 mt-5 w-full max-w-sm rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3.5 transition-colors hover:border-gold/40"
       >
         {/* 재는 자가 둘이라 늘 헷갈렸다 — 맨 위 금선은 연꽃 한 송이까지,
             이 줄은 백팔 한 바퀴. 쌓인 공덕 숫자(2,329 같은)는 뗐다.

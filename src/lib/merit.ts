@@ -34,6 +34,7 @@ export type MeritSource =
   | "bowl" // 싱잉볼 한 번 — 치고 여운을 듣는다
   | "candle" // 초 공양 — 남의 초에 같이 빌어 줌
   | "mandala" // 만다라 — 한 장을 끝까지 칠함
+  | "fortune" // 오늘의 운세 — 하루 한 장
   | "daily"; // 오늘의 세 가지를 다 마침
 
 /**
@@ -79,6 +80,11 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   // 이십 분 안팎이 걸리니 백팔배(756) 와 호흡 한 판(378) 사이가 맞다.
   mandala: 540,
   candle: 9,
+  // 오늘의 운세 — 패 한 장. 오래 「염주」 칸에 적혔다. 한 알(1)짜리 갈래를
+  // 스물한 번 곱해 넣는 편법이었는데, 그러면 화면에 「염주 1,012」로 보이고
+  // 염주 하루 천장(540)도 같이 깎였다. 한 일과 적히는 칸이 어긋나면
+  // 숫자를 못 믿는다. 제 갈래를 냈다.
+  fortune: 21,
   daily: 108,
 };
 
@@ -112,6 +118,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   bowl: 486,
   mandala: 1080, // 하루 두 장
   candle: 162,
+  fortune: 21, // 패는 하루 한 장뿐이라 한 장 값이 곧 천장
   daily: 324, // 오늘의 세 가지 — 하루 한 번뿐
 };
 
@@ -639,6 +646,7 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   moment: "시절인연",
   bowl: "싱잉볼",
   candle: "초 공양",
+  fortune: "오늘의 운세",
   daily: "오늘의 세 가지",
   mandala: "만다라",
 };

@@ -17,14 +17,14 @@
 // ─────────────────────────────────────────────────────────────
 
 import { visitDayKey } from "@/components/VisitLedger";
-import { addMerit } from "./merit";
+import { addMerit, MERIT_VALUE } from "./merit";
 import { SAYINGS } from "./sayings";
 
 export const DRAW_KEY = "hwadu.fortune.v1";
 export const DRAW_EVENT = "hwadu-draw-updated";
 
-/** 뒤집으면 그 자리에서 쌓이는 공덕 */
-export const FORTUNE_MERIT = 21;
+/** 뒤집으면 그 자리에서 쌓이는 공덕 — 값은 공덕 장부가 쥔다(두 벌로 두지 않는다) */
+export const FORTUNE_MERIT = MERIT_VALUE.fortune;
 
 /** 자취를 남기는 날 수 */
 const LOG_MAX = 30;
@@ -246,10 +246,10 @@ export function drawFortune(): Fortune | null {
   b.log = [f, ...b.log].slice(0, LOG_MAX);
   save(b);
 
-  // 공덕은 공덕 장부가 셈한다. 21 을 그대로 얹으려면 한 알(1)짜리 갈래를
-  // 곱하는 수밖에 없어 염주로 넣는다 — merit.ts 에 '운세' 갈래가 생기면
-  // 그때 갈아 끼우면 된다.
-  addMerit("bead", FORTUNE_MERIT);
+  // 오래 「염주」 칸에 적었다 — 한 알(1)짜리 갈래를 스물한 번 곱하는
+  // 편법이었는데, 내 도량에 「염주 1,012」로 뜨고 염주 하루 천장까지
+  // 깎였다. 한 일과 적히는 칸은 같아야 한다. 이제 제 갈래로 넣는다.
+  addMerit("fortune");
 
   return f;
 }

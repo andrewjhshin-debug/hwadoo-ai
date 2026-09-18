@@ -112,6 +112,12 @@ function CandleDefs() {
  * 법당 불빛은 다 호박색이다 — 무엇을 빌었는지는 뒤에 깔린 무리로만 스민다.
  * 오래 탄 초는 조금 작아지고, 꺼진 초는 빛을 잃는다.
  */
+// candle.png(1024×559) 안에서 불꽃은 y 86~163 에 있다. 세로로 재면
+// 위 15.4% 에서 시작해 29.2% 에서 끝난다 — 그 아래가 초의 몸통이다.
+// 몸통은 위를 잘라 내고, 불꽃은 그 띠만 남겨 따로 흔든다.
+const FLAME_CUT = "inset(29.2% 0 0 0)";
+const FLAME_ONLY = "inset(13% 0 70.8% 0)";
+
 function Stick({
   c,
   i,
@@ -139,19 +145,19 @@ function Stick({
     <button
       onClick={onOpen}
       title={`${c.forName} — ${w.label}`}
-      className="group flex w-[66px] shrink-0 flex-col items-center"
+      className="group flex w-[52px] shrink-0 flex-col items-center"
     >
       {/* 그림 상자 — 높이를 못박아 두어야 깊이를 줘도 이름 줄이 한 줄로 선다 */}
       <span
-        className={`relative flex h-[96px] w-full items-end justify-center transition-transform group-hover:-translate-y-[3px] ${art}`}
+        className={`relative flex h-[76px] w-full items-end justify-center transition-transform group-hover:-translate-y-[3px] ${art}`}
       >
         {/* 고인 빛 — 무엇을 빌었는지가 여기로만 스민다 */}
         {left > 0 && (
           <span
             aria-hidden
-            className="candle-glow pointer-events-none absolute bottom-[26px] left-1/2 h-[72px] w-[72px] -translate-x-1/2 rounded-full"
+            className="stick-halo pointer-events-none absolute bottom-[22px] left-1/2 h-[54px] w-[54px] rounded-full"
             style={{
-              background: `radial-gradient(circle, hsla(${w.hue},72%,72%,.3) 0%, rgba(255,178,80,.2) 36%, transparent 70%)`,
+              background: `radial-gradient(circle, hsla(${w.hue},82%,70%,.42) 0%, rgba(255,178,80,.24) 38%, transparent 72%)`,
               animationDelay: `${(i % 17) * 0.13}s`,
               animationDuration: `${2.2 + (i % 7) * 0.13}s`,
             }}
@@ -161,6 +167,8 @@ function Stick({
           className="relative block w-full"
           style={{ transform: `scale(${scale})`, transformOrigin: "50% 100%" }}
         >
+          {/* 몸통 — 불꽃을 잘라 내고 그린다(위 29.2%가 심지 위쪽이다).
+              불꽃은 아래에서 따로 얹어 흔든다. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/obj/candle.png"
@@ -168,12 +176,29 @@ function Stick({
             aria-hidden
             className="block h-auto w-full object-contain"
             style={{
+              clipPath: FLAME_CUT,
               filter: left
                 ? `drop-shadow(0 0 ${8 + left * 4}px hsla(${w.hue},80%,66%,.3))`
                 : "grayscale(.7) brightness(.5)",
               opacity: left ? 1 : 0.45,
             }}
           />
+          {/* 불꽃 한 겹 — 같은 그림, 심지 위쪽만. 빛깔 물은 안 든다 */}
+          {left > 0 && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src="/obj/candle.png"
+              alt=""
+              aria-hidden
+              className="wick pointer-events-none absolute left-0 top-0 block h-auto w-full object-contain"
+              style={{
+                clipPath: FLAME_ONLY,
+                transformOrigin: "50% 29.2%",
+                animationDelay: `${(i % 13) * 0.19}s`,
+                animationDuration: `${1.5 + (i % 5) * 0.17}s`,
+              }}
+            />
+          )}
         {/* 빛깔 한 겹 — 그림 위에 얹고 초 모양대로만 오려 낸다(mask).
             무엇을 빌었는지가 무리에만 스미니 줄지어 서면 다 같은 초였다.
             섞는 결은 color 다 — 밝고 어두운 결(3D 음영)은 그대로 두고
@@ -183,9 +208,10 @@ function Stick({
               aria-hidden
               className="pointer-events-none absolute inset-0"
               style={{
-                background: `hsl(${w.hue} 72% 58%)`,
+                clipPath: FLAME_CUT,
+                background: `hsl(${w.hue} 78% 54%)`,
                 mixBlendMode: "color",
-                opacity: 0.42,
+                opacity: 0.78,
                 WebkitMaskImage: "url(/obj/candle.png)",
                 maskImage: "url(/obj/candle.png)",
                 WebkitMaskSize: "contain",
@@ -199,7 +225,7 @@ function Stick({
           )}
         </span>
       </span>
-      <span className="mt-[3px] max-w-[64px] truncate text-[9.5px] leading-4 text-hanji-faint">
+      <span className="mt-[3px] max-w-[52px] truncate text-[9px] leading-4 text-hanji-faint">
         {c.forName}
       </span>
     </button>
@@ -569,16 +595,8 @@ export default function CandleHall() {
         <LotusCount className="shrink-0" />
       </div>
 
-      {/* 「내 이름이 아니라 누군가의 이름」이라고 못 박아 두었다. 틀렸다 —
-          절에서 제 이름으로 초를 켜는 일은 흔하고, 막을 까닭도 없다.
-          이름을 적고 한 줄 비는 자리라고만 말한다. */}
-      <p className="mt-6 break-keep text-center text-[13px] leading-7 text-hanji-dim">
-        법당 한쪽에 초를 켜 두고 옵니다.
-        <br />
-        <span className="text-hanji">이름 하나와 바라는 한 줄</span>을 적는 자리입니다.
-      </p>
-
-      <div className="mt-5 flex items-center justify-center gap-2">
+      {/* 설명 두 줄을 뗐다 — 단추에 「초 켜기」라고 적혀 있다 */}
+      <div className="mt-6 flex items-center justify-center gap-2">
         <button
           onClick={start}
           className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-[13px] font-medium text-ink"
