@@ -214,14 +214,24 @@ export function strikeMoktak(vol: number) {
     return;
   }
 
-  // 앞 소리 누르기 — 채가 나무에 얹히는 그 순간
+  // 앞 소리 누르기 — 채가 나무에 얹히는 그 순간.
+  //
+  // 예전엔 빠를수록 **매몰차게** 끊었다(4ms). 그래서 잔발이 「똑똑똑」
+  // 하는 마른 점의 나열이 됐다. 진짜 목탁은 그렇지 않다 —
+  // 채가 얹혀 **앞 소리의 머리만** 눌릴 뿐, 통 안의 울림은 계속 산다.
+  // 오히려 빨리 칠수록 울림이 겹쳐 쌓인다. 끊는 시간을 늘리고,
+  // 완전히 죽이지 않고 한 겹 남긴다.
   if (ringing && speed > 0.2) {
     const { g } = ringing;
-    const off = 0.004 + 0.02 * (1 - speed); // 빠를수록 매몰차게
+    const off = 0.05 + 0.06 * (1 - speed);
+    const leave = 0.18; // 다 죽이지 않는다 — 이 한 겹이 공명이 된다
     try {
       g.gain.cancelScheduledValues(t);
       g.gain.setValueAtTime(g.gain.value, t);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + off);
+      g.gain.exponentialRampToValueAtTime(
+        Math.max(0.0001, g.gain.value * leave),
+        t + off
+      );
     } catch {
       /* 이미 끝난 소리 */
     }
@@ -248,16 +258,41 @@ export function strikeMoktak(vol: number) {
   hp.Q.value = 0.7;
 
   const out = ac.createGain();
-  // 잔발은 손목만 쓴다 — 절반 남짓으로 여린다
-  out.gain.value = vol * 1.15 * (1 - 0.42 * speed) * (1 - 0.16 * roll);
+  // 잔발은 손목만 쓴다 — 여리되, 너무 죽이면 몸통이 사라진다.
+  // 아래에 통울림 한 겹을 따로 깔기 때문에 여기서 덜 깎아도 된다.
+  out.gain.value = vol * 1.15 * (1 - 0.3 * speed) * (1 - 0.1 * roll);
 
   src.connect(hp);
   hp.connect(out);
   out.connect(master(ac));
 
-  // 방의 울림 — 잔발일수록 거의 보내지 않는다. 안 그러면 죽이 된다.
+  // ── 몸통 한 겹 ──
+  // 잔발 음원은 0.2초라 「딱」만 있고 통이 없다. 그래서 빨리 치면
+  // 나무 조각 두드리는 소리가 됐다. 진짜 목탁은 빨리 칠수록 통 안에
+  // 울림이 **쌓인다.** 그래서 잔발일 때 단타 음원을 여리게 한 겹 깔아
+  // 몸통을 만든다. 높이만 맞추고 소리는 뒤로 물린다.
+  if (useRoll && moktakBuf) {
+    const body = ac.createBufferSource();
+    body.buffer = moktakBuf;
+    body.playbackRate.value = src.playbackRate.value * 1.06;
+    const bodyHp = ac.createBiquadFilter();
+    bodyHp.type = "highpass";
+    bodyHp.frequency.value = 110; // 바닥만 걷는다 — 통은 남긴다
+    const bg = ac.createGain();
+    // 잔발이 이어질수록 조금씩 더 깐다 — 울림이 겹쳐 쌓이는 결
+    bg.gain.value = vol * (0.2 + 0.16 * roll);
+    body.connect(bodyHp);
+    bodyHp.connect(bg);
+    bg.connect(master(ac));
+    bg.connect(hall(ac));
+    body.start(t);
+  }
+
+  // 방의 울림 — 잔발이라고 끊지 않는다.
+  // 예전엔 82%를 깎아 잔발이 마른 소리가 됐다. 빨리 칠수록 울림이
+  // 쌓이는 게 맞다 — 조금만 눌러 죽이 되지 않을 만큼만 둔다.
   const send = ac.createGain();
-  send.gain.value = vol * 0.3 * (1 - 0.82 * speed);
+  send.gain.value = vol * 0.3 * (1 - 0.25 * speed);
   out.connect(send);
   send.connect(hall(ac));
 
