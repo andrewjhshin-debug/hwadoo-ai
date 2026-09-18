@@ -16,6 +16,54 @@ import { visitDayKey } from "@/components/VisitLedger";
 import { meritMultiplier } from "./charmPower";
 
 export const MERIT_KEY = "hwadu.merit.v1";
+
+/**
+ * 장부는 **계정마다 따로 둔다.**
+ *
+ * 한동안 열쇠가 하나뿐이라 장부가 계정이 아니라 브라우저에 붙어 있었다.
+ * 한 브라우저를 나눠 쓰면 앞사람이 한 일이 내 도량 칩에 그대로 남았다
+ * (「한 적 없는 시절인연 58」이 뜨던 길).
+ *
+ * 처음엔 로그아웃할 때 장부를 지워 막으려 했는데, 그건 더 나쁜 짓이었다 —
+ * 공덕은 아직 서버로 안 올라가니 서랍이 유일본이다. 단추 한 번에 반년
+ * 쌓은 것이 사라진다. **지우지 말고 칸을 나눈다.**
+ *   로그인 전 · 로그아웃 뒤 :  hwadu.merit.v1
+ *   계정 A 로 들어와 있으면  :  hwadu.merit.v1:<A의 uid>
+ * 그러면 지울 일이 없고, 다시 들어오면 제 것이 그대로 있다.
+ */
+let keyUid = "";
+function meritKey(): string {
+  return keyUid ? `${MERIT_KEY}:${keyUid}` : MERIT_KEY;
+}
+
+/**
+ * 계정이 정해졌다 — 장부를 그 계정 칸으로 옮긴다. sync.ts 가 부른다.
+ * @param uid   로그인한 계정(로그아웃이면 빈 문자열)
+ * @param owned 바탕 칸(로그인 전 장부)이 **이 계정의 것**인가.
+ *              sync.ts 가 Store.ownerUid 를 보고 판단한다. 남의 것이면
+ *              건드리지 않는다 — 그 사람이 다시 들어오면 되찾아야 한다.
+ */
+export function setMeritAccount(uid: string, owned: boolean) {
+  keyUid = uid;
+  if (uid) {
+    try {
+      const k = meritKey();
+      const base = window.localStorage.getItem(MERIT_KEY);
+      // 이 브라우저에서 쭉 쓰던 사람이 처음 계정 칸으로 옮겨 오는 자리
+      if (owned && base) {
+        if (!window.localStorage.getItem(k)) window.localStorage.setItem(k, base);
+        window.localStorage.removeItem(MERIT_KEY); // 바탕 칸은 비운다 — 다음 사람에게 안 새게
+      }
+    } catch {
+      // 서랍이 막혀도 오늘은 수행할 수 있다
+    }
+  }
+  try {
+    window.dispatchEvent(new CustomEvent(MERIT_EVENT));
+  } catch {
+    /* 서버에서는 창이 없다 */
+  }
+}
 export const MERIT_EVENT = "hwadu-merit-updated";
 
 /** 한 바퀴 — 백팔번뇌의 수 */
@@ -219,6 +267,15 @@ export type MeritLedger = {
    * 센다 — 이제 화면이 「시절인연 1번 · 58」이라 말할 수 있다.
    */
   hits?: Partial<Record<MeritSource, number>>;
+  /**
+   * 횟수를 세기 시작했다는 표시.
+   *
+   * 옛 장부에는 hits 가 없다. 그 사람이 다음에 목탁을 한 번 치면 hits.moktak
+   * 이 1 이 되는데, by.moktak 에는 그동안 쌓인 12,000 이 들어 있다.
+   * 그러면 칩이 「목탁 1번 · 공덕 12,000」이 된다 — 안 세느니만 못하다.
+   * 이 표시가 없는 장부에서는 화면이 횟수를 아예 안 적는다.
+   */
+  hitsFrom?: string;
   /** 남에게 회향한 공덕 — 총합에서 빠지지 않는다. 준 만큼 따로 센다 */
   given: number;
   /** 연꽃으로 바꾸며 쓴 공덕 — 총합은 그대로 두고 잔고에서만 뺀다.
@@ -238,6 +295,7 @@ const EMPTY: MeritLedger = {
   total: 0,
   by: {},
   hits: {},
+  hitsFrom: "",
   given: 0,
   spent: 0,
   day: "",
@@ -249,13 +307,14 @@ const EMPTY: MeritLedger = {
 function readRaw(): MeritLedger {
   if (typeof window === "undefined") return { ...EMPTY };
   try {
-    const raw = window.localStorage.getItem(MERIT_KEY);
+    const raw = window.localStorage.getItem(meritKey());
     if (!raw) return { ...EMPTY };
     const p = JSON.parse(raw) as Partial<MeritLedger>;
     return {
       total: typeof p.total === "number" && p.total > 0 ? Math.floor(p.total) : 0,
       by: p.by && typeof p.by === "object" ? p.by : {},
       hits: p.hits && typeof p.hits === "object" ? p.hits : {},
+      hitsFrom: typeof p.hitsFrom === "string" ? p.hitsFrom : "",
       given: typeof p.given === "number" && p.given > 0 ? Math.floor(p.given) : 0,
       spent: typeof p.spent === "number" && p.spent > 0 ? Math.floor(p.spent) : 0,
       day: typeof p.day === "string" ? p.day : "",
@@ -341,7 +400,7 @@ export function loadMerit(): MeritLedger {
  */
 export function resetMerit() {
   try {
-    window.localStorage.removeItem(MERIT_KEY);
+    window.localStorage.removeItem(meritKey());
     window.dispatchEvent(new CustomEvent(MERIT_EVENT));
   } catch {
     // 못 지워도 수행에 지장이 없도록
@@ -355,7 +414,7 @@ export function fadedSoFar(l: MeritLedger = loadMerit()): number {
 
 function save(l: MeritLedger, shout = true) {
   try {
-    window.localStorage.setItem(MERIT_KEY, JSON.stringify(l));
+    window.localStorage.setItem(meritKey(), JSON.stringify(l));
     // 퇴전 갈무리는 조용히 적는다 — 읽는 도중에 다시 읽히면 끝이 없다
     if (shout) window.dispatchEvent(new CustomEvent(MERIT_EVENT));
   } catch {
@@ -369,7 +428,16 @@ function save(l: MeritLedger, shout = true) {
  */
 export function addMerit(
   source: MeritSource,
-  times = 1
+  times = 1,
+  /**
+   * 「몇 번 했나」 — 값을 곱하는 수(times)와 **다를 수 있다.**
+   *
+   * 호흡은 판 하나에 열여덟 식이 붙으니 times 는 18 이지만 한 판이고,
+   * 시절인연은 도장이 찍히면 한 몫을 더 얹느라 두 번 부르지만 사진은
+   * 한 장이다. times 를 그대로 세었더니 칩에 「시절인연 2번」이 떴다 —
+   * 고치려던 바로 그 증상이다. 세는 단위를 따로 받는다.
+   */
+  hits = times
 ): { total: number; gained: number; crossed: boolean; round: number } {
   // 부적이 붙이는 몫 — 가진 부적과 등급만큼 공덕이 불어난다.
   // 서버에서는 서랍이 비어 있어 1 이 나온다(곱해도 그대로).
@@ -385,7 +453,12 @@ export function addMerit(
   if (gained > 0) l.by[source] = (l.by[source] ?? 0) + gained;
   // 횟수는 공덕이 0 이어도 센다 — 천장에 걸렸을 뿐 한 일은 한 일이다
   if (!l.hits) l.hits = {};
-  l.hits[source] = (l.hits[source] ?? 0) + Math.max(1, Math.round(times));
+  // 빈 장부라면 오늘부터 센 것이니 처음부터 맞는 수다. 쌓인 것이 있는
+  // 장부는 「오늘부터 셈」이라고 적어 두고, 화면이 그 갈래만 횟수를 적는다.
+  if (l.hitsFrom === undefined || l.hitsFrom === "") {
+    l.hitsFrom = before > 0 ? visitDayKey() : "처음부터";
+  }
+  if (hits > 0) l.hits[source] = (l.hits[source] ?? 0) + Math.round(hits);
   l.day = visitDayKey(); // 오늘 움직였다 — 퇴전 시계를 다시 감는다
   l.lastFade = 0; // 흐려진 몫은 한 번 보여 주면 지운다
   l.lastGap = 0;

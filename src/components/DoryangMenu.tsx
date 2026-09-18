@@ -41,7 +41,9 @@ import {
   Baru,
   Chotbul,
 } from "./icons";
-import { inRound, loadMerit, rankOf, ROUND } from "@/lib/merit";
+import { inRound, loadMerit, rankByNeed, ROUND } from "@/lib/merit";
+import { realmOf } from "@/lib/realm";
+import { loadStore } from "@/lib/store";
 import { streakOf } from "@/lib/daily";
 import { watchOnlineCount } from "@/lib/presence";
 
@@ -120,6 +122,7 @@ export default function DoryangMenu() {
   const [notes, setNotes] = useState(false);
   const [merit, setMerit] = useState(0);
   const [days, setDays] = useState(0);
+  const [returned, setReturned] = useState(0); // 회향한 화두 — 자리에 같이 든다
   // 지금 도량에 몇이 있나 — 단추에 얹는다.
   // 뜰 한복판에 「도량에 3명」이라고 적어 두었더니 낯간지러웠다.
   // 수를 없앨 것은 아니고(혼자가 아니라는 건 봐야 한다) 자리를 옮긴 것이다 —
@@ -133,6 +136,7 @@ export default function DoryangMenu() {
   useEffect(() => {
     if (!open) return;
     setMerit(loadMerit().total);
+    setReturned(loadStore().history.length);
     setDays(streakOf());
   }, [open]);
 
@@ -147,7 +151,10 @@ export default function DoryangMenu() {
     return () => window.removeEventListener("keydown", esc);
   }, [open]);
 
-  const rank = rankOf(merit);
+  // 자리는 공덕만으로 안 오른다 — 뜰·내 도량과 같은 셈을 쓴다.
+  // 여기만 rankOf(공덕) 였어서, 카드에는 「사미」 카드를 닫으면 뜰에는
+  // 「동자」가 떴다. 한 번의 탭으로 두 이름이 번갈아 보였다.
+  const rank = rankByNeed(realmOf(merit, returned).need);
 
   return (
     <>

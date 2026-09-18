@@ -15,7 +15,7 @@ import Link from "next/link";
 import Dudu from "@/components/Dudu";
 import { addMerit, loadMerit, stageOf } from "@/lib/merit";
 import { grantCharm } from "@/lib/charm";
-import { buzz, strikeJukbi, strikeMoktak } from "@/lib/sound";
+import { buzz, strikeJukbi, strikeMoktak, warmJukbi } from "@/lib/sound";
 
 const FULL = 108;
 const RING = 2 * Math.PI * 132; // 진행 고리 둘레
@@ -69,7 +69,7 @@ export default function BaePage() {
         window.setTimeout(() => setSay(""), 4000);
       }
       if (next >= FULL) {
-        const r = addMerit("bow", FULL); // 백팔을 한꺼번에
+        const r = addMerit("bow", FULL, 1); // 백팔을 한꺼번에 — 세는 단위는 「한 판」
         setMerit(r.total);
         setDone(true);
         grantCharm("jeongjin"); // 끝까지 간 사람에게 정진부

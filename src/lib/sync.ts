@@ -36,8 +36,8 @@ import { decrementHolding } from "./holding";
 import { resetVisits } from "@/components/VisitLedger";
 import { resetMeditations } from "./meditation";
 import { isAdminAccount } from "./config";
-import { resetMerit, setOwner } from "./merit";
-import { resetDaily } from "./daily";
+import { setMeritAccount, setOwner } from "./merit";
+import { setDailyAccount } from "./daily";
 
 // Firestore는 undefined 값을 거부한다 — JSON 왕복으로 걷어낸다
 function clean<T>(value: T): T {
@@ -162,15 +162,17 @@ async function startSync(uid: string) {
     ? { ...mergeStores(local, cloud), ownerUid: uid }
     : // 앞사람의 기록이다 — 합치지 않고 이 계정의 것으로 갈아끼운다
       { ...(cloud ?? emptyStore()), ownerUid: uid };
+  // 공덕·하루 장부를 **이 계정의 칸으로 옮긴다.**
+  // 지우지 않는다 — 장부는 아직 서버로 안 올라가니 서랍이 유일본이다.
+  // mine 이면 로그인 전에 쌓던 것을 그대로 물려받고, 아니면(앞사람의
+  // 브라우저면) 손대지 않고 이 계정의 빈 칸에서 새로 시작한다.
+  // 앞사람 것은 그 사람 칸에 그대로 남아, 다시 들어오면 되찾는다.
+  setMeritAccount(uid, mine);
+  setDailyAccount(uid, mine);
   if (!mine) {
     releaseHolding(local, merged);
     resetVisits(); // 앞사람의 발자국(함께한 날)도 이 계정에 새지 않게
     resetMeditations(); // 앞사람의 명상 기록도 함께
-    // 공덕 장부와 하루 장부도 함께. 이 둘을 안 비워서 장부가 계정이 아니라
-    // **브라우저**에 붙어 있었다 — 계정을 바꿔도 내 도량 칩에 앞사람이 한
-    // 일이 그대로 남았다(「한 적 없는 시절인연 58」이 뜨던 길).
-    resetMerit();
-    resetDaily();
   }
   // remote 로 알린다 — 열려 있는 화면들이 합쳐진 기록을 곧바로 다시 읽게.
   // (화면이 옛 기록을 쥔 채로 있으면 다음 저장 때 합친 것이 되돌아간다)
@@ -333,8 +335,13 @@ export async function logout() {
     clearStore();
     resetVisits(); // 발자국 장부도 함께 — 다음 사람에게 넘어가지 않도록
     resetMeditations(); // 명상 장부도 함께
-    resetMerit(); // 공덕 장부도 — 다음 사람 화면에 내 숫자가 뜨면 안 된다
-    resetDaily();
   }
+  // 공덕·하루 장부는 **지우지 않는다.** 계정 칸에 그대로 두고 바탕 칸으로
+  // 돌아설 뿐이다 — 다시 들어오면 제 것이 그대로 있다.
+  // (한동안 여기서 지웠다. 장부는 서버에 사본이 없어 유일본인데, 단추 한 번에
+  //  반년 쌓은 것이 사라졌다. 다음 사람에게 안 새게 하는 일은 칸을 나누는
+  //  것으로 이미 끝났다.)
+  setMeritAccount("", false);
+  setDailyAccount("", false);
   await signOut(auth);
 }

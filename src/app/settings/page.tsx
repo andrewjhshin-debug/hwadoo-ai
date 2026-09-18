@@ -913,7 +913,10 @@ export default function SettingsPage() {
           {Object.keys(merit.by).length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {(Object.keys(merit.by) as MeritSource[]).map((k) => {
-                const n = merit.hits?.[k];
+                // 옛 장부는 횟수를 안 셌다. 그 장부에서 한 번 더 하면
+                // 「목탁 1번 · 공덕 12,000」이 되니, 세기 시작한 장부에서만
+                // 횟수를 적는다(hitsFrom 이 「처음부터」일 때).
+                const n = merit.hitsFrom === "처음부터" ? merit.hits?.[k] : 0;
                 return (
                   <span
                     key={k}

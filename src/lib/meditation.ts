@@ -21,7 +21,9 @@ const MAX_MEDITATIONS = 400;
 export function recordMeditation(t: number = Date.now(), breaths = 1): number {
   // 실제로 붙은 값을 돌려준다 — 화면이 상수(21)를 적으면 거짓말이 된다.
   // 삼 분 앉으면 열여덟 식이라 378 이 붙고, 하루 몫이 찼으면 0 이 붙는다.
-  const { gained } = addMerit("breath", Math.max(1, Math.round(breaths)));
+  // 값은 식마다 붙지만(times) 세는 단위는 **한 판**이다(hits=1).
+  // 삼 분 앉은 것을 「호흡 명상 18번」이라 적으면 한 일과 안 맞는다.
+  const { gained } = addMerit("breath", Math.max(1, Math.round(breaths)), 1);
   grantCharm("ansim"); // 처음 마친 사람에게 안심부
   try {
     const list = loadMeditations();

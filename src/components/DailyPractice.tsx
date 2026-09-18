@@ -69,7 +69,6 @@ export default function DailyPractice() {
   const [book, setBook] = useState<DailyBook | null>(null);
   const [total, setTotal] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [got, setGot] = useState(0); // 방금 받은 상
   const [me, setMe] = useState<ReturnType<typeof loadMe>>(null);
   const [fade, setFade] = useState({ cut: 0, gap: 0 });
   // 법명 고쳐 쓰기
@@ -121,14 +120,16 @@ export default function DailyPractice() {
   const finished = allDone(book);
   const knot = nextKnot(streak);
 
+  // 오늘 상으로 실제 얼마가 붙었나 — 장부가 참이다(없으면 null)
+  const claimed = book?.got?.daily ?? null;
+
   const claim = () => {
     // 「공덕 54 받기」라 해 놓고 장부에는 108(배수 있으면 그 이상)이 붙었다.
     // 상의 값은 공덕 장부가 쥔다(MERIT_VALUE.daily). 화면에는 **실제로
     // 붙은 값**을 그대로 적는다 — 천장에 걸려 0 이면 0 이라고 말한다.
     if (!claimDaily()) return;
-    const { gained } = addMerit("daily");
-    setGot(gained);
-    refresh();
+    addMerit("daily");
+    refresh(); // 붙은 값은 장부에서 다시 읽는다 — 화면 상태로 들고 있지 않는다
   };
 
   return (
@@ -352,9 +353,15 @@ export default function DailyPractice() {
           <div className="mt-4 rounded-[12px] border border-gold/40 bg-gold/10 px-4 py-3.5 text-center">
             {book.claimed ? (
               <p className="break-keep text-[12px] leading-6 text-hanji-dim">
-                {got > 0
-                  ? `공덕 ${got.toLocaleString("ko-KR")}이 쌓였어요. 오늘 몫은 여기까지 — 내일 또 만나요.`
-                  : "오늘의 세 가지를 마쳤어요. 오늘 몫이 이미 차서 공덕은 안 붙었습니다."}
+                {/* 붙은 값은 화면 상태가 아니라 **하루 장부**에서 읽는다.
+                    상태에만 두었더니 상을 받고 다른 방에 갔다 오면 0 으로
+                    되돌아가, 이미 108 을 받은 사람에게 「안 붙었습니다」라고
+                    거짓을 말했다. 칸이 아예 없으면(옛 장부) 단정하지 않는다. */}
+                {claimed === null
+                  ? "오늘의 세 가지를 마쳤어요. 내일 또 만나요."
+                  : claimed > 0
+                    ? `공덕 ${claimed.toLocaleString("ko-KR")}이 쌓였어요. 오늘 몫은 여기까지 — 내일 또 만나요.`
+                    : "오늘의 세 가지를 마쳤어요. 오늘 몫이 이미 차서 공덕은 안 붙었습니다."}
               </p>
             ) : (
               <>

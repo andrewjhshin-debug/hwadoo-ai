@@ -72,7 +72,7 @@ export default function SambaePage() {
 
     if (next >= BOWS) {
       // 한 판 — 공덕은 절 세 번 몫
-      const r = addMerit("bow", BOWS);
+      const r = addMerit("bow", BOWS, 1); // 세 배를 한꺼번에 — 세는 단위는 「한 판」
       setMerit(r.total);
       const rd = finishSambae();
       setRounds(rd);

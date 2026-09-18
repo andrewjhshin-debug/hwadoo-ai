@@ -96,21 +96,40 @@ function master(ac: AudioContext): DynamicsCompressorNode {
 // 음원은 한 번만 받아 두고(AudioBuffer), 칠 때마다 새 소스를 물린다.
 // 아직 안 받아졌으면 아래 synthMoktak 이 대신 운다 — 첫 타를 놓치지 않게.
 
+//
+// **음원이 둘이다.** 한 번 치는 소리와 잔발로 구르는 소리는 다른 소리다 —
+// 필터로 흉내 내 봤지만, 진짜는 채가 나무에 얹히는 그 순간의 「닫힘」이
+// 파형에 새겨져 있어서 깎아서는 안 나온다. 그래서 둘 다 떠 왔다.
+//   moktak.wav       한 번 툭 — 1.05초, 통이 다 울고 꺼진다 (「똥」)
+//   moktak-roll.wav  잔발 한 알 — 0.2초, 백 밀리초 만에 죽는다 (「똑」)
+// 형이 준 녹음(목탁2.wav · 목탁소리(이미지)2.wav)은 느린 단타에서
+// 시작해 점점 빨라지는 한 판이라, 같은 목탁의 두 얼굴이 한 파일에 있었다.
 const MOKTAK_URL = "/sfx/moktak.wav";
+const MOKTAK_ROLL_URL = "/sfx/moktak-roll.wav";
 let moktakBuf: AudioBuffer | null = null;
+let moktakRollBuf: AudioBuffer | null = null;
 let moktakAsked = false;
 
 function loadMoktak(ac: AudioContext) {
   if (moktakAsked) return;
   moktakAsked = true;
-  fetch(MOKTAK_URL)
-    .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error("no file"))))
-    .then((b) => ac.decodeAudioData(b))
+  const get = (url: string) =>
+    fetch(url)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error("no file"))))
+      .then((b) => ac.decodeAudioData(b));
+  get(MOKTAK_URL)
     .then((buf) => {
       moktakBuf = buf;
     })
     .catch(() => {
       // 못 받았으면 빚은 소리로 간다 — 조용히
+    });
+  get(MOKTAK_ROLL_URL)
+    .then((buf) => {
+      moktakRollBuf = buf;
+    })
+    .catch(() => {
+      // 잔발 음원이 없으면 단타를 깎아 쓴다 — 아래가 알아서 돌아간다
     });
 }
 
@@ -118,6 +137,36 @@ function loadMoktak(ac: AudioContext) {
 export function warmMoktak() {
   const ac = audio();
   if (ac) loadMoktak(ac);
+}
+
+// ── 죽비(竹篦) 음원 ────────────────────────────────────────────
+//
+// 코드로 빚은 소리를 오래 썼는데, 형 말대로 얇았다. 마른 파열음은
+// 대나무가 갈라지는 **결**이 있어야 하는데 잡음을 걸러 만든 소리로는
+// 그 결이 안 나온다. 진짜 죽비 한 방을 떼어다 놓는다.
+// 못 받았거나 아직 안 받아졌으면 아래 synthJukbi 가 대신 친다.
+const JUKBI_URL = "/sfx/jukbi.wav";
+let jukbiBuf: AudioBuffer | null = null;
+let jukbiAsked = false;
+
+function loadJukbi(ac: AudioContext) {
+  if (jukbiAsked) return;
+  jukbiAsked = true;
+  fetch(JUKBI_URL)
+    .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error("no file"))))
+    .then((b) => ac.decodeAudioData(b))
+    .then((buf) => {
+      jukbiBuf = buf;
+    })
+    .catch(() => {
+      // 못 받았으면 빚은 소리로 간다 — 조용히
+    });
+}
+
+/** 미리 받아 둔다 — 삼배·백팔배 방에 들어서는 순간 */
+export function warmJukbi() {
+  const ac = audio();
+  if (ac) loadJukbi(ac);
 }
 
 // ── 빠르기가 소리를 바꾼다 ──────────────────────────────────
@@ -178,17 +227,24 @@ export function strikeMoktak(vol: number) {
     }
   }
 
+  // 어느 얼굴로 울 것인가 — 반 넘게 빠르면 잔발 음원으로 갈아탄다.
+  // 갈아타는 자리에서 소리가 툭 바뀌지 않도록, 깎는 정도(아래 hp·rate)는
+  // 어느 쪽을 쓰느냐에 따라 달리 준다. 잔발 음원은 이미 짧고 마른 소리라
+  // 거의 안 깎아도 된다.
+  const useRoll = !!moktakRollBuf && speed > 0.5;
   const src = ac.createBufferSource();
-  src.buffer = moktakBuf;
+  src.buffer = useRoll ? moktakRollBuf : moktakBuf;
   // 나무는 칠 때마다 조금씩 다르다(±3%). 거기에 빠르기를 얹는다 —
   // 빠를수록 짧고 높게. 잔발이 이어지면 반 눈금 더.
-  src.playbackRate.value =
-    (0.985 + Math.random() * 0.03) * (1 + 0.2 * speed + 0.055 * roll);
+  src.playbackRate.value = useRoll
+    ? (0.985 + Math.random() * 0.03) * (1 + 0.06 * (speed - 0.5) * 2 + 0.03 * roll)
+    : (0.985 + Math.random() * 0.03) * (1 + 0.2 * speed + 0.055 * roll);
 
-  // 낮은 통울림을 깎는다 — 잔발은 「딱」만 남는다
+  // 낮은 통울림을 깎는다 — 잔발은 「딱」만 남는다.
+  // 잔발 음원은 통울림이 애초에 없으니 살짝만 건드린다.
   const hp = ac.createBiquadFilter();
   hp.type = "highpass";
-  hp.frequency.value = 80 + 520 * speed + 140 * roll;
+  hp.frequency.value = useRoll ? 150 + 90 * roll : 80 + 520 * speed + 140 * roll;
   hp.Q.value = 0.7;
 
   const out = ac.createGain();
@@ -641,40 +697,54 @@ export function wakeBreath() {
 export function strikeJukbi(vol: number) {
   const ac = audio();
   if (!ac) return;
+  loadJukbi(ac);
   const t = ac.currentTime;
   const out = ac.createGain();
   out.gain.value = vol;
   out.connect(ac.destination);
 
-  // ① 죽비 — 마른 파열음. 울림이 생겼으니 이쪽은 눌러 둔다
-  const src = ac.createBufferSource();
-  src.buffer = noise(ac);
-  const bp = ac.createBiquadFilter();
-  bp.type = "bandpass";
-  bp.frequency.value = 2300 + Math.random() * 400;
-  bp.Q.value = 0.8;
-  const g = ac.createGain();
-  g.gain.setValueAtTime(0.55, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
-  src.connect(bp);
-  bp.connect(g);
-  g.connect(out);
-  src.start(t);
+  // ① 죽비 — 진짜 한 방. 칠 때마다 아주 조금씩 다르게 울려야
+  //    기계가 아니라 사람이 치는 것처럼 들린다(빠르기 ±3%).
+  if (jukbiBuf) {
+    const real = ac.createBufferSource();
+    real.buffer = jukbiBuf;
+    real.playbackRate.value = 0.97 + Math.random() * 0.06;
+    const rg = ac.createGain();
+    rg.gain.value = 0.95;
+    real.connect(rg);
+    rg.connect(out);
+    real.start(t);
+  } else {
+    // 아직 안 받아졌다 — 빚은 소리로 첫 타를 놓치지 않는다
+    const src = ac.createBufferSource();
+    src.buffer = noise(ac);
+    const bp = ac.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 2300 + Math.random() * 400;
+    bp.Q.value = 0.8;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.55, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(out);
+    src.start(t);
 
-  // 대나무의 속 — 짧게 떨어지는 울림 한 점
-  const o = ac.createOscillator();
-  o.type = "triangle";
-  const f = 880 + Math.random() * 120;
-  o.frequency.setValueAtTime(f, t);
-  o.frequency.exponentialRampToValueAtTime(f * 0.6, t + 0.07);
-  const g2 = ac.createGain();
-  g2.gain.setValueAtTime(0.0001, t);
-  g2.gain.exponentialRampToValueAtTime(0.22, t + 0.003);
-  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
-  o.connect(g2);
-  g2.connect(out);
-  o.start(t);
-  o.stop(t + 0.12);
+    // 대나무의 속 — 짧게 떨어지는 울림 한 점
+    const o = ac.createOscillator();
+    o.type = "triangle";
+    const f = 880 + Math.random() * 120;
+    o.frequency.setValueAtTime(f, t);
+    o.frequency.exponentialRampToValueAtTime(f * 0.6, t + 0.07);
+    const g2 = ac.createGain();
+    g2.gain.setValueAtTime(0.0001, t);
+    g2.gain.exponentialRampToValueAtTime(0.22, t + 0.003);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+    o.connect(g2);
+    g2.connect(out);
+    o.start(t);
+    o.stop(t + 0.12);
+  }
 
   // ② 범종 한 점 — 어긋난 배음 넷.
   //   2.76·5.40·8.93 은 실제 종(종형 진동체)의 배음비에 가깝다.
@@ -687,8 +757,10 @@ export function strikeJukbi(vol: number) {
     [5.4, 0.1, 0.85],
     [8.93, 0.05, 0.5],
   ];
+  // 진짜 죽비가 두툼해서, 뒤에 깔리는 범종은 한 뼘 눌러 둔다.
+  // 그래도 빼지는 않는다 — 「웅장하고 신비롭게」의 팔 할이 이 한 점이다.
   const bell = ac.createGain();
-  bell.gain.value = 0.62;
+  bell.gain.value = jukbiBuf ? 0.42 : 0.62;
   bell.connect(out);
   for (const [ratio, amp, tail] of PARTIALS) {
     const p = ac.createOscillator();

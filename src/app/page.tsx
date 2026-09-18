@@ -147,10 +147,6 @@ export default function Home() {
   const confirm = useConfirm();
   const [store, setStore] = useState<Store | null>(null);
   const [merit, setMerit] = useState(0); // 공덕 — 첫 화면의 수행 줄에 보인다
-  // 회향한 화두 수 — 자리를 매기는 데 공덕과 함께 든다.
-  // 서랍은 그릴 때 읽으면 안 된다(서버가 그린 첫 화면과 어긋난다) —
-  // 아래 effect 에서 담아 둔 값을 쓴다.
-  const [returnedCount, setReturnedCount] = useState(0);
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState("");
   const [showSettings, setShowSettings] = useState(false);
@@ -179,10 +175,7 @@ export default function Home() {
 
   // 공덕 — 뜰에 들어올 때, 그리고 다른 방에서 쌓고 돌아왔을 때
   useEffect(() => {
-    const read = () => {
-      setMerit(loadMerit().total);
-      setReturnedCount(loadStore().history.length);
-    };
+    const read = () => setMerit(loadMerit().total);
     read();
     window.addEventListener("focus", read);
     window.addEventListener("hwadu-merit-updated", read);
@@ -439,7 +432,12 @@ export default function Home() {
     setShowSettings(false);
   };
 
-  // 자리 — 내 도량·오늘 하루 판과 **같은 셈**을 쓴다(공덕 + 회향한 화두)
+  // 자리 — 내 도량·오늘 하루 판과 **같은 셈**을 쓴다(공덕 + 회향한 화두).
+  // 회향한 화두 수는 **store 에서 바로 뽑는다.** 따로 상태로 두었더니
+  // 회향하는 순간 store 만 바뀌고 그 수는 그대로여서, 방금 조건을 채운
+  // 사람에게 화면이 계속 「사미까지 화두 1개」라고 말했다. store 는 이미
+  // 저장 신호를 듣고 다시 그려지니, 거기서 읽으면 저절로 맞는다.
+  const returnedCount = store?.history.length ?? 0;
   const myRank = rankByNeed(realmOf(merit, returnedCount).need);
   const upRealm = nextRealm(merit, returnedCount);
 

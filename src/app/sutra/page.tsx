@@ -196,7 +196,7 @@ function Board({
     );
     const clean = mode === "memo" && !helped;
     strikeMoktak(0.7);
-    const r = addMerit("sutra", Math.round(sutra.merit / 21));
+    const r = addMerit("sutra", Math.round(sutra.merit / 21), 1); // 마디로 셈하되 한 편으로 센다
     markSutra(sutra.id, mode, { clean, seconds });
     if (mode === "memo") grantCharm("yeomsong");
 

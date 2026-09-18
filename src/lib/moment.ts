@@ -265,10 +265,12 @@ export async function createMoment(d: MomentDraft): Promise<MomentPosted> {
   const verified = !!stamp;
   const meters = stamp?.meters ?? null;
 
-  // 공덕 — 걸면 한 몫, 그 자리에서 걸었으면 한 몫 더
+  // 공덕 — 걸면 한 몫, 그 자리에서 걸었으면 한 몫 더.
+  // 몫은 둘이어도 **사진은 한 장**이다. 세는 수(셋째 인자)를 0 으로 넘겨
+  // 덤이 횟수를 안 올리게 한다 — 안 그러면 칩에 「시절인연 2번」이 뜬다.
   let merit = addMerit("moment").gained;
   if (verified) {
-    for (let i = 0; i < VERIFIED_BONUS; i++) merit += addMerit("moment").gained;
+    for (let i = 0; i < VERIFIED_BONUS; i++) merit += addMerit("moment", 1, 0).gained;
   }
   return { id: ref.id, verified, meters, merit };
 }

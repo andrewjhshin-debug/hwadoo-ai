@@ -14,6 +14,34 @@ import { loadVisits, visitDayKey } from "@/components/VisitLedger";
 import { streakShield } from "./charmPower";
 
 export const DAILY_KEY = "hwadu.daily.v1";
+
+/** 하루 장부도 계정마다 따로 — 까닭은 merit.ts 의 meritKey 주석에 적어 두었다 */
+let keyUid = "";
+function dailyKey(): string {
+  return keyUid ? `${DAILY_KEY}:${keyUid}` : DAILY_KEY;
+}
+
+/** 계정이 정해졌다 — sync.ts 가 merit 과 함께 부른다 */
+export function setDailyAccount(uid: string, owned: boolean) {
+  keyUid = uid;
+  if (uid) {
+    try {
+      const k = dailyKey();
+      const base = window.localStorage.getItem(DAILY_KEY);
+      if (owned && base) {
+        if (!window.localStorage.getItem(k)) window.localStorage.setItem(k, base);
+        window.localStorage.removeItem(dailyKey());
+      }
+    } catch {
+      // 서랍이 막혀도 오늘은 수행할 수 있다
+    }
+  }
+  try {
+    window.dispatchEvent(new CustomEvent(DAILY_EVENT));
+  } catch {
+    /* 서버에서는 창이 없다 */
+  }
+}
 export const DAILY_EVENT = "hwadu-daily-updated";
 
 /** 하루치로 세는 것 — 공덕의 갈래에 '도량에 들름'을 하나 더한다 */
@@ -105,7 +133,7 @@ export function loadDaily(): DailyBook {
   const today = visitDayKey();
   if (typeof window === "undefined") return EMPTY(today);
   try {
-    const raw = window.localStorage.getItem(DAILY_KEY);
+    const raw = window.localStorage.getItem(dailyKey());
     if (!raw) return EMPTY(today);
     const p = JSON.parse(raw) as Partial<DailyBook>;
     // 날이 바뀌면 하루치는 비운다 — 연속 출석은 발자국 장부가 따로 센다
@@ -123,7 +151,7 @@ export function loadDaily(): DailyBook {
 
 function save(b: DailyBook) {
   try {
-    window.localStorage.setItem(DAILY_KEY, JSON.stringify(b));
+    window.localStorage.setItem(dailyKey(), JSON.stringify(b));
     window.dispatchEvent(new CustomEvent(DAILY_EVENT));
   } catch {
     // 못 적어도 수행은 이어진다
@@ -147,7 +175,7 @@ export function noteDaily(key: DailyKey, times = 1, gained = 0) {
 /** 하루 장부를 비운다 — 계정이 바뀌거나 로그아웃할 때(sync.ts) */
 export function resetDaily() {
   try {
-    window.localStorage.removeItem(DAILY_KEY);
+    window.localStorage.removeItem(dailyKey());
     window.dispatchEvent(new CustomEvent(DAILY_EVENT));
   } catch {
     // 못 지워도 수행에 지장이 없도록
