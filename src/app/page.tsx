@@ -973,7 +973,9 @@ export default function Home() {
               className="tap flex w-full items-center justify-center gap-2.5 rounded-full border border-gold/45 bg-gold/[0.07] px-6 py-4 text-[14px] tracking-[0.18em] text-gold-soft transition-colors hover:border-gold/75 hover:bg-gold/15 hover:text-gold"
             >
               <Banga className="h-5 w-5" />
-              사유의 방
+              {/* 형: 「사유의 방 — 생각나는 것을 적다 이렇게 하자」
+                  단추 이름만으로는 무슨 방인지 모른다. 할 일을 같이 적는다. */}
+              사유의 방 — 생각나는 것을 적다
             </button>
           </div>
         </section>
@@ -1132,7 +1134,7 @@ export default function Home() {
           }`}
         >
           <Banga className="h-[17px] w-[17px] shrink-0 text-gold-soft" />
-          {notesOpen ? "사유의 방 — 접기" : "사유의 방 — 떠오르는 것을 적다"}
+          {notesOpen ? "사유의 방 — 접기" : "사유의 방 — 생각나는 것을 적다"}
         </button>
 
         {/* 기간 바꾸기 — 열면 알약 한 줄로 갈라진다 */}

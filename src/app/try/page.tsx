@@ -593,7 +593,7 @@ export default function TryPage() {
                   <Banga className="h-[17px] w-[17px] text-gold-soft" />
                   {notesOpen
                     ? "사유의 방 — 접기"
-                    : "사유의 방 — 떠오르는 것을 적다"}
+                    : "사유의 방 — 생각나는 것을 적다"}
                 </button>
               )}
 

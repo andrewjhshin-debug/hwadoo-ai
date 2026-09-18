@@ -44,6 +44,16 @@ export default function BaePage() {
   // 「쥐고」라는 말은 안 쓴다 — 손에 쥐어야만 되는 줄 알고 접는 사람이 있었다.
   // 주머니에 넣어도, 가슴에 붙여도 똑같이 세어진다.
   const [sense, setSense] = useState<BowSenseState>("idle");
+  // **켜 두겠다는 뜻**과 **실제로 읽히는가**는 다른 일이다.
+  //
+  // 형: 「왜 토글이 동시에 안 켜지지? 디폴트값은 애초에 몸으로 세기가
+  // 켜져 있어야 한다니까」. 그동안 토글은 센서가 살아 있을 때만 켜져
+  // 보였다. 그래서 컴퓨터에서는 아무리 켜도 도로 꺼진 꼴이었고,
+  // 죽비와 나란히 켜 둘 수가 없었다.
+  //
+  // 이제 토글은 **뜻**을 보여 준다(기본 켜짐). 기기가 못 읽으면 그건
+  // 아래 한 줄로 알려 주고, 셈은 죽비나 손이 맡는다.
+  const [senseWanted, setSenseWanted] = useState(true);
   const [depth, setDepth] = useState(0); // 지금 얼마나 숙였나 0~1
   const senseRef = useRef<BowSense | null>(null);
 
@@ -136,6 +146,7 @@ export default function BaePage() {
     if (senseRef.current) {
       senseRef.current.stop();
       senseRef.current = null;
+      setSense("idle");
       return;
     }
     const s = makeBowSense({
@@ -167,7 +178,10 @@ export default function BaePage() {
     };
   }, []);
 
-  const senseOn = sense === "ready" || sense === "down" || sense === "calibrating";
+  /** 지금 정말로 기울기가 읽히고 있는가 */
+  const sensing = sense === "ready" || sense === "down" || sense === "calibrating";
+  /** 토글에 보이는 값 — 사람이 켜 두겠다고 한 뜻 */
+  const senseOn = senseWanted;
 
   const reset = () => {
     setCount(0);
@@ -279,7 +293,10 @@ export default function BaePage() {
                 role="switch"
                 aria-checked={senseOn}
                 aria-label="몸으로 세기"
-                onClick={() => void toggleSense()}
+                onClick={() => {
+                  setSenseWanted((v) => !v);
+                  void toggleSense();
+                }}
                 className={`relative h-[26px] w-[46px] rounded-full border transition-colors ${
                   senseOn ? "border-gold bg-gold" : "border-hanji-faint bg-transparent"
                 }`}
@@ -294,7 +311,7 @@ export default function BaePage() {
             </div>
 
             {/* 살아 있다는 표 — 숙일수록 차오른다. 이게 없으면 고장 난 줄 안다 */}
-            {senseOn && (
+            {sensing && (
               <div className="mt-3 h-[5px] overflow-hidden rounded-full bg-ink-3">
                 <div
                   className="h-full rounded-full bg-gold transition-[width] duration-100"
@@ -304,13 +321,18 @@ export default function BaePage() {
             )}
 
             <p className="mt-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
-              {sense === "denied"
-                ? "기울기를 쓰려면 권한이 필요해요. 눌러서 세셔도 됩니다."
-                : sense === "unsupported"
-                  ? "이 기기에서는 기울기를 못 읽어요. 눌러서 세셔도 됩니다."
-                  : sense === "asking"
-                    ? "권한을 묻는 중…"
-                    : "주머니에 휴대폰을 넣고 절하면 세어집니다."}
+              {!senseWanted
+                ? "눌러서 세어도 됩니다."
+                : sense === "denied"
+                  ? "움직임을 쓰려면 권한이 필요해요. 눌러서 세어도 됩니다."
+                  : sense === "unsupported"
+                    ? // 「이 기기에서는 기울기를 못 읽어요」는 기계 설명이었다.
+                      // 형: 「웹은 움직임을 못 읽어요. 눌러서 세어도 됩니다.
+                      // 이런 식으로」 — 쓰는 사람의 말로 적는다.
+                      "웹은 움직임을 못 읽어요. 눌러서 세어도 됩니다."
+                    : sense === "asking"
+                      ? "권한을 묻는 중…"
+                      : "주머니에 휴대폰을 넣고 절하면 세어집니다."}
             </p>
           </div>
 

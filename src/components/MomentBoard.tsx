@@ -94,8 +94,12 @@ export default function MomentBoard() {
   useEffect(() => reload(), [reload]);
 
   // 목록에 실제로 걸린 해시태그 — 아무도 안 쓴 태그로 거를 일은 없다
+  // 발에 걸 태그 — 실제로 걸린 것이 앞, 그 뒤로 권하는 태그를 잇는다.
+  // 형: 「# 더 넣고」. 걸린 글이 둘뿐일 때 태그도 둘만 뜨니 판이 허전했다.
+  // 아직 아무도 안 쓴 태그도 보이면, 그게 곧 「이런 걸 걸면 된다」는 안내다.
   const live: string[] = [];
   for (const m of rows ?? []) for (const t of m.tags ?? []) if (!live.includes(t)) live.push(t);
+  for (const t of TAG_SUGGEST) if (!live.includes(t)) live.push(t);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-5 pb-10 pt-8 md:px-8">
@@ -117,7 +121,7 @@ export default function MomentBoard() {
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
               <path d="M12 6v12M6 12h12" />
             </svg>
-            걸기
+            사진 걸기
           </button>
         </div>
       </header>
@@ -174,29 +178,27 @@ export default function MomentBoard() {
         //   ③ 글은 사진 밑에 **한 줄**. 이름과 합장 수만. 절 이름과 한 줄은
         //      눌러서 본다 — 격자에서 다 읽히면 사진을 안 본다
         //
-        // CSS columns 로 흘린다. grid 로는 높이가 다른 칸을 못 채운다.
-        <div className="mm-wall">
-          <style>{`
-            .mm-wall { column-count: 2; column-gap: 10px; }
-            .mm-wall > * { break-inside: avoid; margin-bottom: 14px; }
-            @media (min-width: 768px) { .mm-wall { column-count: 3; column-gap: 12px; } }
-          `}</style>
+        // 한동안 사진을 **제 비율대로** 흘렸다(메이슨리). 결은 좋았는데
+        // 세로 사진 하나가 한 칸을 통째로 잡아먹어 판이 들쭉날쭉했다.
+        // 형: 「사진을 썸넬 정사각형으로」 — 크림도, 인스타도 격자는 정사각이다.
+        // 줄이 딱 맞아떨어져야 사진이 많아 보이고, 눈이 한 줄씩 훑는다.
+        // 제 비율은 눌러서 펼쳤을 때 그대로 보인다.
+        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
           {rows.map((m) => (
             <button
               key={m.id}
               onClick={() => setOpen(m)}
               className="block w-full text-left"
             >
-              <div className="relative overflow-hidden rounded-[12px] bg-ink-2/60">
+              <div className="relative aspect-square overflow-hidden rounded-[12px] bg-ink-2/60">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={m.thumb}
                   alt={`${m.place} — ${m.what}`}
                   loading="lazy"
-                  className="block w-full"
-                  // 사진이 제 비율을 쥐고 있다. 없으면 정사각으로 받친다 —
-                  // 비율을 안 주면 받아오기 전까지 높이가 0 이라 판이 튄다.
-                  style={{ aspectRatio: m.ratio || 1 }}
+                  // 정사각 칸에 꽉 채워 오린다. 가운데를 남기고 위아래(또는
+                  // 좌우)를 자른다 — 절 사진은 가운데에 뜻이 있다.
+                  className="block h-full w-full object-cover"
                 />
                 {m.verified && (
                   <span className="absolute left-2 top-2">
