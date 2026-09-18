@@ -77,7 +77,6 @@ const JEONGGEUN_KEY = "hwadu.jeonggeun.v1";
 const SKINS = {
   moktak: [
     { id: "clay", name: "흙", src: "/obj/moktak.png", dot: "#c98f5e" },
-    { id: "wood", name: "나무", src: "/obj/moktak-wood.png", dot: "#8a5a34" },
     { id: "gold", name: "금", src: "/obj/moktak-gold.png", dot: "#d7ae55" },
     { id: "jade", name: "옥", src: "/obj/moktak-jade.png", dot: "#a8d8c0" },
   ],
@@ -255,6 +254,19 @@ export default function MoktakPage() {
     }
     setTotal(b.by.bead ?? 0);
     setBowlHits(b.by.bowl ?? 0);
+
+    // 살갗 그림을 미리 다 받아 둔다.
+    //
+    // 형: 「목탁간 이동이 버벅여」. 그럴 수밖에 없었다 — 점을 누르면
+    // 그때서야 삼백 몇 KB 짜리 PNG 를 받으러 갔다. 받아 그리는 동안
+    // 자리가 비어 깜빡였다. 아홉 장 다 합쳐 5MB 남짓이니 방에 들어설 때
+    // 한꺼번에 받아 둔다. 그 뒤로는 점을 눌러도 곧바로 바뀐다.
+    for (const kind of ["moktak", "bead", "bowl"] as const) {
+      for (const k of SKINS[kind]) {
+        const im = new window.Image();
+        im.src = k.src;
+      }
+    }
   }, []);
 
   // 한 타 — 소리 · 글자 · 박자
@@ -393,9 +405,30 @@ export default function MoktakPage() {
           18% { transform: scale(0.955) translateY(3px); filter: brightness(1.3); }
           100% { transform: scale(1); filter: brightness(1); }
         }
-        @keyframes mk-ripple {
-          0% { transform: scale(0.7); opacity: 0.55; }
-          100% { transform: scale(1.7); opacity: 0; }
+        /* 파문 — 싱잉볼 뒤에 퍼지는 그것처럼.
+           예전엔 목탁 그림 박스에 % 로 얹은 고리 하나였다. 그림이
+           가로로 길어(1024×559) 고리가 **눌린 타원**이 됐다. 이제
+           px 로 못박아 진짜 동그라미로 두고, 셋이 조금씩 늦게 나서
+           겹치며 퍼진다. */
+        .mk-wave {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 150px;
+          height: 150px;
+          margin: -75px 0 0 -75px;
+          border-radius: 50%;
+          border: 1.5px solid rgba(233, 201, 124, 0.7);
+          box-shadow: 0 0 18px rgba(217, 180, 91, 0.3);
+          pointer-events: none;
+          animation: mk-wave 1.15s cubic-bezier(0.16, 0.6, 0.3, 1) forwards;
+        }
+        .mk-wave-2 { animation-delay: 0.13s; }
+        .mk-wave-3 { animation-delay: 0.26s; }
+        @keyframes mk-wave {
+          0%   { transform: scale(0.42); opacity: 0; border-width: 2px; }
+          12%  { opacity: 0.85; }
+          100% { transform: scale(3); opacity: 0; border-width: 0.5px; }
         }
         @keyframes mk-pop {
           0% { transform: translateY(0) scale(0.7); opacity: 0; }
@@ -582,18 +615,13 @@ export default function MoktakPage() {
                   animation: "mk-glow 3.4s ease-in-out infinite",
                 }}
               />
-              <span
-                key={`r${hits}`}
-                aria-hidden
-                className="pointer-events-none absolute rounded-full border border-gold/35"
-                style={{
-                  left: "10%",
-                  top: "22%",
-                  width: "62%",
-                  height: "62%",
-                  animation: hits > 0 ? "mk-ripple 0.6s ease-out forwards" : "none",
-                }}
-              />
+              {hits > 0 && (
+                <span key={`r${hits}`} aria-hidden className="pointer-events-none">
+                  <span className="mk-wave" />
+                  <span className="mk-wave mk-wave-2" />
+                  <span className="mk-wave mk-wave-3" />
+                </span>
+              )}
               <span
                 key={`m${hits}`}
                 className="block"

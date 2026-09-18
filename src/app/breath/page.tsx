@@ -399,19 +399,26 @@ export default function BreathPage() {
           }`}
         />
 
-        {/* 동그라미를 누르면 바로 시작한다.
-            아래 단추까지 손을 내리는 게 한 박자였다 — 명상은 그 한 박자가
-            아깝다. 원이 가장 크고 눈이 이미 거기 가 있으니 그게 단추다.
-            숨 쉬는 중에는 안 받는다. 눈 감고 하는 일이라 스쳐 누르면
-            판이 통째로 끝나 버린다 — 마치는 건 아래 단추로만. */}
-        {stage !== "breathing" && (
-          <button
-            type="button"
-            onClick={begin}
-            aria-label={stage === "done" ? "한 번 더 명상" : "숨 고르기 시작"}
-            className="absolute inset-0 z-10 rounded-full transition-transform active:scale-[0.97]"
-          />
-        )}
+        {/* 동그라미가 곧 단추다 — 시작도 마침도 여기서.
+            아래 단추까지 손을 내리는 게 한 박자였다. 명상은 그 한 박자가
+            아깝다. 원이 가장 크고 눈이 이미 거기 가 있다.
+
+            처음엔 숨 쉬는 중에는 안 받게 해 두었다. 눈 감고 하는 일이라
+            스쳐 누르면 판이 끝나 버린다고 봤는데, 형 말이 맞다 —
+            **시작을 원으로 하면 마침도 원이어야 한다.** 시작은 원인데
+            마치려면 단추를 찾아 눈을 떠야 하면 그게 더 이상하다. */}
+        <button
+          type="button"
+          onClick={stage === "breathing" ? finish : begin}
+          aria-label={
+            stage === "breathing"
+              ? "마치다"
+              : stage === "done"
+                ? "한 번 더 명상"
+                : "숨 고르기 시작"
+          }
+          className="absolute inset-0 z-10 rounded-full transition-transform active:scale-[0.97]"
+        />
 
         {/* 큰 숫자 하나 — 이 화면의 카피는 문장이 아니라 이 숫자다.
             손길은 안 받는다(pointer-events-none). 이게 없으면 숫자 위를
@@ -438,7 +445,7 @@ export default function BreathPage() {
       {stage === "ready" && (
         <div className="rise rise-d3 flex w-full max-w-[300px] flex-col items-center">
           <p className="mt-4 break-keep text-[13px] leading-6 text-hanji-dim">
-            눈을 감고 해보세요.
+            눈을 감고 하면 더 효과적입니다.
           </p>
           <div className="mt-4 flex items-center gap-3">
             <button
@@ -465,7 +472,7 @@ export default function BreathPage() {
           </p>
           {/* 숫자를 보고 있으면 명상이 아니라 구경이다 */}
           <p className="mt-2.5 text-[12px] tracking-[0.2em] text-gold-soft">
-            눈을 감고 해 보세요
+            눈을 감고 하면 더 효과적입니다
           </p>
           <div className="mt-4 flex items-center gap-3">
             <button
