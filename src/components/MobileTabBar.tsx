@@ -16,12 +16,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useHasNews } from "@/lib/notices";
 import { watchOnlineCount } from "@/lib/presence";
-import { Dharmachakra, Person, BodhiLeaf, Iljumun, Yeomju } from "./icons";
+import { Dharmachakra, Person, YeonMun, Iljumun, Yeomju } from "./icons";
 
 const TABS = [
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/moktak", label: "공덕", Icon: Yeomju },
-  { href: "/", label: "뜰", Icon: BodhiLeaf },
+  { href: "/", label: "뜰", Icon: YeonMun },
   { href: "/pilgrimage", label: "절로", Icon: Iljumun },
   { href: "/settings", label: "내 도량", Icon: Person },
 ];
