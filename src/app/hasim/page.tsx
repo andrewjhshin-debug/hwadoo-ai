@@ -88,7 +88,10 @@ export default function HasimPage() {
 
   // ── 획의 세 토막을 어디에 놓을 것인가 ──
   const total = unit * DEPTH;
-  const headTop = unit * 0.06; // 心 이 첫 화면 안에 들어오려면 下 를 올려야 한다
+  // 心 을 첫 화면에 넣으려고 下 를 0.06 까지 끌어올렸더니 종이 위가
+  // 답답해졌다 — 형: 「하심 디자인 존나 좋았잖아 왜 밤티 됐냐」.
+  // 숨통을 조금 되돌린다. 心 은 아래에서 더 작게 앉혀 자리를 만든다.
+  const headTop = unit * 0.11;
   const headH = paper * HEAD_RATIO;
   const midTop = headTop + headH - 1; // 1px 겹쳐 이음매를 없앤다
   // 맺음은 마지막 한 칸에서. 예전엔 한 칸을 통째로 비워 두어 낙관 밑이
@@ -161,11 +164,14 @@ export default function HasimPage() {
             alt="心"
             className="pointer-events-none absolute select-none"
             style={{
-              right: "5%",
-              width: "30%",
+              // 30%는 下 옆에서 너무 컸다. 한 글자가 다른 글자를 밀면
+              // 두 글자가 아니라 한 덩어리로 보인다. 작게, 그리고 점에서
+              // 한 뼘 더 떨어뜨린다.
+              right: "7%",
+              width: "24%",
               // 下 의 **아래**로 완전히 내린다. 0.86 자리에 두었더니
               // 점(별획)과 같은 띠에 앉아 두 글자가 엉겼다.
-              top: headTop + headH + 14,
+              top: headTop + headH + 26,
               transform: "rotate(-3deg)",
             }}
             draggable={false}
