@@ -83,6 +83,7 @@ export type MeritSource =
   | "candle" // 초 공양 — 남의 초에 같이 빌어 줌
   | "mandala" // 만다라 — 한 장을 끝까지 칠함
   | "fortune" // 오늘의 운세 — 하루 한 장
+  | "mung" // 멍 — 아무것도 안 하고 가만히
   | "daily"; // 오늘의 세 가지를 다 마침
 
 /**
@@ -133,6 +134,13 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   // 염주 하루 천장(540)도 같이 깎였다. 한 일과 적히는 칸이 어긋나면
   // 숫자를 못 믿는다. 제 갈래를 냈다.
   fortune: 21,
+  // 멍 — 일 분에 마흔둘.
+  //
+  // 「아무것도 안 하는데 왜 공덕을 주나」 — 아무것도 안 하는 일이 제일
+  // 어렵다. 다만 후하게 주면 폰을 켜 두고 딴짓하는 사람이 이긴다.
+  // 그래서 **분당으로 제일 박하게** 둔다(절 105/분 · 호흡 126/분 · 멍 42/분).
+  // 십오 분을 꼬박 가만히 있어야 630 — 백팔배 한 번(756)에 못 미친다.
+  mung: 42,
   daily: 108,
 };
 
@@ -167,6 +175,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   mandala: 1080, // 하루 두 장
   candle: 162,
   fortune: 21, // 패는 하루 한 장뿐이라 한 장 값이 곧 천장
+  mung: 630, // 십오 분. 더 앉아도 되지만 공덕은 여기까지
   daily: 324, // 오늘의 세 가지 — 하루 한 번뿐
 };
 
@@ -769,6 +778,7 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   bowl: "싱잉볼",
   candle: "초 공양",
   fortune: "오늘의 운세",
+  mung: "멍",
   daily: "오늘의 세 가지",
   mandala: "만다라",
 };

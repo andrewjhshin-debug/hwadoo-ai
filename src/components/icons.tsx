@@ -370,6 +370,18 @@ export function Breath({ className = "w-5 h-5", stroke = "currentColor" }: IconP
   );
 }
 
+// 멍 — 일원상(一圓相). 붓으로 한 번에 그어 **끝이 안 닿는** 원.
+// 닫힌 동그라미는 완성이라 이 방과 안 맞는다. 선(禪)에서 이 원은
+// 비어 있음이고, 여기서는 「아무것도 안 하기」다. 한 획, 한 틈.
+export function Ilwonsang({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" className={className}>
+      {/* 오른쪽 위에 틈을 두고 한 바퀴 — 붓이 떨어진 자리 */}
+      <path d="M14.9 3.9a9 9 0 1 0 5.2 5.2" />
+    </svg>
+  );
+}
+
 // 연지원(蓮池園) — 연못 위의 연잎 하나와 물 위로 솟은 봉오리. 커뮤니티.
 export function LotusPond({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
   return (

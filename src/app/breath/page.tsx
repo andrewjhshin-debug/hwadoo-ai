@@ -22,6 +22,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { recordMeditation } from "@/lib/meditation";
+import {
+  loopPhase,
+  startLoop,
+  stopLoop,
+  warmLoop,
+} from "@/lib/breathLoop";
 import { loadDaily } from "@/lib/daily";
 import { MERIT_VALUE } from "@/lib/merit";
 import { breatheIn, breatheOut, wakeBreath } from "@/lib/sound";
@@ -112,12 +118,17 @@ export default function BreathPage() {
   const [soundOn, setSoundOn] = useState(true);
   const [today, setToday] = useState(0); // 오늘 몇 식(10초)
   const [earned, setEarned] = useState(0); // 방금 판에 실제로 붙은 공덕
+  // 음원 한 바퀴로 돌고 있나 — 이러면 화면이 꺼져도 소리가 이어진다
+  const [onFile, setOnFile] = useState(false);
   const startRef = useRef(0);
 
   // 오늘치는 브라우저 서랍에만 있다 — 서버가 그린 화면과 어긋나지 않게
   // 첫 그림 뒤에 읽는다.
   useEffect(() => {
     setToday(loadDaily().by.breath ?? 0);
+    warmLoop(); // 음원을 미리 받아 둔다 — 첫 들숨이 늦지 않게
+    // 방을 떠나면 반드시 거둔다 — 안 그러면 잠금화면에 표시가 남는다
+    return () => stopLoop();
   }, []);
 
   // ── 음향 — 경쇠 한 음만 (파일 없이 합성) ──────────────────────
@@ -177,6 +188,8 @@ export default function BreathPage() {
   // 어긋나지 않게. (들숨 4초 · 날숨 6초가 CSS 애니메이션과 같은 시계를 본다)
   useEffect(() => {
     if (stage !== "breathing" || !soundOn) return;
+    // 음원 한 바퀴가 돌고 있으면 소리는 그쪽이 낸다 — 겹쳐 울리지 않게
+    if (onFile) return;
     const ctx = ensureAudio();
     if (ctx) playCue(ctx, phase, ctx.currentTime);
     const pos = (performance.now() - startRef.current) % CYCLE_MS;
@@ -187,7 +200,7 @@ export default function BreathPage() {
       hushRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, stage, soundOn]);
+  }, [phase, stage, soundOn, onFile]);
 
   // 문구·경과 시간 — 시작 시각으로부터 계산 (같은 값이면 React 가 그리지 않는다)
   useEffect(() => {
@@ -195,7 +208,11 @@ export default function BreathPage() {
     let raf = 0;
     const tick = () => {
       const elapsed = performance.now() - startRef.current;
-      setPhase(elapsed % CYCLE_MS < INHALE_MS ? "in" : "out");
+      // 마디는 **음원의 재생 위치**를 먼저 본다. 화면이 꺼져 있던 동안
+      // 이 함수는 아예 안 돌았으니, 돌아왔을 때 제 시계로 세면 소리와
+      // 어긋난다. 음원이 곧 시계다(파일 한 바퀴 = 한 식).
+      const p = loopPhase();
+      setPhase(p ?? (elapsed % CYCLE_MS < INHALE_MS ? "in" : "out"));
       setSeconds(Math.floor(elapsed / 1000));
       raf = requestAnimationFrame(tick);
     };
@@ -210,7 +227,18 @@ export default function BreathPage() {
     setPhase("in");
     setSeconds(0);
     setStage("breathing");
+    // 음원 한 바퀴를 튼다. 이게 되면 폰을 잠가도 소리가 이어지고,
+    // 잠금화면에 「화두 · 호흡 명상」과 멈춤 단추가 뜬다.
+    // 소리를 꺼 둔 사람이거나 자동재생이 막힌 자리면 false — 그때는
+    // 예전대로 빚는 소리로 간다(화면이 켜져 있는 동안만 들린다).
+    if (soundOn) {
+      void startLoop(0.9, () => finishRef.current?.()).then(setOnFile);
+    }
   };
+
+  // 잠금화면의 멈춤 단추가 부른다. begin 이 finish 보다 위에 있어 바로는
+  // 못 부르니, 손잡이를 ref 에 걸어 둔다.
+  const finishRef = useRef<(() => void) | null>(null);
 
   const finish = () => {
     const elapsed = performance.now() - startRef.current;
@@ -218,13 +246,17 @@ export default function BreathPage() {
     const n = Math.max(1, Math.floor(elapsed / CYCLE_MS));
     setBreaths(n);
     setStage("done");
-    void audioRef.current?.suspend(); // 소리도 함께 내려놓는다
+    stopLoop(); // 음원도 함께 내려놓는다 — 잠금화면의 표시도 같이 사라진다
+    setOnFile(false);
+    void audioRef.current?.suspend(); // 빚던 소리도 함께
     // 공덕은 판이 아니라 **식마다** 붙는다 — 여섯 식에 끊고 다시 여는 것이
     // 이득이 되면 안 된다. 오래 앉은 사람이 더 가져가야 맞다.
     setEarned(recordMeditation(Date.now(), n));
     // 공덕이 하루 장부에 적힌 뒤라야 오늘치가 맞다 — 그래서 여기서 다시 읽는다
     setToday(loadDaily().by.breath ?? 0);
   };
+
+  finishRef.current = finish;
 
   const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 
@@ -248,7 +280,20 @@ export default function BreathPage() {
   const soundButton = (
     <button
       type="button"
-      onClick={() => setSoundOn((v) => !v)}
+      onClick={() =>
+        setSoundOn((v) => {
+          const next = !v;
+          // 음원도 함께 여닫는다. 끄면 잠금화면 표시까지 사라지고,
+          // 앉아 있는 중에 다시 켜면 그 자리에서 이어 튼다.
+          if (!next) {
+            stopLoop();
+            setOnFile(false);
+          } else if (stage === "breathing") {
+            void startLoop(0.9, () => finishRef.current?.()).then(setOnFile);
+          }
+          return next;
+        })
+      }
       aria-pressed={soundOn}
       aria-label={soundOn ? "음향 끄기" : "음향 켜기"}
       title={soundOn ? "음향 끄기" : "음향 켜기"}

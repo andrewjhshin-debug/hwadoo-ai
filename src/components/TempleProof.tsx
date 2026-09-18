@@ -166,6 +166,14 @@ export default function TempleProof({
         <p className="mt-2.5 break-keep text-[11.5px] leading-5 text-hanji-faint">
           <span className="text-hanji-dim">절에 도착해서 누르면</span> 인증됩니다.
           하루 한 번, 공덕도 드려요.
+          <br />
+          {/* 「하는 사람 입장에서는 절에 가는 일」이라 기계 설명을 뺐었는데,
+              위치를 재는 일은 **말해 두어야 하는 일**이다. 앞줄은 하는 일로,
+              뒷줄은 무슨 일이 일어나는지로 — 둘 다 적는다. */}
+          <span className="text-hanji-faint/80">
+            누를 때 위치(GPS)를 한 번 읽어 절과의 거리를 잽니다. 위치는
+            저장하지 않습니다.
+          </span>
         </p>
       )}
 

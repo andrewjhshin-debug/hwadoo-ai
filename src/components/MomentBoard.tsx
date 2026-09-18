@@ -172,11 +172,15 @@ export default function MomentBoard() {
             >
               <div className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
+                {/* 격자는 정사각인데 사진은 제 비율을 그대로 쥐고 있다.
+                    object-cover 를 안 걸어 두었더니 **눌려서 찌그러졌다** —
+                    세로 사진은 홀쭉해지고 가로 사진은 뭉개졌다.
+                    칸에 맞춰 가운데를 잘라 낸다. */}
                 <img
                   src={m.thumb}
                   alt={`${m.place} — ${m.what}`}
                   loading="lazy"
-                  className="w-full"
+                  className="w-full object-cover object-center"
                   style={{ aspectRatio: 1 }}
                 />
                 {m.verified && (

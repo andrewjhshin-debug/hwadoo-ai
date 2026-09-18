@@ -99,6 +99,12 @@ export default function BaePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto]);
 
+  // 죽비 음원을 미리 받아 둔다 — 첫 배가 빚은 소리로 나가지 않게.
+  // 여태 들여오기만 하고 부르지는 않았다.
+  useEffect(() => {
+    warmJukbi();
+  }, []);
+
   // 절하는 동안 화면이 꺼지지 않게 — 셈이 끊기면 안 된다
   useEffect(() => {
     const on = count > 0 && count < FULL;

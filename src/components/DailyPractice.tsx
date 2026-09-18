@@ -21,7 +21,6 @@ import {
   MERIT_EVENT,
   MERIT_VALUE,
   rankByNeed,
-  rankOf,
   stageOf,
 } from "@/lib/merit";
 import Info from "@/components/Info";
@@ -100,11 +99,15 @@ export default function DailyPractice() {
   // 아직 서랍을 못 읽었다 — 자리만 잡아 둔다(화면이 튀지 않게)
   if (!book) return <div className="h-[320px]" aria-hidden />;
 
-  const rank = rankOf(total);
+  const returned = loadStore().history.length;
+  // 자리는 공덕만으로 안 오른다 — 회향한 화두 수도 본다.
+  // 여기만 rankOf(공덕) 였어서, 뜰·도량 카드·승급 연출은 「동자」인데
+  // 내 도량 맨 위 배지만 「사미」로 떴다. 문턱 수가 같아 회향 조건에
+  // 걸린 사람만 갈리는 탓에 오래 안 보였다.
+  const rank = rankByNeed(realmOf(total, returned).need);
   const stage = stageOf(total);
   // 계급은 육도다 — 나무 자리는 그 곁에 작게 붙는다
   // 자리는 공덕만으로 오르지 않는다 — 회향한 화두 수도 같이 본다
-  const returned = loadStore().history.length;
   const realm = realmOf(total, returned);
   const up = nextRealm(total, returned);
   const pct = Math.round(realmProgress(total, returned) * 100);

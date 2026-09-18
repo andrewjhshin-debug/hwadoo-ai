@@ -17,7 +17,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Info from "@/components/Info";
 import { addMerit, inRound, loadMerit, ROUND } from "@/lib/merit";
-import { buzz, hushVoice, setVoice, speak, strikeJukbi, strikeMoktak, voiceReady } from "@/lib/sound";
+import { buzz, hushVoice, setVoice, speak, strikeJukbi, strikeMoktak, voiceReady, warmJukbi } from "@/lib/sound";
 import { BOWS, doneToday, finishSambae, loadSambae, TO } from "@/lib/sambae";
 
 export default function SambaePage() {
@@ -38,6 +38,7 @@ export default function SambaePage() {
   readRef.current = readAloud;
 
   useEffect(() => {
+    warmJukbi(); // 죽비 음원을 미리 받아 둔다 — 첫 배가 빚은 소리로 나가지 않게
     const b = loadSambae();
     setRounds(b.rounds);
     setTotal(b.total);
