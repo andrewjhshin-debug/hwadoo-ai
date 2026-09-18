@@ -110,7 +110,7 @@ export default function HasimPage() {
 
   // ── 획의 세 토막을 어디에 놓을 것인가 ──
   const total = unit * DEPTH;
-  const headTop = unit * 0.13;
+  const headTop = unit * 0.06; // 心 이 첫 화면 안에 들어오려면 下 를 올려야 한다
   const headH = paper * HEAD_RATIO;
   const midTop = headTop + headH - 1; // 1px 겹쳐 이음매를 없앤다
   const endTop = total - unit; // 맺음은 마지막 한 칸에서
@@ -167,18 +167,26 @@ export default function HasimPage() {
           {/* 心 — 下 **아래**, 오른편에.
               처음엔 가로획 옆에 나란히 두었는데 붓이 워낙 굵어 글자를
               통째로 삼켜 버렸다. 점(별획) 밑으로 내리니 위에서부터
-              下 → 心 으로 읽힌다. 형이 말한 「세로로」가 이거다. */}
-          <p
-            className="pointer-events-none absolute font-serif leading-none text-[#14110E]"
+              下 → 心 으로 읽힌다. 형이 말한 「세로로」가 이거다.
+
+              이것도 **폰트가 아니라 그림이다.** 명조로 찍었더니 옆에 선
+              진짜 붓글씨한테 바로 들통났다. `_틀/simcut.mjs` 가 붓 글꼴로
+              뼈대를 뜨고 그 위에 下 세로획에서 떠 온 먹 결을 덮는다. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/seo/ha-sim.png"
+            alt="心"
+            className="pointer-events-none absolute select-none"
             style={{
-              right: "7%",
-              top: headTop + headH * 0.88,
-              fontSize: "clamp(56px, 19vw, 104px)",
+              right: "5%",
+              width: "30%",
+              // 下 의 **아래**로 완전히 내린다. 0.86 자리에 두었더니
+              // 점(별획)과 같은 띠에 앉아 두 글자가 엉겼다.
+              top: headTop + headH + 14,
               transform: "rotate(-3deg)",
             }}
-          >
-            心
-          </p>
+            draggable={false}
+          />
 
           {/* ── 몸통 — 거울로 뒤집어 가며 잇는 비백 세로획 ──
               같은 그림을 그냥 반복하면 이음매마다 결이 끊긴다.
@@ -259,17 +267,13 @@ export default function HasimPage() {
             </>
           )}
 
-          {/* 첫 화면의 표와 안내 */}
-          <p
-            className="pointer-events-none absolute right-[8%] text-[11px] tracking-[0.45em] text-black/35"
-            style={{ top: headTop + headH + 18 }}
-          >
-            하 심
-          </p>
+          {/* 「하 심」 이라 적어 두었던 자리 — 지웠다.
+              下 와 心 이 이미 그 말이다. 그림 옆에 같은 말을 또 적으면
+              그림을 못 믿는다는 뜻이 된다. */}
           {deep < 0.003 && (
             <p
               className="pointer-events-none absolute left-1/2 -translate-x-1/2 animate-pulse text-[11px] tracking-[0.3em] text-black/40"
-              style={{ top: unit * 0.93 }}
+              style={{ top: unit * 0.955 }}
             >
               아래로 내려 보세요
             </p>
