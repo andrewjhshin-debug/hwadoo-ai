@@ -101,9 +101,22 @@ const BREATH_CSS = `
     stroke-dashoffset: ${RING_C};
   }
 }
+/* 아직 시작 안 했을 때 — 빛만 아주 천천히 들고 난다.
+   「누르세요」라고 적는 대신 원이 혼자 숨 쉬게 둔다.
+   크기는 안 건드린다. 커졌다 작아지면 벌써 시작한 줄 안다. */
+.breath-idle {
+  animation: breath-idle 3.4s ease-in-out infinite;
+}
+@keyframes breath-idle {
+  0%, 100% { box-shadow: 0 0 26px var(--breath-glow-dim); }
+  50% { box-shadow: 0 0 46px var(--breath-glow-bright); }
+}
 @media (prefers-reduced-motion: reduce) {
   .breath-circle {
     --breath-max: 1.12;
+  }
+  .breath-idle {
+    animation: none;
   }
 }
 `;
@@ -381,11 +394,30 @@ export default function BreathPage() {
 
         <div
           aria-hidden
-          className={`breath-circle ${stage === "breathing" ? "breath-anim" : ""}`}
+          className={`breath-circle ${
+            stage === "breathing" ? "breath-anim" : "breath-idle"
+          }`}
         />
 
-        {/* 큰 숫자 하나 — 이 화면의 카피는 문장이 아니라 이 숫자다 */}
-        <div className="absolute flex flex-col items-center">
+        {/* 동그라미를 누르면 바로 시작한다.
+            아래 단추까지 손을 내리는 게 한 박자였다 — 명상은 그 한 박자가
+            아깝다. 원이 가장 크고 눈이 이미 거기 가 있으니 그게 단추다.
+            숨 쉬는 중에는 안 받는다. 눈 감고 하는 일이라 스쳐 누르면
+            판이 통째로 끝나 버린다 — 마치는 건 아래 단추로만. */}
+        {stage !== "breathing" && (
+          <button
+            type="button"
+            onClick={begin}
+            aria-label={stage === "done" ? "한 번 더 명상" : "숨 고르기 시작"}
+            className="absolute inset-0 z-10 rounded-full transition-transform active:scale-[0.97]"
+          />
+        )}
+
+        {/* 큰 숫자 하나 — 이 화면의 카피는 문장이 아니라 이 숫자다.
+            손길은 안 받는다(pointer-events-none). 이게 없으면 숫자 위를
+            누른 손가락이 여기서 멎어 아래 단추까지 안 내려간다 —
+            하필 원 한가운데가, 제일 누르기 좋은 자리가 죽는다. */}
+        <div className="pointer-events-none absolute flex flex-col items-center">
           <p
             aria-live="polite"
             className="text-[11px] tracking-[0.4em] text-hanji-faint"
