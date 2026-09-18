@@ -91,7 +91,11 @@ export default function HasimPage() {
   return (
     <div
       ref={boxRef}
-      className="relative mx-auto w-full max-w-xl flex-1 overflow-y-auto overscroll-contain rounded-[16px]"
+      // flex-1 만 주었더니 통이 **안쪽 높이를 따라 삼천만 픽셀로 부풀었다.**
+      // 자기 키를 자로 삼는 통이 자기 안을 따라가면 끝이 없다.
+      // 키를 먼저 못박고(h-[70vh]) 그 안에서 굴린다 — min-h-0 이 있어야
+      // flex 안에서 통이 제 키를 지킨다.
+      className="relative mx-auto h-[70vh] min-h-0 w-full max-w-xl overflow-y-auto overscroll-contain rounded-[16px]"
       style={{ background: "#F4F2EC" }} // 종이빛 — 이 방 안에만 편다
     >
       <style>{`

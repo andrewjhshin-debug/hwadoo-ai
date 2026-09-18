@@ -97,39 +97,31 @@ function master(ac: AudioContext): DynamicsCompressorNode {
 // 아직 안 받아졌으면 아래 synthMoktak 이 대신 운다 — 첫 타를 놓치지 않게.
 
 //
-// **음원이 둘이다.** 한 번 치는 소리와 잔발로 구르는 소리는 다른 소리다 —
-// 필터로 흉내 내 봤지만, 진짜는 채가 나무에 얹히는 그 순간의 「닫힘」이
-// 파형에 새겨져 있어서 깎아서는 안 나온다. 그래서 둘 다 떠 왔다.
-//   moktak.wav       한 번 툭 — 1.05초, 통이 다 울고 꺼진다 (「똥」)
-//   moktak-roll.wav  잔발 한 알 — 0.2초, 백 밀리초 만에 죽는다 (「똑」)
-// 형이 준 녹음(목탁2.wav · 목탁소리(이미지)2.wav)은 느린 단타에서
-// 시작해 점점 빨라지는 한 판이라, 같은 목탁의 두 얼굴이 한 파일에 있었다.
+// **음원은 하나다.**
+//
+// 한동안 단타와 잔발을 따로 두고 빠르기에 따라 갈아 끼웠다. 그런데
+// 잔발 음원(0.2초)은 통이 없어서, 빨리 치면 나무 조각 두드리는 소리가 됐다.
+// 몸통을 한 겹 더 깔아 봐도 두 소리가 어긋나 죽이 됐다.
+//
+// 진짜 목탁은 **한 소리**다. 빨리 치면 그 소리가 겹칠 뿐이다.
+// 그래서 형이 준 녹음에서 **울림이 가장 긴 한 방**(목탁2.wav 4.345초 자리,
+// 1.3초를 꼬리로 끄는 타점)만 떠 왔다. 빠르기는 아래에서 높이와 여림으로
+// 만든다 — 음원을 바꾸지 않는다.
 const MOKTAK_URL = "/sfx/moktak.wav";
-const MOKTAK_ROLL_URL = "/sfx/moktak-roll.wav";
 let moktakBuf: AudioBuffer | null = null;
-let moktakRollBuf: AudioBuffer | null = null;
 let moktakAsked = false;
 
 function loadMoktak(ac: AudioContext) {
   if (moktakAsked) return;
   moktakAsked = true;
-  const get = (url: string) =>
-    fetch(url)
-      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error("no file"))))
-      .then((b) => ac.decodeAudioData(b));
-  get(MOKTAK_URL)
+  fetch(MOKTAK_URL)
+    .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error("no file"))))
+    .then((b) => ac.decodeAudioData(b))
     .then((buf) => {
       moktakBuf = buf;
     })
     .catch(() => {
       // 못 받았으면 빚은 소리로 간다 — 조용히
-    });
-  get(MOKTAK_ROLL_URL)
-    .then((buf) => {
-      moktakRollBuf = buf;
-    })
-    .catch(() => {
-      // 잔발 음원이 없으면 단타를 깎아 쓴다 — 아래가 알아서 돌아간다
     });
 }
 
@@ -216,91 +208,61 @@ export function strikeMoktak(vol: number) {
 
   // 앞 소리 누르기 — 채가 나무에 얹히는 그 순간.
   //
-  // 예전엔 빠를수록 **매몰차게** 끊었다(4ms). 그래서 잔발이 「똑똑똑」
-  // 하는 마른 점의 나열이 됐다. 진짜 목탁은 그렇지 않다 —
-  // 채가 얹혀 **앞 소리의 머리만** 눌릴 뿐, 통 안의 울림은 계속 산다.
-  // 오히려 빨리 칠수록 울림이 겹쳐 쌓인다. 끊는 시간을 늘리고,
-  // 완전히 죽이지 않고 한 겹 남긴다.
-  if (ringing && speed > 0.2) {
+  // 이제 음원이 하나라 **겹쳐 울리는 것이 곧 잔발의 소리**다.
+  // 앞 소리를 끊으면 그 겹침이 사라진다. 머리만 살짝 눌러 두 소리가
+  // 부딪히지 않게 하고, 꼬리는 그대로 두어 울림이 쌓이게 한다.
+  if (ringing && speed > 0.45) {
     const { g } = ringing;
-    const off = 0.05 + 0.06 * (1 - speed);
-    const leave = 0.18; // 다 죽이지 않는다 — 이 한 겹이 공명이 된다
     try {
       g.gain.cancelScheduledValues(t);
       g.gain.setValueAtTime(g.gain.value, t);
-      g.gain.exponentialRampToValueAtTime(
-        Math.max(0.0001, g.gain.value * leave),
-        t + off
-      );
+      // 절반까지만 눌러 준다 — 아주 빠를 때만, 그것도 천천히
+      g.gain.linearRampToValueAtTime(g.gain.value * 0.55, t + 0.07);
     } catch {
       /* 이미 끝난 소리 */
     }
   }
 
-  // 어느 얼굴로 울 것인가 — 반 넘게 빠르면 잔발 음원으로 갈아탄다.
-  // 갈아타는 자리에서 소리가 툭 바뀌지 않도록, 깎는 정도(아래 hp·rate)는
-  // 어느 쪽을 쓰느냐에 따라 달리 준다. 잔발 음원은 이미 짧고 마른 소리라
-  // 거의 안 깎아도 된다.
-  const useRoll = !!moktakRollBuf && speed > 0.5;
   const src = ac.createBufferSource();
-  src.buffer = useRoll ? moktakRollBuf : moktakBuf;
+  src.buffer = moktakBuf;
   // 나무는 칠 때마다 조금씩 다르다(±3%). 거기에 빠르기를 얹는다 —
-  // 빠를수록 짧고 높게. 잔발이 이어지면 반 눈금 더.
-  src.playbackRate.value = useRoll
-    ? (0.985 + Math.random() * 0.03) * (1 + 0.06 * (speed - 0.5) * 2 + 0.03 * roll)
-    : (0.985 + Math.random() * 0.03) * (1 + 0.2 * speed + 0.055 * roll);
+  // 빠를수록 조금 높고 짧게. 다만 예전만큼 세게 올리지 않는다.
+  // 많이 올리면 꼬리가 같이 줄어 울림이 사라진다.
+  src.playbackRate.value =
+    (0.985 + Math.random() * 0.03) * (1 + 0.09 * speed + 0.03 * roll);
 
-  // 낮은 통울림을 깎는다 — 잔발은 「딱」만 남는다.
-  // 잔발 음원은 통울림이 애초에 없으니 살짝만 건드린다.
+  // 낮은 통울림은 **거의 안 깎는다.** 예전엔 잔발일 때 600Hz 까지 잘라
+  // 「딱」만 남겼는데, 그게 마른 소리의 정체였다. 바닥의 웅웅거림만 턴다.
   const hp = ac.createBiquadFilter();
   hp.type = "highpass";
-  hp.frequency.value = useRoll ? 150 + 90 * roll : 80 + 520 * speed + 140 * roll;
+  hp.frequency.value = 80 + 90 * speed;
   hp.Q.value = 0.7;
 
   const out = ac.createGain();
-  // 잔발은 손목만 쓴다 — 여리되, 너무 죽이면 몸통이 사라진다.
-  // 아래에 통울림 한 겹을 따로 깔기 때문에 여기서 덜 깎아도 된다.
-  out.gain.value = vol * 1.15 * (1 - 0.3 * speed) * (1 - 0.1 * roll);
+  // 잔발은 손목만 쓴다 — 여리되, 겹쳐 울려야 하니 많이 깎지 않는다
+  out.gain.value = vol * 1.15 * (1 - 0.28 * speed) * (1 - 0.08 * roll);
 
   src.connect(hp);
   hp.connect(out);
   out.connect(master(ac));
 
-  // ── 몸통 한 겹 ──
-  // 잔발 음원은 0.2초라 「딱」만 있고 통이 없다. 그래서 빨리 치면
-  // 나무 조각 두드리는 소리가 됐다. 진짜 목탁은 빨리 칠수록 통 안에
-  // 울림이 **쌓인다.** 그래서 잔발일 때 단타 음원을 여리게 한 겹 깔아
-  // 몸통을 만든다. 높이만 맞추고 소리는 뒤로 물린다.
-  if (useRoll && moktakBuf) {
-    const body = ac.createBufferSource();
-    body.buffer = moktakBuf;
-    body.playbackRate.value = src.playbackRate.value * 1.06;
-    const bodyHp = ac.createBiquadFilter();
-    bodyHp.type = "highpass";
-    bodyHp.frequency.value = 110; // 바닥만 걷는다 — 통은 남긴다
-    const bg = ac.createGain();
-    // 잔발이 이어질수록 조금씩 더 깐다 — 울림이 겹쳐 쌓이는 결
-    bg.gain.value = vol * (0.2 + 0.16 * roll);
-    body.connect(bodyHp);
-    bodyHp.connect(bg);
-    bg.connect(master(ac));
-    bg.connect(hall(ac));
-    body.start(t);
-  }
-
-  // 방의 울림 — 잔발이라고 끊지 않는다.
-  // 예전엔 82%를 깎아 잔발이 마른 소리가 됐다. 빨리 칠수록 울림이
-  // 쌓이는 게 맞다 — 조금만 눌러 죽이 되지 않을 만큼만 둔다.
+  // 방의 울림 — 잔발이라고 끊지 않는다. 빨리 칠수록 오히려 쌓인다.
   const send = ac.createGain();
-  send.gain.value = vol * 0.3 * (1 - 0.25 * speed);
+  send.gain.value = vol * 0.3 * (1 - 0.15 * speed);
   out.connect(send);
   send.connect(hall(ac));
 
   src.start(t);
 
-  // 꼬리 자르기 — 빠르면 다음 타가 오기 전에 스스로 잦아든다
-  const tail = 0.62 - 0.44 * speed;
-  out.gain.setValueAtTime(out.gain.value, t + tail * 0.55);
+  // 꼬리 — **한 방은 끝까지 울린다.**
+  //
+  // 여기가 마른 소리의 진짜 범인이었다. 음원은 1.3초를 끄는데
+  // 0.62초에서 잘라 버리고 있었다. 이제 천천히 칠 때는 자르지 않고
+  // 음원이 제 끝까지 가게 둔다. 빨리 칠 때만, 소리가 쌓여 죽이 되지
+  // 않을 만큼 앞당겨 거둔다 — 그래도 예전의 0.18초보다 훨씬 길다.
+  const full = moktakBuf.duration / src.playbackRate.value;
+  const tail = Math.min(full, 1.3 - 0.85 * speed);
+  out.gain.setValueAtTime(out.gain.value, t + tail * 0.5);
   out.gain.exponentialRampToValueAtTime(0.0001, t + tail);
   src.stop(t + tail + 0.03);
 
