@@ -362,7 +362,12 @@ export default function BreathPage() {
   );
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-4 text-center">
+    // 판(ready·breathing·done)마다 아래 내용의 양이 달라, 가운데 정렬이
+    // 덩어리를 그때그때 다시 잡았다. 그래서 시작만 눌러도 원과 제목이
+    // 위로 쑥 올라갔다 — 형: 「할 때마다 위치가 조금씩 바뀌어서 멀미남」.
+    // **위에서부터** 세우고, 아래 칸은 키를 못박는다(아래 min-h).
+    // 그러면 원은 어느 판에서도 한 픽셀도 안 움직인다.
+    <div className="flex flex-1 flex-col items-center justify-start px-6 pb-4 pt-6 text-center sm:pt-10">
       {/* 클라이언트 페이지라 metadata 는 못 내보낸다 — 만다라와 같은 관례 */}
       <style>{BREATH_CSS}</style>
 
@@ -457,6 +462,9 @@ export default function BreathPage() {
         </div>
       </div>
 
+      {/* 판마다 바뀌는 칸 — **키를 못박아 둔다.** 안이 무엇으로 차든
+          위쪽(제목·원)은 제자리를 지킨다. */}
+      <div className="flex min-h-[212px] w-full flex-col items-center">
       {stage === "ready" && (
         <div className="rise rise-d3 flex w-full max-w-[300px] flex-col items-center">
           <p className="mt-4 break-keep text-[13px] leading-6 text-hanji-dim">
@@ -475,6 +483,7 @@ export default function BreathPage() {
 
         </div>
       )}
+      </div>
 
       {stage === "breathing" && (
         <div className="flex flex-col items-center">

@@ -958,24 +958,17 @@ export default function Home() {
             </p>
           )}
 
-          {/* 형: 「화두만 보기랑 되돌아가기는 버튼 위치 동일하게」
-              그래서 **되돌아가기가 먼저**다 — 평소 화면의 「화두만 보기」와
-              똑같이 mt-8 자리에 선다. 사유의 방은 그 아래. */}
-          <div className="mt-8 flex w-full max-w-[320px] flex-col items-center gap-6">
+          {/* 화두만 보기에는 **되돌아가기 하나뿐**이다.
+              형: 「사유의 방 지우고 그냥 되돌아가기만 두고, 좀 더 밑쪽에」
+              오직 물음 하나만 남기자는 화면인데 큰 단추가 하나 더 있으면
+              눈이 거기로 간다. 적는 일은 나와서 하면 된다.
+              자리도 한참 내린다 — 물음과 붙어 있으면 읽다 말고 눌린다. */}
+          <div className="mt-24 flex w-full justify-center sm:mt-28">
             <button
               onClick={() => setFocusMode(false)}
-              className="tap rounded-full border border-gold/40 px-6 py-2.5 text-[11px] tracking-[0.25em] text-gold-soft transition-colors hover:bg-gold/10 hover:text-gold"
+              className="tap rounded-full border border-ink-3 px-7 py-2.5 text-[11px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
             >
               되돌아가기
-            </button>
-            <button
-              onClick={() => setNotesOpen(true)}
-              className="tap flex w-full items-center justify-center gap-2.5 rounded-full border border-gold/45 bg-gold/[0.07] px-6 py-4 text-[14px] tracking-[0.18em] text-gold-soft transition-colors hover:border-gold/75 hover:bg-gold/15 hover:text-gold"
-            >
-              <Banga className="h-5 w-5" />
-              {/* 형: 「사유의 방 — 생각나는 것을 적다 이렇게 하자」
-                  단추 이름만으로는 무슨 방인지 모른다. 할 일을 같이 적는다. */}
-              사유의 방 — 생각나는 것을 적다
             </button>
           </div>
         </section>

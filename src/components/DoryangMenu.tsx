@@ -67,6 +67,12 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     doors: [
       { href: "/", label: "뜰", say: "화두를 받는 자리", Icon: YeonMun },
       { label: "사유의 방", say: "떠오르는 것을 적다", Icon: Banga, act: "notes" },
+      // 형: 「손잡고 절로랑 인연을 오늘로 옮겨. 그게 참 중요한 기능이니까
+      //      바로 보이게 위에서」 — 「함께」 맨 아래에 있어 판을 굴려야
+      //      닿았다. 절에 가는 일과 같이 갈 사람을 찾는 일은 이 앱에서
+      //      제일 바깥으로 나가는 일이다. 첫 칸에 둔다.
+      { href: "/pilgrimage", label: "손잡고 절로", say: "가까운 절", Icon: Iljumun },
+      { href: "/gathering", label: "인연", say: "함께 갈 이", Icon: Person },
       { href: "/draw", label: "오늘의 운세", say: "한 장을 뒤집다", Icon: BodhiLeaf },
       { href: "/rank", label: "정진 랭킹", say: "어제의 자리", Icon: Dharmachakra },
     ],
@@ -105,8 +111,6 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
       // 법당이 여기 없어서 폰에서는 초를 켤 길이 아예 없었다.
       // 공덕이 가 닿는 끝자리라 「함께」의 맨 앞에 세운다.
       { href: "/candle", label: "법당 — 초 공양", say: "초 한 자루", Icon: Chotbul },
-      { href: "/pilgrimage", label: "손잡고 절로", say: "가까운 절", Icon: Iljumun },
-      { href: "/gathering", label: "인연", say: "함께 갈 이", Icon: Person },
       { href: "/community", label: "연지원 — 커뮤니티", say: "묻고 답하다", Icon: LotusPond },
       { href: "/moment", label: "시절인연", say: "절에 다녀온 한 장", Icon: Moment },
       { href: "/my-hwadu", label: "내가 던지는 화두", say: "물음을 놓다", Icon: Nohda },
@@ -151,6 +155,24 @@ export default function DoryangMenu() {
   // 길이 바뀌면 판은 스스로 닫힌다
   useEffect(() => setOpen(false), [here]);
 
+  // 왼쪽 서랍이 열려 있으면 이 단추는 비킨다 — 두 판이 겹치면 엉킨다.
+  // 서랍은 문서에 `data-drawer` 표를 남긴다(Sidebar 참고).
+  const [drawer, setDrawer] = useState(false);
+  useEffect(() => {
+    const el = document.documentElement;
+    const read = () => setDrawer(el.hasAttribute("data-drawer"));
+    read();
+    const mo = new MutationObserver(read);
+    mo.observe(el, { attributes: true, attributeFilter: ["data-drawer"] });
+    return () => mo.disconnect();
+  }, []);
+
+  // 서랍이 열리면 이 판도 같이 닫는다 — 뒤에 열린 채 남아 있으면
+  // 서랍을 닫는 순간 판이 불쑥 나타난다
+  useEffect(() => {
+    if (drawer) setOpen(false);
+  }, [drawer]);
+
   // 판이 열린 동안 뒤가 밀리지 않게
   useEffect(() => {
     if (!open) return;
@@ -171,9 +193,12 @@ export default function DoryangMenu() {
         .dm-card { animation: dm-in .34s cubic-bezier(.2,.8,.3,1) both }
       `}</style>
 
-      {/* 늘 떠 있는 단추 — 손안에서는 아래 띠 위로 올라선다 */}
+      {/* 늘 떠 있는 단추 — 손안에서는 아래 띠 위로 올라선다.
+          왼쪽 서랍이 열려 있는 동안은 숨고, 손길도 안 받는다. */}
       <button
         onClick={() => setOpen((v) => !v)}
+        tabIndex={drawer ? -1 : undefined}
+        aria-hidden={drawer || undefined}
         aria-label={open ? "닫기" : "도량 한눈에"}
         title={
           open

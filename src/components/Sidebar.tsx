@@ -131,6 +131,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false); // 모바일 서랍
+
   const [collapsed, setCollapsed] = useState(false); // 데스크톱 접힘
   const [history, setHistory] = useState<Session[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -141,6 +142,20 @@ export default function Sidebar() {
   // 접속 표를 올린다 — 모든 화면에 있는 부품이 맡아야 목탁 치는 사람도 세어진다.
   // 숫자를 여기 걸어 두진 않는다. 「● 2」는 무슨 수인지 알 수 없어
   // 아무 말도 하지 않았다. 세는 일은 뜰과 육도 랭킹이 쓴다.
+  // 서랍이 열려 있다고 문서에 적어 둔다.
+  //
+  // 형: 「왼쪽 탭을 눌린 다음 오른쪽 아래 메뉴 탭을 눌리면 엉켜.
+  //      왼쪽 탭을 눌렸으면 오른쪽 아래 버튼은 안 보이거나 작동 안 하게」
+  // 서랍과 도량 판은 서로 다른 조각이라 상대를 모른다. 부모를 두거나
+  // 전역 상태를 만드는 대신 **문서에 표 하나**를 남긴다 — 도량 판은
+  // 그 표만 보고 스스로 비켜 준다. 조각이 서로 물리지 않는다.
+  useEffect(() => {
+    const el = document.documentElement;
+    if (open) el.setAttribute("data-drawer", "1");
+    else el.removeAttribute("data-drawer");
+    return () => el.removeAttribute("data-drawer");
+  }, [open]);
+
   useEffect(() => initPresence(), []);
 
   // 안 읽은 쪽지 살피기 — 로그인하면 이따금(90초) + 창에 돌아올 때 + 읽은 직후
@@ -328,7 +343,7 @@ export default function Sidebar() {
             title="연꽃 공양 — 등을 밝히다"
             className="p-2 text-hanji-dim transition-colors hover:text-gold-soft"
           >
-            <Yeonkkot className="h-6 w-6" />
+            <Yeonkkot className="h-[30px] w-[30px]" />
           </Link>
           <Link
             href="/letters"
@@ -499,7 +514,7 @@ export default function Sidebar() {
             {/* 폰 탭은 보리수 잎인데 여기만 연꽃이었다 — 같은 「뜰」이
                 두 그림이면 같은 곳으로 안 읽힌다 */}
             {/* 형: 「그냥 노란 버전은 뜰 로고로 쓰고」 */}
-            <YeonMun className="h-[19px] w-[19px]" stroke="#D9B45B" />
+            <YeonMun className="h-[23px] w-[23px]" stroke="#D9B45B" />
             {!slim && "뜰"}
           </Link>
 
