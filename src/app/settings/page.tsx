@@ -77,7 +77,6 @@ import { fetchMyApprovedAnswerCount } from "@/lib/community";
 import { watchOnlineCount } from "@/lib/presence";
 import { submitFeedback } from "@/lib/feedback";
 import { dmVisible, getLotus } from "@/lib/dm";
-import { loadEmailOptOut, setEmailOptOut } from "@/lib/mailPrefs";
 import {
   canInstall,
   isIOS,
@@ -93,18 +92,28 @@ import {
   Teacup,
   Book,
   Dharmachakra,
-  Elephant,
   SeonMaster,
   Banga,
+  Baru,
+  BodhiLeaf,
   Bojagi,
   Breath,
+  Chotbul,
+  Enso,
   Iljumun,
+  Ilwonsang,
+  Jeol,
+  Jeol108,
+  Jeoul,
   Jukbi,
   Letter,
   LotusMark,
   LotusPond,
   Mandala,
-  Moktak,
+  Moment,
+  Seogo,
+  Yeomju,
+  YeonkkotGold,
 } from "@/components/icons";
 
 // 접어 두는 묶음 — 도량 아래쪽 살림살이는 찾을 때만 편다.
@@ -187,8 +196,14 @@ type PushUi = "loading" | "unsupported" | "preparing" | "denied" | "off" | "on";
 // 이미 앱으로 열림 / 프롬프트가 잡혀 있음 / 아이폰 안내 / 브라우저 메뉴 안내
 type InstallUi = "standalone" | "promptable" | "ios" | "manual";
 
+// 서비스 격자 — **그림이 겹치면 안 된다.**
+//
+// 한동안 사유의 방과 삼배가 둘 다 반가사유상이었고, 뜰·연꽃 공양·오늘의
+// 운세가 셋 다 연꽃이었다. 비움에는 옛 목탁(밤처럼 둥근 것)이 남아 있었고,
+// 공덕·법당·백팔배·멍은 칸 자체가 없었다.
+// 한 칸에 한 그림, 그리고 사이드바·모바일 탭과 **같은 그림**을 쓴다.
 const SERVICES: ServiceItem[] = [
-  { href: "/", label: "뜰", Icon: LotusMark },
+  { href: "/", label: "뜰", Icon: BodhiLeaf },
   { href: "/ganhwaseon", label: "간화선", Icon: Dharmachakra },
   { href: "/masters", label: "선지식", Icon: SeonMaster },
   { href: "/room", label: "사유의 방", Icon: Banga },
@@ -196,18 +211,22 @@ const SERVICES: ServiceItem[] = [
   { href: "/mandala", label: "만다라", Icon: Mandala },
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
   { href: "/gathering", label: "인연", Icon: Person },
-  { href: "/empty", label: "비움", Icon: Moktak },
+  { href: "/moktak", label: "공덕", Icon: Yeomju },
+  { href: "/sambae", label: "삼배", Icon: Jeol },
+  { href: "/bae", label: "백팔배", Icon: Jeol108 },
+  { href: "/breath", label: "호흡 명상", Icon: Breath },
+  { href: "/mung", label: "멍", Icon: Ilwonsang },
+  { href: "/empty", label: "비움", Icon: Baru },
+  { href: "/candle", label: "법당", Icon: Chotbul },
+  { href: "/lotus", label: "연꽃 공양", Icon: YeonkkotGold },
   { href: "/community", label: "연지원", Icon: LotusPond },
-  { href: "/archive", label: "지난 화두", Icon: Book },
-  { href: "/lotus", label: "연꽃 공양", Icon: LotusMark },
+  { href: "/archive", label: "지난 화두", Icon: Seogo },
+  { href: "/sutra", label: "외우기", Icon: Book },
+  { href: "/draw", label: "오늘의 운세", Icon: Enso },
+  { href: "/rank", label: "오늘의 정진", Icon: Moment },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
   { href: "/goods", label: "굿즈", Icon: Bojagi },
-  { href: "/sambae", label: "삼배", Icon: Banga },
-  { href: "/breath", label: "호흡 명상", Icon: Breath },
-  { href: "/sutra", label: "외우기", Icon: Book },
-  { href: "/draw", label: "오늘의 운세", Icon: LotusMark },
-  { href: "/rank", label: "오늘의 정진", Icon: Dharmachakra },
-  { href: "/tamjinchi", label: "불심 투자", Icon: Elephant },
+  { href: "/tamjinchi", label: "불심 투자", Icon: Jeoul },
 ];
 
 // 이 달의 흐름 — 여러 갈래를 한 그래프에 선으로 겹쳐 그린다.
@@ -215,8 +234,6 @@ const SERVICES: ServiceItem[] = [
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   // 이메일 알림 — 켜짐이 기본, users/{uid}.emailOptOut 로 끈다
-  const [mailOn, setMailOn] = useState(true);
-  const [mailBusy, setMailBusy] = useState(false);
   // 예불 종 — 이 브라우저가 고른 시각들 (푸시 토큰 문서에도 함께 새긴다)
   const [bells, setBells] = useState<string[]>([]);
   // 공덕 — 도량에서 한 일이 모두 여기로 쌓인다
@@ -374,33 +391,7 @@ export default function SettingsPage() {
     void updateBells(next); // 구독 전이면 조용히 실패 — 구독 때 함께 새겨진다
   };
 
-  // 이메일 알림 상태 — 로그인 계정의 emailOptOut 을 읽는다
-  useEffect(() => {
-    if (!user) return;
-    let alive = true;
-    loadEmailOptOut()
-      .then((off) => {
-        if (alive) setMailOn(!off);
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [user]);
-
-  const handleMailToggle = async () => {
-    if (mailBusy) return;
-    setMailBusy(true);
-    const next = !mailOn;
-    try {
-      await setEmailOptOut(!next);
-      setMailOn(next);
-    } catch {
-      // 못 적으면 그대로 둔다
-    } finally {
-      setMailBusy(false);
-    }
-  };
+  // 이메일 알림 켜고 끄기는 화면에서 내렸다 — 상태값과 핸들러도 같이 치운다.
 
   // 알림 — 아침 문안: 이 브라우저의 상태를 살핀다
   useEffect(() => {

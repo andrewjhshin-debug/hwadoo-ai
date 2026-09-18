@@ -66,7 +66,7 @@ export const metadata: Metadata = {
   // 설명하지 말고 후려라. 그림은 public/og.png (캐릭터 둘이 나온다).
   openGraph: {
     title: "AI한테 그만 물어봐",
-    description: "이번엔 AI가 너한테 묻는다. 매일 물음 하나 · 절 같이 갈 사람 · 가입 없이 무료.",
+    description: "이번엔 AI가 너한테 묻는다. 매일 물음 하나 · 절 같이 갈 사람.",
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "AI한테 그만 물어봐",
-    description: "이번엔 AI가 너한테 묻는다. 매일 물음 하나 · 절 같이 갈 사람 · 가입 없이 무료.",
+    description: "이번엔 AI가 너한테 묻는다. 매일 물음 하나 · 절 같이 갈 사람.",
     images: [`${SITE_URL}/og.png`],
   },
 };

@@ -1439,6 +1439,19 @@ export default function GatheringBoard({
             </button>
           )}
         </div>
+
+        {/* 서랍 사본으로 버티는 중 — 이 말이 없으면 「왜 새 글이 없지」 한다 */}
+        {loadError && !!posts?.length && (
+          <p className="mt-2 flex items-center gap-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
+            <span>지금은 연결이 안 되어 지난번에 본 목록을 보이고 있습니다.</span>
+            <button
+              onClick={refresh}
+              className="shrink-0 rounded-full border border-gold/45 px-2.5 py-1 text-[11px] text-gold transition-colors hover:bg-gold/10"
+            >
+              다시
+            </button>
+          </p>
+        )}
         <div className="flex shrink-0 items-center gap-2">
         {/* 연꽃 잔고 — 누르면 연꽃 공양(구매)으로 */}
         <Link
@@ -1465,7 +1478,11 @@ export default function GatheringBoard({
         {/* ★ 못 읽어 온 것을 먼저 본다.
             앞서는 posts === null 을 먼저 보느라, 읽기가 엎어지면
             「살펴보는 중…」에 영영 갇혔다. */}
-        {loadError ? (
+        {/* 못 불러왔을 때 — 서랍에 사본이 있으면 **그것을 보여 준다.**
+            한동안 사본을 읽어 상태에 담아 두고도 이 갈래가 먼저 걸려
+            빈 칸 하나만 그렸다. 애써 받아 둔 것을 안 보여 주면 없는 것과
+            같다. 위에 한 줄로 「지난번 것」이라고만 밝힌다. */}
+        {loadError && !posts?.length ? (
           <li className="flex flex-col items-start gap-2.5 px-4 py-6">
             <p className="break-keep text-[13px] leading-7 text-hanji-dim">
               지금 목록을 불러오지 못했습니다.

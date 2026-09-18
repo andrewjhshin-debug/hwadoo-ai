@@ -465,7 +465,9 @@ export default function Sidebar() {
               slim ? "justify-center px-0" : "px-4"
             }`}
           >
-            <LotusMark className="h-[17px] w-[17px]" stroke="#D9B45B" />
+            {/* 폰 탭은 보리수 잎인데 여기만 연꽃이었다 — 같은 「뜰」이
+                두 그림이면 같은 곳으로 안 읽힌다 */}
+            <BodhiLeaf className="h-[17px] w-[17px]" stroke="#D9B45B" />
             {!slim && "뜰"}
           </Link>
 
@@ -480,7 +482,10 @@ export default function Sidebar() {
                 : "border-ink-3 text-hanji-dim hover:border-gold/30 hover:text-hanji"
             } ${slim ? "justify-center px-0" : "px-3"}`}
           >
-            <Jeoul className="h-[16px] w-[16px] opacity-75" />
+            {/* 저울은 「불심 투자」의 그림이다. 한 화면에 저울이 둘이었고
+                체험하기와 저울은 뜻도 안 이어졌다. 화두 하나를 받아 품어
+                보는 자리이니 일원상으로 바꾼다. */}
+            <Ilwonsang className="h-[16px] w-[16px] opacity-75" />
             {!slim && <span>체험하기</span>}
           </Link>
 

@@ -17,6 +17,7 @@ import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import {
   addComment,
   bowToPost,
+  cachedPosts,
   createPost,
   deleteComment,
   deletePost,
@@ -85,6 +86,9 @@ export default function Board({
       setPosts(await fetchPosts(board));
       setFailed(false);
     } catch {
+      // 못 받았으면 서랍에 둔 사본이라도 보여 준다 — 빈 칸보다는 낫다.
+      // (인연 게시판은 진작 이렇게 하고 있었는데 여기만 빠져 있었다)
+      setPosts((now) => (now && now.length ? now : cachedPosts(board)));
       setFailed(true);
     }
   }, [board]);

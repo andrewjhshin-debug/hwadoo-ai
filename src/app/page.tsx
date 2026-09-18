@@ -914,7 +914,11 @@ export default function Home() {
       //   위로 훌쩍 뛰어 멀미가 났다. 들어가고 나오는 일로 읽던 자리를
       //   잃으면 안 된다. 그래서 바깥 상자·안쪽 구획·알약 자리를 앞 화면과
       //   똑같이 두고, 한자만 **자리를 남긴 채 지운다**(invisible).
-      <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center sm:justify-center sm:py-12">
+      // 폰에서는 한 픽셀도 안 움직인다. 그런데 컴퓨터(sm 이상)에서는
+      // sm:justify-center 가 걸려, 아래 내용이 사라진 만큼 덩어리가 가운데로
+      // 다시 잡히며 물음이 142px 튀었다. 화두만 보기에서는 위에서부터
+      // 세운다 — 평소 화면과 같은 자리에 물음이 선다.
+      <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center sm:py-12">
         <section className="flex w-full max-w-2xl flex-col items-center">
           {/* 한자 — 보이지 않게 두되 자리는 그대로. 이게 멀미를 막는 전부다 */}
           {hwadu?.hanja && (

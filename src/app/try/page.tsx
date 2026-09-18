@@ -521,11 +521,6 @@ export default function TryPage() {
                 )}
               </div>
 
-              {/* 함께 드는 이들 */}
-              <p className="mt-4 text-[12px] tracking-wide text-gold-soft">
-                이 물음을 든 사람은, 지금 그대뿐입니다
-              </p>
-
               {/* 체험 안내 — 두 줄 고정 높이(화면이 흔들리지 않게) */}
               <p className="mt-3 flex min-h-[2.75rem] max-w-md items-start justify-center break-keep text-[12.5px] leading-6 text-gold-soft">
                 <span className="mr-1.5 shrink-0 text-[11px] tracking-[0.2em]">
