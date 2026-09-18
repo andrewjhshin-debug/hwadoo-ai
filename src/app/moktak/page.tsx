@@ -79,6 +79,7 @@ const SKINS = {
     { id: "clay", name: "흙", src: "/obj/moktak.png", dot: "#c98f5e" },
     { id: "wood", name: "나무", src: "/obj/moktak-wood.png", dot: "#8a5a34" },
     { id: "gold", name: "금", src: "/obj/moktak-gold.png", dot: "#d7ae55" },
+    { id: "jade", name: "옥", src: "/obj/moktak-jade.png", dot: "#a8d8c0" },
   ],
   bead: [
     { id: "wood", name: "나무", src: "/obj/bead.png", dot: "#a8703f" },

@@ -9,8 +9,9 @@
 // 스크롤을 내리면 그 획이 계속 따라온다. 바닥이 없다.
 // 낮추는 데 끝이 있으면 그건 낮춘 게 아니다.
 //
-// 화면은 종이다 — 흰 바탕에 먹. 이 앱에서 유일하게 밝은 방이다.
-// 낮추는 일은 어둠 속에서 하는 일이 아니라 환한 데서 하는 일이라서.
+// 종이는 **이 방 안에만** 편다. 처음엔 화면 전체를 덮었는데(fixed inset-0),
+// 그러면 서랍도 아래 띠도 다 사라져 딴 앱에 들어온 것 같았다.
+// 다른 방과 같은 틀 안에 앉히고, 그 안에서만 흰 종이를 편다.
 //
 // 내려가다 드물게 한 줄씩 말이 스친다. 읽으라고 두는 게 아니라
 // 내려가는 일이 헛되지 않다는 표다.
@@ -21,8 +22,14 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-/** 획이 이어지는 길이 — 화면 높이의 몇 배. 끝은 사실상 안 보인다 */
-const DEPTH = 140;
+/**
+ * 획이 이어지는 길이 — 화면 높이의 몇 배.
+ *
+ * 끝이 아예 없으면 스크롤 막대가 거짓말을 하고, 끝까지 가 본 사람에게
+ * 아무것도 못 준다. **꽤나 내려가되 끝은 있다** — 삼백 화면.
+ * 폰에서 엄지로 쓸면 이삼 분쯤 걸린다. 그 끝에 먹 한 점이 기다린다.
+ */
+const DEPTH = 300;
 
 /** 내려가다 드물게 스치는 말 */
 const WHISPERS = [
@@ -37,11 +44,21 @@ const WHISPERS = [
   "다 왔다고 여기면 거기서 멈춘다",
   "바닥은 없다",
   "그래도 더",
-  "下心",
+  "낮은 데는 넓다",
+  "쌓을수록 무겁다",
+  "비우면 가볍다",
+  "무릎이 먼저 안다",
+  "고개는 저절로 숙여진다",
+  "여기서도 아직",
+  "끝이 보이면 끝이 아니다",
+  "조금만 더",
 ];
 
 export default function HasimPage() {
   const [deep, setDeep] = useState(0);
+  // 통 한 칸의 높이(px). vh 는 **화면** 높이라 이 방 안에서는 어긋난다 —
+  // 방이 화면보다 작으니까. 통을 재어 그 값을 자로 쓴다.
+  const [unit, setUnit] = useState(0);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -52,14 +69,30 @@ export default function HasimPage() {
       setDeep(max > 0 ? el.scrollTop / max : 0);
     };
     el.addEventListener("scroll", on, { passive: true });
-    return () => el.removeEventListener("scroll", on);
+    const measure = () => setUnit(el.clientHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", on);
+      ro.disconnect();
+    };
   }, []);
+
+  /**
+   * 통 한 칸을 자로 삼는다 — 예전 vh 자리를 이걸로 바꾼다.
+   *
+   * 첫 그림에서는 아직 못 쟀다(unit 0). 그때 0px 를 주면 글자가 전부
+   * 맨 위로 겹쳐 아무것도 안 보인다. 못 쟀으면 vh 로 받쳐 둔다 —
+   * 한 틱 뒤에 제 값으로 바뀐다.
+   */
+  const u = (n: number) => (unit > 0 ? `${unit * n}px` : `${n * 100}vh`);
 
   return (
     <div
       ref={boxRef}
-      className="fixed inset-0 z-[70] overflow-y-auto overscroll-contain"
-      style={{ background: "#F4F2EC" }} // 종이빛 — 이 앱에서 유일하게 밝은 방
+      className="relative mx-auto w-full max-w-xl flex-1 overflow-y-auto overscroll-contain rounded-[16px]"
+      style={{ background: "#F4F2EC" }} // 종이빛 — 이 방 안에만 편다
     >
       <style>{`
         /* 붓으로 내리그은 획 — 위는 굵고 진하게, 아래로 가늘고 옅게.
@@ -71,7 +104,7 @@ export default function HasimPage() {
       {/* 나가는 문 */}
       <Link
         href="/"
-        className="fixed right-4 top-4 z-20 rounded-full border border-black/15 bg-white/70 px-3.5 py-1.5 text-[11px] tracking-[0.25em] text-black/45 backdrop-blur transition-colors hover:text-black/75"
+        className="sticky top-3 z-20 float-right mr-3 rounded-full border border-black/15 bg-white/80 px-3.5 py-1.5 text-[11px] tracking-[0.25em] text-black/45 backdrop-blur transition-colors hover:text-black/75"
       >
         나가기
       </Link>
@@ -80,11 +113,11 @@ export default function HasimPage() {
           숫자로 안 적는다. 끝이 있다고 말하는 셈이 되니까. */}
       <div
         aria-hidden
-        className="fixed right-0 top-0 z-20 w-[2px] bg-black/20"
-        style={{ height: `${Math.min(100, deep * 100)}vh` }}
+        className="sticky top-0 z-20 float-right w-[2px] bg-black/20"
+        style={{ height: `${Math.min(100, deep * 100)}%`, marginLeft: -2 }}
       />
 
-      <div className="relative" style={{ height: `${DEPTH * 100}vh` }}>
+      <div className="relative" style={{ height: u(DEPTH) }}>
         {/* ── 첫 화면 — 下心 ──
             두 SVG 를 따로 그렸더니 좌표계가 어긋나 세로획이 가로획 오른쪽
             끝에 가서 붙었다. **자리는 전부 %로 잡고**, 붓의 굵기 변화만
@@ -92,14 +125,14 @@ export default function HasimPage() {
 
             下 의 짜임 — 가로획 하나, 그 **한가운데**에서 내려오는 세로획,
             세로획 **오른쪽**에 점 하나. */}
-        <div className="absolute inset-x-0 top-0 h-screen">
+        <div className="absolute inset-x-0 top-0" style={{ height: u(1) }}>
           <div className="relative mx-auto h-full w-full max-w-[520px]">
             {/* 가로획 — 왼쪽 기필(起筆)이 굵고 오른쪽 끝에서 가늘게 빠진다 */}
             <svg
               viewBox="0 0 400 40"
               preserveAspectRatio="none"
               className="absolute"
-              style={{ left: "12%", top: "24vh", width: "62%", height: "26px" }}
+              style={{ left: "12%", top: u(0.24), width: "62%", height: "26px" }}
             >
               <path
                 d="M6 14 C80 6, 220 4, 340 9 C368 10, 392 15, 396 20
@@ -113,7 +146,7 @@ export default function HasimPage() {
             <svg
               viewBox="0 0 40 40"
               className="absolute"
-              style={{ left: "47%", top: "30vh", width: "34px", height: "34px" }}
+              style={{ left: "47%", top: u(0.30), width: "34px", height: "34px" }}
             >
               <path
                 d="M8 10 C16 4, 28 8, 33 18 C37 27, 33 36, 24 37
@@ -127,7 +160,7 @@ export default function HasimPage() {
               className="absolute font-serif leading-none text-[#14110E]"
               style={{
                 right: "12%",
-                top: "19vh",
+                top: u(0.19),
                 fontSize: "clamp(52px, 17vw, 96px)",
                 transform: "rotate(-3deg)",
               }}
@@ -153,14 +186,14 @@ export default function HasimPage() {
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0"
-          style={{ top: "25vh", bottom: 0 }}
+          style={{ top: u(0.25), bottom: 0 }}
         >
           <div className="relative mx-auto h-full w-full max-w-[520px]">
             <svg
               viewBox="0 0 60 1200"
               preserveAspectRatio="none"
               className="absolute"
-              style={{ left: "41.4%", top: 0, width: "18px", height: "160vh" }}
+              style={{ left: "41.4%", top: 0, width: "18px", height: u(1.6) }}
             >
               <path
                 d="M14 0 C9 160, 7 400, 9 640 C10 880, 12 1040, 13 1200
@@ -171,14 +204,70 @@ export default function HasimPage() {
             <div
               className="absolute"
               style={{
-                top: "160vh",
+                top: u(1.6),
                 bottom: 0,
                 left: "43%",
                 width: "5px",
-                background:
-                  "linear-gradient(to bottom, #14110E 0%, #241F1A 20%, #4A4038 50%, #857C70 80%, #BDB5A9 100%)",
+                // 아래로 갈수록 옅어지게 했더니 회색 막대가 됐다.
+                // 먹은 마르면 **옅어지는 게 아니라 갈라진다**(비백, 飛白).
+                // 진하기는 거의 그대로 두고, 흰 줄이 결처럼 파고들게 한다.
+                background: `
+                  repeating-linear-gradient(
+                    to bottom,
+                    transparent 0px, transparent 26px,
+                    rgba(244,242,236,.85) 26px, rgba(244,242,236,.85) 29px,
+                    transparent 29px, transparent 74px
+                  ),
+                  linear-gradient(to bottom, #14110E 0%, #17140F 55%, #1C1813 100%)
+                `,
               }}
             />
+          </div>
+        </div>
+
+        {/* ── 끝 — 먹으로 맺는다 ──
+            획이 바닥에 닿으면 붓을 눌러 떼는 자국 하나(수필, 收筆)가 남고,
+            그 아래 서예로 한 줄. 여기까지 온 사람만 본다. */}
+        <div className="absolute inset-x-0 bottom-0" style={{ height: u(1) }}>
+          <div className="relative mx-auto h-full w-full max-w-[520px]">
+            {/* 수필(收筆) — 붓을 지그시 눌렀다 떼며 맺는 자국 */}
+            <svg
+              viewBox="0 0 120 120"
+              className="absolute"
+              style={{ left: "35.5%", top: u(0.26), width: "56px", height: "56px" }}
+            >
+              <path
+                d="M52 0 C50 22, 47 42, 44 58
+                   C40 78, 44 96, 58 102
+                   C74 108, 90 96, 92 78
+                   C94 58, 82 42, 70 30
+                   C64 24, 60 12, 60 0 Z"
+                fill="#14110E"
+              />
+            </svg>
+
+            <div className="absolute inset-x-0 text-center" style={{ top: u(0.44) }}>
+              <p className="font-serif text-[30px] leading-[1.7] text-[#14110E] sm:text-[36px]">
+                여기가
+                <br />
+                바닥인 줄 알았는데
+              </p>
+              <p className="mt-7 font-serif text-[19px] leading-[1.8] text-black/55 sm:text-[22px]">
+                내려온 만큼
+                <br />
+                낮아진 것은 아니더라
+              </p>
+              {/* 낙관 한 점 — 붉은 도장 */}
+              <p
+                className="mt-10 inline-block px-2 py-1 font-serif text-[13px] tracking-[0.2em]"
+                style={{ color: "#B23A2E", border: "1.5px solid #B23A2E" }}
+              >
+                下心
+              </p>
+              <p className="mt-8 text-[11.5px] tracking-[0.3em] text-black/35">
+                다시 올라가셔도 됩니다
+              </p>
+            </div>
           </div>
         </div>
 
@@ -187,7 +276,7 @@ export default function HasimPage() {
           <p
             key={w}
             className="pointer-events-none absolute left-0 right-0 text-center text-[12.5px] tracking-[0.35em] text-black/30"
-            style={{ top: `${(i + 1) * 11}00vh` }}
+            style={{ top: u((i + 1) * 14) }}
           >
             {w}
           </p>
