@@ -425,6 +425,13 @@ export default function BreathPage() {
           <p className="mt-2.5 text-[12px] tracking-[0.2em] text-gold-soft">
             눈을 감고 해 보세요
           </p>
+          {/* 언제 켜지고 언제 꺼지는지를 적어 둔다. 안 적어 두면
+              「폰을 꺼도 되나」를 눌러 보며 알아내야 한다. */}
+          {onFile && (
+            <p className="mt-1.5 break-keep text-[11px] leading-5 text-hanji-faint">
+              폰을 잠가도 이어집니다 · 다른 방으로 옮기면 멎습니다
+            </p>
+          )}
           <div className="mt-4 flex items-center gap-3">
             <button
               type="button"

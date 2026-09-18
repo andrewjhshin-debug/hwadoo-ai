@@ -22,6 +22,13 @@
 //   (10초 = 들숨 4 + 날숨 6)이라 재생 위치가 곧 마디다. 화면을 다시 켜면
 //   원이 소리와 저절로 맞는다 — 따로 맞출 일이 없다.
 //
+// ■ 켜지는 자리와 꺼지는 자리 — 이게 규칙의 전부다
+//   · 앱을 나가거나 폰을 잠그면 **이어진다**. 그러라고 만든 것이다
+//   · 앱 안에서 다른 방으로 옮기면 **꺼진다**. 화면을 떠났는데 숨소리가
+//     따라다니면 그건 고장이다(방을 떠날 때 stopLoop 을 부른다)
+//   · 아무 데도 안 가고 잊어버려도 **마흔 분에 스스로 멎는다**. 주머니에
+//     넣어 둔 폰이 밤새 우는 일은 없어야 한다
+//
 // ■ 못 트는 자리
 //   소리를 끈 사람, 파일을 못 받은 자리에서는 null 을 돌려준다. 부르는 쪽이
 //   예전 방식(빚는 소리)으로 물러선다.
@@ -33,7 +40,17 @@ export const LOOP_SEC = 10;
 /** 들숨이 차지하는 앞자락 */
 export const INHALE_SEC = 4;
 
+/**
+ * 한 판의 천장 — 마흔 분.
+ *
+ * 화면 밖에서도 도니까, 잊고 주머니에 넣으면 밤새 운다. 그건 배터리
+ * 문제이기 전에 **수행이 아니다**. 마흔 분이면 웬만한 좌선 한 판보다 길고,
+ * 그 뒤로는 스스로 판을 접는다(공덕은 앉은 만큼 그대로 붙는다).
+ */
+export const MAX_SIT_SEC = 40 * 60;
+
 let el: HTMLAudioElement | null = null;
+let guard: number | null = null;
 
 function make(): HTMLAudioElement | null {
   if (typeof window === "undefined") return null;
@@ -109,12 +126,30 @@ export async function startLoop(vol: number, onStop: () => void): Promise<boolea
     return false; // 손길 없이 불렀거나 자동재생이 막혔다
   }
   dressSession(onStop);
+
+  // 천장 — 시계는 벽시계로 본다. 화면이 꺼져 있어도 timeupdate 는
+  // 재생 중인 <audio> 에서 계속 온다(초당 네 번 남짓). 이걸 시계로 삼는다.
+  const began = Date.now();
+  if (guard !== null) window.clearTimeout(guard);
+  a.ontimeupdate = () => {
+    if ((Date.now() - began) / 1000 >= MAX_SIT_SEC) {
+      a.ontimeupdate = null;
+      onStop();
+    }
+  };
+  // 브라우저가 timeupdate 를 심하게 조이는 자리를 대비해 한 겹 더 건다
+  guard = window.setTimeout(() => onStop(), (MAX_SIT_SEC + 5) * 1000);
   return true;
 }
 
 export function stopLoop() {
+  if (guard !== null) {
+    window.clearTimeout(guard);
+    guard = null;
+  }
   if (!el) return;
   try {
+    el.ontimeupdate = null;
     el.pause();
     el.currentTime = 0;
   } catch {
