@@ -1435,7 +1435,7 @@ export default function GatheringBoard({
               onClick={clearFilters}
               className="ml-1 shrink-0 rounded-full border border-gold/55 bg-gold/15 px-2.5 py-1 text-[11px] text-gold transition-colors hover:bg-gold/25"
             >
-              거르는 중 · 풀기 ✕
+              풀기 ✕
             </button>
           )}
         </div>

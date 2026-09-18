@@ -226,15 +226,22 @@ export default function HasimPage() {
                 className="absolute inset-x-0 text-center"
                 style={{ top: endTop + tailH + 28 }}
               >
+                {/* 끝에 놓는 말.
+                    처음엔 「여기가 바닥인 줄 알았는데 / 내려온 만큼 낮아진
+                    것은 아니더라」였다. 뜻은 맞는데 넋두리에 가까웠다.
+
+                    하심의 마지막 매듭은 **낮추려는 마음까지 내려놓는 것**이다.
+                    낮추려 애쓰는 동안은 여전히 「낮추는 나」가 서 있다.
+                    그 한 겹을 찍어 끝낸다. */}
                 <p className="font-serif text-[30px] leading-[1.7] text-[#14110E] sm:text-[36px]">
-                  여기가
+                  끝까지 내려와 보니
                   <br />
-                  바닥인 줄 알았는데
+                  낮출 것이 없었다
                 </p>
                 <p className="mt-7 font-serif text-[19px] leading-[1.8] text-black/55 sm:text-[22px]">
-                  내려온 만큼
+                  낮추려던 마음,
                   <br />
-                  낮아진 것은 아니더라
+                  그것만 남아 있었다
                 </p>
                 {/* 낙관 한 점 — 붉은 도장 */}
                 <p

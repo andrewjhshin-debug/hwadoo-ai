@@ -77,25 +77,31 @@ const NAV_PRACTICE: NavItem[] = [
   // 손잡고 절로 — 사찰 지도·다가오는 날, 모임은 그 짝
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
   { href: "/gathering", label: "인연 — 함께 갈 이", Icon: Person },
-  { href: "/mandala", label: "만다라", Icon: Mandala },
-  // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
-  { href: "/empty", label: "비움", Icon: Baru },
-  { href: "/breath", label: "호흡 명상", Icon: Breath },
-  { href: "/mung", label: "멍 때리기", Icon: Ilwonsang },
-  // 이름만 적는다 — 형: 「하심 끝없이 내려가기 이딴말 말고 그냥 한자로」
-  { href: "/hasim", label: "下心", Icon: Hasim },
+
+  // ── 매일 손과 몸으로 하는 것 — 형이 짚어 준 차례 ──
+  // 「목탁~~ 을 인연 밑에 / 삼배 / 백팔배 / 그 밑에 하심 / 호흡 명상 /
+  //  멍 때리기 / 그리고 나머지 줄줄줄 중요도에 따라」
   { href: "/moktak", label: "목탁·염주·싱잉볼", Icon: Yeomju },
   { href: "/sambae", label: "삼배", Icon: Jeol },
   { href: "/bae", label: "백팔배", Icon: Jeol108 },
-  { href: "/sutra", label: "경전 외우기", Icon: Book },
+  // 이름만 적는다 — 형: 「하심 끝없이 내려가기 이딴말 말고 그냥 한자로」
+  { href: "/hasim", label: "下心", Icon: Hasim },
+  { href: "/breath", label: "호흡 명상", Icon: Breath },
+  { href: "/mung", label: "멍 때리기", Icon: Ilwonsang },
+
+  // ── 그 아래는 중요도 순 ──
+  { href: "/room", label: "사유의 방", Icon: Banga },
   // 형: 「오늘의 운세는 그 보리수 나무 잎 로고로」
   { href: "/draw", label: "오늘의 운세", Icon: BodhiLeaf },
   { href: "/candle", label: "법당 — 초 공양", Icon: Chotbul },
-  { href: "/room", label: "사유의 방", Icon: Banga },
+  { href: "/sutra", label: "경전 외우기", Icon: Book },
+  { href: "/mandala", label: "만다라", Icon: Mandala },
+  // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
+  { href: "/empty", label: "비움", Icon: Baru },
   { href: "/moment", label: "시절인연 — 절에서 찍은 한 장", Icon: Moment },
-  { href: "/lotus", label: "연꽃 공양", Icon: YeonkkotGold },
   { href: "/rank", label: "정진 랭킹", Icon: Dharmachakra },
   { href: "/archive", label: "서고 — 지난 화두", Icon: Seogo },
+  { href: "/lotus", label: "연꽃 공양", Icon: YeonkkotGold },
 ];
 
 // 말씀 · 나눔 — 구획 제목과 함께 아래에 잇는다

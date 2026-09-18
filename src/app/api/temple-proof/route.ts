@@ -145,6 +145,7 @@ export async function POST(req: Request) {
 
   try {
     const seen = await ref.get();
+    let lotus = 0;
     if (!seen.exists) {
       await ref.set({
         uid,
@@ -153,8 +154,29 @@ export async function POST(req: Request) {
         day,
         at: FieldValue.serverTimestamp(),
       });
+
+      // ── 연꽃 한 송이 ──
+      // 형: 「절에 가면 하루 한번, 아예 연꽃을 줘버리자」
+      //
+      // **반드시 서버에서 준다.** 연꽃은 돈을 주고 사는 재화라
+      // firestore.rules 가 브라우저에게는 「본인은 1 감소만」까지만
+      // 허락한다. 늘리는 일은 규칙을 넘어서는 관리자만 할 수 있고,
+      // 그래야 콘솔 한 줄로 연꽃을 찍어 내지 못한다.
+      //
+      // 하루 한 번인 것은 위 문서(uid_날짜_절)가 보증한다 —
+      // 이미 있으면 여기 오지 않는다. 절을 옮겨 다니며 여러 번 받는 것은
+      // 막지 않는다. 그건 정말로 절을 여러 곳 간 것이다.
+      try {
+        await db.doc(`wallets/${uid}`).set(
+          { lotus: FieldValue.increment(1) },
+          { merge: true }
+        );
+        lotus = 1;
+      } catch {
+        // 연꽃을 못 줘도 참배 자체는 남는다 — 이 한 줄 때문에 인증을 무르지 않는다
+      }
     }
-    return Response.json({ ok: true, first: !seen.exists });
+    return Response.json({ ok: true, first: !seen.exists, lotus });
   } catch {
     return Response.json({ error: "write-failed" }, { status: 500 });
   }

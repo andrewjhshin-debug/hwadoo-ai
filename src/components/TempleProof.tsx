@@ -110,11 +110,12 @@ export default function TempleProof({
     <section
       className={`rise rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4 ${className}`}
     >
-      <p className="text-[10.5px] tracking-[0.3em] text-hanji-faint">
-        참배 · 參拜
-      </p>
-      <p className="mt-1 font-serif text-[20px] font-light leading-tight text-hanji">
-        {here ?? "절에 오셨나요"}
+      {/* 절 이름을 크게 걸어 두었었다(「진관사」·「우리절」).
+          형: 「굳이 우리절만 할 필요 있나. 그냥 참배랑 한자를 크게」 —
+          맞다. 이 칸이 하는 일은 한 절을 가리키는 게 아니라
+          **어느 절에 가든 눌러서 남기는 일**이다. 이름은 뗀다. */}
+      <p className="font-serif text-[20px] font-light leading-tight tracking-[0.12em] text-hanji">
+        참배 <span className="text-hanji-dim">· 參拜</span>
       </p>
 
       <button
@@ -147,6 +148,11 @@ export default function TempleProof({
                   </span>
                 )}
               </p>
+              {said.lotus > 0 && (
+                <p className="mt-1 text-[12px] text-gold-soft">
+                  연꽃 {said.lotus}송이를 받았어요
+                </p>
+              )}
               {said.charmRose && (
                 <p className="mt-1 text-[11.5px] text-gold-soft">
                   {CHARM_BY_ID.cheonli.name} {GRADE[said.grade].name} — 도량 벽에
@@ -164,8 +170,9 @@ export default function TempleProof({
           그 말로 적는다. */}
       {!said && (
         <p className="mt-2.5 break-keep text-[11.5px] leading-5 text-hanji-faint">
+          화두에 담긴 이름난 도량 어디서든 —{" "}
           <span className="text-hanji-dim">절에 도착해서 누르면</span> 인증됩니다.
-          하루 한 번, 공덕도 드려요.
+          하루 한 번, <span className="text-gold-soft">공덕과 연꽃</span>을 드려요.
           <br />
           {/* 「하는 사람 입장에서는 절에 가는 일」이라 기계 설명을 뺐었는데,
               위치를 재는 일은 **말해 두어야 하는 일**이다. 앞줄은 하는 일로,

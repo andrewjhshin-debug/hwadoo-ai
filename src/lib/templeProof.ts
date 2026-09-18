@@ -52,6 +52,7 @@ export type ProofOutcome =
       merit: number; // 이번에 쌓인 공덕(천장에 닿았으면 0)
       grade: CharmGrade;
       charmRose: boolean; // 부적을 새로 얻었거나 등급이 올랐다
+      lotus: number; // 이번에 받은 연꽃(서버가 준다. 못 받으면 0)
     }
   | { ok: false; why: "no-place" | "far" };
 
@@ -198,12 +199,12 @@ export function gradeFor(count: number): CharmGrade {
  * 남들도 보게 한 줄 올린다. 로그인 안 했거나 서버가 안 받으면 조용히 넘어간다 —
  * 이 기기의 장부와 공덕은 이미 남았다.
  */
-async function pushProof(temple: string, spot: Spot): Promise<void> {
+async function pushProof(temple: string, spot: Spot): Promise<number> {
   const u = auth.currentUser;
-  if (!u) return;
+  if (!u) return 0;
   try {
     const idToken = await u.getIdToken();
-    await fetch("/api/temple-proof", {
+    const r = await fetch("/api/temple-proof", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${idToken}`,
@@ -211,8 +212,13 @@ async function pushProof(temple: string, spot: Spot): Promise<void> {
       },
       body: JSON.stringify({ temple, lat: spot.lat, lng: spot.lng }),
     });
+    // 연꽃은 **서버가 준다.** 브라우저는 몇 송이 받았는지 듣기만 한다 —
+    // 여기서 늘릴 수 있으면 콘솔 한 줄로 찍어 낼 수 있다.
+    const j = (await r.json()) as { lotus?: number };
+    return typeof j?.lotus === "number" ? j.lotus : 0;
   } catch {
     // 서버가 못 받아도 다녀온 것은 다녀온 것이다
+    return 0;
   }
 }
 
@@ -278,6 +284,7 @@ export async function proveHere(
       meters,
       already: true,
       merit: 0,
+      lotus: 0,
       grade: gradeFor(proofCount()),
       charmRose: false,
     };
@@ -289,9 +296,9 @@ export async function proveHere(
   const charmRose = grantCharm(CHARM, grade);
 
   // 올린 뒤에 돌려준다 — 화면이 곧바로 목록을 다시 부르면 내 줄이 보여야 한다
-  await pushProof(temple, spot);
+  const lotus = await pushProof(temple, spot);
 
-  return { ok: true, temple, meters, already: false, merit: gained, grade, charmRose };
+  return { ok: true, temple, meters, already: false, merit: gained, grade, charmRose, lotus };
 }
 
 // ── 언제 다녀갔는가 ─────────────────────────────────────────
