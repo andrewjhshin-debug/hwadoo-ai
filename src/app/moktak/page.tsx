@@ -67,10 +67,86 @@ const JEONGGEUN = [
 
 const JEONGGEUN_KEY = "hwadu.jeonggeun.v1";
 
+/**
+ * 살갗 — 같은 물건, 다른 결.
+ *
+ * 세 가지를 다 **같은 실루엣**으로 뽑았다(그림 대 그림으로 고쳐 그렸다).
+ * 자리도 각도도 크기도 그대로라, 갈아 끼워도 화면이 안 흔들린다.
+ * 바뀌는 것은 재질뿐이다 — 그래서 고르는 자리가 점 세 개면 족하다.
+ */
+const SKINS = {
+  moktak: [
+    { id: "clay", name: "흙", src: "/obj/moktak.png", dot: "#c98f5e" },
+    { id: "wood", name: "나무", src: "/obj/moktak-wood.png", dot: "#8a5a34" },
+    { id: "gold", name: "금", src: "/obj/moktak-gold.png", dot: "#d7ae55" },
+  ],
+  bead: [
+    { id: "wood", name: "나무", src: "/obj/bead.png", dot: "#a8703f" },
+    { id: "jade", name: "먹옥", src: "/obj/bead-jade.png", dot: "#3f5a4a" },
+  ],
+  bowl: [{ id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" }],
+} as const;
+
+type SkinKind = keyof typeof SKINS;
+const SKIN_KEY = "hwadu.skin.v1";
+
+/** 점 셋 — 고르는 자리. 살갗이 하나뿐이면 아예 안 그린다 */
+function SkinDots({
+  kind,
+  pick,
+  onPick,
+}: {
+  kind: SkinKind;
+  pick: string;
+  onPick: (id: string) => void;
+}) {
+  const list = SKINS[kind];
+  if (list.length < 2) return null;
+  return (
+    <div className="flex items-center justify-center gap-2">
+      {list.map((k) => (
+        <button
+          key={k.id}
+          onClick={() => onPick(k.id)}
+          aria-label={k.name}
+          aria-pressed={pick === k.id}
+          className={`h-[14px] w-[14px] rounded-full border transition-all ${
+            pick === k.id
+              ? "scale-110 border-gold"
+              : "border-ink-3 opacity-55 hover:opacity-90"
+          }`}
+          style={{ background: k.dot }}
+        />
+      ))}
+    </div>
+  );
+}
+
 type Pop = { id: number; ch: string; dx: number; rot: number };
 
 export default function MoktakPage() {
   const [tab, setTab] = useState<"moktak" | "yeomju" | "bowl">("moktak");
+  // 살갗 — 물건마다 따로 적어 둔다(이 기기에만)
+  const [skin, setSkin] = useState<Record<SkinKind, string>>({
+    moktak: SKINS.moktak[0].id,
+    bead: SKINS.bead[0].id,
+    bowl: SKINS.bowl[0].id,
+  });
+  const skinSrc = (kind: SkinKind) =>
+    (SKINS[kind] as readonly { id: string; src: string }[]).find(
+      (k) => k.id === skin[kind]
+    )?.src ?? SKINS[kind][0].src;
+  const pickSkin = (kind: SkinKind) => (id: string) => {
+    setSkin((s) => {
+      const next = { ...s, [kind]: id };
+      try {
+        window.localStorage.setItem(SKIN_KEY, JSON.stringify(next));
+      } catch {
+        /* 서랍이 막혀도 오늘은 칠 수 있다 */
+      }
+      return next;
+    });
+  };
   // 무엇을 외며 칠까 — 이 기기에 적어 둔다
   const [geunId, setGeunId] = useState<string>(JEONGGEUN[0].id);
   const geun = JEONGGEUN.find((g) => g.id === geunId) ?? JEONGGEUN[0];
@@ -153,6 +229,24 @@ export default function MoktakPage() {
       if (saved && JEONGGEUN.some((g) => g.id === saved)) setGeunId(saved);
     } catch {
       /* 못 읽으면 관세음보살 */
+    }
+    try {
+      const raw = window.localStorage.getItem(SKIN_KEY);
+      if (raw) {
+        const got = JSON.parse(raw) as Partial<Record<SkinKind, string>>;
+        setSkin((s) => ({
+          moktak:
+            SKINS.moktak.some((k) => k.id === got.moktak) && got.moktak
+              ? got.moktak
+              : s.moktak,
+          bead:
+            SKINS.bead.some((k) => k.id === got.bead) && got.bead ? got.bead : s.bead,
+          bowl:
+            SKINS.bowl.some((k) => k.id === got.bowl) && got.bowl ? got.bowl : s.bowl,
+        }));
+      }
+    } catch {
+      /* 못 읽으면 첫 살갗 */
     }
     setTotal(b.by.bead ?? 0);
     setBowlHits(b.by.bowl ?? 0);
@@ -503,7 +597,7 @@ export default function MoktakPage() {
                 {/* 3D 일러스트 — 코드로 깎은 것보다 낫다. 없으면 SVG 로 돌아간다 */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/obj/moktak.png"
+                  src={skinSrc("moktak")}
                   alt=""
                   aria-hidden
                   onError={(e) => {
@@ -523,9 +617,14 @@ export default function MoktakPage() {
                 />
               </span>
             </button>
-            <p className="mt-0.5 text-[12px] tracking-[0.25em] text-hanji-faint">
-              {hits === 0 ? "눌러 보세요" : ""}
-            </p>
+            {/* 「눌러 보세요」와 살갗 고르기가 한 줄을 나눠 쓴다 — 자리를
+                못박아 두어야 첫 타에 아래가 안 뛴다 */}
+            <div className="mt-0.5 flex h-[20px] items-center justify-center gap-3">
+              <p className="text-[12px] tracking-[0.25em] text-hanji-faint">
+                {hits === 0 ? "눌러 보세요" : ""}
+              </p>
+              <SkinDots kind="moktak" pick={skin.moktak} onPick={pickSkin("moktak")} />
+            </div>
           {/* 정근 고르기 — 무엇을 외며 칠까.
               목탁 위에 두었더니 셈과 목탁 사이를 갈라 놓아, 치는 동안 눈이
               칩으로 자꾸 올라갔다. 고르는 일은 치기 전에 한 번뿐이니 아래로 뺀다 */}
@@ -660,7 +759,7 @@ export default function MoktakPage() {
               <div className="absolute inset-0 grid place-items-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/obj/bead.png"
+                  src={skinSrc("bead")}
                   alt=""
                   aria-hidden
                   draggable={false}
@@ -681,7 +780,7 @@ export default function MoktakPage() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/obj/bead.png"
+                  src={skinSrc("bead")}
                   alt=""
                   draggable={false}
                   className="block h-[262px] w-[262px] object-contain"
@@ -704,9 +803,12 @@ export default function MoktakPage() {
               </span>
             </div>
 
-            <p className="mt-3 text-[11.5px] tracking-[0.2em] text-hanji-faint">
-              쓸거나 눌러서 한 알
-            </p>
+            <div className="mt-2 flex items-center justify-center gap-3">
+              <p className="text-[11.5px] tracking-[0.2em] text-hanji-faint">
+                쓸거나 눌러서 한 알
+              </p>
+              <SkinDots kind="bead" pick={skin.bead} onPick={pickSkin("bead")} />
+            </div>
           </div>
         </>
       ) : (
@@ -759,7 +861,7 @@ export default function MoktakPage() {
                 못 불러오면 아래 단순한 그림으로 물러선다. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/obj/bowl.png"
+              src={skinSrc("bowl")}
               alt=""
               aria-hidden
               onError={(e) => {
@@ -777,9 +879,12 @@ export default function MoktakPage() {
             </svg>
           </button>
 
-          <p className="rise rise-d2 mt-1 text-[11.5px] tracking-[0.2em] text-hanji-faint">
-            {ringing ? "울리는 중 — 끝까지 들어 보세요" : "그릇을 눌러 한 번"}
-          </p>
+          <div className="rise rise-d2 mt-1 flex items-center justify-center gap-3">
+            <p className="text-[11.5px] tracking-[0.2em] text-hanji-faint">
+              {ringing ? "울리는 중 — 끝까지 들어 보세요" : "그릇을 눌러 한 번"}
+            </p>
+            <SkinDots kind="bowl" pick={skin.bowl} onPick={pickSkin("bowl")} />
+          </div>
 
           {/* 이 단추는 울릴 때만 보이지만 **자리는 늘 잡아 둔다.**
               나타났다 사라지면 아래 공덕 줄이 그만큼 위아래로 뛴다. */}
