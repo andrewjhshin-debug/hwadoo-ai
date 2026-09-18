@@ -262,8 +262,23 @@ export default function BreathPage() {
 
   const finish = () => {
     const elapsed = performance.now() - startRef.current;
-    // 10초 = 1식. 한 호흡을 채 못 채웠어도, 앉았던 숨 하나는 쳐 준다.
-    const n = Math.max(1, Math.floor(elapsed / CYCLE_MS));
+    // 10초 = 1식.
+    //
+    // 예전엔 `Math.max(1, ...)` 로 한 식을 얹어 줬다. 앉았던 성의를
+    // 쳐 준다는 뜻이었는데, 형이 짚었다 —
+    //   「숨 눌렸다가 바로 다시 눌려도 왜 공덕 주노」
+    // 맞다. 누르자마자 끄면 공덕이 붙는다. 그건 수행이 아니라 단추질이다.
+    // **한 식을 못 채우면 공덕도 없고 판도 안 센다.** 그냥 멎는다.
+    const n = Math.floor(elapsed / CYCLE_MS);
+    if (n < 1) {
+      stopLoop();
+      setOnFile(false);
+      void audioRef.current?.suspend();
+      setStage("ready");
+      setBreaths(0);
+      setEarned(0);
+      return;
+    }
     setBreaths(n);
     setStage("done");
     stopLoop(); // 음원도 함께 내려놓는다 — 잠금화면의 표시도 같이 사라진다

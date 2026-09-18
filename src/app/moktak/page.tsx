@@ -425,22 +425,40 @@ export default function MoktakPage() {
         }
         .mk-wave-2 { animation-delay: 0.13s; }
         .mk-wave-3 { animation-delay: 0.26s; }
+        /* 세 배까지 부풀렸더니 화면 끝까지 갔다. 광명 고리(214px) 언저리에서
+           스러지게 잡는다 — 목탁 둘레에서만 번진다. */
         @keyframes mk-wave {
-          0%   { transform: scale(0.42); opacity: 0; border-width: 2px; }
-          12%  { opacity: 0.85; }
-          100% { transform: scale(3); opacity: 0; border-width: 0.5px; }
+          0%   { transform: scale(0.5); opacity: 0; border-width: 1.6px; }
+          14%  { opacity: 0.7; }
+          100% { transform: scale(1.55); opacity: 0; border-width: 0.5px; }
         }
         @keyframes mk-pop {
           0% { transform: translateY(0) scale(0.7); opacity: 0; }
           22% { transform: translateY(-18px) scale(1.12); opacity: 1; }
           100% { transform: translateY(-96px) scale(0.94); opacity: 0; }
         }
-        /* 목탁 뒤 빛무리 — 형: 「너무 과하다 좀만 톤다운」.
-           절반으로 낮췄다(0.16~0.34 → 0.07~0.15). 목탁이 빛에 묻혀
-           살갗 빛깔이 안 보이던 게 진짜 문제였다. */
-        @keyframes mk-glow {
-          0%, 100% { opacity: 0.07; }
-          50% { opacity: 0.15; }
+/* 목탁 뒤 광명 — 형: 「더 은은하게 2줄 정도로, 넘 많이 안 퍼지게」.
+           번지는 무리(radial-gradient)를 걷어내고 **가느다란 고리 두 줄**만
+           남겼다. 무리는 아무리 낮춰도 목탁 둘레를 뿌옇게 먹었다.
+           고리는 제 자리에만 있어서 목탁 빛깔을 안 건드린다. */
+        .mk-halo {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          border-radius: 50%;
+          border: 1px solid rgba(217, 180, 91, 0.3);
+          pointer-events: none;
+          animation: mk-halo 4.2s ease-in-out infinite;
+        }
+        .mk-halo-1 { width: 176px; height: 176px; margin: -88px 0 0 -88px; }
+        .mk-halo-2 {
+          width: 214px; height: 214px; margin: -107px 0 0 -107px;
+          border-color: rgba(217, 180, 91, 0.16);
+          animation-delay: 1.1s;
+        }
+        @keyframes mk-halo {
+          0%, 100% { opacity: 0.55; }
+          50% { opacity: 1; }
         }
         .moktak-svg { display: block; width: 100%; height: 100%; }
 
@@ -608,16 +626,11 @@ export default function MoktakPage() {
               className="relative block select-none outline-none"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              {/* 바닥 빛무리 — 칠수록 살아난다 */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[230px] w-[230px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-                style={{
-                  background:
-                    "radial-gradient(circle, var(--color-gold) 0%, transparent 58%)",
-                  animation: "mk-glow 3.4s ease-in-out infinite",
-                }}
-              />
+              {/* 뒤에 두른 광명 — 고리 두 줄. 천천히 숨만 쉰다 */}
+              <span aria-hidden className="pointer-events-none -z-10">
+                <span className="mk-halo mk-halo-1" />
+                <span className="mk-halo mk-halo-2" />
+              </span>
               {hits > 0 && (
                 <span key={`r${hits}`} aria-hidden className="pointer-events-none">
                   <span className="mk-wave" />

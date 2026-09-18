@@ -296,7 +296,7 @@ export default function Sidebar() {
           onClick={go("/")}
           className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5"
         >
-          <Beopryun className="h-9 w-9" stroke="#D9B45B" />
+          <Beopryun className="h-7 w-7" stroke="#D9B45B" />
           <span className="text-gold-grad font-serif text-xl font-semibold tracking-[0.35em]">
             화두
           </span>
@@ -354,7 +354,7 @@ export default function Sidebar() {
           {!slim && (
             <div className="flex items-center justify-between px-2">
               <Link href="/" onClick={go("/")} className="flex shrink-0 items-center gap-2.5">
-                <Beopryun className="h-9 w-9 shrink-0" stroke="#D9B45B" />
+                <Beopryun className="h-7 w-7 shrink-0" stroke="#D9B45B" />
                 <span className="text-gold-grad whitespace-nowrap font-serif text-lg font-semibold tracking-[0.26em]">
                   화두
                 </span>

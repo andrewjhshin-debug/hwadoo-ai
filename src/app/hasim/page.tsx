@@ -126,11 +126,17 @@ export default function HasimPage() {
   return (
     <div
       ref={boxRef}
-      // flex-1 만 주었더니 통이 **안쪽 높이를 따라 삼천만 픽셀로 부풀었다.**
-      // 자기 키를 자로 삼는 통이 자기 안을 따라가면 끝이 없다.
-      // 키를 먼저 못박고(h-[70vh]) 그 안에서 굴린다 — min-h-0 이 있어야
-      // flex 안에서 통이 제 키를 지킨다.
-      className="relative mx-auto h-[70vh] min-h-0 w-full max-w-xl overflow-y-auto overscroll-contain rounded-[16px]"
+      // **화면을 통째로 덮는다.**
+      //
+      // 한동안 방 안에 70vh 짜리 통으로 앉혀 두었다. 형이 그걸 보고
+      // 「개판났노, 그냥 하심 쭈욱 나오게, 오른쪽 위에 나가기 하면
+      // 되겠다」 했다. 맞다 — 낮추는 자리에 서랍과 띠가 같이 보이면
+      // 낮추는 게 아니다. 나가는 문 하나만 남긴다.
+      //
+      // fixed 로 덮되 **자기 키를 자로 삼는 통이 자기 안을 따라가면
+      // 끝이 없다**(예전에 삼천만 픽셀로 부푼 그 버그). inset-0 은 키가
+      // 화면에 못박혀 있어 그 일이 안 생긴다.
+      className="fixed inset-0 z-[100] overflow-y-auto overscroll-contain"
       style={{ background: "#F4F2EC" }} // 종이빛 — 이 방 안에만 편다
     >
       {/* 나가는 문 */}
