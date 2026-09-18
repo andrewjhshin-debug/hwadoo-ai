@@ -45,32 +45,6 @@ const ARC_PATH =
   "M158 12 A146 146 0 0 0 12 158 A146 146 0 0 0 158 304 " +
   "A146 146 0 0 0 304 158 A146 146 0 0 0 158 12";
 
-/**
- * 알 백여덟의 자리 — 동그랗게 늘어놓는다.
- *
- * 형: 「염주 화면」 시안 중 「둥근 한 바퀴」로 간다. 예전에는 알 그림
- * 한 장과 바깥 진행 고리 하나뿐이라, 백여덟을 세는 동안 **아무것도
- * 자라지 않았다.** 이제 알 하나하나가 눈에 보이고 센 만큼 불이 든다.
- *
- * 스물일곱마다 큰 알(모주, 母珠)을 둔다. 실제 염주도 그렇게 마디를 줘서
- * 눈을 감고도 어디쯤인지 안다.
- */
-const RING_R = 138;
-const BEAD_SEATS = Array.from({ length: BEADS }, (_, i) => {
-  const a = (i / BEADS) * Math.PI * 2 - Math.PI / 2;
-  return {
-    x: BOX / 2 + RING_R * Math.cos(a),
-    y: BOX / 2 + RING_R * Math.sin(a),
-    r: i % 27 === 0 ? 6.6 : 4.4,
-  };
-});
-
-/** 살갗마다 알 빛깔 — 그림 대신 색으로 가른다(곧바로 바뀐다) */
-const BEAD_TINT: Record<string, { on: string; off: string }> = {
-  wood: { on: "#D9B45B", off: "rgba(217,180,91,.13)" },
-  jade: { on: "#8FD3B6", off: "rgba(143,211,182,.12)" },
-};
-
 // 염불 여섯 자 — 목탁을 칠 때마다 한 자씩
 /**
  * 정근(精勤) — 목탁을 치며 외는 말.
@@ -811,58 +785,68 @@ export default function MoktakPage() {
               style={{ width: BOX, height: BOX, cursor: "grab" }}
               aria-label="염주 굴리기 — 왼쪽으로 쓸거나 톡 누르면 한 알"
             >
-              {/* 알 백여덟 — 넘긴 만큼 불이 든다 */}
+              {/* 바깥 진행 고리 — 백팔이 차오른다 */}
               <svg
                 aria-hidden
-                viewBox={`0 0 ${BOX} ${BOX}`}
+                viewBox="0 0 316 316"
                 className="absolute inset-0 h-full w-full"
               >
-                {BEAD_SEATS.map((b, i) => {
-                  const on = i < pos;
-                  const tint = BEAD_TINT[skin.bead] ?? BEAD_TINT.wood;
-                  return (
-                    <circle
-                      key={i}
-                      cx={b.x}
-                      cy={b.y}
-                      r={b.r}
-                      fill={on ? tint.on : tint.off}
-                      style={{ transition: "fill .18s ease-out" }}
-                    />
-                  );
-                })}
-                {/* 지금 넘기는 알 — 한 겹 더 밝게 */}
-                {pos > 0 && pos <= BEADS && (
-                  <circle
-                    cx={BEAD_SEATS[(pos - 1) % BEADS].x}
-                    cy={BEAD_SEATS[(pos - 1) % BEADS].y}
-                    r={BEAD_SEATS[(pos - 1) % BEADS].r + 3.4}
-                    fill="none"
-                    stroke={(BEAD_TINT[skin.bead] ?? BEAD_TINT.wood).on}
-                    strokeWidth="1.4"
-                    opacity="0.6"
-                  />
-                )}
+                <path d={ARC_PATH} fill="none" stroke="var(--color-ink-3)" strokeWidth="2" />
+                <path
+                  d={ARC_PATH}
+                  fill="none"
+                  stroke="var(--color-gold)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeDasharray={ARC}
+                  strokeDashoffset={ARC * (1 - pos / BEADS)}
+                  style={{ transition: "stroke-dashoffset 0.2s ease-out" }}
+                />
               </svg>
 
-              {/* 한가운데 — 숫자가 이 화면의 카피다 */}
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <p className="font-serif text-[62px] font-light leading-none tabular-nums text-hanji">
-                  {pos}
-                </p>
-                <p className="mt-2 text-[11.5px] tracking-[0.35em] text-hanji-faint">
-                  / {BEADS}
-                </p>
-                <p className="mt-3 text-[11px] tracking-[0.3em] text-gold-soft/70">
-                  {rounds > 0 ? `${rounds}바퀴째` : "한 바퀴"}
-                </p>
+              {/* 염주 — 굴리면 돈다 */}
+              <div className="absolute inset-0 grid place-items-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={skinSrc("bead")}
+                  alt=""
+                  aria-hidden
+                  draggable={false}
+                  className="block h-[262px] w-[262px] object-contain"
+                  style={{
+                    transform: `rotate(${angle}deg)`,
+                    transition: "transform 0.16s ease-out",
+                    filter: "drop-shadow(0 10px 26px rgba(0,0,0,0.55))",
+                  }}
+                />
+              </div>
+
+              {/* 물든 만큼 금빛 — 위에서 시계방향으로 차오른다 */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 grid place-items-center"
+                style={{ maskImage: goldMask, WebkitMaskImage: goldMask }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={skinSrc("bead")}
+                  alt=""
+                  draggable={false}
+                  className="block h-[262px] w-[262px] object-contain"
+                  style={{
+                    transform: `rotate(${angle}deg)`,
+                    transition: "transform 0.16s ease-out",
+                    filter:
+                      "sepia(1) saturate(2.6) hue-rotate(-8deg) brightness(1.32) contrast(1.04) drop-shadow(0 0 16px rgba(217,180,91,0.45))",
+                  }}
+                />
               </div>
 
               {/* 지금 넘기는 자리 */}
               <span
                 aria-hidden
                 className="absolute left-1/2 -translate-x-1/2 text-gold-soft"
-                style={{ top: 2, fontSize: 11, letterSpacing: "0.2em" }}
+                style={{ top: 14, fontSize: 11, letterSpacing: "0.2em" }}
               >
                 ▼
               </span>

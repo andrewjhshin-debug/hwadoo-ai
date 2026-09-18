@@ -80,8 +80,9 @@ const NAV_PRACTICE: NavItem[] = [
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
   { href: "/empty", label: "비움", Icon: Baru },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
-  { href: "/mung", label: "멍 — 아무것도 안 하기", Icon: Ilwonsang },
-  { href: "/hasim", label: "하심 — 끝없이 내려가기", Icon: Hasim },
+  { href: "/mung", label: "멍 때리기", Icon: Ilwonsang },
+  // 이름만 적는다 — 형: 「하심 끝없이 내려가기 이딴말 말고 그냥 한자로」
+  { href: "/hasim", label: "下心", Icon: Hasim },
   { href: "/moktak", label: "목탁·염주·싱잉볼", Icon: Yeomju },
   { href: "/sambae", label: "삼배", Icon: Jeol },
   { href: "/bae", label: "백팔배", Icon: Jeol108 },
