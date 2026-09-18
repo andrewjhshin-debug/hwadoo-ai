@@ -152,6 +152,9 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  // 들어올 때의 연출을 **처음 한 번만** 튼다. 화두만 보기를 한 번이라도
+  // 다녀오면 그 뒤로는 그냥 화면이 있다 — 형: 「두둥 하면서 튀지 말고」
+  const [seenOnce, setSeenOnce] = useState(false);
   const [publicPool, setPublicPool] = useState<PublicHwadu[]>([]);
   const [remaining, setRemaining] = useState(0);
   const [sharedAnswers, setSharedAnswers] = useState<SharedAnswer[]>([]);
@@ -944,19 +947,33 @@ export default function Home() {
               사유의 방이 먼저 닿는 자리에 온다. 되돌아가기는 그 아래.
               둘을 붙여 두니 큰 단추를 누르려다 작은 쪽을 스쳤다 — 사이를
               한 뼘(gap-6) 벌려 손가락이 헷갈릴 일을 없앤다. */}
-          <div className="mt-11 flex w-full max-w-[320px] flex-col items-center gap-6">
+          {/* 배경 한 줄도 **자리만 남기고 지운다** — 한자와 같은 이치.
+              이게 있어야 아래 단추가 평소 화면과 같은 높이에 선다. */}
+          {(current.customSource || hwadu?.context) && (
+            <p
+              aria-hidden
+              className="invisible mt-7 max-w-[24rem] break-keep text-[11.5px] leading-6 tracking-wide"
+            >
+              {current.customSource ?? hwadu?.context}
+            </p>
+          )}
+
+          {/* 형: 「화두만 보기랑 되돌아가기는 버튼 위치 동일하게」
+              그래서 **되돌아가기가 먼저**다 — 평소 화면의 「화두만 보기」와
+              똑같이 mt-8 자리에 선다. 사유의 방은 그 아래. */}
+          <div className="mt-8 flex w-full max-w-[320px] flex-col items-center gap-6">
+            <button
+              onClick={() => setFocusMode(false)}
+              className="tap rounded-full border border-gold/40 px-6 py-2.5 text-[11px] tracking-[0.25em] text-gold-soft transition-colors hover:bg-gold/10 hover:text-gold"
+            >
+              되돌아가기
+            </button>
             <button
               onClick={() => setNotesOpen(true)}
               className="tap flex w-full items-center justify-center gap-2.5 rounded-full border border-gold/45 bg-gold/[0.07] px-6 py-4 text-[14px] tracking-[0.18em] text-gold-soft transition-colors hover:border-gold/75 hover:bg-gold/15 hover:text-gold"
             >
               <Banga className="h-5 w-5" />
               사유의 방
-            </button>
-            <button
-              onClick={() => setFocusMode(false)}
-              className="tap rounded-full border border-ink-3 px-6 py-2.5 text-[11px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
-            >
-              되돌아가기
             </button>
           </div>
         </section>
@@ -980,8 +997,18 @@ export default function Home() {
       : 0;
 
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center sm:justify-center sm:py-12">
-      <section className="rise-sharp flex w-full max-w-2xl flex-col items-center">
+    // 데스크톱에서 `sm:justify-center` 로 덩어리를 가운데로 몰고 있었다.
+    // 화두만 보기는 위에서부터 세우니, 오갈 때마다 물음이 백사십 픽셀씩
+    // 뛰었다 — 형: 「두둥 하면서 튀지 말고 그냥 화면 보여줘」.
+    // 둘 다 **위에서부터** 세운다. 그러면 오가도 물음이 안 움직인다.
+    <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center sm:py-12">
+      {/* 들어올 때의 연출(rise-sharp)은 **처음 한 번만.**
+          화두만 보기에서 돌아올 때마다 다시 떨어지니 그게 「두둥」이었다. */}
+      <section
+        className={`flex w-full max-w-2xl flex-col items-center ${
+          seenOnce ? "" : "rise-sharp"
+        }`}
+      >
         {/* 한자 — 금테 알약 하나. 제목·부제로 겹을 늘리지 않는다 */}
         {hwadu?.hanja && (
           <span className="rounded-full border border-gold/25 px-4 py-1 font-serif text-[10px] tracking-[0.42em] text-gold-soft [text-indent:0.42em]">
@@ -1010,7 +1037,10 @@ export default function Home() {
             같은 무게의 알약 셋이 화두 바로 밑에서 눈을 뺏던 것을 막는다. */}
         <div className="mt-8 flex flex-col items-center gap-3">
           <button
-            onClick={() => setFocusMode(true)}
+            onClick={() => {
+              setSeenOnce(true);
+              setFocusMode(true);
+            }}
             className="tap rounded-full border border-gold/40 px-6 py-2.5 text-[11px] tracking-[0.25em] text-gold-soft transition-colors hover:bg-gold/10 hover:text-gold"
           >
             화두만 보기

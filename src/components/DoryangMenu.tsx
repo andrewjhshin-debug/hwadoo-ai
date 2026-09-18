@@ -34,6 +34,8 @@ import {
   LotusPond,
   Moment,
   Mandala,
+  YeonMun,
+  BodhiLeaf,
   Yeomju,
   Person,
   SeonMaster,
@@ -63,9 +65,9 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     title: "오늘",
     hanja: "今",
     doors: [
-      { href: "/", label: "뜰", say: "화두를 받는 자리", Icon: LotusMark },
+      { href: "/", label: "뜰", say: "화두를 받는 자리", Icon: YeonMun },
       { label: "사유의 방", say: "떠오르는 것을 적다", Icon: Banga, act: "notes" },
-      { href: "/draw", label: "오늘의 운세", say: "한 장을 뒤집다", Icon: Lotus },
+      { href: "/draw", label: "오늘의 운세", say: "한 장을 뒤집다", Icon: BodhiLeaf },
       { href: "/rank", label: "정진 랭킹", say: "어제의 자리", Icon: Dharmachakra },
     ],
   },
@@ -80,7 +82,7 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
       { href: "/mung", label: "멍 때리기", say: "아무것도 안 하기", Icon: Ilwonsang },
       // 웹 서랍에만 있고 폰 차림표에 빠져 있었다 — 형: 「모바일앱에선
       // 하심 왜 안 뜸?」. 모든 방은 두 곳 다에 있어야 한다.
-      { href: "/hasim", label: "下心", say: "하심", Icon: Hasim },
+      { href: "/hasim", label: "下心", say: "끝없이 내려가기", Icon: Hasim },
       { href: "/sutra", label: "경전 외우기", say: "입에 붙이다", Icon: Book },
       { href: "/mandala", label: "만다라", say: "색을 앉히다", Icon: Mandala },
       { href: "/empty", label: "비움", say: "쓰지 않은 하루", Icon: Baru },

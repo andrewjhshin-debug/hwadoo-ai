@@ -27,8 +27,8 @@ const CSS = `
 /* 점 하나 — 스무 초에 한 번 숨 쉰다. 따라 쉬라는 것이 아니라,
    화면이 죽은 것이 아님을 알리는 최소한의 기척이다. */
 @keyframes mung-breathe {
-  0%, 100% { transform: scale(1);    opacity: .30 }
-  50%      { transform: scale(1.55); opacity: .62 }
+  0%, 100% { transform: scale(1);    opacity: .34 }
+  50%      { transform: scale(1.55); opacity: .72 }
 }
 .mung-dot { animation: mung-breathe 20s ease-in-out infinite; }
 /* 들어서면 둘레가 천천히 어두워진다 — 방이 닫히는 느낌 */
@@ -105,8 +105,12 @@ export default function MungPage() {
           aria-hidden
           className="mung-veil pointer-events-none absolute inset-0"
           style={{
+            // 형: 「웹에서도 은은한 뒤 광명 있게, 더 좀 보이게」
+            // 폰은 화면이 좁아 5%로도 보였는데, 넓은 화면에서는 같은 양이
+            // 넓게 퍼져 거의 안 보였다. 두 배 남짓 올리고 범위를 좁혀
+            // 점 둘레에 모은다 — 점을 삼키지 않을 만큼만.
             background:
-              "radial-gradient(60% 45% at 50% 50%, rgba(217,180,91,0.05), transparent 70%)",
+              "radial-gradient(42% 42% at 50% 50%, rgba(217,180,91,0.13), rgba(217,180,91,0.045) 45%, transparent 72%)",
           }}
         />
         <span

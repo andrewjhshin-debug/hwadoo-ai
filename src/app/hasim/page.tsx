@@ -91,7 +91,10 @@ export default function HasimPage() {
   const headTop = unit * 0.06; // 心 이 첫 화면 안에 들어오려면 下 를 올려야 한다
   const headH = paper * HEAD_RATIO;
   const midTop = headTop + headH - 1; // 1px 겹쳐 이음매를 없앤다
-  const endTop = total - unit; // 맺음은 마지막 한 칸에서
+  // 맺음은 마지막 한 칸에서. 예전엔 한 칸을 통째로 비워 두어 낙관 밑이
+  // 휑했다 — 형: 「그 밑에 여백이 너무 넓어, 여백 없어도 돼」.
+  // 맺음 그림과 글 두 줄, 낙관, 나가는 문이 들어갈 만큼만 남긴다.
+  const endTop = total - unit * 0.86;
   const midH = Math.max(0, endTop - midTop);
   const tailH = paper * (TAIL_WIDTH / 100) * TAIL_RATIO;
 
@@ -125,13 +128,9 @@ export default function HasimPage() {
         나가기
       </Link>
 
-      {/* 얼마나 내려왔나 — 오른쪽 가장자리 실 한 오라기.
-          숫자로 안 적는다. 끝이 있다고 말하는 셈이 되니까. */}
-      <div
-        aria-hidden
-        className="sticky top-0 z-20 float-right w-[2px] bg-black/20"
-        style={{ height: `${Math.min(100, deep * 100)}%`, marginLeft: -2 }}
-      />
+      {/* 오른쪽 가장자리에 실 한 오라기로 「얼마나 내려왔나」를 보여 주었다.
+          형: 「스크롤 보여주지마 없애」. 맞다 — 얼마 남았는지 보이면
+          그건 끝을 재는 일이지 낮추는 일이 아니다. 지웠다. */}
 
       <div className="relative" style={{ height: u(DEPTH) }}>
         <div
@@ -244,9 +243,17 @@ export default function HasimPage() {
                 >
                   下心
                 </p>
-                <p className="mt-8 text-[11.5px] tracking-[0.3em] text-black/35">
-                  다시 올라가셔도 됩니다
-                </p>
+
+                {/* 끝까지 온 사람이 다시 위로 백 화면을 굴러 올라갈 이유가
+                    없다. 형: 「하심 끝나고 되돌아가면 다시 메뉴로」 */}
+                <div className="mt-9 pb-2">
+                  <Link
+                    href="/"
+                    className="inline-block rounded-full border border-black/15 bg-white/70 px-6 py-2.5 text-[11.5px] tracking-[0.3em] text-black/45 transition-colors hover:text-black/75"
+                  >
+                    나가기
+                  </Link>
+                </div>
               </div>
             </>
           )}
@@ -254,14 +261,8 @@ export default function HasimPage() {
           {/* 「하 심」 이라 적어 두었던 자리 — 지웠다.
               下 와 心 이 이미 그 말이다. 그림 옆에 같은 말을 또 적으면
               그림을 못 믿는다는 뜻이 된다. */}
-          {deep < 0.003 && (
-            <p
-              className="pointer-events-none absolute left-1/2 -translate-x-1/2 animate-pulse text-[11px] tracking-[0.3em] text-black/40"
-              style={{ top: unit * 0.955 }}
-            >
-              아래로 내려 보세요
-            </p>
-          )}
+          {/* 「아래로 내려 보세요」라 적어 두었던 자리 — 지웠다.
+              형: 「없애 장난하냐」. 종이가 아래로 길면 내리라는 뜻이다. */}
 
         </div>
       </div>

@@ -54,6 +54,7 @@ import {
   Person,
   Teacup,
   Yeonkkot,
+  YeonMun,
   Baru,
   BodhiLeaf,
   Chotbul,
@@ -87,7 +88,8 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/sambae", label: "삼배", Icon: Jeol },
   { href: "/bae", label: "백팔배", Icon: Jeol108 },
   { href: "/sutra", label: "경전 외우기", Icon: Book },
-  { href: "/draw", label: "오늘의 운세", Icon: LotusMark },
+  // 형: 「오늘의 운세는 그 보리수 나무 잎 로고로」
+  { href: "/draw", label: "오늘의 운세", Icon: BodhiLeaf },
   { href: "/candle", label: "법당 — 초 공양", Icon: Chotbul },
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/moment", label: "시절인연 — 절에서 찍은 한 장", Icon: Moment },
@@ -490,7 +492,8 @@ export default function Sidebar() {
           >
             {/* 폰 탭은 보리수 잎인데 여기만 연꽃이었다 — 같은 「뜰」이
                 두 그림이면 같은 곳으로 안 읽힌다 */}
-            <BodhiLeaf className="h-[17px] w-[17px]" stroke="#D9B45B" />
+            {/* 형: 「그냥 노란 버전은 뜰 로고로 쓰고」 */}
+            <YeonMun className="h-[19px] w-[19px]" stroke="#D9B45B" />
             {!slim && "뜰"}
           </Link>
 
