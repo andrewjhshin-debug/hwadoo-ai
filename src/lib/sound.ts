@@ -256,6 +256,87 @@ export function strikeMoktak(vol: number) {
   };
 }
 
+// ── 종(鐘) — 경쇠와 범종 ────────────────────────────────────
+//
+// 형: 「효과음 좀더 불교스럽게 다시해. 종이든 목탁이든 죽비든.
+//      지금 넘 이상하고」
+//
+// 삼배에 죽비만 딱딱 치고 있었다. 죽비는 **시작과 끝을 알리는** 소리지
+// 한 배 한 배에 얹는 소리가 아니다. 절에서 절할 때 울리는 건 종이다.
+//
+// 한국 종이 서양 종과 다른 까닭은 **맥놀이(beating)** 다. 종이 좌우로
+// 꼭 같지 않아 아주 가까운 두 음이 같이 울고, 그 차이만큼 소리가
+// 「우웅— 우웅—」 하고 부풀었다 잦아든다. 그래서 배음마다 짝을 지어
+// 1~2Hz 어긋낸 둘을 함께 울린다. 이 한 가지가 종을 종으로 만든다.
+//
+// 배음은 정수배가 아니다(비조화). 그래서 종소리는 「음정」이 아니라
+// 「울림」으로 들린다.
+const BELL_PARTIALS = [
+  // [배음비, 여림, 꼬리(초), 맥놀이(Hz)]
+  [1.0, 1.0, 1.0, 0.7],
+  [2.0, 0.6, 0.8, 1.1],
+  [2.42, 0.42, 0.62, 1.7],
+  [3.36, 0.3, 0.48, 2.3],
+  [4.55, 0.2, 0.36, 3.1],
+  [5.9, 0.12, 0.26, 4.2],
+] as const;
+
+/**
+ * 종 한 번.
+ * @param size 0 = 경쇠(작고 맑게) · 1 = 범종(크고 길게)
+ */
+export function strikeBell(vol: number, size = 0) {
+  const ac = audio();
+  if (!ac) return;
+  const t = ac.currentTime;
+
+  // 작은 종은 높고 짧게, 큰 종은 낮고 길게
+  const f0 = size ? 138 : 452;
+  const life = size ? 7.2 : 2.6;
+
+  const out = ac.createGain();
+  out.gain.value = vol * (size ? 0.62 : 0.5);
+  out.connect(master(ac));
+  const send = ac.createGain();
+  send.gain.value = vol * (size ? 0.42 : 0.26);
+  out.connect(send);
+  send.connect(hall(ac));
+
+  for (const [ratio, amp, tail, beat] of BELL_PARTIALS) {
+    // 짝을 지어 아주 조금 어긋낸 둘 — 이 어긋남이 맥놀이를 만든다
+    for (const d of [-beat / 2, beat / 2]) {
+      const o = ac.createOscillator();
+      o.type = "sine";
+      o.frequency.value = f0 * ratio + d;
+      const g = ac.createGain();
+      const peak = amp * (size ? 0.3 : 0.26);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + life * tail);
+      o.connect(g);
+      g.connect(out);
+      o.start(t);
+      o.stop(t + life * tail + 0.1);
+    }
+  }
+
+  // 채가 닿는 그 순간 — 쇠가 부딪히는 아주 짧은 기척
+  const s = ac.createBufferSource();
+  s.buffer = noise(ac);
+  const bp = ac.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = size ? 1900 : 3400;
+  bp.Q.value = 1.4;
+  const gk = ac.createGain();
+  gk.gain.setValueAtTime(size ? 0.1 : 0.16, t);
+  gk.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  s.connect(bp);
+  bp.connect(gk);
+  gk.connect(out);
+  s.start(t);
+  s.stop(t + 0.1);
+}
+
 // ── 빚은 목탁 — 음원이 없을 때만 ────────────────────────────
 // 딱(채가 닿는 표면) + 퍽(때리는 힘) + 통(속 빈 구멍) + 어긋난 배음 넷.
 // 나무는 짧게 끝난다 — 길게 끌면 종이 된다.
@@ -813,11 +894,21 @@ export function speak(text: string) {
     synth.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "ko-KR";
-    u.rate = 0.82; // 또박또박
-    u.pitch = 0.9; // 조금 낮게
+    // 형: 「발음 좀만 더 자연스럽게, 중후하게」
+    //
+    // 0.82 는 **너무 느렸다.** 느리게 읽으면 경건해질 줄 알았는데,
+    // 기계가 한 자씩 끊어 읽는 소리가 나 오히려 어색했다. 사람이 천천히
+    // 말하는 빠르기는 0.9 언저리다. 대신 음을 더 낮춰(0.78) 무게를 준다.
+    u.rate = 0.9;
+    u.pitch = 0.78;
     u.volume = 1;
-    // 한국어 목소리가 여럿이면 기본을 쓴다 — 고르기 시작하면 기기마다 달라진다
-    const ko = synth.getVoices().find((v) => v.lang?.startsWith("ko"));
+    // 한국어 목소리 중 **남성·저음**을 먼저 고른다. 기기 기본은 대개
+    // 길 안내용 여성 고음이라 예불의 결과 멀다. 없으면 아무 한국어나.
+    const kos = synth.getVoices().filter((v) => v.lang?.startsWith("ko"));
+    const low =
+      kos.find((v) => /male|남|민준|진수|yuna|^(?!.*female).*male/i.test(v.name)) ??
+      kos.find((v) => !/female|여|유나|지민/i.test(v.name));
+    const ko = low ?? kos[0];
     if (ko) u.voice = ko;
     synth.speak(u);
   } catch {

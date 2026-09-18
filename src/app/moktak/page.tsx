@@ -86,9 +86,15 @@ const SKINS = {
     // 자연스럽게 넘어간다 — `wide` 가 그 갈림길이다.
     { id: "wood", name: "나무", src: "/obj/bead.png", dot: "#a8703f" },
     { id: "jade", name: "먹옥", src: "/obj/bead-jade.png", dot: "#3f5a4a" },
-    { id: "obsidian", name: "흑요석", src: "/obj/bead-obsidian.png", dot: "#2b2f36", wide: true },
-    { id: "sutra", name: "나무아미타불", src: "/obj/bead-sutra.png", dot: "#b07a45", wide: true },
-    { id: "paw", name: "젤리", src: "/obj/bead-paw.png", dot: "#f6a8bc", wide: true },
+    // 흑요석과 나무아미타불은 **잠시 접어 둔다** — 형: 「가로 염주는 반응형
+    // 아니니 나무아미타불 밤티잖아. 일단 하지마, 홀드. 차차 디자인해보자」
+    // 그림은 public/obj 에 그대로 있다. 이 두 줄만 되살리면 다시 선다.
+    // 발바닥 염주도 **잠시 접는다.** 내가 three.js 로 구운 것이라
+    // 제미나이로 뽑은 세로형 옆에 두니 급이 달랐다 —
+    // 형: 「세로형은 개 잘 만들어 놓고 이건 왜 이래」. 맞는 말이다.
+    // 제미나이 프롬프트를 `화두 이미지/[오브제] 염주-발바닥-프롬프트.md`
+    // 에 적어 두었다. 그림이 오면 이 줄만 되살린다.
+    // { id: "paw", name: "발바닥", src: "/obj/bead-paw.png", dot: "#d9c3a0", wide: true },
   ],
   bowl: [
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },

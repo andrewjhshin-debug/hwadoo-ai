@@ -778,7 +778,7 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   bowl: "싱잉볼",
   candle: "초 공양",
   fortune: "오늘의 운세",
-  mung: "멍",
+  mung: "멍 때리기",
   daily: "오늘의 세 가지",
   mandala: "만다라",
 };

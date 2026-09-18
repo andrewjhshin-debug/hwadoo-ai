@@ -18,7 +18,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Info from "@/components/Info";
 import { addMerit, inRound, loadMerit, ROUND } from "@/lib/merit";
-import { buzz, hushVoice, setVoice, speak, strikeJukbi, strikeMoktak, voiceReady, warmJukbi } from "@/lib/sound";
+import { buzz, hushVoice, setVoice, speak, strikeBell, voiceReady, warmJukbi } from "@/lib/sound";
 import { BOWS, doneToday, finishSambae, loadSambae, TO } from "@/lib/sambae";
 
 export default function SambaePage() {
@@ -63,7 +63,10 @@ export default function SambaePage() {
     nRef.current = next;
     setN(next);
     setGlow(next);
-    strikeJukbi(0.7);
+    // 죽비는 시작과 끝을 알리는 소리다 — 한 배마다 딱딱 치니 이상했다.
+    // 절에서 절할 때 울리는 건 **경쇠**다. 마지막 한 배에서만 범종으로
+    // 크게 울려 판이 닫힌 것을 알린다.
+    strikeBell(0.62, 0);
     buzz(14);
     window.setTimeout(() => setGlow(0), 420);
     // 죽비가 울린 뒤에 읽는다 — 소리가 겹치면 둘 다 안 들린다
@@ -80,7 +83,7 @@ export default function SambaePage() {
       setRounds(rd);
       setTotal(loadSambae().total);
       setDone(true);
-      window.setTimeout(() => strikeMoktak(0.75), 260);
+      window.setTimeout(() => strikeBell(0.8, 1), 300); // 범종 — 길게 여운
     }
   }, []);
 

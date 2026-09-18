@@ -921,41 +921,34 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          {/* 무엇으로, 몇 번 —
-              「시절인연 58」이라고만 적어 두었더니 58번 한 줄 알았다.
-              실은 한 장을 건 공덕(54에 부적·회향 배수가 붙은 값)이었다.
-              한 일과 숫자가 안 맞으면 숫자를 통째로 못 믿는다.
-              이제 횟수를 앞에, 공덕을 뒤에 적는다. */}
-          {Object.keys(merit.by).length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {(Object.keys(merit.by) as MeritSource[]).map((k) => {
-                // 옛 장부는 횟수를 안 셌다. 그 장부에서 한 번 더 하면
-                // 「목탁 1번 · 공덕 12,000」이 되니, 세기 시작한 장부에서만
-                // 횟수를 적는다(hitsFrom 이 「처음부터」일 때).
-                const n = merit.hitsFrom === "처음부터" ? merit.hits?.[k] : 0;
-                return (
-                  <span
-                    key={k}
-                    className="rounded-full border border-ink-3 px-2.5 py-1 text-[11px] text-hanji-dim"
-                  >
-                    {SOURCE_LABEL[k]}{" "}
-                    {n ? (
-                      <>
-                        {n.toLocaleString("ko-KR")}번
-                        <span className="ml-1 text-hanji-faint">
-                          · 공덕 {merit.by[k]?.toLocaleString("ko-KR")}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-hanji-faint">
-                        공덕 {merit.by[k]?.toLocaleString("ko-KR")}
+          {/* 무엇을, 몇 번 —
+              형: 「공덕은 횟수로 치자. 목탁 몇 번 염주 몇 번 이렇게.
+                   목탁 공덕 이렇게 말고 그냥 목탁 염주 인연 이렇게 하고」
+
+              맞다. 여기서 알고 싶은 건 「내가 무엇을 얼마나 했나」지
+              그게 몇 점이었나가 아니다. 점수는 위의 큰 숫자 하나로 족하다.
+              **횟수만** 적는다. 옛 장부는 횟수를 안 세었으니, 세기 시작한
+              뒤(hitsFrom === "처음부터")에만 이 줄이 뜬다. */}
+          {merit.hitsFrom === "처음부터" &&
+            Object.values(merit.hits ?? {}).some((n) => (n ?? 0) > 0) && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {(Object.keys(merit.hits ?? {}) as MeritSource[])
+                  .filter((k) => (merit.hits?.[k] ?? 0) > 0)
+                  .sort((x, y) => (merit.hits?.[y] ?? 0) - (merit.hits?.[x] ?? 0))
+                  .map((k) => (
+                    <span
+                      key={k}
+                      className="rounded-full border border-ink-3 px-2.5 py-1 text-[11px] text-hanji-dim"
+                    >
+                      {SOURCE_LABEL[k]}{" "}
+                      <span className="text-hanji">
+                        {(merit.hits?.[k] ?? 0).toLocaleString("ko-KR")}
                       </span>
-                    )}
-                  </span>
-                );
-              })}
-            </div>
-          )}
+                      <span className="text-hanji-faint">번</span>
+                    </span>
+                  ))}
+              </div>
+            )}
 
           {/* 공덕을 연꽃으로 — 따로 있던 판을 여기로 들였다.
               같은 숫자를 두 곳에서 두 번 말하고 있었다. */}
