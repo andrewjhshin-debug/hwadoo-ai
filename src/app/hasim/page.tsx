@@ -26,16 +26,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { addMerit } from "@/lib/merit";
 
 /**
  * 획이 이어지는 길이 — 방 한 칸 높이의 몇 배.
  *
  * 처음엔 삼백 칸으로 두었다. 십육만 픽셀이다. 아무도 못 닿는다 —
  * 그러면 형이 시킨 「끝에 먹으로 맺는」 자리를 본 사람이 하나도 없다.
- * **꽤나 내려가되 닿을 수 있게** 마흔 칸. 엄지로 쓸면 한참 걸리고,
- * 그 끝에 먹 한 점이 기다린다.
+ * **꽤나 내려가되 닿을 수 있게.** 마흔 칸으로 잡았다가 형이 「더 길게」
+ * 해서 일흔다섯 칸으로 늘렸다. 엄지로 쓸면 이삼 분 걸리고, 그 끝에
+ * 먹 한 점과 옛말 한 줄이 기다린다.
  */
-const DEPTH = 40;
+const DEPTH = 75;
 
 // 잘라 둔 세 조각의 자리 — `seogye.mjs` 가 뽑아 준 값 그대로.
 // 머리 조각의 폭이 자다. 셋을 이 숫자대로 얹으면 획이 한 줄로 선다.
@@ -46,6 +48,54 @@ const MID_RATIO = 12.1739;
 const TAIL_LEFT = 34.043;
 const TAIL_WIDTH = 30.851;
 const TAIL_RATIO = 1.3448;
+
+/**
+ * 두 벌 — 먹빛 종이에 금글씨(기본) · 흰 종이에 먹글씨.
+ *
+ * 형: 「배경을 우리 원래 디자인 톤인 먹색으로, 붓서예 하심 색은 우리
+ * 노랑 골드로. 골드 노란 글씨가 디폴트로 메인이고, 원하면 흰 도화지에
+ * 묵 하심도 할 수 있게」
+ *
+ * 글씨는 검은 먹으로 찍힌 PNG 다. 색을 바꾸려면 그림을 다시 뽑는 게
+ * 아니라 **가리개(mask)로 쓴다** — 먹 자리만 남기고 그 자리에 원하는
+ * 색을 깐다. 한 장으로 두 벌이 나온다.
+ */
+type Ink = "gold" | "ink";
+const SKIN: Record<Ink, { paper: string; brush: string; dim: string; line: string }> = {
+  gold: { paper: "#12100E", brush: "#D9B45B", dim: "rgba(217,180,91,.55)", line: "rgba(217,180,91,.22)" },
+  ink: { paper: "#F4F2EC", brush: "#14110E", dim: "rgba(20,17,14,.5)", line: "rgba(20,17,14,.15)" },
+};
+const INK_KEY = "hwadu.hasim.ink";
+
+/**
+ * 끝에서 만나는 한 줄 — 낮춤에 대한 옛말.
+ *
+ * 형: 「하심 관련된 선사들 말 가져와서 랜덤으로 뜨게 해」
+ *
+ * **이름을 붙인 것은 출처가 분명한 셋뿐이다.** 나머지는 선가의 결로
+ * 우리가 쓴 말이라 이름을 안 붙인다 — 없는 말을 누구의 말이라고
+ * 적는 것이 제일 나쁘다.
+ */
+const SAYINGS: { lines: string[]; by?: string }[] = [
+  {
+    lines: ["최고의 선은 물과 같다.", "물은 만물을 이롭게 하면서", "가장 낮은 곳으로 흐른다."],
+    by: "노자 · 도덕경",
+  },
+  { lines: ["자기를", "바로 봅시다."], by: "성철" },
+  {
+    lines: ["무소유란 아무것도 갖지 않는 것이 아니라", "불필요한 것을 갖지 않는 것이다."],
+    by: "법정",
+  },
+  { lines: ["고개를 숙이면", "부딪히지 않는다."] },
+  { lines: ["비워야 담긴다.", "가득 찬 그릇에는", "아무것도 못 붓는다."] },
+  { lines: ["낮은 자리가 가장 넓다.", "거기서는 누구도 밀려나지 않는다."] },
+  { lines: ["높이려는 마음이 남아 있는 한", "낮추는 일도 높이는 일이다."] },
+  { lines: ["남을 높이는 데는", "아무것도 들지 않는다."] },
+  { lines: ["지는 것이", "반드시 잃는 것은 아니다."] },
+  { lines: ["내가 옳다는 생각을 내려놓는 것,", "거기서부터가 하심이다."] },
+  { lines: ["물은 다투지 않는다.", "다만 낮은 데로 갈 뿐이다."] },
+  { lines: ["끝까지 내려와 보니", "낮출 것이 없었다.", "낮추려던 마음, 그것만 남아 있었다."] },
+];
 
 /** 종이 폭의 한계 — 이보다 넓어지면 획이 허여멀개진다 */
 const PAPER = 480;
@@ -58,12 +108,51 @@ export default function HasimPage() {
   const [paper, setPaper] = useState(0);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
+  /** 먹빛 종이에 금글씨가 기본. 원하면 흰 종이에 먹글씨 */
+  const [ink, setInk] = useState<Ink>("gold");
+  /** 이번에 만날 한 줄 — 들어올 때 한 번 뽑는다 */
+  const [say, setSay] = useState(0);
+  /** 바닥에 닿았을 때 붙은 공덕(0 이면 오늘 이미 받았거나 천장) */
+  const [got, setGot] = useState<number | null>(null);
+  const paidRef = useRef(false);
+
+  useEffect(() => {
+    setSay(Math.floor(Math.random() * SAYINGS.length));
+    try {
+      const v = window.localStorage.getItem(INK_KEY);
+      if (v === "ink" || v === "gold") setInk(v);
+    } catch {
+      /* 못 읽으면 기본값 */
+    }
+  }, []);
+
+  const flip = () => {
+    setInk((v) => {
+      const next: Ink = v === "gold" ? "ink" : "gold";
+      try {
+        window.localStorage.setItem(INK_KEY, next);
+      } catch {
+        /* 못 적어도 이번 판은 바뀐다 */
+      }
+      return next;
+    });
+  };
+
+  const skin = SKIN[ink];
+
   useEffect(() => {
     const el = boxRef.current;
     if (!el) return;
     const on = () => {
       const max = el.scrollHeight - el.clientHeight;
-      setDeep(max > 0 ? el.scrollTop / max : 0);
+      const d = max > 0 ? el.scrollTop / max : 0;
+      setDeep(d);
+      // 바닥에 닿으면 공덕 — 형: 「다 내리면 그것도 공덕 주고」
+      // 한 판에 한 번만(paidRef), 하루 몫은 장부가 막는다.
+      if (d > 0.995 && !paidRef.current) {
+        paidRef.current = true;
+        setGot(addMerit("hasim").gained);
+      }
     };
     el.addEventListener("scroll", on, { passive: true });
     const measure = () => {
@@ -121,15 +210,38 @@ export default function HasimPage() {
       // 끝이 없다**(예전에 삼천만 픽셀로 부푼 그 버그). inset-0 은 키가
       // 화면에 못박혀 있어 그 일이 안 생긴다.
       className="fixed inset-0 z-[100] overflow-y-auto overscroll-contain"
-      style={{ background: "#F4F2EC" }} // 종이빛 — 이 방 안에만 편다
+      style={{ background: skin.paper, transition: "background .35s" }}
     >
-      {/* 나가는 문 */}
-      <Link
-        href="/"
-        className="sticky top-3 z-20 float-right mr-3 rounded-full border border-black/15 bg-white/80 px-3.5 py-1.5 text-[11px] tracking-[0.25em] text-black/45 backdrop-blur transition-colors hover:text-black/75"
-      >
-        나가기
-      </Link>
+      {/* 나가는 문과 빛깔 — 오른쪽 위 한 자리에 나란히.
+          먹빛 종이에 금글씨가 기본이고, 눌러 흰 종이로 바꾼다. */}
+      <div className="sticky top-3 z-20 float-right mr-3 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={flip}
+          aria-label={ink === "gold" ? "흰 종이로" : "먹빛 종이로"}
+          className="rounded-full px-3 py-1.5 text-[11px] tracking-[0.2em] backdrop-blur transition-opacity hover:opacity-100"
+          style={{
+            color: skin.dim,
+            border: `1px solid ${skin.line}`,
+            background: ink === "gold" ? "rgba(255,255,255,.04)" : "rgba(255,255,255,.7)",
+            opacity: 0.9,
+          }}
+        >
+          {ink === "gold" ? "흰 종이" : "먹빛"}
+        </button>
+        <Link
+          href="/"
+          className="rounded-full px-3.5 py-1.5 text-[11px] tracking-[0.25em] backdrop-blur transition-opacity hover:opacity-100"
+          style={{
+            color: skin.dim,
+            border: `1px solid ${skin.line}`,
+            background: ink === "gold" ? "rgba(255,255,255,.04)" : "rgba(255,255,255,.7)",
+            opacity: 0.9,
+          }}
+        >
+          나가기
+        </Link>
+      </div>
 
       {/* 오른쪽 가장자리에 실 한 오라기로 「얼마나 내려왔나」를 보여 주었다.
           형: 「스크롤 보여주지마 없애」. 맞다 — 얼마 남았는지 보이면
@@ -140,14 +252,24 @@ export default function HasimPage() {
           className="relative mx-auto h-full"
           style={{ width: paper > 0 ? paper : "100%" }}
         >
-          {/* ── 머리 — 가로획 · 점 · 세로획의 시작 ── */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/seo/ha-head.png"
-            alt="下"
+          {/* ── 머리 — 가로획 · 점 · 세로획의 시작 ──
+              먹으로 찍힌 그림을 **가리개로만** 쓴다. 먹 자리에 원하는
+              빛깔을 깐다 — 그림 한 장으로 금글씨도 먹글씨도 나온다. */}
+          <div
+            aria-label="下"
+            role="img"
             className="pointer-events-none absolute left-0 w-full select-none"
-            style={{ top: headTop, height: ready ? headH : undefined }}
-            draggable={false}
+            style={{
+              top: headTop,
+              height: ready ? headH : 0,
+              backgroundColor: skin.brush,
+              maskImage: "url(/seo/ha-head.png)",
+              WebkitMaskImage: "url(/seo/ha-head.png)",
+              maskSize: "100% 100%",
+              WebkitMaskSize: "100% 100%",
+              maskRepeat: "no-repeat",
+              WebkitMaskRepeat: "no-repeat",
+            }}
           />
 
           {/* 心 — 下 **아래**, 오른편에.
@@ -158,12 +280,19 @@ export default function HasimPage() {
               이것도 **폰트가 아니라 그림이다.** 명조로 찍었더니 옆에 선
               진짜 붓글씨한테 바로 들통났다. `_틀/simcut.mjs` 가 붓 글꼴로
               뼈대를 뜨고 그 위에 下 세로획에서 떠 온 먹 결을 덮는다. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/seo/ha-sim.png"
-            alt="心"
+          <div
+            aria-label="心"
+            role="img"
             className="pointer-events-none absolute select-none"
             style={{
+              backgroundColor: skin.brush,
+              maskImage: "url(/seo/ha-sim.png)",
+              WebkitMaskImage: "url(/seo/ha-sim.png)",
+              maskSize: "100% 100%",
+              WebkitMaskSize: "100% 100%",
+              maskRepeat: "no-repeat",
+              WebkitMaskRepeat: "no-repeat",
+              aspectRatio: "633 / 403",
               // 30%는 下 옆에서 너무 컸다. 한 글자가 다른 글자를 밀면
               // 두 글자가 아니라 한 덩어리로 보인다. 작게, 그리고 점에서
               // 한 뼘 더 떨어뜨린다.
@@ -174,7 +303,6 @@ export default function HasimPage() {
               top: headTop + headH + 26,
               transform: "rotate(-3deg)",
             }}
-            draggable={false}
           />
 
           {/* ── 몸통 — 거울로 뒤집어 가며 잇는 비백 세로획 ──
@@ -200,8 +328,11 @@ export default function HasimPage() {
                     left: 0,
                     right: 0,
                     height: segH + 1, // 1px 겹쳐 반올림 틈을 메운다
-                    backgroundImage: "url(/seo/ha-mid.png)",
-                    backgroundSize: "100% 100%",
+                    backgroundColor: skin.brush,
+                    maskImage: "url(/seo/ha-mid.png)",
+                    WebkitMaskImage: "url(/seo/ha-mid.png)",
+                    maskSize: "100% 100%",
+                    WebkitMaskSize: "100% 100%",
                     transform: i % 2 ? "scaleY(-1)" : undefined,
                   }}
                 />
@@ -214,10 +345,7 @@ export default function HasimPage() {
               그 아래 서예로 두 줄. 여기까지 온 사람만 본다. */}
           {ready && (
             <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/seo/ha-tail.png"
-                alt=""
+              <div
                 aria-hidden
                 className="pointer-events-none absolute select-none"
                 style={{
@@ -225,44 +353,58 @@ export default function HasimPage() {
                   width: `${TAIL_WIDTH}%`,
                   top: endTop,
                   height: tailH,
+                  backgroundColor: skin.brush,
+                  maskImage: "url(/seo/ha-tail.png)",
+                  WebkitMaskImage: "url(/seo/ha-tail.png)",
+                  maskSize: "100% 100%",
+                  WebkitMaskSize: "100% 100%",
                 }}
-                draggable={false}
               />
               <div
                 className="absolute inset-x-0 text-center"
-                style={{ top: endTop + tailH + 28 }}
+                style={{ top: endTop + tailH + 30 }}
               >
-                {/* 끝에 놓는 말.
-                    처음엔 「여기가 바닥인 줄 알았는데 / 내려온 만큼 낮아진
-                    것은 아니더라」였다. 뜻은 맞는데 넋두리에 가까웠다.
+                {/* 끝에서 만나는 한 줄 — 들어올 때마다 다르다.
+                    형: 「하심 관련된 선사들 말 랜덤으로」 */}
+                <p
+                  className="font-serif text-[22px] leading-[1.9] sm:text-[26px]"
+                  style={{ color: skin.brush }}
+                >
+                  {SAYINGS[say].lines.map((l, i) => (
+                    <span key={i}>
+                      {l}
+                      {i < SAYINGS[say].lines.length - 1 && <br />}
+                    </span>
+                  ))}
+                </p>
+                {SAYINGS[say].by && (
+                  <p className="mt-5 text-[12px] tracking-[0.3em]" style={{ color: skin.dim }}>
+                    — {SAYINGS[say].by}
+                  </p>
+                )}
 
-                    하심의 마지막 매듭은 **낮추려는 마음까지 내려놓는 것**이다.
-                    낮추려 애쓰는 동안은 여전히 「낮추는 나」가 서 있다.
-                    그 한 겹을 찍어 끝낸다. */}
-                <p className="font-serif text-[30px] leading-[1.7] text-[#14110E] sm:text-[36px]">
-                  끝까지 내려와 보니
-                  <br />
-                  낮출 것이 없었다
-                </p>
-                <p className="mt-7 font-serif text-[19px] leading-[1.8] text-black/55 sm:text-[22px]">
-                  낮추려던 마음,
-                  <br />
-                  그것만 남아 있었다
-                </p>
                 {/* 낙관 한 점 — 붉은 도장 */}
                 <p
-                  className="mt-10 inline-block px-2 py-1 font-serif text-[13px] tracking-[0.2em]"
+                  className="mt-9 inline-block px-2 py-1 font-serif text-[13px] tracking-[0.2em]"
                   style={{ color: "#B23A2E", border: "1.5px solid #B23A2E" }}
                 >
                   下心
                 </p>
+
+                {/* 끝까지 내려온 값 — 형: 「다 내리면 그것도 공덕 주고」 */}
+                {got !== null && (
+                  <p className="mt-5 text-[12.5px] tracking-[0.2em]" style={{ color: skin.dim }}>
+                    {got > 0 ? `공덕 ${got.toLocaleString("ko-KR")}` : "오늘 몫은 이미 받았어요"}
+                  </p>
+                )}
 
                 {/* 끝까지 온 사람이 다시 위로 백 화면을 굴러 올라갈 이유가
                     없다. 형: 「하심 끝나고 되돌아가면 다시 메뉴로」 */}
                 <div className="mt-9 pb-2">
                   <Link
                     href="/"
-                    className="inline-block rounded-full border border-black/15 bg-white/70 px-6 py-2.5 text-[11.5px] tracking-[0.3em] text-black/45 transition-colors hover:text-black/75"
+                    className="inline-block rounded-full px-6 py-2.5 text-[11.5px] tracking-[0.3em] transition-opacity hover:opacity-100"
+                    style={{ color: skin.dim, border: `1px solid ${skin.line}`, opacity: 0.85 }}
                   >
                     나가기
                   </Link>

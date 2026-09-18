@@ -84,6 +84,7 @@ export type MeritSource =
   | "mandala" // 만다라 — 한 장을 끝까지 칠함
   | "fortune" // 오늘의 운세 — 하루 한 장
   | "mung" // 멍 — 아무것도 안 하고 가만히
+  | "hasim" // 하심 — 획을 끝까지 내려감
   | "daily"; // 오늘의 세 가지를 다 마침
 
 /**
@@ -128,6 +129,10 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   // 만다라 한 장 — 문양에 따라 백육십 칸 남짓을 손끝으로 채운다.
   // 이십 분 안팎이 걸리니 백팔배(756) 와 호흡 한 판(378) 사이가 맞다.
   mandala: 540,
+  // 하심 — 일흔 화면을 엄지로 끝까지 끌어내린다. 이삼 분이 걸리고
+  // 중간에 얻는 것이 아무것도 없다(숫자도, 소리도, 말도 없앴다).
+  // 그 자리를 끝까지 간 사람에게만 준다. 백팔배 한 판(756)의 절반쯤.
+  hasim: 378,
   candle: 9,
   // 오늘의 운세 — 패 한 장. 오래 「염주」 칸에 적혔다. 한 알(1)짜리 갈래를
   // 스물한 번 곱해 넣는 편법이었는데, 그러면 화면에 「염주 1,012」로 보이고
@@ -176,6 +181,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   candle: 162,
   fortune: 21, // 패는 하루 한 장뿐이라 한 장 값이 곧 천장
   mung: 630, // 십오 분. 더 앉아도 되지만 공덕은 여기까지
+  hasim: 378, // 하루 한 번 — 두 번 내려간다고 두 배가 되지는 않는다
   daily: 324, // 오늘의 세 가지 — 하루 한 번뿐
 };
 
@@ -779,6 +785,7 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   candle: "초 공양",
   fortune: "오늘의 운세",
   mung: "멍 때리기",
+  hasim: "하심",
   daily: "오늘의 세 가지",
   mandala: "만다라",
 };
