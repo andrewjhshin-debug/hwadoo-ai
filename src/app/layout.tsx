@@ -121,7 +121,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <main className="flex flex-1 flex-col">{children}</main>
           </div>
           {/* 아래 띠 — 아래 탭 바(76)와 떠 있는 메뉴 단추 자리를 여기서 비운다 */}
-          <footer className="border-t border-ink-3 px-6 pb-[150px] pt-5 md:pb-9">
+          <footer className="site-foot border-t border-ink-3 px-6 pb-[150px] pt-5 md:pb-9">
             <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11.5px] text-hanji-faint">
               <Link href="/about" className="transition-colors hover:text-hanji-dim">
                 서비스 소개
