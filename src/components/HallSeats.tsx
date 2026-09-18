@@ -102,78 +102,88 @@ function saveName(seat: string, day: string, name: string) {
  * 백 사람 모인 자리가 열 사람 자리보다 실제로 크게 탄다.
  * 초 자체는 안 물들인다 — 무엇을 빈 자리인지는 뒤에 고인 빛으로만 스민다.
  */
-// candle.png(1024×559) 안에서 불꽃은 y 86~163 — 세로로 15.4%~29.2%.
-// 몸통은 그 위를 잘라 내고, 불꽃은 그 띠만 남겨 따로 흔든다(.wick).
+// candle.png 는 1024×559 인데 초는 한복판 406×411 만 쓴다 — 사방이 여백이다.
+// 그림 너비를 상자에 맞추면 초가 넉 할로 쪼그라든다. 그림을 상자보다
+// 넓게(÷0.396) 깔고 가운데를 맞춘다.
+//   불꽃 = 위에서 15.4%~29.2%(한복판 22.3%) · 밑동 아래로 11.3% 가 빈다
 const FLAME_CUT = "inset(29.2% 0 0 0)";
 const FLAME_ONLY = "inset(13% 0 70.8% 0)";
+const BOX = 40; // 상자 가로
+const ART = Math.round(BOX / 0.396); // 그림 가로 101px
 
 function BigCandle({ hue, on }: { hue: number; on: number }) {
   const lit = Math.max(0.08, on);
   return (
-    <span className="relative block h-[52px] w-[46px] shrink-0">
+    <span className="relative block h-[50px] w-[40px] shrink-0">
       <span
-        className="hs-glow absolute left-1/2 top-[22px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="hs-glow absolute left-1/2 top-[12px] -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
-          width: 34 + lit * 48,
-          height: 34 + lit * 48,
+          width: 30 + lit * 42,
+          height: 30 + lit * 42,
           opacity: Math.min(1, 0.22 + lit * 0.78),
           transition:
             "width .7s cubic-bezier(.2,.8,.3,1), height .7s cubic-bezier(.2,.8,.3,1), opacity .7s",
           background: `radial-gradient(circle, hsla(${hue},72%,74%,.42) 0%, rgba(255,178,80,.26) 36%, transparent 70%)`,
         }}
       />
-      {/* 몸통 — 불꽃(위 29.2%)은 잘라 내고 그린다 */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/obj/candle.png"
-        alt=""
-        aria-hidden
-        className="relative block h-auto w-full object-contain"
-        style={{
-          clipPath: FLAME_CUT,
-          filter: `drop-shadow(0 0 ${6 + lit * 20}px hsla(${hue},80%,66%,${Math.min(0.55, 0.12 + lit * 0.4)}))`,
-          opacity: on > 0 ? 1 : 0.5,
-          transition: "filter .7s ease-out, opacity .7s",
-        }}
-      />
-      {/* 불꽃 — 따로 얹어 흔든다. 아직 어두운 자리는 불이 없다 */}
-      {on > 0 && (
-        /* eslint-disable-next-line @next/next/no-img-element */
+      {/* 그림은 상자 밖으로 흘린다 — 여백까지 상자에 맞추면 초만 작아진다 */}
+      <span
+        className="absolute bottom-[-6px] left-1/2 block -translate-x-1/2"
+        style={{ width: ART }}
+      >
+        {/* 몸통 — 불꽃(위 29.2%)은 잘라 내고 그린다 */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/obj/candle.png"
           alt=""
           aria-hidden
-          className="wick pointer-events-none absolute left-0 top-0 block h-auto w-full object-contain"
+          className="relative block h-auto w-full object-contain"
           style={{
-            clipPath: FLAME_ONLY,
-            transformOrigin: "50% 29.2%",
-            animationDuration: `${1.5 + (hue % 5) * 0.17}s`,
+            clipPath: FLAME_CUT,
+            filter: `drop-shadow(0 0 ${6 + lit * 20}px hsla(${hue},80%,66%,${Math.min(0.55, 0.12 + lit * 0.4)}))`,
+            opacity: on > 0 ? 1 : 0.5,
+            transition: "filter .7s ease-out, opacity .7s",
           }}
         />
-      )}
+        {/* 불꽃 — 따로 얹어 흔든다. 아직 어두운 자리는 불이 없다 */}
+        {on > 0 && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src="/obj/candle.png"
+            alt=""
+            aria-hidden
+            className="wick pointer-events-none absolute left-0 top-0 block h-auto w-full object-contain"
+            style={{
+              clipPath: FLAME_ONLY,
+              transformOrigin: "50% 29.2%",
+              animationDuration: `${1.5 + (hue % 5) * 0.17}s`,
+            }}
+          />
+        )}
         {/* 빛깔 한 겹 — 그림 위에 얹고 초 모양대로만 오려 낸다(mask).
             무엇을 빌었는지가 무리에만 스미니 줄지어 서면 다 같은 초였다.
             섞는 결은 color 다 — 밝고 어두운 결(3D 음영)은 그대로 두고
             색만 갈아 끼운다. 옅게 얹어야 밀랍이 밀랍으로 남는다. */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          clipPath: FLAME_CUT,
-          background: `hsl(${hue} 78% 54%)`,
-          mixBlendMode: "color",
-          opacity: on > 0 ? 0.78 : 0.2,
-          transition: "opacity .7s",
-          WebkitMaskImage: "url(/obj/candle.png)",
-          maskImage: "url(/obj/candle.png)",
-          WebkitMaskSize: "contain",
-          maskSize: "contain",
-          WebkitMaskRepeat: "no-repeat",
-          maskRepeat: "no-repeat",
-          WebkitMaskPosition: "center",
-          maskPosition: "center",
-        }}
-      />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            clipPath: FLAME_CUT,
+            background: `hsl(${hue} 78% 54%)`,
+            mixBlendMode: "color",
+            opacity: on > 0 ? 0.78 : 0.2,
+            transition: "opacity .7s",
+            WebkitMaskImage: "url(/obj/candle.png)",
+            maskImage: "url(/obj/candle.png)",
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+          }}
+        />
+      </span>
     </span>
   );
 }

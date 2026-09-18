@@ -756,9 +756,9 @@ html[data-focus="1"] .doryang-fab {
   animation-iteration-count: infinite;
 }
 @keyframes stick-breathe {
-  0%, 100% { opacity: .8;  transform: translateX(-50%) scale(1); }
-  37%      { opacity: 1;   transform: translateX(-50%) scale(1.16); }
-  68%      { opacity: .66; transform: translateX(-50%) scale(.92); }
+  0%, 100% { opacity: .8;  transform: translate(-50%, -50%) scale(1); }
+  37%      { opacity: 1;   transform: translate(-50%, -50%) scale(1.16); }
+  68%      { opacity: .66; transform: translate(-50%, -50%) scale(.92); }
 }
 @media (prefers-reduced-motion: reduce) {
   .wick, .stick-halo { animation: none; }

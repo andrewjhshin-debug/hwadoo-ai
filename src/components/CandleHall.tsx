@@ -112,11 +112,17 @@ function CandleDefs() {
  * 법당 불빛은 다 호박색이다 — 무엇을 빌었는지는 뒤에 깔린 무리로만 스민다.
  * 오래 탄 초는 조금 작아지고, 꺼진 초는 빛을 잃는다.
  */
-// candle.png(1024×559) 안에서 불꽃은 y 86~163 에 있다. 세로로 재면
-// 위 15.4% 에서 시작해 29.2% 에서 끝난다 — 그 아래가 초의 몸통이다.
-// 몸통은 위를 잘라 내고, 불꽃은 그 띠만 남겨 따로 흔든다.
+// candle.png 는 1024×559 인데 초는 그 한복판 406×411 만 쓴다 —
+// 사방이 투명한 여백이다. 그래서 그림 너비를 52px 로 주면 초는 21px 로
+// 쪼그라들고 상자 안이 휑해진다. 그림을 상자보다 크게(×2.54) 깔고
+// 가운데를 맞춰야 초가 제 크기로 선다.
+//   보이는 가로 = 406/1024 = 39.6%  ·  세로 = 411/559 = 73.5%
+//   불꽃 = y 86~163 → 위에서 15.4%~29.2%, 한복판은 22.3%
+//   초 밑동 = y 496 → 아래로 11.3% 가 빈다
 const FLAME_CUT = "inset(29.2% 0 0 0)";
 const FLAME_ONLY = "inset(13% 0 70.8% 0)";
+/** 상자 너비를 주면 그림 너비 — 초가 상자를 꽉 채우도록 */
+const artWidth = (box: number) => Math.round(box / 0.396);
 
 function Stick({
   c,
@@ -129,11 +135,15 @@ function Stick({
 }) {
   const w = wishOf(c.kind);
   const left = daysLeft(c);
-  // 다 탄 초는 짧아진다 — 크게 줄이면 줄이 들쭉날쭉해지니 한 뼘만
-  const scale = 0.86 + (left / BURN_DAYS) * 0.14;
+  // 다 탄 초는 짧아진다 — 크게 줄이면 줄이 들쭉날쭉해지니 한 뼘만.
+  // 천장을 안 씌웠더니 시험 삼아 넣은 초(남은 날이 BURN_DAYS 의 열여섯 배)가
+  // scale(3.1) 로 부풀어 옆 초를 덮었다. 0~1 로 묶는다.
+  const burn = Math.min(1, Math.max(0, left / BURN_DAYS));
+  const scale = 0.86 + burn * 0.14;
   // 셋에 하나씩 뒤로 물린다 — 줄이 평평하면 촛대가 아니라 울타리다.
   // 그림만 물리고 이름 줄은 안 건드린다(이름이 들쭉날쭉하면 지저분하다).
   const depth = i % 3 === 1 ? "back" : i % 3 === 2 ? "mid" : "front";
+  const ART = artWidth(52); // 상자 52px → 그림 131px
   const art =
     depth === "back"
       ? "translate-y-[-14px] scale-[.84] opacity-80"
@@ -147,25 +157,31 @@ function Stick({
       title={`${c.forName} — ${w.label}`}
       className="group flex w-[52px] shrink-0 flex-col items-center"
     >
-      {/* 그림 상자 — 높이를 못박아 두어야 깊이를 줘도 이름 줄이 한 줄로 선다 */}
+      {/* 그림 상자 — 높이를 못박아 두어야 깊이를 줘도 이름 줄이 한 줄로 선다.
+          그림은 상자보다 넓게(ART) 깔고 가운데를 맞춰 바깥으로 흘린다 —
+          그림의 투명한 여백까지 상자에 맞추면 초만 작아진다. */}
       <span
-        className={`relative flex h-[76px] w-full items-end justify-center transition-transform group-hover:-translate-y-[3px] ${art}`}
+        className={`relative block h-[64px] w-full transition-transform group-hover:-translate-y-[3px] ${art}`}
       >
-        {/* 고인 빛 — 무엇을 빌었는지가 여기로만 스민다 */}
+        {/* 고인 빛 — 무엇을 빌었는지가 여기로만 스민다. 불꽃 한복판에 건다 */}
         {left > 0 && (
           <span
             aria-hidden
-            className="stick-halo pointer-events-none absolute bottom-[22px] left-1/2 h-[54px] w-[54px] rounded-full"
+            className="stick-halo pointer-events-none absolute left-1/2 top-[16px] h-[46px] w-[46px] rounded-full"
             style={{
-              background: `radial-gradient(circle, hsla(${w.hue},82%,70%,.42) 0%, rgba(255,178,80,.24) 38%, transparent 72%)`,
+              background: `radial-gradient(circle, hsla(${w.hue},82%,70%,.44) 0%, rgba(255,178,80,.26) 38%, transparent 72%)`,
               animationDelay: `${(i % 17) * 0.13}s`,
               animationDuration: `${2.2 + (i % 7) * 0.13}s`,
             }}
           />
         )}
         <span
-          className="relative block w-full"
-          style={{ transform: `scale(${scale})`, transformOrigin: "50% 100%" }}
+          className="absolute bottom-[-8px] left-1/2 block"
+          style={{
+            width: ART,
+            transform: `translateX(-50%) scale(${scale})`,
+            transformOrigin: "50% 100%",
+          }}
         >
           {/* 몸통 — 불꽃을 잘라 내고 그린다(위 29.2%가 심지 위쪽이다).
               불꽃은 아래에서 따로 얹어 흔든다. */}
