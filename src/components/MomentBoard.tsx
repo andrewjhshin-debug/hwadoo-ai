@@ -161,27 +161,42 @@ export default function MomentBoard() {
           </p>
         </div>
       ) : (
-        // 사진마다 비율이 달라 흘려 두었더니 격자가 들쭉날쭉했다.
-        // 한 칸씩 정사각으로 잘라 세운다 — 줄이 맞아야 절 사진이 절 사진으로 보인다.
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        // ── 격자 — KREAM 의 STYLE 판을 본떴다 ──────────────────────
+        //
+        // 정사각으로 잘라 세웠더니 「절 사진 갤러리」가 됐다. 줄은 맞는데
+        // 재미가 없다. 시절인연은 **힙해야 하는 자리**다.
+        //
+        // 그래서 셋을 바꿨다 —
+        //   ① 사진을 **제 비율대로** 흘린다(메이슨리). 세로 사진은 길게,
+        //      가로 사진은 납작하게. 줄이 어긋나는 것이 이 판의 결이다
+        //   ② 카드 테두리와 바탕을 없앤다. 사진만 둥글게 오려 띄운다 —
+        //      테두리가 있으면 상품 카드처럼 보이고, 없으면 피드가 된다
+        //   ③ 글은 사진 밑에 **한 줄**. 이름과 합장 수만. 절 이름과 한 줄은
+        //      눌러서 본다 — 격자에서 다 읽히면 사진을 안 본다
+        //
+        // CSS columns 로 흘린다. grid 로는 높이가 다른 칸을 못 채운다.
+        <div className="mm-wall">
+          <style>{`
+            .mm-wall { column-count: 2; column-gap: 10px; }
+            .mm-wall > * { break-inside: avoid; margin-bottom: 14px; }
+            @media (min-width: 768px) { .mm-wall { column-count: 3; column-gap: 12px; } }
+          `}</style>
           {rows.map((m) => (
             <button
               key={m.id}
               onClick={() => setOpen(m)}
-              className="block w-full overflow-hidden rounded-[14px] border border-ink-3 bg-ink-2/50 text-left transition-colors hover:border-gold/35"
+              className="block w-full text-left"
             >
-              <div className="relative">
+              <div className="relative overflow-hidden rounded-[12px] bg-ink-2/60">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {/* 격자는 정사각인데 사진은 제 비율을 그대로 쥐고 있다.
-                    object-cover 를 안 걸어 두었더니 **눌려서 찌그러졌다** —
-                    세로 사진은 홀쭉해지고 가로 사진은 뭉개졌다.
-                    칸에 맞춰 가운데를 잘라 낸다. */}
                 <img
                   src={m.thumb}
                   alt={`${m.place} — ${m.what}`}
                   loading="lazy"
-                  className="w-full object-cover object-center"
-                  style={{ aspectRatio: 1 }}
+                  className="block w-full"
+                  // 사진이 제 비율을 쥐고 있다. 없으면 정사각으로 받친다 —
+                  // 비율을 안 주면 받아오기 전까지 높이가 0 이라 판이 튄다.
+                  style={{ aspectRatio: m.ratio || 1 }}
                 />
                 {m.verified && (
                   <span className="absolute left-2 top-2">
@@ -189,20 +204,13 @@ export default function MomentBoard() {
                   </span>
                 )}
               </div>
-              <div className="px-3 pb-3 pt-2.5">
-                <p className="truncate text-[12.5px] font-medium text-gold-soft">{m.place}</p>
-                <p className="mt-1 line-clamp-2 break-keep text-[12px] leading-5 text-hanji-dim">
-                  {m.what}
-                </p>
-                <p className="mt-2 flex items-center gap-2 text-[10.5px] text-hanji-faint">
-                  <span className="inline-flex items-center gap-1">
-                    <Hapjang on={false} />
-                    {m.hapjang ?? 0}
-                  </span>
-                  <span>·</span>
-                  <span className="truncate">{m.name}</span>
-                  <span className="ml-auto shrink-0">{whenLabel(m.createdAt?.seconds)}</span>
-                </p>
+              {/* 한 줄 — 누구와 몇 명이 손 모았나. 그 이상은 눌러서 본다 */}
+              <div className="mt-1.5 flex items-center gap-1.5 px-0.5 text-[11px] text-hanji-faint">
+                <span className="min-w-0 flex-1 truncate text-hanji-dim">{m.name}</span>
+                <span className="inline-flex shrink-0 items-center gap-1">
+                  <Hapjang on={false} />
+                  {m.hapjang ?? 0}
+                </span>
               </div>
             </button>
           ))}
