@@ -233,17 +233,17 @@ export default function RankPage() {
                   : `border border-ink-3 ${TONE[myRealm.color]}`
               }`}
             >
-              {myRealm.mark}
+              {/* 육도 이름(獄·鬼·畜…)이 그대로 새어 나오고 있었다.
+                  자리로 바꾼 지 한참인데 이 카드만 옛 이름을 쓰고 있었다 —
+                  문턱만 REALMS 에서 빌리고 이름·한자·말은 자리에서 가져온다. */}
+              {rankByNeed(myRealm.need).hanja}
             </span>
             <div className="min-w-0 flex-1">
               <p className={`font-serif text-[20px] leading-none ${TONE[myRealm.color]}`}>
-                {myRealm.name}
-                <span className="ml-2 align-middle text-[11px] tracking-[0.2em] text-hanji-faint">
-                  {myRealm.hanja}
-                </span>
+                {rankByNeed(myRealm.need).name}
               </p>
               <p className="mt-2 break-keep text-[12px] leading-4 text-hanji-dim">
-                {myRealm.say}
+                {rankByNeed(myRealm.need).say}
               </p>
             </div>
           </div>
@@ -257,7 +257,7 @@ export default function RankPage() {
           <p className="mt-2 text-center text-[12px] leading-5 text-hanji-faint">
             {step ? (
               <>
-                <span className="text-gold">{step.to.name}</span>까지 {gap}
+                <span className="text-gold">{rankByNeed(step.to.need).name}</span>까지 {gap}
               </>
             ) : (
               "가장 높은 자리입니다 — 높을수록 빨리 흐려집니다"
@@ -265,6 +265,79 @@ export default function RankPage() {
           </p>
         </div>
       )}
+
+            {/* 자리 사다리 — **계급도를 다 편다.**
+          형: 「정진 랭킹 디자인 이거 참고해서 다시 해. 계급도를 다
+          써주라」. 한자 여섯 자를 가로로 좁게 늘어놓았더니 이름도
+          안 보이고 문턱도 안 읽혔다 — 사다리인데 사다리로 안 보였다.
+
+          인스타에 올린 그 카드처럼 **한 줄에 한 자리**를 편다.
+          한자 도장 · 이름 · 문턱. 지금 내 자리는 금테로 도드라지고,
+          이미 지나온 자리는 또렷하게, 아직 먼 자리는 흐리게.
+
+          문턱은 REALMS 가 쥐고 이름만 자리에서 가져온다(rankByNeed).
+          육도는 오르는 계단이 아니라 벗어나야 할 굴레라 등급표로
+          쓰지 않는다 — 숫자만 빌린다. */}
+      <div className="rise mb-6 rounded-[16px] border border-ink-3 bg-ink-2/50 px-3 py-3.5">
+        <p className="px-1 pb-3 text-[10.5px] tracking-[0.25em] text-hanji-faint">
+          位 · 공덕이 곧 자리
+        </p>
+        <ul className="flex flex-col gap-1.5">
+          {REALMS.map((r) => {
+            const on = myRealm.id === r.id;
+            const got = merit0 >= r.need;
+            const rk = rankByNeed(r.need);
+            return (
+              <li
+                key={r.id}
+                className={`flex items-center gap-3 rounded-[12px] border px-3 py-2.5 transition-colors ${
+                  on
+                    ? "border-gold/55 bg-gold/10"
+                    : got
+                      ? "border-ink-3 bg-ink-2/40"
+                      : "border-ink-3/60 bg-transparent"
+                }`}
+              >
+                {/* 한자 도장 */}
+                <span
+                  className={`grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full border font-serif text-[13px] leading-none ${
+                    on
+                      ? "border-gold/60 text-gold"
+                      : got
+                        ? "border-ink-3 text-hanji-dim"
+                        : "border-ink-3/60 text-hanji-faint/50"
+                  }`}
+                >
+                  {rk.hanja}
+                </span>
+                <span
+                  className={`min-w-0 flex-1 truncate text-[13.5px] ${
+                    on
+                      ? "font-medium text-gold"
+                      : got
+                        ? "text-hanji"
+                        : "text-hanji-faint/60"
+                  }`}
+                >
+                  {rk.name}
+                </span>
+                <span
+                  className={`shrink-0 text-[12.5px] tabular-nums ${
+                    on ? "text-gold" : got ? "text-hanji-dim" : "text-hanji-faint/55"
+                  }`}
+                >
+                  {r.need === 0 ? "시작" : won(r.need)}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+        {/* 지금 자리가 무슨 뜻인지 한 줄 — 사다리만 보여 주면
+            숫자놀이가 된다 */}
+        <p className="px-1 pt-3 text-[11.5px] leading-5 text-hanji-faint">
+          {rankByNeed(myRealm.need).say}
+        </p>
+      </div>
 
       <div className="mt-8 w-full">
         {busy && !board ? (
@@ -279,40 +352,6 @@ export default function RankPage() {
           </p>
         ) : (
           <>
-            {/* 자리 사다리 — 어디까지 왔고 다음 칸이 얼마인지.
-                문턱은 REALMS 가 쥐고 이름만 자리에서 가져온다(merit.rankByNeed).
-                육도는 오르는 계단이 아니라 벗어나야 할 굴레라, 등급표로 쓰지 않는다. */}
-            <div className="rise mb-6 rounded-[14px] border border-ink-3 bg-ink-2/50 px-3 py-3.5">
-              <p className="px-1 pb-3 text-[10.5px] tracking-[0.25em] text-hanji-faint">
-                位 · 공덕이 곧 자리
-              </p>
-              <div className="flex gap-1">
-                {REALMS.map((r) => {
-                  const on = myRealm.id === r.id;
-                  const got = merit0 >= r.need;
-                  return (
-                    <div
-                      key={r.id}
-                      className={`flex-1 rounded-[10px] px-0.5 py-2 text-center ${
-                        on ? "bg-gold/10 ring-1 ring-gold/40" : ""
-                      }`}
-                    >
-                      <span
-                        className={`font-serif text-[17px] leading-none ${
-                          on ? "text-gold" : got ? TONE[r.color] : "text-hanji-faint opacity-45"
-                        }`}
-                      >
-                        {rankByNeed(r.need).hanja}
-                      </span>
-                      <p className="mt-1.5 text-[9.5px] leading-none tabular-nums text-hanji-faint">
-                        {r.need === 0 ? "시작" : won(r.need)}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
             <div className="flex items-center justify-between px-1 pb-2 text-[10.5px] tracking-[0.25em] text-hanji-faint">
               <span>법명</span>
               <span>{tab === "merit" ? "공덕" : "시간"}</span>
