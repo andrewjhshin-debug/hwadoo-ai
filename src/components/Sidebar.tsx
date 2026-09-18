@@ -46,6 +46,7 @@ import {
   LotusMark,
   LotusPond,
   Mandala,
+  Moment,
   SeonMaster,
   Seogo,
   Person,
@@ -57,6 +58,7 @@ import {
   Jeol,
   Jeol108,
   Yeomju,
+  YeonkkotGold,
 } from "./icons";
 
 type NavItem = {
@@ -77,6 +79,7 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/empty", label: "비움", Icon: Baru },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
   { href: "/mung", label: "멍 — 아무것도 안 하기", Icon: Ilwonsang },
+  { href: "/hasim", label: "하심 — 끝없이 내려가기", Icon: Baru },
   { href: "/moktak", label: "목탁·염주·싱잉볼", Icon: Yeomju },
   { href: "/sambae", label: "삼배", Icon: Jeol },
   { href: "/bae", label: "백팔배", Icon: Jeol108 },
@@ -84,6 +87,9 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/draw", label: "오늘의 운세", Icon: LotusMark },
   { href: "/candle", label: "법당 — 초 공양", Icon: Chotbul },
   { href: "/room", label: "사유의 방", Icon: Banga },
+  { href: "/moment", label: "시절인연 — 절에서 찍은 한 장", Icon: Moment },
+  { href: "/lotus", label: "연꽃 공양", Icon: YeonkkotGold },
+  { href: "/rank", label: "정진 랭킹", Icon: Dharmachakra },
   { href: "/archive", label: "서고 — 지난 화두", Icon: Seogo },
 ];
 

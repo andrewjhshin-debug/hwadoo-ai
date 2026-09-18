@@ -51,6 +51,16 @@ export const MAX_SIT_SEC = 40 * 60;
 
 let el: HTMLAudioElement | null = null;
 let guard: number | null = null;
+/**
+ * 몇 번째 「틀기」인가 — 끄기를 눌렀는데 소리가 계속 나던 버그를 막는다.
+ *
+ * a.play() 는 약속(Promise)이다. 켰다 바로 끄면 stopLoop 이 먼저 돌고,
+ * 그 **뒤에** 앞서 보낸 play 가 도착해 다시 틀어 버린다. 화면은 꺼졌다고
+ * 하는데 소리는 계속 나는 꼴이 된다.
+ * 그래서 틀 때마다 번호를 매기고, 약속이 돌아왔을 때 번호가 바뀌었으면
+ * 그 자리에서 다시 멈춘다. stopLoop 은 번호를 올리는 것으로 「무효」를 알린다.
+ */
+let gen = 0;
 
 function make(): HTMLAudioElement | null {
   if (typeof window === "undefined") return null;
@@ -118,12 +128,23 @@ function dressSession(onStop: () => void) {
 export async function startLoop(vol: number, onStop: () => void): Promise<boolean> {
   const a = make();
   if (!a) return false;
+  const mine = ++gen;
   a.volume = Math.max(0, Math.min(1, vol));
   a.currentTime = 0;
   try {
     await a.play();
   } catch {
     return false; // 손길 없이 불렀거나 자동재생이 막혔다
+  }
+  // 기다리는 사이에 끄기를 눌렀다면 — 틀자마자 도로 멈춘다
+  if (mine !== gen) {
+    try {
+      a.pause();
+      a.currentTime = 0;
+    } catch {
+      /* 이미 멈췄다 */
+    }
+    return false;
   }
   dressSession(onStop);
 
@@ -143,6 +164,7 @@ export async function startLoop(vol: number, onStop: () => void): Promise<boolea
 }
 
 export function stopLoop() {
+  gen++; // 아직 안 도착한 play 약속을 무효로 만든다
   if (guard !== null) {
     window.clearTimeout(guard);
     guard = null;

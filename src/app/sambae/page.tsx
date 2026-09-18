@@ -6,10 +6,9 @@
 // 백팔배는 마음먹어야 하지만 삼배는 서른 초면 된다.
 // 문턱이 없어야 매일 한다 — 그래서 이 방이 있다.
 //
-// 절은 **몸으로** 센다. 한동안 눌러서만 하게 두었는데(기울기가 기기마다
-// 달라 잘 안 세졌다), 그건 절이 아니라 탭이다. 백팔배에 쓰는 bowSense 를
-// 그대로 가져와 들어서면 바로 켠다 — 폰을 주머니에 넣고 절해도 세진다.
-// 안 잡히는 기기를 위해 불상을 눌러 세는 길은 그대로 둔다.
+// 절은 눌러서 한다. 기울기로 세는 「몸으로 세기」를 붙였다가 걷어냈다 —
+// 삼배는 서른 초짜리다. 센서를 켜고 기다리는 동안이 절하는 시간보다 길면
+// 문턱이 없다는 이 방의 뜻과 어긋난다. 백팔배에만 남긴다.
 //
 // 절할 때마다 광배가 한 겹씩 밝아지고, 셋을 채우면 금빛이 퍼진다.
 // 광배는 그림이 아니라 SVG 다 — 그래야 한 겹씩 살아난다.
@@ -21,7 +20,6 @@ import Info from "@/components/Info";
 import { addMerit, inRound, loadMerit, ROUND } from "@/lib/merit";
 import { buzz, hushVoice, setVoice, speak, strikeJukbi, strikeMoktak, voiceReady, warmJukbi } from "@/lib/sound";
 import { BOWS, doneToday, finishSambae, loadSambae, TO } from "@/lib/sambae";
-import { makeBowSense, type BowSense, type BowSenseState } from "@/lib/bowSense";
 
 export default function SambaePage() {
   const [n, setN] = useState(0); // 이번 판에 몇 배
@@ -30,10 +28,6 @@ export default function SambaePage() {
   const [merit, setMerit] = useState(0);
   const [done, setDone] = useState(false);
   const [glow, setGlow] = useState(0); // 방금 절한 표시
-  // 몸으로 세기 — 들어서면 바로 켠다(아래 effect). 못 켜면 조용히 물러선다
-  const [sense, setSense] = useState<BowSenseState>("idle");
-  const [depth, setDepth] = useState(0);
-  const senseRef = useRef<BowSense | null>(null);
 
   const nRef = useRef(0);
   nRef.current = n;
@@ -90,47 +84,6 @@ export default function SambaePage() {
     }
   }, []);
 
-  // ── 몸으로 세기 ────────────────────────────────────────────
-  // 손가락으로 세 번 누르는 건 절이 아니라 탭이다. 폰을 지니고 실제로
-  // 절하면 기울기가 그 몸짓을 그리니, 일어설 때마다 한 배로 친다.
-  // 주머니에 넣어도 센다 — 쥐고 있을 필요가 없다.
-  const startSense = useCallback(async () => {
-    if (senseRef.current) return true;
-    const s = makeBowSense({
-      onBow: () => bow(),
-      onState: setSense,
-      onDepth: setDepth,
-    });
-    senseRef.current = s;
-    const ok = await s.start();
-    if (!ok) senseRef.current = null;
-    return ok;
-  }, [bow]);
-
-  const toggleSense = useCallback(async () => {
-    if (senseRef.current) {
-      senseRef.current.stop();
-      senseRef.current = null;
-      setSense("idle");
-      setDepth(0);
-      return;
-    }
-    await startSense();
-  }, [startSense]);
-
-  // 들어서면 **바로 켠다.** 형 말대로 이게 기본값이다.
-  // iOS 는 사람이 누르기 전엔 권한을 못 물으니 거기서는 조용히 실패하고,
-  // 아래 단추를 누르면 그때 물어본다.
-  useEffect(() => {
-    void startSense();
-    return () => {
-      senseRef.current?.stop();
-      senseRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const senseOn = sense === "ready" || sense === "down" || sense === "calibrating";
 
   const again = () => {
     hushVoice();
@@ -265,43 +218,8 @@ export default function SambaePage() {
       </button>
 
       <p className="mt-1 h-5 text-[12px] tracking-[0.2em] text-hanji-faint">
-        {done
-          ? ""
-          : senseOn
-            ? "폰을 지니고 절하세요 — 일어설 때마다 한 배"
-            : "불상을 눌러 한 배"}
+        {done ? "" : "불상을 눌러 한 배"}
       </p>
-
-      {/* 몸으로 세기 — 켜짐이 기본이다. 안 잡히는 기기에서만 끄면 된다.
-          살아 있다는 표(숙일수록 차오르는 줄)가 없으면 고장 난 줄 안다. */}
-      {!done && (
-        <div className="mt-2 flex w-full max-w-[280px] flex-col items-center">
-          <button
-            role="switch"
-            aria-checked={senseOn}
-            onClick={() => void toggleSense()}
-            className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[11.5px] transition-colors ${
-              senseOn
-                ? "border-gold/55 bg-gold/10 text-gold-soft"
-                : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
-            }`}
-          >
-            <span
-              aria-hidden
-              className={`h-[7px] w-[7px] rounded-full ${senseOn ? "bg-gold" : "bg-hanji-faint"}`}
-            />
-            몸으로 세기
-          </button>
-          {senseOn && (
-            <div className="mt-2 h-[4px] w-full overflow-hidden rounded-full bg-ink-3">
-              <div
-                className="h-full rounded-full bg-gold transition-[width] duration-100"
-                style={{ width: `${Math.round(depth * 100)}%` }}
-              />
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ── 마쳤다 ── */}
       {done && (

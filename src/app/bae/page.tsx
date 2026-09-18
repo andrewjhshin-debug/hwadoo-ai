@@ -80,7 +80,12 @@ export default function BaePage() {
     });
   }, []);
 
-  // 죽비 — 박자를 이끈다. 소리와 셈이 함께 간다.
+  // 죽비 — **박자만** 이끈다.
+  //
+  // 예전엔 죽비가 소리를 내면서 셈까지 했다. 그래서 몸으로 세기와 같이
+  // 켜면 한 배에 둘이 세어 버려, 둘 중 하나를 꺼야 했다. 그런데 절할 때
+  // 박자를 따라가는 것과 몸으로 세는 것은 **같이 있어야 하는 일**이다.
+  // 죽비는 이제 소리만 낸다. 셈은 몸(또는 손)이 한다.
   useEffect(() => {
     if (!auto) return;
     let alive = true;
@@ -88,7 +93,9 @@ export default function BaePage() {
     const tick = () => {
       if (!alive || !autoRef.current.on) return;
       strikeJukbi(autoRef.current.vol);
-      bow();
+      // 몸으로 세기가 꺼져 있으면 죽비가 대신 센다 — 손도 몸도 안 쓰는
+      // 사람에게는 박자만 울리고 아무것도 안 세면 판이 안 끝난다.
+      if (!senseRef.current) bow();
       timer = window.setTimeout(tick, autoRef.current.spb * 1000);
     };
     timer = window.setTimeout(tick, 700);
@@ -144,6 +151,14 @@ export default function BaePage() {
     if (!ok) senseRef.current = null;
   }, [bow]);
 
+  // 들어서면 **바로 켠다.** 이게 기본값이다 — 손가락으로 백여덟 번
+  // 누르는 건 수행이 아니다. iOS 는 사람이 누르기 전엔 권한을 못 물으니
+  // 거기서는 조용히 실패하고, 단추를 누르면 그때 물어본다.
+  useEffect(() => {
+    void toggleSense();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // 화면을 떠나면 센서도 끈다 — 켜 둔 채 나가면 배터리만 먹는다
   useEffect(() => {
     return () => {
@@ -151,14 +166,6 @@ export default function BaePage() {
       senseRef.current = null;
     };
   }, []);
-
-  // 죽비를 켜면 몸으로 세기는 끈다 — 둘이 함께 세면 두 번 센다
-  useEffect(() => {
-    if (auto && senseRef.current) {
-      senseRef.current.stop();
-      senseRef.current = null;
-    }
-  }, [auto]);
 
   const senseOn = sense === "ready" || sense === "down" || sense === "calibrating";
 
@@ -266,15 +273,14 @@ export default function BaePage() {
           <div>
             <div className="flex items-center justify-between">
               <span className="text-[12px] tracking-[0.2em] text-hanji-dim">
-                몸으로 세기 — 지니고 절하면 저절로
+                몸으로 세기
               </span>
               <button
                 role="switch"
                 aria-checked={senseOn}
                 aria-label="몸으로 세기"
                 onClick={() => void toggleSense()}
-                disabled={auto}
-                className={`relative h-[26px] w-[46px] rounded-full border transition-colors disabled:opacity-40 ${
+                className={`relative h-[26px] w-[46px] rounded-full border transition-colors ${
                   senseOn ? "border-gold bg-gold" : "border-hanji-faint bg-transparent"
                 }`}
               >
@@ -304,9 +310,7 @@ export default function BaePage() {
                   ? "이 기기에서는 기울기를 못 읽어요. 눌러서 세셔도 됩니다."
                   : sense === "asking"
                     ? "권한을 묻는 중…"
-                    : senseOn
-                      ? "주머니에 넣어도 됩니다. 손에 쥐거나 가슴에 붙여도 되고요."
-                      : "손가락 대신 몸으로. 폰을 지니고 절하면 저절로 세어져요."}
+                    : "주머니에 휴대폰을 넣고 절하면 세어집니다."}
             </p>
           </div>
 

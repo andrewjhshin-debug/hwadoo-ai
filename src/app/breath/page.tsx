@@ -121,19 +121,29 @@ export default function BreathPage() {
   // 음원 한 바퀴로 돌고 있나 — 이러면 화면이 꺼져도 소리가 이어진다
   const [onFile, setOnFile] = useState(false);
   const startRef = useRef(0);
+  // ── 음향 손잡이 둘 ──
+  // audioRef: 빚는 소리를 내는 오디오 문
+  // hushRef : 지금 흐르는 숨소리를 거두는 손잡이 (마디가 바뀌거나 판을 마칠 때)
+  const audioRef = useRef<AudioContext | null>(null);
+  const hushRef = useRef<(() => void) | null>(null);
 
   // 오늘치는 브라우저 서랍에만 있다 — 서버가 그린 화면과 어긋나지 않게
   // 첫 그림 뒤에 읽는다.
   useEffect(() => {
     setToday(loadDaily().by.breath ?? 0);
     warmLoop(); // 음원을 미리 받아 둔다 — 첫 들숨이 늦지 않게
-    // 방을 떠나면 반드시 거둔다 — 안 그러면 잠금화면에 표시가 남는다
-    return () => stopLoop();
+    // 방을 떠나면 **모두** 거둔다 — 음원·빚던 숨소리·오디오 문까지.
+    // 음원만 껐더니 합성 숨소리가 남아 계속 들렸다.
+    return () => {
+      stopLoop();
+      hushRef.current?.();
+      hushRef.current = null;
+      void audioRef.current?.close().catch(() => {});
+      audioRef.current = null;
+    };
   }, []);
 
   // ── 음향 — 경쇠 한 음만 (파일 없이 합성) ──────────────────────
-  const audioRef = useRef<AudioContext | null>(null);
-
   const ensureAudio = (): AudioContext | null => {
     try {
       if (!audioRef.current) {
@@ -179,9 +189,6 @@ export default function BreathPage() {
     osc.stop(t + tail + 0.1);
     osc2.stop(t + tail + 0.1);
   };
-
-  // 흐르고 있는 숨소리를 거두는 손잡이 — 마디가 바뀌거나 판을 마칠 때 부른다
-  const hushRef = useRef<(() => void) | null>(null);
 
   // 마디가 바뀔 때마다: 경쇠 한 음으로 전환을 알리고, 그 마디 내내 숨소리를 깐다.
   // 길이는 '지금 이 마디에 남은 시간'으로 준다 — 중간에 소리를 켜도 원의 리듬과
@@ -280,20 +287,23 @@ export default function BreathPage() {
   const soundButton = (
     <button
       type="button"
-      onClick={() =>
-        setSoundOn((v) => {
-          const next = !v;
-          // 음원도 함께 여닫는다. 끄면 잠금화면 표시까지 사라지고,
-          // 앉아 있는 중에 다시 켜면 그 자리에서 이어 튼다.
-          if (!next) {
-            stopLoop();
-            setOnFile(false);
-          } else if (stage === "breathing") {
-            void startLoop(0.9, () => finishRef.current?.()).then(setOnFile);
-          }
-          return next;
-        })
-      }
+      onClick={() => {
+        // 상태 갱신 함수(setSoundOn) 안에서 소리를 여닫고 있었다. 그건
+        // 순수해야 하는 자리라 React 가 두 번 부를 수 있고, 그래서 끄기를
+        // 눌러도 소리가 다시 살아나곤 했다. 부수효과는 여기서 낸다.
+        const next = !soundOn;
+        setSoundOn(next);
+        if (!next) {
+          stopLoop();
+          setOnFile(false);
+          hushRef.current?.(); // 빚던 숨소리도 그 자리에서 거둔다
+          hushRef.current = null;
+          void audioRef.current?.suspend();
+        } else if (stage === "breathing") {
+          void audioRef.current?.resume();
+          void startLoop(0.9, () => finishRef.current?.()).then(setOnFile);
+        }
+      }}
       aria-pressed={soundOn}
       aria-label={soundOn ? "음향 끄기" : "음향 켜기"}
       title={soundOn ? "음향 끄기" : "음향 켜기"}
@@ -425,13 +435,6 @@ export default function BreathPage() {
           <p className="mt-2.5 text-[12px] tracking-[0.2em] text-gold-soft">
             눈을 감고 해 보세요
           </p>
-          {/* 언제 켜지고 언제 꺼지는지를 적어 둔다. 안 적어 두면
-              「폰을 꺼도 되나」를 눌러 보며 알아내야 한다. */}
-          {onFile && (
-            <p className="mt-1.5 break-keep text-[11px] leading-5 text-hanji-faint">
-              폰을 잠가도 이어집니다 · 다른 방으로 옮기면 멎습니다
-            </p>
-          )}
           <div className="mt-4 flex items-center gap-3">
             <button
               type="button"
@@ -479,8 +482,10 @@ export default function BreathPage() {
       {/* 안내는 지우지 않고 접었다 — 처음 앉는 사람만 펴 보면 된다.
           한 판을 마쳤다고 사라지지 않는다. 한 판은 삼 분이고, 그 사이에
           안내를 다 외우는 사람은 없다. 숨 쉬는 동안만 비운다. */}
-      {stage !== "breathing" && (
-        <details className="rise rise-d3 mt-5 w-full max-w-[300px] rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3 text-left">
+      {/* 「처음이신가요」는 **늘 둔다.** 한 판이 끝나면 사라지게 했더니,
+          정작 두 번째 판에서 궁금해진 사람이 찾을 데가 없었다.
+          접혀 있으니 자리도 안 먹는다. */}
+      <details className="rise rise-d3 mt-5 w-full max-w-[300px] rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3 text-left">
           <summary className="cursor-pointer list-none text-[12.5px] text-hanji-dim marker:hidden">
             <span className="text-gold-soft">＋</span> 처음이신가요
           </summary>
@@ -498,8 +503,7 @@ export default function BreathPage() {
               {MERIT_VALUE.breath} — 오래 앉을수록 더 쌓입니다.
             </p>
           </div>
-        </details>
-      )}
+      </details>
     </div>
   );
 }
