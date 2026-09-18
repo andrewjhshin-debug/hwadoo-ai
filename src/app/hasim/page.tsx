@@ -151,8 +151,14 @@ export default function HasimPage() {
       // 한 판에 한 번만(paidRef), 하루 몫은 장부가 막는다.
       if (d > 0.995 && !paidRef.current) {
         paidRef.current = true;
+        // 공덕이 붙는 순간 오른쪽 위에 「+N 공덕」이 저절로 떠오른다
+        // (MeritToast 가 장부를 듣고 있다). 여기서 또 적지 않는다 —
+        // 형: 「플러스 뜨는 거 보여줘야지, 하심 밑에 글자로 말고」
         setGot(addMerit("hasim").gained);
       }
+      // 다시 위로 한참 올라가면 셈을 연다 — 한 번 더 내려오면 또 준다.
+      // 형: 「할 때마다 주도록 해」 (하루 몫은 장부가 막는다)
+      if (d < 0.3) paidRef.current = false;
     };
     el.addEventListener("scroll", on, { passive: true });
     const measure = () => {
@@ -392,9 +398,11 @@ export default function HasimPage() {
                 </p>
 
                 {/* 끝까지 내려온 값 — 형: 「다 내리면 그것도 공덕 주고」 */}
-                {got !== null && (
+                {/* 붙은 값은 오른쪽 위 토스트가 말한다. 여기서는 **다
+                    찼을 때만** 한 줄 — 아무 말도 없으면 왜 안 주나 싶다. */}
+                {got === 0 && (
                   <p className="mt-5 text-[12.5px] tracking-[0.2em]" style={{ color: skin.dim }}>
-                    {got > 0 ? `공덕 ${got.toLocaleString("ko-KR")}` : "오늘 몫은 이미 받았어요"}
+                    오늘 몫은 이미 받았어요
                   </p>
                 )}
 

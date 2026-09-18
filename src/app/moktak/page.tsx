@@ -39,6 +39,13 @@ const BEADS = 108;
 const RING = 36; // 고리에 걸린 알 수 — 세 바퀴가 곧 백팔
 const STEP = 360 / RING;
 const BOX = 316;
+
+/**
+ * 가로형 염주가 얼마나 눌려 보이나(세로 ÷ 가로).
+ * 제미나이가 구워 준 그림에서 고리가 이 비율로 납작하다. 돌릴 때 이만큼
+ * 폈다가 다시 눌러야 「고리가 도는」 것으로 보인다.
+ */
+const WIDE_SQUASH = 0.6;
 const ARC = 2 * Math.PI * 146; // 바깥 진행 고리 둘레
 // 알이 왼쪽으로 넘어가므로 진행 고리도 왼쪽으로 차오른다 — 반시계로 그린 원
 const ARC_PATH =
@@ -843,7 +850,7 @@ export default function MoktakPage() {
                 // 좁아져 퍼센트 폭이 0 으로 접힌다(그림이 안 보였다).
                 // flex 로 바꾸면 퍼센트가 통의 폭을 기준으로 잡힌다.
                 className="pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-300"
-                style={{ opacity: beadWide ? 1 : 0, perspective: 900 }}
+                style={{ opacity: beadWide ? 1 : 0 }}
                 aria-hidden
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -853,10 +860,18 @@ export default function MoktakPage() {
                   draggable={false}
                   className="block w-[96%] object-contain"
                   style={{
-                    // 돌린 각을 그대로 rotateY 에 물렸더니 90도에서 **날이
-                    // 서서 사라졌다**(폭 0). 누운 고리를 평면에서 돌릴 수는
-                    // 없으니, 세는 결에 맞춰 좌우로 살짝 흔들기만 한다.
-                    transform: `rotateY(${(Math.sin((angle * Math.PI) / 180) * 15).toFixed(2)}deg)`,
+                    // 누운 고리를 **제 평면 안에서** 돌린다.
+                    //
+                    // 처음엔 rotateY 에 각을 물렸다가 90도에서 날이 서서
+                    // 사라졌고, 그다음엔 좌우로 살짝 흔들기만 했다. 형:
+                    // 「가로형 염주도 돌아가도록 해야지 회전. 세로형이랑 같게」
+                    //
+                    // 그림은 위에서 비스듬히 본 **타원 고리**다. 평면에서
+                    // 그냥 rotate 하면 접시가 기우뚱한다. 눌린 만큼 세로로
+                    // 펴서(1/K) 동그라미로 만든 뒤 돌리고, 다시 눌러(K)
+                    // 제자리에 놓는다 — 그러면 고리가 제 평면에서 돈다.
+                    // CSS 변환은 오른쪽부터 먹으니 이 차례가 맞다.
+                    transform: `scaleY(${WIDE_SQUASH}) rotate(${angle}deg) scaleY(${(1 / WIDE_SQUASH).toFixed(4)})`,
                     transition: "transform 0.22s ease-out",
                     filter: "drop-shadow(0 12px 30px rgba(0,0,0,0.55))",
                   }}

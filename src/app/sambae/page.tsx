@@ -18,7 +18,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Info from "@/components/Info";
 import { addMerit, inRound, loadMerit, ROUND } from "@/lib/merit";
-import { buzz, hushVoice, setVoice, speak, strikeBell, voiceReady, warmJukbi } from "@/lib/sound";
+import { buzz, hushVoice, setVoice, strikeBell, warmJukbi } from "@/lib/sound";
 import { BOWS, doneToday, finishSambae, loadSambae, TO } from "@/lib/sambae";
 
 export default function SambaePage() {
@@ -32,11 +32,15 @@ export default function SambaePage() {
   const nRef = useRef(0);
   nRef.current = n;
 
-  // 소리 내어 읽기 — 삼귀의는 원래 입으로 하는 것이다.
-  // 기본은 켬. 한 번 끄면 이 기기가 기억한다.
-  const [readAloud, setReadAloud] = useState(true);
-  const readRef = useRef(true);
-  readRef.current = readAloud;
+  // 소리 내어 읽기를 **뺐다.**
+  //
+  // 형: 「삼귀의 귀의합니다에 사람 목소리 지워, ㅈ같다. 그냥 효과음만,
+  //      더 광명 공명 더 간지나게」
+  //
+  // 브라우저가 가진 목소리는 어떻게 만져도 길 안내 톤이었다. 빠르기도
+  // 음도 남성 저음도 다 건드려 봤지만, 기계가 「귀의합니다」를 읽는 순간
+  // 절이 아니라 안내 방송이 된다. 스님 음원이 생기기 전까지는 **소리를
+  // 안 내는 편이 낫다.** 대신 종을 키운다 — 울림만 남긴다.
 
   useEffect(() => {
     warmJukbi(); // 죽비 음원을 미리 받아 둔다 — 첫 배가 빚은 소리로 나가지 않게
@@ -44,15 +48,8 @@ export default function SambaePage() {
     setRounds(b.rounds);
     setTotal(b.total);
     setMerit(loadMerit().total);
-    try {
-      const off = window.localStorage.getItem("hwadu.sambae.voice") === "off";
-      if (off) {
-        setReadAloud(false);
-        setVoice(false);
-      }
-    } catch {
-      /* 못 읽으면 켠 채로 */
-    }
+    // 목소리를 아예 안 쓴다 — 혹시 남아 있으면 그것도 재운다
+    setVoice(false);
     return () => hushVoice();
   }, []);
 
@@ -70,10 +67,6 @@ export default function SambaePage() {
     buzz(14);
     window.setTimeout(() => setGlow(0), 420);
     // 죽비가 울린 뒤에 읽는다 — 소리가 겹치면 둘 다 안 들린다
-    if (readRef.current) {
-      const line = TO[Math.min(next - 1, BOWS - 1)]?.say;
-      if (line) window.setTimeout(() => speak(line), 220);
-    }
 
     if (next >= BOWS) {
       // 한 판 — 공덕은 절 세 번 몫
@@ -95,17 +88,7 @@ export default function SambaePage() {
     setDone(false);
   };
 
-  const toggleVoice = () => {
-    const on = !readAloud;
-    setReadAloud(on);
-    setVoice(on);
-    if (!on) hushVoice();
-    try {
-      window.localStorage.setItem("hwadu.sambae.voice", on ? "on" : "off");
-    } catch {
-      /* 못 적어도 이번 판은 그대로 간다 */
-    }
-  };
+
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
@@ -126,31 +109,6 @@ export default function SambaePage() {
         <p className="text-[13px] tracking-wide text-gold-soft">
           {done ? "삼배를 마쳤습니다" : TO[Math.min(n, BOWS - 1)].say}
         </p>
-        {voiceReady() && (
-          <button
-            onClick={toggleVoice}
-            aria-pressed={readAloud}
-            aria-label={readAloud ? "소리 내어 읽기 끄기" : "소리 내어 읽기 켜기"}
-            title={readAloud ? "소리 내어 읽기 — 켬" : "소리 내어 읽기 — 끔"}
-            className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-colors ${
-              readAloud
-                ? "border-gold/50 text-gold"
-                : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
-            }`}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" className="h-3 w-3">
-              <path d="M4 9.5h3l4-3.2v11.4l-4-3.2H4z" />
-              {readAloud ? (
-                <>
-                  <path d="M15.5 9.2a4 4 0 0 1 0 5.6" />
-                  <path d="M18 6.8a7.4 7.4 0 0 1 0 10.4" opacity="0.6" />
-                </>
-              ) : (
-                <path d="M16 9.5l4.5 5M20.5 9.5l-4.5 5" />
-              )}
-            </svg>
-          </button>
-        )}
       </div>
 
       {/* ── 불상 ── */}

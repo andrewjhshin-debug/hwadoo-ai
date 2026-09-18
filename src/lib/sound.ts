@@ -279,6 +279,9 @@ const BELL_PARTIALS = [
   [3.36, 0.3, 0.48, 2.3],
   [4.55, 0.2, 0.36, 3.1],
   [5.9, 0.12, 0.26, 4.2],
+  // 아주 높은 배음 하나 — 치는 순간 반짝 하고 먼저 사라진다.
+  // 이게 있어야 「쇠」로 들린다
+  [8.2, 0.06, 0.16, 5.5],
 ] as const;
 
 /**
@@ -290,15 +293,19 @@ export function strikeBell(vol: number, size = 0) {
   if (!ac) return;
   const t = ac.currentTime;
 
-  // 작은 종은 높고 짧게, 큰 종은 낮고 길게
-  const f0 = size ? 138 : 452;
-  const life = size ? 7.2 : 2.6;
+  // 형: 「효과음만, 더 광명 공명 더 간지나게」
+  // 목소리를 뺀 자리를 종이 채운다 — 더 낮고, 더 길게 끈다.
+  // 경쇠는 2.6 → 4.4초, 범종은 7.2 → 11초. 절에서 종 한 번 치면
+  // 말이 끊기고 그 울림만 남는데, 그 결을 살린다.
+  const f0 = size ? 116 : 404;
+  const life = size ? 11 : 4.4;
 
   const out = ac.createGain();
-  out.gain.value = vol * (size ? 0.62 : 0.5);
+  out.gain.value = vol * (size ? 0.74 : 0.58);
   out.connect(master(ac));
   const send = ac.createGain();
-  send.gain.value = vol * (size ? 0.42 : 0.26);
+  // 방 울림을 넉넉히 — 광명이 퍼지는 결은 잔향이 만든다
+  send.gain.value = vol * (size ? 0.62 : 0.4);
   out.connect(send);
   send.connect(hall(ac));
 
