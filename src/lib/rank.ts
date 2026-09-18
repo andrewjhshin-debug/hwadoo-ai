@@ -12,8 +12,7 @@
 
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
-import { loadDaily } from "./daily";
-import { MERIT_EVENT, MERIT_VALUE, type MeritSource } from "./merit";
+import { MERIT_EVENT, todayRoom } from "./merit";
 import { loadSutra } from "./sutra";
 
 // 서울 시각으로 하루를 끊는다 — 서버와 같은 날을 봐야 한다
@@ -42,17 +41,13 @@ export type SutraBoard = {
 };
 
 // ── 오늘 쌓은 몫 ────────────────────────────────────────────
-// 하루 장부는 횟수만 적는다(목탁 54번). 공덕으로 바꾸는 셈은 여기서 한다.
-// '들름(visit)'은 공덕이 아니므로 뺀다.
-
+// 여기서 따로 세지 않는다. 예전엔 하루 장부의 **횟수**에 갈래값을 곱해
+// 셌는데, 그건 천장도 부적 배수도 안 보는 맨값이었다. 그래서 같은 날
+// 내 도량은 「오늘 6,480」이라 하고 순위판에는 12,000 이 올라갔다.
+// 연타를 많이 한 사람이 실제로 받은 공덕보다 앞서 섰다.
+// 셈은 공덕 장부 한 곳(merit.ts)에만 둔다.
 export function todayMerit(): number {
-  let n = 0;
-  for (const [key, times] of Object.entries(loadDaily().by)) {
-    if (key === "visit") continue;
-    const per = MERIT_VALUE[key as MeritSource];
-    if (per && times) n += per * times;
-  }
-  return n;
+  return todayRoom().earned;
 }
 
 // ── 올리기 ──────────────────────────────────────────────────

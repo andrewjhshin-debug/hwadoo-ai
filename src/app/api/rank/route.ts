@@ -32,8 +32,16 @@ import { ANON_NAMES } from "@/lib/anonName";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** 하루에 올릴 수 있는 공덕의 상한 — 하루 종일 해도 이만큼은 안 나온다 */
-const DAILY_CAP = 2000;
+/**
+ * 하루에 올릴 수 있는 공덕의 상한.
+ *
+ * 2,000 이었다. 그런데 앱의 하루 천장은 6,480(연꽃 한 송이)이라,
+ * 열심히 한 사람은 죄다 2,000 에서 잘려 **동점**이 됐다. 그러면 줄은
+ * uid 사전순으로 서고 등수가 매일 그대로다. 앱과 같은 수로 맞춘다.
+ * (merit.ts 의 DAILY_TOTAL_CAP — 서버는 브라우저 코드를 못 들여오니
+ *  값을 적어 두되, 한쪽을 고치면 다른 쪽도 고쳐야 한다)
+ */
+const DAILY_CAP = 6480;
 
 /** 반야심경은 이백일흔 자다. 이보다 빠르면 사람이 친 게 아니다 */
 const SUTRA_MIN = 20;

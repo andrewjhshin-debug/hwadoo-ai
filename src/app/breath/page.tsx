@@ -110,7 +110,8 @@ export default function BreathPage() {
   const [seconds, setSeconds] = useState(0);
   const [breaths, setBreaths] = useState(0);
   const [soundOn, setSoundOn] = useState(true);
-  const [today, setToday] = useState(0); // 오늘 몇 판
+  const [today, setToday] = useState(0); // 오늘 몇 식(10초)
+  const [earned, setEarned] = useState(0); // 방금 판에 실제로 붙은 공덕
   const startRef = useRef(0);
 
   // 오늘치는 브라우저 서랍에만 있다 — 서버가 그린 화면과 어긋나지 않게
@@ -220,7 +221,7 @@ export default function BreathPage() {
     void audioRef.current?.suspend(); // 소리도 함께 내려놓는다
     // 공덕은 판이 아니라 **식마다** 붙는다 — 여섯 식에 끊고 다시 여는 것이
     // 이득이 되면 안 된다. 오래 앉은 사람이 더 가져가야 맞다.
-    recordMeditation(Date.now(), n);
+    setEarned(recordMeditation(Date.now(), n));
     // 공덕이 하루 장부에 적힌 뒤라야 오늘치가 맞다 — 그래서 여기서 다시 읽는다
     setToday(loadDaily().by.breath ?? 0);
   };
@@ -394,9 +395,21 @@ export default function BreathPage() {
 
       {stage === "done" && (
         <div className="flex flex-col items-center">
+          {/* 늘 「공덕 21」이라 적혀 있었다. 실제로는 식마다 붙으니
+              삼 분이면 378 이고, 하루 몫이 찼으면 0 이다. 세 배가 아니라
+              열여덟 배가 어긋났다. 붙은 값을 그대로 적는다. */}
           <p className="mt-4 break-keep text-[12.5px] tracking-wide text-hanji-dim">
-            공덕 <span className="text-vermilion">{MERIT_VALUE.breath}</span> ·
-            오늘 {today}판째
+            {earned > 0 ? (
+              <>
+                공덕{" "}
+                <span className="text-vermilion">
+                  {earned.toLocaleString("ko-KR")}
+                </span>{" "}
+                · 오늘 {today}식째
+              </>
+            ) : (
+              <>오늘 호흡 몫이 찼어요 · 오늘 {today}식째</>
+            )}
           </p>
           <div className="mt-4 flex items-center gap-3">
             <button
@@ -429,8 +442,8 @@ export default function BreathPage() {
               날숨입니다.
             </p>
             <p className="break-keep text-[12px] leading-6 text-hanji-faint">
-              열 번을 세는 동안이 한 식(息)입니다. 한 판을 마치면 공덕{" "}
-              {MERIT_VALUE.breath}이 쌓여요.
+              열 번을 세는 동안이 한 식(息)입니다. 한 식마다 공덕{" "}
+              {MERIT_VALUE.breath} — 오래 앉을수록 더 쌓입니다.
             </p>
           </div>
         </details>

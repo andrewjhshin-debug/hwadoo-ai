@@ -19,6 +19,7 @@ import {
   addMerit,
   loadMerit,
   MERIT_EVENT,
+  MERIT_VALUE,
   rankByNeed,
   rankOf,
   stageOf,
@@ -29,7 +30,6 @@ import {
   allDone,
   claimDaily,
   DAILY_EVENT,
-  DAILY_REWARD,
   doneOf,
   loadDaily,
   missionsOf,
@@ -122,10 +122,12 @@ export default function DailyPractice() {
   const knot = nextKnot(streak);
 
   const claim = () => {
-    const n = claimDaily();
-    if (!n) return;
-    addMerit("daily");
-    setGot(n);
+    // 「공덕 54 받기」라 해 놓고 장부에는 108(배수 있으면 그 이상)이 붙었다.
+    // 상의 값은 공덕 장부가 쥔다(MERIT_VALUE.daily). 화면에는 **실제로
+    // 붙은 값**을 그대로 적는다 — 천장에 걸려 0 이면 0 이라고 말한다.
+    if (!claimDaily()) return;
+    const { gained } = addMerit("daily");
+    setGot(gained);
     refresh();
   };
 
@@ -351,8 +353,8 @@ export default function DailyPractice() {
             {book.claimed ? (
               <p className="break-keep text-[12px] leading-6 text-hanji-dim">
                 {got > 0
-                  ? `공덕 ${got}이 쌓였어요. 오늘 몫은 여기까지 — 내일 또 만나요.`
-                  : "오늘의 세 가지를 마쳤어요. 내일 또 만나요."}
+                  ? `공덕 ${got.toLocaleString("ko-KR")}이 쌓였어요. 오늘 몫은 여기까지 — 내일 또 만나요.`
+                  : "오늘의 세 가지를 마쳤어요. 오늘 몫이 이미 차서 공덕은 안 붙었습니다."}
               </p>
             ) : (
               <>
@@ -363,7 +365,7 @@ export default function DailyPractice() {
                   onClick={claim}
                   className="mt-2.5 rounded-full border border-gold/60 px-5 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/15"
                 >
-                  공덕 {DAILY_REWARD} 받기
+                  공덕 {MERIT_VALUE.daily} 받기
                 </button>
               </>
             )}

@@ -165,13 +165,17 @@ function earnedToday(): { by: Partial<Record<MeritSource, number>>; sum: number 
     if (k === "visit") continue;
     const per = MERIT_VALUE[k as MeritSource];
     if (!per || !times) continue;
+    // got 이 있으면 그게 참이다 — 0 이어도 참이다(천장에 걸려 안 붙은 것).
+    // 「값×횟수」는 got 칸이 아예 없는 **옛 장부**를 받쳐 줄 때만 쓴다.
     const got = book.got?.[k as MeritSource];
-    const raw = typeof got === "number" && got > 0 ? got : per * times;
+    const raw = typeof got === "number" ? got : per * times;
     const v = Math.min(DAILY_CAP[k as MeritSource] ?? 0, raw);
     by[k as MeritSource] = v;
     sum += v;
   }
-  return { by, sum };
+  // 오늘 몫은 천장을 넘을 수 없다 — 넘은 수가 화면에 찍히면
+  // 「6,642 / 6,480」 같은 말이 안 되는 줄이 된다.
+  return { by, sum: Math.min(DAILY_TOTAL_CAP, sum) };
 }
 
 /** 지금 이 갈래로 더 쌓을 수 있는 공덕 */
@@ -204,8 +208,17 @@ const DECAY_FLOOR = 54;
 
 export type MeritLedger = {
   total: number;
-  /** 갈래별 누적 — 무엇으로 쌓았는지 되돌아볼 수 있게 */
+  /** 갈래별 누적 **공덕** — 무엇으로 쌓았는지 되돌아볼 수 있게 */
   by: Partial<Record<MeritSource, number>>;
+  /**
+   * 갈래별 누적 **횟수** — 몇 번 했는지.
+   *
+   * by 만 있던 시절, 화면에 「시절인연 58」이라 떴다. 사용자는 이걸 58번으로
+   * 읽었는데 실은 **한 장**을 건 공덕(54 × 부적 1.05 × 회향 1.03 = 58)이었다.
+   * 숫자가 자기가 한 일과 안 맞으면 숫자를 통째로 못 믿는다. 횟수를 따로
+   * 센다 — 이제 화면이 「시절인연 1번 · 58」이라 말할 수 있다.
+   */
+  hits?: Partial<Record<MeritSource, number>>;
   /** 남에게 회향한 공덕 — 총합에서 빠지지 않는다. 준 만큼 따로 센다 */
   given: number;
   /** 연꽃으로 바꾸며 쓴 공덕 — 총합은 그대로 두고 잔고에서만 뺀다.
@@ -224,6 +237,7 @@ export type MeritLedger = {
 const EMPTY: MeritLedger = {
   total: 0,
   by: {},
+  hits: {},
   given: 0,
   spent: 0,
   day: "",
@@ -241,6 +255,7 @@ function readRaw(): MeritLedger {
     return {
       total: typeof p.total === "number" && p.total > 0 ? Math.floor(p.total) : 0,
       by: p.by && typeof p.by === "object" ? p.by : {},
+      hits: p.hits && typeof p.hits === "object" ? p.hits : {},
       given: typeof p.given === "number" && p.given > 0 ? Math.floor(p.given) : 0,
       spent: typeof p.spent === "number" && p.spent > 0 ? Math.floor(p.spent) : 0,
       day: typeof p.day === "string" ? p.day : "",
@@ -294,7 +309,18 @@ export function loadMerit(): MeritLedger {
   }
   if (cut <= 0) return l;
 
+  const before = l.total;
   l.total = Math.max(0, t);
+  // 갈래별 몫도 같은 비율로 흐려진다. 총합만 깎았더니 칩을 다 더한 수가
+  // 「지금까지 쌓은 공덕」보다 커졌다 — 사흘 쉬었다 온 사람일수록 더.
+  // 한 화면에 나란히 선 두 숫자가 안 맞으면 숫자를 통째로 못 믿는다.
+  if (before > 0) {
+    const keep = l.total / before;
+    for (const k of Object.keys(l.by) as MeritSource[]) {
+      const v = l.by[k];
+      if (typeof v === "number") l.by[k] = Math.max(0, Math.round(v * keep));
+    }
+  }
   l.faded = (l.faded ?? 0) + cut;
   l.lastFade = cut;
   l.lastGap = gap;
@@ -303,6 +329,23 @@ export function loadMerit(): MeritLedger {
   l.day = today;
   save(l, false);
   return l;
+}
+
+/**
+ * 공덕 장부를 통째로 비운다 — 계정이 바뀌거나 로그아웃할 때.
+ *
+ * 이게 없어서 장부가 **계정이 아니라 브라우저**에 붙어 있었다.
+ * 한 브라우저에서 계정을 바꾸면 앞사람이 한 일이 내 도량 칩에 그대로
+ * 남았다 — 「한 적 없는 시절인연 58」이 뜨는 길이 여기다.
+ * 하루 장부도 같이 비운다(sync.ts 가 함께 부른다).
+ */
+export function resetMerit() {
+  try {
+    window.localStorage.removeItem(MERIT_KEY);
+    window.dispatchEvent(new CustomEvent(MERIT_EVENT));
+  } catch {
+    // 못 지워도 수행에 지장이 없도록
+  }
 }
 
 /** 마지막 갈무리 뒤로 흐려진 공덕 — 화면이 한 줄로 알린다 */
@@ -340,13 +383,19 @@ export function addMerit(
   const before = l.total;
   l.total = before + gained;
   if (gained > 0) l.by[source] = (l.by[source] ?? 0) + gained;
+  // 횟수는 공덕이 0 이어도 센다 — 천장에 걸렸을 뿐 한 일은 한 일이다
+  if (!l.hits) l.hits = {};
+  l.hits[source] = (l.hits[source] ?? 0) + Math.max(1, Math.round(times));
   l.day = visitDayKey(); // 오늘 움직였다 — 퇴전 시계를 다시 감는다
   l.lastFade = 0; // 흐려진 몫은 한 번 보여 주면 지운다
   l.lastGap = 0;
   save(l);
   // 하루치도 같이 적는다 — 오늘의 세 가지가 이 셈을 읽는다.
-  // 상 자체(daily)는 하루치에 넣지 않는다. 상이 상을 낳으면 안 된다.
-  if (source !== "daily") noteDaily(source, times, gained);
+  // 상 자체(daily)도 적는다. 예전엔 「상이 상을 낳으면 안 된다」고 뺐는데,
+  // 미션 판정(missionsOf)에 daily 키가 없으니 그럴 일이 애초에 없었다.
+  // 빼 두었더니 상으로 받은 108 이 「오늘 N / 6,480」 막대에서 통째로
+  // 사라져, 총 공덕만 108 오르고 오늘 줄은 꿈쩍도 안 했다.
+  noteDaily(source, times, gained);
   return {
     total: l.total,
     gained,

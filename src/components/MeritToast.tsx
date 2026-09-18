@@ -14,12 +14,13 @@
 // ────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { loadMerit, MERIT_EVENT } from "@/lib/merit";
-import { realmOf, type Realm } from "@/lib/realm";
+import { loadMerit, MERIT_EVENT, rankByNeed, type Rank } from "@/lib/merit";
+import { realmOf } from "@/lib/realm";
+import { loadStore } from "@/lib/store";
 
 export default function MeritToast() {
   const [gain, setGain] = useState(0); // 지금 한 줄에 모인 몫
-  const [up, setUp] = useState<Realm | null>(null); // 방금 오른 자리
+  const [up, setUp] = useState<Rank | null>(null); // 방금 오른 자리
   const prev = useRef<number | null>(null);
   const clear = useRef<number | null>(null);
 
@@ -36,10 +37,17 @@ export default function MeritToast() {
     if (clear.current) window.clearTimeout(clear.current);
     clear.current = window.setTimeout(() => setGain(0), 1400);
 
-    const before = realmOf(was);
-    const after = realmOf(now);
+    // 자리는 공덕만으로 오르지 않는다 — 회향한 화두 수도 같이 본다.
+    // 그걸 안 넘겨 주면 realmOf 가 문턱만 보고 올랐다고 하는데, 정작
+    // 내 도량과 뜰은 그대로라 「올랐다더니 아무 데도 안 올라 있는」 꼴이 됐다.
+    const returned = loadStore().history.length;
+    const before = realmOf(was, returned);
+    const after = realmOf(now, returned);
     if (after.id !== before.id && after.need > before.need) {
-      setUp(after);
+      // 띄우는 이름은 육도가 아니라 이 앱이 쓰는 사다리(位)다.
+      // 육도는 오르는 계단이 아니라 벗어나야 할 굴레라, 「아귀도로 올랐다」는
+      // 말이 교리에도 안 맞고 화면 어디에도 그 이름이 없다.
+      setUp(rankByNeed(after.need));
       window.setTimeout(() => setUp(null), 2600);
     }
   }, []);
@@ -112,11 +120,11 @@ export default function MeritToast() {
               className="grid h-[118px] w-[118px] place-items-center rounded-full bg-gold font-serif text-[58px] leading-none text-ink shadow-[0_0_60px_rgba(217,180,91,0.55)]"
               style={{ animation: "mt-stamp .7s cubic-bezier(.2,1.3,.3,1) both" }}
             >
-              {up.mark}
+              {up.hanja}
             </span>
           </div>
           <p className="mt-7 text-[11px] tracking-[0.5em] text-gold-soft">
-            {up.hanja}
+            位 · 자리가 올랐습니다
           </p>
           <p className="mt-2.5 font-serif text-[30px] font-light leading-none text-hanji">
             {up.name}

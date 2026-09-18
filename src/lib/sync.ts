@@ -36,7 +36,8 @@ import { decrementHolding } from "./holding";
 import { resetVisits } from "@/components/VisitLedger";
 import { resetMeditations } from "./meditation";
 import { isAdminAccount } from "./config";
-import { setOwner } from "./merit";
+import { resetMerit, setOwner } from "./merit";
+import { resetDaily } from "./daily";
 
 // Firestore는 undefined 값을 거부한다 — JSON 왕복으로 걷어낸다
 function clean<T>(value: T): T {
@@ -165,6 +166,11 @@ async function startSync(uid: string) {
     releaseHolding(local, merged);
     resetVisits(); // 앞사람의 발자국(함께한 날)도 이 계정에 새지 않게
     resetMeditations(); // 앞사람의 명상 기록도 함께
+    // 공덕 장부와 하루 장부도 함께. 이 둘을 안 비워서 장부가 계정이 아니라
+    // **브라우저**에 붙어 있었다 — 계정을 바꿔도 내 도량 칩에 앞사람이 한
+    // 일이 그대로 남았다(「한 적 없는 시절인연 58」이 뜨던 길).
+    resetMerit();
+    resetDaily();
   }
   // remote 로 알린다 — 열려 있는 화면들이 합쳐진 기록을 곧바로 다시 읽게.
   // (화면이 옛 기록을 쥔 채로 있으면 다음 저장 때 합친 것이 되돌아간다)
@@ -327,6 +333,8 @@ export async function logout() {
     clearStore();
     resetVisits(); // 발자국 장부도 함께 — 다음 사람에게 넘어가지 않도록
     resetMeditations(); // 명상 장부도 함께
+    resetMerit(); // 공덕 장부도 — 다음 사람 화면에 내 숫자가 뜨면 안 된다
+    resetDaily();
   }
   await signOut(auth);
 }

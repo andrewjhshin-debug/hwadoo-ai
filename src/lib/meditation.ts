@@ -18,8 +18,10 @@ const MAX_MEDITATIONS = 400;
  * 판으로 한 몫을 주면 여섯 식에 끊고 다시 여는 게 이득이 되어,
  * 앉아 있는 사람이 여닫는 사람보다 손해를 본다.
  */
-export function recordMeditation(t: number = Date.now(), breaths = 1) {
-  addMerit("breath", Math.max(1, Math.round(breaths))); // 한 식에 공덕 21
+export function recordMeditation(t: number = Date.now(), breaths = 1): number {
+  // 실제로 붙은 값을 돌려준다 — 화면이 상수(21)를 적으면 거짓말이 된다.
+  // 삼 분 앉으면 열여덟 식이라 378 이 붙고, 하루 몫이 찼으면 0 이 붙는다.
+  const { gained } = addMerit("breath", Math.max(1, Math.round(breaths)));
   grantCharm("ansim"); // 처음 마친 사람에게 안심부
   try {
     const list = loadMeditations();
@@ -31,6 +33,7 @@ export function recordMeditation(t: number = Date.now(), breaths = 1) {
   } catch {
     // 기록 실패는 조용히 — 수행에 지장이 없도록
   }
+  return gained;
 }
 
 // 장부 읽기 — 어긋난 값은 조용히 걸러낸다

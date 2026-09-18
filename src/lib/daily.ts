@@ -68,8 +68,11 @@ const VISIT: Mission = {
   href: "/settings",
 };
 
-/** 다 마치면 받는 공덕 — 반 바퀴 */
-export const DAILY_REWARD = 54;
+// 다 마치면 받는 공덕의 값은 **여기 없다.** 공덕 장부(MERIT_VALUE.daily)가
+// 쥔다. 예전엔 여기 54 를 적어 두고 장부에는 108 을 넣어, 단추는
+// 「공덕 54 받기」라 하는데 총 공덕은 108 이 뛰었다. 값을 두 벌로 두면
+// 반드시 갈라선다. 여기서 merit.ts 를 들여오면 고리가 생기니(merit → daily),
+// 화면 쪽에서 MERIT_VALUE.daily 를 직접 읽는다.
 
 // 날짜를 숫자 하나로 — 같은 날이면 늘 같은 세 가지가 나오게
 function seedOf(day: string): number {
@@ -132,11 +135,23 @@ export function noteDaily(key: DailyKey, times = 1, gained = 0) {
   if (typeof window === "undefined") return;
   const b = loadDaily();
   b.by[key] = (b.by[key] ?? 0) + times;
-  if (gained > 0) {
-    if (!b.got) b.got = {};
-    b.got[key] = (b.got[key] ?? 0) + gained;
-  }
+  // 붙은 값은 **0 이어도 적는다.** 예전엔 gained>0 일 때만 적었더니,
+  // 하루 몫이 찬 뒤 처음 만지는 갈래는 got 칸이 끝내 안 생겼다.
+  // 그러면 earnedToday 가 옛 장부인 줄 알고 「값×횟수」로 받쳐 세어,
+  // 실제로는 한 톨도 안 붙었는데 화면의 오늘만 6,642/6,480 으로 넘쳤다.
+  if (!b.got) b.got = {};
+  b.got[key] = (b.got[key] ?? 0) + gained;
   save(b);
+}
+
+/** 하루 장부를 비운다 — 계정이 바뀌거나 로그아웃할 때(sync.ts) */
+export function resetDaily() {
+  try {
+    window.localStorage.removeItem(DAILY_KEY);
+    window.dispatchEvent(new CustomEvent(DAILY_EVENT));
+  } catch {
+    // 못 지워도 수행에 지장이 없도록
+  }
 }
 
 /** 오늘 얼마나 했나 — 들르기는 이 화면을 보고 있다는 것으로 갈음한다 */
@@ -158,7 +173,9 @@ export function claimDaily(): number {
   if (b.claimed || !allDone(b)) return 0;
   b.claimed = true;
   save(b);
-  return DAILY_REWARD;
+  // 1 은 「받아도 좋다」는 표시일 뿐이다. 실제로 얼마가 붙었는지는
+  // addMerit 이 돌려주는 값이 참이다(천장에 걸리면 0 일 수도 있다).
+  return 1;
 }
 
 // ── 연속 출석(精進) ─────────────────────────────────────────

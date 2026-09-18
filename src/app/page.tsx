@@ -12,11 +12,10 @@ import Enso from "@/components/Enso";
 import Dudu from "@/components/Dudu";
 import {
   loadMerit,
-  nextRank,
-  rankOf,
+  rankByNeed,
   stageOf,
-  stageProgress,
 } from "@/lib/merit";
+import { nextRealm, realmOf, realmProgress } from "@/lib/realm";
 import NotesDrawer from "@/components/NotesDrawer";
 import { useConfirm } from "@/components/Confirm";
 import { Banga, Dharmachakra, Lotus, Teacup } from "@/components/icons";
@@ -148,6 +147,10 @@ export default function Home() {
   const confirm = useConfirm();
   const [store, setStore] = useState<Store | null>(null);
   const [merit, setMerit] = useState(0); // 공덕 — 첫 화면의 수행 줄에 보인다
+  // 회향한 화두 수 — 자리를 매기는 데 공덕과 함께 든다.
+  // 서랍은 그릴 때 읽으면 안 된다(서버가 그린 첫 화면과 어긋난다) —
+  // 아래 effect 에서 담아 둔 값을 쓴다.
+  const [returnedCount, setReturnedCount] = useState(0);
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState("");
   const [showSettings, setShowSettings] = useState(false);
@@ -176,7 +179,10 @@ export default function Home() {
 
   // 공덕 — 뜰에 들어올 때, 그리고 다른 방에서 쌓고 돌아왔을 때
   useEffect(() => {
-    const read = () => setMerit(loadMerit().total);
+    const read = () => {
+      setMerit(loadMerit().total);
+      setReturnedCount(loadStore().history.length);
+    };
     read();
     window.addEventListener("focus", read);
     window.addEventListener("hwadu-merit-updated", read);
@@ -433,6 +439,10 @@ export default function Home() {
     setShowSettings(false);
   };
 
+  // 자리 — 내 도량·오늘 하루 판과 **같은 셈**을 쓴다(공덕 + 회향한 화두)
+  const myRank = rankByNeed(realmOf(merit, returnedCount).need);
+  const upRealm = nextRealm(merit, returnedCount);
+
   const current = store?.current ?? null;
   const hwadu = current ? getHwadu(current.hwaduId) : null;
   const unlocked = current ? isUnlocked(current) : false;
@@ -543,12 +553,16 @@ export default function Home() {
                 <p className="mt-0.5 font-serif text-[32px] font-light leading-none tabular-nums text-gold">
                   {merit.toLocaleString("ko-KR")}
                 </p>
+                {/* 자리는 공덕만으로 오르지 않는다 — 회향한 화두 수도 본다.
+                    여기만 rankOf(공덕) 를 쓰고 있어서, 내 도량은 「동자」인데
+                    뜰은 「사미」라고 하는 일이 있었다. 같은 사다리인데
+                    화면마다 자리가 달랐다. */}
                 <p className="mt-1.5 flex items-baseline gap-1.5">
                   <span className="font-serif text-[13.5px] text-hanji-dim">
-                    {rankOf(merit).name}
+                    {myRank.name}
                   </span>
                   <span className="font-serif text-[10.5px] text-gold-soft">
-                    {rankOf(merit).hanja}
+                    {myRank.hanja}
                   </span>
                 </p>
               </div>
@@ -556,13 +570,17 @@ export default function Home() {
             <div className="mt-3.5 h-[4px] overflow-hidden rounded-full bg-ink-3">
               <div
                 className="h-full rounded-full bg-gold transition-[width] duration-500"
-                style={{ width: `${Math.round(stageProgress(merit) * 100)}%` }}
+                style={{
+                  width: `${Math.round(realmProgress(merit, returnedCount) * 100)}%`,
+                }}
               />
             </div>
             <p className="mt-2 break-keep text-[11px] leading-5 text-hanji-faint">
-              {nextRank(merit)
-                ? `${nextRank(merit)!.rank.name}까지 ${nextRank(merit)!.left.toLocaleString("ko-KR")}`
-                : rankOf(merit).say}
+              {upRealm
+                ? upRealm.left > 0
+                  ? `${rankByNeed(upRealm.to.need).name}까지 ${upRealm.left.toLocaleString("ko-KR")}`
+                  : `${rankByNeed(upRealm.to.need).name}까지 화두 ${upRealm.needMore}개`
+                : myRank.say}
               <span className="text-hanji-dim"> · 내 도량 · 오늘의 세 가지 →</span>
             </p>
           </Link>

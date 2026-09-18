@@ -45,9 +45,11 @@ import MyTemplePicker from "@/components/MyTemplePicker";
 import MeritExchange from "@/components/MeritExchange";
 import { CHARMS, charmSvg, loadCharms } from "@/lib/charm";
 import { nextRealm, realmOf, REALMS } from "@/lib/realm";
+import { DAILY_EVENT } from "@/lib/daily";
 import {
   DAILY_TOTAL_CAP,
   giveBonus,
+  MERIT_EVENT,
   giveDays,
   rankByNeed,
   rounds,
@@ -60,6 +62,7 @@ import {
   SOURCE_LABEL,
   todayRoom,
   type Lamp,
+  type MeritLedger,
   type MeritSource,
 } from "@/lib/merit";
 import {
@@ -217,7 +220,12 @@ export default function SettingsPage() {
   // 예불 종 — 이 브라우저가 고른 시각들 (푸시 토큰 문서에도 함께 새긴다)
   const [bells, setBells] = useState<string[]>([]);
   // 공덕 — 도량에서 한 일이 모두 여기로 쌓인다
-  const [merit, setMerit] = useState({ total: 0, by: {} as Partial<Record<MeritSource, number>>, given: 0 });
+  const [merit, setMerit] = useState<MeritLedger>({
+    total: 0,
+    by: {},
+    hits: {},
+    given: 0,
+  });
   const [lampList, setLampList] = useState<Lamp[]>([]);
   // 회향 장부는 서랍(localStorage)에 있다. 그릴 때 읽으면 서버가 그린
   // 첫 화면과 어긋나 하이드레이션이 깨진다 — effect 에서 담아 두고 쓴다.
@@ -315,15 +323,28 @@ export default function SettingsPage() {
     };
   }, []);
 
-  // 예불 종 — 서랍에서 꺼낸다
+  // 예불 종과 공덕 — 서랍에서 꺼낸다.
+  // 한 번만 읽고 말았더니, 이 화면에 머문 채 위쪽 「오늘의 세 가지」에서
+  // 공덕을 받으면 머리줄 알약과 교환 칸만 오르고 바로 아래 「지금까지 쌓은
+  // 공덕」·「오늘 N / 6,480」·갈래 칩은 그대로 멈춰 있었다. 한 화면에 같은
+  // 공덕이 두 값으로 떠 있었다. 장부가 바뀌면 같이 다시 읽는다.
   useEffect(() => {
-    setBells(loadBellsLocal());
-    setMerit(loadMerit());
-    setCharms(loadCharms());
-    setLampList(lamps());
-    setGiving({ days: giveDays(), bonus: giveBonus() });
-    setRoom(todayRoom());
-    setReturnedCount(loadStore().history.length);
+    const read = () => {
+      setBells(loadBellsLocal());
+      setMerit(loadMerit());
+      setCharms(loadCharms());
+      setLampList(lamps());
+      setGiving({ days: giveDays(), bonus: giveBonus() });
+      setRoom(todayRoom());
+      setReturnedCount(loadStore().history.length);
+    };
+    read();
+    window.addEventListener(MERIT_EVENT, read);
+    window.addEventListener(DAILY_EVENT, read);
+    return () => {
+      window.removeEventListener(MERIT_EVENT, read);
+      window.removeEventListener(DAILY_EVENT, read);
+    };
   }, []);
 
   // 지금 서 있는 도와 한 칸 위 — 공덕과 회향한 화두 수를 함께 본다.
@@ -884,17 +905,36 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          {/* 무엇으로 쌓았나 */}
+          {/* 무엇으로, 몇 번 —
+              「시절인연 58」이라고만 적어 두었더니 58번 한 줄 알았다.
+              실은 한 장을 건 공덕(54에 부적·회향 배수가 붙은 값)이었다.
+              한 일과 숫자가 안 맞으면 숫자를 통째로 못 믿는다.
+              이제 횟수를 앞에, 공덕을 뒤에 적는다. */}
           {Object.keys(merit.by).length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1.5">
-              {(Object.keys(merit.by) as MeritSource[]).map((k) => (
-                <span
-                  key={k}
-                  className="rounded-full border border-ink-3 px-2.5 py-1 text-[11px] text-hanji-dim"
-                >
-                  {SOURCE_LABEL[k]} {merit.by[k]?.toLocaleString("ko-KR")}
-                </span>
-              ))}
+              {(Object.keys(merit.by) as MeritSource[]).map((k) => {
+                const n = merit.hits?.[k];
+                return (
+                  <span
+                    key={k}
+                    className="rounded-full border border-ink-3 px-2.5 py-1 text-[11px] text-hanji-dim"
+                  >
+                    {SOURCE_LABEL[k]}{" "}
+                    {n ? (
+                      <>
+                        {n.toLocaleString("ko-KR")}번
+                        <span className="ml-1 text-hanji-faint">
+                          · 공덕 {merit.by[k]?.toLocaleString("ko-KR")}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-hanji-faint">
+                        공덕 {merit.by[k]?.toLocaleString("ko-KR")}
+                      </span>
+                    )}
+                  </span>
+                );
+              })}
             </div>
           )}
 
