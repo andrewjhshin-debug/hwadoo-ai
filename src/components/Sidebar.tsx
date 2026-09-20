@@ -99,7 +99,7 @@ const NAV_PRACTICE: NavItem[] = [
   { href: "/mandala", label: "만다라", Icon: Mandala },
   // 비움 — 속이 비어 있어 소리가 나는 목탁. 빈 원(일원상) 아이콘이 생기면 바꾼다.
   { href: "/empty", label: "비움", Icon: Baru },
-  { href: "/moment", label: "시절인연 — 절에서 찍은 한 장", Icon: Moment },
+  { href: "/moment", label: "시절인연", Icon: Moment },
   { href: "/rank", label: "정진 랭킹", Icon: Dharmachakra },
   // 「서고 — 지난 화두」를 뺐다. 바로 아래 「지난 화두 · 기록 보기 N」이
   // 같은 /archive 로 가고 있었다 — 한 서랍에 같은 문이 둘이면 둘 다 안
