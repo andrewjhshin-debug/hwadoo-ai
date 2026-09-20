@@ -707,7 +707,7 @@ export const RANKS = [
   { need: 1620, hanja: "首", name: "수좌", say: "앉는 일이 몸에 붙었어요" },
   { need: 21600, hanja: "禪", name: "선사", say: "흔들림이 눈에 띄게 줄었어요" },
   { need: 84000, hanja: "薩", name: "보살", say: "이제 남의 몫까지 돕니다" },
-  { need: 194400, hanja: "佛", name: "부처", say: "물음표가 광배가 되었어요" },
+  { need: 194400, hanja: "佛", name: "부처", say: "" },
 ] as const;
 
 export type Rank = (typeof RANKS)[number];
