@@ -515,12 +515,12 @@ export function YeonkkotGold({ className = "w-5 h-5" }: IconProps) {
   return <LotusBloom className={className} />;
 }
 
-// 뜰 — 연꽃 공양 문장과 같은 꽃을, 사이드바 선 아이콘의 밀도로 다시 그린 금빛 버전.
-// 화려한 색칠 표식을 내비게이션에 그대로 올리면 이 아이콘만 튀므로 선으로 낮춘다.
+// 뜰 — 서비스 초기에 쓰던 연꽃등 문양. 작은 메뉴에서는 원본의 바깥 원·여백을
+// 덜어 내고 중심 표식만 보인다. 뜰의 금빛 길과 같은 역할이다.
 export function YeonMun({ className = "w-5 h-5" }: IconProps) {
   return (
-    <svg viewBox="0 0 64 64" className={className} aria-hidden>
-      <image href="/brand/lotus-garden-line-v1.png" width="64" height="64" />
+    <svg viewBox="320 340 440 440" className={className} aria-hidden>
+      <image href="/brand/garden-mark-v1.png" width="1080" height="1080" />
     </svg>
   );
 }
