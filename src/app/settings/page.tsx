@@ -112,10 +112,22 @@ import {
 // 공덕 점수보다 먼저 보여 줄 수행의 흔적. 0번도 숨기지 않는다 —
 // "무엇을 몇 번 했나"가 내 도량에서 바로 보여야 다음 한 번을 시작한다.
 const PRACTICE_HITS: { source: MeritSource; label: string }[] = [
+  { source: "bow", label: "절" },
   { source: "moktak", label: "목탁" },
   { source: "bead", label: "염주" },
-  { source: "hasim", label: "하심" },
+  { source: "breath", label: "호흡" },
   { source: "hwadu", label: "화두" },
+  { source: "temple", label: "절로" },
+  { source: "gathering", label: "인연" },
+  { source: "sutra", label: "경전" },
+  { source: "moment", label: "시절" },
+  { source: "bowl", label: "싱잉볼" },
+  { source: "candle", label: "초" },
+  { source: "mandala", label: "만다라" },
+  { source: "fortune", label: "운세" },
+  { source: "mung", label: "멍" },
+  { source: "hasim", label: "하심" },
+  { source: "daily", label: "오늘" },
 ];
 
 // 접어 두는 묶음 — 도량 아래쪽 살림살이는 찾을 때만 편다.
@@ -900,16 +912,16 @@ export default function SettingsPage() {
             <p className="mt-5 text-[11px] tracking-[0.24em] text-hanji-faint">
               수행별 횟수
             </p>
-            <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="mt-2.5 grid grid-cols-4 gap-2 sm:grid-cols-8">
               {PRACTICE_HITS.map(({ source, label }) => (
                 <div
                   key={source}
-                  className="rounded-[10px] border border-ink-3 bg-ink-2/40 px-3 py-2.5"
+                  className="flex aspect-square flex-col items-center justify-center rounded-full border border-ink-3 bg-ink-2/40 text-center"
                 >
-                  <p className="text-[10.5px] tracking-[0.14em] text-hanji-faint">{label}</p>
-                  <p className="mt-1 font-serif text-[19px] leading-none tabular-nums text-hanji">
+                  <p className="text-[9px] tracking-[0.08em] text-hanji-faint">{label}</p>
+                  <p className="mt-1 font-serif text-[15px] leading-none tabular-nums text-hanji">
                     {(merit.hits?.[source] ?? 0).toLocaleString("ko-KR")}
-                    <span className="ml-0.5 font-sans text-[10px] text-hanji-faint">회</span>
+                    <span className="ml-0.5 font-sans text-[8px] text-hanji-faint">회</span>
                   </p>
                 </div>
               ))}
