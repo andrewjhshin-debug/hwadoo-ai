@@ -99,7 +99,7 @@ export default function SambaePage() {
       `}</style>
 
       <p className="rise rise-d1 mt-8 text-[12px] tracking-[0.35em] text-hanji-faint">
-        三拜 · 삼배
+        三歸依 · 삼귀의
       </p>
       <p className="rise rise-d1 mt-1 font-serif text-[68px] font-light leading-none text-hanji">
         {n}
@@ -107,7 +107,7 @@ export default function SambaePage() {
       </p>
       <div className="rise rise-d1 mt-2.5 flex h-6 items-center justify-center gap-2">
         <p className="text-[13px] tracking-wide text-gold-soft">
-          {done ? "삼배를 마쳤습니다" : TO[Math.min(n, BOWS - 1)].say}
+          {done ? "삼귀의를 마쳤습니다" : TO[Math.min(n, BOWS - 1)].say}
         </p>
       </div>
 
@@ -188,7 +188,7 @@ export default function SambaePage() {
           <p className="font-serif text-[26px] leading-none text-gold">+9</p>
           <p className="mt-1.5 text-[11.5px] tracking-[0.2em] text-hanji-faint">공덕</p>
           <p className="mt-3 break-keep text-[12.5px] leading-6 text-hanji-dim">
-            오늘 {rounds}번째 삼배예요.
+            오늘 {rounds}번째 삼귀의예요.
           </p>
           <div className="mt-4 flex justify-center gap-2">
             <button

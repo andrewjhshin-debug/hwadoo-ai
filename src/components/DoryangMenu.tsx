@@ -82,7 +82,7 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     hanja: "行",
     doors: [
       { href: "/moktak", label: "목탁·염주·싱잉볼", say: "손끝으로 세다", Icon: Yeomju },
-      { href: "/sambae", label: "삼배", say: "서른 초면 된다", Icon: Jeol },
+      { href: "/sambae", label: "삼귀의", say: "세 번 귀의하다", Icon: Jeol },
       { href: "/bae", label: "백팔배", say: "백여덟 번 굽히다", Icon: Jeol108 },
       { href: "/breath", label: "호흡 명상", say: "들이쉬고 내쉬다", Icon: Breath },
       { href: "/mung", label: "멍 때리기", say: "아무것도 안 하기", Icon: Ilwonsang },
