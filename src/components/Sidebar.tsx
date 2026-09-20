@@ -32,6 +32,7 @@ import {
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import { initPresence } from "@/lib/presence";
 import LotusCount from "@/components/LotusCount";
+import SoundMuteToggle from "@/components/SoundMuteToggle";
 import {
   Banga,
   Bojagi,
@@ -338,6 +339,7 @@ export default function Sidebar() {
         </Link>
         {/* 오른쪽 — 밤/낮 · 연꽃 상점 · 쪽지 */}
         <div className="ml-auto flex items-center">
+          <SoundMuteToggle compact />
           <Link
             href="/lotus"
             onClick={go("/lotus")}
@@ -429,6 +431,7 @@ export default function Sidebar() {
             >
               <Dharmachakra className="h-4 w-4" />
             </Link>
+            <SoundMuteToggle compact />
             {/* 연꽃 — 펼친 상태에서는 오른쪽 알약이 같은 자리로 간다(두 개면 겹말).
                 접었을 때만 아이콘으로 남긴다. */}
             {slim && (

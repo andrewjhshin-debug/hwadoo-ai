@@ -1,5 +1,7 @@
 "use client";
 
+import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
+
 // ────────────────────────────────────────────────────────────────
 // 호흡 소리를 **화면 밖에서도** 잇는다.
 //
@@ -126,6 +128,7 @@ function dressSession(onStop: () => void) {
  * @returns 정말 틀렸으면 true
  */
 export async function startLoop(vol: number, onStop: () => void): Promise<boolean> {
+  if (isSoundMuted()) return false;
   const a = make();
   if (!a) return false;
   const mine = ++gen;
@@ -201,4 +204,10 @@ export function loopPhase(): "in" | "out" | null {
   if (!el || el.paused) return null;
   const t = el.currentTime % LOOP_SEC;
   return t < INHALE_SEC ? "in" : "out";
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener(SOUND_MUTE_EVENT, () => {
+    if (isSoundMuted()) stopLoop();
+  });
 }

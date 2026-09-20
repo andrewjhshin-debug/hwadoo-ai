@@ -40,6 +40,7 @@ import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
 import Info from "@/components/Info";
 import LotusCount from "@/components/LotusCount";
+import SoundMuteToggle from "@/components/SoundMuteToggle";
 import BeopdangCard from "@/components/BeopdangCard";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import MeritExchange from "@/components/MeritExchange";
@@ -1288,6 +1289,15 @@ export default function SettingsPage() {
       </section>
 
       </Fold>
+
+      {/* 앱의 모든 효과음·음성·호흡 소리를 한 번에 재운다. 알림 권한과는 별개다. */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <p className="mb-3 text-[11px] tracking-[0.3em] text-hanji-faint">소리</p>
+        <SoundMuteToggle />
+        <p className="mt-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
+          목탁·종·호흡·안내 음성을 모두 끕니다. 알림 수신 설정은 바뀌지 않습니다.
+        </p>
+      </section>
 
       {/* ── 알림 — 아침 문안: 제목 한 줄 + 온/오프 토글.
           차단이면 토글을 눌렀을 때 푸는 법 안내가 접혀 나온다 ── */}

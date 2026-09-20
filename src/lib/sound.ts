@@ -4,6 +4,8 @@
 // 첫 터치에서 AudioContext 를 깨운다(브라우저 정책).
 // ─────────────────────────────────────────────────────────────
 
+import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
+
 // ── 소리 — 나무를 빚는다 ────────────────────────────────────
 
 let actx: AudioContext | null = null;
@@ -75,6 +77,7 @@ function hall(ac: AudioContext): GainNode {
 
 // 귀가 아프지 않게 — 세게 쳐도 찌그러지지 않도록 한 번 눌러 준다
 let bus: DynamicsCompressorNode | null = null;
+let masterGain: GainNode | null = null;
 function master(ac: AudioContext): DynamicsCompressorNode {
   if (!bus) {
     bus = ac.createDynamicsCompressor();
@@ -83,9 +86,21 @@ function master(ac: AudioContext): DynamicsCompressorNode {
     bus.ratio.value = 6;
     bus.attack.value = 0.002;
     bus.release.value = 0.18;
-    bus.connect(ac.destination);
+    masterGain = ac.createGain();
+    masterGain.gain.value = isSoundMuted() ? 0 : 1;
+    bus.connect(masterGain);
+    masterGain.connect(ac.destination);
   }
   return bus;
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener(SOUND_MUTE_EVENT, () => {
+    if (masterGain && actx) {
+      masterGain.gain.setTargetAtTime(isSoundMuted() ? 0 : 1, actx.currentTime, 0.015);
+    }
+    if (isSoundMuted()) hushVoice();
+  });
 }
 
 // ── 목탁 한 방 ──────────────────────────────────────────────
@@ -440,7 +455,7 @@ export function clickBead(vol: number) {
   const t = ac.currentTime;
   const out = ac.createGain();
   out.gain.value = vol * 1.15;
-  out.connect(ac.destination);
+  out.connect(master(ac));
 
   const src = ac.createBufferSource();
   src.buffer = noise(ac);
@@ -674,7 +689,7 @@ function breathe(kind: "in" | "out", sec: number, vol: number): () => void {
 
     const out = ac.createGain();
     out.gain.value = rise ? vol : vol * 0.8; // 날숨은 들숨보다 조금 낮게
-    out.connect(ac.destination);
+    out.connect(master(ac));
 
     const src = ac.createBufferSource();
     src.buffer = breathNoise(ac);
@@ -770,7 +785,7 @@ export function strikeJukbi(vol: number) {
   const t = ac.currentTime;
   const out = ac.createGain();
   out.gain.value = vol;
-  out.connect(ac.destination);
+  out.connect(master(ac));
 
   // ① 죽비 — 진짜 한 방. 칠 때마다 아주 조금씩 다르게 울려야
   //    기계가 아니라 사람이 치는 것처럼 들린다(빠르기 ±3%).
@@ -895,7 +910,7 @@ export function hushVoice() {
 
 /** 한 줄을 읽는다. 느리게, 낮게 — 예불의 결에 맞춘다. */
 export function speak(text: string) {
-  if (!voiceOn || !voiceReady() || !text) return;
+  if (isSoundMuted() || !voiceOn || !voiceReady() || !text) return;
   try {
     const synth = window.speechSynthesis;
     synth.cancel();

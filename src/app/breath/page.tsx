@@ -31,6 +31,7 @@ import {
 import { loadDaily } from "@/lib/daily";
 import { MERIT_VALUE } from "@/lib/merit";
 import { breatheIn, breatheOut, wakeBreath } from "@/lib/sound";
+import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
 
 const INHALE_MS = 4000; // 들숨 4초
 const CYCLE_MS = 10000; // 들숨 4초 + 날숨 6초 = 1식
@@ -129,6 +130,7 @@ export default function BreathPage() {
   const [seconds, setSeconds] = useState(0);
   const [breaths, setBreaths] = useState(0);
   const [soundOn, setSoundOn] = useState(true);
+  const [globallyMuted, setGloballyMuted] = useState(false);
   const [today, setToday] = useState(0); // 오늘 몇 식(10초)
   const [earned, setEarned] = useState(0); // 방금 판에 실제로 붙은 공덕
   // 음원 한 바퀴로 돌고 있나 — 이러면 화면이 꺼져도 소리가 이어진다
@@ -139,6 +141,26 @@ export default function BreathPage() {
   // hushRef : 지금 흐르는 숨소리를 거두는 손잡이 (마디가 바뀌거나 판을 마칠 때)
   const audioRef = useRef<AudioContext | null>(null);
   const hushRef = useRef<(() => void) | null>(null);
+
+  // 전체 음소거는 이 방의 개별 음향 선택을 지우지 않는다. 잠시 재우고,
+  // 전체 소리를 다시 켰을 때 사용자가 골라 둔 호흡 음향만 되돌아온다.
+  useEffect(() => {
+    const sync = () => {
+      const muted = isSoundMuted();
+      setGloballyMuted(muted);
+      if (muted) {
+        stopLoop();
+        setOnFile(false);
+        hushRef.current?.();
+        hushRef.current = null;
+      }
+    };
+    sync();
+    window.addEventListener(SOUND_MUTE_EVENT, sync);
+    return () => window.removeEventListener(SOUND_MUTE_EVENT, sync);
+  }, []);
+
+  const soundActive = soundOn && !globallyMuted;
 
   // 오늘치는 브라우저 서랍에만 있다 — 서버가 그린 화면과 어긋나지 않게
   // 첫 그림 뒤에 읽는다.
@@ -207,7 +229,7 @@ export default function BreathPage() {
   // 길이는 '지금 이 마디에 남은 시간'으로 준다 — 중간에 소리를 켜도 원의 리듬과
   // 어긋나지 않게. (들숨 4초 · 날숨 6초가 CSS 애니메이션과 같은 시계를 본다)
   useEffect(() => {
-    if (stage !== "breathing" || !soundOn) return;
+    if (stage !== "breathing" || !soundActive) return;
     // 음원 한 바퀴가 돌고 있으면 소리는 그쪽이 낸다 — 겹쳐 울리지 않게
     if (onFile) return;
     const ctx = ensureAudio();
@@ -220,7 +242,7 @@ export default function BreathPage() {
       hushRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, stage, soundOn, onFile]);
+  }, [phase, stage, soundActive, onFile]);
 
   // 문구·경과 시간 — 시작 시각으로부터 계산 (같은 값이면 React 가 그리지 않는다)
   useEffect(() => {
@@ -251,7 +273,7 @@ export default function BreathPage() {
     // 잠금화면에 「화두 · 호흡 명상」과 멈춤 단추가 뜬다.
     // 소리를 꺼 둔 사람이거나 자동재생이 막힌 자리면 false — 그때는
     // 예전대로 빚는 소리로 간다(화면이 켜져 있는 동안만 들린다).
-    if (soundOn) {
+    if (soundActive) {
       void startLoop(0.9, () => finishRef.current?.()).then(setOnFile);
     }
   };
@@ -332,9 +354,9 @@ export default function BreathPage() {
           void startLoop(0.9, () => finishRef.current?.()).then(setOnFile);
         }
       }}
-      aria-pressed={soundOn}
-      aria-label={soundOn ? "음향 끄기" : "음향 켜기"}
-      title={soundOn ? "음향 끄기" : "음향 켜기"}
+      aria-pressed={soundActive}
+      aria-label={soundActive ? "음향 끄기" : "음향 켜기"}
+      title={globallyMuted ? "전체 음소거 중" : soundOn ? "음향 끄기" : "음향 켜기"}
       className="flex h-11 w-11 items-center justify-center rounded-full border border-ink-3 text-hanji-faint transition-colors hover:text-hanji"
     >
       <svg
@@ -349,7 +371,7 @@ export default function BreathPage() {
         strokeLinejoin="round"
       >
         <path d="M4 9.4h3.3L12 5.4v13.2l-4.7-4H4z" />
-        {soundOn ? (
+        {soundActive ? (
           <>
             <path d="M15.7 9.3a3.9 3.9 0 0 1 0 5.4" />
             <path d="M18.2 6.8a7.4 7.4 0 0 1 0 10.4" />
