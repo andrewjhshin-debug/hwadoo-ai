@@ -12,8 +12,8 @@ type IconProps = { className?: string; stroke?: string };
 // 같은 서비스인데 두 얼굴이면 같은 것으로 안 읽힌다.
 //
 // 아이콘(public/icon-512.png)의 짜임을 그대로 옮겼다 —
-// 테 하나, 통에서 테로 곧게 뻗는 살 여덟, 가운데 꽉 찬 바퀴통.
-// 가리개를 걷고 **선으로만** 그리니 어느 크기에서도 굵기가 고르다.
+// 테 하나, 통에서 테로 곧게 뻗는 살 여덟, 가운데가 뚫린 바퀴통.
+// 앱 아이콘과 웹의 문양이 조금이라도 달라 보이지 않게 이 비율을 기준으로 쓴다.
 export function Beopryun({ className = "w-5 h-5", stroke = "currentColor" }: IconProps) {
   return (
     <svg
@@ -21,13 +21,14 @@ export function Beopryun({ className = "w-5 h-5", stroke = "currentColor" }: Ico
       className={className}
       fill="none"
       stroke={stroke}
-      strokeWidth="3"
+      strokeWidth="3.8"
       strokeLinecap="butt"
       aria-hidden
     >
       <circle cx="32" cy="32" r="20.8" />
-      <path d="M32.00 23.40L32.00 12.60M38.08 25.92L45.72 18.28M40.60 32.00L51.40 32.00M38.08 38.08L45.72 45.72M32.00 40.60L32.00 51.40M25.92 38.08L18.28 45.72M23.40 32.00L12.60 32.00M25.92 25.92L18.28 18.28" />
-      <circle cx="32" cy="32" r="5.1" fill={stroke} stroke="none" />
+      <path d="M32 11.2v13M46.7 17.3l-9.2 9.2M52.8 32h-13M46.7 46.7l-9.2-9.2M32 52.8v-13M17.3 46.7l9.2-9.2M11.2 32h13M17.3 17.3l9.2 9.2" />
+      <circle cx="32" cy="32" r="8.8" fill={stroke} stroke="none" />
+      <circle cx="32" cy="32" r="4.5" fill="var(--color-ink-2)" stroke="none" />
     </svg>
   );
 }
@@ -123,7 +124,7 @@ export function Yeonkkot({ className = "w-5 h-5" }: IconProps) {
 export function YeonMun({ className = "w-5 h-5", stroke = "#D9B45B" }: IconProps) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden stroke={stroke}>
-      <g transform="translate(32 33.5) scale(1.12) translate(-32 -33.5)"><path d="M32.00 45.00Q26.37 53.10 22.95 51.68Q22.95 51.68 16.70 51.18Q20.85 46.48 20.85 46.48Q22.33 43.08 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.60" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q41.67 43.08 43.15 46.48Q43.15 46.48 47.30 51.18Q41.05 51.68 41.05 51.68Q37.63 53.10 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.60" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q23.85 47.71 21.29 44.80Q21.29 44.80 17.93 41.49Q22.45 40.15 22.45 40.15Q26.08 38.78 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q37.92 38.78 41.55 40.15Q41.55 40.15 46.07 41.49Q42.71 44.80 42.71 44.80Q40.15 47.71 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q22.08 41.58 21.52 36.88Q21.52 36.88 20.43 31.21Q25.82 33.27 25.82 33.27Q30.35 34.63 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q33.65 34.63 38.18 33.27Q38.18 33.27 43.57 31.21Q42.48 36.88 42.48 36.88Q41.92 41.58 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q25.80 34.50 28.78 29.88Q28.78 29.88 32.00 24.00Q35.22 29.88 35.22 29.88Q38.20 34.50 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q28.60 38.25 30.23 35.28Q30.23 35.28 32.00 31.50Q33.77 35.28 33.77 35.28Q35.40 38.25 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.03" stroke-linejoin="round" stroke-linecap="round"/></g>
+      <g transform="translate(0 -5) translate(32 33.5) scale(1.12) translate(-32 -33.5)"><path d="M32.00 45.00Q26.37 53.10 22.95 51.68Q22.95 51.68 16.70 51.18Q20.85 46.48 20.85 46.48Q22.33 43.08 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.60" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q41.67 43.08 43.15 46.48Q43.15 46.48 47.30 51.18Q41.05 51.68 41.05 51.68Q37.63 53.10 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.60" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q23.85 47.71 21.29 44.80Q21.29 44.80 17.93 41.49Q22.45 40.15 22.45 40.15Q26.08 38.78 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q37.92 38.78 41.55 40.15Q41.55 40.15 46.07 41.49Q42.71 44.80 42.71 44.80Q40.15 47.71 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q22.08 41.58 21.52 36.88Q21.52 36.88 20.43 31.21Q25.82 33.27 25.82 33.27Q30.35 34.63 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q33.65 34.63 38.18 33.27Q38.18 33.27 43.57 31.21Q42.48 36.88 42.48 36.88Q41.92 41.58 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q25.80 34.50 28.78 29.88Q28.78 29.88 32.00 24.00Q35.22 29.88 35.22 29.88Q38.20 34.50 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q28.60 38.25 30.23 35.28Q30.23 35.28 32.00 31.50Q33.77 35.28 33.77 35.28Q35.40 38.25 32.00 45.00Z" fill="none" stroke="inherit" stroke-width="2.03" stroke-linejoin="round" stroke-linecap="round"/></g>
     </svg>
   );
 }
