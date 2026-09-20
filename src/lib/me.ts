@@ -129,9 +129,14 @@ export function sameMe(a: Me | null, b: Me | null): boolean {
   );
 }
 
-/** 직접 정한 쪽이 이긴다. 둘 다 정했으면 늦게 정한 쪽이 이긴다 */
+/**
+ * 직접 정한 쪽이 이긴다. 둘 다 정했으면 늦게 정한 쪽이 이긴다.
+ *
+ * 비기면 **계정 쪽**이다. 이 기기를 세우면 두 기기가 서로 제 이름을
+ * 밀어내며 끝없이 오간다 — 계정을 세워야 한 번 올라간 이름에서 멎는다.
+ */
 function localWins(lSet: boolean, lAt: number, cSet: boolean, cAt: number): boolean {
-  if (lSet && cSet) return lAt >= cAt;
+  if (lSet && cSet) return lAt > cAt;
   return lSet;
 }
 
