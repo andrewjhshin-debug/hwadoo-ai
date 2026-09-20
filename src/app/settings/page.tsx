@@ -815,7 +815,7 @@ export default function SettingsPage() {
       <section className={`rise ${sectionGap}`}>
         <div className="flex items-baseline justify-between">
           <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-            位 — 지금 내 자리
+            位 · 자리
           </p>
           <Link
             href="/rank"
@@ -876,10 +876,10 @@ export default function SettingsPage() {
                 (upRealm.needMore > 0 ? ` · 화두 ${upRealm.needMore}개` : "")
               : "가장 높은 자리"}
           <Info title="位 · 자리" className="ml-1.5">
-            자리는 <b className="text-hanji">공덕</b>과 <b className="text-hanji">회향한 화두 수</b>,
-            둘 다 넘겨야 오릅니다. 목탁만 두드려서는 오르지 않습니다.
+            <b className="text-hanji">공덕</b>과 <b className="text-hanji">화두</b>가 쌓이면
+            부처가 될 수 있습니다.
             <br />
-            발길이 뜸해지면 공덕이 조금씩 흐려집니다.
+            발길이 뜸해지면 단계가 하나씩 내려갑니다.
           </Info>
         </p>
       </section>
