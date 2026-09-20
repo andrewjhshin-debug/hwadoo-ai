@@ -88,6 +88,9 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  // 모바일 키보드를 화면 위에 덮지 말고 콘텐츠 화면 자체를 줄인다.
+  // 사유의 방·답 쓰기처럼 아래 입력창이 있는 곳이 키보드에 잘리지 않는다.
+  interactiveWidget: "resizes-content",
   themeColor: "#0d0b09",
 };
 
