@@ -32,42 +32,14 @@ import {
   doneOf,
   loadDaily,
   missionsOf,
-  nextKnot,
-  streakOf,
   type DailyBook,
 } from "@/lib/daily";
-
-// 이어 온 날의 불꽃 — 하루라도 이었으면 켠다
-function Flame({ lit }: { lit: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0" aria-hidden>
-      <defs>
-        <linearGradient id="dp_flame" gradientUnits="userSpaceOnUse" x1="12" y1="2" x2="12" y2="22">
-          <stop offset="0" stopColor="#f2789f" />
-          <stop offset="0.55" stopColor="#e8973a" />
-          <stop offset="1" stopColor="#dda01c" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M12 2.5c.6 3.1-1.2 4.3-2.6 5.7-1.6 1.6-2.9 3.2-2.9 5.8A5.5 5.5 0 0 0 12 19.5a5.5 5.5 0 0 0 5.5-5.5c0-2.4-1.1-3.7-2.2-5-.5.9-1.2 1.4-2 1.5.6-2.9-.3-6-1.3-8z"
-        fill={lit ? "url(#dp_flame)" : "var(--color-ink-3)"}
-      />
-      {lit && (
-        <path
-          d="M12 11.5c.4 1.5-.6 2-1.2 2.7-.5.6-.8 1.2-.8 1.9a2 2 0 0 0 4 0c0-1-.6-1.7-1.2-2.4-.3.4-.6.6-1 .6.3-1.1-.1-2.1-.6-2.8z"
-          fill="rgba(255,255,255,0.65)"
-        />
-      )}
-    </svg>
-  );
-}
 
 export default function DailyPractice() {
   // 장부는 브라우저 서랍에 있다 — 서버에서는 읽을 수 없으므로
   // 붙고 난 뒤에 한 번 읽는다(서버·브라우저의 첫 그림이 어긋나지 않게).
   const [book, setBook] = useState<DailyBook | null>(null);
   const [total, setTotal] = useState(0);
-  const [streak, setStreak] = useState(0);
   const [me, setMe] = useState<ReturnType<typeof loadMe>>(null);
   const [fade, setFade] = useState({ cut: 0, gap: 0 });
   // 법명 고쳐 쓰기
@@ -79,7 +51,6 @@ export default function DailyPractice() {
     const m = loadMerit();
     setTotal(m.total);
     setFade({ cut: m.lastFade ?? 0, gap: m.lastGap ?? 0 });
-    setStreak(streakOf());
     setBook(loadDaily());
     setMe(loadMe());
   }, []);
@@ -121,7 +92,6 @@ export default function DailyPractice() {
   const missions = missionsOf(book.day);
   const done = missions.filter((m) => doneOf(m, book) >= m.need).length;
   const finished = allDone(book);
-  const knot = nextKnot(streak);
 
   // 오늘 상으로 실제 얼마가 붙었나 — 장부가 참이다(없으면 null)
   const claimed = book?.got?.daily ?? null;
@@ -264,34 +234,21 @@ export default function DailyPractice() {
           </p>
         )}
 
-        {/* ── 이어 온 날 ── */}
-        <div className="mt-4 flex items-center gap-2 border-t border-ink-3 pt-3.5">
-          <Flame lit={streak > 0} />
-          <p className="min-w-0 flex-1 break-keep text-[12px] leading-5 text-hanji-dim">
-            <span className="font-serif text-[16px] text-hanji">{streak}</span>
-            <span className="text-hanji-faint">일 이어 왔어요</span>
-            {knot && (
-              <span className="text-hanji-faint">
-                {" "}
-                · {knot.left}일 더 하면 {knot.at}일
-              </span>
-            )}
-          </p>
-        </div>
       </div>
 
       {/* ── 오늘의 세 가지 ── */}
-      <div className="mt-3 rounded-[16px] border border-ink-3 bg-ink-2/50 px-5 py-5">
-        <div className="flex items-baseline justify-between">
+      <details className="group mt-3 rounded-[16px] border border-ink-3 bg-ink-2/50 px-5 py-5">
+        <summary className="flex cursor-pointer list-none items-baseline justify-between [&::-webkit-details-marker]:hidden">
           <p className="text-[11px] tracking-[0.3em] text-hanji-faint">오늘의 세 가지</p>
-          <p className="text-[11px] text-hanji-faint">
+          <span className="flex items-center gap-2 text-[11px] text-hanji-faint">
             <span className={done === missions.length ? "text-gold" : "text-hanji-dim"}>
               {done}
             </span>
             {" / "}
             {missions.length}
-          </p>
-        </div>
+            <span aria-hidden className="transition-transform group-open:rotate-180">⌄</span>
+          </span>
+        </summary>
 
         <ul className="mt-3.5 flex flex-col gap-2.5 border-t border-ink-3 pt-4">
           {missions.map((m) => {
@@ -381,7 +338,7 @@ export default function DailyPractice() {
             )}
           </div>
         )}
-      </div>
+      </details>
     </section>
   );
 }
