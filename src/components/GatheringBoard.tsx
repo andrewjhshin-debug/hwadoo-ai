@@ -1311,22 +1311,26 @@ export default function GatheringBoard({
                   />
                 )}
               </div>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                aria-label="날짜 (선택)"
-                title="날짜 (선택)"
-                className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
-              />
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                aria-label="시간 (선택)"
-                title="시간 (선택)"
-                className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
-              />
+              <label className="flex flex-col gap-1.5 text-[10.5px] tracking-wide text-hanji-faint">
+                날짜 (선택)
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  aria-label="날짜 (선택)"
+                  className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5 text-[10.5px] tracking-wide text-hanji-faint">
+                시작 시간 (선택)
+                <input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  aria-label="시작 시간 (선택)"
+                  className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
+                />
+              </label>
             </div>
             <p className="text-[11.5px] leading-5 text-hanji-faint">
               양/음(남·여) 문양은 내 도량에서 설정할 수 있습니다.
