@@ -88,10 +88,6 @@ function Picker({
         {done}
         <span className="ml-1 align-middle text-[20px] text-hanji-faint">/ {SUTRAS.length}</span>
       </p>
-      <p className="rise rise-d1 mt-2.5 break-keep text-center text-[12.5px] leading-5 text-hanji-faint">
-        눈으로 읽으면 지나갑니다. 한 자씩 쳐야 입에 붙어요.
-      </p>
-
       <ul className="rise rise-d2 mt-7 flex w-full flex-col gap-3">
         {SUTRAS.map((s) => {
           const r = book[s.id] ?? {};
