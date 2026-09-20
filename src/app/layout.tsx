@@ -62,8 +62,8 @@ export const metadata: Metadata = {
       "naver-site-verification": "e3edd090a8e5cfcaab987a6d90d5b0a6f8774189",
     },
   },
-  // 링크 썸네일 — 카톡·SNS 에 붙였을 때 이것 하나로 승부가 난다.
-  // 설명하지 말고 후려라. 그림은 public/og.png (캐릭터 둘이 나온다).
+  // 링크 썸네일 — 화두의 검정·금빛 톤 안에 로고와 이름만 남긴다.
+  // 새 파일명을 써서, 이전 그림을 물고 있는 SNS 캐시도 새로 읽게 한다.
   openGraph: {
     title: "AI한테 그만 물어봐",
     description: "이번엔 AI가 너한테 묻는다. 매일 물음 하나 · 절 같이 갈 사람.",
@@ -72,14 +72,14 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     type: "website",
     images: [
-      { url: `${SITE_URL}/og.png`, width: 1200, height: 630, alt: "화두 — AI한테 그만 물어봐" },
+      { url: `${SITE_URL}/og-v3.png`, width: 1200, height: 630, alt: "화두 AI — AI는 답하지 않습니다. 당신에게 묻습니다." },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "AI한테 그만 물어봐",
     description: "이번엔 AI가 너한테 묻는다. 매일 물음 하나 · 절 같이 갈 사람.",
-    images: [`${SITE_URL}/og.png`],
+    images: [`${SITE_URL}/og-v3.png`],
   },
 };
 
