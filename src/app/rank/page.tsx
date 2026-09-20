@@ -44,7 +44,6 @@ type Seat = { rank: number; name: string; me: boolean; text: string };
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "merit", label: "오늘의 정진" },
-  { id: "sutra", label: "외우기" },
 ];
 
 /** 위 세 자리에 놓는 한 글자 */
