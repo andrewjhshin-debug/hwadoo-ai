@@ -74,6 +74,10 @@ const JEONGGEUN = [
 ] as const;
 
 const JEONGGEUN_KEY = "hwadu.jeonggeun.v1";
+/** 마지막으로 하던 수행 — 공덕으로 다시 들어와도 그 자리에서 잇는다. */
+const PRACTICE_TAB_KEY = "hwadu.moktak-tab.v1";
+type PracticeTab = "moktak" | "yeomju" | "bowl";
+const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl"];
 
 /**
  * 살갗 — 같은 물건, 다른 결.
@@ -150,7 +154,17 @@ function SkinDots({
 type Pop = { id: number; ch: string; dx: number; rot: number };
 
 export default function MoktakPage() {
-  const [tab, setTab] = useState<"moktak" | "yeomju" | "bowl">("moktak");
+  const [tab, setTab] = useState<PracticeTab>("moktak");
+  // 탭을 고른 순간 저장한다. 새로 들어올 때 처음 탭이 잠깐 덮어쓰는 일을
+  // 막기 위해, 탭 변화 전체를 감시하는 effect 대신 이 길 하나에서만 적는다.
+  const chooseTab = (next: PracticeTab) => {
+    setTab(next);
+    try {
+      window.localStorage.setItem(PRACTICE_TAB_KEY, next);
+    } catch {
+      /* 기기 저장소가 막혀도 수행은 그 자리에서 계속한다 */
+    }
+  };
   // 살갗 — 물건마다 따로 적어 둔다(이 기기에만)
   const [skin, setSkin] = useState<Record<SkinKind, string>>({
     moktak: SKINS.moktak[0].id,
@@ -254,6 +268,14 @@ export default function MoktakPage() {
     const b = loadDaily();
     setMerit(loadMerit().total);
     setHits(b.by.moktak ?? 0);
+    try {
+      const savedTab = window.localStorage.getItem(PRACTICE_TAB_KEY);
+      if (savedTab && PRACTICE_TABS.includes(savedTab as PracticeTab)) {
+        setTab(savedTab as PracticeTab);
+      }
+    } catch {
+      /* 못 읽으면 목탁에서 시작한다 */
+    }
     try {
       const saved = window.localStorage.getItem(JEONGGEUN_KEY);
       if (saved && JEONGGEUN.some((g) => g.id === saved)) setGeunId(saved);
@@ -575,7 +597,7 @@ export default function MoktakPage() {
         ).map(([k, label]) => (
           <button
             key={k}
-            onClick={() => setTab(k)}
+            onClick={() => chooseTab(k)}
             aria-pressed={tab === k}
             className={`flex-1 rounded-full py-2.5 text-[13.5px] tracking-[0.14em] transition-colors ${
               tab === k
