@@ -509,8 +509,8 @@ export default function Sidebar() {
             href="/"
             onClick={go("/")}
             title="새 화두 받기"
-            className={`flex h-10 items-center gap-2 rounded-full border border-gold/25 bg-gold/[0.03] text-[14px] font-medium leading-none text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji sm:h-9 sm:text-[13px] ${
-              slim ? "justify-center px-0" : "w-fit self-start px-3.5"
+            className={`btn-obang flex items-center gap-2.5 py-2.5 text-[15px] font-medium leading-none text-hanji transition-opacity hover:opacity-90 sm:py-2 sm:text-[13px] ${
+              slim ? "justify-center px-0" : "px-4"
             }`}
           >
             {/* 폰 탭은 보리수 잎인데 여기만 연꽃이었다 — 같은 「뜰」이
