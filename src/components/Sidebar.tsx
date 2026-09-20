@@ -509,14 +509,14 @@ export default function Sidebar() {
             href="/"
             onClick={go("/")}
             title="새 화두 받기"
-            className={`btn-obang flex items-center gap-2.5 py-2.5 text-[15px] font-medium text-hanji transition-opacity hover:opacity-90 sm:py-2 sm:text-[13px] ${
-              slim ? "justify-center px-0" : "px-4"
+            className={`flex h-10 items-center gap-2 rounded-full border border-gold/25 bg-gold/[0.03] text-[14px] font-medium leading-none text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji sm:h-9 sm:text-[13px] ${
+              slim ? "justify-center px-0" : "w-fit self-start px-3.5"
             }`}
           >
             {/* 폰 탭은 보리수 잎인데 여기만 연꽃이었다 — 같은 「뜰」이
                 두 그림이면 같은 곳으로 안 읽힌다 */}
             {/* 형: 「그냥 노란 버전은 뜰 로고로 쓰고」 */}
-            <YeonMun className="h-[25px] w-[25px]" stroke="#D9B45B" />
+            <YeonMun className="h-5 w-5" />
             {!slim && "뜰"}
           </Link>
 
