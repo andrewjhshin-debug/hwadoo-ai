@@ -887,7 +887,7 @@ export default function SettingsPage() {
       {/* ── 공덕(功德) — 쌓고, 남에게 돌린다 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
         <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-          공덕 — 쌓은 것, 돌린 것
+          공덕
         </p>
         <div className="mt-4 border-t border-ink-3 pt-5">
           <div>
