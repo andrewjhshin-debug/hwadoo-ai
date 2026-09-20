@@ -5,6 +5,13 @@
 // · 그 후: 기록이 바뀔 때마다 조용히 계정으로 올린다 (0.8초 디바운스)
 // · 로그아웃: 못 올린 변화를 마저 올린 뒤, 계정에 모인 기록은 이 기기에서 비운다
 //   (로그인 전의 기록은 주인이 없으므로 그대로 둔다)
+//
+// 오르내리는 것은 둘이다 —
+//   store : 화두 서랍(참구 중인 것 · 회향한 것)
+//   me    : 법명과 얼굴
+// 법명은 장부와 따로 흐른다. 한 줄에 태웠더니 글 한 자 고칠 때마다
+// 이름까지 오갔고, 반대로 이름만 고친 날은 장부 잠금에 걸려 영영
+// 안 올라갔다. 폰에서 법명을 고쳤는데 노트북은 옛 이름이던 까닭이다.
 // ─────────────────────────────────────────────────────────────
 
 import {
@@ -38,6 +45,17 @@ import { resetMeditations } from "./meditation";
 import { isAdminAccount } from "./config";
 import { setMeritAccount, setOwner } from "./merit";
 import { setDailyAccount } from "./daily";
+import {
+  applyRemoteMe,
+  ME_EVENT,
+  mergeMe,
+  normalizeMe,
+  peekMe,
+  pickMe,
+  resetMe,
+  sameMe,
+  type Me,
+} from "./me";
 
 // Firestore는 undefined 값을 거부한다 — JSON 왕복으로 걷어낸다
 function clean<T>(value: T): T {
@@ -178,6 +196,12 @@ async function startSync(uid: string) {
   // (화면이 옛 기록을 쥔 채로 있으면 다음 저장 때 합친 것이 되돌아간다)
   applyRemoteStore(merged);
 
+  // 1-2) 법명과 얼굴 — 앞사람의 브라우저면 이 기기의 이름은 물려받지 않는다
+  if (!mine) resetMe();
+  const mergedMe: Me =
+    mergeMe(peekMe(), normalizeMe(snap.exists() ? snap.data().me : null)) ?? pickMe();
+  applyRemoteMe(mergedMe);
+
   // 2) 합친 기록과 이후의 변화를 계정으로 (디바운스)
   //    — 다른 기기에서 온 변화(remote)는 다시 올리지 않는다 (메아리 방지)
   //    — 내 변화가 아직 서버에 반영되기 전에는 원격 갱신을 막는다 (경쟁 상태 방지)
@@ -230,9 +254,64 @@ async function startSync(uid: string) {
     return inFlight;
   };
 
+  // 2-2) 법명은 제 발로 오간다 — 장부의 잠금(pendingLocal)에 걸리지 않는다
+  let meTimer: ReturnType<typeof setTimeout> | null = null;
+  let meRetry: ReturnType<typeof setTimeout> | null = null;
+  let pendingMe = false;
+  let meInFlight: Promise<void> | null = null;
+  let meSeq = 0;
+
+  const pushMe = (me: Me): Promise<void> => {
+    if (meTimer) {
+      clearTimeout(meTimer);
+      meTimer = null;
+    }
+    if (meRetry) {
+      clearTimeout(meRetry);
+      meRetry = null;
+    }
+    pendingMe = true;
+    const seq = ++meSeq;
+    meInFlight = (async () => {
+      let ok = false;
+      try {
+        await setDoc(ref, { me: clean(me), updatedAt: serverTimestamp() }, { merge: true });
+        ok = true;
+      } catch {
+        /* 실패 — 아래에서 5초 뒤 다시 올린다 */
+      }
+      if (seq !== meSeq) return;
+      meInFlight = null;
+      if (ok) {
+        pendingMe = false;
+      } else if (gen === generation) {
+        meRetry = setTimeout(() => {
+          meRetry = null;
+          const now = peekMe();
+          if (now && seq === meSeq && gen === generation) void pushMe(now);
+        }, 5000);
+      }
+    })();
+    return meInFlight;
+  };
+
+  const meHandler = (e: Event) => {
+    if ((e as CustomEvent).detail?.source === "remote") return;
+    pendingMe = true;
+    if (meTimer) clearTimeout(meTimer);
+    meTimer = setTimeout(() => {
+      meTimer = null;
+      const now = peekMe();
+      if (now) void pushMe(now);
+      else pendingMe = false;
+    }, 600);
+  };
+  window.addEventListener(ME_EVENT, meHandler);
+
   // 합친 기록을 계정에 올린다 — 기다리지 않는다
   // (연결이 없으면 Firestore 가 쥐고 있다가 이어질 때 올린다)
   void push(merged);
+  void pushMe(mergedMe);
 
   const handler = (e: Event) => {
     const source = (e as CustomEvent).detail?.source;
@@ -250,8 +329,25 @@ async function startSync(uid: string) {
   //    (폰에서 화두를 받으면, PC 화면에도 곧바로 나타난다)
   const unsubscribeSnapshot = onSnapshot(ref, (snap) => {
     if (snap.metadata.hasPendingWrites) return; // 내가 방금 쓴 것의 메아리
+    const data = snap.exists() ? snap.data() : null;
+
+    // 법명 — 장부보다 먼저, 그리고 장부의 잠금과 상관없이.
+    // (폰에서 이름만 고친 날에도 이 문이 열려 있어야 노트북이 알아챈다)
+    if (!pendingMe) {
+      const remoteMe = normalizeMe(data?.me);
+      if (remoteMe) {
+        const here = peekMe();
+        const win = mergeMe(here, remoteMe);
+        if (win) {
+          if (!sameMe(here, win)) applyRemoteMe(win);
+          // 이 기기에만 있던 이름이 이겼다면 계정에도 적어 둔다
+          if (!sameMe(win, remoteMe)) void pushMe(win);
+        }
+      }
+    }
+
     if (pendingLocal) return; // 내 변화가 아직 안 올라감 — 덮어쓰지 않는다
-    const remote = normalize(snap.exists() ? (snap.data().store as Store) : null);
+    const remote = normalize(data ? (data.store as Store) : null);
     if (!remote) return;
     const local = loadStore();
     if (local.ownerUid !== undefined && local.ownerUid !== uid) return; // 남의 기록
@@ -266,13 +362,21 @@ async function startSync(uid: string) {
   stopPush = () => {
     if (timer) clearTimeout(timer);
     if (retryTimer) clearTimeout(retryTimer);
+    if (meTimer) clearTimeout(meTimer);
+    if (meRetry) clearTimeout(meRetry);
     window.removeEventListener("hwadoo-store-updated", handler);
+    window.removeEventListener(ME_EVENT, meHandler);
     unsubscribeSnapshot();
   };
   flushPush = async () => {
     // 디바운스 대기 중이든 재시도 대기 중이든 — 못 올라간 변화가 있으면 지금 올린다
     if (pendingLocal) push(loadStore());
+    if (pendingMe) {
+      const now = peekMe();
+      if (now) pushMe(now);
+    }
     if (inFlight) await inFlight;
+    if (meInFlight) await meInFlight;
   };
 }
 
@@ -335,6 +439,7 @@ export async function logout() {
     clearStore();
     resetVisits(); // 발자국 장부도 함께 — 다음 사람에게 넘어가지 않도록
     resetMeditations(); // 명상 장부도 함께
+    resetMe(); // 법명도 — 계정에 올려 뒀으니 다시 들어오면 그대로 돌아온다
   }
   // 공덕·하루 장부는 **지우지 않는다.** 계정 칸에 그대로 두고 바탕 칸으로
   // 돌아설 뿐이다 — 다시 들어오면 제 것이 그대로 있다.
