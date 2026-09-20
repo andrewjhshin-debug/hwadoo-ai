@@ -60,7 +60,6 @@ import {
   nextRank,
   rankOf,
   ROUND,
-  SOURCE_LABEL,
   todayRoom,
   type Lamp,
   type MeritLedger,
@@ -116,6 +115,15 @@ import {
   Yeomju,
   YeonkkotGold,
 } from "@/components/icons";
+
+// 공덕 점수보다 먼저 보여 줄 수행의 흔적. 0번도 숨기지 않는다 —
+// "무엇을 몇 번 했나"가 내 도량에서 바로 보여야 다음 한 번을 시작한다.
+const PRACTICE_HITS: { source: MeritSource; label: string }[] = [
+  { source: "moktak", label: "목탁" },
+  { source: "bead", label: "염주" },
+  { source: "hasim", label: "하심" },
+  { source: "hwadu", label: "화두" },
+];
 
 // 접어 두는 묶음 — 도량 아래쪽 살림살이는 찾을 때만 편다.
 // 지우는 게 아니라 접는다. 필요한 사람에게는 그대로 다 있다.
@@ -900,6 +908,22 @@ export default function SettingsPage() {
               </span>
             </p>
 
+            {/* 무엇을 몇 번 — 공덕이라는 점수보다 수행의 흔적을 먼저 읽는다. */}
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {PRACTICE_HITS.map(({ source, label }) => (
+                <div
+                  key={source}
+                  className="rounded-[10px] border border-ink-3 bg-ink-2/40 px-3 py-2.5"
+                >
+                  <p className="text-[10.5px] tracking-[0.14em] text-hanji-faint">{label}</p>
+                  <p className="mt-1 font-serif text-[19px] leading-none tabular-nums text-hanji">
+                    {(merit.hits?.[source] ?? 0).toLocaleString("ko-KR")}
+                    <span className="ml-0.5 font-sans text-[10px] text-hanji-faint">번</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+
             {/* ① 오늘 — 이 자리의 자는 「오늘 얼마나 했나」 하나뿐이다 */}
             <div className="mt-4 flex items-baseline justify-between text-[11.5px]">
               <span className="text-hanji-faint">오늘</span>
@@ -921,35 +945,6 @@ export default function SettingsPage() {
                 : `갈래를 고루 돌면 오늘 몫이 찹니다 — 다 채우면 연꽃 한 송이.`}
             </p>
           </div>
-
-          {/* 무엇을, 몇 번 —
-              형: 「공덕은 횟수로 치자. 목탁 몇 번 염주 몇 번 이렇게.
-                   목탁 공덕 이렇게 말고 그냥 목탁 염주 인연 이렇게 하고」
-
-              맞다. 여기서 알고 싶은 건 「내가 무엇을 얼마나 했나」지
-              그게 몇 점이었나가 아니다. 점수는 위의 큰 숫자 하나로 족하다.
-              **횟수만** 적는다. 옛 장부는 횟수를 안 세었으니, 세기 시작한
-              뒤(hitsFrom === "처음부터")에만 이 줄이 뜬다. */}
-          {merit.hitsFrom === "처음부터" &&
-            Object.values(merit.hits ?? {}).some((n) => (n ?? 0) > 0) && (
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {(Object.keys(merit.hits ?? {}) as MeritSource[])
-                  .filter((k) => (merit.hits?.[k] ?? 0) > 0)
-                  .sort((x, y) => (merit.hits?.[y] ?? 0) - (merit.hits?.[x] ?? 0))
-                  .map((k) => (
-                    <span
-                      key={k}
-                      className="rounded-full border border-ink-3 px-2.5 py-1 text-[11px] text-hanji-dim"
-                    >
-                      {SOURCE_LABEL[k]}{" "}
-                      <span className="text-hanji">
-                        {(merit.hits?.[k] ?? 0).toLocaleString("ko-KR")}
-                      </span>
-                      <span className="text-hanji-faint">번</span>
-                    </span>
-                  ))}
-              </div>
-            )}
 
           {/* 공덕을 연꽃으로 — 따로 있던 판을 여기로 들였다.
               같은 숫자를 두 곳에서 두 번 말하고 있었다. */}
