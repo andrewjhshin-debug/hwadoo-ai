@@ -218,8 +218,6 @@ function keepVotes(uid: string | null | undefined, v: Record<string, VoteDir>) {
   }
 }
 
-const GENDER_FILTER_KEY = "hwadoo-gathering-gender-filter";
-
 type Props = {
   initialTemple?: string;
   initialDate?: string; // "YYYY-MM-DD"
@@ -268,21 +266,6 @@ export default function GatheringBoard({
   const [categoryFilter, setCategoryFilter] = useState<
     "all" | GatheringCategory
   >("all");
-
-  // 음양 보기 필터 — 음(여)만·양(남)만 골라 보기. 기기에 기억해 둔다.
-  const [genderFilter, setGenderFilter] = useState<"all" | "m" | "f">("all");
-  useEffect(() => {
-    const saved = window.localStorage.getItem(GENDER_FILTER_KEY);
-    if (saved === "m" || saved === "f") setGenderFilter(saved);
-  }, []);
-  const setFilter = (next: "all" | "m" | "f") => {
-    setGenderFilter(next);
-    try {
-      window.localStorage.setItem(GENDER_FILTER_KEY, next);
-    } catch {
-      // 못 적어도 필터는 이 화면에서 그대로 작동한다
-    }
-  };
 
   // ⋯ 메뉴 — 고치기·내리기
   const [menuOpen, setMenuOpen] = useState(false);
@@ -483,10 +466,9 @@ export default function GatheringBoard({
   // 글쓰기 자격 — 로그인 + 1회향 (글·댓글 공통)
   const qualified = !!user && returnedCount >= 1;
 
-  // 지금 무언가 거르고 있는가 — 「없다」와 「걸러서 안 보인다」를 가르는 표
-  const filtering = genderFilter !== "all" || categoryFilter !== "all";
+  // 갈래를 고른 경우에만 「없다」와 「걸러서 안 보인다」를 가른다.
+  const filtering = categoryFilter !== "all";
   const clearFilters = () => {
-    setGenderFilter("all");
     setCategoryFilter("all");
   };
 
@@ -497,14 +479,13 @@ export default function GatheringBoard({
         // 도배되면 갓 온 사람에게 버려진 판으로 보인다 (댓글·자리는 남아
         // 있으니, 링크로 직접 열면 여전히 닿는다)
         !p.deleted &&
-        (genderFilter === "all" || p.gender === genderFilter) &&
         (categoryFilter === "all" || (p.category ?? "together") === categoryFilter)
     );
     list.sort(
       (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
     );
     return list;
-  }, [posts, genderFilter, categoryFilter]);
+  }, [posts, categoryFilter]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -1407,39 +1388,7 @@ export default function GatheringBoard({
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-2 px-4 pb-2 sm:px-0">
-        {/* 보기 필터 — 음(여)만·양(남)만 골라 보기, 작게 */}
-        <div className="flex items-center gap-3 text-[11px] tracking-wide text-hanji-faint">
-          <label className="flex cursor-pointer items-center gap-1.5">
-            <input
-              type="checkbox"
-              checked={genderFilter === "f"}
-              onChange={(e) => setFilter(e.target.checked ? "f" : "all")}
-              className="h-3.5 w-3.5 accent-[#D9B45B]"
-            />
-            음만 보기
-          </label>
-          <label className="flex cursor-pointer items-center gap-1.5">
-            <input
-              type="checkbox"
-              checked={genderFilter === "m"}
-              onChange={(e) => setFilter(e.target.checked ? "m" : "all")}
-              className="h-3.5 w-3.5 accent-[#D9B45B]"
-            />
-            양만 보기
-          </label>
-          {/* 거르고 있으면 눈에 걸리게 — 켜 둔 줄 모르고 「글이 없어졌다」고
-              여기는 일이 있었다. 누르면 한 번에 풀린다. */}
-          {filtering && (
-            <button
-              onClick={clearFilters}
-              className="ml-1 shrink-0 rounded-full border border-gold/55 bg-gold/15 px-2.5 py-1 text-[11px] text-gold transition-colors hover:bg-gold/25"
-            >
-              풀기 ✕
-            </button>
-          )}
-        </div>
-
+      <div className="flex items-center justify-end gap-2 px-4 pb-2 sm:px-0">
         {/* 서랍 사본으로 버티는 중 — 이 말이 없으면 「왜 새 글이 없지」 한다 */}
         {loadError && !!posts?.length && (
           <p className="mt-2 flex items-center gap-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
@@ -1503,9 +1452,7 @@ export default function GatheringBoard({
             글을 살펴보는 중…
           </li>
         ) : sorted.length === 0 && filtering ? (
-          /* ★ 거른 탓에 안 보이는 것을 「없다」고 말하면 안 된다.
-              「음만 보기」를 켜 둔 채 「아직 아무도 없네요」를 보고
-              **글이 지워진 줄 알았다.** 있는 것을 없다고 한 셈이다. */
+          /* ★ 갈래를 고른 탓에 안 보이는 것을 「없다」고 말하면 안 된다. */
           <li className="flex flex-col items-center gap-3 px-4 py-10">
             <p className="break-keep text-center text-[13.5px] leading-7 text-hanji-dim">
               거른 조건에 맞는 글이 없습니다.
