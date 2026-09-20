@@ -19,14 +19,7 @@
 import { useEffect, useRef, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import {
-  fetchRank,
-  fetchSutraRank,
-  pushMyRank,
-  rankDay,
-  type RankBoard,
-  type SutraBoard,
-} from "@/lib/rank";
+import { fetchRank, pushMyRank, rankDay, type RankBoard } from "@/lib/rank";
 import {
   nextRealm,
   realmOf,
@@ -37,14 +30,8 @@ import {
 import { loadMerit, rankByNeed } from "@/lib/merit";
 import { loadStore } from "@/lib/store";
 
-type Tab = "merit" | "sutra";
-
 /** 두 판이 같은 줄로 그려지게 눌러 담은 한 자리 */
 type Seat = { rank: number; name: string; me: boolean; text: string };
-
-const TABS: { id: Tab; label: string }[] = [
-  { id: "merit", label: "오늘의 정진" },
-];
 
 /** 위 세 자리에 놓는 한 글자 */
 const MARK = ["一", "二", "三"];
@@ -64,19 +51,9 @@ const TONE: Record<RealmColor, string> = {
 
 const won = (n: number) => n.toLocaleString("ko-KR");
 
-function clock(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return m > 0 ? `${m}분 ${s}초` : `${s}초`;
-}
-
 export default function RankPage() {
   const [ready, setReady] = useState(false);
-  const [tab, setTab] = useState<Tab>("merit");
-  // 1 = 어제, 0 = 오늘
-  const [back, setBack] = useState(1);
   const [merit, setMerit] = useState<RankBoard | null>(null);
-  const [sutra, setSutra] = useState<SutraBoard | null>(null);
   const [busy, setBusy] = useState(true);
   // undefined = 로그인 여부를 아직 모른다. 정해지기 전에 물으면
   // 토큰이 안 실려 '내 자리'가 빈 채로 온다.
@@ -106,13 +83,8 @@ export default function RankPage() {
         await pushMyRank();
       }
       if (!alive) return;
-      if (tab === "merit") {
-        const b = await fetchRank(rankDay(back));
-        if (alive) setMerit(b);
-      } else {
-        const b = await fetchSutraRank();
-        if (alive) setSutra(b);
-      }
+      const b = await fetchRank(rankDay(1));
+      if (alive) setMerit(b);
       if (alive) setBusy(false);
     };
 
@@ -120,35 +92,27 @@ export default function RankPage() {
     return () => {
       alive = false;
     };
-  }, [who, tab, back]);
+  }, [who]);
 
   if (!ready) return <div className="h-[70vh]" aria-hidden />;
 
   // 두 판을 한 꼴로 눌러 둔다 — 그려 내는 자리에서 갈래를 다시 따지지 않게
-  const board = tab === "merit" ? merit : sutra;
-  const rows: Seat[] =
-    tab === "merit"
-      ? (merit?.rows ?? []).map((r) => ({
-          rank: r.rank,
-          name: r.name,
-          me: r.me,
-          text: won(r.merit),
-        }))
-      : (sutra?.rows ?? []).map((r) => ({
-          rank: r.rank,
-          name: r.name,
-          me: r.me,
-          text: clock(r.seconds),
-        }));
+  const board = merit;
+  const rows: Seat[] = (merit?.rows ?? []).map((r) => ({
+    rank: r.rank,
+    name: r.name,
+    me: r.me,
+    text: won(r.merit),
+  }));
 
-  const my = tab === "merit" ? merit?.mine : sutra?.mine;
+  const my = merit?.mine;
   const mine: Seat | null = !my
     ? null
     : {
         rank: my.rank,
         name: my.name,
         me: true,
-        text: "merit" in my ? won(my.merit) : clock(my.seconds),
+        text: won(my.merit),
       };
   const inList = rows.some((r) => r.me);
 
@@ -166,11 +130,7 @@ export default function RankPage() {
 
   const say = mine
     ? `${won(people)}명 가운데 내 자리`
-    : tab === "sutra"
-      ? "반야심경을 가장 빨리 외운 백 사람"
-      : back === 1
-        ? "어제 가장 많이 정진한 백 사람"
-        : "오늘 가장 많이 정진한 백 사람";
+    : "정진한 사람들이 모이는 자리";
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 pb-16 pt-5 sm:px-6 md:pt-9">
@@ -187,40 +147,6 @@ export default function RankPage() {
           </p>
           <p className="mt-2 break-keep text-[12.5px] leading-5 text-hanji-faint">{say}</p>
 
-          {/* 알약 세그먼트 — 고른 쪽만 한지로 채운다 */}
-          <div className="mt-5 inline-flex rounded-full border border-ink-3 bg-ink-2/50 p-1">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTab(t.id)}
-                aria-pressed={tab === t.id}
-                className={`rounded-full px-5 py-2 text-[11.5px] tracking-widest transition-colors ${
-                  tab === t.id ? "bg-hanji text-ink" : "text-hanji-faint hover:text-hanji-dim"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          {tab === "merit" && (
-            <div className="mt-3 flex items-center justify-center gap-3 text-[11.5px] md:justify-start">
-              {[1, 0].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setBack(n)}
-                  aria-pressed={back === n}
-                  className={`transition-colors ${
-                    back === n ? "text-gold" : "text-hanji-faint hover:text-hanji-dim"
-                  }`}
-                >
-                  {n === 1 ? "어제" : "오늘"}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* 내 도(道) — 오른쪽의 넓은 한 줄 카드 */}
@@ -285,7 +211,6 @@ export default function RankPage() {
         <ul className="flex flex-col gap-1.5">
           {REALMS.map((r) => {
             const on = myRealm.id === r.id;
-            const got = merit0 >= r.need;
             const rk = rankByNeed(r.need);
             return (
               <li
@@ -293,9 +218,7 @@ export default function RankPage() {
                 className={`flex items-center gap-3 rounded-[12px] border px-3 py-2.5 transition-colors ${
                   on
                     ? "border-gold/55 bg-gold/10"
-                    : got
-                      ? "border-ink-3 bg-ink-2/40"
-                      : "border-ink-3/60 bg-transparent"
+                    : "border-ink-3 bg-ink-2/40"
                 }`}
               >
                 {/* 한자 도장 */}
@@ -303,9 +226,7 @@ export default function RankPage() {
                   className={`grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full border font-serif text-[13px] leading-none ${
                     on
                       ? "border-gold/60 text-gold"
-                      : got
-                        ? "border-ink-3 text-hanji-dim"
-                        : "border-ink-3/60 text-hanji-faint/50"
+                      : "border-ink-3 text-hanji-dim"
                   }`}
                 >
                   {rk.hanja}
@@ -314,16 +235,14 @@ export default function RankPage() {
                   className={`min-w-0 flex-1 truncate text-[13.5px] ${
                     on
                       ? "font-medium text-gold"
-                      : got
-                        ? "text-hanji"
-                        : "text-hanji-faint/60"
+                      : "text-hanji"
                   }`}
                 >
                   {rk.name}
                 </span>
                 <span
                   className={`shrink-0 text-[12.5px] tabular-nums ${
-                    on ? "text-gold" : got ? "text-hanji-dim" : "text-hanji-faint/55"
+                    on ? "text-gold" : "text-hanji-dim"
                   }`}
                 >
                   {r.need === 0 ? "시작" : won(r.need)}
@@ -332,11 +251,6 @@ export default function RankPage() {
             );
           })}
         </ul>
-        {/* 지금 자리가 무슨 뜻인지 한 줄 — 사다리만 보여 주면
-            숫자놀이가 된다 */}
-        <p className="px-1 pt-3 text-[11.5px] leading-5 text-hanji-faint">
-          {rankByNeed(myRealm.need).say}
-        </p>
       </div>
 
       <div className="mt-8 w-full">
@@ -347,19 +261,14 @@ export default function RankPage() {
             판을 여는 데 실패했어요. 잠시 뒤에 다시 열어 주세요.
           </p>
         ) : rows.length === 0 ? (
-          <p className="mt-10 text-center text-[13px] text-hanji-faint">
-            {tab === "sutra" ? "아직 외운 이가 없어요." : "아직 오른 이가 없어요."}
-          </p>
+          <p className="mt-10 text-center text-[13px] text-hanji-faint">아직 오른 이가 없어요.</p>
         ) : (
           <>
-            <div className="flex items-center justify-between px-1 pb-2 text-[10.5px] tracking-[0.25em] text-hanji-faint">
-              <span>법명</span>
-              <span>{tab === "merit" ? "공덕" : "시간"}</span>
-            </div>
+            {rows.some((r) => !r.me) && <div className="flex items-center justify-between px-1 pb-2 text-[10.5px] tracking-[0.25em] text-hanji-faint"><span>정진</span><span>공덕</span></div>}
 
             {/* 위 셋 — 금으로 크게 */}
             <ul className="rise flex flex-col gap-2.5">
-              {rows.slice(0, 3).map((r, i) => (
+              {rows.filter((r) => !r.me).slice(0, 3).map((r, i) => (
                 <li
                   key={r.rank}
                   className={`flex items-center gap-4 rounded-[14px] border bg-gold/10 px-5 py-4 ${
@@ -381,9 +290,9 @@ export default function RankPage() {
             </ul>
 
             {/* 나머지 — 담백한 줄 */}
-            {rows.length > 3 && (
+            {rows.filter((r) => !r.me).length > 3 && (
               <ul className="rise rise-d1 mt-4 flex flex-col">
-                {rows.slice(3).map((r) => (
+                {rows.filter((r) => !r.me).slice(3).map((r) => (
                   <li
                     key={r.rank}
                     className="flex items-center gap-3 border-b border-ink-3 px-1 py-3 last:border-b-0"
@@ -421,9 +330,7 @@ export default function RankPage() {
 
             {!mine && (
               <p className="mt-6 text-center text-[11.5px] leading-5 text-hanji-faint">
-                {tab === "sutra"
-                  ? "반야심경을 도움 없이 외워 치면 이 판에 올라요."
-                  : "오늘 정진하면 이 판에 올라요."}
+                정진하면 이 판에 올라요.
               </p>
             )}
           </>
