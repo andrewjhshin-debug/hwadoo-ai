@@ -897,8 +897,10 @@ export default function SettingsPage() {
               </span>
             </p>
 
-            {/* 무엇을 몇 번 — 공덕이라는 점수보다 수행의 흔적을 먼저 읽는다. */}
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <p className="mt-5 text-[11px] tracking-[0.24em] text-hanji-faint">
+              수행별 횟수
+            </p>
+            <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {PRACTICE_HITS.map(({ source, label }) => (
                 <div
                   key={source}
@@ -907,7 +909,7 @@ export default function SettingsPage() {
                   <p className="text-[10.5px] tracking-[0.14em] text-hanji-faint">{label}</p>
                   <p className="mt-1 font-serif text-[19px] leading-none tabular-nums text-hanji">
                     {(merit.hits?.[source] ?? 0).toLocaleString("ko-KR")}
-                    <span className="ml-0.5 font-sans text-[10px] text-hanji-faint">번</span>
+                    <span className="ml-0.5 font-sans text-[10px] text-hanji-faint">회</span>
                   </p>
                 </div>
               ))}
