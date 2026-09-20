@@ -516,7 +516,7 @@ export default function Sidebar() {
             {/* 폰 탭은 보리수 잎인데 여기만 연꽃이었다 — 같은 「뜰」이
                 두 그림이면 같은 곳으로 안 읽힌다 */}
             {/* 형: 「그냥 노란 버전은 뜰 로고로 쓰고」 */}
-            <YeonMun className="h-[28px] w-[28px]" stroke="#D9B45B" />
+            <YeonMun className="h-[34px] w-[34px]" stroke="#D9B45B" />
             {!slim && "뜰"}
           </Link>
 
