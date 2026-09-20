@@ -106,15 +106,18 @@ export function LotusMark({ className = "w-5 h-5", stroke = "currentColor" }: Ic
 //   꽃잎 다섯(가운데 하나 · 바깥 둘 · 잎 둘) + 금빛 꽃술.
 //   분홍은 이 도량에서 여기만 쓴다 — 온통 금인 머리띠에서 혼자 눈에 걸리게.
 //
-// 연꽃 — 형이 보낸 문양의 **가운데 꽃만** 떼어 낸 것.
-// 분홍 꽃잎 · 초록 잎. 연꽃 공양 자리에 쓴다.
-// 빚는 자리: `_틀/yeonmun.mjs`
-export function Yeonkkot({ className = "w-5 h-5" }: IconProps) {
+// 연꽃 — 연꽃 공양과 머리띠에 쓰는 색칠 문장.
+// 24px에서도 읽히게 단순한 꽃잎 다섯·잎 둘만 남긴 PNG 원본이다.
+function LotusBloom({ className = "w-5 h-5" }: IconProps) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden>
-      <g transform="translate(32 33) scale(1.2) translate(-32 -33)"><path d="M32.00 45.00Q26.37 53.10 22.95 51.68Q22.95 51.68 16.70 51.18Q20.85 46.48 20.85 46.48Q22.33 43.08 32.00 45.00Z" fill="#4E9A56" stroke="#4E9A56" stroke-width="2.10" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q41.67 43.08 43.15 46.48Q43.15 46.48 47.30 51.18Q41.05 51.68 41.05 51.68Q37.63 53.10 32.00 45.00Z" fill="#4E9A56" stroke="#4E9A56" stroke-width="2.10" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q23.85 47.71 21.29 44.80Q21.29 44.80 17.93 41.49Q22.45 40.15 22.45 40.15Q26.08 38.78 32.00 45.00Z" fill="#E682AC" stroke="#C2537F" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q37.92 38.78 41.55 40.15Q41.55 40.15 46.07 41.49Q42.71 44.80 42.71 44.80Q40.15 47.71 32.00 45.00Z" fill="#E682AC" stroke="#C2537F" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q22.08 41.58 21.52 36.88Q21.52 36.88 20.43 31.21Q25.82 33.27 25.82 33.27Q30.35 34.63 32.00 45.00Z" fill="#E682AC" stroke="#C2537F" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q33.65 34.63 38.18 33.27Q38.18 33.27 43.57 31.21Q42.48 36.88 42.48 36.88Q41.92 41.58 32.00 45.00Z" fill="#E682AC" stroke="#C2537F" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q25.80 34.50 28.78 29.88Q28.78 29.88 32.00 24.00Q35.22 29.88 35.22 29.88Q38.20 34.50 32.00 45.00Z" fill="#E682AC" stroke="#C2537F" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/><path d="M32.00 45.00Q28.60 38.25 30.23 35.28Q30.23 35.28 32.00 31.50Q33.77 35.28 33.77 35.28Q35.40 38.25 32.00 45.00Z" fill="none" stroke="#C2537F" stroke-width="1.64" stroke-linejoin="round" stroke-linecap="round"/></g>
+      <image href="/brand/lotus-bloom-v1.png" width="64" height="64" />
     </svg>
   );
+}
+
+export function Yeonkkot({ className = "w-5 h-5" }: IconProps) {
+  return <LotusBloom className={className} />;
 }
 
 export function YeonMun({ className = "w-5 h-5", stroke = "#D9B45B" }: IconProps) {
@@ -506,29 +509,9 @@ export function Chotbul({ className = "w-5 h-5" }: IconProps) {
   );
 }
 
-// 금빛 연꽃 — 「연꽃 공양」.
-//
-// 분홍 연꽃(Yeonkkot)은 머리띠의 잔고 표식으로 남겨 둔다. 도량 메뉴에서는
-// 문 열여덟 개가 모두 금빛 선인데 여기만 분홍이라 광고처럼 튀었다.
-// 같은 꽃을 도량의 금빛으로 다시 그린다.
+// 연꽃 공양 — 머리띠와 같은 색칠 연꽃 문장으로 통일한다.
 export function YeonkkotGold({ className = "w-5 h-5" }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      {/* 잎 둘 */}
-      <path d="M4 15.4c2.4-.7 5-.2 7.4 1.5-2.3 1.7-5 2-7.4.9z" fill="#8A6B2E" />
-      <path d="M20 15.4c-2.4-.7-5-.2-7.4 1.5 2.3 1.7 5 2 7.4.9z" fill="#7A5D26" />
-      {/* 바깥 꽃잎 둘 */}
-      <path d="M8.8 14.3C6.5 12.3 5.4 10.1 5.3 8.1c2.3.5 3.9 1.9 4.9 4.2z" fill="#C9A455" />
-      <path d="M15.2 14.3c2.3-2 3.4-4.2 3.5-6.2-2.3.5-3.9 1.9-4.9 4.2z" fill="#B08A3C" />
-      {/* 가운데 꽃잎 */}
-      <path
-        d="M12 3.4c2.05 2.75 3.05 4.9 3.05 6.7 0 2.15-1.37 3.65-3.05 3.65S8.95 12.25 8.95 10.1c0-1.8 1-3.95 3.05-6.7z"
-        fill="#EBCE86"
-      />
-      {/* 꽃술 */}
-      <ellipse cx="12" cy="13.3" rx="2" ry="1.25" fill="#FFF3CF" />
-    </svg>
-  );
+  return <LotusBloom className={className} />;
 }
 
 // 보리수 잎(菩提樹葉) — 「뜰」.
