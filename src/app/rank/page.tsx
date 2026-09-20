@@ -174,57 +174,58 @@ export default function RankPage() {
         : "오늘 가장 많이 정진한 백 사람";
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
-      <p className="rise text-[12px] tracking-[0.35em] text-hanji-faint">精進 · 순위</p>
-      <p className="rise rise-d1 mt-1 font-serif text-[68px] font-light leading-none tabular-nums text-hanji">
-        {mine ? mine.rank : won(people)}
-        <span className="ml-1 align-middle text-[20px] text-hanji-faint">
-          {mine ? "등" : "명"}
-        </span>
-      </p>
-      <p className="rise rise-d1 mt-2.5 break-keep text-center text-[12.5px] leading-5 text-hanji-faint">
-        {say}
-      </p>
+    <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 pb-16 pt-5 sm:px-6 md:pt-9">
+      {/* 광고 시안처럼 위는 한 장의 가로판으로 읽힌다. 숫자·탭·내 자리를
+          세로로 길게 쌓지 않아 첫 화면에서 지금의 위치와 다음 걸음이 함께 보인다. */}
+      <div className="grid w-full gap-5 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] md:items-end md:gap-8">
+        <div className="rise text-center md:text-left">
+          <p className="text-[11px] tracking-[0.35em] text-hanji-faint">精進 · 순위</p>
+          <p className="mt-1 font-serif text-[52px] font-light leading-none tabular-nums text-hanji sm:text-[60px]">
+            {mine ? mine.rank : won(people)}
+            <span className="ml-1 align-middle text-[18px] text-hanji-faint">
+              {mine ? "등" : "명"}
+            </span>
+          </p>
+          <p className="mt-2 break-keep text-[12.5px] leading-5 text-hanji-faint">{say}</p>
 
-      {/* 알약 세그먼트 — 고른 쪽만 먹으로 채운다 */}
-      <div className="rise rise-d2 mt-7 inline-flex rounded-full border border-ink-3 bg-ink-2/50 p-1">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            aria-pressed={tab === t.id}
-            className={`rounded-full px-5 py-2 text-[11.5px] tracking-widest transition-colors ${
-              tab === t.id ? "bg-hanji text-ink" : "text-hanji-faint hover:text-hanji-dim"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+          {/* 알약 세그먼트 — 고른 쪽만 한지로 채운다 */}
+          <div className="mt-5 inline-flex rounded-full border border-ink-3 bg-ink-2/50 p-1">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                aria-pressed={tab === t.id}
+                className={`rounded-full px-5 py-2 text-[11.5px] tracking-widest transition-colors ${
+                  tab === t.id ? "bg-hanji text-ink" : "text-hanji-faint hover:text-hanji-dim"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
 
-      {/* 어제 · 오늘 */}
-      {tab === "merit" && (
-        <div className="rise rise-d2 mt-4 flex items-center gap-3 text-[11.5px]">
-          {[1, 0].map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => setBack(n)}
-              aria-pressed={back === n}
-              className={`transition-colors ${
-                back === n ? "text-gold" : "text-hanji-faint hover:text-hanji-dim"
-              }`}
-            >
-              {n === 1 ? "어제" : "오늘"}
-            </button>
-          ))}
+          {tab === "merit" && (
+            <div className="mt-3 flex items-center justify-center gap-3 text-[11.5px] md:justify-start">
+              {[1, 0].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setBack(n)}
+                  aria-pressed={back === n}
+                  className={`transition-colors ${
+                    back === n ? "text-gold" : "text-hanji-faint hover:text-hanji-dim"
+                  }`}
+                >
+                  {n === 1 ? "어제" : "오늘"}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      )}
 
-      {/* 내 도(道) — 등수보다 이 자리가 먼저 눈에 든다 */}
-      {true && (
-        <div className="rise rise-d3 mt-7 w-full">
+        {/* 내 도(道) — 오른쪽의 넓은 한 줄 카드 */}
+        <div className="rise rise-d2 w-full">
           <div className="flex items-center gap-4 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4">
             <span
               className={`grid h-12 w-12 shrink-0 place-items-center rounded-full font-serif text-[24px] leading-none ${
@@ -264,7 +265,7 @@ export default function RankPage() {
             )}
           </p>
         </div>
-      )}
+      </div>
 
             {/* 자리 사다리 — **계급도를 다 편다.**
           형: 「정진 랭킹 디자인 이거 참고해서 다시 해. 계급도를 다
@@ -278,7 +279,7 @@ export default function RankPage() {
           문턱은 REALMS 가 쥐고 이름만 자리에서 가져온다(rankByNeed).
           육도는 오르는 계단이 아니라 벗어나야 할 굴레라 등급표로
           쓰지 않는다 — 숫자만 빌린다. */}
-      <div className="rise mb-6 rounded-[16px] border border-ink-3 bg-ink-2/50 px-3 py-3.5">
+      <div className="rise rise-d3 mb-6 mt-6 w-full rounded-[16px] border border-ink-3 bg-ink-2/50 px-3 py-3.5">
         <p className="px-1 pb-3 text-[10.5px] tracking-[0.25em] text-hanji-faint">
           位 · 공덕이 곧 자리
         </p>
