@@ -35,7 +35,15 @@ import { adminApp } from "@/lib/firebaseAdmin";
 import { FIRST_GRANT, isAdminAccount } from "@/lib/config";
 // 치수는 candleSpec 에서 — @/lib/candle 을 물면 서버에서
 // 브라우저용 Firebase(initializeApp)가 깨어난다
-import { BURN_DAYS, NAME_MAX, WISH_MAX, WISHES } from "@/lib/candleSpec";
+import {
+  NAME_MAX,
+  PRIVATE_BURN_DAYS,
+  PRIVATE_CANDLE_PRICE,
+  PUBLIC_BURN_DAYS,
+  PUBLIC_CANDLE_PRICE,
+  WISH_MAX,
+  WISHES,
+} from "@/lib/candleSpec";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -92,13 +100,15 @@ export async function POST(req: Request) {
   // 규칙이 재던 자리를 그대로 여기서 잰다(이 길은 규칙을 지나치므로).
   const forName = str(body.forName).slice(0, NAME_MAX);
   const wish = str(body.wish).slice(0, WISH_MAX);
-  const born = (str(body.born).match(/\d{4}/)?.[0] ?? "").slice(0, 4);
-  const kind = str(body.kind);
+  const kind = str(body.kind) || "peace";
+  const publicCandle = body.visibility === "public";
+  const lotusCost = publicCandle ? PUBLIC_CANDLE_PRICE : PRIVATE_CANDLE_PRICE;
+  const burnDays = publicCandle ? PUBLIC_BURN_DAYS : PRIVATE_BURN_DAYS;
   const by = str(body.by).slice(0, BY_MAX);
   const byHanjaRaw = str(body.byHanja).slice(0, 4);
   const byHanja = byHanjaRaw || null;
 
-  if (!forName || !wish) return Response.json({ error: "bad-wish" }, { status: 400 });
+  if (!wish) return Response.json({ error: "bad-wish" }, { status: 400 });
   if (!KINDS.has(kind)) return Response.json({ error: "bad-kind" }, { status: 400 });
 
   // 같은 초를 두 번 세우지 않는다.
@@ -131,11 +141,12 @@ export async function POST(req: Request) {
           // 브라우저는 이걸 setDoc → updateDoc 두 걸음으로 했다. 여기서는
           // 만들면서 바로 한 송이를 뺀 값으로 적는다 — 한 걸음이다.
           // (문서가 이미 있으면 이 가지로 안 오니 두 번 받을 수 없다)
-          tx.set(wallet, { lotus: FIRST_GRANT - 1 });
+          if (FIRST_GRANT < lotusCost) return { ok: false as const, again: false };
+          tx.set(wallet, { lotus: FIRST_GRANT - lotusCost });
         } else {
           const n = snap.data()?.lotus as unknown;
-          if (typeof n !== "number" || n < 1) return { ok: false as const, again: false };
-          tx.update(wallet, { lotus: FieldValue.increment(-1) });
+          if (typeof n !== "number" || n < lotusCost) return { ok: false as const, again: false };
+          tx.update(wallet, { lotus: FieldValue.increment(-lotusCost) });
         }
       }
       tx.set(candle, {
@@ -143,13 +154,14 @@ export async function POST(req: Request) {
         uid,
         by: by || "이름 없는 이",
         byHanja,
-        forName,
-        born,
+        forName: forName || "이름 없는 기원",
+        born: "",
         kind,
         wish,
-        hapjang: 0,
+        visibility: publicCandle ? "public" : "private",
+        lotusCost,
         // 서버 시계로 잰다 — 기기 시계가 어긋나도 사흘은 사흘이다
-        until: Date.now() + BURN_DAYS * DAY,
+        until: Date.now() + burnDays * DAY,
         createdAt: FieldValue.serverTimestamp(),
       });
       return { ok: true as const, again: false };

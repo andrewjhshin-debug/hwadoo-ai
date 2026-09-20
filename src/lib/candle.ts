@@ -24,28 +24,13 @@
 // 지우는 것은 올린 사람과 뒷방만 할 수 있다(firestore.rules).
 // ─────────────────────────────────────────────────────────────
 
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  increment,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, limit, orderBy, query, where } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { loadMe } from "./me";
 import { anonName } from "./anonName";
 import { loadStore } from "./store";
 import { rankHanjaFor } from "./badges";
-import { addMerit } from "./merit";
 import {
-  LIGHT_DAYS,
   NAME_MAX,
   PAGE,
   WISH_MAX,
@@ -57,7 +42,6 @@ import {
 export {
   CANDLE_PRICE,
   BURN_DAYS,
-  LIGHT_DAYS,
   NAME_MAX,
   WISH_MAX,
   PAGE,
@@ -78,14 +62,17 @@ export type Candle = {
    * 회향은 원래 이름만 적고 사라졌다. 「그래서 그게 어디 걸리는데?」라는
    * 물음에 답할 자리가 없었다. 그 자리가 여기다 — 같은 법당, 아래 줄.
    */
-  tier?: "candle" | "light";
+  tier?: "candle";
   by: string; // 올린 사람 법명
   byHanja?: string | null; // 올린 사람 걸음 한 글자
   forName: string; // 누구를 위해
-  born: string; // 태어난 해 — "" 이면 안 적은 것
+  born: string;
   kind: WishId;
-  wish: string; // 기원 한 줄
-  hapjang: number; // 같이 빌어 준 수
+  wish: string; // 사연
+  visibility?: "private" | "public";
+  lotusCost?: number;
+  /** 이전 초 문서 호환용 — 새 흐름에서는 쓰지 않는다. */
+  hapjang?: number;
   until: number; // 언제 꺼지는가 (밀리초)
   createdAt?: { seconds: number };
 };
@@ -115,9 +102,8 @@ export function daysLeft(c: Candle): number {
 export async function lightCandle(
   d: {
     forName: string;
-    born: string;
-    kind: WishId;
     wish: string;
+    visibility: "private" | "public";
   },
   /**
    * 이 초 한 자루의 표. 같은 표로 두 번 보내면 서버가 두 번째를
@@ -131,9 +117,7 @@ export async function lightCandle(
 
   const forName = d.forName.trim().slice(0, NAME_MAX);
   const wish = d.wish.trim().slice(0, WISH_MAX);
-  // 태어난 해 — 숫자 넷만. 「1984년생」이라 적어도 1984 만 남긴다.
-  const born = (d.born.match(/\d{4}/)?.[0] ?? "").slice(0, 4);
-  if (!forName || !wish) throw new Error("이름과 기원을 적어 주세요");
+  if (!wish) throw new Error("사연을 적어 주세요");
 
   const me = loadMe();
   const res = await fetch("/api/candle/light", {
@@ -144,9 +128,9 @@ export async function lightCandle(
     },
     body: JSON.stringify({
       forName,
-      born,
-      kind: d.kind,
+      kind: "peace",
       wish,
+      visibility: d.visibility,
       // 보이기용 — 서버가 길이만 깎아 그대로 적는다
       by: me?.name || anonName(),
       byHanja: rankHanjaFor(loadStore().history.length, u) ?? null,
@@ -165,40 +149,6 @@ export async function lightCandle(
 }
 
 /**
- * 회향의 등을 건다 — 공덕을 돌릴 때 settings 가 부른다.
- * 값은 안 든다(회향은 공짜다). 대신 이레만 탄다.
- * 실패해도 회향 자체는 이미 끝난 일이라 던지지 않고 삼킨다 —
- * 등을 못 걸었다고 돌린 공덕을 되돌릴 수는 없다.
- */
-export async function hangLight(forName: string): Promise<void> {
-  const u = auth.currentUser;
-  if (!u) return;
-  const name = forName.trim().slice(0, NAME_MAX);
-  if (!name) return;
-  const me = loadMe();
-  try {
-    await addDoc(collection(db, "candles"), {
-      tier: "light",
-      uid: u.uid,
-      by: me?.name || anonName(),
-      byHanja: rankHanjaFor(loadStore().history.length, u) ?? null,
-      forName: name,
-      born: "",
-      kind: "peace" as WishId,
-      wish: "",
-      hapjang: 0,
-      until: Date.now() + LIGHT_DAYS * DAY,
-      createdAt: serverTimestamp(),
-    });
-  } catch (e) {
-    // 등은 덤이라 회향 자체를 되돌리지는 않는다. 그래도 **아무 자국도
-    // 안 남기면 안 된다** — 규칙이 막혀 등이 한 번도 안 걸린 적이 있었는데
-    // 통째로 삼키느라 아무도 몰랐다.
-    console.warn("[candle] 회향 등을 걸지 못했습니다", e);
-  }
-}
-
-/**
  * 타고 있는 초들. 꺼진 것은 서버가 지우지 않는다 — 읽어 와서 걸러 낸다.
  * (하루 한 번 도는 청소기를 두느니, 목록이 한 번 더 세는 편이 싸다)
  */
@@ -207,11 +157,8 @@ export async function fetchCandles(): Promise<Candle[]> {
     query(collection(db, "candles"), orderBy("createdAt", "desc"), limit(PAGE * 2))
   );
   const all = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Candle, "id">) }));
-  return all.filter(burning).slice(0, PAGE);
+  return all.filter((c) => burning(c) && c.visibility === "public").slice(0, PAGE);
 }
-
-/** 초만 · 등만 갈라 본다 (tier 가 없는 옛 문서는 초로 친다) */
-export const isLight = (c: Candle) => c.tier === "light";
 
 /** 내가 올린 초 — 꺼진 것까지 다 보여 준다. 내 기록이니까. */
 export async function fetchMyCandles(): Promise<Candle[]> {
@@ -231,45 +178,4 @@ export async function fetchMyCandles(): Promise<Candle[]> {
  */
 export async function removeCandle(id: string): Promise<void> {
   await deleteDoc(doc(db, "candles", id));
-}
-
-/**
- * 같이 빌어 준다 — 남의 초에만. 내 초에 내가 손 모으는 건 셈이 아니다.
- * 돌려주는 값은 이번에 붙은 공덕(0 이면 오늘 몫을 다 쓴 것).
- *
- * 한 초에 한 번뿐이다. 없으면 같은 초를 스무 번 눌러 천장을 긁는다 —
- * 그건 비는 게 아니라 단추 누르기다. 장부는 이 브라우저에 적는다
- * (서버에 사람마다 표를 만들면 문서가 초 수 × 사람 수로 불어난다).
- */
-const PRAYED_KEY = "hwadu.candle.prayed.v1";
-
-function prayedSet(): Set<string> {
-  try {
-    const raw = window.localStorage.getItem(PRAYED_KEY);
-    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-/** 이 초에 이미 손을 모았는가 */
-export function alreadyPrayed(id: string): boolean {
-  if (typeof window === "undefined") return false;
-  return prayedSet().has(id);
-}
-
-export async function prayWith(c: Candle): Promise<number> {
-  const u = auth.currentUser;
-  if (!u || u.uid === c.uid) return 0;
-  if (alreadyPrayed(c.id)) return 0;
-  await updateDoc(doc(db, "candles", c.id), { hapjang: increment(1) });
-  try {
-    const set = prayedSet();
-    set.add(c.id);
-    // 꺼진 초까지 이고 갈 일은 없다 — 뒤에서부터 오백 개만 남긴다
-    window.localStorage.setItem(PRAYED_KEY, JSON.stringify([...set].slice(-500)));
-  } catch {
-    /* 서랍이 막혀 있어도 빈 일은 빈 일이다 */
-  }
-  return addMerit("candle").gained;
 }

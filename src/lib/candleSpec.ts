@@ -10,8 +10,19 @@
 // candle.ts 가 그대로 다시 내보내므로 부르던 쪽은 손댈 것이 없다.
 // ─────────────────────────────────────────────────────────────
 
-/** 초 한 자루의 값 — 연꽃 */
-export const CANDLE_PRICE = 1;
+/** 나만 보는 초 — 연꽃 한 송이, 사흘 */
+export const PRIVATE_CANDLE_PRICE = 1;
+export const PRIVATE_BURN_DAYS = 3;
+
+/** 모두에게 보이는 사연 초 — 연꽃 두 송이, 이레 */
+export const PUBLIC_CANDLE_PRICE = 2;
+export const PUBLIC_BURN_DAYS = 7;
+
+/** 공개 초에 연꽃 한 송이를 더하면 늘어나는 날 */
+export const EXTEND_DAYS = 1;
+
+/** 이전 호출부를 깨지 않도록 남긴 기본값 */
+export const CANDLE_PRICE = PRIVATE_CANDLE_PRICE;
 
 /**
  * 초가 며칠 타는가 — 사흘.
@@ -23,7 +34,7 @@ export const CANDLE_PRICE = 1;
  *
  * 사흘은 화두를 여는 데 걸리는 날과 같다. 이 도량의 한 호흡이다.
  */
-export const BURN_DAYS = 3;
+export const BURN_DAYS = PRIVATE_BURN_DAYS;
 /** 회향 등이 며칠 타는가 — 사흘. 초와 같이 간다(두 날수가 다르면 헷갈린다) */
 export const LIGHT_DAYS = 3;
 

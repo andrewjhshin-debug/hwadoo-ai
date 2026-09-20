@@ -528,7 +528,7 @@ export const LOTUS_ROUNDS = LOTUS_PRICE / ROUND;
 
 /** 지금 쓸 수 있는 공덕 — 쌓은 것에서 쓴 것을 뺀다 */
 export function meritBalance(l: MeritLedger = loadMerit()): number {
-  return Math.max(0, l.total - (l.spent ?? 0));
+  return Math.max(0, l.total);
 }
 
 /** 바꿀 수 있는 연꽃 수 */

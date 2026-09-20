@@ -19,7 +19,7 @@
 // ────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { LOTUS_PRICE, meritBalance, MERIT_EVENT } from "@/lib/merit";
+import { DAILY_TOTAL_CAP, MERIT_EVENT, todayRoom } from "@/lib/merit";
 
 export default function MeritBar() {
   const [bal, setBal] = useState<number | null>(null);
@@ -27,11 +27,11 @@ export default function MeritBar() {
   const last = useRef(0);
 
   const read = useCallback(() => {
-    const b = meritBalance();
+    const b = todayRoom().earned;
     // 한 송이가 여물었다 — 한 번 번쩍인다
     if (
       last.current &&
-      Math.floor(b / LOTUS_PRICE) > Math.floor(last.current / LOTUS_PRICE)
+      b >= DAILY_TOTAL_CAP && last.current < DAILY_TOTAL_CAP
     ) {
       setFlash(true);
       window.setTimeout(() => setFlash(false), 1200);
@@ -47,7 +47,7 @@ export default function MeritBar() {
   }, [read]);
 
   // 서버가 그린 첫 그림과 어긋나지 않게 — 읽기 전에는 빈 줄만
-  const pct = bal === null ? 0 : ((bal % LOTUS_PRICE) / LOTUS_PRICE) * 100;
+  const pct = bal === null ? 0 : (bal / DAILY_TOTAL_CAP) * 100;
 
   return (
     <div

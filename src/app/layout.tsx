@@ -7,6 +7,7 @@ import MobileTabBar from "@/components/MobileTabBar";
 import DoryangMenu from "@/components/DoryangMenu";
 import MeritBar from "@/components/MeritBar";
 import MeritToast from "@/components/MeritToast";
+import DailyLotusReward from "@/components/DailyLotusReward";
 import ConfirmProvider from "@/components/Confirm";
 import VisitLedger from "@/components/VisitLedger";
 import ScrollTop from "@/components/ScrollTop";
@@ -180,6 +181,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <DoryangMenu />
         {/* 공덕이 붙는 순간 — +N 이 뜨고, 자리가 오르면 화면이 한 번 열린다 */}
         <MeritToast />
+        <DailyLotusReward />
         {/* 홈 화면에 담기 — 세션마다 한 번, 탭바 위에 낮게 깔려 묻는다 */}
         <InstallBanner />
         </ConfirmProvider>

@@ -41,27 +41,20 @@ import DailyPractice from "@/components/DailyPractice";
 import Info from "@/components/Info";
 import LotusCount from "@/components/LotusCount";
 import SoundMuteToggle from "@/components/SoundMuteToggle";
-import BeopdangCard from "@/components/BeopdangCard";
 import MyTemplePicker from "@/components/MyTemplePicker";
-import MeritExchange from "@/components/MeritExchange";
 import { CHARMS, charmSvg, loadCharms } from "@/lib/charm";
 import { nextRealm, realmOf, REALMS } from "@/lib/realm";
 import { DAILY_EVENT } from "@/lib/daily";
 import {
   DAILY_TOTAL_CAP,
-  giveBonus,
   MERIT_EVENT,
-  giveDays,
   rankByNeed,
-  rounds,
   inRound,
-  lamps,
   loadMerit,
   nextRank,
   rankOf,
   ROUND,
   todayRoom,
-  type Lamp,
   type MeritLedger,
   type MeritSource,
 } from "@/lib/merit";
@@ -252,10 +245,8 @@ export default function SettingsPage() {
     hits: {},
     given: 0,
   });
-  const [lampList, setLampList] = useState<Lamp[]>([]);
   // 회향 장부는 서랍(localStorage)에 있다. 그릴 때 읽으면 서버가 그린
   // 첫 화면과 어긋나 하이드레이션이 깨진다 — effect 에서 담아 두고 쓴다.
-  const [giving, setGiving] = useState({ days: 0, bonus: 1 });
   const [returnedCount, setReturnedCount] = useState(0);
   const [span, setSpan] = useState<"month" | "year">("month");
   const [room, setRoom] = useState({ earned: 0, cap: DAILY_TOTAL_CAP, left: DAILY_TOTAL_CAP });
@@ -359,8 +350,6 @@ export default function SettingsPage() {
       setBells(loadBellsLocal());
       setMerit(loadMerit());
       setCharms(loadCharms());
-      setLampList(lamps());
-      setGiving({ days: giveDays(), bonus: giveBonus() });
       setRoom(todayRoom());
       setReturnedCount(loadStore().history.length);
     };
@@ -946,123 +935,9 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          {/* 공덕을 연꽃으로 — 따로 있던 판을 여기로 들였다.
-              같은 숫자를 두 곳에서 두 번 말하고 있었다. */}
-          <div className="mt-5">
-            <MeritExchange />
-          </div>
-
-          {/* ── 회향(廻向) ──
-              내 것은 줄지 않고 값도 안 든다(대승의 셈). 막는 것은
-              「한 자리에 하루 한 번」뿐. 돌리는 일은 법당에서 하고
-              여기는 장부만 본다. */}
-          <div className="mt-5 rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-4">
-            <div className="flex items-baseline justify-between gap-3">
-              <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-                廻向 · 회향
-              </p>
-              <p className="text-[11px] text-hanji-faint">
-                이레 중 <span className="text-gold">{giving.days}</span>일
-              </p>
-            </div>
-            {/* 세 줄로 줄였다. 처음엔 「받는 사람 · 내 공덕 · 나에게 남는 것」을
-                각각 두어 문장씩 풀어 썼는데, 접힘 하나가 설명서가 됐다.
-                남길 것은 셋뿐이다 — 누가 받나, 내 것은 주나, 나는 뭘 얻나.
-                나머지는 ⓘ 안으로. */}
-            {/* 이 세 줄이 앱 전체의 셈이다 — 법당(HallSeats)과 **같은 문장**으로
-                둔다. 같은 일을 두 곳에서 다르게 적으면 그 순간부터
-                「뭐가 뭔지 모르겠다」가 시작된다. */}
-            <ul className="mt-2.5 flex flex-col gap-1 text-[12px] leading-6 text-hanji-dim">
-              <li>
-                수행하면 <span className="text-hanji">공덕</span>이 쌓입니다 — 내가 걸은 거리
-              </li>
-              <li>
-                예순 바퀴가 차면 <span className="text-hanji">연꽃</span> 한 송이가 여뭅니다 —
-                열매를 따도 걸은 거리는 안 줄어듭니다
-              </li>
-              <li>
-                연꽃 한 송이로 <span className="text-hanji">초</span> 한 자루.{" "}
-                <span className="text-hanji">회향은 값이 들지 않습니다</span>
-                <Info title="그럼 무엇이 줄어드나" className="ml-1">
-                  아무것도 안 줄어듭니다. 촛불로 촛불을 붙여도 내 불은 안 꺼집니다 —
-                  그게 회향(廻向)입니다.
-                  <br />
-                  <br />
-                  공덕이 줄어드는 자리는 하나뿐입니다. <span className="text-hanji">
-                  발길이 뜸할 때</span> — 닦지 않으면 물러난다는 퇴전(退轉)입니다.
-                  남 때문에 줄어드는 일은 없고, 나 때문에만 줄어듭니다.
-                  <br />
-                  <br />
-                  남을 위해 <span className="text-hanji">쓰는 몫은 연꽃</span>입니다 —
-                  초 한 자루, 쪽지 한 통.
-                </Info>
-              </li>
-            </ul>
-            <p className="mt-2.5 break-keep text-[11.5px] leading-5 text-hanji-faint">
-              가 닿는 자리는{" "}
-              <Link href="/candle" className="text-gold-soft underline underline-offset-2">
-                법당
-              </Link>
-              의 여섯 자리. 요즘 돌리고 있으면 앞으로 쌓는 것이 빨라집니다{" "}
-              <span className="text-gold">×{giving.bonus.toFixed(2)}</span> — 쉬면 저절로
-              내려갑니다.
-            </p>
-
-            {/* 돌리는 일은 법당에서 — 여기는 장부만 본다 */}
-            <Link
-              href="/candle"
-              className="mt-3 flex items-center justify-between gap-3 rounded-full border border-gold/45 px-4 py-2.5 text-[12.5px] text-gold transition-colors hover:bg-gold/10"
-            >
-              <span>법당에서 회향하기</span>
-              <span aria-hidden>→</span>
-            </Link>
-
-            {merit.given > 0 && (
-              <p className="mt-3 border-t border-ink-3 pt-3 text-[11.5px] leading-5 text-hanji-faint">
-                지금까지 돌린 공덕{" "}
-                <span className="text-hanji">{rounds(merit.given).toLocaleString("ko-KR")}</span>
-                바퀴
-              </p>
-            )}
-
-            {/* 밝혀 둔 등 — 누구에게 돌렸는지 남는다 */}
-            {lampList.length > 0 && (
-              <details className="group mt-2">
-                <summary className="flex cursor-pointer list-none items-center justify-between text-[11px] tracking-widest text-hanji-faint transition-colors hover:text-hanji-dim [&::-webkit-details-marker]:hidden">
-                  <span>밝혀 둔 등</span>
-                  <span className="font-serif text-[13px] text-gold-soft">
-                    {lampList.length}
-                  </span>
-                </summary>
-                <ul className="mt-2.5 flex flex-col gap-1.5">
-                  {lampList.slice(0, 12).map((l) => (
-                    <li
-                      key={l.at}
-                      className="flex items-baseline justify-between gap-3 text-[12px]"
-                    >
-                      <span className="min-w-0 truncate text-hanji-dim">
-                        <span className="mr-1.5 text-gold-soft">燈</span>
-                        {l.to}
-                      </span>
-                      <span className="shrink-0 text-[10.5px] tabular-nums text-hanji-faint">
-                        {new Date(l.at).toLocaleDateString("ko-KR", {
-                          month: "numeric",
-                          day: "numeric",
-                        })}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </div>
-
-          {/* 법당 한 칸 — 내가 켠 불에 누가 손을 모았는지 여기서 돌아온다.
-              한동안 뜰(홈)에 두었는데, 뜰은 화두를 드는 자리라 그 아래에
-              또 다른 살림이 붙으면 물음이 흐려졌다. 공덕·회향 옆이 제자리다. */}
-          <div className="mt-4">
-            <BeopdangCard />
-          </div>
+          <p className="mt-5 text-[11.5px] leading-5 text-hanji-faint">
+            오늘 몫을 다 채우면 연꽃 한 송이가 자동으로 들어옵니다. 공덕은 그대로 남습니다.
+          </p>
         </div>
       </section>
 
