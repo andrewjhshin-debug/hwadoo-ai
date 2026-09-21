@@ -20,6 +20,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Info from "@/components/Info";
+import ShareButton from "@/components/ShareButton";
 import { MOKTAK_SVG } from "./moktakSvg";
 import Dudu from "@/components/Dudu";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
@@ -446,6 +447,12 @@ export default function MoktakPage() {
       ? "linear-gradient(#0000, #0000)"
       : `conic-gradient(from ${-f * 360}deg at 50% 50%, #000 0turn ${f}turn, #0000 ${f + 0.008}turn 1turn)`;
   const phrases = Math.floor(hits / geun.ch.length); // 몇 편 왔나
+  const shareText =
+    tab === "moktak"
+      ? `오늘 목탁 ${hits.toLocaleString("ko-KR")}번 · 화두`
+      : tab === "yeomju"
+        ? `오늘 염주 ${total.toLocaleString("ko-KR")}번 · 이번 바퀴 ${pos}/108 · 화두`
+        : `오늘 싱잉볼 ${bowlHits.toLocaleString("ko-KR")}번 · 화두`;
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
@@ -589,7 +596,8 @@ export default function MoktakPage() {
       `}</style>
 
       {/* ── 갈래 — 알약 하나에 셋 ── */}
-      <div className="rise flex w-full max-w-[340px] rounded-full border border-ink-3 bg-ink-2/50 p-1">
+      <div className="rise flex w-full max-w-[340px] items-center gap-2">
+      <div className="flex flex-1 rounded-full border border-ink-3 bg-ink-2/50 p-1">
         {(
           [
             ["moktak", "목탁"],
@@ -610,6 +618,8 @@ export default function MoktakPage() {
             {label}
           </button>
         ))}
+      </div>
+      <ShareButton title={`${tab === "yeomju" ? "염주" : tab === "moktak" ? "목탁" : "싱잉볼"} 기록 공유`} text={shareText} />
       </div>
 
       {tab === "moktak" ? (

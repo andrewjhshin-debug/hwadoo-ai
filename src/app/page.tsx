@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Enso from "@/components/Enso";
 import NotesDrawer from "@/components/NotesDrawer";
+import ShareButton from "@/components/ShareButton";
 import { useConfirm } from "@/components/Confirm";
 import { Banga, Dharmachakra, Lotus, Teacup } from "@/components/icons";
 import {
@@ -804,6 +805,11 @@ export default function Home() {
   if (focusMode) {
     return (
       <div className="relative flex flex-1 items-center justify-center px-5 pb-24 pt-4 text-center sm:py-12">
+        <ShareButton
+          title="화두 공유"
+          text={`화두 — ${sessionQuestion(current)}`}
+          className="absolute right-5 top-4"
+        />
         <section className="question-glow hwadu-q w-full max-w-2xl">
             <Question
               text={sessionQuestion(current)}
@@ -841,6 +847,11 @@ export default function Home() {
     // 뛰었다 — 형: 「두둥 하면서 튀지 말고 그냥 화면 보여줘」.
     // 둘 다 **위에서부터** 세운다. 그러면 오가도 물음이 안 움직인다.
     <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center sm:py-12">
+      <ShareButton
+        title="화두 공유"
+        text={`화두 — ${sessionQuestion(current)}`}
+        className="absolute right-5 top-4"
+      />
       {/* 들어올 때의 연출(rise-sharp)은 **처음 한 번만.**
           화두만 보기에서 돌아올 때마다 다시 떨어지니 그게 「두둥」이었다. */}
       <section

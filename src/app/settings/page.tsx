@@ -38,6 +38,7 @@ import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
+import ShareButton from "@/components/ShareButton";
 import Info from "@/components/Info";
 import LotusCount from "@/components/LotusCount";
 import MyTemplePicker from "@/components/MyTemplePicker";
@@ -79,7 +80,6 @@ import {
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
 import { loadMeditations } from "@/lib/meditation";
 import {
-  Share,
   Person,
   Teacup,
   Book,
@@ -271,7 +271,6 @@ export default function SettingsPage() {
   const [report, setReport] = useState<MonthReport | null>(null);
   const [chart, setChart] = useState<MonthChart | null>(null);
   const [yearReport, setYearReport] = useState<YearReport | null>(null);
-  const [yearShareMsg, setYearShareMsg] = useState<string | null>(null);
   const [held, setHeld] = useState<HeldItem[]>([]);
   const [myThrown, setMyThrown] = useState<MyThrown[] | null>(null);
   const [thrownStats, setThrownStats] = useState<Map<
@@ -708,26 +707,6 @@ export default function SettingsPage() {
 
   const sectionGap = "mt-11";
 
-  // 올해의 마음 공유 — 되면 공유 시트, 안 되면 글을 그대로 클립보드에
-  const shareYear = async (y: YearReport) => {
-    const text = `화두 ${y.year}년 — 받은 화두 ${y.returned} · 호흡 명상 ${y.meditations} · 함께한 날 ${y.days}일\n${SITE_URL}`;
-    setYearShareMsg(null);
-    try {
-      if (navigator.share) {
-        await navigator.share({ text });
-        return;
-      }
-      throw new Error("no-share");
-    } catch {
-      try {
-        await navigator.clipboard.writeText(text);
-        setYearShareMsg("글로 복사했습니다.");
-      } catch {
-        setYearShareMsg(text);
-      }
-    }
-  };
-
   // 품어온 시간 한 줄 — "3.2 · {질문 전문} · 108일" (여러 줄 허용, 줄이지 않는다)
   const heldRow = (h: HeldItem) => (
     <li key={h.key} className="break-keep text-[12px] leading-6 text-hanji-dim">
@@ -747,30 +726,17 @@ export default function SettingsPage() {
           셋을 absolute 로 띄워 뒀더니 알약이 넓어지면서 이름 위로 올라탔다.
           이제 한 줄에 제자리를 준다 — 이름은 남은 폭 한가운데. */}
       <div className="flex items-center gap-2">
-        {/* 공유 — 리포트 안에 묻혀 있던 것을 꺼냈다. 남에게 보일 만한 것은
-            맨 위에 있어야 누른다. 올해치가 아직 없으면 자리만 비워 둔다. */}
-        {yearReport ? (
-          <button
-            onClick={() => void shareYear(yearReport)}
-            title={`${yearReport.year}년 내 걸음 공유`}
-            aria-label="올해의 걸음 공유"
-            className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-ink-3 text-hanji-faint transition-colors hover:border-gold/45 hover:text-gold-soft"
-          >
-            <Share className="h-3.5 w-3.5" />
-          </button>
-        ) : (
-          <span aria-hidden className="h-7 w-7 shrink-0" />
-        )}
+        <ShareButton
+          title="내 도량 공유"
+          text={yearReport
+            ? `화두 ${yearReport.year}년 — 받은 화두 ${yearReport.returned} · 호흡 명상 ${yearReport.meditations} · 함께한 날 ${yearReport.days}일`
+            : "화두 내 도량"}
+        />
         <h1 className="min-w-0 flex-1 truncate text-center text-xs tracking-[0.5em] text-gold-soft">
           道場 · 내 도량
         </h1>
         <LotusCount className="shrink-0" />
       </div>
-      {yearShareMsg && (
-        <p className="mt-2 break-all text-center text-[11px] leading-5 text-hanji-faint">
-          {yearShareMsg}
-        </p>
-      )}
 
       {/* ── 누구로 들어와 있나 · 나가는 문 ──
           로그아웃 단추는 이 긴 화면의 **맨 아래**에 있었다. 폰에서는
