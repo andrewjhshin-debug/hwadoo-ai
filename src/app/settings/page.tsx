@@ -927,30 +927,38 @@ export default function SettingsPage() {
           마음」·「올해의 마음」이 같은 수를 다시 말하고 있었고, 서고로
           가는 길도 아래 「지난 화두 보기」가 따로 쥐고 있다. 남은 것은
           나눔의 흔적 세 줄뿐이다. */}
-      <section className={`rise ${sectionGap}`}>
-        {/* 나눔의 흔적 + 실시간 접속자 + 연꽃 */}
-        <div className="flex flex-wrap gap-x-6 gap-y-1 px-1">
-          {user && myAnswerCount !== null && myAnswerCount > 0 && (
-            <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
-              회향이{" "}
-              <span className="text-hanji-dim">{myAnswerCount}</span>
-              명에게 전해졌습니다
-            </p>
-          )}
-          {user && thrownStats !== null && (() => {
-            const total = Array.from(thrownStats.values()).reduce(
-              (s, st) => s + st.seen, 0
-            );
-            return total > 0 ? (
-              <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
-                내 화두를{" "}
-                <span className="text-hanji-dim">{total}</span>
-                명이 받았습니다
-              </p>
-            ) : null;
-          })()}
-        </div>
-      </section>
+      {/* 두 줄 다 조건부라, 큰 판을 걷고 나니 아무것도 없는 날에는 빈 칸만
+          44px 남았다. 판이 있을 땐 판이 자리를 채워 안 보이던 것이다.
+          할 말이 없으면 **칸 자체를 안 연다.** */}
+      {(() => {
+        const given = user && myAnswerCount !== null ? myAnswerCount : 0;
+        const got =
+          user && thrownStats !== null
+            ? Array.from(thrownStats.values()).reduce((s, st) => s + st.seen, 0)
+            : 0;
+        if (given <= 0 && got <= 0) return null;
+        return (
+          <section className={`rise ${sectionGap}`}>
+            {/* 나눔의 흔적 — 내 회향이 닿은 사람, 내 화두를 받은 사람 */}
+            <div className="flex flex-wrap gap-x-6 gap-y-1 px-1">
+              {given > 0 && (
+                <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
+                  회향이{" "}
+                  <span className="text-hanji-dim">{given}</span>
+                  명에게 전해졌습니다
+                </p>
+              )}
+              {got > 0 && (
+                <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
+                  내 화두를{" "}
+                  <span className="text-hanji-dim">{got}</span>
+                  명이 받았습니다
+                </p>
+              )}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* ── 우리 절 — 부적보다 앞이다. 매일 보는 것은 이쪽이다 ── */}
       <MyTemplePicker className={sectionGap} />
