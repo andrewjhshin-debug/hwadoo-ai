@@ -895,7 +895,10 @@ export default function MoktakPage() {
                         style={{
                           left: `${50 + 40 * Math.sin(t)}%`,
                           top: `${50 - 23 * Math.cos(t)}%`,
-                          width: `${17 * sc}%`,
+                          // 뒤쪽 알은 원근 탓에 그림 안의 여백까지 같이 작아져
+                          // 서로 멀어 보였다. 앞쪽 크기는 그대로 두고, 뒤쪽만
+                          // 조금 키워 고리의 간격이 끊기지 않게 한다.
+                          width: `${17 * sc + (1 - front) * 3}%`,
                           transform: "translate(-50%, -50%)",
                           zIndex: Math.round(front * 100),
                           transition: "left .18s ease-out, top .18s ease-out, width .18s ease-out",

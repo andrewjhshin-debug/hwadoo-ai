@@ -63,7 +63,7 @@ export const metadata: Metadata = {
       "naver-site-verification": "e3edd090a8e5cfcaab987a6d90d5b0a6f8774189",
     },
   },
-  // 링크 썸네일 — 화두를 품고 함께 절로 향하는 장면을 한 장에 담는다.
+  // 링크 썸네일 — 기존 이미지에 서비스 문구만 붙인다.
   // 새 파일명을 써서, 이전 그림을 물고 있는 SNS 캐시도 새로 읽게 한다.
   openGraph: {
     title: "화두AI는 당신에게 묻는다.",
@@ -73,14 +73,14 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     type: "website",
     images: [
-      { url: `${SITE_URL}/og-v6.png`, width: 1200, height: 630, alt: "화두AI는 당신에게 묻는다." },
+      { url: `${SITE_URL}/og-v4.png`, width: 1200, height: 630, alt: "화두AI는 당신에게 묻는다." },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "화두AI는 당신에게 묻는다.",
     description: "매일 화두 하나, 절 같이 갈 사람.",
-    images: [`${SITE_URL}/og-v6.png`],
+    images: [`${SITE_URL}/og-v4.png`],
   },
 };
 
