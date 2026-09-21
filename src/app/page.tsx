@@ -9,13 +9,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Enso from "@/components/Enso";
-import Dudu from "@/components/Dudu";
-import {
-  loadMerit,
-  rankByNeed,
-  stageOf,
-} from "@/lib/merit";
-import { nextRealm, realmOf, realmProgress } from "@/lib/realm";
 import NotesDrawer from "@/components/NotesDrawer";
 import { useConfirm } from "@/components/Confirm";
 import { Banga, Dharmachakra, Lotus, Teacup } from "@/components/icons";
@@ -146,7 +139,6 @@ function questionFit(text: string): { min: number; max: number } {
 export default function Home() {
   const confirm = useConfirm();
   const [store, setStore] = useState<Store | null>(null);
-  const [merit, setMerit] = useState(0); // 공덕 — 첫 화면의 수행 줄에 보인다
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState("");
   const [showSettings, setShowSettings] = useState(false);
@@ -174,18 +166,6 @@ export default function Home() {
     const next = merge(loadStore());
     setStore(next);
     return saveStore(next);
-  }, []);
-
-  // 공덕 — 뜰에 들어올 때, 그리고 다른 방에서 쌓고 돌아왔을 때
-  useEffect(() => {
-    const read = () => setMerit(loadMerit().total);
-    read();
-    window.addEventListener("focus", read);
-    window.addEventListener("hwadu-merit-updated", read);
-    return () => {
-      window.removeEventListener("focus", read);
-      window.removeEventListener("hwadu-merit-updated", read);
-    };
   }, []);
 
   // 회향을 마친 화두를 서고로 보낸다 — 화면은 '새 화두 받기'로 돌아간다
@@ -435,15 +415,6 @@ export default function Home() {
     setShowSettings(false);
   };
 
-  // 자리 — 내 도량·오늘 하루 판과 **같은 셈**을 쓴다(공덕 + 회향한 화두).
-  // 회향한 화두 수는 **store 에서 바로 뽑는다.** 따로 상태로 두었더니
-  // 회향하는 순간 store 만 바뀌고 그 수는 그대로여서, 방금 조건을 채운
-  // 사람에게 화면이 계속 「사미까지 화두 1개」라고 말했다. store 는 이미
-  // 저장 신호를 듣고 다시 그려지니, 거기서 읽으면 저절로 맞는다.
-  const returnedCount = store?.history.length ?? 0;
-  const myRank = rankByNeed(realmOf(merit, returnedCount).need);
-  const upRealm = nextRealm(merit, returnedCount);
-
   const current = store?.current ?? null;
   const hwadu = current ? getHwadu(current.hwaduId) : null;
   const unlocked = current ? isUnlocked(current) : false;
@@ -528,80 +499,6 @@ export default function Home() {
             );
           })}
         </div>
-        {/* 나무 — 공덕이 쌓이면 자란다. 동자에서 부처까지 여섯 자리.
-            카드째로 내 도량으로 가는 문이다 — 오늘의 세 가지가 거기 있다.
-            (안쪽 수행 세 칸은 Link 중첩이 되지 않도록 카드 밖 형제로 둔다) */}
-        <div className="rise-sharp rise-s3 mt-12 w-full max-w-sm">
-          <Link
-            href="/settings"
-            className="tap block rounded-[18px] border border-ink-3 bg-ink-2/40 px-5 py-4 text-left transition-colors hover:border-gold/40"
-          >
-            <div className="flex items-center gap-4">
-              <Dudu
-                stage={stageOf(merit)}
-                mood={
-                  merit >= 1620 ? "joy" : merit >= 108 ? "bright" : "default"
-                }
-                uid="home"
-                className="block h-[58px] w-[58px] shrink-0"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] tracking-[0.34em] text-hanji-faint">
-                  공덕
-                </p>
-                {/* 큰 숫자 하나 — 이 카드가 말하는 것은 결국 이것 하나다.
-                    다만 주인공(새 화두 받기)보다는 한 단계 낮춘다. */}
-                <p className="mt-0.5 font-serif text-[32px] font-light leading-none tabular-nums text-gold">
-                  {merit.toLocaleString("ko-KR")}
-                </p>
-                {/* 자리는 공덕만으로 오르지 않는다 — 회향한 화두 수도 본다.
-                    여기만 rankOf(공덕) 를 쓰고 있어서, 내 도량은 「동자」인데
-                    뜰은 「사미」라고 하는 일이 있었다. 같은 사다리인데
-                    화면마다 자리가 달랐다. */}
-                <p className="mt-1.5 flex items-baseline gap-1.5">
-                  <span className="font-serif text-[13.5px] text-hanji-dim">
-                    {myRank.name}
-                  </span>
-                  <span className="font-serif text-[10.5px] text-gold-soft">
-                    {myRank.hanja}
-                  </span>
-                </p>
-              </div>
-            </div>
-            <div className="mt-3.5 h-[4px] overflow-hidden rounded-full bg-ink-3">
-              <div
-                className="h-full rounded-full bg-gold transition-[width] duration-500"
-                style={{
-                  width: `${Math.round(realmProgress(merit, returnedCount) * 100)}%`,
-                }}
-              />
-            </div>
-            <p className="mt-2 break-keep text-[11px] leading-5 text-hanji-faint">
-              {upRealm
-                ? upRealm.left > 0
-                  ? `${rankByNeed(upRealm.to.need).name}까지 ${upRealm.left.toLocaleString("ko-KR")}`
-                  : `${rankByNeed(upRealm.to.need).name}까지 화두 ${upRealm.needMore}개`
-                : myRank.say}
-              <span className="text-hanji-dim"> · 내 도량 · 오늘의 세 가지 →</span>
-            </p>
-          </Link>
-          <div className="mt-2.5 grid grid-cols-3 gap-2">
-            {[
-              { href: "/bae", label: "백팔배" },
-              { href: "/moktak", label: "목탁·염주" },
-              { href: "/breath", label: "호흡" },
-            ].map((x) => (
-              <Link
-                key={x.href}
-                href={x.href}
-                className="tap rounded-full border border-ink-3 py-3 text-center text-[12px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-              >
-                {x.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-
         <div className="mt-12 flex gap-2.5 opacity-50">
           <i className="h-[5px] w-[5px] rounded-full bg-obang-blue" />
           <i className="h-[5px] w-[5px] rounded-full bg-vermilion" />
@@ -906,74 +803,21 @@ export default function Home() {
   // 화두만 보기 — 오직 화두 하나만, 되돌아가기 버튼과 함께
   if (focusMode) {
     return (
-      // 아래 탭 바(76)와 떠 있는 단추가 「되돌아가기」를 덮고 있었다.
-      // 아래를 넉넉히 비우면 가운데 정렬이 그만큼 위로 올라가, 머리 쪽
-      // 빈 자리도 같이 줄어든다 — 두 불편이 한 번에 풀린다.
-      // 오직 화두 하나. 아래 띠와 도량 단추는 감추고, 곁의 알약들도 뗀다.
-      // 남는 것은 셋뿐이다 — 물음 · 되돌아가기 · 왼쪽 아래 사유의 방.
-      //
-      // ★ 물음의 자리는 **한 픽셀도 안 움직인다.**
-      //   처음엔 한자 알약까지 지우고 가운데로 몰았더니, 단추 한 번에 글이
-      //   위로 훌쩍 뛰어 멀미가 났다. 들어가고 나오는 일로 읽던 자리를
-      //   잃으면 안 된다. 그래서 바깥 상자·안쪽 구획·알약 자리를 앞 화면과
-      //   똑같이 두고, 한자만 **자리를 남긴 채 지운다**(invisible).
-      // 폰에서는 한 픽셀도 안 움직인다. 그런데 컴퓨터(sm 이상)에서는
-      // sm:justify-center 가 걸려, 아래 내용이 사라진 만큼 덩어리가 가운데로
-      // 다시 잡히며 물음이 142px 튀었다. 화두만 보기에서는 위에서부터
-      // 세운다 — 평소 화면과 같은 자리에 물음이 선다.
-      <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center sm:py-12">
-        <section className="flex w-full max-w-2xl flex-col items-center">
-          {/* 한자 — 보이지 않게 두되 자리는 그대로. 이게 멀미를 막는 전부다 */}
-          {hwadu?.hanja && (
-            <span
-              aria-hidden
-              className="invisible rounded-full border border-gold/25 px-4 py-1 font-serif text-[10px] tracking-[0.42em] [text-indent:0.42em]"
-            >
-              {hwadu.hanja}
-            </span>
-          )}
-          <div className="question-glow hwadu-q mt-8 w-full">
+      <div className="relative flex flex-1 items-center justify-center px-5 pb-24 pt-4 text-center sm:py-12">
+        <section className="question-glow hwadu-q w-full max-w-2xl">
             <Question
               text={sessionQuestion(current)}
               min={questionFit(sessionQuestion(current)).min}
               max={questionFit(sessionQuestion(current)).max}
               className="text-hanji"
             />
-          </div>
-          {/* 두 문을 위아래로 — 떠 있는 동그란 단추는 뗐다.
-              화면 구석에 혼자 떠 있으면 무슨 단추인지 알 수가 없고,
-              물음만 남기자는 이 화면의 뜻과도 어긋난다.
-              차례를 뒤집었다 — 물음을 읽고 이어서 할 일은 받아 적는 쪽이니
-              사유의 방이 먼저 닿는 자리에 온다. 되돌아가기는 그 아래.
-              둘을 붙여 두니 큰 단추를 누르려다 작은 쪽을 스쳤다 — 사이를
-              한 뼘(gap-6) 벌려 손가락이 헷갈릴 일을 없앤다. */}
-          {/* 배경 한 줄도 **자리만 남기고 지운다** — 한자와 같은 이치.
-              이게 있어야 아래 단추가 평소 화면과 같은 높이에 선다. */}
-          {(current.customSource || hwadu?.context) && (
-            <p
-              aria-hidden
-              className="invisible mt-7 max-w-[24rem] break-keep text-[11.5px] leading-6 tracking-wide"
-            >
-              {current.customSource ?? hwadu?.context}
-            </p>
-          )}
-
-          {/* 화두만 보기에는 **되돌아가기 하나뿐**이다.
-              형: 「사유의 방 지우고 그냥 되돌아가기만 두고, 좀 더 밑쪽에」
-              오직 물음 하나만 남기자는 화면인데 큰 단추가 하나 더 있으면
-              눈이 거기로 간다. 적는 일은 나와서 하면 된다.
-              자리도 한참 내린다 — 물음과 붙어 있으면 읽다 말고 눌린다. */}
-          <div className="mt-24 flex w-full justify-center sm:mt-28">
-            <button
-              onClick={() => setFocusMode(false)}
-              className="tap rounded-full border border-ink-3 px-7 py-2.5 text-[11px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
-            >
-              되돌아가기
-            </button>
-          </div>
         </section>
-
-        <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
+        <button
+          onClick={() => setFocusMode(false)}
+          className="tap absolute bottom-7 rounded-full border border-ink-3 px-7 py-2.5 text-[11px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji sm:bottom-10"
+        >
+          되돌아가기
+        </button>
       </div>
     );
   }
