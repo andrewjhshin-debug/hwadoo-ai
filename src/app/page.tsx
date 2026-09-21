@@ -820,7 +820,7 @@ export default function Home() {
         </section>
         <button
           onClick={() => setFocusMode(false)}
-          className="tap absolute bottom-7 rounded-full border border-ink-3 px-7 py-2.5 text-[11px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji sm:bottom-10"
+          className="tap absolute top-[calc(50%+clamp(150px,19vh,220px))] rounded-full border border-ink-3 px-7 py-2.5 text-[11px] tracking-[0.25em] text-hanji-faint transition-colors hover:border-gold/40 hover:text-hanji"
         >
           되돌아가기
         </button>
