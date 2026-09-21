@@ -437,12 +437,13 @@ export default function MoktakPage() {
   const pos = total % BEADS;
   const rounds = Math.floor(total / BEADS);
   const angle = -total * STEP;
-  // 물든 만큼만 금빛 겹을 보여 준다 — 위에서 시계방향으로
+  // 물든 만큼만 금빛 겹을 보여 준다 — 위 가운데의 표시점에서 반시계로.
+  // 바깥 고리와 같은 출발점·방향이어야, 금빛이 갑자기 아래쪽에 덧칠된 듯 보이지 않는다.
   const f = pos / BEADS;
   const goldMask =
     f <= 0
       ? "linear-gradient(#0000, #0000)"
-      : `conic-gradient(from 0deg at 50% 50%, #000 0turn ${f}turn, #0000 ${f + 0.008}turn 1turn)`;
+      : `conic-gradient(from ${-f * 360}deg at 50% 50%, #000 0turn ${f}turn, #0000 ${f + 0.008}turn 1turn)`;
   const phrases = Math.floor(hits / geun.ch.length); // 몇 편 왔나
 
   return (
@@ -877,8 +878,12 @@ export default function MoktakPage() {
                     const t = ((i / RING_BEADS) * 360 + angle) * (Math.PI / 180);
                     const front = (1 - Math.cos(t)) / 2; // 0 뒤 · 1 앞
                     const sc = 0.62 + 0.52 * front;
-                    // 물든 알 — 넘긴 만큼 앞에서부터 차오른다
-                    const lit = i < Math.round((pos / BEADS) * RING_BEADS);
+                    // 금빛은 위 가운데의 표시점에서 시작해 바깥 고리와 같은
+                    // 반시계 방향으로 돈다. 전에는 알의 번호만 기준으로 잡아
+                    // 염주가 돌 때마다 금빛 덩어리도 아래쪽으로 미끄러져 보였다.
+                    const degrees = ((t * 180) / Math.PI + 360) % 360;
+                    const fromMarker = (360 - degrees) % 360;
+                    const lit = pos > 0 && fromMarker <= f * 360 + 360 / RING_BEADS / 2;
                     return (
                       <img
                         // eslint-disable-next-line @next/next/no-img-element
@@ -924,7 +929,7 @@ export default function MoktakPage() {
                 />
               </div>
 
-              {/* 물든 만큼 금빛 — 위에서 시계방향으로 차오른다 */}
+              {/* 물든 만큼 금빛 — 위 가운데에서 바깥 고리와 같은 방향으로 차오른다 */}
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 grid place-items-center"
