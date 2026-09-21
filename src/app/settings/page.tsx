@@ -262,9 +262,7 @@ export default function SettingsPage() {
   const [span, setSpan] = useState<"month" | "year">("month");
   const [room, setRoom] = useState({ earned: 0, cap: DAILY_TOTAL_CAP, left: DAILY_TOTAL_CAP });
   const [charms, setCharms] = useState<Record<string, number | undefined>>({});
-  const [receivedCount, setReceivedCount] = useState(0);
   const [journalCount, setJournalCount] = useState(0);
-  const [daysWith, setDaysWith] = useState(0);
   const [teaOpen, setTeaOpen] = useState(false);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
@@ -430,11 +428,7 @@ export default function SettingsPage() {
       // 나의 걸음 — 받은 화두 수(지금 든 것·내려놓은 것까지),
       // 회향해 지난 화두에 남은 수, 함께한 날수
       const s = loadStore();
-      const past = s.history.length;
-      setJournalCount(past);
-      // store.received 가 참값이지만, 이 값이 없던 시절의 기록도 있어
-      // 눈에 보이는 수보다 작아지지 않게 받쳐 준다
-      setReceivedCount(Math.max(s.received, past + (s.current ? 1 : 0)));
+      setJournalCount(s.history.length);
 
       const now = Date.now();
       const DAY = 24 * 60 * 60 * 1000;
@@ -450,14 +444,6 @@ export default function SettingsPage() {
         for (let t = from; t <= to; t += DAY) into.add(visitDayKey(t));
         into.add(visitDayKey(to));
       };
-
-      // 함께한 날 — 실제 접속일(발자국 장부) ∪ 화두를 품고 있던 날.
-      // 옛날은 방문 기록이 없으니 품은 날수로 보완한다
-      const allDays = new Set<string>(visits);
-      for (const sess of sessions) {
-        addHeldDays(sess.receivedAt, sess.journalAt ?? now, allDays);
-      }
-      setDaysWith(allDays.size);
 
       // ── 이달의 마음 — 이번 달의 걸음을 로컬에서 센다 ──
       const base = new Date();
@@ -874,23 +860,39 @@ export default function SettingsPage() {
               </span>
             </p>
 
-            <p className="mt-5 text-[11px] tracking-[0.24em] text-hanji-faint">
-              수행별 횟수
-            </p>
-            <div className="mt-2.5 grid grid-cols-4 gap-2 sm:grid-cols-8">
-              {PRACTICE_HITS.map(({ source, label }) => (
-                <div
-                  key={source}
-                  className="flex aspect-square flex-col items-center justify-center rounded-full border border-ink-3 bg-ink-2/40 text-center"
-                >
-                  <p className="text-[9px] tracking-[0.08em] text-hanji-faint">{label}</p>
-                  <p className="mt-1 font-serif text-[15px] leading-none tabular-nums text-hanji">
-                    {(merit.hits?.[source] ?? 0).toLocaleString("ko-KR")}
-                    <span className="ml-0.5 font-sans text-[8px] text-hanji-faint">회</span>
-                  </p>
+            {/* 무엇을, 몇 번 —
+                형: 「공덕은 횟수로 치자. 목탁 몇 번 염주 몇 번 이렇게」
+
+                한동안 큰 동그라미 열여섯 개가 넉 줄로 깔려 있었다. 그중
+                여덟은 0이었다. 안 한 일을 화면 절반에 걸어 두는 셈이라,
+                정작 **한 일**이 안 보였다. 작은 알약으로 되돌린다 —
+                **한 것만**, 많이 한 것부터. 머리글도 뗐다(무슨 줄인지는
+                「목탁 222번」이 이미 말한다). */}
+            {(() => {
+              const done = PRACTICE_HITS.filter(
+                ({ source }) => (merit.hits?.[source] ?? 0) > 0
+              ).sort(
+                (x, y) =>
+                  (merit.hits?.[y.source] ?? 0) - (merit.hits?.[x.source] ?? 0)
+              );
+              if (done.length === 0) return null;
+              return (
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {done.map(({ source, label }) => (
+                    <span
+                      key={source}
+                      className="rounded-full border border-ink-3 px-2.5 py-[3px] text-[11px] leading-[1.45] text-hanji-dim"
+                    >
+                      {label}{" "}
+                      <span className="tabular-nums text-hanji">
+                        {(merit.hits?.[source] ?? 0).toLocaleString("ko-KR")}
+                      </span>
+                      <span className="text-hanji-faint">번</span>
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
 
             {/* ① 오늘 — 이 자리의 자는 「오늘 얼마나 했나」 하나뿐이다 */}
             <div className="mt-4 flex items-baseline justify-between text-[11.5px]">
@@ -907,45 +909,27 @@ export default function SettingsPage() {
                 }}
               />
             </div>
-            <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
-              {room.left <= 0
-                ? "오늘 몫이 찼어요. 내일 또 이어 가세요."
-                : `갈래를 고루 돌면 오늘 몫이 찹니다 — 다 채우면 연꽃 한 송이.`}
-            </p>
+            {/* 같은 말을 두 줄로 하고 있었다 — 막대 밑에 한 번, 판 끝에
+                또 한 번. 둘 다 「고루 돌면 찬다 · 차면 연꽃」이었다.
+                막대와 숫자가 이미 그 말을 한다. 다 찬 날의 한마디만 남긴다. */}
+            {room.left <= 0 && (
+              <p className="mt-1.5 text-[11px] leading-5 text-gold">
+                오늘 몫이 찼어요. 내일 또 이어 가세요.
+              </p>
+            )}
           </div>
-
-          <p className="mt-5 text-[11.5px] leading-5 text-hanji-faint">
-            오늘 몫을 다 채우면 연꽃 한 송이가 자동으로 들어옵니다. 공덕은 그대로 남습니다.
-          </p>
         </div>
       </section>
 
-      {/* ── 나의 걸음 — 화두 수 · 함께한 날. 받은 화두를 누르면 서고로 ── */}
+      {/* ── 나의 걸음 ──
+          형: 「받은 화두랑 화두와 함께 저거는 지우고」.
+          큰 판 두 짝이 40px 숫자로 앉아 있었다. 둘 다 아래 「이달의
+          마음」·「올해의 마음」이 같은 수를 다시 말하고 있었고, 서고로
+          가는 길도 아래 「지난 화두 보기」가 따로 쥐고 있다. 남은 것은
+          나눔의 흔적 세 줄뿐이다. */}
       <section className={`rise ${sectionGap}`}>
-        <div className="flex gap-4">
-          <Link
-            href="/archive"
-            className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center transition-colors hover:border-gold/40"
-          >
-            <p className="font-serif text-[40px] font-light leading-none text-gold">
-              {receivedCount}
-            </p>
-            <p className="mt-2.5 text-[11px] tracking-[0.2em] text-hanji-faint">
-              받은 화두
-            </p>
-          </Link>
-          <div className="flex-1 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-6 text-center">
-            <p className="font-serif text-[40px] font-light leading-none text-gold">
-              {daysWith}
-              <span className="ml-1 text-[18px] text-hanji-dim">일</span>
-            </p>
-            <p className="mt-2.5 text-[11px] tracking-[0.2em] text-hanji-faint">
-              화두와 함께
-            </p>
-          </div>
-        </div>
         {/* 나눔의 흔적 + 실시간 접속자 + 연꽃 */}
-        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 px-1">
+        <div className="flex flex-wrap gap-x-6 gap-y-1 px-1">
           {user && myAnswerCount !== null && myAnswerCount > 0 && (
             <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
               회향이{" "}
