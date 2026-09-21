@@ -306,27 +306,27 @@ export default function LettersPage() {
 
   // ── 목록 화면 ────────────────────────────────────────────
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-16 pt-5 sm:px-6 md:pt-10">
+    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pb-16 pt-4 sm:px-6 md:pt-7">
       {/* 머리 — 제목과 연꽃·새로고침, 말은 없다 */}
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-[17px] font-medium tracking-[0.2em] text-hanji">
+        <h1 className="text-[15px] font-medium tracking-[0.18em] text-hanji">
           쪽지
         </h1>
         <div className="flex items-center gap-2">
           <Link
             href="/lotus"
-            className="inline-flex items-center gap-1.5 rounded-[10px] border border-ink-3 px-3.5 py-2 text-[13px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+            className="inline-flex items-center gap-1 rounded-[9px] border border-ink-3 px-2.5 py-1.5 text-[12px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
           >
-            <LotusMark className="h-[16px] w-[16px]" stroke="#D9B45B" />
+            <LotusMark className="h-[14px] w-[14px]" stroke="#D9B45B" />
             {lotus}
           </Link>
           <button
             onClick={refresh}
             aria-label="새로고침"
             title="새로고침"
-            className="rounded-[10px] border border-ink-3 p-2 text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+            className="rounded-[9px] border border-ink-3 p-1.5 text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" className="h-[16px] w-[16px]">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" className="h-[14px] w-[14px]">
               <path d="M20 12a8 8 0 1 1-2.3-5.6" />
               <path d="M20 3v4h-4" />
             </svg>
@@ -374,7 +374,7 @@ export default function LettersPage() {
       )}
 
       {/* 대화 목록 */}
-      <ul className="mt-5 divide-y divide-ink-3/60 border-y border-ink-3/60">
+      <ul className="mt-3.5 divide-y divide-ink-3/60 border-y border-ink-3/60">
         {threads === null ? (
           <li className="px-1 py-4 text-[14px] text-hanji-faint">여는 중…</li>
         ) : talks.length === 0 && waiting.length === 0 ? (
@@ -402,24 +402,24 @@ export default function LettersPage() {
                 <li key={t.id}>
                   <button
                     onClick={() => openThread(t)}
-                    className="flex w-full items-center gap-3.5 px-1 py-4 text-left transition-colors hover:bg-gold/5"
+                    className="flex w-full items-center gap-2.5 px-1 py-2.5 text-left transition-colors hover:bg-gold/5"
                   >
-                    <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gold/5 font-serif text-[17px] text-gold">
+                    <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gold/5 font-serif text-[14px] text-gold">
                       {other(t).slice(0, 1)}
                       {/* 안 읽은 방 — 붉은 점 하나 */}
                       {unread && (
                         <span
                           aria-label="안 읽은 쪽지"
-                          className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-ink-2 bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
+                          className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-ink-2 bg-vermilion shadow-[0_0_6px_var(--color-vermilion)]"
                         />
                       )}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[15.5px] text-hanji">
+                      <span className="block truncate text-[13.5px] text-hanji">
                         {other(t)}
                       </span>
                       <span
-                        className={`mt-0.5 block truncate text-[13px] ${
+                        className={`mt-px block truncate text-[11.5px] ${
                           unread
                             ? "font-medium text-hanji"
                             : "text-hanji-faint"
@@ -428,7 +428,7 @@ export default function LettersPage() {
                         {t.lastText ?? "첫 쪽지를 건네 보세요"}
                       </span>
                     </span>
-                    <span className="shrink-0 text-[12px] text-hanji-faint">
+                    <span className="shrink-0 text-[10.5px] text-hanji-faint">
                       {dstr(t.lastAt)}
                     </span>
                   </button>
@@ -439,16 +439,16 @@ export default function LettersPage() {
             {waiting.map((t) => (
               <li
                 key={t.id}
-                className="flex items-center gap-3.5 px-1 py-4 opacity-60"
+                className="flex items-center gap-2.5 px-1 py-2.5 opacity-60"
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-ink-3 font-serif text-[17px] text-hanji-faint">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ink-3 font-serif text-[14px] text-hanji-faint">
                   {t.ownerName.slice(0, 1)}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15.5px] text-hanji-dim">
+                  <span className="block truncate text-[13.5px] text-hanji-dim">
                     {t.ownerName}
                   </span>
-                  <span className="mt-0.5 block text-[13px] text-hanji-faint">
+                  <span className="mt-px block text-[11.5px] text-hanji-faint">
                     답을 기다리는 중
                   </span>
                 </span>
