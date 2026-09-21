@@ -83,6 +83,7 @@ const NAV_PRACTICE: NavItem[] = [
   // 「목탁~~ 을 인연 밑에 / 삼배 / 백팔배 / 그 밑에 하심 / 호흡 명상 /
   //  멍 때리기 / 그리고 나머지 줄줄줄 중요도에 따라」
   { href: "/moktak", label: "목탁·염주·싱잉볼", Icon: Yeomju },
+  { href: "/tamjinchi", label: "불심 투자", Icon: Jeoul },
   { href: "/sambae", label: "삼귀의", Icon: Jeol },
   { href: "/bae", label: "백팔배", Icon: Jeol108 },
   // 이름만 적는다 — 형: 「하심 끝없이 내려가기 이딴말 말고 그냥 한자로」
@@ -114,7 +115,6 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/ganhwaseon", label: "간화선이란?", Icon: Dharmachakra },
       { href: "/masters", label: "선지식의 한마디", Icon: SeonMaster },
-      { href: "/tamjinchi", label: "불심 투자", Icon: Jeoul },
     ],
   },
   {
