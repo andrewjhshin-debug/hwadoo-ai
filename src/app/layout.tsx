@@ -63,24 +63,24 @@ export const metadata: Metadata = {
       "naver-site-verification": "e3edd090a8e5cfcaab987a6d90d5b0a6f8774189",
     },
   },
-  // 링크 썸네일 — 화두의 검정·금빛 톤 안에 로고와 영문 이름만 남긴다.
+  // 링크 썸네일 — 서비스의 핵심 흐름(화두 받기·대상 선택)을 한 장에 담는다.
   // 새 파일명을 써서, 이전 그림을 물고 있는 SNS 캐시도 새로 읽게 한다.
   openGraph: {
-    title: "AI한테 그만 물어봐",
-    description: "이번엔 AI가 너한테 묻는다. 매일 물음 하나 · 절 같이 갈 사람.",
+    title: "화두AI는 당신에게 묻는다.",
+    description: "매일 화두 하나 · 절 같이 갈 사람.",
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: "ko_KR",
     type: "website",
     images: [
-      { url: `${SITE_URL}/og-v4.png`, width: 1200, height: 630, alt: "HWA-DU" },
+      { url: `${SITE_URL}/og-v5.png`, width: 1200, height: 630, alt: "화두AI는 당신에게 묻는다." },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI한테 그만 물어봐",
-    description: "이번엔 AI가 너한테 묻는다. 매일 물음 하나 · 절 같이 갈 사람.",
-    images: [`${SITE_URL}/og-v4.png`],
+    title: "화두AI는 당신에게 묻는다.",
+    description: "매일 화두 하나 · 절 같이 갈 사람.",
+    images: [`${SITE_URL}/og-v5.png`],
   },
 };
 
