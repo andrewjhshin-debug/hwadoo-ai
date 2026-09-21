@@ -36,8 +36,9 @@ import {
 } from "@/lib/sound";
 
 const BEADS = 108;
-const RING = 36; // 고리에 걸린 알 수 — 세 바퀴가 곧 백팔
-const STEP = 360 / RING;
+// 가로형에는 스물일곱 알만 보이지만, 손은 한 알씩 백여덟 번 센다.
+// 그래서 한 번 넘길 때마다 3.33°만 움직이고, 네 번에 눈앞의 다음 알로 간다.
+const STEP = 360 / BEADS;
 const BOX = 316;
 
 /**
@@ -884,6 +885,11 @@ export default function MoktakPage() {
                     const degrees = ((t * 180) / Math.PI + 360) % 360;
                     const fromMarker = (360 - degrees) % 360;
                     const lit = pos > 0 && fromMarker <= f * 360 + 360 / RING_BEADS / 2;
+                    // 위 표시점 아래의 한 알이 지금 손에 걸린 알이다. 한 번씩
+                    // 아주 조금 움직이므로, 스물일곱 알 그림이어도 백여덟 번을
+                    // 실제로 세고 있다는 감각이 남는다.
+                    const markerDistance = Math.min(degrees, 360 - degrees);
+                    const atMarker = markerDistance < 5;
                     return (
                       <img
                         // eslint-disable-next-line @next/next/no-img-element
@@ -899,9 +905,9 @@ export default function MoktakPage() {
                           // 서로 멀어 보였다. 앞쪽 크기는 그대로 두고, 뒤쪽만
                           // 조금 키워 고리의 간격이 끊기지 않게 한다.
                           width: `${17 * sc + (1 - front) * 3}%`,
-                          transform: "translate(-50%, -50%)",
-                          zIndex: Math.round(front * 100),
-                          transition: "left .18s ease-out, top .18s ease-out, width .18s ease-out",
+                          transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
+                          zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
+                          transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: lit
                             ? `sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(${(1.06 + 0.22 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
                             : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))`,
