@@ -44,29 +44,13 @@ export default function TeaPage() {
         {/* 금빛 실 한 올 — 어록과 안내를 가르되 칸을 나누지는 않는다 */}
         <div className="mx-auto mt-8 h-px w-10 bg-gold/40" />
 
-        {/* 받는 쪽의 마음.
-            형: 「차는 값이 아니라 마음으로 받습니다 — 지우고」 →
-            「차 한 잔은 그저 마음의 표시입니다. 도량은 늘 열려 있습니다.」 */}
-        <p className="rise rise-d2 mt-7 break-keep text-[13px] leading-7 text-hanji-dim">
-          화두의 물음과 수행은 값을 받지 않습니다.
-        </p>
-        <p className="rise rise-d2 mt-1.5 break-keep font-serif text-[15px] leading-8 text-hanji">
-          차 한 잔은 그저 마음의 표시입니다.
-          <br />
-          도량은 늘 열려 있습니다.
-        </p>
+        {/* 겸양 세 줄은 걷었다 — 「값을 받지 않습니다」 · 「그저 마음의
+            표시입니다」 · 「올리지 않으셔도 됩니다」. 안 내도 된다는 말을
+            세 번 하면 내겠다는 사람이 머쓱해진다.
 
-        {/* **이게 기부라는 걸 분명히 적는다.**
-            형: 「차 한 잔에는 이게 기부라는걸 좀 알려줘」, 그리고
-            「일부는 불교에 기부한다고도 써, 그 쿠팡파트너스처럼」.
-            접어 두지 않는다 — 돈이 오가는 말은 눈에 보이는 데 둔다. */}
-        <p className="rise rise-d2 mx-auto mt-6 max-w-[420px] break-keep rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3.5 text-[12.5px] leading-7 text-hanji-dim">
-          화두 AI에 마음이 머물렀다면,{" "}
-          <span className="text-hanji">만드는 사람에게 차 한 잔을 기부</span>
-          하실 수 있습니다. 찻값은 이 도량을 가꾸는 데 쓰이고,{" "}
-          <span className="text-gold-soft">그중 일부는 불교계에 보시</span>
-          합니다. 올리지 않으셔도 됩니다 — 도량은 늘 열려 있습니다.
-        </p>
+            **이게 기부라는 것**과 **어디에 쓰는지**는 바로 아래 찻자리
+            카드(<Donation />)가 한 번에 말한다. 여기서 또 적으면 한
+            화면에서 같은 말을 두 번 하는 셈이라 뺐다. */}
       </section>
 
       <div className="rise rise-d3 mt-6">
@@ -91,11 +75,8 @@ export default function TeaPage() {
             보태주신 분의 이름은 찻자리 아래에 조용히 남깁니다. 가운데는 ○로
             가리고, 명단은 도량에서 손으로 적습니다.
           </p>
-          <p className="break-keep text-[13px] leading-7 text-hanji-dim">
-            화두 AI에 마음이 머물렀다면, 만드는 사람에게 차 한 잔을 기부하실 수
-            있습니다. 찻값은 이 도량을 가꾸는 데 쓰이고, 그중 일부는 불교계에
-            보시합니다. 올리지 않으셔도 됩니다 — 도량은 늘 열려 있습니다.
-          </p>
+          {/* 위 칸에 이미 적은 말이라 여기서는 뺐다 — 같은 문단을 한 화면에
+              두 번 두면 두 번째는 읽히지 않고 자리만 먹는다 */}
         </div>
       </details>
 

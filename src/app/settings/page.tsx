@@ -1302,10 +1302,14 @@ export default function SettingsPage() {
           차 한 잔
         </p>
         <div className="mt-4 border-t border-ink-3 pt-5">
+          {/* 찻값이 어디로 가는지만 적는다. 「값을 받지 않습니다」는 뺐다 —
+              차 한 잔 칸에서 굳이 돈 안 받는다고 먼저 말할 일이 아니다 */}
           <p className="text-[13px] leading-7 text-hanji-dim">
-            화두의 물음과 수행은 값을 받지 않습니다.
+            마음에 머물렀다면, 차 한 잔을 기부하실 수 있습니다.
             <br />
-            마음에 머물렀다면, 차 한 잔 값으로 등불을 보태 주실 수 있습니다.
+            찻값은 이 도량을 잇는 데 쓰이고,{" "}
+            <span className="text-gold-soft">그중 일부는 불교계에 보시</span>
+            합니다.
           </p>
           {DONATION_URL ? (
             !teaOpen ? (

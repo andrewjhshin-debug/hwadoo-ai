@@ -15,12 +15,18 @@ export default function Donation() {
       <h3 className="mt-2 text-base tracking-[0.2em] text-hanji-dim">
         차 한 잔
       </h3>
+      {/* 돈 이야기는 찻자리 바로 여기서 한 번에 끝낸다 — **기부라는 것**과
+          **어디에 쓰는지.** 위에 또 한 문단을 두었더니 한 화면에서 같은
+          말을 두 번 했다. 두 번째는 읽히지 않고 자리만 먹는다. */}
       <p className="mt-4 text-sm leading-7 text-hanji-dim">
         이 도량이 마음에 머물렀다면,
         <br />
-        도량에 차 한 잔을 올려 주실 수 있습니다.
+        <span className="text-hanji">만드는 사람에게 차 한 잔을 기부</span>하실
+        수 있습니다.
         <br />
-        찻값은 이 도량을 잇는 데 쓰입니다.
+        찻값은 이 도량을 잇는 데 쓰이고,
+        <br />
+        <span className="text-gold-soft">그중 일부는 불교계에 보시</span>합니다.
       </p>
 
       {DONATION_URL ? (
@@ -57,9 +63,8 @@ export default function Donation() {
           찻자리를 마련하고 있습니다
         </p>
       )}
-      <p className="mt-4 text-[11px] text-hanji-faint">
-        올리지 않으셔도 됩니다. 도량은 늘 열려 있습니다.
-      </p>
+      {/* 형: 「올리지 않으셔도 됩니다. 도량은 늘 열려 있습니다. — 이 말 삭제」.
+          찻자리 바로 밑에서 안 내도 된다고 말할 이유가 없다 */}
     </section>
   );
 }
