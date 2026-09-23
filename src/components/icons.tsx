@@ -519,8 +519,13 @@ export function YeonkkotGold({ className = "w-5 h-5" }: IconProps) {
 // 덜어 내고 중심 표식만 보인다. 뜰의 금빛 길과 같은 역할이다.
 export function YeonMun({ className = "w-5 h-5" }: IconProps) {
   return (
+    // 형: 「뜰 뒤에 미묘하게 노란 배경 없애」.
+    // v1 은 알파가 없는 통짜 사각형이었다 — 연꽃 뒤로 어두운 네모와 그
+    // 안의 따뜻한 원형 광이 같이 따라 들어왔다. 작게 줄일수록 그게
+    // 「미묘하게 노란 배경」으로 읽힌다. v2 는 같은 그림에서 바탕만
+    // 벗겨 낸 것이다(`_틀/unglow.mjs`). 그림은 한 획도 안 건드렸다.
     <svg viewBox="320 340 440 440" className={className} aria-hidden>
-      <image href="/brand/garden-mark-v1.png" width="1080" height="1080" />
+      <image href="/brand/garden-mark-v2.png" width="1080" height="1080" />
     </svg>
   );
 }
