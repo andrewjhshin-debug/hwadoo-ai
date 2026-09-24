@@ -1,0 +1,280 @@
+/* ─────────────────────────────────────────────────────────────
+   리뉴얼 힙버전 — 공통 판
+   가지 `renewal-hip` · 되돌릴 자리 `v2-before-renewal`
+
+   다섯 결을 한 벌로 엮는다. 화면마다 성격은 다르되 글꼴·여백·색은
+   한 벌이다 — 그래야 다섯이 따로 놀지 않는다.
+
+     뜰      墨   화두 글자가 화면을 채운다
+     목탁    刻   거대 숫자 + 백팔 격자
+     염주    珠   사리 구슬 하나
+     서고    紙   한지 두 빛깔, 세로쓰기
+     내 도량 輪   수레바퀴가 곧 메뉴
+
+   ── 규칙 ──
+   ① 이름은 전부 `hip-` 로 시작한다. 기존 클래스와 절대 겹치지 않는다.
+      (globals.css 가 `.bg-ink-2\/40` 같은 Tailwind 문자열을 이름 그대로
+       겨냥하고 있어, 겹치면 조용히 깨진다)
+   ② 색은 **기존 토큰을 그대로 쓴다**(--color-gold · --color-hanji …).
+      @theme 의 이름을 바꾸거나 지우면 마흔 남짓 파일의 유틸리티가
+      빌드 오류 없이 죽는다.
+   ③ 글씨는 크게. 김부따는 본문이 11px 인데 그건 안 따라간다 —
+      거대한 것(화두·숫자)은 거대하게, 작은 것은 **라벨뿐**이다.
+   ④ 참고 영상의 뼈대만 빌리고 결은 우리 것으로:
+      실물 하나 크게 · 글자 한 줄 · 떠 있는 둥근 것 · 라벨 없는 아래 띠
+   ───────────────────────────────────────────────────────────── */
+
+html {
+  /* 바탕을 한 겹 더 깊게 — 위에 얹는 것들이 떠야 한다 */
+  --hip-ground: #0b0a08;
+  --hip-raise: rgba(28, 24, 19, 0.72); /* 떠 있는 판 */
+  --hip-edge: rgba(217, 180, 91, 0.2); /* 금빛 실선 */
+  --hip-edge-soft: rgba(217, 180, 91, 0.11);
+  --hip-dead: #1b1916; /* 아직 안 채운 칸 */
+  --hip-pad: 22px; /* 화면 좌우 */
+  --hip-r: 20px; /* 카드 */
+  --hip-r-lg: 26px; /* 큰 카드 */
+}
+
+/* 낮은 한지다. 회색은 서늘해서 이 결에 안 맞는다 —
+   형이 예전에 「흰 바탕 + 회색 단색」을 물린 것과 같은 까닭이다. */
+html[data-theme="light"] {
+  --hip-ground: #efe7d6;
+  --hip-raise: #fffaf0;
+  --hip-edge: rgba(26, 23, 20, 0.14);
+  --hip-edge-soft: rgba(26, 23, 20, 0.07);
+  --hip-dead: rgba(26, 23, 20, 0.08);
+}
+
+/* ── 결(grain) ──────────────────────────────────────────────
+   평평한 색은 싸 보인다. 아주 미세한 얼룩 한 겹을 깔면 종이가 된다.
+   그림 파일을 안 쓴다 — SVG 잡음을 그 자리에서 만든다. */
+.hip-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+html[data-theme="light"] .hip-grain::before {
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+}
+
+/* ── 글자 ───────────────────────────────────────────────────
+   저마다 제 일이 하나씩만 있다. 크기를 화면 폭에 물려 두어
+   작은 폰에서 무너지지 않게 한다. */
+.hip-hero {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(31px, 8.4vw, 52px);
+  line-height: 1.36;
+  letter-spacing: -0.022em;
+  color: var(--color-hanji);
+  overflow-wrap: break-word;
+  word-break: keep-all;
+}
+.hip-num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 200;
+  font-size: clamp(84px, 26vw, 136px);
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+  color: var(--color-hanji);
+}
+.hip-kicker {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.42em;
+  color: var(--color-gold);
+}
+.hip-label {
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  color: var(--color-hanji-faint);
+}
+.hip-body {
+  font-size: 15px;
+  line-height: 1.78;
+  font-weight: 300;
+  color: var(--color-hanji-dim);
+  word-break: keep-all;
+}
+/* 한 줄 안내 — 참고 영상의 그 자리. 오브제 바로 아래 한 줄뿐이다 */
+.hip-one {
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.14em;
+  color: var(--color-hanji-faint);
+  text-align: center;
+}
+
+/* ── 떠 있는 둥근 것들 ──────────────────────────────────────── */
+.hip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 15px;
+  border-radius: 999px;
+  border: 1px solid var(--hip-edge);
+  background: var(--hip-raise);
+  color: var(--color-hanji);
+  font-size: 14px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+.hip-round {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--hip-edge);
+  background: var(--hip-raise);
+  display: grid;
+  place-items: center;
+  color: var(--color-hanji-dim);
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s, color 0.2s;
+}
+.hip-round:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+.hip-card {
+  border-radius: var(--hip-r-lg);
+  border: 1px solid var(--hip-edge);
+  background: var(--hip-raise);
+  padding: 16px 18px;
+}
+html[data-theme="light"] .hip-card,
+html[data-theme="light"] .hip-pill,
+html[data-theme="light"] .hip-round {
+  box-shadow: 0 1px 2px rgba(26, 23, 20, 0.05), 0 8px 24px rgba(26, 23, 20, 0.07);
+}
+
+/* 주 단추 — 금으로 채운 알약. 먹 위에서 이게 제일 세게 읽힌다 */
+.hip-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding: 0 34px;
+  border-radius: 999px;
+  background: var(--color-gold);
+  color: #17140f;
+  font-size: 15.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  transition: transform 0.16s, box-shadow 0.3s;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-gold) 22%, transparent);
+}
+.hip-cta:active {
+  transform: scale(0.985);
+}
+/* 곁단추 — 테두리만 */
+.hip-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding: 0 28px;
+  border-radius: 999px;
+  border: 1px solid var(--hip-edge);
+  color: var(--color-hanji-dim);
+  font-size: 14.5px;
+  letter-spacing: 0.1em;
+  transition: border-color 0.2s, color 0.2s;
+}
+.hip-ghost:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+
+/* ── 刻 · 백팔 격자 ─────────────────────────────────────────
+   친 만큼 금이 든다. 진행이 곧 그림이다 — 막대보다 이게 낫다.
+   백여덟 칸을 열여덟씩 여섯 줄로 둔다(스물일곱의 배수라 마디가 맞는다). */
+.hip-grid108 {
+  display: grid;
+  grid-template-columns: repeat(18, 1fr);
+  gap: 4px;
+}
+.hip-grid108 > i {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--hip-dead);
+  transition: background-color 0.18s;
+}
+.hip-grid108 > i[data-on="1"] {
+  background: var(--color-gold);
+}
+/* 스물일곱마다 한 칸 — 손끝으로 마디를 안다 */
+.hip-grid108 > i[data-knot="1"] {
+  box-shadow: inset 0 0 0 1.5px var(--color-gold);
+}
+
+/* ── 아래 띠 ────────────────────────────────────────────────
+   라벨 없이 점 다섯. 참고 영상에서 제일 힙했던 수인데, 우리는
+   **점만** 두지 않고 지금 자리에 한자 한 글자를 얹는다 —
+   아이콘 다섯만으로는 어디가 어딘지 못 읽힌다. */
+.hip-rail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+.hip-rail > i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hip-edge);
+  display: block;
+  transition: transform 0.2s, background-color 0.2s;
+}
+.hip-rail > i[data-on="1"] {
+  background: var(--color-gold);
+  transform: scale(1.7);
+}
+
+/* ── 광 ─────────────────────────────────────────────────────
+   오브제 뒤에 한 겹. 김부따는 흰 보케를 뿌리는데 우리는 금빛 광이다.
+   과하면 촌스럽다 — 형이 목탁 광명 두 번 물렸다. 옅게. */
+.hip-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-gold) 16%, transparent),
+    transparent 72%
+  );
+}
+
+/* ── 무대 ───────────────────────────────────────────────────
+   위 띠와 아래 띠를 뺀 나머지를 다 쓰고, 그 안에서 한복판.
+   여백이 아래로만 쏠리면 「비웠다」가 아니라 그냥 빈칸으로 읽힌다. */
+.hip-stage {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-left: var(--hip-pad);
+  padding-right: var(--hip-pad);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hip-grid108 > i,
+  .hip-rail > i,
+  .hip-cta {
+    transition: none;
+  }
+}

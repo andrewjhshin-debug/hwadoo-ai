@@ -624,12 +624,17 @@ export default function MoktakPage() {
 
       {tab === "moktak" ? (
         <>
-          {/* ── 오늘 울린 수 — 크게 ── */}
-          <p className="rise rise-d1 mt-8 text-[12px] tracking-[0.35em] text-hanji-faint">
-            오늘 울린 목탁
-          </p>
-          <p className="rise rise-d1 mt-1 font-serif text-[56px] font-light leading-none text-hanji">
-            {hits.toLocaleString("ko-KR")}
+          {/* ── 刻 · 오늘 울린 수 ──
+              리뉴얼 힙버전. 56px 세리프 숫자를 화면 폭에 물린 거대한
+              숫자로 바꾼다 — 이 화면에서 제일 알고 싶은 건 「몇 번 쳤나」
+              하나뿐이다. 세 자리로 채워 두면(026) 한 자리에서 세 자리로
+              넘어갈 때 자리가 안 흔들린다. */}
+          <p className="rise rise-d1 hip-kicker mt-7">百八 · 木鐸</p>
+          <p
+            className="rise rise-d1 hip-num mt-3"
+            aria-label={`오늘 울린 목탁 ${hits}번`}
+          >
+            {String(hits).padStart(3, "0")}
           </p>
           {/* 「…8편 · 고르게 치면 合」 은 설명서였다. 무엇이 세어지고 있는지,
               내가 지금 잘하고 있는지가 한눈에 안 들어왔다.
@@ -734,6 +739,7 @@ export default function MoktakPage() {
               </p>
               <SkinDots kind="moktak" pick={skin.moktak} onPick={pickSkin("moktak")} />
             </div>
+
           {/* 정근 고르기 — 무엇을 외며 칠까.
               목탁 위에 두었더니 셈과 목탁 사이를 갈라 놓아, 치는 동안 눈이
               칩으로 자꾸 올라갔다. 고르는 일은 치기 전에 한 번뿐이니 아래로 뺀다 */}
@@ -760,6 +766,7 @@ export default function MoktakPage() {
             ))}
           </div>
           </div>
+
 
           {/* 자동 목탁 */}
           <div className="rise rise-d3 mt-7 w-full max-w-sm space-y-4 rounded-[14px] border border-ink-3 bg-ink-2/40 px-5 py-5">
@@ -1088,14 +1095,18 @@ export default function MoktakPage() {
         </>
       )}
 
-      {/* ── 공덕 — 아래에 얇게 ── */}
+      {/* ── 刻 · 백팔 한 바퀴 ──
+          리뉴얼 힙버전. 얇은 막대 하나였다. 얼마나 왔는지가 **그림 그 자체**가
+          되도록 백여덟 칸으로 편다 — 채운 칸이 곧 지나온 길이다.
+          스물일곱마다 테를 둘러 마디를 준다(손염주의 마디알과 같은 수).
+
+          자는 **이것 하나뿐이다.** 한때 오늘 친 수로 격자를 하나 더 두었더니
+          한 화면에 백팔이 둘이 되어, 어느 게 무슨 뜻인지 알 수 없었다.
+          맨 위 가는 금선(연꽃까지)과 이 격자(백팔 한 바퀴), 둘이면 족하다. */}
       <Link
         href="/settings"
-        className="rise rise-d3 mt-5 w-full max-w-sm rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3.5 transition-colors hover:border-gold/40"
+        className="rise rise-d3 mt-5 w-full max-w-sm rounded-[16px] border border-ink-3 bg-ink-2/40 px-4 py-4 transition-colors hover:border-gold/40"
       >
-        {/* 재는 자가 둘이라 늘 헷갈렸다 — 맨 위 금선은 연꽃 한 송이까지,
-            이 줄은 백팔 한 바퀴. 쌓인 공덕 숫자(2,329 같은)는 뗐다.
-            그 수로는 할 일이 달라지지 않고, 세 번째 숫자만 늘 뿐이다. */}
         <div className="flex items-baseline justify-between text-[11.5px] tracking-wide">
           <span className="flex items-center gap-1 text-hanji-faint">
             백팔 한 바퀴
@@ -1104,7 +1115,7 @@ export default function MoktakPage() {
                 예순 바퀴를 채우면 한 송이가 여뭅니다.
                 <br />
                 <br />
-                <span className="text-hanji">이 줄</span>은 백팔 한 바퀴입니다. 한 바퀴를 채울
+                <span className="text-hanji">이 격자</span>는 백팔 한 바퀴입니다. 한 바퀴를 채울
                 때마다 동자가 한마디 합니다. 둘 다 같은 공덕을 재고, 자만 다릅니다.
               </Info>
           </span>
@@ -1113,11 +1124,18 @@ export default function MoktakPage() {
             <span className="text-hanji-faint">/{ROUND}</span>
           </span>
         </div>
-        <div className="mt-1.5 h-[5px] overflow-hidden rounded-full bg-ink-3">
-          <div
-            className="h-full rounded-full bg-gold transition-[width] duration-300"
-            style={{ width: `${(inRound(merit) / ROUND) * 100}%` }}
-          />
+        <div
+          className="hip-grid108 mt-2.5"
+          role="img"
+          aria-label={`백팔 중 ${inRound(merit)}번`}
+        >
+          {Array.from({ length: ROUND }, (_, i) => (
+            <i
+              key={i}
+              data-on={i < inRound(merit) ? "1" : undefined}
+              data-knot={i % 27 === 0 ? "1" : undefined}
+            />
+          ))}
         </div>
       </Link>
 
