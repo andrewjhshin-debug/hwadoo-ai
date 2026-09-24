@@ -585,12 +585,19 @@ export default function MoktakPage() {
                     zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                     transition:
                       "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
-                    // 형: 「그늘이 너무 많다 그런 거 없애고」.
-                    // 검은 drop-shadow 를 걷고, 뒤쪽 알을 68% 까지 깎던 것을
-                    // 92% 로 올린다 — 뒤 알이 죽지 않는다
+                    // 형: 「왜 이렇게 시꺼멓냐고. 우리가 만든 샛핑크에
+                    //      채워지는 건 황금색으로 하라니까?」
+                    //
+                    // 두 가지를 틀렸었다 —
+                    //  ① 안 넘긴 알이 칙칙했다. 원본 그림이 바랜 살구빛이라
+                    //     그대로 쓰면 죽는다. 채도를 올리고 색을 분홍 쪽으로
+                    //     돌려 **샛핑크**로 세운다
+                    //  ② 넘긴 알도 분홍으로 두었다. 넘긴 표시가 **금빛**이라야
+                    //     「채워진다」가 보인다 — sepia 로 바꿔 금으로 만든다
+                    // 검은 drop-shadow 는 그대로 안 쓴다(형: 「그늘이 많다」).
                     filter: lit
-                      ? `saturate(1.3) brightness(${(1.04 + 0.1 * front).toFixed(2)}) drop-shadow(0 0 9px rgba(239,123,164,.4))`
-                      : `brightness(${(0.92 + 0.08 * front).toFixed(2)})`,
+                      ? `sepia(1) saturate(3) hue-rotate(-12deg) brightness(${(1.1 + 0.16 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
+                      : `saturate(1.75) hue-rotate(-8deg) brightness(${(1.0 + 0.1 * front).toFixed(2)})`,
                   }}
                 />
               );
@@ -613,7 +620,8 @@ export default function MoktakPage() {
             style={{
               transform: `rotate(${angle}deg)`,
               transition: "transform 0.16s ease-out",
-              filter: "drop-shadow(0 6px 12px rgba(222,126,161,0.2))",
+              filter:
+                "saturate(1.6) hue-rotate(-8deg) drop-shadow(0 6px 12px rgba(222,126,161,0.2))",
             }}
           />
         </div>
@@ -733,7 +741,12 @@ export default function MoktakPage() {
   // 살갗은 오브제 바로 밑으로 옮겼다 — 고르는 것과 보이는 것이 붙어 있어야
   // 고른 티가 바로 난다.
   const meOptions = (
-    <div className="hip-opts">
+    // 형: 「전체적으로 쳐 내리고」 — 판을 그어 버렸다.
+    // 정근·자동·음량을 통째로 없애면 기능이 사라지니, **한 줄로 접는다.**
+    // 닫혀 있을 때는 「聲」 한 글자뿐이라 치는 동안 눈에 안 걸리고,
+    // 열면 다 있다. 「⋯」 서랍처럼 화면을 통째로 덮지도 않는다.
+    <details className="hip-opts">
+      <summary aria-label="소리와 정근">聲</summary>
       <div className="hip-chips">
         {JEONGGEUN.map((g) => (
           <button
@@ -795,7 +808,7 @@ export default function MoktakPage() {
           onChange={(e) => setVol(Number(e.target.value))}
         />
       </label>
-    </div>
+    </details>
   );
 
   // 살갗 점 — 오브제 바로 밑에 붙는다. 형: 「목탁 밑에 작은 색상 버튼

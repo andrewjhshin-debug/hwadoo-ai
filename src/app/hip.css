@@ -3012,7 +3012,9 @@ html[data-theme="light"] {
   .hip-me-hits span {
     display: inline-flex;
     align-items: baseline;
-    gap: 4px;
+    /* 틈은 이름과 숫자 사이에만. 숫자와 「번」 사이가 벌어지면
+       「3,539 번」이 되어 원본(「450번」)과 결이 달라진다 */
+    gap: 0;
     flex: 0 0 auto;
     margin-top: 0;
     padding: 6px 13px;
@@ -3024,6 +3026,7 @@ html[data-theme="light"] {
     white-space: nowrap;
   }
   .hip-me-hits span b {
+    margin-left: 5px;
     display: inline;
     font-family: inherit;
     font-weight: 500;
@@ -3206,21 +3209,132 @@ html[data-theme="light"] {
    형: 「내려」. 머리 오른쪽에 넷이 서 있어 ○ 가 다섯째로 묻혔다.
    물음에 딸린 일이니 물음 밑에 둔다. */
 @media (min-width: 0px) {
+  /* 물음만 보기 — 동그라미 안에 동그라미.
+     형: 「동그라미를 정중앙에 두지 말고 살짝 왼쪽 아래로, 안 동그라미는
+          크기 좀만 더 키우고」
+
+     가로로 늘어나 타원이 됐던 까닭: 이 단추가 세로 flex 의 자식이라
+     너비가 통째로 늘어났다. `flex: 0 0 auto` 로 제 크기만 쓰게 못박는다.
+     안쪽 동그라미는 살짝 어긋나 있어야 산다 — 정중앙에 두면 과녁이 되고,
+     비껴 두면 **차오르는 달**처럼 보인다. */
   .hip-only-go {
+    position: relative;
+    flex: 0 0 auto;
+    align-self: center;
     margin-top: 28px;
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     border: 1px solid rgba(26, 23, 20, 0.14);
-    font-size: 12px;
-    line-height: 1;
-    color: #a39a8f;
   }
-  .hip-only-go:active { background: rgba(26, 23, 20, 0.05); }
+  .hip-only-go i {
+    position: absolute;
+    /* 정중앙(50%/50%)에서 왼쪽 아래로 한 뼘 */
+    left: 42%;
+    top: 58%;
+    width: 15px;
+    height: 15px;
+    margin: -7.5px 0 0 -7.5px;
+    border-radius: 50%;
+    border: 1px solid rgba(26, 23, 20, 0.28);
+    transition: transform 0.18s ease;
+  }
+  .hip-only-go:active i { transform: scale(0.86); }
 }
 
 /* 닫힌 서랍은 아예 안 보이게 — 넓은 화면에서 오른쪽 끝에 금빛 테가
    한 줄 새어 나왔다(translate-x-full 로 밀어내도 그림자는 바깥까지 번진다). */
 @media (min-width: 768px) {
   .notes-panel[aria-hidden="true"] { visibility: hidden; }
+}
+
+/* ── 옛 서랍과 아래 띠 자리 ────────────────────────────────────
+   형: 「모바일 버전에서 왼쪽 탭이 뜨면 안 되지」 (→ 웹 얘기였다)
+       「이거 아래 탭은 아래 탭만의 공간 두라고, 겹치게 하지 말고」
+
+   리뉴얼이 전 너비로 오면서, 새 판이 없는 화면(절로·연꽃…)에서는
+   옛 왼쪽 서랍이 그대로 섰다. 폰에서 머리띠를 껐듯 **서랍도 끈다** —
+   갈 길은 아래 염주와 내 도량의 동그라미 스물여섯이 다 쥐고 있다. */
+@media (min-width: 0px) {
+  aside[class*="z-[47]"] { display: none !important; }
+  /* 서랍이 지던 자리도 걷는다 — 안 걷으면 왼쪽에 빈 칸이 남는다 */
+  #scroll-box > div > main { width: 100%; }
+
+  /* 아래 염주는 제 자리를 가진다. 글이 그 밑으로 흘러들면 안 된다 */
+  .hip-screen-scroll .hip-screen-mid {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 104px);
+  }
+  /* 새 판이 없는 옛 화면도 마찬가지 */
+  #scroll-box > div > main {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+  }
+}
+
+/* ── 오리지날 탭 — 알약 트랙 ───────────────────────────────────
+   형: 「전체적으로 쳐 내리고, 오리지날 디자인에서 저렇게 탭 디자인
+        옮겨 반영」
+   (원본: 둥근 트랙 안에 셋이 들어 있고, 지금 것만 채워진 알약)
+
+   글자만 나란히 놓았더니 어느 것이 켜진 것인지 점 하나로만 말했다.
+   트랙 안에 앉히면 **셋이 한 벌**이라는 것과 **지금 어디**인지가
+   한눈에 온다. 원본이 이미 답을 내 놓은 자리다. */
+@media (min-width: 0px) {
+  .hip-lanes {
+    gap: 0;
+    padding: 4px;
+    margin: 6px auto 0;
+    width: max-content;
+    max-width: 100%;
+    border-radius: 999px;
+    background: rgba(26, 23, 20, 0.05);
+  }
+  .hip-lanes button {
+    padding: 7px 15px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    letter-spacing: 0.06em;
+    color: #9a9287;
+    transition: background 0.2s, color 0.2s;
+  }
+  .hip-lanes button[data-on="1"] {
+    background: #fff;
+    color: #17140f;
+    box-shadow: 0 1px 3px rgba(190, 130, 150, 0.18);
+  }
+  /* 점은 이제 필요 없다 — 채워진 알약이 이미 말한다 */
+  .hip-lanes button[data-on="1"]::after { display: none; }
+
+  /* 살림살이 — 한 줄로 접는다 */
+  .hip-opts {
+    margin-top: 56px;
+    padding-top: 0;
+    border-top: 0;
+    text-align: center;
+  }
+  .hip-opts > summary {
+    display: inline-block;
+    list-style: none;
+    cursor: pointer;
+    padding: 7px 16px;
+    border: 1px solid rgba(26, 23, 20, 0.1);
+    border-radius: 999px;
+    font-family: var(--font-serif);
+    font-size: 13px;
+    color: #b4ac9f;
+  }
+  .hip-opts > summary::-webkit-details-marker { display: none; }
+  .hip-opts[open] > summary {
+    color: var(--hip-pink, #ef7ba4);
+    border-color: rgba(217, 123, 164, 0.35);
+  }
+  .hip-opts[open] { padding-top: 6px; }
+  .hip-opts > *:not(summary) { text-align: left; margin-top: 18px; }
+}
+
+/* 공덕 알림 알약이 갈래 탭을 올라탔다 — 탭 트랙이 머리 바로 밑으로
+   오면서 top-[72px] 자리가 겹쳤다. 한 단 내린다. */
+@media (min-width: 0px) {
+  [class*="top-[72px]"][class*="right-4"] {
+    top: 128px !important;
+  }
 }

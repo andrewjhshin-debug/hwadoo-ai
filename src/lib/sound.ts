@@ -9,6 +9,38 @@ import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
 // ── 소리 — 나무를 빚는다 ────────────────────────────────────
 
 let actx: AudioContext | null = null;
+/**
+ * 잠든 소리통을 **첫 손짓에** 깨운다.
+ *
+ * 형: 「웹 버전 소리 안 나노」
+ *
+ * 브라우저는 사람이 화면을 건드리기 전에는 AudioContext 를 재운다.
+ * 우리는 `audio()` 안에서 resume() 을 부르고 있었는데, 그 호출이
+ * **손짓 밖에서** 일어나면 브라우저가 그냥 무시한다 — 오류도 안 난다.
+ * 폰에서는 화면을 두드리는 그 손짓이 마침 통을 만드는 순간과 겹쳐
+ * 우연히 깨어났고, 마우스로 누르는 웹에서는 영영 잠들어 있었다.
+ *
+ * 그래서 **문서 전체에 한 번만** 귀를 달아 둔다. 어디를 누르든 첫
+ * 손짓에 깨우고 곧바로 귀를 뗀다.
+ */
+let waking = false;
+function armWake() {
+  if (waking || typeof window === "undefined") return;
+  waking = true;
+  const wake = () => {
+    if (actx && actx.state === "suspended") void actx.resume();
+    if (actx && actx.state === "running") off();
+  };
+  const off = () => {
+    document.removeEventListener("pointerdown", wake, true);
+    document.removeEventListener("touchstart", wake, true);
+    document.removeEventListener("keydown", wake, true);
+  };
+  document.addEventListener("pointerdown", wake, true);
+  document.addEventListener("touchstart", wake, true);
+  document.addEventListener("keydown", wake, true);
+}
+
 function audio(): AudioContext | null {
   if (typeof window === "undefined") return null;
   try {
@@ -21,6 +53,7 @@ function audio(): AudioContext | null {
       actx = new AC();
     }
     if (actx.state === "suspended") void actx.resume();
+    armWake();
     return actx;
   } catch {
     return null;
