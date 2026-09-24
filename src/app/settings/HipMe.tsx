@@ -50,6 +50,11 @@ export type HipMeProps = {
       했다. 옛 머리띠(☰)까지 끄면서 마지막 길도 막혔었다.
       숨길 것이 아니라 보이는 자리에 둔다 */
   account: React.ReactNode;
+  /** 아직 안 들어왔나 — 그러면 계정 칸을 **맨 위로** 올린다.
+      형: 「로그인도 지금 안 돼. 로그인이 제일 시급」.
+      단추는 있었다. 동그라미 스물여섯 개 아래, 1,098px 지점에 있었다 —
+      찾을 수 없으면 없는 것과 같다 */
+  guest: boolean;
   /** 서비스 전부 — 형: 「서비스 다 넣어주고」. 한자 한 글자와 이름 */
   services: { href: string; mark: string; label: string }[];
   /** 법명 고치기 — 맞으면 null, 어긋나면 까닭을 돌려준다 */
@@ -72,6 +77,7 @@ export default function HipMe({
   bells,
   services,
   account,
+  guest,
   onRename,
   onReroll,
   nameProblem,
@@ -162,6 +168,9 @@ export default function HipMe({
             )}
           </div>
         </div>
+
+        {/* 손님이면 여기 — 이름 바로 아래. 들어온 뒤에는 맨 아래로 내린다 */}
+        {guest && <div className="hip-account hip-account-top">{account}</div>}
 
         {/* ── 자리 — 가로로 ──
             형: 「자리는 가로 형태로 두고」. 여섯 자리를 한 줄에 늘어놓고
@@ -269,7 +278,7 @@ export default function HipMe({
             빵났다」. 폰에서 이 칸이 영구히 숨겨져 있었다(meMore 를 켜는
             곳이 파일 어디에도 없었다). 옛 머리띠를 끄면서 ☰ 서랍이라는
             마지막 길까지 막혔다. **접지 않고** 여기 둔다. */}
-        <div className="hip-account">{account}</div>
+        {!guest && <div className="hip-account">{account}</div>}
 
         {/* ── 접었다 펼치는 둘 ──
             형: 「부적 기능 접었다 펼쳤다. 알림도 접었다 펼쳤다」.

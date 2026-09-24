@@ -778,6 +778,7 @@ export default function SettingsPage() {
         merit={merit.total}
         hits={meHits}
         services={meServices}
+        guest={user === null}
         account={
           user === undefined ? (
             <p className="hip-acc-wait">불러오는 중</p>
