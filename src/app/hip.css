@@ -3704,3 +3704,16 @@ html[data-theme="light"] {
   body:has(.mung-sit) .hip-mala,
   body:has(.mung-sit) .hip-mala-wrap { display: none !important; }
 }
+
+/* 넓은 화면에서는 아홉이 다 앉는다.
+   가운데 칸(460)에 맞춰 놓으니 「삼귀의」에서 띠가 잘렸다. 폰이야 밀면
+   나오지만 넓은 화면에는 밀 손가락이 없다 — 자리가 남는데 굳이 숨길
+   까닭이 없으니 띠만 칸 밖으로 내보낸다. */
+@media (min-width: 768px) {
+  /* 가운데 칸 규칙(`.hip-screen > *:not(…):not(…)`)이 셋을 세고 있어
+     같은 무게로는 못 이긴다. 같은 꼴로 맞춰 하나를 더 얹는다. */
+  .hip-screen > .hip-lanes:not(.hip-bloom):not(.hip-mark) {
+    max-width: min(760px, 92vw);
+    width: max-content;
+  }
+}
