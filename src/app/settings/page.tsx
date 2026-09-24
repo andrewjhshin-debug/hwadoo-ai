@@ -784,7 +784,36 @@ export default function SettingsPage() {
             <p className="hip-acc-wait">불러오는 중</p>
           ) : user ? (
             <>
-              <p className="hip-acc-who">{user.email ?? "이메일 없음"}</p>
+              {/* 들어와 있는 사람 — 얼굴 한 자리와 이메일 한 줄.
+                  형: 「내 도량에서 로그인 부분도 디자인 좀 더 주고」 */}
+              <div className="hip-acc-card">
+                <i aria-hidden>{isAdminAccount(user) ? "牛" : "人"}</i>
+                <div>
+                  <p className="hip-acc-name">
+                    {user.displayName ?? "수행자"}
+                  </p>
+                  <p className="hip-acc-who">{user.email ?? "이메일 없음"}</p>
+                </div>
+              </div>
+
+              {/* 뒷방 — **관리자로 들어왔을 때만.**
+                  형: 「나는 andrewjhshin@gmail.com 이고 관리자니까 관리 기능
+                  뒷방 관리하는 거, 그거 내 아이디로 접속했을 때만 그 기능 줘야지.
+                  오리지날에 있는 거 그대로 가져가자」 — 옛 판의 그 칸 그대로,
+                  승인 기다리는 화두 수까지 같이 온다. */}
+              {isAdminAccount(user) && (
+                <Link href="/admin" className="hip-acc-admin">
+                  <b>뒷방</b>
+                  <span>
+                    {pendingCount === null
+                      ? "살피는 중"
+                      : pendingCount > 0
+                        ? `기다리는 화두 ${pendingCount}`
+                        : "기다리는 물음 없음"}
+                  </span>
+                </Link>
+              )}
+
               <button
                 onClick={() => logout().catch(() => {})}
                 className="hip-acc-out"

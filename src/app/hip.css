@@ -3338,3 +3338,76 @@ html[data-theme="light"] {
     top: 128px !important;
   }
 }
+
+/* ── 계정 칸 ───────────────────────────────────────────────────
+   형: 「내 도량에서 로그인 부분도 디자인 좀 더 주고」
+       「관리 기능 뒷방 관리하는 거, 그거 내 아이디로 접속했을 때만」
+
+   이메일 한 줄과 로그아웃 단추만 덩그러니 있었다. 얼굴 자리(한자 한 글자)를
+   두고, 관리자에게는 그 아래 뒷방 들목이 한 칸 더 선다 — 옛 판이 화면
+   맨 아래에 두던 그 칸을 여기로 옮겼다. 관리자도 위에서부터는 남들과
+   같은 내 도량을 보고, 살림은 끝에 한 칸. */
+@media (min-width: 0px) {
+  .hip-acc-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: left;
+  }
+  .hip-acc-card i {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: linear-gradient(150deg, #fbe3ec, #f2a0bd);
+    font-style: normal;
+    font-family: var(--font-serif);
+    font-size: 19px;
+    color: #fff;
+  }
+  .hip-acc-name {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: #17140f;
+  }
+  .hip-acc-card .hip-acc-who { margin-top: 3px; font-size: 11.5px; }
+
+  /* 뒷방 — 관리자에게만 */
+  .hip-acc-admin {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 13px 18px;
+    border: 1px solid rgba(201, 160, 99, 0.42);
+    border-radius: 16px;
+    background: rgba(201, 160, 99, 0.07);
+    text-align: left;
+  }
+  .hip-acc-admin b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+    color: #b08c3e;
+  }
+  .hip-acc-admin span {
+    font-size: 11.5px;
+    color: #a39a8f;
+  }
+  .hip-acc-admin:active { background: rgba(201, 160, 99, 0.14); }
+}
+
+/* 자리 고르기 — 형: 「목탁 위치 더 내려, 관세음… 명호 위아래 공간
+   그렇게 둘 필요 없고, 자동 목탁 기능도 좀 내리고」 */
+@media (min-width: 0px) {
+  .hip-obj { margin-top: 40px; }
+  .hip-opts { margin-top: 72px; }
+  .hip-opts .hip-chips { margin-bottom: 10px; }
+  .hip-opts .hip-sheet-row { margin-top: 22px; }
+  .hip-opts .hip-sheet-range { margin-top: 12px; }
+}

@@ -412,6 +412,10 @@ export default function MoktakPage() {
     }
     lastAt.current = now;
 
+    // 공덕은 **손으로 친 것만.**
+    // 형: 「자동 목탁은 자동으로 친다고 공덕 올라오는 게 아님」 — 맞고,
+    // 처음부터 그렇게 되어 있다(byHand 일 때만 earn). 틀어 두고 자도
+    // 숫자만 오르고 공덕은 한 톨도 안 붙는다.
     if (byHand) {
       earn("moktak");
       buzz(8);
@@ -452,8 +456,16 @@ export default function MoktakPage() {
     if (!auto) return;
     let alive = true;
     let timer: number;
+    // 형: 「어느 정도 한계 둬, 타이트하게」.
+    // 공덕은 원래 안 붙지만, 틀어 두면 소리가 영영 난다 — 끌 수 없는
+    // 소리는 수행이 아니라 소음이다. **한 바퀴(108타)**에서 저절로 멎는다.
+    let left = ROUND;
     const tick = () => {
       if (!alive || !autoRef.current.on) return;
+      if (left-- <= 0) {
+        setAuto(false);
+        return;
+      }
       strike(false);
       const base = 60000 / autoRef.current.bpm;
       timer = window.setTimeout(tick, base * (0.94 + Math.random() * 0.12));
