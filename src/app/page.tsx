@@ -21,6 +21,7 @@ import {
   sessionQuestion,
 } from "@/lib/hwadu";
 import Question from "@/components/Question";
+import { HipGardenEmpty, HipGardenHolding } from "./HipGarden";
 import { fetchPublicHwadu, markSeen, type PublicHwadu } from "@/lib/thrown";
 import { plainThoughts } from "@/lib/thoughts";
 import {
@@ -446,7 +447,14 @@ export default function Home() {
   // ── 화두가 없다 — 브랜드 얼굴 ──────────────────────────
   if (store !== null && !current) {
     return (
-      <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-6 text-center sm:justify-center sm:py-16">
+      <>
+      {/* ── 폰 판 ── 화면을 통째로 덮는다. 옛 판은 웹에만 남는다 */}
+      <HipGardenEmpty
+        audience={(store?.audience ?? "adult") as "adult" | "student"}
+        onAudience={(a) => update((base) => ({ ...base, audience: a }))}
+        onReceive={receive}
+      />
+      <div className="relative hidden flex-1 flex-col items-center justify-start px-5 pb-16 pt-6 text-center md:flex sm:justify-center sm:py-16">
         {/* 폰은 이름이 주인공이라 표식을 한 단 줄인다. 웹은 원래대로 */}
         <div className="rise-sharp md:hidden">
           <Enso size={82} />
@@ -525,6 +533,7 @@ export default function Home() {
           <i className="h-[5px] w-[5px] rounded-full bg-[#494340]" />
         </div>
       </div>
+      </>
     );
   }
 
@@ -863,7 +872,26 @@ export default function Home() {
     // 화두만 보기는 위에서부터 세우니, 오갈 때마다 물음이 백사십 픽셀씩
     // 뛰었다 — 형: 「두둥 하면서 튀지 말고 그냥 화면 보여줘」.
     // 둘 다 **위에서부터** 세운다. 그러면 오가도 물음이 안 움직인다.
-    <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center sm:py-12">
+    <>
+    {/* ── 폰 판 ── 물음이 곧 화면이다 */}
+    <HipGardenHolding
+      question={sessionQuestion(current)}
+      source={current.customSource ?? hwadu?.context ?? null}
+      day={dayCount(current)}
+      unlocked={unlocked}
+      pct={moonPct}
+      remaining={remaining > 0 ? `${formatCountdown(remaining)} 남음` : "곧 열립니다"}
+      onOpen={() => {
+        setDraft((d) => d || loadDraft(current.hwaduId));
+        setWriting(true);
+      }}
+      onNotes={() => setNotesOpen(true)}
+      onFocus={() => {
+        setSeenOnce(true);
+        setFocusMode(true);
+      }}
+    />
+    <div className="relative hidden flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center md:flex sm:py-12">
       <ShareButton
         title="화두 공유"
         text={`화두 — ${sessionQuestion(current)}`}
@@ -1119,5 +1147,6 @@ export default function Home() {
       {/* 사유의 방 서랍 */}
       <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
     </div>
+    </>
   );
 }

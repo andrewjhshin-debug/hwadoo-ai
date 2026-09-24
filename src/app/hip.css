@@ -1348,3 +1348,103 @@ html[data-theme="light"] {
     -webkit-text-fill-color: transparent;
   }
 }
+
+/* ── 뜰 판 ─────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* 누구의 물음인가 — 알약 하나 */
+  .hip-seg {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 999px;
+    background: rgba(26, 23, 20, 0.05);
+  }
+  .hip-seg button {
+    height: 30px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: #8b8175;
+  }
+  .hip-seg button[data-on="1"] {
+    background: #fff;
+    color: #17140f;
+    box-shadow: 0 1px 3px rgba(26, 23, 20, 0.12);
+  }
+
+  /* 연꽃 — 코드로 그린다. 그림 파일 없이, 숨 쉬듯 아주 느리게 돈다 */
+  .hip-lotus {
+    display: block;
+    width: 62%;
+    max-width: 260px;
+    animation: hip-turn 64s linear infinite;
+  }
+  .hip-lotus svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .hip-lotus ellipse {
+    fill: rgba(242, 120, 159, 0.14);
+    stroke: rgba(239, 123, 164, 0.55);
+    stroke-width: 1.1;
+  }
+  .hip-lotus circle {
+    fill: rgba(104, 208, 190, 0.5);
+  }
+  @keyframes hip-turn {
+    to { transform: rotate(360deg); }
+  }
+
+  .hip-ask {
+    margin-top: 42px;
+    text-align: center;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 25px;
+    line-height: 1.7;
+    letter-spacing: -0.01em;
+    color: #17140f;
+  }
+
+  /* 물음 — 이 화면의 큰 것 하나 */
+  .hip-q {
+    text-align: center;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    line-height: 1.42;
+    letter-spacing: -0.03em;
+    color: #17140f;
+    word-break: keep-all;
+  }
+  .hip-q-a { font-size: clamp(38px, 11vw, 54px); }
+  .hip-q-b { font-size: clamp(30px, 8.6vw, 42px); }
+  .hip-q-c { font-size: clamp(24px, 6.8vw, 34px); }
+  .hip-q-by {
+    margin-top: 26px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    color: #a39a8f;
+  }
+
+  /* 달 — 실 한 올 */
+  .hip-moon {
+    position: relative;
+    z-index: 1;
+    height: 1.5px;
+    border-radius: 2px;
+    background: rgba(26, 23, 20, 0.1);
+    overflow: hidden;
+  }
+  .hip-moon i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #ef7ba4, #5cc2ac);
+    transition: width 0.8s ease-out;
+  }
+  .hip-screen .hip-under {
+    margin-top: 12px;
+    text-align: center;
+  }
+}
