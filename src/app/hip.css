@@ -3427,3 +3427,52 @@ html[data-theme="light"] {
   .hip-opts > *:not(summary) { margin-top: 0; }
   .hip-opts .hip-chips { margin-bottom: 4px; justify-content: center; }
 }
+
+/* 아래 염주와 글이 겹치던 것 — 판 안쪽 바닥을 더 비운다.
+   형: 「밑에 겹치는 버그 수정」 */
+@media (min-width: 0px) {
+  .hip-screen-scroll .hip-screen-mid,
+  .hip-screen .hip-screen-mid {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
+  }
+  /* 살갗 점은 오브제에 붙어 있다 */
+  .hip-obj-foot { margin-top: 16px; }
+  /* 숫자와 그릇 크기 알약 사이를 벌린다 — 형: 「숫자랑 그릇 크기 이격시켜」 */
+  .hip-chips-tight { margin-top: 26px; margin-bottom: 14px; }
+}
+
+/* 설명을 펴면 「功 德」 글자는 물러난다 —
+   형: 「설명할 땐 공덕 한자 없애고」. 같은 자리에서 둘이 겹쳐 읽히면
+   설명이 제목에 묻힌다. */
+@media (min-width: 0px) {
+  .hip-me-merit-k:has(.hip-info[open]) {
+    font-size: 0;
+    letter-spacing: 0;
+  }
+  .hip-me-merit-k:has(.hip-info[open]) .hip-info {
+    font-size: 12px;
+    margin-left: 0;
+    display: block;
+  }
+  .hip-info > div p { line-height: 1.9; }
+
+  /* 머리와 갈래 탭이 붙었다 — 형: 「왤케 붙었냐, 저 위가 이격 좀 시키라고」 */
+  .hip-lanes { margin-top: 18px; }
+  .hip-screen-top { padding-bottom: 4px; }
+}
+
+/* ○ 단추가 아직도 타원이다 — 형: 「이거 아직 안 고쳤냐」.
+   세로 flex 안에서 너비가 늘어나는 것을 align-items 로 막고 있었는데,
+   판마다 정렬이 달라 새는 자리가 있었다. **크기를 못박는다.** */
+@media (min-width: 0px) {
+  .hip-only-go,
+  .hip-back {
+    width: 42px !important;
+    min-width: 42px;
+    max-width: 42px;
+    height: 42px !important;
+    flex: 0 0 auto !important;
+    align-self: center !important;
+    box-sizing: border-box;
+  }
+}

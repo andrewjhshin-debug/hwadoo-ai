@@ -151,10 +151,13 @@ function SkinDots({
           onClick={() => onPick(k.id)}
           aria-label={k.name}
           aria-pressed={pick === k.id}
-          className={`h-[14px] w-[14px] rounded-full border transition-all ${
+          /* 형: 「저거 색상 버튼 더 밝게 만들고」.
+             55% 로 흐려 두었더니 흰 바탕에서 무슨 색인지 안 보였다.
+             흐리게 하는 대신 **테로** 가른다 — 색은 늘 또렷하게 */
+          className={`h-[17px] w-[17px] rounded-full transition-all ${
             pick === k.id
-              ? "scale-110 border-gold"
-              : "border-ink-3 opacity-55 hover:opacity-90"
+              ? "scale-115 ring-2 ring-[#ef7ba4] ring-offset-2 ring-offset-transparent"
+              : "opacity-90 ring-1 ring-black/10 hover:opacity-100"
           }`}
           style={{ background: k.dot }}
         />

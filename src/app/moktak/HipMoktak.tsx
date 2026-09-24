@@ -260,8 +260,6 @@ export default function HipMoktak({
           )}
           {/* 살갗 — 오브제 바로 밑. 고르는 것과 보이는 것이 붙어 있어야
               고른 티가 바로 난다 */}
-          {tab === "moktak" && <div className="hip-obj-foot">{dots}</div>}
-
           {tab === "moktak" && (
           <button
             onClick={touch}
@@ -296,6 +294,11 @@ export default function HipMoktak({
             </span>
           </button>
           )}
+          {/* 살갗 — 오브제 **바로 아래**.
+              형: 「염주랑 목탁 둘 다에서 위치 옮기고」.
+              숫자 밑에 있으면 무엇의 색을 고르는 것인지 안 보인다.
+              고르는 것과 보이는 것이 붙어 있어야 고른 티가 바로 난다. */}
+          {tab === "moktak" && <div className="hip-obj-foot">{dots}</div>}
 
           {/* 백팔 격자는 걷었다 —
               형: 「저 그리드 없애고 그 자리 더 활용해. 그리드 격자 필요 없다」.

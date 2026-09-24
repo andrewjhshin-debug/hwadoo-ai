@@ -92,7 +92,10 @@ export default function MeritToast() {
           style={{ animation: "mt-pop 1.4s ease-out forwards" }}
         >
           <span className="rounded-full border border-gold/45 bg-ink-2/90 px-3.5 py-1.5 font-serif text-[15px] leading-none text-gold shadow-[0_8px_26px_rgba(0,0,0,0.5)] backdrop-blur">
-            +{gain.toLocaleString("ko-KR")}
+            {/* 형: 「공덕이 1씩 올라가면 + 는 지워야 할 듯. 기망이야 이건」.
+                한 타에 1 이 붙는데 「+49」라고 뜨면 방금 마흔아홉을 받은
+                것처럼 읽힌다. 쌓인 수를 그냥 적는다 */}
+            {gain.toLocaleString("ko-KR")}
             <span className="ml-1.5 text-[10.5px] tracking-[0.2em] text-gold-soft">
               공덕
             </span>
