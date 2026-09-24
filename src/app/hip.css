@@ -1697,3 +1697,54 @@ html[data-theme="light"] {
     padding-bottom: 0;
   }
 }
+
+/* ── 나머지 방들 — 동그란 버튼 ────────────────────────────────
+   형: 「동그란 버튼을 두든, 여러 메뉴는 내 도량에서 보든」.
+   아래 띠에는 알 셋만. 하루에 한 번 갈까 말까 한 방은 여기 모은다. */
+@media (max-width: 767px) {
+  .hip-rooms {
+    margin-top: 34px;
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px 8px;
+  }
+  .hip-rooms a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+  }
+  .hip-rooms i {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-serif);
+    font-style: normal;
+    font-weight: 400;
+    font-size: 21px;
+    line-height: 1;
+    color: #6e6455;
+    background: #fff;
+    box-shadow:
+      inset -3px -4px 8px rgba(26, 23, 20, 0.06),
+      0 3px 10px rgba(26, 23, 20, 0.08);
+    transition: transform 0.16s, color 0.2s, box-shadow 0.2s;
+  }
+  .hip-rooms a:active i {
+    transform: scale(0.94);
+  }
+  /* 셋씩 두 줄 — 가운데 줄은 민트, 바깥은 분홍으로 물린다.
+     여섯이 다 같은 흰 동그라미면 그냥 단추 여섯이다 */
+  .hip-rooms a:nth-child(2) i,
+  .hip-rooms a:nth-child(5) i { color: #43b39c; }
+  .hip-rooms a:nth-child(3) i,
+  .hip-rooms a:nth-child(4) i { color: #e3628f; }
+  .hip-rooms span {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: #9a9187;
+  }
+}

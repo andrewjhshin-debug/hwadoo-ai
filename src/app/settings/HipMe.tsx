@@ -19,6 +19,7 @@
 // 실 한 올과 「沙 432」. 뜻은 남기고 말은 지운다.
 // ─────────────────────────────────────────────────────────────
 
+import Link from "next/link";
 import HipShell from "@/components/HipShell";
 
 export type HipMeProps = {
@@ -98,6 +99,28 @@ export default function HipMe({
               <b>{h.n.toLocaleString("ko-KR")}</b>
               <span>{h.label}</span>
             </div>
+          ))}
+        </div>
+
+        {/* ── 나머지 방들 — 동그란 버튼으로 ──
+            형: 「정직하게 막 탭에 메뉴판에 다 두려고 하지 말고, 동영상
+            레퍼처럼 귀엽게 아기자기하게 동그란 버튼을 두든, 여러 메뉴는
+            내 도량에서 보든」.
+            아래 띠에는 알 셋만 두고, 하루에 한 번 갈까 말까 한 방들은
+            전부 여기 동그라미로 모았다. 글자는 한 줄, 그림은 한자 한 글자. */}
+        <div className="hip-rooms">
+          {[
+            { href: "/hasim", mark: "下", name: "하심" },
+            { href: "/breath", mark: "息", name: "호흡" },
+            { href: "/mung", mark: "無", name: "멍" },
+            { href: "/empty", mark: "空", name: "비움" },
+            { href: "/candle", mark: "燈", name: "법당" },
+            { href: "/tamjinchi", mark: "投", name: "불심" },
+          ].map((r) => (
+            <Link key={r.href} href={r.href} aria-label={r.name}>
+              <i>{r.mark}</i>
+              <span>{r.name}</span>
+            </Link>
           ))}
         </div>
       </div>

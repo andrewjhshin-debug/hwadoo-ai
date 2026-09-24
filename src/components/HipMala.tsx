@@ -11,33 +11,34 @@
 // **염주를 껍데기(layout)에 한 번만 놓고, 옛 탭은 폰에서 아예 끈다.**
 // 그러면 어느 화면에 가도 아래는 늘 염주다.
 //
-// 알 다섯에 형이 남기라 한 것들을 묶었다 —
-//   話 화두
-//   功 공덕      목탁 · 염주 · 싱잉볼
-//   靜 고요      하심 · 호흡 명상 · 멍 때리기 · 비움
-//   燈 법당      법당 초 공양 · 불심 투자
-//              (연꽃 공양은 오른쪽 위 자리에 이미 있으니 알로 두지 않는다)
-//   我 나
-// 열을 알 열로 늘어놓으면 그건 다시 탭이다. 다섯이 손에 맞는 수다.
+// 형: 「정직하게 막 탭에 메뉴판에 다 두려고 하지 말고, 동영상 레퍼처럼
+//      귀엽게 아기자기하게 동그란 버튼을 두든, 여러 메뉴는 내 도량에서 보든」
+//
+// 맞다. 알을 다섯으로 늘린 것도 결국 탭이었다. 이름만 알로 바꾼 탭.
+// **알은 셋뿐이다** — 날마다 손이 가는 자리만.
+//   話 화두   오늘의 물음
+//   功 공덕   목탁 · 염주 · 싱잉볼
+//   我 나     그리고 나머지 전부가 이 안에 동그란 버튼으로 있다
+//
+// 하심 · 호흡 · 멍 · 비움 · 법당 초 · 불심 투자 — 다 내 도량 안이다.
+// 하루에 한 번 갈까 말까 한 방을 아래 띠에 박아 둘 이유가 없다.
+// 연꽃 공양도 오른쪽 위에 이미 있으니 알로 두지 않는다.
 // ─────────────────────────────────────────────────────────────
 
 import { usePathname, useRouter } from "next/navigation";
 
 export type Bead = { mark: string; name: string; href: string; also: string[] };
 
-/** 알 다섯 — `also` 는 그 알이 품는 방들(그 방에 있어도 이 알이 켜진다) */
+/** 알 셋 — `also` 는 그 알이 품는 방들(그 방에 있어도 이 알이 켜진다) */
 export const BEADS: Bead[] = [
   { mark: "話", name: "화두", href: "/", also: ["/my-hwadu", "/archive", "/room"] },
   { mark: "功", name: "공덕", href: "/moktak", also: [] },
   {
-    mark: "靜",
-    name: "고요",
-    href: "/breath",
-    also: ["/hasim", "/mung", "/empty"],
+    mark: "我",
+    name: "나",
+    href: "/settings",
+    also: ["/rank", "/hasim", "/breath", "/mung", "/empty", "/candle", "/tamjinchi", "/lotus"],
   },
-  // 형: 「연꽃 공양은 오른쪽 위에 있으니까 아래 탭엔 두지 마」 — /lotus 는 뺐다
-  { mark: "燈", name: "법당", href: "/candle", also: ["/tamjinchi"] },
-  { mark: "我", name: "나", href: "/settings", also: ["/rank"] },
 ];
 
 function beadOf(path: string): number {
