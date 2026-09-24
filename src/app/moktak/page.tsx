@@ -721,15 +721,11 @@ export default function MoktakPage() {
         />
       </button>
 
+      {/* 형: 「손으로 감싸 그치기 없애고 텍스트」.
+          그릇을 다시 누르면 그친다 — 이미 그렇게 되어 있다(ringBowl).
+          한 번 눌러 보면 아는 일을 글로 적어 둘 까닭이 없다.
+          남는 것은 살갗 점 셋뿐. */}
       <div className="hip-obj-foot">
-        <button
-          onClick={stopBowl}
-          disabled={!ringing}
-          className="hip-hush"
-          data-on={ringing ? "1" : undefined}
-        >
-          손으로 감싸 그치기
-        </button>
         <SkinDots kind="bowl" pick={skin.bowl} onPick={pickSkin("bowl")} />
       </div>
     </div>
@@ -753,12 +749,11 @@ export default function MoktakPage() {
   // 살갗은 오브제 바로 밑으로 옮겼다 — 고르는 것과 보이는 것이 붙어 있어야
   // 고른 티가 바로 난다.
   const meOptions = (
-    // 형: 「전체적으로 쳐 내리고」 — 판을 그어 버렸다.
-    // 정근·자동·음량을 통째로 없애면 기능이 사라지니, **한 줄로 접는다.**
-    // 닫혀 있을 때는 「聲」 한 글자뿐이라 치는 동안 눈에 안 걸리고,
-    // 열면 다 있다. 「⋯」 서랍처럼 화면을 통째로 덮지도 않는다.
-    <details className="hip-opts">
-      <summary aria-label="소리와 정근">聲</summary>
+    // 형: 「저 버튼 없애고, 오로지 목탁에서만 오로지 목탁만 저 자동 기능
+    //      두되, 전반적으로 더 밑으로 보내고」
+    // 접는 단추(聲)도 결국 한 겹이었다. 목탁 갈래에서만 뜨니 숨길 까닭이
+    // 없다 — 그냥 편다. 대신 한참 아래로 내려 치는 동안 안 걸리게 한다.
+    <div className="hip-opts">
       <div className="hip-chips">
         {JEONGGEUN.map((g) => (
           <button
@@ -820,7 +815,7 @@ export default function MoktakPage() {
           onChange={(e) => setVol(Number(e.target.value))}
         />
       </label>
-    </details>
+    </div>
   );
 
   // 살갗 점 — 오브제 바로 밑에 붙는다. 형: 「목탁 밑에 작은 색상 버튼

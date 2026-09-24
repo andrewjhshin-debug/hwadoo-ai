@@ -3411,3 +3411,19 @@ html[data-theme="light"] {
   .hip-opts .hip-sheet-row { margin-top: 22px; }
   .hip-opts .hip-sheet-range { margin-top: 12px; }
 }
+
+/* 목탁을 키우고 전반을 아래로 — 형: 「목탁 크기 키우고, 전반적으로
+   더 밑으로 보내고」. 살림살이는 접는 단추를 걷고 그냥 편다. */
+@media (min-width: 0px) {
+  .hip-obj { margin-top: 58px; }
+  .hip-mok-img,
+  .hip-mok { max-width: 400px; }
+  .hip-opts {
+    margin-top: 96px;
+    padding-top: 26px;
+    border-top: 1px solid rgba(26, 23, 20, 0.07);
+    text-align: left;
+  }
+  .hip-opts > *:not(summary) { margin-top: 0; }
+  .hip-opts .hip-chips { margin-bottom: 4px; justify-content: center; }
+}
