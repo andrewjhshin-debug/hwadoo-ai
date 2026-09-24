@@ -23,27 +23,7 @@
 // 쥐고 있고 여기는 받아 그린다 — 통째로 지워도 앱은 예전대로 돈다.
 // ─────────────────────────────────────────────────────────────
 
-import Link from "next/link";
-
-const RAIL: { href: string; name: string }[] = [
-  { href: "/ganhwaseon", name: "간화선" },
-  { href: "/moktak", name: "공덕" },
-  { href: "/", name: "뜰" },
-  { href: "/pilgrimage", name: "절로" },
-  { href: "/settings", name: "내 도량" },
-];
-
-function Rail() {
-  return (
-    <nav className="hip-rail" aria-label="주요 이동">
-      {RAIL.map((r) => (
-        <Link key={r.href} href={r.href} aria-label={r.name}>
-          <i data-on={r.href === "/" ? "1" : undefined} />
-        </Link>
-      ))}
-    </nav>
-  );
-}
+import HipShell from "@/components/HipShell";
 
 /** 비어 있는 뜰 — 연꽃 하나와 단추 하나 */
 export function HipGardenEmpty({
@@ -56,6 +36,7 @@ export function HipGardenEmpty({
   onReceive: () => void;
 }) {
   return (
+    <HipShell here="/">
     <div className="hip-screen md:hidden">
       <span aria-hidden className="hip-bloom hip-bloom-a" />
       <span aria-hidden className="hip-bloom hip-bloom-b" />
@@ -109,8 +90,8 @@ export function HipGardenEmpty({
       <button onClick={onReceive} className="hip-strike">
         새 화두 받기
       </button>
-      <Rail />
     </div>
+    </HipShell>
   );
 }
 
@@ -141,6 +122,7 @@ export function HipGardenHolding({
   const n = question.replace(/\s+/g, " ").trim().length;
   const size = n <= 26 ? "a" : n <= 52 ? "b" : "c";
   return (
+    <HipShell here="/">
     <div className="hip-screen md:hidden">
       <span aria-hidden className="hip-bloom hip-bloom-a" />
       <span aria-hidden className="hip-bloom hip-bloom-b" />
@@ -167,7 +149,7 @@ export function HipGardenHolding({
       <button onClick={unlocked ? onOpen : onNotes} className="hip-strike">
         {unlocked ? "붓을 들다" : "사유의 방"}
       </button>
-      <Rail />
     </div>
+    </HipShell>
   );
 }

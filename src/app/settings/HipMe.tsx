@@ -19,15 +19,7 @@
 // 실 한 올과 「沙 432」. 뜻은 남기고 말은 지운다.
 // ─────────────────────────────────────────────────────────────
 
-import Link from "next/link";
-
-const RAIL: { href: string; name: string }[] = [
-  { href: "/ganhwaseon", name: "간화선" },
-  { href: "/moktak", name: "공덕" },
-  { href: "/", name: "뜰" },
-  { href: "/pilgrimage", name: "절로" },
-  { href: "/settings", name: "내 도량" },
-];
+import HipShell from "@/components/HipShell";
 
 export type HipMeProps = {
   /** 법명 */
@@ -58,6 +50,7 @@ export default function HipMe({
   onMore,
 }: HipMeProps) {
   return (
+    <HipShell here="/settings">
     <div className="hip-screen md:hidden">
       <span aria-hidden className="hip-bloom hip-bloom-a" />
       <span aria-hidden className="hip-bloom hip-bloom-b" />
@@ -113,13 +106,7 @@ export default function HipMe({
         </div>
       </div>
 
-      <nav className="hip-rail" aria-label="주요 이동">
-        {RAIL.map((r) => (
-          <Link key={r.href} href={r.href} aria-label={r.name}>
-            <i data-on={r.href === "/settings" ? "1" : undefined} />
-          </Link>
-        ))}
-      </nav>
     </div>
+    </HipShell>
   );
 }

@@ -1550,3 +1550,56 @@ html[data-theme="light"] {
   .hip-me-hits div:nth-child(2) b { color: #e3628f; }
   .hip-me-hits div:nth-child(3) b { color: #43b39c; }
 }
+
+/* ── 옆으로 넘기기 ─────────────────────────────────────────────
+   점 다섯을 깔아 놓고 누르기만 되면 그건 작은 탭이다. 점은
+   「다섯 중 여기」라는 말이니 손가락으로 넘어가야 한다. */
+@media (max-width: 767px) {
+  .hip-swipe {
+    display: contents;
+  }
+  .hip-swipe.from-right .hip-screen { animation: hip-in-right 0.36s cubic-bezier(0.22, 0.61, 0.36, 1); }
+  .hip-swipe.from-left .hip-screen { animation: hip-in-left 0.36s cubic-bezier(0.22, 0.61, 0.36, 1); }
+  @keyframes hip-in-right {
+    from { transform: translateX(11%); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+  @keyframes hip-in-left {
+    from { transform: translateX(-11%); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+
+  /* 점 다섯은 판 위에 떠 있는다 — 어느 화면에서든 같은 자리 */
+  .hip-swipe > .hip-rail {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    z-index: 70;
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+  }
+  .hip-swipe > .hip-rail button { padding: 10px; }
+  .hip-swipe > .hip-rail i {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(26, 23, 20, 0.2);
+    transition: transform 0.24s, background-color 0.24s;
+  }
+  .hip-swipe > .hip-rail i[data-on="1"] {
+    background: #ef7ba4;
+    transform: scale(1.75);
+  }
+  /* 판 안에 따로 두었던 점 줄은 이제 껍데기가 맡는다 */
+  .hip-screen > .hip-rail { display: none; }
+  /* 점 줄이 떠 있으니 판 아래에 그만큼 자리를 비운다 */
+  .hip-screen { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 56px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hip-swipe.from-right .hip-screen,
+  .hip-swipe.from-left .hip-screen { animation: none; }
+}
