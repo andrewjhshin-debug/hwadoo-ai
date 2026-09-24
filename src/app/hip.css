@@ -219,9 +219,9 @@ html[data-theme="light"] {
   /* 이름 — 종이 위에서는 금이 아니라 **먹**이다. 금은 곁만 물린다 */
   html .text-obang,
   html .text-gold-grad {
-    background: linear-gradient(104deg, #6b4f12 0%, #17140f 46%) !important;
-    -webkit-background-clip: text;
-    background-clip: text;
+    background-image: linear-gradient(104deg, #6b4f12 0%, #17140f 46%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
     -webkit-text-fill-color: transparent;
     color: transparent;
   }
@@ -1224,4 +1224,127 @@ html[data-theme="light"] {
 @media (prefers-reduced-motion: reduce) {
   .hip-bloom, .hip-obj-img, .hip-ripple, .hip-screen .hip-big,
   .hip-grid108.knot > i { animation: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   전반 — 모든 화면에 같은 결 (폰만)
+
+   형: 「개별 기능보다 전반적인 화면을 고친 담에」
+       「전체를 다 다듬은 거를 줘봐. 전반적인 분위기를 보려고」
+
+   목탁 한 화면만 새로 짜 놓으니 나머지가 따로 놀았다. 그 화면에서
+   쓴 결(흰 바탕 · 분홍·민트 번짐 · 테 없는 흰 판 · 큰 모서리)을
+   **앱 전체에** 깐다. 기능과 배치는 손대지 않는다 — 결만 입힌다.
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  /* ── 바탕 — 흰 종이에 분홍과 민트가 아주 옅게 번진다 ── */
+  :root {
+    --color-ink: #fbfaf8;
+    --color-ink-2: #ffffff;
+    --color-ink-3: rgba(26, 23, 20, 0.08);
+    --hip-ground: #fbfaf8;
+    --hip-raise: #ffffff;
+    --hip-edge: rgba(26, 23, 20, 0.1);
+    --hip-edge-soft: rgba(26, 23, 20, 0.06);
+    --hip-dead: rgba(26, 23, 20, 0.06);
+    --hip-pink: #ef7ba4;
+    --hip-mint: #5cc2ac;
+  }
+  /* 번짐은 화면에 붙박아 둔다 — 스크롤해도 자리가 흔들리지 않는다.
+     **body 에 걸면 안 된다.** body 가 flex 라 가짜 요소가 칸을 한 자리
+     차지해, 본문이 390 → 129px 로 눌렸다(옆 서랍 폭만큼 밀린 꼴).
+     스크롤 통 안에 건다 — 거기 fixed 는 화면 기준이라 결과는 같다. */
+  #scroll-box::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(56% 38% at 12% 4%, rgba(242, 120, 159, 0.17), transparent 70%),
+      radial-gradient(52% 36% at 94% 20%, rgba(104, 208, 190, 0.18), transparent 70%),
+      radial-gradient(64% 42% at 82% 94%, rgba(242, 120, 159, 0.12), transparent 72%),
+      radial-gradient(58% 38% at 4% 86%, rgba(104, 208, 190, 0.11), transparent 72%);
+  }
+  /* 본문은 번짐 위에.
+     **머리띠와 아래 띠에는 position 을 건드리면 안 된다.** 둘 다 `fixed`
+     라 흐름 밖에 있는데, `relative` 로 바꾸니 body 의 flex 칸을 한 자리씩
+     차지해 본문이 390 → 129px 로 눌렸다. z-index 만 올린다 —
+     fixed 요소는 position 을 바꾸지 않아도 z-index 가 먹는다. */
+  #scroll-box {
+    position: relative;
+    z-index: 1;
+  }
+  .mobile-tabbar,
+  .hip-topbar {
+    z-index: 50;
+  }
+
+  /* ── 판 — 테를 걷고 그림자로 띄운다. 흰 위에 흰이 뜨는 결 ── */
+  [class~="bg-ink-2/40"],
+  [class~="bg-ink-2/50"],
+  [class~="bg-ink-2/60"],
+  [class~="bg-ink-2"] {
+    background-color: #ffffff !important;
+    border-color: transparent !important;
+    backdrop-filter: none;
+    box-shadow: 0 1px 2px rgba(26, 23, 20, 0.04), 0 10px 30px rgba(26, 23, 20, 0.07);
+  }
+  /* 모서리를 한 번 더 키운다 — 이 결의 인상이 여기서 절반 난다 */
+  [class~="rounded-[9px]"],
+  [class~="rounded-[10px]"] { border-radius: 16px; }
+  [class~="rounded-[11px]"],
+  [class~="rounded-[12px]"] { border-radius: 20px; }
+  [class~="rounded-[14px]"],
+  [class~="rounded-[15px]"] { border-radius: 24px; }
+  [class~="rounded-[16px]"] { border-radius: 26px; }
+  [class~="rounded-[18px]"] { border-radius: 30px; }
+
+  /* ── 빛깔 — 금 자리에 분홍, 알림 자리에 민트 ──
+     금은 먹빛 위의 색이다. 흰 위에서는 힘이 없다. 이 판의 점은 분홍이다. */
+  html [class~="text-gold"],
+  html [class~="text-gold-soft"] { color: #d9628d; }
+  html [class~="border-gold"] { border-color: #ef7ba4; }
+  html [class~="bg-gold"] { background-color: #ef7ba4; }
+  html [class~="bg-gold/10"],
+  html [class~="bg-gold/15"] { background-color: rgba(242, 120, 159, 0.1); }
+  html [class~="text-vermilion"] { color: #2fa98f; }
+
+  /* ── 아래 띠 · 머리띠 — 흰 판 위에 떠 있게 ── */
+  html .mobile-tabbar {
+    background: rgba(251, 250, 248, 0.82) !important;
+    backdrop-filter: blur(18px) saturate(1.1);
+  }
+  html .mobile-tabbar a { color: #a9a196; }
+  html .mobile-tabbar a[class*="text-gold"] { color: #17140f; }
+  html .mobile-tabbar a[class*="text-gold"]::before { background: #ef7ba4; }
+  html .hip-topbar { background: transparent !important; }
+
+  /* ── 주 단추 — 먹으로 채운 알약. 흰 위에서 이게 제일 세다 ── */
+  html .btn-obang,
+  html .hip-cta {
+    background: #17140f !important;
+    border-color: #17140f !important;
+    color: #fbfaf8 !important;
+    box-shadow: 0 12px 28px rgba(26, 23, 20, 0.18);
+  }
+  html .btn-obang span,
+  html .btn-obang .text-hanji,
+  html .hip-cta span { color: #fbfaf8 !important; }
+
+  /* 먹빛에서 쓰던 광과 결은 흰 위에서 때가 된다 */
+  html .obang-aura { background-image: none !important; }
+  html #scroll-box::after { opacity: 0; }
+  html .mk-halo { opacity: 0.18; }
+  html .question-glow { text-shadow: none; }
+  html .text-obang,
+  html .text-gold-grad {
+    /* `background:` 약칭에 !important 를 걸면 background-clip 까지
+       border-box 로 못박혀, 글자 모양으로 안 잘리고 **네모 전체**가
+       칠해진다(검은 덩어리가 그래서 났다). 그림만 바꾼다. */
+    background-image: linear-gradient(104deg, #8a5f16 0%, #17140f 52%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent;
+  }
 }
