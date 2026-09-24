@@ -31,9 +31,11 @@ import {
   clickBead,
   hushBowl,
   strikeBowl,
+  setMoktakVoice,
   strikeMoktak,
   warmMoktak,
   type BowlTone,
+  type MoktakVoice,
 } from "@/lib/sound";
 
 const BEADS = 108;
@@ -76,6 +78,12 @@ const JEONGGEUN = [
 ] as const;
 
 const JEONGGEUN_KEY = "hwadu.jeonggeun.v1";
+/** 어느 목탁으로 울릴까 — 이 기기에 적어 둔다 */
+const MOKTAK_SFX_KEY = "hwadu.moktak-sfx.v1";
+const MOKTAK_VOICES: { id: MoktakVoice; name: string; say: string }[] = [
+  { id: "gongyu", name: "공유마당", say: "울림이 긴 한 방 · 1.3초" },
+  { id: "hyung", name: "실물 녹음", say: "직접 친 목탁 · 0.9초" },
+];
 /** 마지막으로 하던 수행 — 공덕으로 다시 들어와도 그 자리에서 잇는다. */
 const PRACTICE_TAB_KEY = "hwadu.moktak-tab.v1";
 type PracticeTab = "moktak" | "yeomju" | "bowl";
@@ -195,6 +203,17 @@ export default function MoktakPage() {
   };
   // 무엇을 외며 칠까 — 이 기기에 적어 둔다
   const [geunId, setGeunId] = useState<string>(JEONGGEUN[0].id);
+  // 목탁 음원 — 고른 그 자리에서 소리 쪽에도 알린다
+  const [sfx, setSfx] = useState<MoktakVoice>("gongyu");
+  const chooseSfx = (v: MoktakVoice) => {
+    setSfx(v);
+    setMoktakVoice(v);
+    try {
+      window.localStorage.setItem(MOKTAK_SFX_KEY, v);
+    } catch {
+      /* 서랍이 막혀도 오늘은 칠 수 있다 */
+    }
+  };
   const geun = JEONGGEUN.find((g) => g.id === geunId) ?? JEONGGEUN[0];
   const geunRef = useRef(geun);
   geunRef.current = geun;
@@ -266,6 +285,16 @@ export default function MoktakPage() {
 
   // 하루 장부에서 오늘치를 이어받는다
   useEffect(() => {
+    // 고른 목탁을 먼저 되살리고 나서 받는다 — 순서가 바뀌면 안 쓸 음원을 받는다
+    try {
+      const v = window.localStorage.getItem(MOKTAK_SFX_KEY);
+      if (v === "hyung" || v === "gongyu") {
+        setSfx(v);
+        setMoktakVoice(v);
+      }
+    } catch {
+      /* 못 읽으면 공유마당 것으로 */
+    }
     warmMoktak(); // 음원을 미리 받아 둔다 — 첫 타가 늦지 않게
     const b = loadDaily();
     setMerit(loadMerit().total);
@@ -774,6 +803,27 @@ export default function MoktakPage() {
               </button>
             ))}
           </div>
+          </div>
+
+          {/* 목탁 소리 — 형이 실제로 녹음해 온 것을 둘째 자리에 둔다.
+              형: 「지금 거두 두고 일단 목탁소리 2 이런 식으로」.
+              정근과 같은 결의 칩 한 줄. 고르면 그 자리에서 바뀐다 */}
+          <div className="rise rise-d3 mt-2 flex w-full max-w-sm gap-1.5">
+            {MOKTAK_VOICES.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => chooseSfx(v.id)}
+                aria-pressed={sfx === v.id}
+                title={v.say}
+                className={`flex-1 rounded-full border px-2 py-1.5 text-[11.5px] transition-colors ${
+                  sfx === v.id
+                    ? "border-gold/60 bg-gold/15 text-gold"
+                    : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
+                }`}
+              >
+                소리 {v.name}
+              </button>
+            ))}
           </div>
 
 
