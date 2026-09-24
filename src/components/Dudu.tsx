@@ -31,6 +31,16 @@ type Props = {
   className?: string;
 };
 
+/**
+ * **지금은 아무것도 안 그린다.**
+ *
+ * 형: 「동자승 이미지는 좀 짜쳐. 다시 그릴 테니까 빼고」.
+ * 리뉴얼 힙버전은 미니멀로 간다 — 어중간한 캐릭터가 한 장 끼면 그 화면만
+ * 결이 어긋난다. 새 그림이 오면 이 한 줄만 지우면 전부 되돌아온다.
+ * 부르는 쪽(일곱 군데)은 손대지 않았다 — 자리는 그대로 두고 그림만 뺀다.
+ */
+const HIDDEN = true;
+
 export default function Dudu({ stage, mood = "default", uid, className, face }: Props) {
   const [art, setArt] = useState<string | null>(null);
   // 밖에서 얼굴을 주지 않으면 내 얼굴을 쓴다. 서랍은 붙고 난 뒤에 읽는다.
@@ -70,6 +80,9 @@ export default function Dudu({ stage, mood = "default", uid, className, face }: 
       alive = false;
     };
   }, [stage, track]);
+
+  // 새 그림이 올 때까지 자리만 비워 둔다 — 부르는 쪽의 칸은 그대로 잡아 둔다
+  if (HIDDEN) return <span aria-hidden className={className} />;
 
   if (art) {
     return (

@@ -132,9 +132,12 @@ const FOLD =
 // 글자만 크고 읽히지는 않는다.
 function questionFit(text: string): { min: number; max: number } {
   const n = text.replace(/\s+/g, " ").trim().length;
-  if (n <= 40) return { min: 34, max: 88 };
-  if (n <= 62) return { min: 29, max: 80 };
-  return { min: 25, max: 72 };
+  // 리뉴얼 힙버전 — 폰에서는 clamp 이 거의 늘 min 에 걸린다. 그 min 을
+  // 올려야 실제로 커진다. max 는 그대로 — 데스크톱은 이미 충분히 크다.
+  // 짧은 화두일수록 크게 — 긴 것까지 키우면 폰에서 한 화면을 통째로 먹는다
+  if (n <= 40) return { min: 42, max: 92 };
+  if (n <= 62) return { min: 33, max: 80 };
+  return { min: 26, max: 70 };
 }
 
 export default function Home() {
@@ -918,53 +921,43 @@ export default function Home() {
             </button>
           </div>
         ) : (
-          /* 아직 차오르는 중 — 숫자와 막대 하나. 화두보다는 낮게 둔다 */
-          <div className="mt-10 w-full max-w-md rounded-[16px] border border-ink-3 bg-ink-2/40 px-6 py-6">
-            <div className="flex flex-col items-center">
-              <span className="flex items-center gap-2 text-[10px] tracking-[0.3em] text-hanji-faint">
-                {/* .moon 의 본디 크기가 15px — 따로 키우지 않는다 */}
-                <span className="moon shrink-0" />
-                달이 차오르는 중 · {dayCount(current)}일째
-              </span>
-              {remaining > 0 && (
-                // 전체 문장은 aria-label 로 그대로 읽힌다 — 토막은 눈을 위한 것
-                <div
-                  className="mt-4 flex items-end justify-center gap-3.5"
-                  aria-label={`${formatCountdown(remaining)} 남음`}
-                >
-                  {countdownParts(remaining).map((p) => (
-                    <span key={p.unit} className="flex items-baseline gap-1">
-                      <span className="font-serif text-[26px] font-light leading-none tabular-nums text-hanji-dim">
-                        {p.value}
-                      </span>
-                      <span className="text-[10.5px] text-hanji-faint">
-                        {p.unit}
-                      </span>
+          /* 아직 차오르는 중 —
+             판 두 장(달 카드 · 참구법 카드)이 화두 아래에 층층이 서 있었다.
+             형: 「힙하고 미니멀하게」. 테두리와 바탕을 걷고 **한 덩이**로
+             내린다. 남는 것은 숫자와 실선 하나, 그리고 오늘의 한 줄뿐이다. */
+          <div className="mt-12 flex w-full max-w-md flex-col items-center">
+            <span className="flex items-center gap-2 text-[10px] tracking-[0.34em] text-hanji-faint">
+              {/* .moon 의 본디 크기가 15px — 따로 키우지 않는다 */}
+              <span className="moon shrink-0" />
+              달이 차오르는 중 · {dayCount(current)}일째
+            </span>
+            {remaining > 0 && (
+              // 전체 문장은 aria-label 로 그대로 읽힌다 — 토막은 눈을 위한 것
+              <div
+                className="mt-5 flex items-end justify-center gap-4"
+                aria-label={`${formatCountdown(remaining)} 남음`}
+              >
+                {countdownParts(remaining).map((p) => (
+                  <span key={p.unit} className="flex items-baseline gap-1">
+                    <span className="font-serif text-[34px] font-light leading-none tabular-nums text-hanji-dim">
+                      {p.value}
                     </span>
-                  ))}
-                </div>
-              )}
-              <div className="mt-5 h-[4px] w-full overflow-hidden rounded-full bg-ink-3">
-                <div
-                  className="h-full rounded-full bg-gold transition-[width] duration-1000"
-                  style={{ width: `${moonPct}%` }}
-                />
+                    <span className="text-[10.5px] text-hanji-faint">
+                      {p.unit}
+                    </span>
+                  </span>
+                ))}
               </div>
-              <p className="mt-2.5 break-keep text-[11px] leading-5 text-hanji-faint">
-                {durationLabel(current.durationDays)} 뒤 답을 쓸 수 있어요
-              </p>
+            )}
+            {/* 실 한 올 — 막대가 아니라 선이다. 다 차면 금이 끝까지 간다 */}
+            <div className="mt-6 h-px w-full max-w-[17rem] overflow-hidden bg-[var(--hip-edge-soft)]">
+              <div
+                className="h-full bg-gold transition-[width] duration-1000"
+                style={{ width: `${moonPct}%` }}
+              />
             </div>
-          </div>
-        )}
-
-        {/* 오늘의 참구법 — 날마다 다른 사유의 길.
-            달 카드와 한 덩어리로 붙여, 카드 둘이 따로 서지 않게 한다 */}
-        {!unlocked && (
-          <div className="mt-2.5 w-full max-w-md rounded-[16px] border border-ink-3 bg-ink-2/40 px-6 py-5 text-left">
-            <p className="text-[10px] tracking-[0.34em] text-gold-soft">
-              오늘의 참구법 · {dayCount(current)}일째
-            </p>
-            <p className="mt-2.5 break-keep text-[13px] font-light leading-7 text-hanji-dim">
+            {/* 오늘의 참구법 — 따로 선 판이었다. 달 밑 한 줄로 내린다 */}
+            <p className="mt-6 max-w-[21rem] break-keep text-center text-[12.5px] font-light leading-7 text-hanji-dim">
               {todayGuide(dayCount(current))}
             </p>
           </div>
