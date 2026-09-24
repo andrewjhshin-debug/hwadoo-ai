@@ -2112,25 +2112,17 @@ html[data-theme="light"] {
    이 규칙들은 전부 .hip-hanji 안에서만 산다. 공덕·내 도량·절로는
    손대지 않는다. */
 @media (max-width: 767px) {
+  /* 형: 「시안에서 봤듯 민트도 섞어라 배경에」.
+     한지 한 겹으로 덮고 민트를 껐더니, 형이 좋다던 그 시안의 배경
+     (왼쪽 위 분홍 · 오른쪽 아래 민트가 번지는 흰 종이)이 사라졌다.
+     **바탕은 다른 판과 같이 간다.** 한지는 색이 아니라 **활자**였다 —
+     세로 話頭 · 큰 세리프 · 자간 벌린 한자 · 얇은 선 하나.
+     그것만 남기고 바탕은 되돌린다. 앱이 두 얼굴일 까닭도 없어졌다. */
   .hip-hanji {
-    --hanji-bg: #f1eee6;
-    --hanji-ink: #1c1a17;
+    --hanji-ink: #17140f;
     --hanji-mute: #9a9287;
-    --hanji-rule: rgba(28, 26, 23, 0.13);
-    background: var(--hanji-bg);
+    --hanji-rule: rgba(26, 23, 20, 0.12);
   }
-  /* 분홍·민트 덩이는 한지에서 뜬다. 아주 옅은 홍조 하나만 남긴다 */
-  .hip-hanji .hip-bloom-a {
-    background:
-      radial-gradient(
-        46% 34% at 62% 22%,
-        rgba(222, 126, 161, 0.13),
-        transparent 70%
-      );
-    filter: blur(28px);
-    animation-duration: 38s;
-  }
-  .hip-hanji .hip-bloom-b { display: none; }
 
   /* 결 — 세로로 눕힌 話頭. 크고, 거의 안 보이게 */
   .hip-mark {
