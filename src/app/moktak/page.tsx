@@ -640,7 +640,7 @@ export default function MoktakPage() {
             aria-pressed={tab === k}
             className={`flex-1 rounded-full py-2.5 text-[13.5px] tracking-[0.14em] transition-colors ${
               tab === k
-                ? "bg-hanji text-ink"
+                ? "bg-gold/15 text-gold md:bg-hanji md:text-ink"
                 : "text-hanji-faint hover:text-hanji-dim"
             }`}
           >
@@ -660,7 +660,19 @@ export default function MoktakPage() {
               넘어갈 때 자리가 안 흔들린다. */}
           {/* 폰 — 刻. 화면 폭에 물린 거대한 숫자. 세 자리로 채워 두면
               자릿수가 늘어도 자리가 안 흔들린다(007 → 038) */}
-          <p className="rise rise-d1 hip-kicker mt-7 md:hidden">百八 · 木鐸</p>
+          <div className="rise rise-d1 mt-5 flex w-full items-center justify-between md:hidden">
+            <span className="hip-kicker">
+              百八 <span className="text-hanji-faint">/</span>{" "}
+              <span className="text-hanji-faint">木鐸</span>
+            </span>
+            <span
+              className={`text-[12px] tracking-[0.2em] transition-opacity ${
+                combo >= 2 ? "text-gold opacity-100" : "opacity-0"
+              }`}
+            >
+              ● 새기는 중
+            </span>
+          </div>
           <p
             className="rise rise-d1 hip-num mt-3 md:hidden"
             aria-label={`오늘 울린 목탁 ${hits}번`}
@@ -679,7 +691,13 @@ export default function MoktakPage() {
               · 치기 전에는 **무엇을 하는 것인지** 한 줄
               · 치는 중에는 **몇 편 왔는지** (여섯 번이 한 편)
               · 박자가 맞는 동안에는 **그것만** 크게 — 칭찬은 짧아야 힘이 있다 */}
-          <p className="rise rise-d1 mt-1.5 flex items-center gap-2 text-[12.5px] tracking-wide">
+          {/* 폰 — 한 줄뿐이다. 남은 수 하나 */}
+          <p className="rise rise-d1 hip-one mt-4 md:hidden">
+            {hits === 0
+              ? "백여덟 번 남았습니다"
+              : `${ROUND - (hits % ROUND)}번 남았습니다`}
+          </p>
+          <p className="rise rise-d1 mt-1.5 hidden items-center gap-2 text-[12.5px] tracking-wide md:flex">
             {combo >= 2 ? (
               <>
                 <span className="rounded-full bg-gold px-2.5 py-[3px] font-serif text-[13px] leading-none text-ink">
@@ -702,6 +720,53 @@ export default function MoktakPage() {
               </span>
             )}
           </p>
+
+          {/* ── 刻 · 폰 판 ──
+              시안(hwadu-2-gak) 그대로 짓는다. 숫자가 주인공이고, 그 아래
+              백여덟 칸이 차오르고, 실선 두 줄 사이에 셈 세 개, 그리고
+              단추 하나. 목탁 그림은 폰에서 뺐다 — 숫자를 가린다.
+              치는 자리는 큰 알약이라 손가락이 훨씬 편하다. */}
+          <div className="w-full max-w-sm md:hidden">
+            <div
+              className="rise rise-d2 hip-grid108 mt-7"
+              role="img"
+              aria-label={`백팔 중 ${hits % ROUND}번`}
+            >
+              {Array.from({ length: ROUND }, (_, i) => (
+                <i
+                  key={i}
+                  data-on={i < hits % ROUND ? "1" : undefined}
+                  data-knot={i % 27 === 0 ? "1" : undefined}
+                />
+              ))}
+            </div>
+
+            <div className="rise rise-d3 mt-8 flex justify-between border-y border-ink-3 py-5">
+              {[
+                [merit.toLocaleString("ko-KR"), "쌓은 공덕"],
+                [total.toLocaleString("ko-KR"), "염주"],
+                [bowlHits.toLocaleString("ko-KR"), "싱잉볼"],
+              ].map(([n, k]) => (
+                <div key={k}>
+                  <b className="block font-serif text-[30px] font-light leading-none tabular-nums text-hanji">
+                    {n}
+                  </b>
+                  <span className="mt-2.5 block text-[11.5px] tracking-[0.22em] text-hanji-faint">
+                    {k}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={hit}
+              aria-label="목탁 치기"
+              className="rise rise-d3 mt-8 flex h-[74px] w-full items-center justify-center rounded-full border border-gold text-[17px] tracking-[0.5em] text-gold transition-colors active:bg-gold/10"
+              style={{ WebkitTapHighlightColor: "transparent" }}
+            >
+              <span className="[text-indent:0.5em]">치 기</span>
+            </button>
+          </div>
 
           {/* ── 목탁 ── */}
           <div className="rise rise-d2 relative mt-2 flex flex-col items-center">
@@ -726,7 +791,7 @@ export default function MoktakPage() {
             <button
               onClick={hit}
               aria-label="목탁 치기"
-              className="relative block select-none outline-none"
+              className="relative block select-none outline-none max-md:hidden"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               {/* 뒤에 두른 광명 — 고리 두 줄. 천천히 숨만 쉰다 */}
@@ -771,7 +836,7 @@ export default function MoktakPage() {
             </button>
             {/* 「눌러 보세요」와 살갗 고르기가 한 줄을 나눠 쓴다 — 자리를
                 못박아 두어야 첫 타에 아래가 안 뛴다 */}
-            <div className="mt-0.5 flex h-[20px] items-center justify-center gap-3">
+            <div className="mt-0.5 flex h-[20px] items-center justify-center gap-3 max-md:hidden">
               <p className="text-[12px] tracking-[0.25em] text-hanji-faint">
                 {hits === 0 ? "눌러 보세요" : ""}
               </p>
@@ -793,7 +858,7 @@ export default function MoktakPage() {
                     /* 서랍이 막혀도 오늘은 칠 수 있다 */
                   }
                 }}
-                className={`flex-1 rounded-full border px-2 py-1.5 text-[11.5px] transition-colors ${
+                className={`flex-1 whitespace-nowrap rounded-full border px-1.5 py-2 text-[11px] transition-colors md:px-2 md:py-1.5 md:text-[11.5px] ${
                   geunId === g.id
                     ? "border-gold/60 bg-gold/15 text-gold"
                     : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
@@ -815,7 +880,7 @@ export default function MoktakPage() {
                 onClick={() => chooseSfx(v.id)}
                 aria-pressed={sfx === v.id}
                 title={v.say}
-                className={`flex-1 rounded-full border px-2 py-1.5 text-[11.5px] transition-colors ${
+                className={`flex-1 whitespace-nowrap rounded-full border px-1.5 py-2 text-[11px] transition-colors md:px-2 md:py-1.5 md:text-[11.5px] ${
                   sfx === v.id
                     ? "border-gold/60 bg-gold/15 text-gold"
                     : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
@@ -1164,7 +1229,7 @@ export default function MoktakPage() {
           맨 위 가는 금선(연꽃까지)과 이 격자(백팔 한 바퀴), 둘이면 족하다. */}
       <Link
         href="/settings"
-        className="rise rise-d3 mt-5 w-full max-w-sm rounded-[16px] border border-ink-3 bg-ink-2/40 px-4 py-4 transition-colors hover:border-gold/40 md:rounded-[12px] md:py-3.5"
+        className="rise rise-d3 mt-5 hidden w-full max-w-sm rounded-[16px] border border-ink-3 bg-ink-2/40 px-4 py-4 transition-colors hover:border-gold/40 md:block md:rounded-[12px] md:py-3.5"
       >
         <div className="flex items-baseline justify-between text-[11.5px] tracking-wide">
           <span className="flex items-center gap-1 text-hanji-faint">
