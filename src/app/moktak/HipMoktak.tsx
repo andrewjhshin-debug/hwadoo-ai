@@ -94,9 +94,14 @@ export default function HipMoktak({
     const crossed = n > 0 && n % KNOT === 0;
     seen.current = n;
     if (!crossed) return;
-    setKnot(true);
-    const t = window.setTimeout(() => setKnot(false), 900);
-    return () => window.clearTimeout(t);
+    // 켜는 것도 타이머로 미룬다 — 효과 안에서 곧바로 setState 하면
+    // 렌더가 연쇄로 돈다(react-hooks 규칙). 한 틱 미루면 그만이다
+    const on = window.setTimeout(() => setKnot(true), 0);
+    const off = window.setTimeout(() => setKnot(false), 900);
+    return () => {
+      window.clearTimeout(on);
+      window.clearTimeout(off);
+    };
   }, [n]);
 
   const touch = tab === "moktak" ? onHit : tab === "yeomju" ? onAdvance : onRing;
@@ -234,82 +239,30 @@ export default function HipMoktak({
             </span>
           </button>
 
-          <div className="hip-stats">
-            {[
-              [merit.toLocaleString("ko-KR"), "공덕"],
-              [hits.toLocaleString("ko-KR"), "목탁"],
-              [beadHits.toLocaleString("ko-KR"), "염주"],
-            ].map(([v, k]) => (
-              <div key={k}>
-                <b>{v}</b>
-                <span>{k}</span>
-              </div>
-            ))}
-          </div>
+          {/* 형이 여기 셈 줄에 빨간 X 를 쳤다 — 「이 부분 필요 없고」.
+              몇 번 쳤는지는 내 도량으로 간다(형: 「내가 쌓은 공덕은 …
+              몇 번 쳤는지를 내 도량에서 보여주고」). 치는 화면에서는
+              큰 숫자 하나면 족하다. */}
         </div>
       </div>
     </HipShell>
   );
 }
 
-/** 목탁 — 둥근 몸 · 용머리 자리의 귀 둘 · 초승달로 파인 입.
-    형: 「목탁처럼 보이면서 귀엽고」. 이 셋이 목탁의 전부다. */
+/** 목탁 — 3D 렌더 한 장.
+    형: 「목탁은 저딴 식으로 가면 안 됨. 3차원 제미나이 써서 기존 느낌으로
+    둥글고 귀엽게」.
+
+    코드로 그려 봤다. 선으로 그으면 웃는 얼굴이 되고, 채워 그리면 개구리가
+    됐다. 목탁은 **깎은 물건**이라 면과 그늘이 있어야 목탁으로 읽힌다 —
+    평면으로는 안 되는 물건이었다. 그래서 원래 목탁(public/obj/moktak.png)을
+    레퍼런스로 넣고 같은 각도·같은 짜임으로 다시 렌더했다. 달라진 것은
+    셋뿐이다 — 통통하게, 무광 분홍으로, 금붕어는 더 작고 동글게. */
 function Moktak({ spin }: { spin: number }) {
   return (
-    <span key={`o${spin}`} aria-hidden className="hip-mok">
-      <svg viewBox="0 0 200 200">
-        <defs>
-          <radialGradient id="mokBody" cx="34%" cy="26%" r="80%">
-            <stop offset="0%" stopColor="#FCCEDD" />
-            <stop offset="56%" stopColor="#F29FBD" />
-            <stop offset="100%" stopColor="#DC7BA0" />
-          </radialGradient>
-          <radialGradient id="mokEar" cx="34%" cy="26%" r="82%">
-            <stop offset="0%" stopColor="#F7B7CF" />
-            <stop offset="100%" stopColor="#DA7A9E" />
-          </radialGradient>
-        </defs>
-        {/* 숨 쉬는 테 — 연꽃과 같은 박자로 */}
-        <g className="hip-mok-aura">
-          <circle cx="100" cy="108" r="84" />
-          <circle cx="100" cy="108" r="74" />
-        </g>
-        {/* 방석 — 목탁은 방석 위에 얹혀 있다.
-            혹 둘에 가로 틈만 그렸더니 개구리 얼굴로 읽혔다. 얼굴을
-            지우는 건 이목구비를 빼는 게 아니라 **물건의 자리**를 주는
-            일이다. 방석에 얹히는 순간 그것은 얼굴이 아니라 물건이 된다 */}
-        <ellipse className="hip-mok-mat" cx="100" cy="174" rx="60" ry="14" />
-        {/* 꼭지 — 목탁 머리의 쌍어(두 물고기) 자리.
-            둘로 벌려 놓으면 눈이 된다. **하나로 덮고 가운데만 파면**
-            물고기 둘이 맞댄 그 모양이 되고, 눈으로는 안 읽힌다 */}
-        <path className="hip-mok-ear" d="M74 58q0-30 26-30t26 30z" />
-        <path className="hip-mok-groove" d="M100 32v24" />
-        {/* 몸 — 살짝 눌린 동그라미 */}
-        <ellipse className="hip-mok-body" cx="100" cy="112" rx="66" ry="58" />
-        {/* 두 쪽이 만나는 자리 — 아주 옅게 */}
-        <path className="hip-mok-seam" d="M42 100q58 16 116 0" />
-        {/* 입 — 가로로 길게 파인 홈.
-            웃는 선으로 그렸더니 얼굴이 됐다. 목탁의 입은 **몸통을 거의
-            가로지르는 가늘고 깊은 틈**이다. 그 하나로 목탁이 된다 */}
-        <path
-          className="hip-mok-mouth"
-          d="M42 132Q100 168 158 132Q100 138 42 132Z"
-        />
-        {/* 틈 아래 입술 — 한 겹 깊어 보이게 */}
-        <path className="hip-mok-lip" d="M52 140q48 24 96 -2" />
-        {/* 빛 한 점 */}
-        <ellipse
-          className="hip-mok-shine"
-          cx="74"
-          cy="86"
-          rx="23"
-          ry="13"
-          transform="rotate(-26 74 86)"
-        />
-        {/* 채 — 목탁은 분홍만. 형: 「목탁은 핑크만 두고」 */}
-        <path className="hip-mok-stick" d="M152 180l36-32" />
-        <circle className="hip-mok-knob" cx="148" cy="184" r="13" />
-      </svg>
+    <span key={`o${spin}`} aria-hidden className="hip-mok hip-mok-img">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/obj/moktak-pink.png" alt="" />
     </span>
   );
 }

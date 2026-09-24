@@ -53,7 +53,7 @@ export default function MeritBar() {
     <div
       aria-hidden
       title="연꽃 한 송이까지"
-      className="pointer-events-none sticky top-16 z-30 h-[2px] w-full bg-ink-3/60 md:top-0"
+      className="pointer-events-none sticky top-0 z-30 h-[2px] w-full bg-ink-3/60"
     >
       <style>{`
         @keyframes mb-flash { 0%{opacity:.35} 35%{opacity:1} 100%{opacity:.35} }

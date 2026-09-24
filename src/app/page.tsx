@@ -881,7 +881,10 @@ export default function Home() {
     // 뛰었다 — 형: 「두둥 하면서 튀지 말고 그냥 화면 보여줘」.
     // 둘 다 **위에서부터** 세운다. 그러면 오가도 물음이 안 움직인다.
     <>
-    {/* ── 폰 판 ── 물음이 곧 화면이다 */}
+    {/* ── 폰 판 ── 물음이 곧 화면이다.
+        품는 날수(dayOptions·onDays)와 내려놓기(onDrop)는 새 판에 진작
+        그려 놨는데 여기서 안 넘기고 있었다 — 그래서 통째로 안 떴다.
+        핸들러는 새로 짜지 않는다. 부모가 쥔 것을 그대로 준다. */}
     <HipGardenHolding
       question={sessionBrief(current)}
       source={current.customSource ?? hwadu?.context ?? null}
@@ -898,6 +901,10 @@ export default function Home() {
         setSeenOnce(true);
         setFocusMode(true);
       }}
+      days={current.durationDays}
+      dayOptions={DAY_OPTIONS}
+      onDays={setDays}
+      onDrop={layDown}
     />
     <div className="relative hidden flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center md:flex sm:py-12">
       <ShareButton

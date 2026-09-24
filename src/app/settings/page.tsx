@@ -39,7 +39,7 @@ import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
 import HipMe from "./HipMe";
-import { loadMe } from "@/lib/me";
+import { ME_EVENT, loadMe, nameProblem, pickMe, setName } from "@/lib/me";
 import ShareButton from "@/components/ShareButton";
 import Info from "@/components/Info";
 import LotusCount from "@/components/LotusCount";
@@ -271,7 +271,14 @@ export default function SettingsPage() {
   const [meMore, setMeMore] = useState(false);
   // 법명·얼굴 — 서랍은 붙고 난 뒤에 읽는다(렌더 중 읽으면 하이드레이션이 깨진다)
   const [me, setMe] = useState<ReturnType<typeof loadMe>>(null);
-  useEffect(() => setMe(loadMe()), []);
+  useEffect(() => {
+    setMe(loadMe());
+    // 법명을 이 화면에서 고치므로, 고친 즉시 여기도 바뀌어야 한다.
+    // 한 번만 읽고 말면 고쳐 놓고도 옛 이름이 그대로 떠 있다
+    const onMe = () => setMe(loadMe());
+    window.addEventListener(ME_EVENT, onMe);
+    return () => window.removeEventListener(ME_EVENT, onMe);
+  }, []);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [report, setReport] = useState<MonthReport | null>(null);
@@ -717,10 +724,35 @@ export default function SettingsPage() {
   // ── 폰 판에 올릴 것만 추려 둔다 ──
   const meRank = rankByNeed(realmOf(merit.total, journalCount).need);
   const meUp = nextRealm(merit.total, journalCount);
+  // 서비스 전부 — 형: 「서비스 다 넣어주고」.
+  // 폰 판은 그림 대신 **한자 한 글자**다. 스물넷을 동그라미로 깔면
+  // 그림은 다 달라도 알아보기 어렵고, 한 글자는 작아도 또렷하다.
+  const ME_MARK: Record<string, string> = {
+    "/": "苑", "/ganhwaseon": "禪", "/masters": "師", "/room": "思",
+    "/my-hwadu": "問", "/mandala": "曼", "/pilgrimage": "寺", "/gathering": "緣",
+    "/moktak": "功", "/sambae": "歸", "/bae": "拜", "/breath": "息",
+    "/mung": "無", "/empty": "空", "/candle": "燈", "/lotus": "蓮",
+    "/community": "池", "/archive": "庫", "/sutra": "經", "/draw": "占",
+    "/rank": "進", "/tea": "茶", "/goods": "物", "/tamjinchi": "投",
+    "/hasim": "下", "/letters": "信", "/moment": "時",
+  };
+  const meServices = [
+    // 하심·쪽지·시절은 SERVICES 에 없다 — 폰 판에서는 같이 연다
+    { href: "/hasim", label: "하심" },
+    ...SERVICES.filter((v) => v.href && !v.soon).map((v) => ({
+      href: v.href as string,
+      label: v.label,
+    })),
+    { href: "/letters", label: "쪽지" },
+  ]
+    .filter((v, i, a) => a.findIndex((w) => w.href === v.href) === i)
+    .map((v) => ({ ...v, mark: ME_MARK[v.href] ?? "·" }));
+
   const meHits = (Object.entries(merit.hits ?? {}) as [MeritSource, number][])
     .filter(([, n]) => (n ?? 0) > 0)
     .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
-    .slice(0, 4)
+    // 형: 「내가 쌓은 공덕은 … 몇 번 쳤는지를 내 도량에서 보여주고」.
+    // 넷으로 자르던 것을 걷는다 — 한 것은 다 보여 준다
     .map(([k, n]) => ({ label: SOURCE_LABEL[k] ?? k, n: n ?? 0 }));
 
   return (
@@ -745,6 +777,12 @@ export default function SettingsPage() {
         }
         merit={merit.total}
         hits={meHits}
+        services={meServices}
+        /* 법명 고치기 — 형: 「내 도량에서 법명이나 아이디 고칠 수 있도록」.
+           setName 은 어긋나면 까닭을 문자열로 돌려준다(맞으면 null) */
+        onRename={(next) => setName(next) ?? null}
+        onReroll={() => setName(pickMe().name)}
+        nameProblem={nameProblem}
         seats={REALMS.map((seat) => {
           const r = rankByNeed(seat.need);
           return {

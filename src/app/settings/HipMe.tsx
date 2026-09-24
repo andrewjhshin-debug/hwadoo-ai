@@ -19,8 +19,10 @@
 // 실 한 올과 「沙 432」. 뜻은 남기고 말은 지운다.
 // ─────────────────────────────────────────────────────────────
 
+import { useState } from "react";
 import Link from "next/link";
 import HipShell from "@/components/HipShell";
+import { LOTUS_PRICE } from "@/lib/merit";
 
 export type HipMeProps = {
   /** 법명 */
@@ -40,6 +42,14 @@ export type HipMeProps = {
   /** 접었다 펴는 두 자리 — 안에 들어갈 것은 부모가 그려 준다 */
   charms: React.ReactNode;
   bells: React.ReactNode;
+  /** 서비스 전부 — 형: 「서비스 다 넣어주고」. 한자 한 글자와 이름 */
+  services: { href: string; mark: string; label: string }[];
+  /** 법명 고치기 — 맞으면 null, 어긋나면 까닭을 돌려준다 */
+  onRename: (next: string) => string | null;
+  /** 법명 다시 뽑기 */
+  onReroll: () => void;
+  /** 적는 동안 미리 살펴 주는 검사 */
+  nameProblem: (raw: string) => string | null;
 };
 
 export default function HipMe({
@@ -52,10 +62,36 @@ export default function HipMe({
   hits,
   charms,
   bells,
+  services,
+  onRename,
+  onReroll,
+  nameProblem,
 }: HipMeProps) {
+  // 법명 고치기 — 그 자리에서 편다. 화면을 옮기지 않는다
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(name);
+  const [err, setErr] = useState<string | null>(null);
+  const open = () => {
+    setDraft(name);
+    setErr(null);
+    setEditing(true);
+  };
+  const save = () => {
+    const bad = onRename(draft);
+    if (bad) {
+      setErr(bad);
+      return;
+    }
+    setEditing(false);
+  };
+
   return (
     <HipShell here="/settings">
-    <div className="hip-screen md:hidden">
+    {/* hip-screen-scroll — 이 판은 내용이 길어 세로로 흐른다.
+        형: 「내 도량에서 위 아래 스크롤이 안되노 고치고」.
+        판(.hip-screen)은 fixed·overflow:hidden 이고 body 도 overflow:hidden 이라,
+        안에 통을 하나 만들어 주지 않으면 화면에 스크롤할 자리가 아예 없다. */}
+    <div className="hip-screen hip-screen-scroll md:hidden">
       <span aria-hidden className="hip-bloom hip-bloom-a" />
       <span aria-hidden className="hip-bloom hip-bloom-b" />
 
@@ -79,7 +115,44 @@ export default function HipMe({
             얼굴 그림을 뺐다. 법명 한 줄과 자리 한자면 족하다 */}
         <div className="hip-me-head">
           <div>
-            <p className="hip-me-name">{name}</p>
+            {/* 형: 「내 도량에서 법명이나 아이디 고칠 수 있도록」.
+                화면을 옮기지 않는다 — 이름을 누르면 그 자리가 글칸이 된다 */}
+            {editing ? (
+              <div className="hip-name-edit">
+                <input
+                  autoFocus
+                  value={draft}
+                  maxLength={8}
+                  onChange={(e) => {
+                    setDraft(e.target.value);
+                    setErr(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") save();
+                    if (e.key === "Escape") setEditing(false);
+                  }}
+                  aria-label="법명"
+                />
+                <button onClick={save} className="hip-name-ok">
+                  확인
+                </button>
+                <button onClick={() => setEditing(false)} className="hip-name-no">
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <p className="hip-me-name">
+                <button onClick={open} aria-label="법명 고치기">
+                  {name}
+                </button>
+                <button onClick={onReroll} className="hip-reroll" aria-label="법명 다시 뽑기">
+                  ↻
+                </button>
+              </p>
+            )}
+            {(err ?? (editing ? nameProblem(draft) : null)) && (
+              <p className="hip-name-bad">{err ?? nameProblem(draft)}</p>
+            )}
             <p className="hip-me-rank">
               <b>{rank.hanja}</b> {rank.name}
             </p>
@@ -117,9 +190,28 @@ export default function HipMe({
 
         {/* 쌓은 것 — 이 화면의 큰 것 하나 */}
         <p className="hip-me-merit">{merit.toLocaleString("ko-KR")}</p>
-        <p className="hip-me-merit-k">功 德</p>
+        {/* <p> 가 아니라 <div> 다 — 안에 ⓘ 서랍(details>div)이 들어간다.
+            HTML 은 <p> 안에 <div> 를 못 넣는다(브라우저가 <p> 를 먼저
+            닫아 버려서 서버·클라이언트 그림이 어긋난다) */}
+        <div className="hip-me-merit-k">
+          功 德
+          {/* 형: 「공덕 시스템 유지하고 ⓘ로 어딘가에 표시. 하루 내내 공덕
+              쌓으면 연꽃 하나 주고, 이걸로 인연에서 쪽지 보내거나
+              초공양할 수 있다고」. 세 줄이면 족하다 */}
+          <details className="hip-info">
+            <summary aria-label="공덕이란">ⓘ</summary>
+            <div>
+              목탁·염주·절·명상 — 수행하면 공덕이 쌓입니다.
+              <br />
+              하루치를 다 채우면({LOTUS_PRICE.toLocaleString("ko-KR")}) 연꽃 한 송이.
+              <br />
+              연꽃으로 쪽지를 보내고 초를 올립니다.
+            </div>
+          </details>
+        </div>
 
-        {/* 무엇을 몇 번 — 넉 장이면 족하다 */}
+        {/* 무엇을 몇 번 — 형: 「몇 번 쳤는지를 내 도량에서 보여주고」.
+            넷으로 자르던 것을 걷었다. 한 것은 다 보여 준다 */}
         <div className="hip-me-hits">
           {hits.map((h) => (
             <div key={h.label}>
@@ -129,24 +221,18 @@ export default function HipMe({
           ))}
         </div>
 
-        {/* ── 나머지 방들 — 동그란 버튼으로 ──
+        {/* ── 서비스 전부 — 동그란 버튼으로 ──
             형: 「정직하게 막 탭에 메뉴판에 다 두려고 하지 말고, 동영상
             레퍼처럼 귀엽게 아기자기하게 동그란 버튼을 두든, 여러 메뉴는
-            내 도량에서 보든」.
-            아래 띠에는 알 셋만 두고, 하루에 한 번 갈까 말까 한 방들은
-            전부 여기 동그라미로 모았다. 글자는 한 줄, 그림은 한자 한 글자. */}
+            내 도량에서 보든」 「서비스 다 넣어주고」.
+            여섯만 두었더니 나머지로 가는 길이 아예 없었다 — 옛 머리띠를
+            끄면서 ☰ 서랍까지 사라졌으니 여기가 유일한 문이다.
+            글자는 한 줄, 그림은 한자 한 글자. */}
         <div className="hip-rooms">
-          {[
-            { href: "/hasim", mark: "下", name: "하심" },
-            { href: "/breath", mark: "息", name: "호흡" },
-            { href: "/mung", mark: "無", name: "멍" },
-            { href: "/empty", mark: "空", name: "비움" },
-            { href: "/candle", mark: "燈", name: "법당" },
-            { href: "/tamjinchi", mark: "投", name: "불심" },
-          ].map((r) => (
-            <Link key={r.href} href={r.href} aria-label={r.name}>
+          {services.map((r) => (
+            <Link key={r.href} href={r.href} aria-label={r.label}>
               <i>{r.mark}</i>
-              <span>{r.name}</span>
+              <span>{r.label}</span>
             </Link>
           ))}
         </div>

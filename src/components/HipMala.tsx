@@ -30,7 +30,8 @@ import { usePathname, useRouter } from "next/navigation";
 
 export type Bead = { mark: string; name: string; href: string; also: string[] };
 
-/** 알 셋 — `also` 는 그 알이 품는 방들(그 방에 있어도 이 알이 켜진다) */
+/** 알 넷 — `also` 는 그 알이 품는 방들(그 방에 있어도 이 알이 켜진다).
+    **이 배열이 유일한 원본이다.** 쓸기(HipShell)도 여기서 읽어 간다 */
 export const BEADS: Bead[] = [
   { mark: "話", name: "화두", href: "/", also: ["/my-hwadu", "/archive", "/room"] },
   { mark: "功", name: "공덕", href: "/moktak", also: [] },
@@ -38,13 +39,16 @@ export const BEADS: Bead[] = [
   { mark: "緣", name: "절로", href: "/gathering", also: ["/pilgrimage"] },
   {
     mark: "我",
-    name: "나",
+    // 형: 「아래탭 맨 오른쪽 앱은 연꽃공양 말고 내 도량으로」.
+    // 길(href)은 처음부터 내 도량이 맞았다 — 쓸기가 딴 목록을 보고 있었을 뿐.
+    // 읽어 주는 이름만 바로잡는다
+    name: "내 도량",
     href: "/settings",
     also: ["/rank", "/hasim", "/breath", "/mung", "/empty", "/candle", "/tamjinchi", "/lotus"],
   },
 ];
 
-function beadOf(path: string): number {
+export function beadOf(path: string): number {
   const i = BEADS.findIndex((b) => b.href === path || b.also.includes(path));
   return i;
 }
@@ -55,7 +59,7 @@ export default function HipMala() {
   const here = beadOf(path);
 
   return (
-    <nav className="hip-mala" aria-label="다섯 자리">
+    <nav className="hip-mala" aria-label="네 자리">
       <i aria-hidden className="hip-mala-thread" />
       {BEADS.map((b, k) => (
         <button
