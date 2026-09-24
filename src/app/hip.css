@@ -1373,10 +1373,38 @@ html[data-theme="light"] {
   }
 
   /* 연꽃 — 코드로 그린다. 그림 파일 없이, 숨 쉬듯 아주 느리게 돈다 */
+  /* 자리 — 연꽃을 **광배**로 삼는다.
+     처음엔 상을 꽃 한가운데에 앉혀 봤는데, 꽃잎이 정강이를 가로질러
+     지나가고 상은 꽃을 타고 앉은 꼴이 됐다. 불상 뒤에 두는 것은
+     원래 꽃이 아니라 **광배**다 — 머리 뒤로 올리니 제자리를 찾았다.
+     연꽃은 돌고 상은 가만히 있다. */
+  .hip-seat {
+    position: relative;
+    display: block;
+    width: 74%;
+    max-width: 300px;
+    aspect-ratio: 0.82;
+  }
+  .hip-buddha {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: 0;
+    height: 96%;
+    width: auto;
+    transform: translateX(-50%);
+    /* 바닥에 닿는 그림자 한 겹 — 떠 있지 않고 앉아 있게 */
+    filter: drop-shadow(0 14px 18px rgba(26, 23, 20, 0.16));
+    pointer-events: none;
+  }
   .hip-lotus {
+    position: absolute;
+    z-index: 0;
+    top: -2%;
+    left: 50%;
     display: block;
     width: 62%;
-    max-width: 260px;
+    margin-left: -31%;
     animation: hip-turn 64s linear infinite;
   }
   .hip-lotus svg {
@@ -1385,8 +1413,8 @@ html[data-theme="light"] {
     overflow: visible;
   }
   .hip-lotus ellipse {
-    fill: rgba(242, 120, 159, 0.14);
-    stroke: rgba(239, 123, 164, 0.55);
+    fill: rgba(242, 120, 159, 0.12);
+    stroke: rgba(239, 123, 164, 0.45);
     stroke-width: 1.1;
   }
   .hip-lotus circle {

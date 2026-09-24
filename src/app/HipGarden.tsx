@@ -76,21 +76,30 @@ export function HipGardenEmpty({
       </header>
 
       <div className="hip-screen-mid">
-        {/* 큰 것 하나 — 코드로 그린 연꽃. 숨 쉬듯 아주 느리게 돈다 */}
-        <span aria-hidden className="hip-lotus">
-          <svg viewBox="0 0 200 200">
-            {Array.from({ length: 8 }, (_, i) => (
-              <ellipse
-                key={i}
-                cx="100"
-                cy="62"
-                rx="21"
-                ry="43"
-                transform={`rotate(${i * 45} 100 100)`}
-              />
-            ))}
-            <circle cx="100" cy="100" r="11" />
-          </svg>
+        {/* ── 큰 것 하나 ──
+            연꽃은 코드로 그려 아주 느리게 돌고, 그 한가운데에 **반가사유상**이
+            앉는다. 형: 「연꽃 반응형 존나 좋다. 저런 느낌으로 전반을 가자」
+            「캐릭터 딱 하나만 만들어봐」 — 좋다던 것을 치우고 캐릭터를
+            얹는 게 아니라, 좋다던 것을 **자리**로 삼는다.
+            연꽃은 돌고 상은 가만히 있다. 도는 것이 앉은 것을 받친다. */}
+        <span aria-hidden className="hip-seat">
+          <span className="hip-lotus">
+            <svg viewBox="0 0 200 200">
+              {Array.from({ length: 8 }, (_, i) => (
+                <ellipse
+                  key={i}
+                  cx="100"
+                  cy="62"
+                  rx="21"
+                  ry="43"
+                  transform={`rotate(${i * 45} 100 100)`}
+                />
+              ))}
+              <circle cx="100" cy="100" r="11" />
+            </svg>
+          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/bangasa.png" alt="" className="hip-buddha" />
         </span>
         <p className="hip-ask">
           오늘의 물음을
