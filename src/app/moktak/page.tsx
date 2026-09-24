@@ -22,6 +22,7 @@ import Link from "next/link";
 import Info from "@/components/Info";
 import ShareButton from "@/components/ShareButton";
 import { MOKTAK_SVG } from "./moktakSvg";
+import HipMoktak from "./HipMoktak";
 import Dudu from "@/components/Dudu";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -205,6 +206,8 @@ export default function MoktakPage() {
   const [geunId, setGeunId] = useState<string>(JEONGGEUN[0].id);
   // 목탁 음원 — 고른 그 자리에서 소리 쪽에도 알린다
   const [sfx, setSfx] = useState<MoktakVoice>("gongyu");
+  // 폰 판의 살림살이 서랍 — 갈래·정근·소리·자동·살갗이 「⋯」 뒤로 들어간다
+  const [more, setMore] = useState(false);
   const chooseSfx = (v: MoktakVoice) => {
     setSfx(v);
     setMoktakVoice(v);
@@ -485,6 +488,148 @@ export default function MoktakPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
+      {/* ── 폰 판 (刻) ──
+          화면을 통째로 덮는다. 껍데기와 겹칠 일이 없고, 판을 처음부터
+          우리가 짠다. 셈·소리·공덕은 전부 이 파일이 쥐고 있고 저기는
+          받아 그리기만 한다 — 지워도 앱은 예전 그대로 돈다.
+          살림살이(갈래·정근·소리·자동·살갗)는 「⋯」 뒤 서랍으로 들어간다. */}
+      {tab === "moktak" && !more && (
+        <HipMoktak
+          hits={hits}
+          merit={merit}
+          beadHits={total}
+          bowlHits={bowlHits}
+          combo={combo}
+          pops={pops}
+          src={skinSrc("moktak")}
+          onHit={hit}
+          onMore={() => setMore(true)}
+        />
+      )}
+      {tab === "moktak" && more && (
+        <div className="hip-sheet md:hidden">
+          <div className="hip-sheet-top">
+            <span className="hip-kicker">살 림 살 이</span>
+            <button onClick={() => setMore(false)} aria-label="닫기" className="hip-more">
+              ✕
+            </button>
+          </div>
+          <div className="hip-sheet-body">
+            <p className="hip-sheet-label">무엇을</p>
+            <div className="hip-chips">
+              {(
+                [
+                  ["moktak", "목탁"],
+                  ["yeomju", "염주"],
+                  ["bowl", "싱잉볼"],
+                ] as const
+              ).map(([k, label]) => (
+                <button
+                  key={k}
+                  onClick={() => {
+                    chooseTab(k);
+                    setMore(false);
+                  }}
+                  aria-pressed={tab === k}
+                  data-on={tab === k ? "1" : undefined}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <p className="hip-sheet-label">외며 칠 말</p>
+            <div className="hip-chips">
+              {JEONGGEUN.map((g) => (
+                <button
+                  key={g.id}
+                  onClick={() => {
+                    setGeunId(g.id);
+                    try {
+                      window.localStorage.setItem(JEONGGEUN_KEY, g.id);
+                    } catch {
+                      /* 서랍이 막혀도 오늘은 칠 수 있다 */
+                    }
+                  }}
+                  aria-pressed={geunId === g.id}
+                  data-on={geunId === g.id ? "1" : undefined}
+                >
+                  {g.name}
+                </button>
+              ))}
+            </div>
+
+            <p className="hip-sheet-label">소리</p>
+            <div className="hip-chips">
+              {MOKTAK_VOICES.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => chooseSfx(v.id)}
+                  aria-pressed={sfx === v.id}
+                  data-on={sfx === v.id ? "1" : undefined}
+                >
+                  {v.name}
+                </button>
+              ))}
+            </div>
+
+            <p className="hip-sheet-label">살갗</p>
+            <div className="hip-chips">
+              {SKINS.moktak.map((k) => (
+                <button
+                  key={k.id}
+                  onClick={() => pickSkin("moktak")(k.id)}
+                  aria-pressed={skin.moktak === k.id}
+                  data-on={skin.moktak === k.id ? "1" : undefined}
+                >
+                  {k.name}
+                </button>
+              ))}
+            </div>
+
+            <div className="hip-sheet-row">
+              <span>자동 목탁 — 틀어 두고 듣기</span>
+              <button
+                role="switch"
+                aria-checked={auto}
+                aria-label="자동 목탁"
+                onClick={() => setAuto((v) => !v)}
+                data-on={auto ? "1" : undefined}
+                className="hip-switch"
+              >
+                <i />
+              </button>
+            </div>
+            <label className="hip-sheet-range">
+              <span>
+                빠르기 <b>{bpm} 회/분</b>
+              </span>
+              <input
+                type="range"
+                min={60}
+                max={300}
+                step={6}
+                value={bpm}
+                onChange={(e) => setBpm(Number(e.target.value))}
+              />
+            </label>
+            <label className="hip-sheet-range">
+              <span>
+                음량 <b>{Math.round(vol * 100)}%</b>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={vol}
+                onChange={(e) => setVol(Number(e.target.value))}
+              />
+            </label>
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes mk-hit {
           0% { transform: scale(1); filter: brightness(1); }

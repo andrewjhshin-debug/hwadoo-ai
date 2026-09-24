@@ -694,3 +694,534 @@ html[data-theme="light"] {
     transition: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   화면을 통째로 차지하는 판 — 폰만
+
+   형: 「색만 바꾸는 게 아니라니까」 「탭이랑 막 겹치잖아」
+
+   옛 화면에 CSS 만 덧칠하는 동안, 껍데기(머리띠·탭·떠 있는 단추)가
+   그대로라 겹쳤고 결국 「색만 칠한 것」으로 읽혔다. 덮어 버린다 —
+   하심(/hasim)이 이미 쓰는 길이다. `fixed inset-0` 이면 깔릴 것이 없다.
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .hip-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    /* 형: 「흰 핑크 민트 이쁘게 이쁘게 힙하게」.
+       크림 한 색은 점잖긴 한데 예쁘지가 않았다. 흰 바탕 위에
+       연꽃 분홍과 민트가 아주 옅게 번진다 — 참고 영상의 그 결이되,
+       빛깔은 우리 것(연꽃 분홍)으로. */
+    background:
+      radial-gradient(58% 40% at 14% 6%, rgba(242, 120, 159, 0.16), transparent 70%),
+      radial-gradient(52% 38% at 92% 22%, rgba(120, 214, 197, 0.18), transparent 70%),
+      radial-gradient(70% 46% at 78% 96%, rgba(242, 120, 159, 0.12), transparent 72%),
+      radial-gradient(60% 40% at 6% 88%, rgba(120, 214, 197, 0.12), transparent 72%),
+      #fbfaf8;
+    color: #17140f;
+    padding: calc(env(safe-area-inset-top, 0px) + 18px) 26px
+      calc(env(safe-area-inset-bottom, 0px) + 18px);
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* 종이 결 — 아주 옅게. 곱하기라 덮지 않고 눌러 준다 */
+  .hip-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    opacity: 0.32;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  .hip-screen-top {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #8a8073;
+    font-size: 11.5px;
+    letter-spacing: 0.2em;
+  }
+  .hip-screen-top .hip-kicker {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    letter-spacing: 0.34em;
+    color: #6e6455;
+  }
+  .hip-more {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(26, 23, 20, 0.16);
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    line-height: 1;
+    color: #6e6455;
+  }
+  .hip-more:active {
+    background: rgba(26, 23, 20, 0.05);
+  }
+
+  /* 가운데 — 남은 자리를 다 쓰고 그 안에서 한복판 */
+  .hip-screen-mid {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* 아래 다섯 점 쪽으로 빈칸이 쏠려 보여, 덩이를 조금 위로 올린다 */
+    padding-bottom: 6vh;
+  }
+  .hip-big {
+    font-variant-numeric: tabular-nums;
+    font-weight: 300;
+    font-size: clamp(96px, 30vw, 150px);
+    line-height: 0.88;
+    letter-spacing: -0.06em;
+    color: #17140f;
+  }
+  .hip-under {
+    margin-top: 16px;
+    font-size: 13.5px;
+    letter-spacing: 0.16em;
+    color: #8a8073;
+  }
+  .hip-stats {
+    margin-top: 34px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid rgba(26, 23, 20, 0.14);
+    border-bottom: 1px solid rgba(26, 23, 20, 0.14);
+    padding: 20px 0;
+  }
+  .hip-stats b {
+    display: block;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 27px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: #17140f;
+  }
+  .hip-stats span {
+    display: block;
+    margin-top: 9px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: #8a8073;
+  }
+  .hip-stats div:nth-child(2) {
+    text-align: center;
+  }
+  .hip-stats div:last-child {
+    text-align: right;
+  }
+
+  /* (쓰지 않음 — 목탁 오브제가 누르는 자리를 맡는다) */
+  .hip-strike {
+    position: relative;
+    z-index: 1;
+    margin-top: 22px;
+    height: 76px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    border: 1.5px solid #17140f;
+    color: #17140f;
+    font-size: 17px;
+    letter-spacing: 0.5em;
+    display: grid;
+    place-items: center;
+    transition: background-color 0.12s;
+  }
+  .hip-strike:active {
+    background: rgba(26, 23, 20, 0.06);
+  }
+
+  /* 다섯 점 — 이게 탭이다 */
+  .hip-screen .hip-rail {
+    position: relative;
+    z-index: 1;
+    margin-top: 22px;
+    flex-shrink: 0;
+    gap: 26px;
+  }
+  .hip-screen .hip-rail a {
+    padding: 10px;
+    display: block;
+  }
+  .hip-screen .hip-rail i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(26, 23, 20, 0.2);
+    display: block;
+    transition: transform 0.2s, background-color 0.2s;
+  }
+  .hip-screen .hip-rail i[data-on="1"] {
+    background: #17140f;
+    transform: scale(1.7);
+  }
+
+  /* 판이 떠 있는 동안 아래 띠와 떠 있는 단추는 안 보인다 */
+  body:has(.hip-screen) .mobile-tabbar,
+  body:has(.hip-screen) .doryang-fab,
+  body:has(.hip-screen) .hip-topbar {
+    display: none !important;
+  }
+}
+
+/* ── 살림살이 서랍 — 「⋯」 뒤로 들어간 것들 ────────────────────
+   갈래·정근·소리·살갗·자동 목탁. 늘 떠 있을 것들이 아니다.
+   고르는 일은 치기 전에 한 번뿐이라, 화면을 차지할 이유가 없다. */
+@media (max-width: 767px) {
+  .hip-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 61;
+    background: #f3f0e9;
+    color: #17140f;
+    display: flex;
+    flex-direction: column;
+    padding: calc(env(safe-area-inset-top, 0px) + 18px) 26px
+      calc(env(safe-area-inset-bottom, 0px) + 24px);
+    overflow-y: auto;
+  }
+  .hip-sheet-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .hip-sheet-top .hip-kicker {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    letter-spacing: 0.34em;
+    color: #6e6455;
+  }
+  .hip-sheet-body {
+    margin-top: 34px;
+  }
+  .hip-sheet-label {
+    margin: 26px 0 12px;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: #9a9187;
+  }
+  .hip-sheet-label:first-child {
+    margin-top: 0;
+  }
+  .hip-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hip-chips button {
+    height: 42px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.16);
+    font-size: 13.5px;
+    color: #6e6455;
+    white-space: nowrap;
+  }
+  .hip-chips button[data-on="1"] {
+    border-color: #17140f;
+    color: #17140f;
+    background: rgba(26, 23, 20, 0.05);
+  }
+  .hip-sheet-row {
+    margin-top: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(26, 23, 20, 0.14);
+    padding-top: 22px;
+    font-size: 13.5px;
+    color: #4a443b;
+  }
+  .hip-switch {
+    width: 48px;
+    height: 27px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.22);
+    position: relative;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .hip-switch i {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: rgba(26, 23, 20, 0.3);
+    transition: transform 0.2s, background-color 0.2s;
+  }
+  .hip-switch[data-on="1"] {
+    background: #17140f;
+    border-color: #17140f;
+  }
+  .hip-switch[data-on="1"] i {
+    transform: translateX(21px);
+    background: #f3f0e9;
+  }
+  .hip-sheet-range {
+    display: block;
+    margin-top: 22px;
+  }
+  .hip-sheet-range span {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: #8a8073;
+  }
+  .hip-sheet-range b {
+    font-weight: 400;
+    color: #17140f;
+  }
+  .hip-sheet-range input {
+    margin-top: 10px;
+    width: 100%;
+    accent-color: #17140f;
+  }
+}
+
+/* ── 흰 · 핑크 · 민트 ────────────────────────────────────────
+   형: 「내가 준 동영상처럼 뭔가 흰 핑크 민트 이쁘게 이쁘게 힙하게」
+
+   먹 하나로만 가면 점잖지만 예쁘지가 않다. 큰 글씨는 먹으로 두어
+   읽히게 하고, **채워지는 것**에만 빛깔을 준다 — 차오르는 자리가
+   예뻐야 또 누르고 싶어진다. */
+@media (max-width: 767px) {
+  .hip-screen .hip-grid108 > i {
+    border-radius: 3px;
+    background: rgba(26, 23, 20, 0.07);
+  }
+  .hip-screen .hip-grid108 > i[data-on="1"] {
+    background: linear-gradient(150deg, #f7a0bf, #ef7ba4 55%, #e9628f);
+    box-shadow: 0 1px 3px rgba(233, 98, 143, 0.35);
+  }
+  /* 스물일곱마다 — 민트로 짚는다 */
+  .hip-screen .hip-grid108 > i[data-knot="1"] {
+    box-shadow: inset 0 0 0 1.5px #6fcbb8;
+  }
+  .hip-screen .hip-grid108 > i[data-on="1"][data-knot="1"] {
+    background: linear-gradient(150deg, #8fdccb, #5cc2ac);
+    box-shadow: 0 1px 3px rgba(92, 194, 172, 0.4);
+  }
+  /* 셈 — 가운데는 분홍, 끝은 민트. 숫자 셋이 곧 색 셋이다 */
+  .hip-screen .hip-stats {
+    border-color: rgba(26, 23, 20, 0.1);
+  }
+  .hip-screen .hip-stats div:nth-child(2) b {
+    color: #e3628f;
+  }
+  .hip-screen .hip-stats div:last-child b {
+    color: #43b39c;
+  }
+  .hip-screen .hip-stats span {
+    color: #a39a8f;
+  }
+  /* 누르는 자리 — 먹으로 채운다. 흰 위에서 이게 제일 세다 */
+  .hip-screen .hip-strike {
+    background: #17140f;
+    border-color: #17140f;
+    color: #fbfaf8;
+    box-shadow: 0 14px 30px rgba(26, 23, 20, 0.18);
+  }
+  .hip-screen .hip-strike:active {
+    background: #26211a;
+  }
+  /* 지금 자리 점 — 분홍 */
+  .hip-screen .hip-rail i[data-on="1"] {
+    background: #ef7ba4;
+  }
+  .hip-screen .hip-under {
+    color: #9a9187;
+  }
+  .hip-screen-top .hip-kicker {
+    color: #8b8175;
+  }
+  /* 서랍도 같은 흰 결로 */
+  .hip-sheet {
+    background:
+      radial-gradient(58% 34% at 12% 4%, rgba(242, 120, 159, 0.14), transparent 70%),
+      radial-gradient(54% 34% at 94% 16%, rgba(120, 214, 197, 0.16), transparent 70%),
+      #fbfaf8;
+  }
+  .hip-chips button[data-on="1"] {
+    border-color: #ef7ba4;
+    color: #17140f;
+    background: rgba(242, 120, 159, 0.12);
+  }
+  .hip-switch[data-on="1"] {
+    background: #ef7ba4;
+    border-color: #ef7ba4;
+  }
+  .hip-switch[data-on="1"] i {
+    background: #fff;
+  }
+  .hip-sheet-range input {
+    accent-color: #ef7ba4;
+  }
+}
+
+/* ── 오브제가 주인공 · 숨 쉬는 바탕 · 파문 · 마디 ──────────────
+   형: 「목탁이나 염주 등 원래 디자인을 빼먹진 마」 — 맞다. 숫자만
+   남긴 판을 한 번 만들어 봤는데 그건 우리 앱이 아니었다.
+   오브제를 한복판에 되돌리고, 누르는 자리도 그것으로 되돌린다. */
+@media (max-width: 767px) {
+  /* ① 숨 쉬는 바탕 — 멈춘 그라데이션은 배경이고, 흐르면 자리가 된다 */
+  .hip-bloom {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(46px);
+    z-index: 0;
+  }
+  .hip-bloom-a {
+    left: -22%;
+    top: -12%;
+    width: 78%;
+    padding-top: 78%;
+    background: radial-gradient(closest-side, rgba(242, 120, 159, 0.34), transparent 72%);
+    animation: hip-drift-a 26s ease-in-out infinite;
+  }
+  .hip-bloom-b {
+    right: -26%;
+    top: 26%;
+    width: 86%;
+    padding-top: 86%;
+    background: radial-gradient(closest-side, rgba(104, 208, 190, 0.3), transparent 72%);
+    animation: hip-drift-b 34s ease-in-out infinite;
+  }
+  @keyframes hip-drift-a {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(14%, 9%) scale(1.12); }
+  }
+  @keyframes hip-drift-b {
+    0%, 100% { transform: translate(0, 0) scale(1.06); }
+    50% { transform: translate(-12%, -8%) scale(0.94); }
+  }
+
+  /* ── 오브제 ── */
+  .hip-obj {
+    position: relative;
+    display: block;
+    width: 90%;
+    max-width: 380px;
+    margin: 0 auto 2px;
+  }
+  .hip-obj-img {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 26px 26px rgba(26, 23, 20, 0.16));
+    animation: hip-tap 0.18s ease-out;
+  }
+  @keyframes hip-tap {
+    0% { transform: scale(1); }
+    26% { transform: scale(0.955) translateY(3px); }
+    100% { transform: scale(1); }
+  }
+
+  /* ② 파문 — 목탁은 소리가 퍼지는 물건이니 눈에도 퍼져야 한다 */
+  .hip-ripple {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: 62%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    border: 1.5px solid rgba(239, 123, 164, 0.55);
+    z-index: 0;
+    animation: hip-wave 1.05s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+  .hip-ripple-2 {
+    border-color: rgba(104, 208, 190, 0.45);
+    animation-delay: 0.11s;
+  }
+  @keyframes hip-wave {
+    0% { transform: scale(0.66); opacity: 0.9; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+
+  .hip-pops {
+    position: absolute;
+    left: 50%;
+    top: 4%;
+    z-index: 2;
+  }
+  .hip-pops span {
+    position: absolute;
+    font-family: var(--font-serif);
+    font-size: 26px;
+    line-height: 1;
+    color: #e3628f;
+  }
+
+  /* ③ 숫자가 톡 */
+  .hip-screen .hip-big {
+    font-size: clamp(64px, 20vw, 96px);
+    animation: hip-pop 0.22s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  @keyframes hip-pop {
+    0% { transform: scale(1.055); }
+    100% { transform: scale(1); }
+  }
+  .hip-screen .hip-under {
+    margin-top: 10px;
+    font-size: 12.5px;
+  }
+  .hip-screen .hip-stats {
+    margin-top: 22px;
+    padding: 16px 0;
+  }
+  .hip-screen .hip-stats b { font-size: 24px; }
+
+  /* 合 — 박자가 맞는 동안만 */
+  .hip-hap {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #ef7ba4;
+    color: #fff;
+    font-family: var(--font-serif);
+    font-size: 13px;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 0.25s, transform 0.25s;
+  }
+  .hip-hap.on { opacity: 1; transform: scale(1); }
+
+  /* ④ 마디 — 스물일곱째를 지나면 격자가 민트로 한 번 훑인다 */
+  .hip-grid108.knot > i {
+    animation: hip-sweep 0.72s ease-out;
+    animation-delay: calc(var(--i) * 5ms);
+  }
+  @keyframes hip-sweep {
+    0%, 100% { box-shadow: none; }
+    40% { box-shadow: 0 0 0 1.5px #6fcbb8; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hip-bloom, .hip-obj-img, .hip-ripple, .hip-screen .hip-big,
+  .hip-grid108.knot > i { animation: none !important; }
+}
