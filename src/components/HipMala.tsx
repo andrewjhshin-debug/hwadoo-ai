@@ -18,6 +18,7 @@
 // **알은 셋뿐이다** — 날마다 손이 가는 자리만.
 //   話 화두   오늘의 물음
 //   功 공덕   목탁 · 염주 · 싱잉볼
+//   緣 절로   손잡고 절로 · 인연 게시판
 //   我 나     그리고 나머지 전부가 이 안에 동그란 버튼으로 있다
 //
 // 하심 · 호흡 · 멍 · 비움 · 법당 초 · 불심 투자 — 다 내 도량 안이다.
@@ -33,6 +34,8 @@ export type Bead = { mark: string; name: string; href: string; also: string[] };
 export const BEADS: Bead[] = [
   { mark: "話", name: "화두", href: "/", also: ["/my-hwadu", "/archive", "/room"] },
   { mark: "功", name: "공덕", href: "/moktak", also: [] },
+  // 형: 「메인 아래 탭은 화두, 손잡고 절로(게시판)」
+  { mark: "緣", name: "절로", href: "/gathering", also: ["/pilgrimage"] },
   {
     mark: "我",
     name: "나",

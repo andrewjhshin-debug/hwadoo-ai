@@ -745,7 +745,39 @@ export default function SettingsPage() {
         }
         merit={merit.total}
         hits={meHits}
-        onMore={() => setMeMore(true)}
+        seats={REALMS.map((seat) => {
+          const r = rankByNeed(seat.need);
+          return {
+            hanja: r.hanja,
+            got: isAdminAccount(user) || merit.total >= seat.need,
+            here: myRealm.id === seat.id,
+          };
+        })}
+        charms={
+          <div className="hip-charms">
+            {CHARMS.map((c) => (
+              <span
+                key={c.id}
+                data-got={charms[c.id] ? "1" : undefined}
+                title={charms[c.id] ? c.wish : c.how}
+                dangerouslySetInnerHTML={{ __html: charmSvg(c.id, "m" + c.id) }}
+              />
+            ))}
+          </div>
+        }
+        bells={
+          <div className="hip-bells">
+            {BELLS.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => toggleBell(b.id)}
+                data-on={bells.includes(b.id) ? "1" : undefined}
+              >
+                {b.time}
+              </button>
+            ))}
+          </div>
+        }
       />
     )}
     <div className={`mx-auto w-full max-w-xl flex-1 px-6 py-12 ${meMore ? "" : "max-md:hidden"}`}>

@@ -27,6 +27,8 @@ export type HipMeProps = {
   name: string;
   /** 지금 자리의 한자 · 이름 */
   rank: { hanja: string; name: string };
+  /** 여섯 자리 — 지나온 곳(got)과 지금(here) */
+  seats: { hanja: string; got: boolean; here: boolean }[];
   /** 다음 자리까지 0~100 */
   pct: number;
   /** 다음 자리 한자 · 남은 공덕 · 모자란 화두 수. 꼭대기면 null.
@@ -35,17 +37,21 @@ export type HipMeProps = {
   merit: number;
   /** 무엇을 몇 번 — 많이 한 것부터 넉 장만 */
   hits: { label: string; n: number }[];
-  onMore: () => void;
+  /** 접었다 펴는 두 자리 — 안에 들어갈 것은 부모가 그려 준다 */
+  charms: React.ReactNode;
+  bells: React.ReactNode;
 };
 
 export default function HipMe({
   name,
   rank,
+  seats,
   pct,
   next,
   merit,
   hits,
-  onMore,
+  charms,
+  bells,
 }: HipMeProps) {
   return (
     <HipShell here="/settings">
@@ -62,12 +68,10 @@ export default function HipMe({
           </svg>
           <b>화두</b>
         </a>
-        <div className="flex items-center gap-3">
-          <span className="hip-kicker">我</span>
-          <button onClick={onMore} aria-label="더" className="hip-more">
-            ⋯
-          </button>
-        </div>
+        {/* 형: 「오른쪽 위에 ⋯ 기능 필요 없어, 일단 없애.
+            대신 그거 눌린 내 도량 기능을 아래 탭 내 도량에 뜨게」 —
+            그래서 접는 자리를 없애고 이 화면이 그 내용을 다 가진다 */}
+        <span className="hip-kicker">我</span>
       </header>
 
       <div className="hip-screen-mid">
@@ -82,7 +86,20 @@ export default function HipMe({
           </div>
         </div>
 
-        {/* 다음 자리까지 — 실 한 올과 한자 하나 */}
+        {/* ── 자리 — 가로로 ──
+            형: 「자리는 가로 형태로 두고」. 여섯 자리를 한 줄에 늘어놓고
+            지나온 곳은 물들이고, 지금 자리만 크게. 한자 여섯이면 족하다 */}
+        <div className="hip-seats">
+          {seats.map((r) => (
+            <i
+              key={r.hanja}
+              data-got={r.got ? "1" : undefined}
+              data-here={r.here ? "1" : undefined}
+            >
+              {r.hanja}
+            </i>
+          ))}
+        </div>
         <div className="hip-me-bar">
           <i style={{ width: `${pct}%` }} />
         </div>
@@ -132,6 +149,24 @@ export default function HipMe({
               <span>{r.name}</span>
             </Link>
           ))}
+        </div>
+
+        {/* ── 접었다 펼치는 둘 ──
+            형: 「부적 기능 접었다 펼쳤다. 알림도 접었다 펼쳤다」.
+            늘 펴 두면 화면이 길어지고, 아주 지우면 찾을 길이 없다 */}
+        <div className="hip-folds">
+          <details>
+            <summary>
+              <b>符</b> 부적
+            </summary>
+            <div>{charms}</div>
+          </details>
+          <details>
+            <summary>
+              <b>鐘</b> 알림
+            </summary>
+            <div>{bells}</div>
+          </details>
         </div>
       </div>
 

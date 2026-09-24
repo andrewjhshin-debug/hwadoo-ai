@@ -501,7 +501,6 @@ export default function MoktakPage() {
           bowlHits={bowlHits}
           combo={combo}
           pops={pops}
-          src={skinSrc("moktak")}
           onHit={hit}
           onMore={() => setMore(true)}
         />

@@ -37,8 +37,6 @@ export type HipMoktakProps = {
   beadHits: number;
   bowlHits: number;
   combo: number;
-  /** 지금 고른 살갗 그림 */
-  src: string;
   /** 한 번 친다 — 부모의 손타 처리를 그대로 부른다 */
   onHit: () => void;
   /** 살림살이(갈래·정근·소리·자동·살갗)를 펴 보인다 */
@@ -53,7 +51,6 @@ export default function HipMoktak({
   beadHits,
   bowlHits,
   combo,
-  src,
   onHit,
   onMore,
   pops,
@@ -104,40 +101,10 @@ export default function HipMoktak({
         </div>
       </header>
 
+      {/* 형: 「목탁이랑 저거 민트 핑크 칸 차는 거 위치 위아래 바꾸고」.
+          셈과 격자가 위로, **목탁이 아래로** 내려왔다. 엄지가 닿는 자리에
+          치는 물건이 있어야 한다 — 위에 있으면 손을 뻗어야 한다. */}
       <div className="hip-screen-mid">
-        {/* ── 목탁 — 이 화면의 주인공. 누르는 자리도 여기다 ── */}
-        <button
-          onClick={onHit}
-          aria-label="목탁 치기"
-          className="hip-obj"
-          style={{ WebkitTapHighlightColor: "transparent" }}
-        >
-          {/* ② 파문 — 칠 때마다 새 고리 하나 */}
-          {hits > 0 && (
-            <span key={`w${hits}`} aria-hidden>
-              <i className="hip-ripple" />
-              <i className="hip-ripple hip-ripple-2" />
-            </span>
-          )}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img key={`o${hits}`} src={src} alt="" aria-hidden className="hip-obj-img" />
-          {/* 떠오르는 글자 */}
-          <span aria-hidden className="hip-pops">
-            {pops.map((p) => (
-              <span
-                key={p.id}
-                style={{
-                  left: p.dx,
-                  transform: `rotate(${p.rot}deg)`,
-                  animation: "mk-pop 1s cubic-bezier(.2,.7,.3,1) forwards",
-                }}
-              >
-                {p.ch}
-              </span>
-            ))}
-          </span>
-        </button>
-
         {/* ③ 숫자가 톡 — key 를 갈아 끼워 칠 때마다 다시 난다 */}
         <p key={`n${hits}`} className="hip-big" aria-label={`오늘 울린 목탁 ${hits}번`}>
           {String(hits).padStart(3, "0")}
@@ -158,6 +125,77 @@ export default function HipMoktak({
             />
           ))}
         </div>
+
+        {/* ── 목탁 — 코드로 그린다 ──
+            형: 「메인에 오늘의 물음 위 연꽃 반응형 존나 좋다. 저런 느낌
+            디자인으로 전반을 가자」.
+
+            맞다. 사진으로 구운 오브제는 아무리 잘 구워도 남의 결이다.
+            연꽃처럼 **선으로 그리고 천천히 움직이면** 그게 우리 것이 된다.
+            그림 파일이 없으니 살갗도 색 하나로 갈린다.
+
+            몸은 동그라미 하나, 입은 가로 선 하나, 고리는 작은 원 하나,
+            채는 비스듬한 선 하나. 그게 목탁의 전부다. */}
+        <button
+          onClick={onHit}
+          aria-label="목탁 치기"
+          className="hip-obj"
+          style={{ WebkitTapHighlightColor: "transparent" }}
+        >
+          {/* 파문 — 칠 때마다 고리 둘이 퍼진다 */}
+          {hits > 0 && (
+            <span key={`w${hits}`} aria-hidden>
+              <i className="hip-ripple" />
+              <i className="hip-ripple hip-ripple-2" />
+            </span>
+          )}
+          <span key={`o${hits}`} aria-hidden className="hip-mok">
+            <svg viewBox="0 0 200 200">
+              <defs>
+                <radialGradient id="mokBody" cx="36%" cy="28%" r="78%">
+                  <stop offset="0%" stopColor="#FBC7D9" />
+                  <stop offset="58%" stopColor="#F2A0BD" />
+                  <stop offset="100%" stopColor="#DE7EA1" />
+                </radialGradient>
+                <radialGradient id="mokRing" cx="34%" cy="26%" r="80%">
+                  <stop offset="0%" stopColor="#F9BBD1" />
+                  <stop offset="100%" stopColor="#DD7CA0" />
+                </radialGradient>
+              </defs>
+              {/* 숨 쉬는 테 — 연꽃과 같은 박자로 */}
+              <g className="hip-mok-aura">
+                <circle cx="100" cy="106" r="84" />
+                <circle cx="100" cy="106" r="74" />
+              </g>
+              {/* 고리 — 몸 뒤에서 나온다. 도톰한 도넛 */}
+              <circle className="hip-mok-ring" cx="152" cy="74" r="17" />
+              {/* 몸 — 살짝 눌린 동그라미. 도톰하게 채운다 */}
+              <ellipse className="hip-mok-body" cx="98" cy="108" rx="62" ry="56" />
+              {/* 두 쪽이 만나는 자리 — 아주 옅게 */}
+              <path className="hip-mok-seam" d="M40 104q58 12 116 0" />
+              {/* 입 — 두툼하고 끝이 둥근 홈. 이게 목탁을 목탁으로 만든다 */}
+              <path className="hip-mok-mouth" d="M64 130h50" />
+              {/* 채 */}
+              <path className="hip-mok-stick" d="M138 176l40-30" />
+              <circle className="hip-mok-knob" cx="133" cy="180" r="11" />
+            </svg>
+          </span>
+          {/* 떠오르는 글자 */}
+          <span aria-hidden className="hip-pops">
+            {pops.map((p) => (
+              <span
+                key={p.id}
+                style={{
+                  left: p.dx,
+                  transform: `rotate(${p.rot}deg)`,
+                  animation: "mk-pop 1s cubic-bezier(.2,.7,.3,1) forwards",
+                }}
+              >
+                {p.ch}
+              </span>
+            ))}
+          </span>
+        </button>
 
         <div className="hip-stats">
           {[

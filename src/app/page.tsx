@@ -1144,9 +1144,11 @@ export default function Home() {
         </button>
       </section>
 
-      {/* 사유의 방 서랍 */}
-      <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
     </div>
+    {/* 사유의 방 서랍 — **웹 분기 밖에 둔다.**
+        형: 「사유의 방은 작동 안 한다」. 맞다 — 서랍이 `hidden md:flex` 안에
+        들어 있어서 폰에서는 단추를 눌러도 열릴 것이 없었다. 밖으로 뺀다. */}
+    <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
     </>
   );
 }
