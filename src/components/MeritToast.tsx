@@ -20,6 +20,10 @@ import { loadStore } from "@/lib/store";
 
 export default function MeritToast() {
   const [gain, setGain] = useState(0); // 지금 한 줄에 모인 몫
+  /** 방금 한 번에 붙은 몫 — 형: 「키캡이 3이면 +3 +3 +3 계속 이렇게」.
+      쌓인 수를 보여 주면 「방금 여덟을 받았나?」로 읽힌다. 한 타의
+      무게는 늘 같아야 한다 */
+  const [last, setLast] = useState(0);
   const [up, setUp] = useState<Rank | null>(null); // 방금 오른 자리
   const prev = useRef<number | null>(null);
   const clear = useRef<number | null>(null);
@@ -34,6 +38,7 @@ export default function MeritToast() {
 
     // 잇달아 붙으면 한 줄로 합친다
     setGain((g) => g + d);
+    setLast(d);
     if (clear.current) window.clearTimeout(clear.current);
     clear.current = window.setTimeout(() => setGain(0), 1400);
 
@@ -86,7 +91,7 @@ export default function MeritToast() {
       {/* ── +N 공덕 ── */}
       {gain > 0 && (
         <div
-          key={gain}
+          key={gain}   /* 값이 같아도 다시 톡 튀게 — 쌓인 수를 열쇠로 */
           aria-live="polite"
           className="pointer-events-none fixed right-4 top-[72px] z-[60] md:right-8 md:top-8"
           style={{ animation: "mt-pop 1.4s ease-out forwards" }}
@@ -101,7 +106,7 @@ export default function MeritToast() {
                 더해진다. +3 · +6 · +9 로 오르면 한 번에 얼마가 붙는지가
                 눈에 보이고, 얼마나 쌓였는지도 같이 보인다. 속이는 게 아니라
                 **한 타의 무게**를 알려 주는 것이다. */}
-            +{gain.toLocaleString("ko-KR")}
+            +{last.toLocaleString("ko-KR")}
             <span className="ml-1.5 text-[10.5px] tracking-[0.2em] text-gold-soft">
               공덕
             </span>

@@ -442,19 +442,30 @@ export function watchAuth(cb: (user: User | null) => void): () => void {
  * 그래서 팝업을 먼저 열어 보고, 막히면 같은 창에서 구글로 다녀온다.
  * 돌아오면 onAuthStateChanged 가 알아서 이어받으므로 따로 할 일이 없다.
  */
+/** 아이폰을 홈 화면에 담아 쓰는 중인가 — 여기서만 창이 안 열린다 */
+function 아이폰홈화면(): boolean {
+  if (typeof window === "undefined") return false;
+  const ios = /iPad|iPhone|iPod/.test(window.navigator.userAgent);
+  return ios && (window.navigator as { standalone?: boolean }).standalone === true;
+}
+
 export async function loginWithGoogle() {
   const provider = new GoogleAuthProvider();
-  // 홈 화면에 담아 쓰는 중이면 팝업은 아예 시도하지 않는다 —
-  // 열리지도 않는 창을 기다리느라 한 박자 멈추는 것이 더 나쁘다
-  const standalone =
-    typeof window !== "undefined" &&
-    (window.matchMedia?.("(display-mode: standalone)").matches ||
-      // iOS 사파리는 display-mode 를 안 알려 준다
-      (window.navigator as { standalone?: boolean }).standalone === true);
-  if (standalone) {
-    await signInWithRedirect(auth, provider);
-    return;
-  }
+
+  // ── 팝업을 **먼저** 연다. 언제나. ────────────────────────────
+  //
+  // 여기가 형이 겪은 「여는 중에서 멈춘다」의 진짜 자리였다.
+  // 홈 화면에 담아 쓰면(standalone) 팝업을 못 연다고 보고 곧장
+  // 리다이렉트로 보냈는데 — **안드로이드는 연다.** 크롬이 커스텀 탭으로
+  // 띄워 준다. 못 여는 건 아이폰 사파리의 홈 화면 앱뿐이다.
+  //
+  // 그리고 하필 그 리다이렉트가 안 되는 길이었다. 손잡이가 남의 도메인
+  // (hwadu-9dc7b.firebaseapp.com)에 있어서, 갔다 와도 돌아온 줄을 모른다
+  // (요즘 브라우저가 3자 저장소를 막는다). 그래서 화면은 그대로인 채
+  // 단추만 「여는 중」에 굳었다.
+  //
+  // 순서를 뒤집는다 — 팝업을 먼저 열어 보고, **정말로 못 열 때만**
+  // 리다이렉트로 간다. 안드로이드 홈 화면 앱은 이걸로 바로 풀린다.
   try {
     await signInWithPopup(auth, provider);
   } catch (e) {
@@ -464,7 +475,9 @@ export async function loginWithGoogle() {
     if (
       code === "auth/popup-blocked" ||
       code === "auth/operation-not-supported-in-this-environment" ||
-      code === "auth/web-storage-unsupported"
+      code === "auth/web-storage-unsupported" ||
+      // 아이폰 홈 화면 앱은 창을 못 연다 — 여기까지 오면 리다이렉트뿐이다
+      code === "auth/popup-closed-by-user" && 아이폰홈화면()
     ) {
       await signInWithRedirect(auth, provider);
       return;

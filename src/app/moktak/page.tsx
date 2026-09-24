@@ -54,10 +54,15 @@ const BOX = 316;
 /** 가로형 고리에 세울 알의 수 — 백여덟의 네 몫(실제 손염주가 그렇다) */
 const RING_BEADS = 27;
 const ARC = 2 * Math.PI * 146; // 바깥 진행 고리 둘레
-// 알이 왼쪽으로 넘어가므로 진행 고리도 왼쪽으로 차오른다 — 반시계로 그린 원
+// 형: 「가로 형태는 금색을 가운데부터 칠하고 굴리는 방향으로 밀어내는
+//      방식을 택하지. 그러려면 시작점이 가운데 위가 아니라 가운데 아래여야
+//      되겠지?」 — 맞다.
+// 손이 굴리는 알은 **앞쪽(아래 가운데)** 에 있다. 그런데 금은 저 위에서
+// 시작하고 있었으니, 굴린 곳과 차오르는 곳이 따로 놀았다.
+// 아래 가운데에서 시작해 알이 넘어가는 쪽(반시계)으로 밀려 나간다.
 const ARC_PATH =
-  "M158 12 A146 146 0 0 0 12 158 A146 146 0 0 0 158 304 " +
-  "A146 146 0 0 0 304 158 A146 146 0 0 0 158 12";
+  "M158 304 A146 146 0 0 0 12 158 A146 146 0 0 0 158 12 " +
+  "A146 146 0 0 0 304 158 A146 146 0 0 0 158 304";
 
 // 염불 여섯 자 — 목탁을 칠 때마다 한 자씩
 /**
@@ -98,8 +103,17 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
  * 자리도 각도도 크기도 그대로라, 갈아 끼워도 화면이 안 흔들린다.
  * 바뀌는 것은 재질뿐이다 — 그래서 고르는 자리가 점 세 개면 족하다.
  */
+/** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
+    옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
+    고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
+const 그림판 = 4;
+const 그림 = (s: string) => `${s}?v=${그림판}`;
+
 const SKINS = {
   moktak: [
+    // 형: 「밑에 색상 눌렀을 때 안 바뀐다」 — 분홍이 목록에 아예 없었고,
+    // 그림도 분홍으로 **박혀** 있었다. 넷을 다 세우고 분홍을 기본으로
+    { id: "pink", name: "분홍", src: "/obj/moktak-pink.png", dot: "#f1a6c0" },
     { id: "clay", name: "흙", src: "/obj/moktak.png", dot: "#c98f5e" },
     { id: "gold", name: "금", src: "/obj/moktak-gold.png", dot: "#d7ae55" },
     { id: "jade", name: "옥", src: "/obj/moktak-jade.png", dot: "#a8d8c0" },
@@ -191,7 +205,7 @@ export default function MoktakPage() {
   };
   // 살갗 — 물건마다 따로 적어 둔다(이 기기에만)
   const [skin, setSkin] = useState<Record<SkinKind, string>>({
-    moktak: SKINS.moktak[0].id,
+    moktak: SKINS.moktak[0].id, // 분홍
     // 형: 「염주 원래처럼 핑크 찐한 거 고양이발 염주 그렇게 하고,
     //      황금색으로 칠해지는 거 유지하자. 동그라미 원 채우는 것도 황금으로」
     // 처음 들어온 사람에게 보이는 것이 곧 이 앱의 얼굴이다 — 발바닥을 기본으로
@@ -199,9 +213,11 @@ export default function MoktakPage() {
     bowl: SKINS.bowl[0].id,
   });
   const skinSrc = (kind: SkinKind) =>
-    (SKINS[kind] as readonly { id: string; src: string }[]).find(
-      (k) => k.id === skin[kind]
-    )?.src ?? SKINS[kind][0].src;
+    그림(
+      (SKINS[kind] as readonly { id: string; src: string }[]).find(
+        (k) => k.id === skin[kind]
+      )?.src ?? SKINS[kind][0].src
+    );
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
   const beadWide = (
     SKINS.bead as readonly { id: string; wide?: boolean }[]
@@ -610,7 +626,7 @@ export default function MoktakPage() {
                 <img
                   // eslint-disable-next-line @next/next/no-img-element
                   key={i}
-                  src="/obj/bead-paw-one.png"
+                  src={그림("/obj/bead-paw-one.png")}
                   alt=""
                   draggable={false}
                   className="absolute block"
@@ -700,9 +716,10 @@ export default function MoktakPage() {
         <span
           aria-hidden
           className="absolute left-1/2 -translate-x-1/2"
-          style={{ top: 10, fontSize: 11, letterSpacing: "0.2em", color: "#e0819f" }}
+          /* 표도 아래로 — 금이 여기서 시작하니 표도 여기 있어야 한다 */
+          style={{ bottom: 6, fontSize: 11, letterSpacing: "0.2em", color: "#e0819f" }}
         >
-          ▼
+          ▲
         </span>
       </div>
 
@@ -871,6 +888,7 @@ export default function MoktakPage() {
           merit={merit}
           beadHits={total}
           bowlHits={bowlHits}
+          mokSrc={skinSrc("moktak")}
           combo={combo}
           pos={pos}
           ringing={ringing}
@@ -1439,7 +1457,7 @@ export default function MoktakPage() {
                       <img
                         // eslint-disable-next-line @next/next/no-img-element
                         key={i}
-                        src="/obj/bead-paw-one.png"
+                        src={그림("/obj/bead-paw-one.png")}
                         alt=""
                         draggable={false}
                         className="absolute block"

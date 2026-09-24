@@ -129,18 +129,39 @@ export function HipGardenEmpty({
               그래서 연꽃 하나만 천천히 돈다 — 빈 자리로 둔다. */}
           <span aria-hidden className="hip-seat">
             <span className="hip-lotus">
+              {/* 형: 「잎사귀 더 얕게. 가운데는 노란 동그라미가 아니라
+                  **채우라**니까, 뾰족 튀어나온 부분까지도」
+
+                  가운데를 동그라미로 놓으니 노란 자리가 꽃과 따로 놀았다 —
+                  잎을 가로질러 원이 잘려 있으니, 꽃에 단추 하나를 붙인 꼴.
+                  노랑도 **잎의 결로** 채운다. 같은 여덟 방향으로 작은 잎을
+                  겹쳐 놓으면 끝이 뾰족한 별이 된다. 겹치는 자리는 더 진해져
+                  가운데가 저절로 여물고, 반투명이라 층이 그대로 보인다.
+                  바깥 잎은 더 가늘게(15 → 11) — 「얕게」. */}
               <svg viewBox="0 0 200 200">
                 {Array.from({ length: 8 }, (_, i) => (
                   <ellipse
                     key={i}
                     cx="100"
                     cy="62"
-                    rx="15"
+                    rx="11"
                     ry="45"
                     transform={`rotate(${i * 45} 100 100)`}
                   />
                 ))}
-                <circle cx="100" cy="100" r="31" />
+                {/* 가운데 — 뾰족한 끝까지 노랗게 */}
+                {Array.from({ length: 8 }, (_, i) => (
+                  <ellipse
+                    key={`c${i}`}
+                    className="hip-lotus-core"
+                    cx="100"
+                    cy="74"
+                    rx="10"
+                    ry="30"
+                    transform={`rotate(${i * 45} 100 100)`}
+                  />
+                ))}
+                <circle cx="100" cy="100" r="15" />
               </svg>
             </span>
           </span>

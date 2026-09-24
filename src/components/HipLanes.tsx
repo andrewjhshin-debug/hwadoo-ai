@@ -19,6 +19,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /** 판 안에서 갈리는 물건 넷 */
 export const OBJ_LANES = [
@@ -52,8 +53,68 @@ export default function HipLanes({
   onTab?: (t: LaneTab) => void;
   room?: string;
 }) {
+  // ── 「옆에 더 있다」를 어떻게 알리나 ────────────────────────
+  // 형: 「지금 너무 딱 떨어져서 옆에 넘겨서 메뉴가 있는지 인지가 안 되는데
+  //      어떻게 해야 할까, 좌우 화살표 버튼? 고민해서 다시 해 봐」
+  //
+  // 셋을 겹쳐 쓴다. 하나로는 약하고, 셋이면 안 볼 수가 없다 —
+  //   ① **가장자리가 흐려진다** — 끊긴 게 아니라 이어진다는 표
+  //   ② **반쯤 걸친 알약** — 딱 떨어지면 「여기까지」로 읽힌다. 일부러
+  //      반 칸을 남겨 둔다(scroll-padding). 잘린 것은 눈이 쫓는다
+  //   ③ **그쪽에만 뜨는 화살표** — 더 있는 쪽에만. 누르면 한 칸 민다.
+  //      없으면 사라진다 — 있는데 눌러도 안 되는 화살표가 제일 나쁘다
+  const 띠 = useRef<HTMLDivElement | null>(null);
+  const [끝, 끝잡기] = useState({ 왼: false, 오: false });
+
+  const 살피기 = useCallback(() => {
+    const el = 띠.current;
+    if (!el) return;
+    const 남은 = el.scrollWidth - el.clientWidth - el.scrollLeft;
+    끝잡기({ 왼: el.scrollLeft > 4, 오: 남은 > 4 });
+  }, []);
+
+  useEffect(() => {
+    const el = 띠.current;
+    if (!el) return;
+    살피기();
+    el.addEventListener("scroll", 살피기, { passive: true });
+    window.addEventListener("resize", 살피기);
+    // 지금 자리가 띠 밖에 있으면 끌어다 놓는다 — 어디 있는지부터 보여야 한다
+    const on = el.querySelector<HTMLElement>('[data-on="1"]');
+    on?.scrollIntoView({ block: "nearest", inline: "center" });
+    return () => {
+      el.removeEventListener("scroll", 살피기);
+      window.removeEventListener("resize", 살피기);
+    };
+  }, [살피기, tab, room]);
+
+  const 밀기 = (쪽: -1 | 1) => {
+    const el = 띠.current;
+    if (!el) return;
+    el.scrollBy({ left: 쪽 * Math.max(120, el.clientWidth * 0.62), behavior: "smooth" });
+  };
+
   return (
-    <div className="hip-lanes" role="tablist" aria-label="무엇을">
+    <div className="hip-lanes-wrap" data-l={끝.왼 ? "1" : undefined} data-r={끝.오 ? "1" : undefined}>
+      <button
+        type="button"
+        className="hip-lane-arrow hip-lane-arrow-l"
+        onClick={() => 밀기(-1)}
+        aria-label="앞의 갈래 보기"
+        tabIndex={끝.왼 ? 0 : -1}
+      >
+        ‹
+      </button>
+      <button
+        type="button"
+        className="hip-lane-arrow hip-lane-arrow-r"
+        onClick={() => 밀기(1)}
+        aria-label="뒤의 갈래 보기"
+        tabIndex={끝.오 ? 0 : -1}
+      >
+        ›
+      </button>
+    <div className="hip-lanes" ref={띠} role="tablist" aria-label="무엇을">
       {OBJ_LANES.map(([k, label]) =>
         onTab ? (
           <button
@@ -83,6 +144,7 @@ export default function HipLanes({
           </Link>
         )
       )}
+    </div>
     </div>
   );
 }

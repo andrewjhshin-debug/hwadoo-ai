@@ -4154,3 +4154,128 @@ html[data-theme="light"] {
   .hip-screen[data-lane="moktak"] .hip-opts .hip-chips { margin-bottom: 14px; }
   .hip-screen[data-lane="moktak"] .hip-opts .hip-sheet-row { margin-top: 16px; }
 }
+
+/* ── 갈래 띠 — 「옆에 더 있다」를 셋으로 말한다 ─────────────────
+   형: 「너무 딱 떨어져서 옆에 메뉴가 있는지 인지가 안 된다. 좌우 화살표?」
+   ① 가장자리를 흐린다 — 끊긴 게 아니라 이어진다는 표
+   ② 반 칸을 남긴다 — 딱 떨어지면 「여기까지」로 읽힌다
+   ③ 더 있는 쪽에만 화살표 — 눌러도 안 되는 화살표가 제일 나쁘다 */
+@media (min-width: 0px) {
+  .hip-lanes-wrap {
+    position: relative;
+    width: max-content;
+    max-width: 100%;
+    margin: 6px auto 0;
+  }
+  .hip-lanes { margin: 0; scroll-padding-inline: 34px; }
+
+  /* ① 흐림 — 더 있는 쪽만 */
+  .hip-lanes-wrap::before,
+  .hip-lanes-wrap::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.22s;
+    border-radius: 999px;
+  }
+  .hip-lanes-wrap::before {
+    left: 0;
+    background: linear-gradient(90deg, #fbf7f6 22%, rgba(251, 247, 246, 0));
+  }
+  .hip-lanes-wrap::after {
+    right: 0;
+    background: linear-gradient(270deg, #fbf7f6 22%, rgba(251, 247, 246, 0));
+  }
+  .hip-lanes-wrap[data-l="1"]::before,
+  .hip-lanes-wrap[data-r="1"]::after { opacity: 1; }
+
+  /* ③ 화살표 — 그쪽에 더 있을 때만 */
+  .hip-lane-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    margin-top: -13px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 7px rgba(190, 120, 145, 0.24);
+    font-size: 15px;
+    line-height: 1;
+    color: #d2578c;
+    opacity: 0;
+    transform: scale(0.7);
+    pointer-events: none;
+    transition: opacity 0.22s, transform 0.22s;
+  }
+  .hip-lane-arrow-l { left: 1px; }
+  .hip-lane-arrow-r { right: 1px; }
+  .hip-lanes-wrap[data-l="1"] .hip-lane-arrow-l,
+  .hip-lanes-wrap[data-r="1"] .hip-lane-arrow-r {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+}
+@media (min-width: 768px) {
+  /* 넓은 화면에서는 아홉이 다 앉으니 화살표도 흐림도 뜰 일이 없다 */
+  .hip-screen > .hip-lanes-wrap:not(.hip-bloom):not(.hip-mark) {
+    max-width: min(760px, 92vw);
+    width: max-content;
+  }
+}
+
+/* ── 정근 — 글자를 키우고 결을 준다 ────────────────────────────
+   형: 「나무아미타불 글자 좀 키우고, 글자에도 뭔가 단순 그냥 글자가
+        아니라 약간 그림자나 뭐 그런 효과 좀 주고」
+   외며 치는 말이다. 알약 속에 작게 눕혀 두면 외울 마음이 안 난다 —
+   조금 키우고, 글자에 아주 옅은 도드라짐(새김)을 준다. */
+@media (min-width: 0px) {
+  .hip-screen[data-lane="moktak"] .hip-opts .hip-chips button {
+    padding: 9px 17px;
+    font-size: 14.5px;
+    letter-spacing: 0.02em;
+    color: #6f665c;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95);
+  }
+  .hip-screen[data-lane="moktak"] .hip-opts .hip-chips button[data-on="1"],
+  .hip-screen[data-lane="moktak"] .hip-opts .hip-chips button[aria-pressed="true"] {
+    color: #17140f;
+    font-weight: 500;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95),
+      0 2px 6px rgba(226, 110, 155, 0.28);
+  }
+
+  /* 목탁만 한 뼘 작게 — 형: 「목탁 크기 살짝은 줄이고」.
+     여백을 잘라 1.6배가 되고 나니 판을 좀 세게 먹는다 */
+  .hip-screen[data-lane="moktak"] .hip-mok-img,
+  .hip-screen[data-lane="moktak"] .hip-mok { width: calc(var(--hip-obj-w) * 0.87); }
+}
+
+/* ── 연꽃 가운데 — 동그라미 말고 잎의 결로 ─────────────────────
+   형: 「가운데는 노란 동그라미가 아니라 채우라니까, 뾰족 튀어나온
+        부분까지도」 「잎사귀 더 얕게」
+   여덟 방향의 작은 잎을 노랗게 겹친다. 겹칠수록 진해져 가운데가 여물고,
+   끝은 뾰족하게 뻗는다. 반투명이라 층이 그대로 보인다 —
+   형: 「기존처럼 레이어가 보이게 반투명으로 두라고」 */
+@media (min-width: 0px) {
+  .hip-lotus .hip-lotus-core,
+  .hip-hanji .hip-lotus .hip-lotus-core {
+    fill: rgba(255, 200, 22, 0.42);
+    stroke: rgba(255, 200, 22, 0.55);
+    stroke-width: 1.2;
+  }
+  .hip-lotus circle,
+  .hip-hanji .hip-lotus circle {
+    fill: rgba(255, 200, 22, 0.72);
+    stroke: rgba(255, 200, 22, 0.72);
+    stroke-width: 2;
+  }
+}

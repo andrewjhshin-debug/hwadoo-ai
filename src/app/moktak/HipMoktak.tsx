@@ -67,6 +67,8 @@ export type HipMoktakProps = {
   options: React.ReactNode;
   /** 염주·싱잉볼 — **원래 그림과 원래 굴림 그대로.**
       코드로 다시 그렸던 것은 버렸다. 부모가 그려서 넘긴다 */
+  /** 지금 고른 목탁 살갗 그림 */
+  mokSrc: string;
   bead: React.ReactNode;
   bowl: React.ReactNode;
   /** 살갗 점 — 오브제 바로 밑. 형: 「목탁 밑에 작은 색상 버튼 동그라미로」 */
@@ -98,6 +100,7 @@ export default function HipMoktak({
   onAdvance,
   onRing,
   options,
+  mokSrc,
   bead,
   bowl,
   dots,
@@ -272,7 +275,7 @@ export default function HipMoktak({
               </span>
             )}
 
-            <Moktak spin={n} />
+            <Moktak spin={n} src={mokSrc} />
 
             {/* 떠오르는 글자 */}
             <span aria-hidden className="hip-pops">
@@ -331,11 +334,11 @@ export default function HipMoktak({
     평면으로는 안 되는 물건이었다. 그래서 원래 목탁(public/obj/moktak.png)을
     레퍼런스로 넣고 같은 각도·같은 짜임으로 다시 렌더했다. 달라진 것은
     셋뿐이다 — 통통하게, 무광 분홍으로, 금붕어는 더 작고 동글게. */
-function Moktak({ spin }: { spin: number }) {
+function Moktak({ spin, src }: { spin: number; src: string }) {
   return (
     <span key={`o${spin}`} aria-hidden className="hip-mok hip-mok-img">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/obj/moktak-pink.png" alt="" />
+      <img src={src} alt="" />
     </span>
   );
 }

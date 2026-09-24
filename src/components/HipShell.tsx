@@ -91,29 +91,15 @@ export default function HipShell({
   return (
     <div
       className={`hip-swipe ${slide}`}
-      onTouchStart={(e) => {
-        // 가로 쓸기의 임자는 하나여야 한다.
-        // 형: 「탭 옮기는 것도 쓸어서 넘기고 염주도 쓸어서 넘기다 보니
-        //      중첩돼서 꼬인다」 — 맞다. 염주 위에서 가로로 끄는 손은
-        //      알을 넘기려는 손이지 판을 넘기려는 손이 아니다.
-        //      data-noswipe 를 단 자리에서 시작한 손짓은 껍데기가 놓는다.
-        if ((e.target as Element)?.closest?.("[data-noswipe]")) {
-          from.current = { x: 0, y: 0, on: false };
-          return;
-        }
-        const t = e.touches[0];
-        from.current = { x: t.clientX, y: t.clientY, on: true };
-      }}
-      onTouchEnd={(e) => {
-        if (!from.current.on) return;
-        from.current.on = false;
-        const t = e.changedTouches[0];
-        const dx = t.clientX - from.current.x;
-        const dy = t.clientY - from.current.y;
-        // 가로로 확실히 더 많이 갔을 때만 — 세로로 읽는 손을 뺏지 않는다
-        if (Math.abs(dx) < THRESHOLD || Math.abs(dx) < Math.abs(dy) * SIDEWAYS) return;
-        go(dx < 0 ? "next" : "prev");
-      }}
+      /* ── 화면 쓸기를 걷었다 ──────────────────────────────────
+         형: 「화면을 쓸어서 탭을 옮기다 보니까 버그가 생김. 차라리
+              화면을 쓸어서 탭을 옮기는 기능을 빼 버리자」
+
+         가로 쓸기를 노리는 손이 너무 많았다 — 판 넘기기, 염주 굴리기,
+         갈래 띠 밀기, 당겨서 새로고침. 하나가 잡으면 나머지가 죽는다.
+         제일 안 쓰는 것부터 놓는다. 판은 **아래 염주 네 알**로 옮기고,
+         갈래는 **위 띠**로 옮긴다 — 둘 다 눈에 보이는 자리다.
+         보이지 않는 손짓을 지우면, 보이는 자리가 살아난다. */
     >
       {children}
     </div>
