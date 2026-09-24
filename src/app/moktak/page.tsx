@@ -556,8 +556,8 @@ export default function MoktakPage() {
            가로로 끌면 그건 알을 넘기는 것이지 판을 넘기는 것이 아니다.
            이 표(data-noswipe)를 보고 껍데기가 손을 뗀다. */
         data-noswipe="1"
-        className="relative touch-none select-none"
-        style={{ width: "min(340px, 42vh, 84vw)", height: "min(340px, 42vh, 84vw)" }}
+        /* 넷이 한 자를 쓴다(--hip-obj-w). hip.css 한 줄이 크기를 쥔다 */
+        className="hip-obj-sq relative touch-none select-none"
         aria-label="염주 굴리기 — 왼쪽으로 쓸거나 톡 누르면 한 알"
       >
         {/* 바깥 진행 고리 — 백팔이 차오른다 */}
@@ -614,7 +614,11 @@ export default function MoktakPage() {
                     // 검은 drop-shadow 는 그대로 안 쓴다(형: 「그늘이 많다」).
                     filter: lit
                       ? `sepia(1) saturate(2.6) hue-rotate(-10deg) brightness(${(1.12 + 0.14 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.45))`
-                      : `brightness(${(1.0 + 0.08 * front).toFixed(2)})`,
+                      // 형: 「고양이 염주 색 또 왤케 탁해졌냐」.
+                      // 색상(hue)을 돌리면 빨개지고, 안 건드리면 탁하다.
+                      // **채도만** 올린다 — 분홍은 분홍대로 또렷해지고
+                      // 색이 딴 데로 가지 않는다
+                      : `saturate(1.45) brightness(${(1.05 + 0.08 * front).toFixed(2)})`,
                   }}
                 />
               );
@@ -708,7 +712,7 @@ export default function MoktakPage() {
       <button
         onClick={ringBowl}
         aria-label="싱잉볼 치기"
-        className="relative flex h-[248px] w-[262px] max-w-[78vw] items-center justify-center outline-none"
+        className="hip-obj-sq relative flex items-center justify-center outline-none"
       >
         {ringing && (
           <>

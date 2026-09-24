@@ -98,7 +98,11 @@ export default function MungPage() {
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") stop();
         }}
-        className="fixed inset-0 z-[80] grid place-items-center bg-[#070605] outline-none"
+        /* 형: 「멍할 때 밑에 탭은 안 보이는 걸로」.
+           z-80 이라 덮을 줄 알았는데, 이 판은 #scroll-box(z-1) 안에 있고
+           염주는 body 바로 밑에 있다 — 갇힌 80 은 바깥 62 를 못 이긴다.
+           숫자로 겨루지 말고 이름을 달아 **끈다**. */
+        className="mung-sit fixed inset-0 z-[80] grid place-items-center bg-[#070605] outline-none"
       >
         <style>{CSS}</style>
         <span

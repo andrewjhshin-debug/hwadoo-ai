@@ -62,13 +62,12 @@ const TAIL_RATIO = 1.3448;
  * 아니라 **가리개(mask)로 쓴다** — 먹 자리만 남기고 그 자리에 원하는
  * 색을 깐다. 한 장으로 두 벌이 나온다.
  */
-type Ink = "gold" | "ink" | "pink";
+type Ink = "gold" | "ink";
 const SKIN: Record<Ink, { paper: string; brush: string; dim: string; line: string; next: string }> = {
   gold: { paper: "#12100E", brush: "#D9B45B", dim: "rgba(217,180,91,.55)", line: "rgba(217,180,91,.22)", next: "흰 종이" },
-  ink: { paper: "#F4F2EC", brush: "#14110E", dim: "rgba(20,17,14,.5)", line: "rgba(20,17,14,.15)", next: "분홍" },
-  // 형: 「하심(핑크버전 만들어)」. 폰 리뉴얼 결 그대로 —
-  // 흰 종이에 연꽃 분홍 획. 먹빛·금빛과 나란히 한 바퀴를 돈다
-  pink: { paper: "#FBF7F8", brush: "#D9568B", dim: "rgba(190,74,124,.62)", line: "rgba(217,123,164,.28)", next: "먹빛" },
+  ink: { paper: "#F4F2EC", brush: "#14110E", dim: "rgba(20,17,14,.5)", line: "rgba(20,17,14,.15)", next: "먹빛" },
+  // 분홍 벌은 걷었다 — 형: 「하심은 먹색이 디폴트로, 하심 분홍식은 지우고」.
+  // 하심은 엎드리는 일이다. 먹빛 어둠 위 금글씨 하나면 족하다.
 };
 const INK_KEY = "hwadu.hasim.ink";
 
@@ -125,15 +124,15 @@ export default function HasimPage() {
     setSay(Math.floor(Math.random() * SAYINGS.length));
     try {
       const v = window.localStorage.getItem(INK_KEY);
-      if (v === "ink" || v === "gold" || v === "pink") setInk(v);
+      // 분홍을 쓰던 이는 먹빛으로 돌아온다
+      if (v === "ink" || v === "gold") setInk(v);
     } catch {
       /* 못 읽으면 기본값 */
     }
   }, []);
 
-  // 살갗 세 벌을 한 바퀴 돈다 — 먹빛 → 흰 종이 → 분홍 → 먹빛.
-  // 둘일 때는 토글이었지만 셋부터는 고리다
-  const ROUND: Ink[] = ["gold", "ink", "pink"];
+  // 두 벌을 오간다 — 먹빛 ↔ 흰 종이
+  const ROUND: Ink[] = ["gold", "ink"];
   const flip = () => {
     setInk((v) => {
       const next: Ink = ROUND[(ROUND.indexOf(v) + 1) % ROUND.length];

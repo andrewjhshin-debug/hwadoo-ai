@@ -63,6 +63,10 @@ export type HipMeProps = {
   onReroll: () => void;
   /** 적는 동안 미리 살펴 주는 검사 */
   nameProblem: (raw: string) => string | null;
+  /** 음양 — 형: 「남자면 양 여자면 음, 그거 버튼 넣자」.
+      고르면 법명 글자 수가 따라 바뀐다(陽 두 자 · 陰 세 자) */
+  yin?: "m" | "f";
+  onYin: (g: "m" | "f") => void;
 };
 
 export default function HipMe({
@@ -81,6 +85,8 @@ export default function HipMe({
   onRename,
   onReroll,
   nameProblem,
+  yin,
+  onYin,
 }: HipMeProps) {
   // 법명 고치기 — 그 자리에서 편다. 화면을 옮기지 않는다
   const [editing, setEditing] = useState(false);
@@ -161,6 +167,25 @@ export default function HipMe({
                 <button onClick={onReroll} className="hip-reroll" aria-label="법명 다시 뽑기">
                   ↻
                 </button>
+                {/* 음양 — 법명 바로 옆이 제자리다. 누르면 그 자리에서
+                    이름이 두 자 ↔ 세 자로 바뀐다. 묻는 말은 없다 */}
+                <span className="hip-yin" role="group" aria-label="음양">
+                  {(
+                    [
+                      ["m", "陽"],
+                      ["f", "陰"],
+                    ] as const
+                  ).map(([g, mark]) => (
+                    <button
+                      key={g}
+                      onClick={() => onYin(g)}
+                      aria-pressed={yin === g}
+                      data-on={yin === g ? "1" : undefined}
+                    >
+                      {mark}
+                    </button>
+                  ))}
+                </span>
               </p>
             )}
             {(err ?? (editing ? nameProblem(draft) : null)) && (

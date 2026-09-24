@@ -135,12 +135,12 @@ export function HipGardenEmpty({
                     key={i}
                     cx="100"
                     cy="62"
-                    rx="21"
-                    ry="43"
+                    rx="15"
+                    ry="45"
                     transform={`rotate(${i * 45} 100 100)`}
                   />
                 ))}
-                <circle cx="100" cy="100" r="16" />
+                <circle cx="100" cy="100" r="31" />
               </svg>
             </span>
           </span>
@@ -210,8 +210,10 @@ export function HipGardenOnly({
       <div className="hip-screen-mid">
         <p className={`hip-q hip-q-${size}`}>{question}</p>
       </div>
+      {/* 형: 「이거도 살짝 어긋난 동그라미 버튼으로」.
+          물음만 보기로 들어온 자리와 나가는 자리가 같은 몸짓이라야 한다 */}
       <button onClick={onBack} className="hip-back" aria-label="되돌아가기">
-        ○
+        <i aria-hidden />
       </button>
     </div>
   );

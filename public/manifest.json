@@ -1,11 +1,11 @@
 {
   "name": "화두 — 당신에게 묻는다",
   "short_name": "화두",
-  "description": "모두가 AI에게 묻는 시대, 화두는 당신에게 묻는다.",
+  "description": "답을 드리지 않습니다 — 물음을 드립니다.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d0b09",
-  "theme_color": "#0d0b09",
+  "background_color": "#fbfaf8",
+  "theme_color": "#fbfaf8",
   "lang": "ko",
   "icons": [
     {

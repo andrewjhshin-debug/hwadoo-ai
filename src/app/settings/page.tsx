@@ -39,7 +39,7 @@ import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
 import HipMe from "./HipMe";
-import { ME_EVENT, loadMe, nameProblem, pickMe, setName } from "@/lib/me";
+import { ME_EVENT, loadMe, nameProblem, rerollName, setName } from "@/lib/me";
 import ShareButton from "@/components/ShareButton";
 import Info from "@/components/Info";
 import LotusCount from "@/components/LotusCount";
@@ -50,6 +50,7 @@ import { DAILY_EVENT } from "@/lib/daily";
 import {
   DAILY_TOTAL_CAP,
   MERIT_EVENT,
+  MERIT_VALUE,
   rankByNeed,
   inRound,
   loadMerit,
@@ -96,15 +97,11 @@ import {
   Chotbul,
   Enso,
   Iljumun,
-  Ilwonsang,
-  Jeol,
-  Jeol108,
   Jeoul,
   Jukbi,
   Letter,
   LotusMark,
   LotusPond,
-  Mandala,
   Moment,
   Seogo,
   Yeomju,
@@ -224,14 +221,15 @@ const SERVICES: ServiceItem[] = [
   { href: "/masters", label: "선지식", Icon: SeonMaster },
   { href: "/room", label: "사유의 방", Icon: Banga },
   { href: "/my-hwadu", label: "화두 던지기", Icon: Jukbi },
-  { href: "/mandala", label: "만다라", Icon: Mandala },
   { href: "/pilgrimage", label: "손잡고 절로", Icon: Iljumun },
   { href: "/gathering", label: "인연", Icon: Person },
+  // 형: 「백팔배 탭 없애고 공덕 키캡 옆으로 옮겨라. 멍 만다라 삼귀의
+  //      하심 역시」 — 백팔배·멍·만다라·삼귀의·하심은 여기서 걷었다.
+  //      공덕을 주는 수행은 **한자리에** 모인다. 공덕 판 머리의 갈래 띠가
+  //      그 다섯을 받는다. 두 군데서 같은 곳으로 가는 문을 내면
+  //      어느 쪽이 제자리인지 아무도 모른다.
   { href: "/moktak", label: "공덕", Icon: Yeomju },
-  { href: "/sambae", label: "삼귀의", Icon: Jeol },
-  { href: "/bae", label: "백팔배", Icon: Jeol108 },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
-  { href: "/mung", label: "멍", Icon: Ilwonsang },
   { href: "/empty", label: "비움", Icon: Baru },
   { href: "/candle", label: "법당", Icon: Chotbul },
   { href: "/lotus", label: "연꽃 공양", Icon: YeonkkotGold },
@@ -271,6 +269,19 @@ export default function SettingsPage() {
   const [meMore, setMeMore] = useState(false);
   // 법명·얼굴 — 서랍은 붙고 난 뒤에 읽는다(렌더 중 읽으면 하이드레이션이 깨진다)
   const [me, setMe] = useState<ReturnType<typeof loadMe>>(null);
+  // 음양 — 형: 「차라리 남자면 양 여자면 음, 그거 버튼 넣자」.
+  // store 에 gender 칸은 진작 있었는데(m=陽 · f=陰) 쓰는 곳이 없어
+  // 잠들어 있었다. 여기서 깨운다 — 고르면 법명 글자 수가 따라 바뀐다.
+  const [yin, setYin] = useState<"m" | "f" | undefined>(undefined);
+  useEffect(() => setYin(loadStore().gender), []);
+  const pickYin = (g: "m" | "f") => {
+    setYin(g);
+    const base = loadStore();
+    saveStore({ ...base, gender: g });
+    // 고른 즉시 그 결로 법명을 다시 준다 — 누르면 바로 바뀌는 것이 설명이다
+    rerollName(g === "m" ? "yang" : "eum");
+  };
+
   useEffect(() => {
     setMe(loadMe());
     // 법명을 이 화면에서 고치므로, 고친 즉시 여기도 바뀌어야 한다.
@@ -734,22 +745,27 @@ export default function SettingsPage() {
     "/mung": "無", "/empty": "空", "/candle": "燈", "/lotus": "蓮",
     "/community": "池", "/archive": "庫", "/sutra": "經", "/draw": "占",
     "/rank": "進", "/tea": "茶", "/goods": "物", "/tamjinchi": "投",
-    "/hasim": "下", "/letters": "信", "/moment": "時",
+    "/hasim": "下", "/letters": "信", "/moment": "時", "/try": "試",
   };
   const meServices = [
-    // 하심·쪽지·시절은 SERVICES 에 없다 — 폰 판에서는 같이 연다
-    { href: "/hasim", label: "하심" },
+    // 하심도 공덕 판 갈래로 갔다 — 여기서는 열지 않는다
     ...SERVICES.filter((v) => v.href && !v.soon).map((v) => ({
       href: v.href as string,
       label: v.label,
     })),
     { href: "/letters", label: "쪽지" },
+    // 형: 「버튼 중에 체험하기 하나 넣고 되살리자」
+    { href: "/try", label: "체험하기" },
   ]
     .filter((v, i, a) => a.findIndex((w) => w.href === v.href) === i)
     .map((v) => ({ ...v, mark: ME_MARK[v.href] ?? "·" }));
 
-  const meHits = (Object.entries(merit.hits ?? {}) as [MeritSource, number][])
-    .filter(([, n]) => (n ?? 0) > 0)
+  // 형: 「왜 공덕에 멍 없냐. 안 했어도 공덕 주는 건 다 0번이라고라도
+  //      표현해서 올려둬」
+  // 한 것만 보이면 **무엇을 하면 공덕이 붙는지** 알 수가 없다.
+  // 갈래 전부를 깔고, 한 것부터 앞에 세운다 — 0 도 자리를 지킨다.
+  const meHits = (Object.keys(MERIT_VALUE) as MeritSource[])
+    .map((k) => [k, merit.hits?.[k] ?? 0] as [MeritSource, number])
     .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
     // 형: 「내가 쌓은 공덕은 … 몇 번 쳤는지를 내 도량에서 보여주고」.
     // 넷으로 자르던 것을 걷는다 — 한 것은 다 보여 준다
@@ -840,8 +856,12 @@ export default function SettingsPage() {
         /* 법명 고치기 — 형: 「내 도량에서 법명이나 아이디 고칠 수 있도록」.
            setName 은 어긋나면 까닭을 문자열로 돌려준다(맞으면 null) */
         onRename={(next) => setName(next) ?? null}
-        onReroll={() => setName(pickMe().name)}
+        onReroll={() =>
+          rerollName(yin === "m" ? "yang" : yin === "f" ? "eum" : undefined)
+        }
         nameProblem={nameProblem}
+        yin={yin}
+        onYin={pickYin}
         seats={REALMS.map((seat) => {
           const r = rankByNeed(seat.need);
           return {

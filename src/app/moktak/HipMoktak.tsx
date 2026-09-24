@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 // ─────────────────────────────────────────────────────────────
 // 공덕 — 폰 판. 功.
 //
@@ -37,6 +39,15 @@ import HipTop from "@/components/HipTop";
 import { ROUND } from "@/lib/merit";
 
 export type HipTab = "moktak" | "yeomju" | "bowl" | "keycap";
+
+/** 갈래 띠 뒤쪽 — 이 자리에서 바뀌지 않고 **문이 열리는** 수행들 */
+const ROOMS = [
+  { href: "/bae", label: "백팔배" },
+  { href: "/mung", label: "멍" },
+  { href: "/mandala", label: "만다라" },
+  { href: "/sambae", label: "삼귀의" },
+  { href: "/hasim", label: "하심" },
+] as const;
 
 export type HipMoktakProps = {
   /** 지금 갈래 — 머리의 탭으로 옮긴다 */
@@ -164,6 +175,14 @@ export default function HipMoktak({
         {/* ── 갈래 셋 ──
             형: 「공덕에는 오리지날처럼 위에 목탁 염주 싱잉볼로 옮길 수 있는
             탭 주고」. 서랍 뒤에 있던 것을 머리로 올렸다. */}
+        {/* 형: 「백팔배 탭 없애고 공덕 키캡 옆으로 옮겨라.
+                 멍 만다라 삼귀의 하심 역시」
+
+            공덕을 주는 수행이 내 도량 격자에도, 여기에도 흩어져 있었다.
+            **주는 것끼리 한 줄에** 세운다 — 앞 넷은 이 자리에서 바로
+            바뀌는 물건이고, 뒤 다섯은 문을 열고 들어가는 방이다.
+            누르면 물건은 갈리고 방은 열린다. 눌러 보면 안다.
+            아홉이 한 줄에 안 들어가니 띠가 옆으로 흐른다. */}
         <div className="hip-lanes" role="tablist" aria-label="무엇을">
           {(
             [
@@ -182,6 +201,11 @@ export default function HipMoktak({
             >
               {label}
             </button>
+          ))}
+          {ROOMS.map(({ href, label }) => (
+            <Link key={href} href={href} className="hip-lane-room">
+              {label}
+            </Link>
           ))}
         </div>
 

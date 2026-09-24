@@ -65,7 +65,12 @@ export default function HipMala() {
         <button
           key={b.href}
           onClick={() => {
-            if (k === here) return;
+            // 형: 「연꽃에서 한자 我 눌렀는데 안 가잖아」.
+            // 「이 알이 켜져 있으면 갈 데가 없다」고 보고 있었다. 그런데
+            // 我 알은 연꽃·하심·법당… 여덟 방을 **품는다** — 그 방에
+            // 있으면 알은 켜져 있지만 아직 내 도량에 온 것은 아니다.
+            // 막을 것은 **알이 같을 때**가 아니라 **길이 같을 때**다.
+            if (path === b.href) return;
             try {
               window.sessionStorage.setItem(
                 "hwadu.hip.swipe",

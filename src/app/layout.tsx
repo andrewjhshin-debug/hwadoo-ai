@@ -68,20 +68,20 @@ export const metadata: Metadata = {
   // 새 파일명을 써서, 이전 그림을 물고 있는 SNS 캐시도 새로 읽게 한다.
   openGraph: {
     title: "화두AI는 당신에게 묻는다.",
-    description: "매일 화두 하나, 절 같이 갈 사람.",
+    description: "답을 드리지 않습니다 — 물음을 드립니다.",
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: "ko_KR",
     type: "website",
     images: [
-      { url: `${SITE_URL}/og-v4.png`, width: 1200, height: 630, alt: "화두AI는 당신에게 묻는다." },
+      { url: `${SITE_URL}/og-v5.png`, width: 1200, height: 630, alt: "화두 — 답을 드리지 않습니다, 물음을 드립니다." },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "화두AI는 당신에게 묻는다.",
-    description: "매일 화두 하나, 절 같이 갈 사람.",
-    images: [`${SITE_URL}/og-v4.png`],
+    description: "답을 드리지 않습니다 — 물음을 드립니다.",
+    images: [`${SITE_URL}/og-v5.png`],
   },
 };
 
