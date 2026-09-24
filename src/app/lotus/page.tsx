@@ -140,35 +140,115 @@ export default function LotusPage() {
   return <LotusInner />;
 }
 
+/**
+ * 연꽃 공양을 닫아 둔 동안 보이는 자리.
+ *
+ * 한동안 「잠시 닫았습니다」 한 줄만 두었다. 그런데 문을 닫아도 **무엇을
+ * 파는 곳인지는 보여야 한다** — 결제 심사(포트원)가 「상품 혹은 서비스가
+ * 등록되지 않았거나 상세 설명 및 가격 정보가 확인되지 않아요」로 걸렸다.
+ * 전자상거래법이 요구하는 것도 같다: 값과 쓰임과 환불 조건은 사기 전에
+ * 보여야 한다.
+ *
+ * 그래서 **상품은 펴 두고 결제만 잠근다.** 값·송이당 값·쓰임·제공 시점·
+ * 유효기간·환불 조건이 전부 이 화면에 있다. 사는 단추 자리에만
+ * 「곧 엽니다」가 앉는다.
+ */
 function LotusClosed() {
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-6 py-20 text-center">
-      <YeonkkotGold className="h-12 w-12 opacity-70" />
-      <h1 className="mt-5 font-serif text-xl font-light text-hanji">
-        연꽃 공양은 잠시 닫았습니다
-      </h1>
-      <p className="mt-3 break-keep text-[13.5px] leading-7 text-hanji-dim">
-        지금 화두는 베타테스트 중입니다.
-        <br />
-        공양 자리는 채비가 끝나는 대로 다시 엽니다.
+    <div className="mx-auto w-full max-w-md flex-1 px-6 py-10">
+      <div className="text-center">
+        <YeonkkotGold className="mx-auto h-11 w-11 opacity-80" />
+        <h1 className="mt-4 font-serif text-[22px] font-light text-hanji">
+          연꽃 공양
+        </h1>
+        <p className="mt-2.5 break-keep text-[13px] leading-7 text-hanji-dim">
+          연꽃은 화두 안에서 쓰는 디지털 재화입니다.
+          <br />
+          지금은 베타 기간이라 <span className="text-gold-soft">판매를 잠시 닫아</span> 두었습니다.
+        </p>
+      </div>
+
+      {/* ── 상품과 값 — 닫혀 있어도 그대로 보인다 ── */}
+      <p className="mt-9 text-[11px] tracking-[0.3em] text-hanji-faint">상품 · 가격</p>
+      <ul className="mt-3 space-y-2">
+        {PRODUCTS.map((p) => (
+          <li
+            key={p.id}
+            className="flex items-baseline justify-between rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4"
+          >
+            <span className="flex items-baseline gap-2">
+              <span className="text-[14px] text-hanji">{p.label}</span>
+              {p.best && (
+                <span className="rounded-full border border-gold/40 px-2 py-[2px] text-[10.5px] text-gold-soft">
+                  가장 많이 찾는
+                </span>
+              )}
+            </span>
+            <span className="text-right">
+              <span className="block font-serif text-[17px] text-hanji">
+                {won(p.price)}
+              </span>
+              <span className="block text-[11px] text-hanji-faint">
+                송이당 {won(p.each)}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-[11.5px] leading-6 text-hanji-faint">
+        표시 가격은 부가세 포함입니다. 여러 송이를 한 번에 공양하면 송이당 값이
+        내려갑니다.
       </p>
-      <p className="mt-6 break-keep text-[12.5px] leading-6 text-hanji-faint">
+
+      {/* ── 쓰임 · 제공 · 환불 — 사기 전에 보여야 하는 것들 ── */}
+      <p className="mt-8 text-[11px] tracking-[0.3em] text-hanji-faint">
+        쓰임 · 제공 · 환불
+      </p>
+      <div className="mt-3 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4">
+        <ul className="space-y-2 break-keep text-[13px] leading-7 text-hanji-dim">
+          <li>
+            · <span className="text-hanji">쪽지 청하기</span> — 인연 게시판에서
+            글쓴이·댓글 단 이에게 1:1 쪽지를 청할 때 연꽃 1송이가 쓰입니다.
+            상대가 수락해 열린 대화의 쪽지는 무료·무제한.
+          </li>
+          <li>
+            · <span className="text-hanji">처음 오신 분께</span> — 첫 계정에
+            연꽃 {FIRST_GRANT}송이를 무료로 드립니다.
+          </li>
+        </ul>
+        <ul className="mt-4 space-y-1.5 border-t border-ink-3/60 pt-4 break-keep text-[12px] leading-6 text-hanji-faint">
+          <li>· 제공 시점 — 결제 완료 즉시 수취 계정에 지급됩니다.</li>
+          <li>· 유효기간 — 제한 없음 (소진 시까지 계정에 남습니다).</li>
+          <li>
+            · 환불 — 사용하지 않은 연꽃은 결제일로부터 7일 이내 전액 환불됩니다.
+            일부 사용 시 남은 수량 기준으로 환불합니다. 문의: {CONTACT_EMAIL}
+          </li>
+          <li>
+            · 무상으로 받은 연꽃(첫 선물 · 공덕을 바꾸어 받은 것 · 이벤트)은
+            환불·현금화·양도되지 않습니다. 둘이 섞여 있으면 무상분을 먼저 쓴
+            것으로 봅니다.
+          </li>
+        </ul>
+      </div>
+
+      {/* 사는 단추가 앉을 자리 — 지금은 안내만 */}
+      <div className="mt-7 rounded-full border border-dashed border-ink-3 px-6 py-4 text-center text-[13px] text-hanji-faint">
+        공양 자리는 채비가 끝나는 대로 엽니다
+      </div>
+
+      <p className="mt-6 break-keep text-center text-[12.5px] leading-6 text-hanji-faint">
         그 사이에도 수행은 그대로입니다 — 공덕은 쌓이고,
         <br />
         쌓인 공덕으로 연꽃을 얻는 길은 열려 있습니다.
       </p>
-      <Link
-        href="/tea"
-        className="btn-obang mt-8 px-7 py-3 text-[13px] tracking-[0.25em] text-hanji"
-      >
-        차 한 잔
-      </Link>
-      <Link
-        href="/"
-        className="mt-4 text-[12px] tracking-[0.25em] text-hanji-faint transition-colors hover:text-hanji-dim"
-      >
-        뜰로 돌아가기
-      </Link>
+      <div className="mt-6 flex justify-center">
+        <Link
+          href="/tea"
+          className="btn-obang px-7 py-3 text-[13px] tracking-[0.25em] text-hanji"
+        >
+          차 한 잔
+        </Link>
+      </div>
     </div>
   );
 }
