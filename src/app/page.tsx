@@ -447,7 +447,11 @@ export default function Home() {
   if (store !== null && !current) {
     return (
       <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-6 text-center sm:justify-center sm:py-16">
-        <div className="rise-sharp">
+        {/* 폰은 이름이 주인공이라 표식을 한 단 줄인다. 웹은 원래대로 */}
+        <div className="rise-sharp md:hidden">
+          <Enso size={82} />
+        </div>
+        <div className="rise-sharp hidden md:block">
           <Enso size={116} />
         </div>
         {/* 이름 한 줄, 슬로건 한 줄.
@@ -455,7 +459,7 @@ export default function Home() {
             로마자는 뺀다 — 이 도량의 이름은 두 글자로 족하다.
             크기도 한 단 내렸다. 화면을 가득 메우면 이름이 아니라 간판이 된다. */}
         <div className="rise-sharp rise-s1 mt-5 flex justify-center">
-          <h1 className="text-obang font-serif text-[clamp(46px,13vw,64px)] font-medium leading-[1.02] tracking-[0.06em] [text-indent:0.06em]">
+          <h1 className="text-obang font-serif text-[clamp(72px,21vw,92px)] font-medium leading-[1.02] tracking-[0.06em] [text-indent:0.06em] md:text-[clamp(46px,13vw,64px)]">
             화두
           </h1>
         </div>
@@ -463,15 +467,25 @@ export default function Home() {
         <p className="rise-sharp rise-s1 mt-5 max-w-[19rem] break-keep text-[12.5px] font-light leading-6 tracking-[0.04em] text-hanji-dim">
           &ldquo;{SLOGAN}&rdquo;
         </p>
-        <div className="rise-sharp rise-s2 my-8 flex items-center gap-3 opacity-70">
+        {/* 장식이라 폰에서는 뺀다 — 비우는 것이 미니멀이다 */}
+        <div className="rise-sharp rise-s2 my-8 hidden items-center gap-3 opacity-70 md:flex">
           <div className="h-px w-[72px] bg-gradient-to-r from-transparent to-gold/45" />
           <Dharmachakra className="h-4 w-4" stroke="#B99A54" />
           <div className="h-px w-[72px] bg-gradient-to-r from-gold/45 to-transparent" />
         </div>
         {/* 이 화면에서 눈이 갈 곳은 여기 하나 — 손가락 폭만큼 넓고 높게 */}
+        {/* 폰 — 금으로 채운 알약. 먹 위에서 이게 제일 세게 읽힌다 */}
         <button
           onClick={receive}
-          className="btn-obang btn-hot rise-sharp rise-s2 inline-flex h-[60px] w-full max-w-[19rem] items-center justify-center gap-2.5 font-serif text-[16px] tracking-[0.3em] text-hanji"
+          className="hip-cta rise-sharp rise-s2 mt-10 w-full max-w-[19rem] gap-2.5 font-serif !text-[17px] tracking-[0.3em] md:hidden"
+        >
+          <Lotus className="h-[18px] w-[18px]" stroke="#17140F" />
+          <span className="[text-indent:0.3em]">새 화두 받기</span>
+        </button>
+        {/* 웹 — 원래대로 */}
+        <button
+          onClick={receive}
+          className="btn-obang btn-hot rise-sharp rise-s2 hidden h-[60px] w-full max-w-[19rem] items-center justify-center gap-2.5 font-serif text-[16px] tracking-[0.3em] text-hanji md:inline-flex"
         >
           <Lotus className="h-[18px] w-[18px]" stroke="#B99A54" />
           <span className="[text-indent:0.3em]">새 화두 받기</span>
@@ -503,7 +517,7 @@ export default function Home() {
             );
           })}
         </div>
-        <div className="mt-12 flex gap-2.5 opacity-50">
+        <div className="mt-12 hidden gap-2.5 opacity-50 md:flex">
           <i className="h-[5px] w-[5px] rounded-full bg-obang-blue" />
           <i className="h-[5px] w-[5px] rounded-full bg-vermilion" />
           <i className="h-[5px] w-[5px] rounded-full bg-gold" />
