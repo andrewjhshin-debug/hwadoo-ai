@@ -90,29 +90,6 @@ export default function HipShell({
       }}
     >
       {children}
-      {/* ── 염주 줄 ── 알 다섯이 실에 꿰여 있다. 지금 자리가 큰 알 */}
-      <nav className="hip-mala" aria-label="다섯 자리">
-        <i aria-hidden className="hip-mala-thread" />
-        {HIP_TABS.map((t, k) => (
-          <button
-            key={t.href}
-            onClick={() => {
-              if (t.href === here) return;
-              try {
-                window.sessionStorage.setItem("hwadu.hip.swipe", k > i ? "next" : "prev");
-              } catch {
-                /* 지나간다 */
-              }
-              router.push(t.href);
-            }}
-            aria-label={t.name}
-            aria-current={t.href === here ? "page" : undefined}
-            data-on={t.href === here ? "1" : undefined}
-          >
-            <b>{t.mark}</b>
-          </button>
-        ))}
-      </nav>
     </div>
   );
 }

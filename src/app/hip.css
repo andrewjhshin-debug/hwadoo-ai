@@ -1677,3 +1677,23 @@ html[data-theme="light"] {
 @media (prefers-reduced-motion: reduce) {
   .hip-mala button, .hip-mala button b { transition: none; }
 }
+
+/* ── 폰에서는 옛 탭을 끈다 ────────────────────────────────────
+   형: 「연꽃 공양에도 탭이 보인다」 「왜 손잡고 절로만 밑에 버튼이
+   오리지날로 뜨냐」. 판마다 염주를 넣었더니 아직 안 고친 화면에서는
+   옛 탭이 그대로 떴다. 한 화면씩 고칠 일이 아니다 — 아예 끈다.
+   염주는 layout 이 한 번만 놓는다. */
+@media (max-width: 767px) {
+  .mobile-tabbar,
+  .doryang-fab {
+    display: none !important;
+  }
+  /* 옛 탭 자리를 비워 두던 여백도 걷는다 */
+  .site-foot {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px) !important;
+  }
+  /* 아직 새로 안 짠 화면들도 염주에 가리지 않게 바닥을 비운다 */
+  #scroll-box > div > main {
+    padding-bottom: 0;
+  }
+}

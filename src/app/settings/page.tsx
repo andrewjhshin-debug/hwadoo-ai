@@ -39,7 +39,7 @@ import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
 import HipMe from "./HipMe";
-import { FACE_BY_ID, loadMe } from "@/lib/me";
+import { loadMe } from "@/lib/me";
 import ShareButton from "@/components/ShareButton";
 import Info from "@/components/Info";
 import LotusCount from "@/components/LotusCount";
@@ -732,7 +732,6 @@ export default function SettingsPage() {
     {!meMore && (
       <HipMe
         name={me?.name ?? "나무"}
-        face={FACE_BY_ID[me?.face ?? "namu"].src}
         rank={{ hanja: meRank.hanja, name: meRank.name }}
         pct={Math.round(realmProgress(merit.total, journalCount) * 100)}
         next={

@@ -24,8 +24,6 @@ import HipShell from "@/components/HipShell";
 export type HipMeProps = {
   /** 법명 */
   name: string;
-  /** 얼굴 그림 */
-  face: string;
   /** 지금 자리의 한자 · 이름 */
   rank: { hanja: string; name: string };
   /** 다음 자리까지 0~100 */
@@ -41,7 +39,6 @@ export type HipMeProps = {
 
 export default function HipMe({
   name,
-  face,
   rank,
   pct,
   next,
@@ -63,10 +60,9 @@ export default function HipMe({
       </header>
 
       <div className="hip-screen-mid">
-        {/* 얼굴과 이름 — 자리는 한자 한 글자로 곁에 */}
+        {/* 이름과 자리 — 형: 「동자승 캐릭터 쓰지 말라고」.
+            얼굴 그림을 뺐다. 법명 한 줄과 자리 한자면 족하다 */}
         <div className="hip-me-head">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={face} alt="" aria-hidden />
           <div>
             <p className="hip-me-name">{name}</p>
             <p className="hip-me-rank">
