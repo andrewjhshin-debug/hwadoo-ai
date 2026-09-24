@@ -25,6 +25,18 @@
 
 import HipShell from "@/components/HipShell";
 
+/** 글자 크기 — **가장 긴 한 줄**로 고른다.
+    brief 는 줄을 손으로 끊어 두었으니, 통글자수로 재면 두 줄짜리가
+    공연히 쪼그라든다. 화면을 채우는 건 결국 제일 긴 줄이다. */
+function qSize(q: string): "a" | "b" | "c" {
+  const lines = q.trim().split(/\n/);
+  const w = Math.max(...lines.map((l) => l.trim().length));
+  const all = q.replace(/\s+/g, " ").trim().length;
+  if (w <= 15 && all <= 34) return "a";
+  if (w <= 22 && all <= 60) return "b";
+  return "c";
+}
+
 /** 비어 있는 뜰 — 연꽃 하나와 단추 하나 */
 export function HipGardenEmpty({
   audience,
@@ -95,6 +107,31 @@ export function HipGardenEmpty({
   );
 }
 
+/** 물음만 — 다른 것은 아무것도 없다.
+    형: 「화두만 보기 넣어주고」. 아래 염주까지 걷는다 — 이 화면에는
+    물음과 되돌아가는 자리 하나뿐이다. */
+export function HipGardenOnly({
+  question,
+  onBack,
+}: {
+  question: string;
+  onBack: () => void;
+}) {
+  const size = qSize(question);
+  return (
+    <div className="hip-screen hip-only md:hidden">
+      <span aria-hidden className="hip-bloom hip-bloom-a" />
+      <span aria-hidden className="hip-bloom hip-bloom-b" />
+      <div className="hip-screen-mid">
+        <p className={`hip-q hip-q-${size}`}>{question}</p>
+      </div>
+      <button onClick={onBack} className="hip-back" aria-label="되돌아가기">
+        ○
+      </button>
+    </div>
+  );
+}
+
 /** 화두를 들고 있는 뜰 — 물음이 곧 화면이다 */
 export function HipGardenHolding({
   question,
@@ -119,8 +156,7 @@ export function HipGardenHolding({
   onNotes: () => void;
   onFocus: () => void;
 }) {
-  const n = question.replace(/\s+/g, " ").trim().length;
-  const size = n <= 26 ? "a" : n <= 52 ? "b" : "c";
+  const size = qSize(question);
   return (
     <HipShell here="/">
     <div className="hip-screen md:hidden">

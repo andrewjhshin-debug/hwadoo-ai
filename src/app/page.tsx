@@ -18,10 +18,11 @@ import {
   bankCount,
   getHwadu,
   pickRandomHwadu,
+  sessionBrief,
   sessionQuestion,
 } from "@/lib/hwadu";
 import Question from "@/components/Question";
-import { HipGardenEmpty, HipGardenHolding } from "./HipGarden";
+import { HipGardenEmpty, HipGardenHolding, HipGardenOnly } from "./HipGarden";
 import { fetchPublicHwadu, markSeen, type PublicHwadu } from "@/lib/thrown";
 import { plainThoughts } from "@/lib/thoughts";
 import {
@@ -830,7 +831,13 @@ export default function Home() {
   // 화두만 보기 — 오직 화두 하나만, 되돌아가기 버튼과 함께
   if (focusMode) {
     return (
-      <div className="relative flex flex-1 items-center justify-center px-5 pb-24 pt-4 text-center sm:py-12">
+      <>
+      {/* ── 폰 판 ── 물음 하나뿐. 염주도 걷는다 */}
+      <HipGardenOnly
+        question={sessionBrief(current)}
+        onBack={() => setFocusMode(false)}
+      />
+      <div className="relative hidden flex-1 items-center justify-center px-5 pb-24 pt-4 text-center md:flex sm:py-12">
         <ShareButton
           title="화두 공유"
           text={`화두 — ${sessionQuestion(current)}`}
@@ -851,6 +858,7 @@ export default function Home() {
           되돌아가기
         </button>
       </div>
+      </>
     );
   }
 
@@ -875,7 +883,7 @@ export default function Home() {
     <>
     {/* ── 폰 판 ── 물음이 곧 화면이다 */}
     <HipGardenHolding
-      question={sessionQuestion(current)}
+      question={sessionBrief(current)}
       source={current.customSource ?? hwadu?.context ?? null}
       day={dayCount(current)}
       unlocked={unlocked}

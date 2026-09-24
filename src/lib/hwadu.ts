@@ -18,6 +18,7 @@ export type Hwadu = {
   title: string; // 목록에 보일 짧은 이름
   hanja?: string; // 한자 제목 (있으면)
   question: string; // 화두 본문 — 화면 한가운데, 짧게
+  brief?: string; // 폰(리뉴얼) 판에서 쓸 한 줄 — 이야기는 걷고 물음만
   context?: string; // 배경 한 줄
   masters: Master[]; // 옛 스승들의 답
   audience?: "student"; // 학생 전용 화두
@@ -80,6 +81,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "무(無)",
     hanja: "無",
     question: "개에게도 불성이 있는가.\n조주는 답했다 — 무(無).\n\n어찌하여 없다 하였는가.",
+    brief: "개에게도 불성이 있는가.\n— 무(無).",
     context: "무문관 제1칙 — 천칠백 화두의 첫 관문.",
     masters: [
       {
@@ -227,6 +229,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "喫茶去",
     context: "조주록 — 조주 종심의 끽다거.",
     question: "처음 온 이에게도, 왔던 이에게도,\n조주는 같은 말을 건넸다.\n\n— 차나 마시게.\n\n무엇을 건넨 것인가.",
+    brief: "「차나 마시게.」\n무엇을 건넨 것인가.",
     masters: [
       {
         name: "조주 종심",
@@ -361,6 +364,7 @@ export const HWADU_BANK: Hwadu[] = [
     id: "bottle-bird",
     title: "병 속의 새",
     question: "병 속의 새가 다 자랐다.\n\n병도 깨지 말고, 새도 다치지 말고,\n꺼내 보라.",
+    brief: "병도 깨지 말고 새도 다치지 말고,\n꺼내 보라.",
     context: "남전과 육긍대부의 문답.",
     masters: [
       {
@@ -468,6 +472,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "평상심시도",
     hanja: "平常心是道",
     question: "평소의 마음이 곧 길이라 한다.\n향하려 하면 어긋난다.\n\n그렇다면 어떻게 이르는가.",
+    brief: "평소의 마음이 곧 길인데,\n향하려 하면 어긋난다.",
     context: "무문관 제19칙 — 남전과 조주의 문답.",
     masters: [
       {
@@ -741,6 +746,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "나무 위의 사람",
     hanja: "香嚴上樹",
     question: "입으로 가지를 물고 매달렸다.\n그때 누군가 도(道)를 묻는다.\n\n어찌하겠는가.",
+    brief: "가지를 입에 물고 매달렸다.\n누가 도를 묻는다.",
     context: "무문관 제5칙 — 답하지 않으면 물음을 저버리고, 입을 열면 떨어져 죽는다.",
     masters: [
       {
@@ -954,6 +960,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "세존염화",
     hanja: "世尊拈花",
     question: "세존이 말없이 꽃 한 송이를 들어 보였다.\n대중은 잠잠한데, 가섭 홀로 미소 지었다.\n\n무엇이 전해졌는가.",
+    brief: "꽃 한 송이에 가섭이 웃었다.\n무엇이 전해졌는가.",
     context: "무문관 제6칙 — 영산회상의 염화미소.",
     masters: [
       {
@@ -988,6 +995,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "구지의 손가락",
     hanja: "俱胝竪指",
     question: "구지는 무엇을 물어도\n손가락 하나를 세울 뿐이었다.\n\n그 손가락 끝에 무엇이 있는가.",
+    brief: "무엇을 물어도 손가락 하나.\n그 끝에 무엇이 있는가.",
     context: "무문관 제3칙 — 흉내 내던 동자의 손가락을 자르자, 동자는 그 자리에서 깨달았다.",
     masters: [
       {
@@ -1022,6 +1030,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "남전참묘",
     hanja: "南泉斬猫",
     question: "고양이 한 마리를 두고 대중이 다투었다.\n남전이 말했다 — 한마디 이르면 살리리라.\n\n아무도 답하지 못했다. 그대라면.",
+    brief: "고양이를 두고 칼을 들었다.\n한마디 일러 보라.",
     context: "무문관 제14칙 · 벽암록 제63칙 — 남전은 끝내 고양이를 베었다.",
     masters: [
       {
@@ -1056,6 +1065,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "백장야호",
     hanja: "百丈野狐",
     question: "크게 닦은 사람도 인과에 떨어지는가.\n「떨어지지 않는다」 답한 한마디로,\n오백 생을 여우 몸으로 살았다.\n\n무엇이 잘못이었는가.",
+    brief: "「인과에 떨어지지 않는다.」\n무엇이 잘못이었는가.",
     context: "무문관 제2칙 — 백장의 한마디에 노인은 여우 몸을 벗었다.",
     masters: [
       {
@@ -1090,6 +1100,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "덕산탁발",
     hanja: "德山托鉢",
     question: "종도 북도 울리지 않았는데,\n덕산이 발우를 들고 법당으로 내려왔다.\n\n설봉이 물었다 — 어디로 가십니까.\n덕산은 말없이 방장실로 돌아갔다.",
+    brief: "종도 울리지 않았는데,\n발우를 들고 어디로 가는가.",
     context: "무문관 제13칙 — 이를 두고 암두는 「말후구(末後句)를 모른다」 하였다.",
     masters: [
       {
@@ -1124,6 +1135,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "동산삼돈",
     hanja: "洞山三頓",
     question: "「어디서 왔는가.」 「사도에서 왔습니다.」\n묻는 대로 바르게 답했는데,\n운문은 말했다 — 몽둥이 육십 대를 용서해 주마.\n\n어디가 허물인가.",
+    brief: "바르게 답했는데,\n어디가 허물인가.",
     context: "무문관 제15칙 — 이튿날 동산이 허물을 묻자 운문이 꾸짖었다.",
     masters: [
       {
@@ -1158,6 +1170,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "파초주장자",
     hanja: "芭蕉拄杖",
     question: "그대에게 주장자가 있으면\n주장자를 주겠다.\n\n그대에게 주장자가 없으면\n주장자를 빼앗겠다.",
+    brief: "있으면 주겠다.\n없으면 빼앗겠다.",
     context: "무문관 제44칙 — 파초 혜청의 상당법어.",
     masters: [
       {
@@ -1182,6 +1195,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "동산수상행",
     hanja: "東山水上行",
     question: "모든 부처는 어디에서 나오는가.\n\n운문은 답했다 —\n동쪽 산이 물 위로 간다.",
+    brief: "부처는 어디서 나오는가.\n— 동쪽 산이 물 위로 간다.",
     context: "운문광록 — 「부처들이 나온 곳」을 묻는 스님에게 운문이 답했다.",
     masters: [
       {
@@ -1206,6 +1220,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "좌구성로",
     hanja: "坐久成勞",
     question: "조사가 서쪽에서 온 뜻이 무엇인가.\n\n향림은 답했다 —\n오래 앉아 있자니 피곤하구나.",
+    brief: "조사가 온 뜻은.\n— 오래 앉았더니 피곤하구나.",
     context: "벽암록 제17칙 — 향림 징원의 답.",
     masters: [
       {
@@ -1230,6 +1245,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "취암미모",
     hanja: "翠巖眉毛",
     question: "여름 안거 내내 그대들에게 말해 왔다.\n\n보라, 내 눈썹이 아직 남아 있는가.",
+    brief: "보라, 내 눈썹이\n아직 남아 있는가.",
     context: "벽암록 제8칙 — 법을 잘못 설하면 눈썹이 빠진다는 옛말을 두고, 취암이 안거 끝에 물었다.",
     masters: [
       {
@@ -1269,6 +1285,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "현사삼병",
     hanja: "玄沙三病",
     question: "눈먼 이는 보여 줄 수 없고,\n귀먹은 이는 들려줄 수 없고,\n말 못하는 이는 말하게 할 수 없다.\n\n이 사람을 어떻게 맞이하겠는가.",
+    brief: "보지도 듣지도 못하는 이를,\n어떻게 맞이하겠는가.",
     context: "벽암록 제88칙 — 현사 사비가 대중에게 던진 물음.",
     masters: [
       {
@@ -1327,6 +1344,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "청세의 가난",
     hanja: "淸稅孤貧",
     question: "저는 외롭고 가난합니다. 살려 주십시오.\n\n조산은 답했다 — 좋은 술 석 잔을\n이미 마시고도 입술이 안 젖었다 하는가.",
+    brief: "가난하다 하는 그 말,\n어디가 가난한가.",
     context: "무문관 제10칙 — 청세와 조산 본적의 문답.",
     masters: [
       {
@@ -1361,6 +1379,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "우두미견사조",
     hanja: "牛頭未見四祖",
     question: "우두가 사조를 만나기 전에는\n온갖 새가 꽃을 물어다 바쳤다.\n\n만난 뒤에는 오지 않았다.\n어째서인가.",
+    brief: "만나기 전엔 새가 꽃을 물어 왔다.\n만난 뒤엔 어째서 오지 않는가.",
     context: "전등록 — 우두 법융과 사조 도신의 인연을 두고 선가에서 오래 물어 온 물음.",
     masters: [
       {
@@ -1385,6 +1404,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "무위진인",
     hanja: "無位眞人",
     question: "이 붉은 살덩이에\n지위 없는 참사람 하나가 있어,\n늘 그대들 얼굴로 드나든다.\n\n보지 못한 이는 보라, 보라.",
+    brief: "이 몸으로 드나드는\n지위 없는 참사람은 누구인가.",
     context: "임제록 — 임제의 상당법어.",
     masters: [
       {
@@ -1409,6 +1429,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "국사삼환",
     hanja: "國師三喚",
     question: "국사가 시자를 세 번 불렀고,\n시자는 세 번 대답했다.\n\n국사가 말했다 — 내가 너를 저버린 줄 알았더니,\n네가 나를 저버렸구나.",
+    brief: "세 번 부르고 세 번 답했다.\n누가 누구를 저버렸는가.",
     context: "무문관 제17칙 — 남양 혜충 국사와 시자의 일.",
     masters: [
       {
@@ -1433,6 +1454,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "일면불 월면불",
     hanja: "日面佛月面佛",
     question: "마조가 몸져누웠다.\n「요즘 몸은 좀 어떠십니까.」\n\n— 일면불, 월면불.",
+    brief: "「몸은 좀 어떠십니까.」\n— 일면불, 월면불.",
     context: "벽암록 제3칙 — 일면불은 천팔백 년을 살고, 월면불은 하루낮 하룻밤을 산다 한다.",
     masters: [
       {
@@ -1467,6 +1489,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "발우를 씻어라",
     hanja: "趙州洗鉢",
     question: "「막 총림에 들어왔습니다.\n부디 가르쳐 주십시오.」\n\n「아침죽은 먹었는가.」 「먹었습니다.」\n「그럼 발우를 씻어라.」",
+    brief: "「아침죽은 먹었는가.」\n「그럼 발우를 씻어라.」",
     context: "무문관 제7칙 — 그 스님은 이 말끝에 깨달은 바가 있었다.",
     masters: [
       {
@@ -1491,6 +1514,7 @@ export const HWADU_BANK: Hwadu[] = [
     title: "즉심즉불",
     hanja: "卽心卽佛",
     question: "부처란 무엇인가.\n마조는 답했다 — 마음이 곧 부처다.\n\n뒷날 같은 물음에는 답했다 —\n마음도 아니요 부처도 아니다.",
+    brief: "마음이 곧 부처라 했다가,\n마음도 부처도 아니라 한다.",
     context: "무문관 제30칙 즉심즉불 · 제33칙 비심비불 — 같은 마조의 두 답.",
     masters: [
       {
@@ -1653,6 +1677,7 @@ export const HWADU_BANK: Hwadu[] = [
     audience: "student",
     title: "어른이 된다는 것",
     question: "어른이 된다는 것은\n무엇이 달라지는 것인가.\n키인가, 나이인가, 다른 무엇인가.",
+    brief: "어른이 된다는 것은\n무엇이 달라지는 것인가.",
     masters: [
       {
         name: "풀이",
@@ -1699,6 +1724,7 @@ export const HWADU_BANK: Hwadu[] = [
     audience: "student",
     title: "화는 어디서 오는가",
     question: "화가 날 때,\n화는 어디에서 오는가.\n그 사람에게서인가, 내 안에서인가.",
+    brief: "화는 어디에서 오는가.",
     masters: [
       {
         name: "풀이",
@@ -1768,6 +1794,7 @@ export const HWADU_BANK: Hwadu[] = [
     audience: "student",
     title: "시간의 빠르기",
     question: "즐거운 날은 빨리 가고,\n지루한 날은 느리게 간다.\n\n시간은 정말 똑같이 흐르는가.",
+    brief: "시간은 정말\n똑같이 흐르는가.",
     masters: [
       {
         name: "풀이",
@@ -1837,6 +1864,7 @@ export const HWADU_BANK: Hwadu[] = [
     audience: "student",
     title: "생각은 어디서 오는가",
     question: "방금 떠오른 그 생각은\n어디에서 왔는가.\n\n내가 만들었는가, 그냥 왔는가.",
+    brief: "그 생각은 어디에서 왔는가.",
     masters: [
       {
         name: "풀이",
@@ -2025,6 +2053,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "乾屎橛",
     context: "무문관 제21칙 — 운문 문언.",
     question: "한 스님이 운문에게 물었다.\n「부처란 무엇입니까.」\n\n운문이 답했다.\n\n— 마른 똥막대기.",
+    brief: "「부처란 무엇입니까.」\n— 마른 똥막대기.",
     masters: [
       {
         name: "운문 문언",
@@ -2049,6 +2078,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "麻三斤",
     context: "무문관 제18칙 — 동산 수초.",
     question: "「부처란 무엇입니까.」\n\n저울에 삼을 달던 동산이\n고개도 들지 않고 답했다.\n\n— 삼 세 근.",
+    brief: "「부처란 무엇입니까.」\n— 삼 세 근.",
     masters: [
       {
         name: "동산 수초",
@@ -2073,6 +2103,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "板齒生毛",
     context: "조주록 — 한국 선원에서 무자·이뭣고와 함께 가장 많이 든 화두.",
     question: "「달마가 서쪽에서 온 뜻이\n무엇입니까.」\n\n조주가 답했다.\n\n— 앞니에 털이 났느니라.",
+    brief: "달마가 온 뜻은.\n— 앞니에 털이 났느니라.",
     masters: [
       {
         name: "조주 종심",
@@ -2097,6 +2128,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "巖喚主人",
     context: "무문관 제12칙 — 서암 사언.",
     question: "서암은 날마다 제 이름을 불렀다.\n\n「주인공!」  「예.」\n「깨어 있어라.」  「예.」\n「남에게 속지 마라.」  「예, 예.」",
+    brief: "「주인공!」 「예.」\n그 부르고 답하는 이는 누구인가.",
     masters: [
       {
         name: "서암 사언",
@@ -2121,6 +2153,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "香嚴擊竹",
     context: "선문염송 — 향엄 지한.",
     question: "글로는 다 알았으나\n물음 하나에 막혀\n책을 태우고 산으로 갔다.\n\n마당을 쓸다 기와 조각이 튀어\n대나무를 때렸다.\n\n딱.",
+    brief: "기와가 튀어 대를 때렸다. 딱.\n무엇이 열렸는가.",
     masters: [
       {
         name: "향엄 지한",
@@ -2145,6 +2178,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "啐啄同時",
     context: "벽암록 제16칙 — 경청 도부.",
     question: "병아리가 안에서 껍질을 쪼고\n어미가 밖에서 껍질을 쫀다.\n\n둘이 어긋나면 알은 깨지지 않는다.\n\n지금 그대는 안인가, 밖인가.",
+    brief: "안에서 쪼고 밖에서 쫀다.\n그대는 안인가, 밖인가.",
     masters: [
       {
         name: "경청 도부",
@@ -2169,6 +2203,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "首山竹篦",
     context: "무문관 제43칙 — 수산 성념.",
     question: "수산이 죽비를 들고 말했다.\n\n「이것을 죽비라 하면 어긋나고,\n죽비가 아니라 하면 등진다.\n\n자, 무어라 하겠는가.」",
+    brief: "죽비라 해도 어긋나고\n아니라 해도 등진다.",
     masters: [
       {
         name: "수산 성념",
@@ -2193,6 +2228,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "牛過窗櫺",
     context: "무문관 제38칙 — 오조 법연.",
     question: "소가 창살을 지나간다.\n\n머리도 지나고 뿔도 지나고\n네 발굽까지 다 지났는데,\n\n어째서 꼬리 하나가 안 지나는가.",
+    brief: "머리도 뿔도 다 지났는데,\n어째서 꼬리가 안 지나는가.",
     masters: [
       {
         name: "오조 법연",
@@ -2217,6 +2253,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "倩女離魂",
     context: "무문관 제35칙 — 오조 법연.",
     question: "천녀의 혼이 몸을 떠나\n오 년을 밖에서 살다 돌아왔다.\n\n떠난 쪽이 참인가,\n남아 있던 쪽이 참인가.",
+    brief: "떠난 혼이 참인가,\n남은 몸이 참인가.",
     masters: [
       {
         name: "오조 법연",
@@ -2241,6 +2278,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "靈雲桃花",
     context: "선문염송 — 영운 지근.",
     question: "삼십 년을 칼을 찾아 헤맸다.\n\n잎이 지고 가지가 돋기를 몇 번,\n\n복사꽃 한 번 본 뒤로는\n다시 의심하지 않았다.",
+    brief: "복사꽃 한 번 본 뒤로\n다시 의심하지 않았다.",
     masters: [
       {
         name: "영운 지근",
@@ -2289,6 +2327,7 @@ export const HWADU_BANK: Hwadu[] = [
     hanja: "破竈墮",
     context: "전등록 — 숭산의 파조타 화상.",
     question: "사람들이 부뚜막 신에게 제사 지내며\n해마다 짐승을 죽였다.\n\n한 스님이 지팡이로 세 번 치며 말했다.\n\n「너는 흙과 기와가 모인 것이다.\n신령함이 어디서 오느냐.」",
+    brief: "흙과 기와일 뿐인데,\n신령함은 어디서 오는가.",
     masters: [
       {
         name: "파조타 화상",
@@ -2357,6 +2396,19 @@ export function sessionTitle(session: Session): string {
     return q.length > 22 ? q.slice(0, 22) + "…" : q;
   }
   return getHwadu(session.hwaduId)?.title ?? "화두";
+}
+
+// 폰(리뉴얼) 판의 물음 — 짧은 것이 있으면 짧은 것으로.
+// 형: 「모바일 리뉴얼 버전 화두는 죄다 좀 짧은 걸로 고쳐 줘」
+//
+// 옛 판(웹)은 손대지 않는다. 공안은 이야기가 곧 물음인 것이 많아
+// 원문을 줄이면 화두가 아니게 된다 — 그래서 **따로 한 줄을 적어 두고**,
+// 좁은 화면에서만 그것을 쓴다. 던져진 화두처럼 적어 둔 것이 없으면
+// 원문 그대로 간다.
+export function sessionBrief(session: Session): string {
+  if (session.customQuestion) return session.customQuestion;
+  const h = getHwadu(session.hwaduId);
+  return h?.brief ?? h?.question ?? "";
 }
 
 export function sessionQuestion(session: Session): string {

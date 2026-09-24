@@ -1416,6 +1416,11 @@ html[data-theme="light"] {
     letter-spacing: -0.03em;
     color: #17140f;
     word-break: keep-all;
+    /* brief 는 줄을 손으로 끊어 두었다 — 그 자리를 지킨다 */
+    white-space: pre-line;
+    /* 손으로 끊은 줄이 또 한 번 접힐 때, 「뿐인데,」 하나만 남지 않게
+       줄들의 길이를 고르게 맞춘다 */
+    text-wrap: balance;
   }
   .hip-q-a { font-size: clamp(38px, 11vw, 54px); }
   .hip-q-b { font-size: clamp(30px, 8.6vw, 42px); }
@@ -1818,24 +1823,139 @@ html[data-theme="light"] {
     stroke: rgba(255, 255, 255, 0.45);
     stroke-width: 2;
   }
-  /* 입 — 두툼하고 끝이 둥근 홈 */
+  /* 입 — 채워서 판다. 선으로 그으면 웃는 얼굴이 된다 */
   .hip-mok-mouth {
-    stroke: #8e4763;
-    stroke-width: 9;
-    opacity: 0.85;
+    fill: #7e3c56;
+    stroke: none;
+    opacity: 0.9;
   }
-  .hip-mok-ring {
+  .hip-mok-lip {
     fill: none;
-    stroke: url(#mokRing);
-    stroke-width: 11;
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 2.5;
   }
+  /* 꼭지 — 용머리(쌍어) 자리 */
+  .hip-mok-ear {
+    fill: url(#mokEar);
+    stroke: none;
+  }
+  .hip-mok-groove {
+    fill: none;
+    stroke: rgba(126, 60, 86, 0.32);
+    stroke-width: 3;
+  }
+  /* 방석 — 이게 있어야 얼굴이 아니라 물건으로 읽힌다.
+     형: 「목탁은 핑크만 두고」 — 민트로 깔았더니 얼룩처럼 보였다 */
+  .hip-mok-mat {
+    fill: rgba(222, 126, 161, 0.18);
+    stroke: none;
+  }
+  /* 빛 한 점 — 도톰해 보이게 */
+  .hip-mok-shine {
+    fill: rgba(255, 255, 255, 0.42);
+    stroke: none;
+  }
+  /* 채 — 형: 「목탁은 핑크만 두고」 */
   .hip-mok-stick {
-    stroke: #5cc2ac;
-    stroke-width: 3.2;
+    stroke: #d4779b;
+    stroke-width: 7;
   }
   .hip-mok-knob {
-    fill: #5cc2ac;
+    fill: #c9648b;
     stroke: none;
+  }
+
+  /* ── 염주 ── 알 스물일곱이 한 바퀴 */
+  .hip-bead-thread {
+    fill: none;
+    stroke: rgba(26, 23, 20, 0.12);
+    stroke-width: 1.4;
+  }
+  .hip-bead-one {
+    fill: rgba(26, 23, 20, 0.07);
+    stroke: none;
+    transition: fill 0.2s ease;
+  }
+  .hip-bead-one[data-on="1"] {
+    fill: url(#beadOn);
+    filter: drop-shadow(0 3px 5px rgba(210, 104, 143, 0.35));
+  }
+  .hip-bead-mom {
+    fill: url(#beadMom);
+    stroke: none;
+    filter: drop-shadow(0 4px 7px rgba(201, 160, 99, 0.4));
+  }
+
+  /* ── 싱잉볼 ── 놋 사발. 민트로 갈라 두어야 갈래가 한눈에 보인다 */
+  .hip-bowl-body {
+    fill: url(#bowlBody);
+    stroke: none;
+    filter: drop-shadow(0 12px 16px rgba(62, 156, 136, 0.28));
+  }
+  .hip-bowl-rim {
+    fill: #a7e3d4;
+    stroke: none;
+  }
+  .hip-bowl-shine {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.4);
+    stroke-width: 5;
+  }
+  .hip-bowl-mat {
+    fill: rgba(239, 123, 164, 0.22);
+    stroke: none;
+  }
+  .hip-bowl-stick {
+    fill: #d4779b;
+    stroke: none;
+  }
+  .hip-bowl-head {
+    fill: #c9648b;
+    stroke: none;
+  }
+  /* 울리는 동안 — 그릇이 아주 얕게 떤다 */
+  .hip-bowl.on svg {
+    animation: hip-hum 1.6s ease-in-out infinite;
+    transform-origin: 100px 120px;
+  }
+  @keyframes hip-hum {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.018); }
+  }
+
+  /* ── 갈래 셋 ──
+     형: 「공덕에는 오리지날처럼 위에 목탁 염주 싱잉볼로 옮길 수 있는
+     탭 주고」. 머리 바로 아래 한 줄. 테도 바탕도 없이 글자만 —
+     지금 자리만 먹으로 진해진다. */
+  .hip-lanes {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+    padding: 2px 0 4px;
+  }
+  .hip-lanes button {
+    position: relative;
+    padding: 4px 2px;
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    color: #b0a698;
+    transition: color 0.18s ease;
+  }
+  .hip-lanes button[data-on="1"] {
+    color: #17140f;
+  }
+  .hip-lanes button[data-on="1"]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--hip-pink, #ef7ba4);
   }
 }
 
@@ -1926,4 +2046,25 @@ html[data-theme="light"] {
     background: rgba(242, 120, 159, 0.1);
     color: #17140f;
   }
+}
+
+/* ── 물음만 보기 ──────────────────────────────────────────────
+   형: 「화두만 보기 넣어주고」. 이 화면에는 물음과 되돌아가는 자리
+   하나뿐이다 — 아래 염주까지 걷는다. */
+@media (max-width: 767px) {
+  .hip-only { z-index: 80; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px); }
+  body:has(.hip-only) .hip-mala { display: none; }
+  .hip-back {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(26, 23, 20, 0.16);
+    color: #8b8175;
+    font-size: 13px;
+    line-height: 1;
+  }
+  .hip-back:active { background: rgba(26, 23, 20, 0.05); }
 }

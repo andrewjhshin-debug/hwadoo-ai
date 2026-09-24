@@ -493,19 +493,25 @@ export default function MoktakPage() {
           우리가 짠다. 셈·소리·공덕은 전부 이 파일이 쥐고 있고 저기는
           받아 그리기만 한다 — 지워도 앱은 예전 그대로 돈다.
           살림살이(갈래·정근·소리·자동·살갗)는 「⋯」 뒤 서랍으로 들어간다. */}
-      {tab === "moktak" && !more && (
+      {!more && (
         <HipMoktak
+          tab={tab}
+          onTab={chooseTab}
           hits={hits}
           merit={merit}
           beadHits={total}
           bowlHits={bowlHits}
           combo={combo}
+          pos={pos}
+          ringing={ringing}
           pops={pops}
           onHit={hit}
+          onAdvance={advance}
+          onRing={ringBowl}
           onMore={() => setMore(true)}
         />
       )}
-      {tab === "moktak" && more && (
+      {more && (
         <div className="hip-sheet md:hidden">
           <div className="hip-sheet-top">
             <span className="hip-kicker">살 림 살 이</span>
