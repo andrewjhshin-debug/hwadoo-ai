@@ -95,7 +95,7 @@ export function HipGardenEmpty({
 }) {
   return (
     <HipShell here="/">
-      <div className="hip-screen hip-hanji md:hidden">
+      <div className="hip-screen hip-hanji">
         <span aria-hidden className="hip-bloom hip-bloom-a" />
         <Mark />
 
@@ -205,7 +205,7 @@ export function HipGardenOnly({
 }) {
   const size = qSize(question);
   return (
-    <div className="hip-screen hip-hanji hip-only md:hidden">
+    <div className="hip-screen hip-hanji hip-only">
       <span aria-hidden className="hip-bloom hip-bloom-a" />
       <div className="hip-screen-mid">
         <p className={`hip-q hip-q-${size}`}>{question}</p>
@@ -257,7 +257,7 @@ export function HipGardenHolding({
   const size = qSize(question);
   return (
     <HipShell here="/">
-      <div className="hip-screen hip-hanji md:hidden">
+      <div className="hip-screen hip-hanji">
         <span aria-hidden className="hip-bloom hip-bloom-a" />
         <Mark />
 
@@ -267,41 +267,65 @@ export function HipGardenHolding({
             둘 다 안 읽힌다. */}
         <header className="hip-screen-top">
           <span />
-          <HipTop>
-            <button onClick={onFocus} aria-label="물음만 보기" className="hip-more">
-              ○
-            </button>
-          </HipTop>
+          <HipTop />
         </header>
 
         <div className="hip-screen-mid">
           {/* 큰 것 하나 — 오브제가 아니라 **물음**이다 */}
           <p className={`hip-q hip-q-${size}`}>{question}</p>
           {source && <p className="hip-q-by">{source}</p>}
+          {/* 형: 「내려」 — ○ 를 머리에서 물음 바로 아래로.
+              머리 오른쪽에는 이미 넷(연꽃·음소거·쪽지·我)이 서 있어서
+              ○ 가 다섯째로 묻혔다. 「물음만 보기」는 **물음에 딸린 일**이니
+              물음 밑에 두는 것이 맞다 — 손도 거기서 가깝다. */}
+          <button onClick={onFocus} aria-label="물음만 보기" className="hip-only-go">
+            ○
+          </button>
         </div>
 
         {/* ── 바닥 ──
             시안에는 막대도 알약도 없었다. **얇은 선 하나**와 그 아래
             두 마디뿐. 그 선이 곧 달이다 — 차오른 만큼 먹이 간다. */}
         <div className="hip-foot">
-          {/* 형: 「품는 날에 그 선 좀만 더 두껍게 달모양 넣고 오리지날처럼」.
-              실 한 올은 너무 가늘어 차오르는 게 안 보였다. 두껍게 하고,
-              찬 끝에 **달**을 하나 얹는다 — 옛 판의 그 달(.moon)과 같은
-              것이다. 달이 선을 따라 오른쪽으로 걸어간다. */}
+          {/* 형: 「이건 남기는 게 좋지 않겠냐」 —
+              옛 판의 그 칸(달 · 며칠째 · 시·분·초 · 막대)을 그대로 살린다.
+              「이틀째 품는 중」 한 줄로 줄여 놨더니, 얼마나 남았는지가
+              사라졌다. 기다리는 화면에서 **남은 때**는 군더더기가 아니라
+              그 화면의 알맹이다. 세는 숫자가 있어야 기다림이 손에 잡힌다. */}
+          <p className="hip-moonline">
+            <i
+              className="hip-moon-dot"
+              data-full={unlocked ? "1" : undefined}
+              aria-hidden
+            />
+            {unlocked ? "달이 찼습니다" : "달이 차오르는 중"}
+            <u>·</u>
+            {nalcha(day)}
+          </p>
+          {!unlocked && remaining && (
+            <p className="hip-count">
+              {remaining.split(" ").map((w, i) => {
+                const num = w.match(/^\d+/)?.[0] ?? "";
+                return (
+                  <span key={i}>
+                    <b>{num}</b>
+                    {w.slice(num.length)}
+                  </span>
+                );
+              })}
+            </p>
+          )}
           <div
             className="hip-rule"
             role="img"
             aria-label={unlocked ? "달이 찼습니다" : `${remaining} 남음`}
           >
             <i style={{ width: `${unlocked ? 100 : pct}%` }} />
-            <em
-              className="hip-moon-dot"
-              data-full={unlocked ? "1" : undefined}
-              style={{ left: `${unlocked ? 100 : pct}%` }}
-            />
           </div>
           <div className="hip-foot-row">
-            <span>{unlocked ? "달이 찼습니다" : `${nalcha(day)} 품는 중`}</span>
+            <span>
+              {unlocked ? "이제 답을 쓸 수 있어요" : "달이 차면 답을 쓸 수 있어요"}
+            </span>
             <button onClick={unlocked ? onOpen : onNotes} className="hip-do">
               {unlocked ? "답 하 기" : "사 유 의 방"}
             </button>

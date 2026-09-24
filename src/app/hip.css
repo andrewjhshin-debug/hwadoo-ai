@@ -1,3 +1,22 @@
+/* ────────────────────────────────────────────────────────────
+   2026-09-24 — **리뉴얼이 본 판이 된다.**
+
+   형: 「웹판도 리뉴얼로 가고, 웹이랑 모바일 오리지날은 니가 준 그
+        다른 링크로 돌려놓으라고」
+
+   여태 이 파일은 통째로 `@media (max-width: 767px)` 안에 살았다.
+   폰만 새 판이고 768px 위는 옛 판이었기 때문이다. 이제 옛 판은
+   original 브랜치로 떠났으니 울타리가 필요 없다 —
+   `@media (min-width: 0px)` 로 바꿔 **모든 너비에 적용**한다.
+   (블록을 통째로 지우지 않고 조건만 바꾼 것은, 중괄호 짜임을 건드리면
+    수백 줄이 엉키기 때문이다. 뜻은 「늘 켠다」로 같다.)
+
+   다만 이 판은 **폰의 몸**으로 지었다 — 한 칸에 큰 것 하나, 엄지가
+   닿는 자리에 단추. 1280px 로 늘리면 그 짜임이 다 풀린다.
+   그래서 넓은 화면에서는 **가운데 한 칸**으로 세운다. 바탕(분홍·민트)은
+   화면 끝까지 흐르고, 내용만 폰 너비 안에 앉는다.
+   ──────────────────────────────────────────────────────────── */
+
 /* ─────────────────────────────────────────────────────────────
    리뉴얼 힙버전 — 공통 판
    가지 `renewal-hip` · 되돌릴 자리 `v2-before-renewal`
@@ -63,7 +82,7 @@ html[data-theme="light"] {
    `html` 로 적으면 특이도에서 진다. 게다가 이 파일은 @layer 밖이라
    같은 `:root` 라도 여기가 이긴다.
    ═══════════════════════════════════════════════════════════ */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   :root {
     --color-ink: #f3f0e9; /* 바탕 — 한지 */
     --color-ink-2: #ffffff; /* 판 — 흰 종이가 뜬다 */
@@ -271,7 +290,7 @@ html[data-theme="light"] {
    힘이 센 게 문제였으니 사는 자리를 좁힌다 — 부품 전체를 폰 폭 안에 둔다.
    768px 위에서는 이 규칙들이 아예 없으므로 `md:hidden` 이 제 일을 한다.
    ─────────────────────────────────────────────────────────── */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   /* ── 결(grain) ──────────────────────────────────────────────
      평평한 색은 싸 보인다. 아주 미세한 얼룩 한 겹을 깔면 종이가 된다.
      그림 파일을 안 쓴다 — SVG 잡음을 그 자리에서 만든다. */
@@ -513,7 +532,7 @@ html[data-theme="light"] {
    올리거나 !important 를 쓸 일이 없다. `[class~="…"]` 로 클래스 값을
    그대로 겨냥해 이스케이프 오타로 조용히 빗나가지 않는다.
    ═══════════════════════════════════════════════════════════ */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   /* ── ① 모서리를 다 키운다 ────────────────────────────────────
      14px 짜리 카드 63개 · 10px 52개 · 12px 22개 · 16px 20개.
      둥글기 하나만 올려도 화면 인상이 통째로 바뀐다.
@@ -619,7 +638,7 @@ html[data-theme="light"] {
   }
 }
 
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   /* ── ⑥ 輪 · 수레바퀴 ─────────────────────────────────────────
      자리(位) 여섯을 한 줄 격자로 깔면 글자가 열여덟 개다 —
      한자 여섯 · 이름 여섯 · 숫자 여섯. 형: 「텍스트 최대한 빼고」.
@@ -704,7 +723,7 @@ html[data-theme="light"] {
    그대로라 겹쳤고 결국 「색만 칠한 것」으로 읽혔다. 덮어 버린다 —
    하심(/hasim)이 이미 쓰는 길이다. `fixed inset-0` 이면 깔릴 것이 없다.
    ═══════════════════════════════════════════════════════════ */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-screen {
     position: fixed;
     inset: 0;
@@ -883,7 +902,7 @@ html[data-theme="light"] {
 /* ── 살림살이 서랍 — 「⋯」 뒤로 들어간 것들 ────────────────────
    갈래·정근·소리·살갗·자동 목탁. 늘 떠 있을 것들이 아니다.
    고르는 일은 치기 전에 한 번뿐이라, 화면을 차지할 이유가 없다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-sheet {
     position: fixed;
     inset: 0;
@@ -1002,7 +1021,7 @@ html[data-theme="light"] {
    먹 하나로만 가면 점잖지만 예쁘지가 않다. 큰 글씨는 먹으로 두어
    읽히게 하고, **채워지는 것**에만 빛깔을 준다 — 차오르는 자리가
    예뻐야 또 누르고 싶어진다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-screen .hip-grid108 > i {
     border-radius: 3px;
     background: rgba(26, 23, 20, 0.07);
@@ -1080,7 +1099,7 @@ html[data-theme="light"] {
    형: 「목탁이나 염주 등 원래 디자인을 빼먹진 마」 — 맞다. 숫자만
    남긴 판을 한 번 만들어 봤는데 그건 우리 앱이 아니었다.
    오브제를 한복판에 되돌리고, 누르는 자리도 그것으로 되돌린다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   /* ① 숨 쉬는 바탕 — 멈춘 그라데이션은 배경이고, 흐르면 자리가 된다 */
   .hip-bloom {
     position: absolute;
@@ -1236,7 +1255,7 @@ html[data-theme="light"] {
    쓴 결(흰 바탕 · 분홍·민트 번짐 · 테 없는 흰 판 · 큰 모서리)을
    **앱 전체에** 깐다. 기능과 배치는 손대지 않는다 — 결만 입힌다.
    ═══════════════════════════════════════════════════════════ */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   /* ── 바탕 — 흰 종이에 분홍과 민트가 아주 옅게 번진다 ── */
   :root {
     --color-ink: #fbfaf8;
@@ -1350,7 +1369,7 @@ html[data-theme="light"] {
 }
 
 /* ── 뜰 판 ─────────────────────────────────────────────────── */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   /* 누구의 물음인가 — 알약 하나 */
   .hip-seg {
     display: inline-flex;
@@ -1483,7 +1502,7 @@ html[data-theme="light"] {
 }
 
 /* ── 나(我) 판 ─────────────────────────────────────────────── */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-me-head {
     display: flex;
     align-items: center;
@@ -1587,7 +1606,7 @@ html[data-theme="light"] {
 /* ── 옆으로 넘기기 ─────────────────────────────────────────────
    점 다섯을 깔아 놓고 누르기만 되면 그건 작은 탭이다. 점은
    「다섯 중 여기」라는 말이니 손가락으로 넘어가야 한다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-swipe {
     display: contents;
   }
@@ -1647,7 +1666,7 @@ html[data-theme="light"] {
 
    알 다섯이 실 하나에 꿰여 있다. 지금 있는 자리가 **큰 알**이고 한자
    한 글자를 품는다. 나머지는 작은 알 — 글자는 흐리게 잠들어 있다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-swipe > .hip-rail { display: none; }
 
   .hip-mala {
@@ -1719,7 +1738,7 @@ html[data-theme="light"] {
    오리지날로 뜨냐」. 판마다 염주를 넣었더니 아직 안 고친 화면에서는
    옛 탭이 그대로 떴다. 한 화면씩 고칠 일이 아니다 — 아예 끈다.
    염주는 layout 이 한 번만 놓는다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .mobile-tabbar,
   .doryang-fab {
     display: none !important;
@@ -1737,7 +1756,7 @@ html[data-theme="light"] {
 /* ── 나머지 방들 — 동그란 버튼 ────────────────────────────────
    형: 「동그란 버튼을 두든, 여러 메뉴는 내 도량에서 보든」.
    아래 띠에는 알 셋만. 하루에 한 번 갈까 말까 한 방은 여기 모은다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-rooms {
     margin-top: 34px;
     align-self: stretch;
@@ -1788,7 +1807,7 @@ html[data-theme="light"] {
 /* ── 맨 위 로고 — 어디서든 홈으로 ─────────────────────────────
    형: 「어디 맨 위에 로고 달든, 홈으로 가는 거도 하나 있긴 해야겠다」.
    판 이름(百八·我)은 오른쪽으로 물리고, 왼쪽 자리는 로고가 맡는다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-home {
     display: inline-flex;
     align-items: center;
@@ -1817,7 +1836,7 @@ html[data-theme="light"] {
    형: 「메인에 오늘의 물음 위 연꽃 반응형 존나 좋다. 저런 느낌
    디자인으로 전반을 가자」. 사진으로 구운 오브제는 아무리 잘 구워도
    남의 결이다. 선으로 그리고 천천히 움직이면 그게 우리 것이 된다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-mok {
     display: block;
     width: 100%;
@@ -1993,7 +2012,7 @@ html[data-theme="light"] {
 /* ── 내 도량 — 자리 가로 · 접는 둘 ────────────────────────────
    형: 「자리는 가로 형태로 두고, 부적 기능 접었다 펼쳤다,
    알림도 접었다 펼쳤다」 */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-seats {
     margin-top: 22px;
     align-self: stretch;
@@ -2082,7 +2101,7 @@ html[data-theme="light"] {
 /* ── 물음만 보기 ──────────────────────────────────────────────
    형: 「화두만 보기 넣어주고」. 이 화면에는 물음과 되돌아가는 자리
    하나뿐이다 — 아래 염주까지 걷는다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-only { z-index: 80; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px); }
   body:has(.hip-only) .hip-mala { display: none; }
   .hip-back {
@@ -2111,7 +2130,7 @@ html[data-theme="light"] {
 
    이 규칙들은 전부 .hip-hanji 안에서만 산다. 공덕·내 도량·절로는
    손대지 않는다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   /* 형: 「시안에서 봤듯 민트도 섞어라 배경에」.
      한지 한 겹으로 덮고 민트를 껐더니, 형이 좋다던 그 시안의 배경
      (왼쪽 위 분홍 · 오른쪽 아래 민트가 번지는 흰 종이)이 사라졌다.
@@ -2265,7 +2284,7 @@ html[data-theme="light"] {
 
 /* 목탁 — 3D 렌더 한 장. 코드로 그린 것을 물린다.
    형: 「3차원 제미나이 써서 기존 느낌으로 둥글고 귀엽게」 */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-mok-img {
     display: block;
     width: 100%;
@@ -2281,8 +2300,8 @@ html[data-theme="light"] {
 /* ── 새기고 고치는 한 덩이 ────────────────────────────────────
    형이 짚은 버그 넷을 한 자리에 모았다. hip.css 는 거의 모든 항목이
    건드리는 파일이라, 여기저기 흩어 놓으면 다음에 고칠 때 서로 부딪힌다.
-   전부 @media (max-width: 767px) 안이다 — 웹은 한 픽셀도 안 움직인다. */
-@media (max-width: 767px) {
+   전부 @media (min-width: 0px) 안이다 — 웹은 한 픽셀도 안 움직인다. */
+@media (min-width: 0px) {
   /* ① 사유의 방 — 판 위로.
      형: 「사유의 방 여전히 안되고」.
      지난번엔 서랍을 웹 분기 **밖으로** 뺐다. 그건 맞았다 — DOM 에는
@@ -2333,7 +2352,7 @@ html[data-theme="light"] {
 /* ── 내 도량을 채운다 ──────────────────────────────────────────
    형: 「법명이나 아이디 고칠 수 있도록」 「서비스 다 넣어주고」
        「몇 번 쳤는지를 내 도량에서 보여주고」 「ⓘ로 어딘가에 표시」 */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   /* 법명 — 누르면 그 자리가 글칸이 된다. 화면을 옮기지 않는다 */
   .hip-me-name {
     display: flex;
@@ -2446,7 +2465,7 @@ html[data-theme="light"] {
      ② 세기와 거리를 절반 아래로 줄인다. 있는지 없는지 모를 만큼만
    이 덩이는 파일 맨 뒤라 앞의 규칙들을 덮는다 — 원래 값을 뒤지지 않고
    여기 한 자리에서 결을 잡는다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   /* 오브제 — 제일 크고 제일 눈에 걸리던 것 */
   .hip-mok-img img {
     filter: drop-shadow(0 6px 10px rgba(222, 126, 161, 0.16));
@@ -2494,7 +2513,7 @@ html[data-theme="light"] {
    찬 끝에 달을 얹는다. 달은 옛 판의 .moon 그대로다 — 오른쪽 위가 밝고
    나머지가 여려서 초승이 차오르는 것처럼 보이는, 그 동그라미.
    차면 달이 온전히 밝아진다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-rule {
     height: 3px;
     border-radius: 2px;
@@ -2534,7 +2553,7 @@ html[data-theme="light"] {
         대신 그거 로그인 안 한 상태에서 눌리면 가입부터 유도」
    들어오기 전에 문지기부터 만나는 앱은 되고 싶지 않다. 화면은 그대로
    두고, 단추를 눌렀을 때 그 위로 한 겹만 올라온다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-gate {
     position: fixed;
     inset: 0;
@@ -2590,7 +2609,7 @@ html[data-theme="light"] {
    형: 「공덕 쌓이는 거 팝업 뜨는 거 거기도 그림자 없애」.
    먹빛 판에서는 0 8px 26px 검정이 「떠 있음」이었는데, 분홍 바탕에서는
    알약 밑에 때가 낀 것처럼 보인다. 폰에서만 걷는다 — 웹은 그대로. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   [class*="shadow-[0_8px_26px"] {
     box-shadow: 0 2px 8px rgba(222, 126, 161, 0.14) !important;
   }
@@ -2598,7 +2617,7 @@ html[data-theme="light"] {
 
 /* 한 것 — 알약 줄. 형: 「공덕 쌓은 거 라벨 이런 식으로 넣어.
    모든 기능 중 공덕 주는 건 다. 대신 한 횟수를 표기」 */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-me-hits {
     display: flex;
     flex-wrap: wrap;
@@ -2626,7 +2645,7 @@ html[data-theme="light"] {
    서랍은 두 가지가 나빴다 — 숨겨 두면 있는 줄도 모르고, 열면 화면이
    통째로 덮여 치던 것이 사라진다. 판 아래에 깔면 둘 다 없다.
    치는 동안에는 눈에 안 걸리고, 내리면 거기 있다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-opts {
     width: 100%;
     margin-top: 40px;
@@ -2640,7 +2659,7 @@ html[data-theme="light"] {
    형: 「미안한데 여기 좀만 더 그림자 아주 연하게는 넣자」.
    다 걷었더니 동그라미가 바탕에 묻어 눌리는 것처럼 안 보였다.
    검정이 아니라 **분홍 쪽 그늘**로 둔다 — 분홍 바탕과 안 싸운다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-rooms a i {
     box-shadow:
       inset -2px -3px 6px rgba(190, 120, 145, 0.07),
@@ -2657,7 +2676,7 @@ html[data-theme="light"] {
        「그 공덕 아래 얼마가 쌓여야 부처가 되는지도 숫자로 써주자」
    한자만 여섯 개 늘어놓으니 무슨 자리인지도, 얼마나 가야 하는지도
    알 수 없었다. 세 줄이면 다 말한다 — 한자 · 한글 · 공덕 수. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-seats {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -2716,7 +2735,7 @@ html[data-theme="light"] {
 }
 
 /* ── 계정 · 살림살이 · 염주·싱잉볼 자리 ──────────────────────── */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-account {
     width: 100%;
     margin-top: 34px;
@@ -2831,7 +2850,7 @@ html[data-theme="light"] {
         만지면서 바로바로 반응성을 주고 학습하도록」 「좀 이쁘게 다시」
    회색 네모에 세 줄을 적어 뒀더니 읽히지도 않고 판만 탁해졌다.
    수행 → 공덕 → 연꽃. 화살표 둘이면 다 말한다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-info > div {
     margin: 12px auto 0;
     width: max-content;
@@ -2884,7 +2903,7 @@ html[data-theme="light"] {
 /* 맨 위 옅은 줄 — 연꽃까지 남은 공덕.
    형: 「오리지날처럼 맨 위 옅은 줄로 해서 연꽃까지 얻기 위한 공덕량
         나오게 하도록」. 줄만 있으면 눈대중으로 재야 한다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .merit-left {
     position: absolute;
     right: 12px;
@@ -2908,7 +2927,7 @@ html[data-theme="light"] {
      60 판(.hip-screen) · 61 살림살이 · **62 염주** · 70 이상 창들
    창마다 `body:has(...)` 로 하나씩 끄는 것보다 이 한 줄이 낫다.
    앞으로 어떤 창이 새로 생겨도 저절로 염주 위에 선다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-mala { z-index: 62; }
 }
 
@@ -2916,7 +2935,7 @@ html[data-theme="light"] {
    형: 「로그인도 지금 안 돼. 로그인이 제일 시급」.
    단추는 있었다 — 동그라미 스물여섯 개 아래 1,098px 지점에.
    찾을 수 없으면 없는 것과 같다. */
-@media (max-width: 767px) {
+@media (min-width: 0px) {
   .hip-account-top {
     margin-top: 20px;
     padding-top: 0;
@@ -2924,66 +2943,284 @@ html[data-theme="light"] {
   }
 }
 
-/* ── 키캡 ─────────────────────────────────────────────────────
-   형: 「공양에 목탁 염주 싱잉볼 옆에 키캡도 하나 넣어라.
-        키캡 디자인 불교적으로 하나 해서, 눌리는 거 만들어서,
-        클릭하면 눌려지면서 키캡 소리 나도록」
-       「직관직관직관 모든 건 직관」
 
-   그림자로 「눌린 척」하지 않는다. **옆면이 실제로 줄어든다** —
-   윗면은 4px 내려가고 옆면 높이는 그만큼 짧아진다. 눌림이 진짜
-   이동이라야 손끝이 속는다. 설명이 필요 없다, 한 번 누르면 안다.
+/* ── 뒤 번짐 — 분홍과 민트를 어슷하게, 더 또렷하게 ──────────────
+   형: 「뒤 핑크 민트 좀만 더 잘 보이게, 둘이 병렬 말고 어슷하게 위치」
 
-   불교적으로 — 자판에 새긴 것은 卍(만), 몸은 연꽃 분홍,
-   옆면은 한 단 어두워 깎아 놓은 나무처럼. */
-@media (max-width: 767px) {
+   둘이 위쪽에 나란히 떠 있었다(분홍 왼쪽 위 · 민트 오른쪽 위).
+   나란하면 한 줄로 읽혀 배경이 **띠**가 된다. 대각선으로 엇갈려 놓으면
+   화면이 비스듬히 갈리고 가운데가 트인다 — 큰 것 하나를 놓을 자리가
+   저절로 생긴다.
+     분홍 ↖ 왼쪽 위 · 민트 ↘ 오른쪽 아래
+   진하기도 한 단 올린다. 떠다니는 결은 그대로 두되 서로 반대로 흐르게
+   해서, 둘이 가까워졌다 멀어졌다 한다. */
+@media (min-width: 0px) {
+  .hip-bloom { filter: blur(40px); }
+  .hip-bloom-a {
+    left: -26%;
+    top: -16%;
+    width: 86%;
+    padding-top: 86%;
+    background: radial-gradient(closest-side, rgba(242, 120, 159, 0.5), transparent 74%);
+  }
+  .hip-bloom-b {
+    right: -28%;
+    /* 위가 아니라 **아래**로 — 대각선으로 엇갈린다 */
+    top: auto;
+    bottom: -14%;
+    width: 92%;
+    padding-top: 92%;
+    background: radial-gradient(closest-side, rgba(92, 194, 172, 0.44), transparent 74%);
+  }
+  /* 한지(화두) 판도 같은 결로 — 여기서만 민트를 껐던 것을 되돌린다 */
+  .hip-hanji .hip-bloom-a {
+    background: radial-gradient(closest-side, rgba(242, 120, 159, 0.44), transparent 74%);
+    filter: blur(40px);
+    animation-duration: 26s;
+  }
+  .hip-hanji .hip-bloom-b { display: block; }
+  @keyframes hip-drift-a {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(16%, 11%) scale(1.14); }
+  }
+  @keyframes hip-drift-b {
+    0%, 100% { transform: translate(0, 0) scale(1.06); }
+    50% { transform: translate(-14%, -11%) scale(0.92); }
+  }
+}
+
+/* ── 한 것 알약 — 원본 결 그대로 한 줄로 ───────────────────────
+   형: 「이거 원래 디자인 있잖아 더 이쁘게, 그거 왜 못해」
+       (원본은 `염주 450번` 이 **한 줄**에 들어간 납작한 알약)
+       「공덕 숫자 위아래 공백 좀 줄이고」
+
+   앞서 알약으로 바꿨는데도 동그란 달걀이 됐다. 까닭은 옛 격자 규칙이
+   아직 살아 있었기 때문이다 — `.hip-me-hits span{display:block}` 과
+   `b{display:block}` 이 남아서, 알약 안에서 이름·숫자·번이 세 줄로
+   쌓이고 테두리가 999px 이라 달걀이 됐다.
+   **display 를 되돌리는 것**이 핵심이다. 여백만 고쳐서는 안 고쳐진다. */
+@media (min-width: 0px) {
+  .hip-me-hits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    justify-content: center;
+    align-self: center;
+    margin-top: 22px;
+    padding-top: 18px;
+  }
+  .hip-me-hits span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    flex: 0 0 auto;
+    margin-top: 0;
+    padding: 6px 13px;
+    border: 1px solid rgba(26, 23, 20, 0.11);
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    color: #8b8175;
+    white-space: nowrap;
+  }
+  .hip-me-hits span b {
+    display: inline;
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 12.5px;
+    line-height: 1;
+    color: #17140f;
+  }
+
+  /* 공덕 숫자 — 위아래 숨을 줄인다 */
+  .hip-me-merit { margin-top: 26px; }
+  .hip-me-merit-k { margin-top: 8px; }
+}
+
+/* ── 기다리는 칸 — 옛 판 그대로 ────────────────────────────────
+   형: 「이건 남기는 게 좋지 않겠냐」
+       (달 · 며칠째 · 19시간 42분 07초 · 막대)
+   한 줄로 줄여 놨더니 얼마나 남았는지가 사라졌다. 기다리는 화면에서
+   **남은 때**는 군더더기가 아니라 그 화면의 알맹이다. */
+@media (min-width: 0px) {
+  .hip-moonline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-bottom: 10px;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    color: #a39a8f;
+  }
+  .hip-moonline .hip-moon-dot {
+    position: static;
+    margin: 0;
+    width: 13px;
+    height: 13px;
+    flex: 0 0 auto;
+  }
+  .hip-moonline u {
+    text-decoration: none;
+    color: #cdc5b9;
+  }
+  /* 세는 숫자 — 숫자만 크고 단위는 작게. 원본의 그 결 */
+  .hip-count {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 9px;
+    margin-bottom: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .hip-count span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    color: #a39a8f;
+  }
+  .hip-count b {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 27px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #17140f;
+  }
+  /* 달은 이제 윗줄에 있으니 막대에서는 뺀다 */
+  .hip-rule .hip-moon-dot { display: none; }
+}
+
+/* ── 넓은 화면 — 가운데 한 칸 ──────────────────────────────────
+   바탕은 끝까지 흐르고 내용만 폰 너비로 앉는다. */
+@media (min-width: 768px) {
+  .hip-screen > *:not(.hip-bloom):not(.hip-mark) {
+    width: 100%;
+    max-width: 460px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hip-screen { align-items: center; }
+  .hip-screen-mid { align-self: center; }
+  /* 결(話頭)은 칸 왼쪽에 붙는다 — 화면 구석이 아니라 */
+  .hip-mark { left: calc(50% - 310px); }
+  /* 염주와 창들도 같은 칸 안에 */
+  .hip-mala { max-width: 460px; margin: 0 auto; }
+  .hip-gate-card { max-width: 460px; border-radius: 26px; margin-bottom: 24px; }
+  .hip-gate { align-items: center; }
+  /* 사유의 방은 **건드리지 않는다.**
+     가운데로 옮기려고 transform 을 덮었더니, 닫힘 상태가 쓰는
+     `md:translate-x-full` 까지 같이 지워져 서랍이 열린 채로 박혔다.
+     넓은 화면에서는 원래대로 오른쪽에서 밀려 나오는 서랍이 맞다. */
+}
+
+/* ── 격자를 걷고 오브제를 키운다 ───────────────────────────────
+   형: 「저 그리드 없애고 그 자리 더 활용해. 그리드 격자 필요 없다.
+        그럼 위에 올라간 현재 몰린 거가 좀 내려와야겠지?」
+
+   백여덟 칸이 화면 절반을 먹으면서 말하는 것은 「몇 번 쳤나」 하나뿐인데,
+   그건 바로 위 큰 숫자가 이미 말하고 있었다. 비운 자리를 오브제가 받는다 —
+   크게, 가운데로. 위에 몰려 있던 것들도 같이 내려온다. */
+@media (min-width: 0px) {
+  .hip-lanes { padding-top: 10px; }
+  .hip-big { margin-top: 18px; }
+  .hip-obj { margin-top: 18px; }
+  .hip-mok-img,
+  .hip-mok { max-width: 340px; margin-inline: auto; }
+  /* 살림살이는 한참 아래로 — 치는 동안 눈에 안 걸리게 */
+  .hip-opts { margin-top: 64px; }
+  /* 이름표를 걷었으니 알약 사이만 띄운다 */
+  .hip-opts .hip-chips { margin-bottom: 18px; }
+  .hip-sheet-range span b { color: #17140f; font-weight: 500; }
+}
+
+/* ── 키캡 — 연꽃 받침에 앉은 상 ────────────────────────────────
+   형: 「키캡 이 느낌으로 불상이나 캐릭터 불교로 넣어서 위아래 올라갔다
+        내려가게」 (나무로 깎은 수호신이 연꽃 통에 앉아 있는 부적)
+
+   밋밋한 자판 하나를 만들어 놨더니 「이게 뭐냐」 소리를 들었다. 맞다 —
+   키캡의 재미는 **무엇이 눌리느냐**에 있지 네모가 내려가는 데 있지 않다.
+   받침은 가만히 있고 **상만** 안으로 쑥 내려갔다, 놓으면 살짝 넘치게
+   튀어 오른다(overshoot). 그 되튐이 손끝에 남는 맛이다. */
+@media (min-width: 0px) {
   .hip-keycap {
     position: relative;
     display: block;
-    width: min(208px, 56vw);
-    height: min(208px, 56vw);
-    margin: 8px auto 0;
-    /* 눌릴 자리를 미리 비워 둔다 — 눌러도 아래 것들이 안 밀린다 */
-    padding-bottom: 14px;
+    width: min(250px, 64vw);
+    margin: 10px auto 0;
+    padding-bottom: 92px;
     touch-action: manipulation;
   }
-  /* 옆면 — 키캡의 두께. 이게 있어야 「누를 수 있는 것」으로 보인다 */
-  .hip-keycap-side {
+  /* 상 — 받침 위에 앉는다 */
+  /* 상 — 제 좌대(회색 돌)가 통 **안으로** 들어가게 깊이 앉힌다.
+     겉으로는 연꽃 통에 앉은 것으로 보인다 */
+  .hip-keycap-one {
+    position: relative;
+    z-index: 0;
+    display: block;
+    width: 58%;
+    /* 좌대(회색 돌)가 통 아가리 밑으로 완전히 들어가야 한다 —
+       조금이라도 비치면 「앉은 것」이 아니라 「얹은 것」으로 보인다 */
+    margin: 0 auto -82px;
+    /* 놓을 때는 살짝 넘치게 튀어 오른다 */
+    transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
+  }
+  .hip-keycap-one img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 5px 9px rgba(160, 120, 130, 0.2));
+  }
+  /* 연꽃 받침 */
+  .hip-keycap-cup {
     position: absolute;
-    left: 4%;
-    right: 4%;
-    top: 14px;
+    left: 0;
+    right: 0;
     bottom: 0;
-    border-radius: 20px;
-    background: linear-gradient(180deg, #cf6e93 0%, #a94a72 68%, #8e3a5e 100%);
-    transition: bottom 0.06s cubic-bezier(0.2, 0.7, 0.3, 1);
+    z-index: 1;
+    display: block;
+    filter: drop-shadow(0 6px 10px rgba(190, 120, 145, 0.2));
   }
-  /* 윗면 — 실제로 내려간다 */
-  .hip-keycap-top {
-    position: absolute;
-    inset: 0 0 14px 0;
-    display: grid;
-    place-items: center;
-    border-radius: 20px;
-    /* 가운데가 살짝 파인 구면(球面) — 손가락이 앉는 자리 */
-    background:
-      radial-gradient(72% 64% at 50% 34%, #fbd3e1 0%, #f4a9c4 58%, #e88bb0 100%);
-    box-shadow:
-      inset 0 -3px 6px rgba(142, 58, 94, 0.18),
-      inset 0 2px 4px rgba(255, 255, 255, 0.7);
-    transition: transform 0.06s cubic-bezier(0.2, 0.7, 0.3, 1);
+  .hip-keycap-cup svg { display: block; width: 100%; height: auto; }
+  .cup-body { fill: #f0a6c2; }
+  .cup-rim { fill: #dd7ba3; }
+  .cup-shine {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.4);
+    stroke-width: 5;
+    stroke-linecap: round;
   }
-  .hip-keycap-top b {
-    font-family: var(--font-serif);
-    font-weight: 400;
-    font-size: clamp(56px, 16vw, 76px);
+  /* 눌렸다 — 상이 받침 안으로. 내려갈 때는 빠르게 */
+  .hip-keycap.on .hip-keycap-one {
+    transform: translateY(30px) scale(0.985);
+    transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
+  }
+  .hip-keycap.on .hip-keycap-one img {
+    filter: drop-shadow(0 2px 4px rgba(160, 120, 130, 0.26));
+  }
+}
+
+/* 물음만 보기 — 물음 바로 아래.
+   형: 「내려」. 머리 오른쪽에 넷이 서 있어 ○ 가 다섯째로 묻혔다.
+   물음에 딸린 일이니 물음 밑에 둔다. */
+@media (min-width: 0px) {
+  .hip-only-go {
+    margin-top: 28px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid rgba(26, 23, 20, 0.14);
+    font-size: 12px;
     line-height: 1;
-    color: #a94a72;
-    opacity: 0.82;
-    /* 새긴 글자 — 안으로 파인 것처럼 */
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+    color: #a39a8f;
   }
-  /* 눌렸다 — 윗면은 내려가고 옆면은 그만큼 짧아진다 */
-  .hip-keycap.on .hip-keycap-top { transform: translateY(11px); }
-  .hip-keycap.on .hip-keycap-side { bottom: 11px; }
+  .hip-only-go:active { background: rgba(26, 23, 20, 0.05); }
+}
+
+/* 닫힌 서랍은 아예 안 보이게 — 넓은 화면에서 오른쪽 끝에 금빛 테가
+   한 줄 새어 나왔다(translate-x-full 로 밀어내도 그림자는 바깥까지 번진다). */
+@media (min-width: 768px) {
+  .notes-panel[aria-hidden="true"] { visibility: hidden; }
 }

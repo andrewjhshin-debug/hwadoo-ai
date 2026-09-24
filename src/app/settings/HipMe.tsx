@@ -106,7 +106,7 @@ export default function HipMe({
         형: 「내 도량에서 위 아래 스크롤이 안되노 고치고」.
         판(.hip-screen)은 fixed·overflow:hidden 이고 body 도 overflow:hidden 이라,
         안에 통을 하나 만들어 주지 않으면 화면에 스크롤할 자리가 아예 없다. */}
-    <div className="hip-screen hip-screen-scroll md:hidden">
+    <div className="hip-screen hip-screen-scroll">
       <span aria-hidden className="hip-bloom hip-bloom-a" />
       <span aria-hidden className="hip-bloom hip-bloom-b" />
 

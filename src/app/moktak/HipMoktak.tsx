@@ -65,6 +65,8 @@ export type HipMoktakProps = {
       코드로 다시 그렸던 것은 버렸다. 부모가 그려서 넘긴다 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
+  /** 살갗 점 — 오브제 바로 밑. 형: 「목탁 밑에 작은 색상 버튼 동그라미로」 */
+  dots: React.ReactNode;
   /** 키캡 — 눌린 상태와 누르기·떼기.
       형: 「눌리는 거 만들어서, 클릭하면 눌려지면서 키캡 소리 나도록」 */
   keyHits: number;
@@ -94,6 +96,7 @@ export default function HipMoktak({
   options,
   bead,
   bowl,
+  dots,
   keyHits,
   keyDown,
   onKeyDown,
@@ -131,7 +134,7 @@ export default function HipMoktak({
 
   return (
     <HipShell here="/moktak">
-      <div className="hip-screen md:hidden" data-lane={tab}>
+      <div className="hip-screen" data-lane={tab}>
         {/* ① 숨 쉬는 바탕 — 덩이 둘이 서로 다른 박자로 아주 느리게 흐른다 */}
         <span aria-hidden className="hip-bloom hip-bloom-a" />
         <span aria-hidden className="hip-bloom hip-bloom-b" />
@@ -209,30 +212,55 @@ export default function HipMoktak({
           {tab === "bowl" && bowl}
 
           {/* ── 키캡 ──
-              형: 「키캡 디자인 불교적으로 하나 해서, 눌리는 거 만들어서,
-              클릭하면 눌려지면서 키캡 소리 나도록」.
+              형: 「키캡 이 느낌으로 불상이나 캐릭터 불교로 넣어서
+              위아래 올라갔다 내려가게」
+              (형이 보낸 것 — 나무로 깎은 수호신이 연꽃 통에 앉아 있는 부적)
 
-              그림이 아니라 **몸**으로 만든다. 옆면이 있는 사다리꼴 한 덩이를
-              세워 두고, 누르면 그 덩이가 실제로 4px 내려가며 옆면이 그만큼
-              짧아진다 — 눌림이 그림자 장난이 아니라 진짜 이동이라야
-              손끝이 속는다. 자판에 새긴 글자는 卍.
-              소리는 누를 때와 뗄 때가 다르다(부모의 clickKeycap). */}
+              밋밋한 자판 하나를 만들어 놨더니 형이 「이게 뭐냐」 했다.
+              맞다. 키캡의 재미는 **무엇이 눌리느냐**에 있지 네모가
+              내려가는 데 있지 않다. 연꽃 받침에 **반가사유상**을 앉히고,
+              누르면 상이 받침 안으로 쑥 내려갔다 튀어 오른다.
+              우리 캐릭터를 새로 그릴 것도 없었다 — 이미 있었다. */}
           {tab === "keycap" && (
             <button
               className={`hip-keycap${keyDown ? " on" : ""}`}
-              aria-label="키캡 누르기"
+              aria-label="눌러서 한 번"
               onPointerDown={onKeyDown}
               onPointerUp={onKeyUp}
               onPointerLeave={onKeyUp}
               onPointerCancel={onKeyUp}
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              <span className="hip-keycap-side" aria-hidden />
-              <span className="hip-keycap-top">
-                <b>卍</b>
+              {/* 상 — 받침 안으로 내려갔다 올라온다 */}
+              <span className="hip-keycap-one" aria-hidden>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/bangasa.png" alt="" />
+              </span>
+              {/* 연꽃 받침 — 아가리가 꽃잎으로 파였다 */}
+              <span className="hip-keycap-cup" aria-hidden>
+                <svg viewBox="0 0 200 78" aria-hidden>
+                  {/* 통 — 곧은 옆면에 둥근 바닥. 형이 보낸 나무 부적 그대로 */}
+                  <path
+                    className="cup-body"
+                    d="M26 14h148v28a36 36 0 0 1-36 36H62a36 36 0 0 1-36-36z"
+                  />
+                  {/* 아가리 — 얕은 꽃잎으로 판다. 깊게 파면 덩이로 보인다 */}
+                  <path
+                    className="cup-rim"
+                    d="M26 14q12.33-13 24.67 0t24.67 0 24.66 0 24.67 0 24.67 0 24.66 0v9q-12.33 13-24.66 0t-24.67 0-24.67 0-24.66 0-24.67 0-24.67 0z"
+                  />
+                  {/* 빛 한 줄 — 통이 둥글어 보이게 */}
+                  <path
+                    className="cup-shine"
+                    d="M44 30v12a26 26 0 0 0 10 21"
+                  />
+                </svg>
               </span>
             </button>
           )}
+          {/* 살갗 — 오브제 바로 밑. 고르는 것과 보이는 것이 붙어 있어야
+              고른 티가 바로 난다 */}
+          {tab === "moktak" && <div className="hip-obj-foot">{dots}</div>}
 
           {tab === "moktak" && (
           <button
@@ -269,23 +297,12 @@ export default function HipMoktak({
           </button>
           )}
 
-          {/* 백팔 격자 — 그릇은 바퀴를 돌지 않으니 두지 않는다 */}
-          {tab !== "bowl" && (
-            <div
-              className={`hip-grid108 mt-7 w-full${knot ? " knot" : ""}`}
-              role="img"
-              aria-label={`백팔 중 ${inRound}번`}
-            >
-              {Array.from({ length: ROUND }, (_, i) => (
-                <i
-                  key={i}
-                  style={{ ["--i" as string]: String(i) }}
-                  data-on={i < inRound ? "1" : undefined}
-                  data-knot={i % KNOT === 0 ? "1" : undefined}
-                />
-              ))}
-            </div>
-          )}
+          {/* 백팔 격자는 걷었다 —
+              형: 「저 그리드 없애고 그 자리 더 활용해. 그리드 격자 필요 없다」.
+              백여덟 칸이 화면의 절반을 먹으면서 말하는 것은 「몇 번 쳤나」
+              하나뿐인데, 그건 바로 위 큰 숫자가 이미 말하고 있었다.
+              같은 말을 두 번 하면 둘 다 안 읽힌다. 비운 자리는 오브제가
+              받는다 — 크게, 가운데로. */}
 
           {/* 형이 여기 셈 줄에 빨간 X 를 쳤다 — 「이 부분 필요 없고」.
               몇 번 쳤는지는 내 도량으로 간다. 치는 화면에서는 큰 숫자

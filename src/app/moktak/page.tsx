@@ -180,7 +180,10 @@ export default function MoktakPage() {
   // 살갗 — 물건마다 따로 적어 둔다(이 기기에만)
   const [skin, setSkin] = useState<Record<SkinKind, string>>({
     moktak: SKINS.moktak[0].id,
-    bead: SKINS.bead[0].id,
+    // 형: 「염주 원래처럼 핑크 찐한 거 고양이발 염주 그렇게 하고,
+    //      황금색으로 칠해지는 거 유지하자. 동그라미 원 채우는 것도 황금으로」
+    // 처음 들어온 사람에게 보이는 것이 곧 이 앱의 얼굴이다 — 발바닥을 기본으로
+    bead: "paw",
     bowl: SKINS.bowl[0].id,
   });
   const skinSrc = (kind: SkinKind) =>
@@ -530,6 +533,12 @@ export default function MoktakPage() {
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        /* 형: 「탭을 옮기는 것도 쓸어서 넘기고 염주도 쓸어서 넘기다 보니
+           중첩돼서 꼬인다. 해결책은?」
+           → 답은 「가로 쓸기를 **한 임자**에게 준다」다. 염주 위에서 손가락을
+           가로로 끌면 그건 알을 넘기는 것이지 판을 넘기는 것이 아니다.
+           이 표(data-noswipe)를 보고 껍데기가 손을 뗀다. */
+        data-noswipe="1"
         className="relative touch-none select-none"
         style={{ width: "min(340px, 42vh, 84vw)", height: "min(340px, 42vh, 84vw)" }}
         aria-label="염주 굴리기 — 왼쪽으로 쓸거나 톡 누르면 한 알"
@@ -713,73 +722,55 @@ export default function MoktakPage() {
   // 치던 것이 사라진다. 판 **안쪽** 아래에 조용히 깔아 둔다 — 치는 동안
   // 눈에 안 걸리고, 내리면 거기 있다. (바깥에 두면 fixed 판 뒤에 깔린다)
   // 갈래(무엇을)는 머리의 탭이 이미 하고 있으니 여기서 뺀다.
+  // ── 살림살이 — 라벨 없이, 손에 닿는 것만 ──
+  // 형: 「외며 칠 말 이딴 말 지우고, 괜히 그런 텍스트를 넣지 말라니까?」
+  //     「소리 공유마당 실물 녹음 옵션 주지 마라」
+  //     「직관직관직관 모든 건 직관」
+  //
+  // 「외며 칠 말」 「살갗」 「소리」 — 묶음마다 이름표를 달아 뒀다.
+  // 그런데 알약에 이미 「관세음보살」이라 적혀 있는데 그 위에 「외며 칠 말」을
+  // 또 적을 까닭이 없다. 누르면 바뀌고, 바뀌면 안다.
+  // 살갗은 오브제 바로 밑으로 옮겼다 — 고르는 것과 보이는 것이 붙어 있어야
+  // 고른 티가 바로 난다.
   const meOptions = (
     <div className="hip-opts">
-        <p className="hip-sheet-label">외며 칠 말</p>
-        <div className="hip-chips">
-          {JEONGGEUN.map((g) => (
-            <button
-              key={g.id}
-              onClick={() => {
-                setGeunId(g.id);
-                try {
-                  window.localStorage.setItem(JEONGGEUN_KEY, g.id);
-                } catch {
-                  /* 서랍이 막혀도 오늘은 칠 수 있다 */
-                }
-              }}
-              aria-pressed={geunId === g.id}
-              data-on={geunId === g.id ? "1" : undefined}
-            >
-              {g.name}
-            </button>
-          ))}
-        </div>
-
-        <p className="hip-sheet-label">소리</p>
-        <div className="hip-chips">
-          {MOKTAK_VOICES.map((v) => (
-            <button
-              key={v.id}
-              onClick={() => chooseSfx(v.id)}
-              aria-pressed={sfx === v.id}
-              data-on={sfx === v.id ? "1" : undefined}
-            >
-              {v.name}
-            </button>
-          ))}
-        </div>
-
-        <p className="hip-sheet-label">살갗</p>
-        <div className="hip-chips">
-          {SKINS.moktak.map((k) => (
-            <button
-              key={k.id}
-              onClick={() => pickSkin("moktak")(k.id)}
-              aria-pressed={skin.moktak === k.id}
-              data-on={skin.moktak === k.id ? "1" : undefined}
-            >
-              {k.name}
-            </button>
-          ))}
-        </div>
-
-        <div className="hip-sheet-row">
-          <span>자동 목탁 — 틀어 두고 듣기</span>
+      <div className="hip-chips">
+        {JEONGGEUN.map((g) => (
           <button
-            role="switch"
-            aria-checked={auto}
-            aria-label="자동 목탁"
-            onClick={() => setAuto((v) => !v)}
-            data-on={auto ? "1" : undefined}
-            className="hip-switch"
+            key={g.id}
+            onClick={() => {
+              setGeunId(g.id);
+              try {
+                window.localStorage.setItem(JEONGGEUN_KEY, g.id);
+              } catch {
+                /* 서랍이 막혀도 오늘은 칠 수 있다 */
+              }
+            }}
+            aria-pressed={geunId === g.id}
+            data-on={geunId === g.id ? "1" : undefined}
           >
-            <i />
+            {g.name}
           </button>
-        </div>
+        ))}
+      </div>
+
+      <div className="hip-sheet-row">
+        <span>자동 목탁</span>
+        <button
+          role="switch"
+          aria-checked={auto}
+          aria-label="자동 목탁"
+          onClick={() => setAuto((v) => !v)}
+          data-on={auto ? "1" : undefined}
+          className="hip-switch"
+        >
+          <i />
+        </button>
+      </div>
+      {auto && (
         <label className="hip-sheet-range">
           <span>
-            빠르기 <b>{bpm} 회/분</b>
+            <b>{bpm}</b> 회/분
           </span>
           <input
             type="range"
@@ -790,20 +781,27 @@ export default function MoktakPage() {
             onChange={(e) => setBpm(Number(e.target.value))}
           />
         </label>
-        <label className="hip-sheet-range">
-          <span>
-            음량 <b>{Math.round(vol * 100)}%</b>
-          </span>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.05}
-            value={vol}
-            onChange={(e) => setVol(Number(e.target.value))}
-          />
-        </label>
+      )}
+      <label className="hip-sheet-range">
+        <span>
+          <b>{Math.round(vol * 100)}</b>%
+        </span>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.05}
+          value={vol}
+          onChange={(e) => setVol(Number(e.target.value))}
+        />
+      </label>
     </div>
+  );
+
+  // 살갗 점 — 오브제 바로 밑에 붙는다. 형: 「목탁 밑에 작은 색상 버튼
+  // 동그라미로 기존 오리지날처럼」
+  const moktakDots = (
+    <SkinDots kind="moktak" pick={skin.moktak} onPick={pickSkin("moktak")} />
   );
 
   return (
@@ -835,6 +833,7 @@ export default function MoktakPage() {
           bead={hipBead}
           bowl={hipBowl}
           options={meOptions}
+          dots={moktakDots}
         />
       )}
 

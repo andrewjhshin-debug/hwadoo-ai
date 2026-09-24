@@ -930,7 +930,7 @@ export default function Home() {
       day={dayCount(current)}
       unlocked={unlocked}
       pct={moonPct}
-      remaining={remaining > 0 ? `${formatCountdown(remaining)} 남음` : "곧 열립니다"}
+      remaining={remaining > 0 ? formatCountdown(remaining) : ""}
       onOpen={() => {
         setDraft((d) => d || loadDraft(current.hwaduId));
         setWriting(true);

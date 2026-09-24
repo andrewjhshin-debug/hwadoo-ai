@@ -92,6 +92,15 @@ export default function HipShell({
     <div
       className={`hip-swipe ${slide}`}
       onTouchStart={(e) => {
+        // 가로 쓸기의 임자는 하나여야 한다.
+        // 형: 「탭 옮기는 것도 쓸어서 넘기고 염주도 쓸어서 넘기다 보니
+        //      중첩돼서 꼬인다」 — 맞다. 염주 위에서 가로로 끄는 손은
+        //      알을 넘기려는 손이지 판을 넘기려는 손이 아니다.
+        //      data-noswipe 를 단 자리에서 시작한 손짓은 껍데기가 놓는다.
+        if ((e.target as Element)?.closest?.("[data-noswipe]")) {
+          from.current = { x: 0, y: 0, on: false };
+          return;
+        }
         const t = e.touches[0];
         from.current = { x: t.clientX, y: t.clientY, on: true };
       }}
