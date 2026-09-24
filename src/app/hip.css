@@ -1595,11 +1595,85 @@ html[data-theme="light"] {
   }
   /* 판 안에 따로 두었던 점 줄은 이제 껍데기가 맡는다 */
   .hip-screen > .hip-rail { display: none; }
-  /* 점 줄이 떠 있으니 판 아래에 그만큼 자리를 비운다 */
-  .hip-screen { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 56px); }
+  /* 염주 줄이 떠 있으니 판 아래에 그만큼 자리를 비운다 —
+     안 비우면 주 단추가 알 위에 올라탄다 */
+  .hip-screen { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 86px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hip-swipe.from-right .hip-screen,
   .hip-swipe.from-left .hip-screen { animation: none; }
+}
+
+/* ── 염주 줄 — 내비게이션이 곧 염주다 ────────────────────────
+   형: 「시스템조차 탭이니 뭐니 그렇게 말고」. 맞다, 점 다섯도 결국
+   탭이다. 우리한테는 염주가 있는데 탭을 쓸 이유가 없다.
+
+   알 다섯이 실 하나에 꿰여 있다. 지금 있는 자리가 **큰 알**이고 한자
+   한 글자를 품는다. 나머지는 작은 알 — 글자는 흐리게 잠들어 있다. */
+@media (max-width: 767px) {
+  .hip-swipe > .hip-rail { display: none; }
+
+  .hip-mala {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+    z-index: 70;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  /* 실 — 알을 꿰는 한 올 */
+  .hip-mala-thread {
+    position: absolute;
+    left: 24%;
+    right: 24%;
+    top: 50%;
+    height: 1px;
+    background: rgba(26, 23, 20, 0.14);
+  }
+  .hip-mala button {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    box-shadow:
+      inset -3px -4px 7px rgba(26, 23, 20, 0.1),
+      inset 3px 3px 6px rgba(255, 255, 255, 0.9),
+      0 2px 6px rgba(26, 23, 20, 0.12);
+    transition: width 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+      height 0.28s cubic-bezier(0.22, 0.61, 0.36, 1), background-color 0.28s;
+  }
+  .hip-mala button b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 0;
+    line-height: 1;
+    color: transparent;
+    transition: font-size 0.28s, color 0.28s;
+  }
+  /* 지금 자리 — 알이 커지고 글자가 깨어난다 */
+  .hip-mala button[data-on="1"] {
+    width: 46px;
+    height: 46px;
+    background: linear-gradient(150deg, #fbe3ec, #f6b9ce 52%, #ef7ba4);
+    box-shadow:
+      inset -5px -6px 11px rgba(180, 70, 110, 0.25),
+      inset 5px 5px 10px rgba(255, 255, 255, 0.6),
+      0 6px 16px rgba(239, 123, 164, 0.4);
+  }
+  .hip-mala button[data-on="1"] b {
+    font-size: 19px;
+    color: #fff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hip-mala button, .hip-mala button b { transition: none; }
 }
