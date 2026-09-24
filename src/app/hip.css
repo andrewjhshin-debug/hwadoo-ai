@@ -4137,3 +4137,20 @@ html[data-theme="light"] {
     ) !important;
   }
 }
+
+/* ── 정근을 살갗 점 바로 아래로 ────────────────────────────────
+   형: 「나무아미타불은 저기 위로 올려, 동그라미에」
+   (살갗 점 아래가 텅 비어 있고 정근 알약은 한참 밑에 있었다)
+
+   앞서 「전반적으로 더 밑으로 보내고」라 해서 72px 을 밀어 두었는데,
+   그 사이 목탁이 1.6배가 되면서 빈 곳이 크게 생겼다. 물건 바로 아래
+   살갗 점, 그 바로 아래 정근 — 손이 닿는 것끼리 붙여 둔다. */
+@media (min-width: 0px) {
+  .hip-screen[data-lane="moktak"] .hip-opts {
+    margin-top: 16px;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .hip-screen[data-lane="moktak"] .hip-opts .hip-chips { margin-bottom: 14px; }
+  .hip-screen[data-lane="moktak"] .hip-opts .hip-sheet-row { margin-top: 16px; }
+}

@@ -37,6 +37,7 @@ export default function PullToRefresh({
   const [pull, setPull] = useState(0);
   const [busy, setBusy] = useState(false);
   const 시작 = useRef<number | null>(null);
+  const 시작X = useRef(0);
   const 가로 = useRef(false);
 
   const 끝내기 = useCallback(async () => {
@@ -63,11 +64,25 @@ export default function PullToRefresh({
       if (busy) return;
       if (window.scrollY > 2) return; // 맨 위에서만
       시작.current = e.touches[0].clientY;
+      시작X.current = e.touches[0].clientX;
       가로.current = false;
     };
     const 끌기 = (e: TouchEvent) => {
       if (시작.current == null || busy) return;
       const dy = e.touches[0].clientY - 시작.current;
+      const dx = e.touches[0].clientX - 시작X.current;
+      // 형: 「왜 인연에서 화면 쓸어도 공덕으로 안 가지, 오른쪽으로 쓸어도」
+      //
+      // 가로로 끄는 손짓까지 내가 물고 있었다. 아래로 조금이라도 흐르면
+      // preventDefault 를 걸어 버리니, 판을 넘기려는 쓸기가 중간에 죽었다.
+      // **가로가 더 크면 내 일이 아니다** — 판 넘기기(HipShell)에게 넘긴다.
+      // 한 번 가로로 판정되면 그 손짓이 끝날 때까지 다시 안 잡는다.
+      if (가로.current || (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8)) {
+        가로.current = true;
+        if (pull) setPull(0);
+        시작.current = null;
+        return;
+      }
       if (dy <= 0) {
         setPull(0);
         시작.current = null;

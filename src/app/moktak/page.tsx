@@ -575,9 +575,12 @@ export default function MoktakPage() {
               따로 놀았다. 금으로 두르면 염주 한 벌이 된다. */}
           <defs>
             <linearGradient id="hip-arc-gold" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#E8C871" />
-              <stop offset="0.5" stopColor="#C9A063" />
-              <stop offset="1" stopColor="#E3BE6A" />
+              {/* 형: 「염주 돌아가는 그 원 지금 너무 누런 노란색이야.
+                  아예 밝은 금색으로 가」 — 놋쇠빛(#C9A063)이 섞여 있어
+                  누레 보였다. 어두운 쪽을 걷고 밝은 금으로만 세운다. */}
+              <stop offset="0" stopColor="#FFE9A8" />
+              <stop offset="0.45" stopColor="#FFCE4F" />
+              <stop offset="1" stopColor="#FFDE7A" />
             </linearGradient>
           </defs>
           <path
