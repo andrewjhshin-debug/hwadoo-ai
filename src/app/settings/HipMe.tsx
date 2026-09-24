@@ -1,0 +1,125 @@
+"use client";
+
+// ─────────────────────────────────────────────────────────────
+// 나 — 폰 판. 我(아).
+//
+// 형: 「쳐내야 할 아주 당장 필요 없는 기능은 빼고 핵심만」
+//     「텍스트는 아예 거의 다 줄여버려. 의미 정보가 전달되도록만 하고
+//      나머지 다 지우고」
+//     「오리지날을 답습할 필요조차 없다」
+//
+// 옛 내 도량은 한 스크롤에 열다섯 덩이였다 — 마이페이지 + 앱 런처 +
+// 설정 + 약관. 폰에서 그걸 다 펴 둘 이유가 없다.
+//
+// **남긴 것 넷.** 이름 · 자리 · 쌓은 것 · 무엇을 몇 번.
+// 나머지(부적·이달의 마음·우리 절·알림·약관·서비스 격자…)는 전부
+// 「⋯」 하나 뒤로 내렸다. 지운 것은 없다 — 한 겹 아래로 갔을 뿐이다.
+//
+// 글자도 깎았다. 「지금까지 쌓은 공덕」 → 「功德」. 「사미까지 공덕 432」 →
+// 실 한 올과 「沙 432」. 뜻은 남기고 말은 지운다.
+// ─────────────────────────────────────────────────────────────
+
+import Link from "next/link";
+
+const RAIL: { href: string; name: string }[] = [
+  { href: "/ganhwaseon", name: "간화선" },
+  { href: "/moktak", name: "공덕" },
+  { href: "/", name: "뜰" },
+  { href: "/pilgrimage", name: "절로" },
+  { href: "/settings", name: "내 도량" },
+];
+
+export type HipMeProps = {
+  /** 법명 */
+  name: string;
+  /** 얼굴 그림 */
+  face: string;
+  /** 지금 자리의 한자 · 이름 */
+  rank: { hanja: string; name: string };
+  /** 다음 자리까지 0~100 */
+  pct: number;
+  /** 다음 자리 한자 · 남은 공덕 · 모자란 화두 수. 꼭대기면 null.
+      자리는 공덕만으로 안 오른다 — 「沙 0」 만 뜨면 왜 안 오르는지 알 수 없다 */
+  next: { hanja: string; left: number; need: number } | null;
+  merit: number;
+  /** 무엇을 몇 번 — 많이 한 것부터 넉 장만 */
+  hits: { label: string; n: number }[];
+  onMore: () => void;
+};
+
+export default function HipMe({
+  name,
+  face,
+  rank,
+  pct,
+  next,
+  merit,
+  hits,
+  onMore,
+}: HipMeProps) {
+  return (
+    <div className="hip-screen md:hidden">
+      <span aria-hidden className="hip-bloom hip-bloom-a" />
+      <span aria-hidden className="hip-bloom hip-bloom-b" />
+
+      <header className="hip-screen-top">
+        <span className="hip-kicker">我</span>
+        <button onClick={onMore} aria-label="더" className="hip-more">
+          ⋯
+        </button>
+      </header>
+
+      <div className="hip-screen-mid">
+        {/* 얼굴과 이름 — 자리는 한자 한 글자로 곁에 */}
+        <div className="hip-me-head">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={face} alt="" aria-hidden />
+          <div>
+            <p className="hip-me-name">{name}</p>
+            <p className="hip-me-rank">
+              <b>{rank.hanja}</b> {rank.name}
+            </p>
+          </div>
+        </div>
+
+        {/* 다음 자리까지 — 실 한 올과 한자 하나 */}
+        <div className="hip-me-bar">
+          <i style={{ width: `${pct}%` }} />
+        </div>
+        {next && (
+          <p className="hip-me-next">
+            <b>{next.hanja}</b> {next.left.toLocaleString("ko-KR")}
+            {next.need > 0 && (
+              <>
+                {" · "}
+                <b>話</b> {next.need}
+              </>
+            )}
+          </p>
+        )}
+
+        {/* 쌓은 것 — 이 화면의 큰 것 하나 */}
+        <p className="hip-me-merit">{merit.toLocaleString("ko-KR")}</p>
+        <p className="hip-me-merit-k">功 德</p>
+
+        {/* 무엇을 몇 번 — 넉 장이면 족하다 */}
+        <div className="hip-me-hits">
+          {hits.map((h) => (
+            <div key={h.label}>
+              <b>{h.n.toLocaleString("ko-KR")}</b>
+              <span>{h.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <nav className="hip-rail" aria-label="주요 이동">
+        {RAIL.map((r) => (
+          <Link key={r.href} href={r.href} aria-label={r.name}>
+            <i data-on={r.href === "/settings" ? "1" : undefined} />
+          </Link>
+        ))}
+      </nav>
+    </div>
+  );
+}

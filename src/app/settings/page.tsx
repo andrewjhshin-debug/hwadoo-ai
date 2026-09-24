@@ -38,12 +38,14 @@ import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
+import HipMe from "./HipMe";
+import { FACE_BY_ID, loadMe } from "@/lib/me";
 import ShareButton from "@/components/ShareButton";
 import Info from "@/components/Info";
 import LotusCount from "@/components/LotusCount";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import { CHARMS, charmSvg, loadCharms } from "@/lib/charm";
-import { nextRealm, realmOf, REALMS } from "@/lib/realm";
+import { nextRealm, realmOf, realmProgress, REALMS } from "@/lib/realm";
 import { DAILY_EVENT } from "@/lib/daily";
 import {
   DAILY_TOTAL_CAP,
@@ -56,6 +58,7 @@ import {
   ROUND,
   todayRoom,
   type MeritLedger,
+  SOURCE_LABEL,
   type MeritSource,
 } from "@/lib/merit";
 import {
@@ -264,6 +267,11 @@ export default function SettingsPage() {
   const [charms, setCharms] = useState<Record<string, number | undefined>>({});
   const [journalCount, setJournalCount] = useState(0);
   const [teaOpen, setTeaOpen] = useState(false);
+  // 폰 판 — 「⋯」 뒤로 내린 나머지 전부
+  const [meMore, setMeMore] = useState(false);
+  // 법명·얼굴 — 서랍은 붙고 난 뒤에 읽는다(렌더 중 읽으면 하이드레이션이 깨진다)
+  const [me, setMe] = useState<ReturnType<typeof loadMe>>(null);
+  useEffect(() => setMe(loadMe()), []);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [report, setReport] = useState<MonthReport | null>(null);
@@ -706,8 +714,42 @@ export default function SettingsPage() {
     </li>
   );
 
+  // ── 폰 판에 올릴 것만 추려 둔다 ──
+  const meRank = rankByNeed(realmOf(merit.total, journalCount).need);
+  const meUp = nextRealm(merit.total, journalCount);
+  const meHits = (Object.entries(merit.hits ?? {}) as [MeritSource, number][])
+    .filter(([, n]) => (n ?? 0) > 0)
+    .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
+    .slice(0, 4)
+    .map(([k, n]) => ({ label: SOURCE_LABEL[k] ?? k, n: n ?? 0 }));
+
   return (
-    <div className="mx-auto w-full max-w-xl flex-1 px-6 py-12">
+    <>
+    {/* ── 폰 판(我) ──
+        옛 내 도량은 한 스크롤에 열다섯 덩이였다. 폰에서는 넷만 둔다 —
+        이름 · 자리 · 쌓은 것 · 무엇을 몇 번. 나머지는 「⋯」 뒤로.
+        지운 것은 없다, 한 겹 아래로 갔을 뿐이다. */}
+    {!meMore && (
+      <HipMe
+        name={me?.name ?? "나무"}
+        face={FACE_BY_ID[me?.face ?? "namu"].src}
+        rank={{ hanja: meRank.hanja, name: meRank.name }}
+        pct={Math.round(realmProgress(merit.total, journalCount) * 100)}
+        next={
+          meUp
+            ? {
+                hanja: rankByNeed(meUp.to.need).hanja,
+                left: meUp.left,
+                need: meUp.needMore,
+              }
+            : null
+        }
+        merit={merit.total}
+        hits={meHits}
+        onMore={() => setMeMore(true)}
+      />
+    )}
+    <div className={`mx-auto w-full max-w-xl flex-1 px-6 py-12 ${meMore ? "" : "max-md:hidden"}`}>
       {/* 머리 — 왼쪽 공유, 가운데 이름, 오른쪽 내 연꽃·공덕.
           셋을 absolute 로 띄워 뒀더니 알약이 넓어지면서 이름 위로 올라탔다.
           이제 한 줄에 제자리를 준다 — 이름은 남은 폭 한가운데. */}
@@ -1666,5 +1708,6 @@ export default function SettingsPage() {
         </Link>
       </div>
     </div>
+    </>
   );
 }

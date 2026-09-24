@@ -1448,3 +1448,105 @@ html[data-theme="light"] {
     text-align: center;
   }
 }
+
+/* ── 나(我) 판 ─────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .hip-me-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    align-self: stretch;
+  }
+  .hip-me-head img {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #fff;
+  }
+  .hip-me-name {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1;
+    color: #17140f;
+  }
+  .hip-me-rank {
+    margin-top: 8px;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: #9a9187;
+  }
+  .hip-me-rank b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    color: #ef7ba4;
+  }
+  .hip-me-bar {
+    margin-top: 22px;
+    align-self: stretch;
+    height: 1.5px;
+    border-radius: 2px;
+    background: rgba(26, 23, 20, 0.09);
+    overflow: hidden;
+  }
+  .hip-me-bar i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #ef7ba4, #5cc2ac);
+  }
+  .hip-me-next {
+    margin-top: 9px;
+    align-self: flex-end;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    color: #a39a8f;
+  }
+  .hip-me-next b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    color: #8b8175;
+  }
+  .hip-me-merit {
+    margin-top: 44px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 300;
+    font-size: clamp(60px, 19vw, 88px);
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    color: #17140f;
+  }
+  .hip-me-merit-k {
+    margin-top: 12px;
+    font-family: var(--font-serif);
+    font-size: 12px;
+    letter-spacing: 0.44em;
+    color: #a39a8f;
+  }
+  .hip-me-hits {
+    margin-top: 40px;
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid rgba(26, 23, 20, 0.1);
+    padding-top: 20px;
+  }
+  .hip-me-hits b {
+    display: block;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 21px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: #17140f;
+  }
+  .hip-me-hits span {
+    display: block;
+    margin-top: 8px;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    color: #a39a8f;
+  }
+  .hip-me-hits div:nth-child(2) b { color: #e3628f; }
+  .hip-me-hits div:nth-child(3) b { color: #43b39c; }
+}
