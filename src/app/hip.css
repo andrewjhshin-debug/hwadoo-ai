@@ -272,121 +272,190 @@ html[data-theme="light"] .hip-round {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   전면 갈이 — 화면 하나씩 고칠 일이 아니다
+   전면 갈이 — **모바일만.**
 
-   형: 「디자인 근데 뭐 그대론디」. 맞다. 목탁 한 화면에서 숫자만 키운 건
-   개편이 아니다. 판 전체가 바뀌어야 바뀐 것으로 보인다.
+   형: 「너가 고치는 건 모바일만이라고 제한해봐. 웹은 원래대로 두고」.
 
-   카드가 124개다. JSX 를 124군데 고치는 대신 **여기서 한 번에 바꾼다.**
-   Tailwind 유틸리티는 @layer 안에 있고 이 파일은 layer 밖이라, 여기 적은
-   것이 이긴다 — 선택자 특이도를 올릴 필요도 !important 도 필요 없다.
+   그래서 이 덩이 전체를 `max-width: 767px` 안에 가둔다. 768px 은
+   Tailwind 의 `md` 이고, 이 앱이 이미 그 선에서 갈린다 —
+   아래 띠(.mobile-tabbar)는 `md:hidden`, 왼쪽 서랍은 그 위에서만 선다.
+   한 선을 두 벌로 쓰지 않는다.
 
-   `[class~="…"]` 로 클래스 **값 그대로** 겨냥한다. `.rounded-\[14px\]` 처럼
-   이스케이프할 일이 없어 오타로 조용히 빗나가지 않는다.
+   카드가 124개다. JSX 를 124군데 고치는 대신 여기서 한 번에 바꾼다.
+   Tailwind 유틸리티는 @layer 안에 있고 이 파일은 layer 밖이라, 특이도를
+   올리거나 !important 를 쓸 일이 없다. `[class~="…"]` 로 클래스 값을
+   그대로 겨냥해 이스케이프 오타로 조용히 빗나가지 않는다.
    ═══════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  /* ── ① 모서리를 다 키운다 ────────────────────────────────────
+     14px 짜리 카드 63개 · 10px 52개 · 12px 22개 · 16px 20개.
+     둥글기 하나만 올려도 화면 인상이 통째로 바뀐다.
+     rounded-full 은 건드리지 않는다 — 알약이 네모가 된다. */
+  [class~="rounded-[9px]"],
+  [class~="rounded-[10px]"] {
+    border-radius: 15px;
+  }
+  [class~="rounded-[11px]"],
+  [class~="rounded-[12px]"] {
+    border-radius: 18px;
+  }
+  [class~="rounded-[14px]"],
+  [class~="rounded-[15px]"] {
+    border-radius: 22px;
+  }
+  [class~="rounded-[16px]"] {
+    border-radius: 24px;
+  }
+  [class~="rounded-[18px]"] {
+    border-radius: 28px;
+  }
 
-/* ── ① 모서리를 다 키운다 ────────────────────────────────────
-   14px 짜리 카드 63개 · 10px 52개 · 12px 22개 · 16px 20개.
-   둥글기 하나만 올려도 화면 인상이 통째로 바뀐다.
-   rounded-full 은 건드리지 않는다 — 알약이 네모가 된다. */
-[class~="rounded-[9px]"],
-[class~="rounded-[10px]"] {
-  border-radius: 15px;
-}
-[class~="rounded-[11px]"],
-[class~="rounded-[12px]"] {
-  border-radius: 18px;
-}
-[class~="rounded-[14px]"],
-[class~="rounded-[15px]"] {
-  border-radius: 22px;
-}
-[class~="rounded-[16px]"] {
-  border-radius: 24px;
-}
-[class~="rounded-[18px]"] {
-  border-radius: 28px;
+  /* ── ② 판이 뜬다 ─────────────────────────────────────────────
+     먹 위에 먹을 얹으면 카드가 납작하다. 한 톤 들어 올리고 흐린 유리로.
+     테두리는 금빛에서 더 옅게 — 선이 보이는 게 아니라 면이 떠야 한다. */
+  [class~="bg-ink-2/40"],
+  [class~="bg-ink-2/50"],
+  [class~="bg-ink-2/60"],
+  [class~="bg-ink-2"] {
+    background-color: var(--hip-raise);
+    backdrop-filter: blur(16px);
+  }
+  [class~="border-ink-3"] {
+    border-color: var(--hip-edge-soft);
+  }
+
+  /* ── ③ 글씨를 키운다 ─────────────────────────────────────────
+     형: 「무조건 글씨가 커야 잘 보인다고」. 앱이 11~13px 로 꽉 차 있었다.
+     김부따는 본문이 11px 인데 그건 따라가지 않는다 — 반대로 간다. */
+  [class~="text-[11px]"] {
+    font-size: 12px;
+  }
+  [class~="text-[11.5px]"] {
+    font-size: 12.5px;
+  }
+  [class~="text-[12px]"] {
+    font-size: 13px;
+  }
+  [class~="text-[12.5px]"] {
+    font-size: 13.5px;
+  }
+  [class~="text-[13px]"] {
+    font-size: 14px;
+  }
+  [class~="text-[13.5px]"] {
+    font-size: 14.5px;
+  }
+  [class~="text-[15px]"] {
+    font-size: 16px;
+  }
+
+  /* ── ④ 바탕에 결과 온기 ──────────────────────────────────────
+     평평한 먹은 싸 보인다. 아주 미세한 얼룩 한 겹과, 위쪽에서 내려오는
+     따뜻한 기운 한 겹. 오브제가 그 위에 뜬다.
+     #scroll-box 는 layout.tsx 가 세우는 실제 스크롤 통이다. */
+  #scroll-box::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.45;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+  }
+  html[data-theme="light"] #scroll-box::after {
+    mix-blend-mode: multiply;
+    opacity: 0.8;
+  }
+
+  /* ── ⑤ 아래 띠 ───────────────────────────────────────────────
+     흐린 유리로 띄운다. 지금 자리는 금빛 점 하나로 짚는다 —
+     글자를 지우지는 않았다. 아이콘 다섯만으로는 어디가 어딘지 못 읽는다. */
+  .mobile-tabbar {
+    background: color-mix(in srgb, var(--hip-ground) 82%, transparent) !important;
+    backdrop-filter: blur(22px) saturate(1.2);
+    border-top-color: var(--hip-edge-soft) !important;
+  }
+  .mobile-tabbar a {
+    position: relative;
+  }
+  .mobile-tabbar a[class*="text-gold"]::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    translate: -50% 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-gold);
+    box-shadow: 0 0 10px var(--color-gold);
+  }
 }
 
-/* ── ② 판이 뜬다 ─────────────────────────────────────────────
-   먹 위에 먹을 얹으면 카드가 납작하다. 한 톤 들어 올리고 흐린 유리로.
-   테두리는 금빛에서 더 옅게 — 선이 보이는 게 아니라 면이 떠야 한다. */
-[class~="bg-ink-2/40"],
-[class~="bg-ink-2/50"],
-[class~="bg-ink-2/60"],
-[class~="bg-ink-2"] {
-  background-color: var(--hip-raise);
-  backdrop-filter: blur(16px);
-}
-[class~="border-ink-3"] {
-  border-color: var(--hip-edge-soft);
-}
+/* ── ⑥ 輪 · 수레바퀴 ─────────────────────────────────────────
+   자리(位) 여섯을 한 줄 격자로 깔면 글자가 열여덟 개다 —
+   한자 여섯 · 이름 여섯 · 숫자 여섯. 형: 「텍스트 최대한 빼고」.
 
-/* ── ③ 글씨를 키운다 ─────────────────────────────────────────
-   형: 「무조건 글씨가 커야 잘 보인다고」. 앱이 11~13px 로 꽉 차 있었다.
-   김부따는 본문이 11px 인데 그건 따라가지 않는다 — 반대로 간다. */
-[class~="text-[11px]"] {
-  font-size: 12px;
-}
-[class~="text-[11.5px]"] {
-  font-size: 12.5px;
-}
-[class~="text-[12px]"] {
-  font-size: 13px;
-}
-[class~="text-[12.5px]"] {
-  font-size: 13.5px;
-}
-[class~="text-[13px]"] {
-  font-size: 14px;
-}
-[class~="text-[13.5px]"] {
-  font-size: 14.5px;
-}
-[class~="text-[15px]"] {
-  font-size: 16px;
-}
-
-/* ── ④ 바탕에 결과 온기 ──────────────────────────────────────
-   평평한 먹은 싸 보인다. 아주 미세한 얼룩 한 겹과, 위쪽에서 내려오는
-   따뜻한 기운 한 겹. 오브제가 그 위에 뜬다.
-   #scroll-box 는 layout.tsx 가 세우는 실제 스크롤 통이다. */
-#scroll-box::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.45;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
-}
-html[data-theme="light"] #scroll-box::after {
-  mix-blend-mode: multiply;
-  opacity: 0.8;
-}
-
-/* ── ⑤ 아래 띠 ───────────────────────────────────────────────
-   흐린 유리로 띄운다. 지금 자리는 금빛 점 하나로 짚는다 —
-   글자를 지우지는 않았다. 아이콘 다섯만으로는 어디가 어딘지 못 읽는다. */
-.mobile-tabbar {
-  background: color-mix(in srgb, var(--hip-ground) 82%, transparent) !important;
-  backdrop-filter: blur(22px) saturate(1.2);
-  border-top-color: var(--hip-edge-soft) !important;
-}
-.mobile-tabbar a {
+   바퀴로 세우면 **한자 여섯 글자만** 남는다. 어디까지 왔는지는 자리로
+   말하고, 이름과 문턱은 눌렀을 때 알면 된다. */
+.hip-wheel {
   position: relative;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1;
+  margin: 0 auto;
 }
-.mobile-tabbar a[class*="text-gold"]::before {
-  content: "";
+.hip-wheel svg {
   position: absolute;
-  top: 6px;
-  left: 50%;
-  translate: -50% 0;
-  width: 5px;
-  height: 5px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.hip-wheel button {
+  position: absolute;
+  translate: -50% -50%;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 19px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--color-hanji-faint);
+  border: 1px solid transparent;
+  background: transparent;
+  transition: color 0.25s, background-color 0.25s, border-color 0.25s;
+}
+.hip-wheel button[data-got="1"] {
+  color: var(--color-gold-soft);
+  border-color: var(--hip-edge);
+}
+/* 지금 자리는 **글자를 안 쓴다.** 한복판에 같은 글자가 이미 크게 떠 있어,
+   바깥에 한 번 더 쓰면 한 화면에 같은 글자가 둘이 된다.
+   금빛 점 하나면 「여기」라고 말하기에 족하다. */
+.hip-wheel button[data-here="1"] {
+  width: 20px;
+  height: 20px;
+  font-size: 0;
   background: var(--color-gold);
-  box-shadow: 0 0 10px var(--color-gold);
+  border-color: var(--color-gold);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--color-gold) 55%, transparent);
+}
+/* 한복판 — 지금 자리. 글자 하나면 족하다 */
+.hip-wheel .hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  font-family: var(--font-serif);
+  font-size: 52px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--color-gold);
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

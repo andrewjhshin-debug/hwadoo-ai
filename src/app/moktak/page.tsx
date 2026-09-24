@@ -629,12 +629,21 @@ export default function MoktakPage() {
               숫자로 바꾼다 — 이 화면에서 제일 알고 싶은 건 「몇 번 쳤나」
               하나뿐이다. 세 자리로 채워 두면(026) 한 자리에서 세 자리로
               넘어갈 때 자리가 안 흔들린다. */}
-          <p className="rise rise-d1 hip-kicker mt-7">百八 · 木鐸</p>
+          {/* 폰 — 刻. 화면 폭에 물린 거대한 숫자. 세 자리로 채워 두면
+              자릿수가 늘어도 자리가 안 흔들린다(007 → 038) */}
+          <p className="rise rise-d1 hip-kicker mt-7 md:hidden">百八 · 木鐸</p>
           <p
-            className="rise rise-d1 hip-num mt-3"
+            className="rise rise-d1 hip-num mt-3 md:hidden"
             aria-label={`오늘 울린 목탁 ${hits}번`}
           >
             {String(hits).padStart(3, "0")}
+          </p>
+          {/* 웹 — 형: 「웹은 원래대로 두고」 */}
+          <p className="rise rise-d1 mt-8 hidden text-[12px] tracking-[0.35em] text-hanji-faint md:block">
+            오늘 울린 목탁
+          </p>
+          <p className="rise rise-d1 mt-1 hidden font-serif text-[56px] font-light leading-none text-hanji md:block">
+            {hits.toLocaleString("ko-KR")}
           </p>
           {/* 「…8편 · 고르게 치면 合」 은 설명서였다. 무엇이 세어지고 있는지,
               내가 지금 잘하고 있는지가 한눈에 안 들어왔다.
@@ -1105,7 +1114,7 @@ export default function MoktakPage() {
           맨 위 가는 금선(연꽃까지)과 이 격자(백팔 한 바퀴), 둘이면 족하다. */}
       <Link
         href="/settings"
-        className="rise rise-d3 mt-5 w-full max-w-sm rounded-[16px] border border-ink-3 bg-ink-2/40 px-4 py-4 transition-colors hover:border-gold/40"
+        className="rise rise-d3 mt-5 w-full max-w-sm rounded-[16px] border border-ink-3 bg-ink-2/40 px-4 py-4 transition-colors hover:border-gold/40 md:rounded-[12px] md:py-3.5"
       >
         <div className="flex items-baseline justify-between text-[11.5px] tracking-wide">
           <span className="flex items-center gap-1 text-hanji-faint">
@@ -1124,8 +1133,9 @@ export default function MoktakPage() {
             <span className="text-hanji-faint">/{ROUND}</span>
           </span>
         </div>
+        {/* 폰 — 백여덟 칸. 채운 칸이 곧 지나온 길이다 */}
         <div
-          className="hip-grid108 mt-2.5"
+          className="hip-grid108 mt-2.5 md:hidden"
           role="img"
           aria-label={`백팔 중 ${inRound(merit)}번`}
         >
@@ -1136,6 +1146,13 @@ export default function MoktakPage() {
               data-knot={i % 27 === 0 ? "1" : undefined}
             />
           ))}
+        </div>
+        {/* 웹 — 옛 막대 그대로 */}
+        <div className="mt-1.5 hidden h-[5px] overflow-hidden rounded-full bg-ink-3 md:block">
+          <div
+            className="h-full rounded-full bg-gold transition-[width] duration-300"
+            style={{ width: `${(inRound(merit) / ROUND) * 100}%` }}
+          />
         </div>
       </Link>
 

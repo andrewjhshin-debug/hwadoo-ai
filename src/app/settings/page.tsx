@@ -776,11 +776,59 @@ export default function SettingsPage() {
             랭킹 →
           </Link>
         </div>
-        <div className="mt-4 grid grid-cols-6 gap-1.5 border-t border-ink-3 pt-5">
+        {/* ── 輪 · 수레바퀴 ──
+            여섯 자리를 한 줄 격자로 깔면 글자가 열여덟이다 — 한자 여섯 ·
+            이름 여섯 · 문턱 여섯. 형: 「텍스트 최대한 빼고 힙하고 합하게」.
+
+            바퀴로 세우면 **한자 여섯 글자만** 남는다. 이름과 문턱은
+            누르면 알면 되는 것이지, 늘 떠 있을 것이 아니다.
+            (문턱은 그대로 realm.ts 가 쥐고, 이름은 rankByNeed 에서 온다 —
+             육도 등급표로 되돌리지 않는다) */}
+        <div className="mt-4 border-t border-ink-3 pt-6 md:hidden">
+          <div className="hip-wheel">
+            <svg viewBox="0 0 300 300" aria-hidden>
+              <circle cx="150" cy="150" r="104" fill="none" stroke="var(--hip-edge)" strokeWidth="1.5" />
+              <circle
+                cx="150" cy="150" r="74" fill="none"
+                stroke="var(--hip-edge-soft)" strokeWidth="1" strokeDasharray="3 8"
+              />
+            </svg>
+            {REALMS.map((realmSeat, idx) => {
+              // 문턱은 육도가 쥐고, 이름은 자리에서 가져온다(merit.rankByNeed)
+              const r = { ...rankByNeed(realmSeat.need), id: realmSeat.id, mark: rankByNeed(realmSeat.need).hanja };
+              // 뒷방 주인은 모든 자리가 밝다 — 도량 주인의 자리
+              const got = isAdminAccount(user) || merit.total >= r.need;
+              const here = isAdminAccount(user)
+                ? r.id === "cheonsang"
+                : myRealm.id === r.id;
+              const a = ((idx / REALMS.length) * 360 - 90) * (Math.PI / 180);
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  title={`${r.name} · 공덕 ${r.need.toLocaleString("ko-KR")}`}
+                  aria-label={`${r.name} · 공덕 ${r.need.toLocaleString("ko-KR")}`}
+                  aria-current={here ? "true" : undefined}
+                  data-got={got ? "1" : undefined}
+                  data-here={here ? "1" : undefined}
+                  style={{
+                    left: `${50 + 34.7 * Math.cos(a)}%`,
+                    top: `${50 + 34.7 * Math.sin(a)}%`,
+                  }}
+                >
+                  {r.mark}
+                </button>
+              );
+            })}
+            <span className="hub">{rankByNeed(myRealm.need).hanja}</span>
+          </div>
+        </div>
+
+        {/* ── 웹은 원래대로 ── 형: 「웹은 원래대로 두고」.
+            여섯 칸 격자를 768px 위에서만 그대로 세운다 */}
+        <div className="mt-4 hidden grid-cols-6 gap-1.5 border-t border-ink-3 pt-5 md:grid">
           {REALMS.map((realmSeat) => {
-            // 문턱은 육도가 쥐고, 이름은 자리에서 가져온다(merit.rankByNeed)
             const r = { ...rankByNeed(realmSeat.need), id: realmSeat.id, mark: rankByNeed(realmSeat.need).hanja };
-            // 뒷방 주인은 모든 자리가 밝다 — 도량 주인의 자리
             const got = isAdminAccount(user) || merit.total >= r.need;
             const here = isAdminAccount(user)
               ? r.id === "cheonsang"

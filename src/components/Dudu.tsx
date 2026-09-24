@@ -32,14 +32,17 @@ type Props = {
 };
 
 /**
- * **지금은 아무것도 안 그린다.**
+ * **폰에서만 안 그린다.**
  *
- * 형: 「동자승 이미지는 좀 짜쳐. 다시 그릴 테니까 빼고」.
- * 리뉴얼 힙버전은 미니멀로 간다 — 어중간한 캐릭터가 한 장 끼면 그 화면만
- * 결이 어긋난다. 새 그림이 오면 이 한 줄만 지우면 전부 되돌아온다.
- * 부르는 쪽(일곱 군데)은 손대지 않았다 — 자리는 그대로 두고 그림만 뺀다.
+ * 형: 「동자승 이미지는 좀 짜쳐. 다시 그릴 테니까 빼고」
+ *     「너가 고치는 건 모바일만이라고 제한해봐. 웹은 원래대로 두고」
+ *
+ * 그래서 `max-md:hidden` 한 마디만 붙인다 — 768px 아래에서는 아예 자리를
+ * 안 먹고(빈 칸을 남기면 그게 더 흉하다), 그 위에서는 예전 그대로다.
+ * 새 그림이 오면 이 상수만 지우면 폰에서도 돌아온다.
+ * 부르는 일곱 군데는 손대지 않았다.
  */
-const HIDDEN = true;
+const OFF_ON_PHONE = "max-md:hidden";
 
 export default function Dudu({ stage, mood = "default", uid, className, face }: Props) {
   const [art, setArt] = useState<string | null>(null);
@@ -81,18 +84,16 @@ export default function Dudu({ stage, mood = "default", uid, className, face }: 
     };
   }, [stage, track]);
 
-  // 새 그림이 올 때까지 자리만 비워 둔다 — 부르는 쪽의 칸은 그대로 잡아 둔다
-  if (HIDDEN) return <span aria-hidden className={className} />;
-
+  const off = `${className ?? ""} ${OFF_ON_PHONE}`.trim();
   if (art) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={art} alt="" aria-hidden className={className} />
+      <img src={art} alt="" aria-hidden className={off} />
     );
   }
   return (
     <span
-      className={className}
+      className={off}
       dangerouslySetInnerHTML={{ __html: dongja(mood, uid) }}
     />
   );
