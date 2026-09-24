@@ -969,3 +969,71 @@ export function speak(text: string) {
     /* 못 읽어도 절은 이미 했다 */
   }
 }
+
+// ── 키캡 ─────────────────────────────────────────────────────
+// 형: 「공양에 목탁 염주 싱잉볼 옆에 키캡도 하나 넣어라.
+//      클릭하면 눌려지면서 키캡 소리 나도록」
+//
+// 소리는 파일로 안 받는다. 기계식 키보드의 「톡」은 세 겹이 한꺼번에
+// 나는 소리다 —
+//   ① 스템이 하우징 바닥을 때리는 **딸깍**(아주 짧은 잡음, 높게 자른)
+//   ② 키캡 플라스틱이 울리는 **통**(낮은 사인파, 순식간에 죽는)
+//   ③ 스프링이 살짝 튕기는 **찡**(고음 한 점, 아주 작게)
+// 셋을 겹치면 우리 귀가 「키캡」이라고 읽는다. 눌릴 때와 떼일 때의
+// 소리가 달라야 진짜 같으므로 up 을 따로 둔다 — 뗄 때는 더 가볍고 높다.
+
+/** 키캡 하나 — down 은 바닥을 치는 소리, up 은 되돌아오는 소리 */
+export function clickKeycap(vol: number, phase: "down" | "up" = "down") {
+  const ac = audio();
+  if (!ac) return;
+  const t = ac.currentTime;
+  const out = ac.createGain();
+  out.gain.value = vol * (phase === "down" ? 1 : 0.55);
+  out.connect(master(ac));
+
+  // ① 딸깍 — 스템이 바닥에 닿는 소리
+  const src = ac.createBufferSource();
+  src.buffer = noise(ac);
+  const hp = ac.createBiquadFilter();
+  hp.type = "highpass";
+  hp.frequency.value = phase === "down" ? 1800 : 3200;
+  const bp = ac.createBiquadFilter();
+  bp.type = "lowpass";
+  bp.frequency.value = phase === "down" ? 7000 : 9000;
+  const g1 = ac.createGain();
+  g1.gain.setValueAtTime(phase === "down" ? 0.9 : 0.5, t);
+  g1.gain.exponentialRampToValueAtTime(0.0001, t + (phase === "down" ? 0.016 : 0.01));
+  src.connect(hp);
+  hp.connect(bp);
+  bp.connect(g1);
+  g1.connect(out);
+  src.start(t);
+
+  // ② 통 — 키캡 몸이 울리는 낮은 소리. 이게 「싸구려」와 「묵직함」을 가른다
+  const o = ac.createOscillator();
+  o.type = "triangle";
+  const f = (phase === "down" ? 168 : 232) + Math.random() * 18;
+  o.frequency.setValueAtTime(f, t);
+  o.frequency.exponentialRampToValueAtTime(f * 0.72, t + 0.05);
+  const g2 = ac.createGain();
+  g2.gain.setValueAtTime(0.0001, t);
+  g2.gain.exponentialRampToValueAtTime(phase === "down" ? 0.5 : 0.24, t + 0.003);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+  o.connect(g2);
+  g2.connect(out);
+  o.start(t);
+  o.stop(t + 0.1);
+
+  // ③ 찡 — 스프링. 아주 작게, 없으면 허전하고 크면 싸구려가 된다
+  const o2 = ac.createOscillator();
+  o2.type = "sine";
+  o2.frequency.setValueAtTime(2600 + Math.random() * 400, t);
+  const g3 = ac.createGain();
+  g3.gain.setValueAtTime(0.0001, t);
+  g3.gain.exponentialRampToValueAtTime(0.06, t + 0.002);
+  g3.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+  o2.connect(g3);
+  g3.connect(out);
+  o2.start(t);
+  o2.stop(t + 0.05);
+}

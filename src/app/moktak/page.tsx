@@ -30,6 +30,7 @@ import {
   BOWL_TONES,
   buzz,
   clickBead,
+  clickKeycap,
   hushBowl,
   strikeBowl,
   setMoktakVoice,
@@ -87,8 +88,8 @@ const MOKTAK_VOICES: { id: MoktakVoice; name: string; say: string }[] = [
 ];
 /** 마지막으로 하던 수행 — 공덕으로 다시 들어와도 그 자리에서 잇는다. */
 const PRACTICE_TAB_KEY = "hwadu.moktak-tab.v1";
-type PracticeTab = "moktak" | "yeomju" | "bowl";
-const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl"];
+type PracticeTab = "moktak" | "yeomju" | "bowl" | "keycap";
+const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keycap"];
 
 /**
  * 살갗 — 같은 물건, 다른 결.
@@ -225,7 +226,7 @@ export default function MoktakPage() {
   // 공덕
   const [merit, setMerit] = useState(0);
   const [round, setRound] = useState<number | null>(null);
-  const earn = (src: "moktak" | "bead" | "bowl") => {
+  const earn = (src: "moktak" | "bead" | "bowl" | "keycap") => {
     const r = addMerit(src);
     setMerit(r.total);
     if (r.crossed) {
@@ -249,6 +250,30 @@ export default function MoktakPage() {
   // ── 싱잉볼 ────────────────────────────────────────────────
   const [tone, setTone] = useState<BowlTone>("mid");
   const [bowlHits, setBowlHits] = useState(0);
+
+  // ── 키캡 ──────────────────────────────────────────────────
+  // 형: 「공양에 목탁 염주 싱잉볼 옆에 키캡도 하나 넣어라.
+  //      키캡 디자인 불교적으로 하나 해서, 눌리는 거 만들어서,
+  //      클릭하면 눌려지면서 키캡 소리 나도록」
+  //
+  // 목탁·염주·싱잉볼은 다 **소리를 듣는** 물건인데 키캡은 **손끝이
+  // 듣는** 물건이다. 그래서 값은 목탁과 같이 한 번에 하나로 두되,
+  // 누를 때와 뗄 때 소리를 갈랐다 — 눌릴 때 묵직하고 뗄 때 가볍다.
+  // 그 두 소리 사이가 키보드를 키보드로 만든다.
+  const [keyHits, setKeyHits] = useState(0);
+  const [keyDown, setKeyDown] = useState(false);
+  const pressKey = () => {
+    clickKeycap(vol, "down");
+    earn("keycap");
+    buzz(5);
+    setKeyHits((n) => n + 1);
+    setKeyDown(true);
+  };
+  const releaseKey = () => {
+    if (!keyDown) return;
+    setKeyDown(false);
+    clickKeycap(vol, "up");
+  };
   const [ringing, setRinging] = useState(false);
   const ringTimer = useRef<number | null>(null);
 
@@ -336,6 +361,7 @@ export default function MoktakPage() {
     }
     setTotal(b.by.bead ?? 0);
     setBowlHits(b.by.bowl ?? 0);
+    setKeyHits(b.by.keycap ?? 0);
 
     // 살갗 그림을 미리 다 받아 둔다.
     //
@@ -802,6 +828,10 @@ export default function MoktakPage() {
           onHit={hit}
           onAdvance={advance}
           onRing={ringBowl}
+          keyHits={keyHits}
+          keyDown={keyDown}
+          onKeyDown={pressKey}
+          onKeyUp={releaseKey}
           bead={hipBead}
           bowl={hipBowl}
           options={meOptions}

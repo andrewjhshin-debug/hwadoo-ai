@@ -49,6 +49,7 @@ const EVERY = Object.keys({
   fortune: 1,
   mung: 1,
   hasim: 1,
+  keycap: 1,
   daily: 1,
 } satisfies Record<MeritSource, number>) as MeritSource[];
 

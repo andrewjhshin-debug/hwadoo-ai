@@ -36,7 +36,7 @@ import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
 import { ROUND } from "@/lib/merit";
 
-export type HipTab = "moktak" | "yeomju" | "bowl";
+export type HipTab = "moktak" | "yeomju" | "bowl" | "keycap";
 
 export type HipMoktakProps = {
   /** 지금 갈래 — 머리의 탭으로 옮긴다 */
@@ -65,6 +65,12 @@ export type HipMoktakProps = {
       코드로 다시 그렸던 것은 버렸다. 부모가 그려서 넘긴다 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
+  /** 키캡 — 눌린 상태와 누르기·떼기.
+      형: 「눌리는 거 만들어서, 클릭하면 눌려지면서 키캡 소리 나도록」 */
+  keyHits: number;
+  keyDown: boolean;
+  onKeyDown: () => void;
+  onKeyUp: () => void;
   /** 떠오르는 글자 */
   pops: { id: number; ch: string; dx: number; rot: number }[];
 };
@@ -88,10 +94,18 @@ export default function HipMoktak({
   options,
   bead,
   bowl,
+  keyHits,
+  keyDown,
+  onKeyDown,
+  onKeyUp,
   pops,
 }: HipMoktakProps) {
   // 갈래마다 세는 것이 다르다 — 큰 숫자 하나가 그 갈래의 오늘이다
-  const n = tab === "moktak" ? hits : tab === "yeomju" ? beadHits : bowlHits;
+  const n =
+    tab === "moktak" ? hits
+    : tab === "yeomju" ? beadHits
+    : tab === "keycap" ? keyHits
+    : bowlHits;
   const inRound = (tab === "yeomju" ? pos : hits) % ROUND;
   const left = ROUND - inRound;
 
@@ -150,6 +164,7 @@ export default function HipMoktak({
               ["moktak", "목탁"],
               ["yeomju", "염주"],
               ["bowl", "싱잉볼"],
+              ["keycap", "키캡"],
             ] as const
           ).map(([k, label]) => (
             <button
@@ -192,6 +207,32 @@ export default function HipMoktak({
               onPointerUp 이 이미 처리한다(8px 미만이면 한 알). */}
           {tab === "yeomju" && bead}
           {tab === "bowl" && bowl}
+
+          {/* ── 키캡 ──
+              형: 「키캡 디자인 불교적으로 하나 해서, 눌리는 거 만들어서,
+              클릭하면 눌려지면서 키캡 소리 나도록」.
+
+              그림이 아니라 **몸**으로 만든다. 옆면이 있는 사다리꼴 한 덩이를
+              세워 두고, 누르면 그 덩이가 실제로 4px 내려가며 옆면이 그만큼
+              짧아진다 — 눌림이 그림자 장난이 아니라 진짜 이동이라야
+              손끝이 속는다. 자판에 새긴 글자는 卍.
+              소리는 누를 때와 뗄 때가 다르다(부모의 clickKeycap). */}
+          {tab === "keycap" && (
+            <button
+              className={`hip-keycap${keyDown ? " on" : ""}`}
+              aria-label="키캡 누르기"
+              onPointerDown={onKeyDown}
+              onPointerUp={onKeyUp}
+              onPointerLeave={onKeyUp}
+              onPointerCancel={onKeyUp}
+              style={{ WebkitTapHighlightColor: "transparent" }}
+            >
+              <span className="hip-keycap-side" aria-hidden />
+              <span className="hip-keycap-top">
+                <b>卍</b>
+              </span>
+            </button>
+          )}
 
           {tab === "moktak" && (
           <button

@@ -2923,3 +2923,67 @@ html[data-theme="light"] {
     border-top: 0;
   }
 }
+
+/* ── 키캡 ─────────────────────────────────────────────────────
+   형: 「공양에 목탁 염주 싱잉볼 옆에 키캡도 하나 넣어라.
+        키캡 디자인 불교적으로 하나 해서, 눌리는 거 만들어서,
+        클릭하면 눌려지면서 키캡 소리 나도록」
+       「직관직관직관 모든 건 직관」
+
+   그림자로 「눌린 척」하지 않는다. **옆면이 실제로 줄어든다** —
+   윗면은 4px 내려가고 옆면 높이는 그만큼 짧아진다. 눌림이 진짜
+   이동이라야 손끝이 속는다. 설명이 필요 없다, 한 번 누르면 안다.
+
+   불교적으로 — 자판에 새긴 것은 卍(만), 몸은 연꽃 분홍,
+   옆면은 한 단 어두워 깎아 놓은 나무처럼. */
+@media (max-width: 767px) {
+  .hip-keycap {
+    position: relative;
+    display: block;
+    width: min(208px, 56vw);
+    height: min(208px, 56vw);
+    margin: 8px auto 0;
+    /* 눌릴 자리를 미리 비워 둔다 — 눌러도 아래 것들이 안 밀린다 */
+    padding-bottom: 14px;
+    touch-action: manipulation;
+  }
+  /* 옆면 — 키캡의 두께. 이게 있어야 「누를 수 있는 것」으로 보인다 */
+  .hip-keycap-side {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    top: 14px;
+    bottom: 0;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #cf6e93 0%, #a94a72 68%, #8e3a5e 100%);
+    transition: bottom 0.06s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  /* 윗면 — 실제로 내려간다 */
+  .hip-keycap-top {
+    position: absolute;
+    inset: 0 0 14px 0;
+    display: grid;
+    place-items: center;
+    border-radius: 20px;
+    /* 가운데가 살짝 파인 구면(球面) — 손가락이 앉는 자리 */
+    background:
+      radial-gradient(72% 64% at 50% 34%, #fbd3e1 0%, #f4a9c4 58%, #e88bb0 100%);
+    box-shadow:
+      inset 0 -3px 6px rgba(142, 58, 94, 0.18),
+      inset 0 2px 4px rgba(255, 255, 255, 0.7);
+    transition: transform 0.06s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  .hip-keycap-top b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(56px, 16vw, 76px);
+    line-height: 1;
+    color: #a94a72;
+    opacity: 0.82;
+    /* 새긴 글자 — 안으로 파인 것처럼 */
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  }
+  /* 눌렸다 — 윗면은 내려가고 옆면은 그만큼 짧아진다 */
+  .hip-keycap.on .hip-keycap-top { transform: translateY(11px); }
+  .hip-keycap.on .hip-keycap-side { bottom: 11px; }
+}

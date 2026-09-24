@@ -85,6 +85,7 @@ export type MeritSource =
   | "fortune" // 오늘의 운세 — 하루 한 장
   | "mung" // 멍 — 아무것도 안 하고 가만히
   | "hasim" // 하심 — 획을 끝까지 내려감
+  | "keycap" // 키캡 — 한 번 누름. 형: 「목탁 염주 싱잉볼 옆에 키캡도 하나」
   | "daily"; // 오늘의 세 가지를 다 마침
 
 /**
@@ -136,6 +137,9 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   // 맞다 — 엄지만 쓰는 일이다. 몸을 쓰는 절(백팔배 756)보다 한참 아래,
   // 손끝으로 세는 목탁(연타)보다는 위. 백팔로 잡는다.
   hasim: 108,
+  // 키캡 — 한 번 누름(1). 목탁·염주와 같은 값이다. 손가락 하나로 되는
+  // 일이니 더 줄 수 없고, 덜 줄 것도 없다. 셋을 나란히 둔다
+  keycap: 1,
   candle: 9,
   // 오늘의 운세 — 패 한 장. 오래 「염주」 칸에 적혔다. 한 알(1)짜리 갈래를
   // 스물한 번 곱해 넣는 편법이었는데, 그러면 화면에 「염주 1,012」로 보이고
@@ -173,6 +177,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   // TV 보면서 두 엄지로 되는 일에 더 큰 몫을 줄 수는 없다.
   moktak: 2700,
   bead: 2700,
+  keycap: 2700,
   breath: 4860, // 마흔여섯 식(8분)
   hwadu: 3240,
   temple: 4320, // 여덟 곳
@@ -814,6 +819,7 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   fortune: "오늘의 운세",
   mung: "멍 때리기",
   hasim: "하심",
+  keycap: "키캡",
   daily: "오늘의 세 가지",
   mandala: "만다라",
 };
