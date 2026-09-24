@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* 리뉴얼 힙버전 공통 판 — 가지 `renewal-hip` 에서만 산다.
+   이름은 전부 `hip-` 로 시작해 기존 클래스와 겹치지 않는다. */
+@import "./hip.css";
 
 /* ─────────────────────────────────────────────
    화두 디자인 토큰 — 시안(hwadu-home-dark) 기준
@@ -769,3 +772,7 @@ html[data-focus="1"] #scroll-box {
 @media (prefers-reduced-motion: reduce) {
   .wick, .stick-halo { animation: none; }
 }
+
+/* touch */
+
+/* touch */

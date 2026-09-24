@@ -303,7 +303,7 @@ export default function Sidebar() {
     <>
       {/* 모바일 상단 바 — 로고 가운데(절대 중앙), 메뉴 왼쪽 ·
           오른쪽엔 연꽃 상점 · 알림 · 테마 */}
-      <div className="fixed inset-x-0 top-0 z-50 flex h-16 items-center border-b border-ink-3 bg-ink-2/95 px-2 backdrop-blur md:hidden">
+      <div className="hip-topbar fixed inset-x-0 top-0 z-50 flex h-16 items-center border-b border-ink-3 bg-ink-2/95 px-2 backdrop-blur md:hidden">
         {/* 왼쪽 — 삼선 메뉴 */}
         <button
           onClick={() => setOpen(!open)}
@@ -322,7 +322,7 @@ export default function Sidebar() {
         <Link
           href="/"
           onClick={go("/")}
-          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5"
+          className="hip-brand absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5"
         >
           <Beopryun className="h-7 w-7" stroke="#D9B45B" />
           <span className="text-gold-grad font-serif text-xl font-semibold tracking-[0.35em]">

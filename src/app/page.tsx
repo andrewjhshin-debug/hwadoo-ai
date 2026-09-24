@@ -18,9 +18,12 @@ import {
   bankCount,
   getHwadu,
   pickRandomHwadu,
+  sessionBrief,
   sessionQuestion,
 } from "@/lib/hwadu";
 import Question from "@/components/Question";
+import { HipGardenEmpty, HipGardenHolding, HipGardenOnly } from "./HipGarden";
+import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { fetchPublicHwadu, markSeen, type PublicHwadu } from "@/lib/thrown";
 import { plainThoughts } from "@/lib/thoughts";
 import {
@@ -132,9 +135,12 @@ const FOLD =
 // 글자만 크고 읽히지는 않는다.
 function questionFit(text: string): { min: number; max: number } {
   const n = text.replace(/\s+/g, " ").trim().length;
-  if (n <= 40) return { min: 34, max: 88 };
-  if (n <= 62) return { min: 29, max: 80 };
-  return { min: 25, max: 72 };
+  // 리뉴얼 힙버전 — 폰에서는 clamp 이 거의 늘 min 에 걸린다. 그 min 을
+  // 올려야 실제로 커진다. max 는 그대로 — 데스크톱은 이미 충분히 크다.
+  // 짧은 화두일수록 크게 — 긴 것까지 키우면 폰에서 한 화면을 통째로 먹는다
+  if (n <= 40) return { min: 42, max: 92 };
+  if (n <= 62) return { min: 33, max: 80 };
+  return { min: 26, max: 70 };
 }
 
 export default function Home() {
@@ -145,6 +151,14 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  // 형: 「로그인 화면은 오늘의 물음을 받으시겠습니까가 좋겠다.
+  //      대신 그거 로그인 안 한 상태에서 눌리면 가입부터 유도」
+  // 화면을 따로 만들지 않는다 — 이 화면이 곧 로그인 화면이다.
+  // 손님인지 아닌지는 단추를 눌렀을 때에야 갈린다.
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [askJoin, setAskJoin] = useState(false);
+  const [joinBusy, setJoinBusy] = useState(false);
+  const [joinErr, setJoinErr] = useState("");
   // 들어올 때의 연출을 **처음 한 번만** 튼다. 화두만 보기를 한 번이라도
   // 다녀오면 그 뒤로는 그냥 화면이 있다 — 형: 「두둥 하면서 튀지 말고」
   const [seenOnce, setSeenOnce] = useState(false);
@@ -231,6 +245,29 @@ export default function Home() {
   // 같은 자리에서 문서 뿌리에 표를 붙인다 — 아래 띠(MobileTabBar)와 떠 있는
   // 도량 단추(DoryangMenu)가 그 표를 보고 스스로 사라진다(globals.css).
   // 두 부품 모두 이 화면 밖에 사는지라, 여기서 직접 감출 길이 없다.
+  useEffect(() => watchAuth((u) => setSignedIn(!!u)), []);
+
+  const join = async () => {
+    setJoinBusy(true);
+    setJoinErr("");
+    try {
+      await loginWithGoogle();
+      setAskJoin(false);
+    } catch (e) {
+      const code = (e as { code?: string })?.code ?? "";
+      setJoinErr(
+        code === "auth/popup-blocked"
+          ? "팝업이 막혔습니다. 브라우저에서 팝업을 허용해 주세요."
+          : code === "auth/popup-closed-by-user" ||
+              code === "auth/cancelled-popup-request"
+            ? "창이 닫혔습니다. 다시 해 보세요."
+            : "지금은 들어가지 못했습니다. 잠시 뒤에 다시."
+      );
+    } finally {
+      setJoinBusy(false);
+    }
+  };
+
   useEffect(() => {
     document.documentElement.dataset.focus = focusMode ? "1" : "";
     if (focusMode) window.localStorage.setItem("hwadoo-focus", "1");
@@ -443,8 +480,26 @@ export default function Home() {
   // ── 화두가 없다 — 브랜드 얼굴 ──────────────────────────
   if (store !== null && !current) {
     return (
-      <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-6 text-center sm:justify-center sm:py-16">
-        <div className="rise-sharp">
+      <>
+      {/* ── 폰 판 ── 화면을 통째로 덮는다. 옛 판은 웹에만 남는다 */}
+      <HipGardenEmpty
+        audience={(store?.audience ?? "adult") as "adult" | "student"}
+        onAudience={(a) => update((base) => ({ ...base, audience: a }))}
+        /* 손님이면 화두 대신 문부터 연다. signedIn 이 아직 null 이면
+           (인증을 읽는 중) 그냥 받게 둔다 — 기다리게 하지 않는다 */
+        onReceive={() => (signedIn === false ? setAskJoin(true) : receive())}
+        join={
+          askJoin
+            ? { busy: joinBusy, error: joinErr, onJoin: join, onClose: () => setAskJoin(false) }
+            : null
+        }
+      />
+      <div className="relative hidden flex-1 flex-col items-center justify-start px-5 pb-16 pt-6 text-center md:flex sm:justify-center sm:py-16">
+        {/* 폰은 이름이 주인공이라 표식을 한 단 줄인다. 웹은 원래대로 */}
+        <div className="rise-sharp md:hidden">
+          <Enso size={82} />
+        </div>
+        <div className="rise-sharp hidden md:block">
           <Enso size={116} />
         </div>
         {/* 이름 한 줄, 슬로건 한 줄.
@@ -452,7 +507,7 @@ export default function Home() {
             로마자는 뺀다 — 이 도량의 이름은 두 글자로 족하다.
             크기도 한 단 내렸다. 화면을 가득 메우면 이름이 아니라 간판이 된다. */}
         <div className="rise-sharp rise-s1 mt-5 flex justify-center">
-          <h1 className="text-obang font-serif text-[clamp(46px,13vw,64px)] font-medium leading-[1.02] tracking-[0.06em] [text-indent:0.06em]">
+          <h1 className="text-obang font-serif text-[clamp(72px,21vw,92px)] font-medium leading-[1.02] tracking-[0.06em] [text-indent:0.06em] md:text-[clamp(46px,13vw,64px)]">
             화두
           </h1>
         </div>
@@ -460,15 +515,25 @@ export default function Home() {
         <p className="rise-sharp rise-s1 mt-5 max-w-[19rem] break-keep text-[12.5px] font-light leading-6 tracking-[0.04em] text-hanji-dim">
           &ldquo;{SLOGAN}&rdquo;
         </p>
-        <div className="rise-sharp rise-s2 my-8 flex items-center gap-3 opacity-70">
+        {/* 장식이라 폰에서는 뺀다 — 비우는 것이 미니멀이다 */}
+        <div className="rise-sharp rise-s2 my-8 hidden items-center gap-3 opacity-70 md:flex">
           <div className="h-px w-[72px] bg-gradient-to-r from-transparent to-gold/45" />
           <Dharmachakra className="h-4 w-4" stroke="#B99A54" />
           <div className="h-px w-[72px] bg-gradient-to-r from-gold/45 to-transparent" />
         </div>
         {/* 이 화면에서 눈이 갈 곳은 여기 하나 — 손가락 폭만큼 넓고 높게 */}
+        {/* 폰 — 금으로 채운 알약. 먹 위에서 이게 제일 세게 읽힌다 */}
         <button
           onClick={receive}
-          className="btn-obang btn-hot rise-sharp rise-s2 inline-flex h-[60px] w-full max-w-[19rem] items-center justify-center gap-2.5 font-serif text-[16px] tracking-[0.3em] text-hanji"
+          className="hip-cta rise-sharp rise-s2 mt-10 w-full max-w-[19rem] gap-2.5 font-serif !text-[17px] tracking-[0.3em] md:hidden"
+        >
+          <Lotus className="h-[18px] w-[18px]" stroke="#17140F" />
+          <span className="[text-indent:0.3em]">새 화두 받기</span>
+        </button>
+        {/* 웹 — 원래대로 */}
+        <button
+          onClick={receive}
+          className="btn-obang btn-hot rise-sharp rise-s2 hidden h-[60px] w-full max-w-[19rem] items-center justify-center gap-2.5 font-serif text-[16px] tracking-[0.3em] text-hanji md:inline-flex"
         >
           <Lotus className="h-[18px] w-[18px]" stroke="#B99A54" />
           <span className="[text-indent:0.3em]">새 화두 받기</span>
@@ -500,7 +565,7 @@ export default function Home() {
             );
           })}
         </div>
-        <div className="mt-12 flex gap-2.5 opacity-50">
+        <div className="mt-12 hidden gap-2.5 opacity-50 md:flex">
           <i className="h-[5px] w-[5px] rounded-full bg-obang-blue" />
           <i className="h-[5px] w-[5px] rounded-full bg-vermilion" />
           <i className="h-[5px] w-[5px] rounded-full bg-gold" />
@@ -508,6 +573,7 @@ export default function Home() {
           <i className="h-[5px] w-[5px] rounded-full bg-[#494340]" />
         </div>
       </div>
+      </>
     );
   }
 
@@ -804,7 +870,13 @@ export default function Home() {
   // 화두만 보기 — 오직 화두 하나만, 되돌아가기 버튼과 함께
   if (focusMode) {
     return (
-      <div className="relative flex flex-1 items-center justify-center px-5 pb-24 pt-4 text-center sm:py-12">
+      <>
+      {/* ── 폰 판 ── 물음 하나뿐. 염주도 걷는다 */}
+      <HipGardenOnly
+        question={sessionBrief(current)}
+        onBack={() => setFocusMode(false)}
+      />
+      <div className="relative hidden flex-1 items-center justify-center px-5 pb-24 pt-4 text-center md:flex sm:py-12">
         <ShareButton
           title="화두 공유"
           text={`화두 — ${sessionQuestion(current)}`}
@@ -825,6 +897,7 @@ export default function Home() {
           되돌아가기
         </button>
       </div>
+      </>
     );
   }
 
@@ -846,7 +919,33 @@ export default function Home() {
     // 화두만 보기는 위에서부터 세우니, 오갈 때마다 물음이 백사십 픽셀씩
     // 뛰었다 — 형: 「두둥 하면서 튀지 말고 그냥 화면 보여줘」.
     // 둘 다 **위에서부터** 세운다. 그러면 오가도 물음이 안 움직인다.
-    <div className="relative flex flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center sm:py-12">
+    <>
+    {/* ── 폰 판 ── 물음이 곧 화면이다.
+        품는 날수(dayOptions·onDays)와 내려놓기(onDrop)는 새 판에 진작
+        그려 놨는데 여기서 안 넘기고 있었다 — 그래서 통째로 안 떴다.
+        핸들러는 새로 짜지 않는다. 부모가 쥔 것을 그대로 준다. */}
+    <HipGardenHolding
+      question={sessionBrief(current)}
+      source={current.customSource ?? hwadu?.context ?? null}
+      day={dayCount(current)}
+      unlocked={unlocked}
+      pct={moonPct}
+      remaining={remaining > 0 ? `${formatCountdown(remaining)} 남음` : "곧 열립니다"}
+      onOpen={() => {
+        setDraft((d) => d || loadDraft(current.hwaduId));
+        setWriting(true);
+      }}
+      onNotes={() => setNotesOpen(true)}
+      onFocus={() => {
+        setSeenOnce(true);
+        setFocusMode(true);
+      }}
+      days={current.durationDays}
+      dayOptions={DAY_OPTIONS}
+      onDays={setDays}
+      onDrop={layDown}
+    />
+    <div className="relative hidden flex-1 flex-col items-center justify-start px-5 pb-16 pt-4 text-center md:flex sm:py-12">
       <ShareButton
         title="화두 공유"
         text={`화두 — ${sessionQuestion(current)}`}
@@ -918,16 +1017,58 @@ export default function Home() {
             </button>
           </div>
         ) : (
-          /* 아직 차오르는 중 — 숫자와 막대 하나. 화두보다는 낮게 둔다 */
-          <div className="mt-10 w-full max-w-md rounded-[16px] border border-ink-3 bg-ink-2/40 px-6 py-6">
+          /* 아직 차오르는 중 —
+             판 두 장(달 카드 · 참구법 카드)이 화두 아래에 층층이 서 있었다.
+             형: 「힙하고 미니멀하게」. 테두리와 바탕을 걷고 **한 덩이**로
+             내린다. 남는 것은 숫자와 실선 하나, 그리고 오늘의 한 줄뿐이다. */
+          <div className="mt-12 flex w-full max-w-md flex-col items-center md:hidden">
+            <span className="flex items-center gap-2 text-[10px] tracking-[0.34em] text-hanji-faint">
+              {/* .moon 의 본디 크기가 15px — 따로 키우지 않는다 */}
+              <span className="moon shrink-0" />
+              달이 차오르는 중 · {dayCount(current)}일째
+            </span>
+            {remaining > 0 && (
+              // 전체 문장은 aria-label 로 그대로 읽힌다 — 토막은 눈을 위한 것
+              <div
+                className="mt-5 flex items-end justify-center gap-4"
+                aria-label={`${formatCountdown(remaining)} 남음`}
+              >
+                {countdownParts(remaining).map((p) => (
+                  <span key={p.unit} className="flex items-baseline gap-1">
+                    <span className="font-serif text-[34px] font-light leading-none tabular-nums text-hanji-dim">
+                      {p.value}
+                    </span>
+                    <span className="text-[10.5px] text-hanji-faint">
+                      {p.unit}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            )}
+            {/* 실 한 올 — 막대가 아니라 선이다. 다 차면 금이 끝까지 간다 */}
+            <div className="mt-6 h-px w-full max-w-[17rem] overflow-hidden bg-[var(--hip-edge-soft)]">
+              <div
+                className="h-full bg-gold transition-[width] duration-1000"
+                style={{ width: `${moonPct}%` }}
+              />
+            </div>
+            {/* 오늘의 참구법 — 따로 선 판이었다. 달 밑 한 줄로 내린다 */}
+            <p className="mt-6 max-w-[21rem] break-keep text-center text-[12.5px] font-light leading-7 text-hanji-dim">
+              {todayGuide(dayCount(current))}
+            </p>
+          </div>
+        )}
+
+        {/* ── 웹은 원래대로 ── 형: 「웹은 원래대로 두고」.
+            달 카드와 참구법 카드 두 장을 768px 위에서만 그대로 세운다 */}
+        {!unlocked && (
+          <div className="mt-10 hidden w-full max-w-md rounded-[16px] border border-ink-3 bg-ink-2/40 px-6 py-6 md:block">
             <div className="flex flex-col items-center">
               <span className="flex items-center gap-2 text-[10px] tracking-[0.3em] text-hanji-faint">
-                {/* .moon 의 본디 크기가 15px — 따로 키우지 않는다 */}
                 <span className="moon shrink-0" />
                 달이 차오르는 중 · {dayCount(current)}일째
               </span>
               {remaining > 0 && (
-                // 전체 문장은 aria-label 로 그대로 읽힌다 — 토막은 눈을 위한 것
                 <div
                   className="mt-4 flex items-end justify-center gap-3.5"
                   aria-label={`${formatCountdown(remaining)} 남음`}
@@ -956,11 +1097,8 @@ export default function Home() {
             </div>
           </div>
         )}
-
-        {/* 오늘의 참구법 — 날마다 다른 사유의 길.
-            달 카드와 한 덩어리로 붙여, 카드 둘이 따로 서지 않게 한다 */}
         {!unlocked && (
-          <div className="mt-2.5 w-full max-w-md rounded-[16px] border border-ink-3 bg-ink-2/40 px-6 py-5 text-left">
+          <div className="mt-2.5 hidden w-full max-w-md rounded-[16px] border border-ink-3 bg-ink-2/40 px-6 py-5 text-left md:block">
             <p className="text-[10px] tracking-[0.34em] text-gold-soft">
               오늘의 참구법 · {dayCount(current)}일째
             </p>
@@ -1060,8 +1198,11 @@ export default function Home() {
         </button>
       </section>
 
-      {/* 사유의 방 서랍 */}
-      <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
     </div>
+    {/* 사유의 방 서랍 — **웹 분기 밖에 둔다.**
+        형: 「사유의 방은 작동 안 한다」. 맞다 — 서랍이 `hidden md:flex` 안에
+        들어 있어서 폰에서는 단추를 눌러도 열릴 것이 없었다. 밖으로 뺀다. */}
+    <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
+    </>
   );
 }

@@ -38,12 +38,14 @@ import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
+import HipMe from "./HipMe";
+import { ME_EVENT, loadMe, nameProblem, pickMe, setName } from "@/lib/me";
 import ShareButton from "@/components/ShareButton";
 import Info from "@/components/Info";
 import LotusCount from "@/components/LotusCount";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import { CHARMS, charmSvg, loadCharms } from "@/lib/charm";
-import { nextRealm, realmOf, REALMS } from "@/lib/realm";
+import { nextRealm, realmOf, realmProgress, REALMS } from "@/lib/realm";
 import { DAILY_EVENT } from "@/lib/daily";
 import {
   DAILY_TOTAL_CAP,
@@ -56,6 +58,7 @@ import {
   ROUND,
   todayRoom,
   type MeritLedger,
+  SOURCE_LABEL,
   type MeritSource,
 } from "@/lib/merit";
 import {
@@ -264,6 +267,18 @@ export default function SettingsPage() {
   const [charms, setCharms] = useState<Record<string, number | undefined>>({});
   const [journalCount, setJournalCount] = useState(0);
   const [teaOpen, setTeaOpen] = useState(false);
+  // 폰 판 — 「⋯」 뒤로 내린 나머지 전부
+  const [meMore, setMeMore] = useState(false);
+  // 법명·얼굴 — 서랍은 붙고 난 뒤에 읽는다(렌더 중 읽으면 하이드레이션이 깨진다)
+  const [me, setMe] = useState<ReturnType<typeof loadMe>>(null);
+  useEffect(() => {
+    setMe(loadMe());
+    // 법명을 이 화면에서 고치므로, 고친 즉시 여기도 바뀌어야 한다.
+    // 한 번만 읽고 말면 고쳐 놓고도 옛 이름이 그대로 떠 있다
+    const onMe = () => setMe(loadMe());
+    window.addEventListener(ME_EVENT, onMe);
+    return () => window.removeEventListener(ME_EVENT, onMe);
+  }, []);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [report, setReport] = useState<MonthReport | null>(null);
@@ -706,8 +721,136 @@ export default function SettingsPage() {
     </li>
   );
 
+  // ── 폰 판에 올릴 것만 추려 둔다 ──
+  const meRank = rankByNeed(realmOf(merit.total, journalCount).need);
+  const meUp = nextRealm(merit.total, journalCount);
+  // 서비스 전부 — 형: 「서비스 다 넣어주고」.
+  // 폰 판은 그림 대신 **한자 한 글자**다. 스물넷을 동그라미로 깔면
+  // 그림은 다 달라도 알아보기 어렵고, 한 글자는 작아도 또렷하다.
+  const ME_MARK: Record<string, string> = {
+    "/": "苑", "/ganhwaseon": "禪", "/masters": "師", "/room": "思",
+    "/my-hwadu": "問", "/mandala": "曼", "/pilgrimage": "寺", "/gathering": "緣",
+    "/moktak": "功", "/sambae": "歸", "/bae": "拜", "/breath": "息",
+    "/mung": "無", "/empty": "空", "/candle": "燈", "/lotus": "蓮",
+    "/community": "池", "/archive": "庫", "/sutra": "經", "/draw": "占",
+    "/rank": "進", "/tea": "茶", "/goods": "物", "/tamjinchi": "投",
+    "/hasim": "下", "/letters": "信", "/moment": "時",
+  };
+  const meServices = [
+    // 하심·쪽지·시절은 SERVICES 에 없다 — 폰 판에서는 같이 연다
+    { href: "/hasim", label: "하심" },
+    ...SERVICES.filter((v) => v.href && !v.soon).map((v) => ({
+      href: v.href as string,
+      label: v.label,
+    })),
+    { href: "/letters", label: "쪽지" },
+  ]
+    .filter((v, i, a) => a.findIndex((w) => w.href === v.href) === i)
+    .map((v) => ({ ...v, mark: ME_MARK[v.href] ?? "·" }));
+
+  const meHits = (Object.entries(merit.hits ?? {}) as [MeritSource, number][])
+    .filter(([, n]) => (n ?? 0) > 0)
+    .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
+    // 형: 「내가 쌓은 공덕은 … 몇 번 쳤는지를 내 도량에서 보여주고」.
+    // 넷으로 자르던 것을 걷는다 — 한 것은 다 보여 준다
+    .map(([k, n]) => ({ label: SOURCE_LABEL[k] ?? k, n: n ?? 0 }));
+
   return (
-    <div className="mx-auto w-full max-w-xl flex-1 px-6 py-12">
+    <>
+    {/* ── 폰 판(我) ──
+        옛 내 도량은 한 스크롤에 열다섯 덩이였다. 폰에서는 넷만 둔다 —
+        이름 · 자리 · 쌓은 것 · 무엇을 몇 번. 나머지는 「⋯」 뒤로.
+        지운 것은 없다, 한 겹 아래로 갔을 뿐이다. */}
+    {!meMore && (
+      <HipMe
+        name={me?.name ?? "나무"}
+        rank={{ hanja: meRank.hanja, name: meRank.name }}
+        pct={Math.round(realmProgress(merit.total, journalCount) * 100)}
+        next={
+          meUp
+            ? {
+                hanja: rankByNeed(meUp.to.need).hanja,
+                left: meUp.left,
+                need: meUp.needMore,
+              }
+            : null
+        }
+        merit={merit.total}
+        hits={meHits}
+        services={meServices}
+        guest={user === null}
+        account={
+          user === undefined ? (
+            <p className="hip-acc-wait">불러오는 중</p>
+          ) : user ? (
+            <>
+              <p className="hip-acc-who">{user.email ?? "이메일 없음"}</p>
+              <button
+                onClick={() => logout().catch(() => {})}
+                className="hip-acc-out"
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleLogin}
+                disabled={loginBusy}
+                className="hip-strike"
+              >
+                {loginBusy ? "여는 중" : "구글로 로그인"}
+              </button>
+              <p className="hip-acc-why">
+                로그인하면 기기가 바뀌어도 이어집니다 · 만 19세 이상
+              </p>
+              {loginError && <p className="hip-acc-bad">{loginError}</p>}
+            </>
+          )
+        }
+        /* 법명 고치기 — 형: 「내 도량에서 법명이나 아이디 고칠 수 있도록」.
+           setName 은 어긋나면 까닭을 문자열로 돌려준다(맞으면 null) */
+        onRename={(next) => setName(next) ?? null}
+        onReroll={() => setName(pickMe().name)}
+        nameProblem={nameProblem}
+        seats={REALMS.map((seat) => {
+          const r = rankByNeed(seat.need);
+          return {
+            hanja: r.hanja,
+            name: r.name,
+            need: seat.need,
+            got: isAdminAccount(user) || merit.total >= seat.need,
+            here: myRealm.id === seat.id,
+          };
+        })}
+        charms={
+          <div className="hip-charms">
+            {CHARMS.map((c) => (
+              <span
+                key={c.id}
+                data-got={charms[c.id] ? "1" : undefined}
+                title={charms[c.id] ? c.wish : c.how}
+                dangerouslySetInnerHTML={{ __html: charmSvg(c.id, "m" + c.id) }}
+              />
+            ))}
+          </div>
+        }
+        bells={
+          <div className="hip-bells">
+            {BELLS.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => toggleBell(b.id)}
+                data-on={bells.includes(b.id) ? "1" : undefined}
+              >
+                {b.time}
+              </button>
+            ))}
+          </div>
+        }
+      />
+    )}
+    <div className={`mx-auto w-full max-w-xl flex-1 px-6 py-12 ${meMore ? "" : "max-md:hidden"}`}>
       {/* 머리 — 왼쪽 공유, 가운데 이름, 오른쪽 내 연꽃·공덕.
           셋을 absolute 로 띄워 뒀더니 알약이 넓어지면서 이름 위로 올라탔다.
           이제 한 줄에 제자리를 준다 — 이름은 남은 폭 한가운데. */}
@@ -776,11 +919,59 @@ export default function SettingsPage() {
             랭킹 →
           </Link>
         </div>
-        <div className="mt-4 grid grid-cols-6 gap-1.5 border-t border-ink-3 pt-5">
+        {/* ── 輪 · 수레바퀴 ──
+            여섯 자리를 한 줄 격자로 깔면 글자가 열여덟이다 — 한자 여섯 ·
+            이름 여섯 · 문턱 여섯. 형: 「텍스트 최대한 빼고 힙하고 합하게」.
+
+            바퀴로 세우면 **한자 여섯 글자만** 남는다. 이름과 문턱은
+            누르면 알면 되는 것이지, 늘 떠 있을 것이 아니다.
+            (문턱은 그대로 realm.ts 가 쥐고, 이름은 rankByNeed 에서 온다 —
+             육도 등급표로 되돌리지 않는다) */}
+        <div className="mt-4 border-t border-ink-3 pt-6 md:hidden">
+          <div className="hip-wheel">
+            <svg viewBox="0 0 300 300" aria-hidden>
+              <circle cx="150" cy="150" r="104" fill="none" stroke="var(--hip-edge)" strokeWidth="1.5" />
+              <circle
+                cx="150" cy="150" r="74" fill="none"
+                stroke="var(--hip-edge-soft)" strokeWidth="1" strokeDasharray="3 8"
+              />
+            </svg>
+            {REALMS.map((realmSeat, idx) => {
+              // 문턱은 육도가 쥐고, 이름은 자리에서 가져온다(merit.rankByNeed)
+              const r = { ...rankByNeed(realmSeat.need), id: realmSeat.id, mark: rankByNeed(realmSeat.need).hanja };
+              // 뒷방 주인은 모든 자리가 밝다 — 도량 주인의 자리
+              const got = isAdminAccount(user) || merit.total >= r.need;
+              const here = isAdminAccount(user)
+                ? r.id === "cheonsang"
+                : myRealm.id === r.id;
+              const a = ((idx / REALMS.length) * 360 - 90) * (Math.PI / 180);
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  title={`${r.name} · 공덕 ${r.need.toLocaleString("ko-KR")}`}
+                  aria-label={`${r.name} · 공덕 ${r.need.toLocaleString("ko-KR")}`}
+                  aria-current={here ? "true" : undefined}
+                  data-got={got ? "1" : undefined}
+                  data-here={here ? "1" : undefined}
+                  style={{
+                    left: `${50 + 34.7 * Math.cos(a)}%`,
+                    top: `${50 + 34.7 * Math.sin(a)}%`,
+                  }}
+                >
+                  {r.mark}
+                </button>
+              );
+            })}
+            <span className="hub">{rankByNeed(myRealm.need).hanja}</span>
+          </div>
+        </div>
+
+        {/* ── 웹은 원래대로 ── 형: 「웹은 원래대로 두고」.
+            여섯 칸 격자를 768px 위에서만 그대로 세운다 */}
+        <div className="mt-4 hidden grid-cols-6 gap-1.5 border-t border-ink-3 pt-5 md:grid">
           {REALMS.map((realmSeat) => {
-            // 문턱은 육도가 쥐고, 이름은 자리에서 가져온다(merit.rankByNeed)
             const r = { ...rankByNeed(realmSeat.need), id: realmSeat.id, mark: rankByNeed(realmSeat.need).hanja };
-            // 뒷방 주인은 모든 자리가 밝다 — 도량 주인의 자리
             const got = isAdminAccount(user) || merit.total >= r.need;
             const here = isAdminAccount(user)
               ? r.id === "cheonsang"
@@ -1618,5 +1809,6 @@ export default function SettingsPage() {
         </Link>
       </div>
     </div>
+    </>
   );
 }

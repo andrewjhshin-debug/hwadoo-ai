@@ -18,6 +18,8 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   type User,
 } from "firebase/auth";
@@ -396,6 +398,9 @@ function stopSync() {
 // ── 컴포넌트에서 쓰는 세 가지 ──────────────────────────────
 
 export function watchAuth(cb: (user: User | null) => void): () => void {
+  // 구글에 다녀온 길이 있으면 여기서 받아 낸다 — 화면마다 따로 부를
+  // 필요 없이, 인증을 보는 사람이면 누구든 한 번 물어보면 된다
+  resumeRedirectLogin();
   return onAuthStateChanged(auth, (user) => {
     // 뒷방 주인 깃발 — 자리(육도·계급)와 연꽃이 이걸 본다
     setOwner(isAdminAccount(user));
@@ -424,8 +429,56 @@ export function watchAuth(cb: (user: User | null) => void): () => void {
   });
 }
 
+/**
+ * 구글로 들어오기 — 팝업이 막히면 **화면을 통째로 넘긴다.**
+ *
+ * 형: 「로그인도 지금 안 돼. 로그인이 제일 시급」
+ *
+ * 팝업 하나로만 열고 있었다. 데스크톱 브라우저에서는 잘 되는데,
+ * 홈 화면에 담아 쓰는 폰(standalone PWA)과 카카오·인스타 안의 웹뷰는
+ * **팝업 창 자체를 못 연다.** 거기서는 단추를 눌러도 아무 일이 없다 —
+ * 오류도 안 뜬다. 형이 「안 된다」고 한 건 이것이다.
+ *
+ * 그래서 팝업을 먼저 열어 보고, 막히면 같은 창에서 구글로 다녀온다.
+ * 돌아오면 onAuthStateChanged 가 알아서 이어받으므로 따로 할 일이 없다.
+ */
 export async function loginWithGoogle() {
-  await signInWithPopup(auth, new GoogleAuthProvider());
+  const provider = new GoogleAuthProvider();
+  // 홈 화면에 담아 쓰는 중이면 팝업은 아예 시도하지 않는다 —
+  // 열리지도 않는 창을 기다리느라 한 박자 멈추는 것이 더 나쁘다
+  const standalone =
+    typeof window !== "undefined" &&
+    (window.matchMedia?.("(display-mode: standalone)").matches ||
+      // iOS 사파리는 display-mode 를 안 알려 준다
+      (window.navigator as { standalone?: boolean }).standalone === true);
+  if (standalone) {
+    await signInWithRedirect(auth, provider);
+    return;
+  }
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    const code = (e as { code?: string })?.code ?? "";
+    // 막혔거나(popup-blocked) 브라우저가 팝업을 아예 안 쓰는 판이면 넘긴다.
+    // 사람이 손으로 닫은 것(closed-by-user)은 넘기지 않는다 — 그만두겠다는 뜻이다
+    if (
+      code === "auth/popup-blocked" ||
+      code === "auth/operation-not-supported-in-this-environment" ||
+      code === "auth/web-storage-unsupported"
+    ) {
+      await signInWithRedirect(auth, provider);
+      return;
+    }
+    throw e;
+  }
+}
+
+/** 구글에 다녀온 뒤 — 앱이 처음 뜰 때 한 번 물어본다.
+    실패해도 조용히 지나간다(다녀온 적이 없으면 null 이 온다) */
+export function resumeRedirectLogin() {
+  getRedirectResult(auth).catch(() => {
+    /* 돌아온 길이 없으면 그만이다 */
+  });
 }
 
 export async function logout() {

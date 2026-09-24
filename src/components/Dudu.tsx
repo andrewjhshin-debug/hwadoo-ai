@@ -31,6 +31,19 @@ type Props = {
   className?: string;
 };
 
+/**
+ * **폰에서만 안 그린다.**
+ *
+ * 형: 「동자승 이미지는 좀 짜쳐. 다시 그릴 테니까 빼고」
+ *     「너가 고치는 건 모바일만이라고 제한해봐. 웹은 원래대로 두고」
+ *
+ * 그래서 `max-md:hidden` 한 마디만 붙인다 — 768px 아래에서는 아예 자리를
+ * 안 먹고(빈 칸을 남기면 그게 더 흉하다), 그 위에서는 예전 그대로다.
+ * 새 그림이 오면 이 상수만 지우면 폰에서도 돌아온다.
+ * 부르는 일곱 군데는 손대지 않았다.
+ */
+const OFF_ON_PHONE = "max-md:hidden";
+
 export default function Dudu({ stage, mood = "default", uid, className, face }: Props) {
   const [art, setArt] = useState<string | null>(null);
   // 밖에서 얼굴을 주지 않으면 내 얼굴을 쓴다. 서랍은 붙고 난 뒤에 읽는다.
@@ -71,15 +84,16 @@ export default function Dudu({ stage, mood = "default", uid, className, face }: 
     };
   }, [stage, track]);
 
+  const off = `${className ?? ""} ${OFF_ON_PHONE}`.trim();
   if (art) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={art} alt="" aria-hidden className={className} />
+      <img src={art} alt="" aria-hidden className={off} />
     );
   }
   return (
     <span
-      className={className}
+      className={off}
       dangerouslySetInnerHTML={{ __html: dongja(mood, uid) }}
     />
   );

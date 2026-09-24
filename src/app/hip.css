@@ -1,0 +1,2925 @@
+/* ─────────────────────────────────────────────────────────────
+   리뉴얼 힙버전 — 공통 판
+   가지 `renewal-hip` · 되돌릴 자리 `v2-before-renewal`
+
+   다섯 결을 한 벌로 엮는다. 화면마다 성격은 다르되 글꼴·여백·색은
+   한 벌이다 — 그래야 다섯이 따로 놀지 않는다.
+
+     뜰      墨   화두 글자가 화면을 채운다
+     목탁    刻   거대 숫자 + 백팔 격자
+     염주    珠   사리 구슬 하나
+     서고    紙   한지 두 빛깔, 세로쓰기
+     내 도량 輪   수레바퀴가 곧 메뉴
+
+   ── 규칙 ──
+   ① 이름은 전부 `hip-` 로 시작한다. 기존 클래스와 절대 겹치지 않는다.
+      (globals.css 가 `.bg-ink-2\/40` 같은 Tailwind 문자열을 이름 그대로
+       겨냥하고 있어, 겹치면 조용히 깨진다)
+   ② 색은 **기존 토큰을 그대로 쓴다**(--color-gold · --color-hanji …).
+      @theme 의 이름을 바꾸거나 지우면 마흔 남짓 파일의 유틸리티가
+      빌드 오류 없이 죽는다.
+   ③ 글씨는 크게. 김부따는 본문이 11px 인데 그건 안 따라간다 —
+      거대한 것(화두·숫자)은 거대하게, 작은 것은 **라벨뿐**이다.
+   ④ 참고 영상의 뼈대만 빌리고 결은 우리 것으로:
+      실물 하나 크게 · 글자 한 줄 · 떠 있는 둥근 것 · 라벨 없는 아래 띠
+   ───────────────────────────────────────────────────────────── */
+
+html {
+  /* 바탕을 한 겹 더 깊게 — 위에 얹는 것들이 떠야 한다 */
+  --hip-ground: #0b0a08;
+  --hip-raise: rgba(28, 24, 19, 0.72); /* 떠 있는 판 */
+  --hip-edge: rgba(217, 180, 91, 0.2); /* 금빛 실선 */
+  --hip-edge-soft: rgba(217, 180, 91, 0.11);
+  --hip-dead: #1b1916; /* 아직 안 채운 칸 */
+  --hip-pad: 22px; /* 화면 좌우 */
+  --hip-r: 20px; /* 카드 */
+  --hip-r-lg: 26px; /* 큰 카드 */
+}
+
+/* 낮은 한지다. 회색은 서늘해서 이 결에 안 맞는다 —
+   형이 예전에 「흰 바탕 + 회색 단색」을 물린 것과 같은 까닭이다. */
+html[data-theme="light"] {
+  --hip-ground: #efe7d6;
+  --hip-raise: #fffaf0;
+  --hip-edge: rgba(26, 23, 20, 0.14);
+  --hip-edge-soft: rgba(26, 23, 20, 0.07);
+  --hip-dead: rgba(26, 23, 20, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   흰 판 — **폰만 종이로.**
+
+   형: 「흰버전으로 가고 저 동자 캐릭터는 쓰지 말고 가라」
+
+   시안 墨·紙 가 그 결이었다. 먹빛 위의 금은 무겁고, 한지 위의 먹은
+   가볍고 또렷하다. 미니멀은 흰 쪽이 훨씬 잘 산다.
+
+   방법 — `data-theme="light"` 를 켜지 않는다. 그건 웹까지 같이 흰다.
+   대신 **폰 폭 안에서 토큰만 갈아 끼운다.** 앱의 모든 부품이 이미
+   이 이름들(--color-ink · --color-hanji …)만 보고 있어서, 여기 한 벌이면
+   화면 전부가 종이가 된다.
+
+   `:root` 로 적는다 — Tailwind 의 @theme 가 `:root` 에 쏟아 내는데
+   `html` 로 적으면 특이도에서 진다. 게다가 이 파일은 @layer 밖이라
+   같은 `:root` 라도 여기가 이긴다.
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  :root {
+    --color-ink: #f3f0e9; /* 바탕 — 한지 */
+    --color-ink-2: #ffffff; /* 판 — 흰 종이가 뜬다 */
+    --color-ink-3: rgba(26, 23, 20, 0.14); /* 실선 */
+    --color-hanji: #17140f; /* 본문 — 먹 */
+    --color-hanji-dim: #4a443b;
+    --color-hanji-faint: #857c70;
+    --color-gold: #a67c1a; /* 금 — 흰 위에서 읽히도록 낮춘다 */
+    --color-gold-soft: #8a6408;
+    --color-vermilion: #c0392b; /* 주사(朱砂) — 도장과 표시 */
+    --color-halo-skin: #241f3a;
+    --color-halo-ink: #fdf6e9;
+
+    --hip-ground: #f3f0e9;
+    --hip-raise: #fffdf8;
+    --hip-edge: rgba(26, 23, 20, 0.18);
+    --hip-edge-soft: rgba(26, 23, 20, 0.1);
+    --hip-dead: rgba(26, 23, 20, 0.09);
+  }
+  html,
+  body {
+    background: var(--color-ink);
+  }
+
+
+  /* ── 결 한 겹이 회색 막이 되어 있었다 ────────────────────────
+     먹빛 위에서는 잡음이 결로 읽혔는데, 종이 위에서는 **반투명한 회색
+     보자기**를 한 장 덮은 꼴이 됐다. 글씨도 숫자도 다 잿빛으로 죽었다.
+     섞는 법을 곱하기(multiply)로 바꾼다 — 덮지 않고 눌러 준다. */
+  html #scroll-box::after {
+    mix-blend-mode: multiply;
+    opacity: 0.55;
+  }
+
+  /* ── 종이 위에서는 먹이 주인공이다 ──────────────────────────
+     금을 그대로 두었더니 크림 위의 크림이 되어 아무것도 안 읽혔다.
+     시안 墨·紙 도 먹이 본체고 금(또는 주사)은 **점 하나**였다. */
+
+  /* 거대한 숫자 — 200 굵기는 종이 위에서 사라진다 */
+  html .hip-num {
+    font-weight: 300;
+    color: #17140f;
+  }
+  html .hip-kicker {
+    color: #8a7a4e;
+  }
+  /* 백여덟 칸 — 채운 칸은 **먹**. 마디만 금으로 짚는다 */
+  html .hip-grid108 > i[data-on="1"] {
+    background: #17140f;
+  }
+  html .hip-grid108 > i[data-knot="1"] {
+    box-shadow: inset 0 0 0 1.5px rgba(26, 23, 20, 0.28);
+  }
+  /* 치는 자리 — 테도 글씨도 먹. 금으로 두면 눌러야 할 것으로 안 보인다 */
+  html .hip-cta,
+  html [class~="border-gold"] {
+    border-color: #17140f;
+  }
+  /* 아래 띠 — 그림만 남았으니 색이라도 또렷해야 한다 */
+  html .mobile-tabbar a {
+    color: #9a9187;
+  }
+  html .mobile-tabbar a[class*="text-gold"] {
+    color: #17140f;
+  }
+  html .mobile-tabbar a[class*="text-gold"]::before {
+    background: #17140f;
+    box-shadow: none;
+  }
+  /* 갈래 알약 — 크림 위 크림이라 자리가 안 보였다. 테를 준다 */
+  html [class~="bg-gold/15"] {
+    background: rgba(26, 23, 20, 0.055);
+    box-shadow: inset 0 0 0 1px rgba(26, 23, 20, 0.22);
+    color: #17140f;
+  }
+
+  /* ── 껍데기를 걷는다 ────────────────────────────────────────
+     형: 「지금은 거의 오리지날 버전을 답습하고 있잖아」. 맞다 —
+     같은 껍데기에 색만 칠하고 있었다.
+
+     시안에 없는 것이 셋이다: **머리띠 · 라벨 달린 탭 · 떠 있는 단추.**
+     이 셋이 「원래 그 앱」으로 읽히게 만드는 전부다. 걷어 낸다.
+     기능은 그대로 둔다 — 자리만 조용해진다. */
+
+  /* 머리띠 — 테도 바탕도 흐림도 없앤다. 종이 위에 아이콘만 떠 있게 */
+  html .hip-topbar {
+    height: 52px;
+    border-bottom: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+  }
+  /* 가운데 큰 로고와 BETA 딱지를 내린다 — 제 이름은 화면이 이미 말한다 */
+  html .hip-topbar .hip-brand {
+    display: none;
+  }
+  html .hip-topbar button,
+  html .hip-topbar a {
+    color: var(--color-hanji-faint);
+  }
+  html .hip-topbar svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.3;
+  }
+
+  /* 아래 띠 — 라벨을 지우고 그림만 남긴다. 테도 바탕도 없앤다.
+     지금 자리는 위에 찍히는 금빛 점 하나로 짚는다(이미 있다). */
+  html .mobile-tabbar {
+    height: 62px;
+    border-top: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+  }
+  html .mobile-tabbar a > span:last-child {
+    display: none;
+  }
+  html .mobile-tabbar svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  /* 떠 있는 둥근 단추 — 사유의 방은 서랍에서도 닿는다 */
+  html .doryang-fab {
+    display: none !important;
+  }
+
+  /* 머리띠가 얇아진 만큼 본문을 위로 올린다 */
+  html #scroll-box {
+    padding-top: 0;
+  }
+
+  /* ── 뒤집히면 안 읽히는 자리들 ──────────────────────────────
+     `text-ink` 는 「채운 알약 위의 글씨」로 쓰인다(서른한 군데).
+     바탕색이 종이가 되었으니 그대로 두면 금 위에 흰 글씨가 된다. */
+  [class~="text-ink"] {
+    color: #17140f;
+  }
+  /* 다만 **먹으로 채운** 알약 위에서는 반대다 */
+  [class~="bg-hanji"][class~="text-ink"] {
+    color: #f6f3ec;
+  }
+
+  /* ── 특이도 한 마디 ──
+     globals.css 의 평범한 규칙들(.text-obang · .btn-obang …)은 @layer 밖이고
+     이 파일보다 **뒤에** 온다. 그래서 같은 이름이면 그쪽이 이긴다.
+     (Tailwind 유틸리티는 @layer 안이라 반대다 — 이쪽이 이긴다)
+     `html` 한 마디를 앞에 붙여 특이도를 한 칸 올린다. */
+
+  /* 먹빛에서 쓰던 빛 번짐은 종이 위에서 때가 된다 */
+  html .question-glow {
+    text-shadow: none;
+  }
+  /* 이름 — 종이 위에서는 금이 아니라 **먹**이다. 금은 곁만 물린다 */
+  html .text-obang,
+  html .text-gold-grad {
+    background-image: linear-gradient(104deg, #6b4f12 0%, #17140f 46%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+  /* 판이 뜨도록 그림자를 준다 — 테두리만으로는 납작하다 */
+  [class~="bg-ink-2/40"],
+  [class~="bg-ink-2/50"],
+  [class~="bg-ink-2/60"],
+  [class~="bg-ink-2"] {
+    box-shadow: 0 1px 2px rgba(26, 23, 20, 0.04), 0 8px 24px rgba(26, 23, 20, 0.06);
+  }
+  /* 주 단추 — **먹으로 채운 알약 + 흰 글씨.** 종이 위에서 이게 제일 세다.
+     금으로 채우면 한지와 명도가 붙어 흐려진다(한 번 해 보고 물렀다). */
+  html .btn-obang,
+  html .hip-cta {
+    background: #17140f !important;
+    border-color: #17140f !important;
+    color: #f6f3ec !important;
+    box-shadow: 0 10px 26px rgba(26, 23, 20, 0.2);
+  }
+  html .btn-obang .text-hanji,
+  html .btn-obang span,
+  html .hip-cta span {
+    color: #f6f3ec !important;
+  }
+  /* 오브제 뒤 광은 종이 위에서 얼룩이 된다 — 거의 지운다.
+     **`.obang-aura` 에 opacity 를 걸면 안 된다.** 이름만 보고 장식 겹인 줄
+     알았는데 실은 **스크롤 통 그 자체**였다(#scroll-box). 0.3 을 걸었더니
+     본문 전체가 30% 로 흐려져, 먹 글씨가 잿빛으로 죽었다.
+     바탕 그림만 걷는다. */
+  html .obang-aura {
+    background-image: none !important;
+  }
+  html .hip-glow {
+    opacity: 0.3;
+  }
+  /* 목탁 뒤 금빛 고리도 종이 위에서는 때다 */
+  html .mk-halo {
+    opacity: 0.25;
+  }
+}
+
+/* ── 부품도 모바일 안에서만 ────────────────────────────────
+   `hip-*` 는 @layer 밖이라 **Tailwind 유틸리티를 이긴다.** 그래서
+   `.hip-cta { display: inline-flex }` 가 같은 요소의 `md:hidden` 을
+   눌러 버려, 웹에서 폰용 단추와 웹용 단추가 **둘 다** 떴다.
+
+   힘이 센 게 문제였으니 사는 자리를 좁힌다 — 부품 전체를 폰 폭 안에 둔다.
+   768px 위에서는 이 규칙들이 아예 없으므로 `md:hidden` 이 제 일을 한다.
+   ─────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* ── 결(grain) ──────────────────────────────────────────────
+     평평한 색은 싸 보인다. 아주 미세한 얼룩 한 겹을 깔면 종이가 된다.
+     그림 파일을 안 쓴다 — SVG 잡음을 그 자리에서 만든다. */
+  .hip-grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+  html[data-theme="light"] .hip-grain::before {
+    mix-blend-mode: multiply;
+    opacity: 0.9;
+  }
+
+  /* ── 글자 ───────────────────────────────────────────────────
+     저마다 제 일이 하나씩만 있다. 크기를 화면 폭에 물려 두어
+     작은 폰에서 무너지지 않게 한다. */
+  .hip-hero {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: clamp(31px, 8.4vw, 52px);
+    line-height: 1.36;
+    letter-spacing: -0.022em;
+    color: var(--color-hanji);
+    overflow-wrap: break-word;
+    word-break: keep-all;
+  }
+  .hip-num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 200;
+    font-size: clamp(84px, 26vw, 136px);
+    line-height: 0.88;
+    letter-spacing: -0.055em;
+    color: var(--color-hanji);
+  }
+  .hip-kicker {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    letter-spacing: 0.42em;
+    color: var(--color-gold);
+  }
+  .hip-label {
+    font-size: 11.5px;
+    font-weight: 400;
+    letter-spacing: 0.26em;
+    color: var(--color-hanji-faint);
+  }
+  .hip-body {
+    font-size: 15px;
+    line-height: 1.78;
+    font-weight: 300;
+    color: var(--color-hanji-dim);
+    word-break: keep-all;
+  }
+  /* 한 줄 안내 — 참고 영상의 그 자리. 오브제 바로 아래 한 줄뿐이다 */
+  .hip-one {
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 0.14em;
+    color: var(--color-hanji-faint);
+    text-align: center;
+  }
+
+  /* ── 떠 있는 둥근 것들 ──────────────────────────────────────── */
+  .hip-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 15px;
+    border-radius: 999px;
+    border: 1px solid var(--hip-edge);
+    background: var(--hip-raise);
+    color: var(--color-hanji);
+    font-size: 14px;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+  }
+  .hip-round {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--hip-edge);
+    background: var(--hip-raise);
+    display: grid;
+    place-items: center;
+    color: var(--color-hanji-dim);
+    backdrop-filter: blur(10px);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .hip-round:hover {
+    border-color: var(--color-gold);
+    color: var(--color-gold);
+  }
+  .hip-card {
+    border-radius: var(--hip-r-lg);
+    border: 1px solid var(--hip-edge);
+    background: var(--hip-raise);
+    padding: 16px 18px;
+  }
+  html[data-theme="light"] .hip-card,
+  html[data-theme="light"] .hip-pill,
+  html[data-theme="light"] .hip-round {
+    box-shadow: 0 1px 2px rgba(26, 23, 20, 0.05), 0 8px 24px rgba(26, 23, 20, 0.07);
+  }
+
+  /* 주 단추 — 금으로 채운 알약. 먹 위에서 이게 제일 세게 읽힌다 */
+  .hip-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    padding: 0 34px;
+    border-radius: 999px;
+    background: var(--color-gold);
+    color: #17140f;
+    font-size: 15.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    transition: transform 0.16s, box-shadow 0.3s;
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--color-gold) 22%, transparent);
+  }
+  .hip-cta:active {
+    transform: scale(0.985);
+  }
+  /* 곁단추 — 테두리만 */
+  .hip-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    padding: 0 28px;
+    border-radius: 999px;
+    border: 1px solid var(--hip-edge);
+    color: var(--color-hanji-dim);
+    font-size: 14.5px;
+    letter-spacing: 0.1em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .hip-ghost:hover {
+    border-color: var(--color-gold);
+    color: var(--color-gold);
+  }
+
+  /* ── 刻 · 백팔 격자 ─────────────────────────────────────────
+     친 만큼 금이 든다. 진행이 곧 그림이다 — 막대보다 이게 낫다.
+     백여덟 칸을 열여덟씩 여섯 줄로 둔다(스물일곱의 배수라 마디가 맞는다). */
+  .hip-grid108 {
+    display: grid;
+    grid-template-columns: repeat(18, 1fr);
+    gap: 4px;
+  }
+  .hip-grid108 > i {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--hip-dead);
+    transition: background-color 0.18s;
+  }
+  .hip-grid108 > i[data-on="1"] {
+    background: var(--color-gold);
+  }
+  /* 스물일곱마다 한 칸 — 손끝으로 마디를 안다 */
+  .hip-grid108 > i[data-knot="1"] {
+    box-shadow: inset 0 0 0 1.5px var(--color-gold);
+  }
+
+  /* ── 아래 띠 ────────────────────────────────────────────────
+     라벨 없이 점 다섯. 참고 영상에서 제일 힙했던 수인데, 우리는
+     **점만** 두지 않고 지금 자리에 한자 한 글자를 얹는다 —
+     아이콘 다섯만으로는 어디가 어딘지 못 읽힌다. */
+  .hip-rail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+  }
+  .hip-rail > i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--hip-edge);
+    display: block;
+    transition: transform 0.2s, background-color 0.2s;
+  }
+  .hip-rail > i[data-on="1"] {
+    background: var(--color-gold);
+    transform: scale(1.7);
+  }
+
+  /* ── 광 ─────────────────────────────────────────────────────
+     오브제 뒤에 한 겹. 김부따는 흰 보케를 뿌리는데 우리는 금빛 광이다.
+     과하면 촌스럽다 — 형이 목탁 광명 두 번 물렸다. 옅게. */
+  .hip-glow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-gold) 16%, transparent),
+      transparent 72%
+    );
+  }
+
+  /* ── 무대 ───────────────────────────────────────────────────
+     위 띠와 아래 띠를 뺀 나머지를 다 쓰고, 그 안에서 한복판.
+     여백이 아래로만 쏠리면 「비웠다」가 아니라 그냥 빈칸으로 읽힌다. */
+  .hip-stage {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-left: var(--hip-pad);
+    padding-right: var(--hip-pad);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   전면 갈이 — **모바일만.**
+
+   형: 「너가 고치는 건 모바일만이라고 제한해봐. 웹은 원래대로 두고」.
+
+   그래서 이 덩이 전체를 `max-width: 767px` 안에 가둔다. 768px 은
+   Tailwind 의 `md` 이고, 이 앱이 이미 그 선에서 갈린다 —
+   아래 띠(.mobile-tabbar)는 `md:hidden`, 왼쪽 서랍은 그 위에서만 선다.
+   한 선을 두 벌로 쓰지 않는다.
+
+   카드가 124개다. JSX 를 124군데 고치는 대신 여기서 한 번에 바꾼다.
+   Tailwind 유틸리티는 @layer 안에 있고 이 파일은 layer 밖이라, 특이도를
+   올리거나 !important 를 쓸 일이 없다. `[class~="…"]` 로 클래스 값을
+   그대로 겨냥해 이스케이프 오타로 조용히 빗나가지 않는다.
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  /* ── ① 모서리를 다 키운다 ────────────────────────────────────
+     14px 짜리 카드 63개 · 10px 52개 · 12px 22개 · 16px 20개.
+     둥글기 하나만 올려도 화면 인상이 통째로 바뀐다.
+     rounded-full 은 건드리지 않는다 — 알약이 네모가 된다. */
+  [class~="rounded-[9px]"],
+  [class~="rounded-[10px]"] {
+    border-radius: 15px;
+  }
+  [class~="rounded-[11px]"],
+  [class~="rounded-[12px]"] {
+    border-radius: 18px;
+  }
+  [class~="rounded-[14px]"],
+  [class~="rounded-[15px]"] {
+    border-radius: 22px;
+  }
+  [class~="rounded-[16px]"] {
+    border-radius: 24px;
+  }
+  [class~="rounded-[18px]"] {
+    border-radius: 28px;
+  }
+
+  /* ── ② 판이 뜬다 ─────────────────────────────────────────────
+     먹 위에 먹을 얹으면 카드가 납작하다. 한 톤 들어 올리고 흐린 유리로.
+     테두리는 금빛에서 더 옅게 — 선이 보이는 게 아니라 면이 떠야 한다. */
+  [class~="bg-ink-2/40"],
+  [class~="bg-ink-2/50"],
+  [class~="bg-ink-2/60"],
+  [class~="bg-ink-2"] {
+    background-color: var(--hip-raise);
+    backdrop-filter: blur(16px);
+  }
+  [class~="border-ink-3"] {
+    border-color: var(--hip-edge-soft);
+  }
+
+  /* ── ③ 글씨를 키운다 ─────────────────────────────────────────
+     형: 「무조건 글씨가 커야 잘 보인다고」. 앱이 11~13px 로 꽉 차 있었다.
+     김부따는 본문이 11px 인데 그건 따라가지 않는다 — 반대로 간다. */
+  [class~="text-[11px]"] {
+    font-size: 12px;
+  }
+  [class~="text-[11.5px]"] {
+    font-size: 12.5px;
+  }
+  [class~="text-[12px]"] {
+    font-size: 13px;
+  }
+  [class~="text-[12.5px]"] {
+    font-size: 13.5px;
+  }
+  [class~="text-[13px]"] {
+    font-size: 14px;
+  }
+  [class~="text-[13.5px]"] {
+    font-size: 14.5px;
+  }
+  [class~="text-[15px]"] {
+    font-size: 16px;
+  }
+
+  /* ── ④ 바탕에 결과 온기 ──────────────────────────────────────
+     평평한 먹은 싸 보인다. 아주 미세한 얼룩 한 겹과, 위쪽에서 내려오는
+     따뜻한 기운 한 겹. 오브제가 그 위에 뜬다.
+     #scroll-box 는 layout.tsx 가 세우는 실제 스크롤 통이다. */
+  #scroll-box::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.45;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+  }
+  html[data-theme="light"] #scroll-box::after {
+    mix-blend-mode: multiply;
+    opacity: 0.8;
+  }
+
+  /* ── ⑤ 아래 띠 ───────────────────────────────────────────────
+     흐린 유리로 띄운다. 지금 자리는 금빛 점 하나로 짚는다 —
+     글자를 지우지는 않았다. 아이콘 다섯만으로는 어디가 어딘지 못 읽는다. */
+  .mobile-tabbar {
+    background: color-mix(in srgb, var(--hip-ground) 82%, transparent) !important;
+    backdrop-filter: blur(22px) saturate(1.2);
+    border-top-color: var(--hip-edge-soft) !important;
+  }
+  .mobile-tabbar a {
+    position: relative;
+  }
+  .mobile-tabbar a[class*="text-gold"]::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    translate: -50% 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-gold);
+    box-shadow: 0 0 10px var(--color-gold);
+  }
+}
+
+@media (max-width: 767px) {
+  /* ── ⑥ 輪 · 수레바퀴 ─────────────────────────────────────────
+     자리(位) 여섯을 한 줄 격자로 깔면 글자가 열여덟 개다 —
+     한자 여섯 · 이름 여섯 · 숫자 여섯. 형: 「텍스트 최대한 빼고」.
+
+     바퀴로 세우면 **한자 여섯 글자만** 남는다. 어디까지 왔는지는 자리로
+     말하고, 이름과 문턱은 눌렀을 때 알면 된다. */
+  .hip-wheel {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1;
+    margin: 0 auto;
+  }
+  .hip-wheel svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .hip-wheel button {
+    position: absolute;
+    translate: -50% -50%;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-serif);
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--color-hanji-faint);
+    border: 1px solid transparent;
+    background: transparent;
+    transition: color 0.25s, background-color 0.25s, border-color 0.25s;
+  }
+  .hip-wheel button[data-got="1"] {
+    color: var(--color-gold-soft);
+    border-color: var(--hip-edge);
+  }
+  /* 지금 자리는 **글자를 안 쓴다.** 한복판에 같은 글자가 이미 크게 떠 있어,
+     바깥에 한 번 더 쓰면 한 화면에 같은 글자가 둘이 된다.
+     금빛 점 하나면 「여기」라고 말하기에 족하다. */
+  .hip-wheel button[data-here="1"] {
+    width: 20px;
+    height: 20px;
+    font-size: 0;
+    background: var(--color-gold);
+    border-color: var(--color-gold);
+    box-shadow: 0 0 30px color-mix(in srgb, var(--color-gold) 55%, transparent);
+  }
+  /* 한복판 — 지금 자리. 글자 하나면 족하다 */
+  .hip-wheel .hub {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    font-family: var(--font-serif);
+    font-size: 52px;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--color-gold);
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hip-grid108 > i,
+  .hip-rail > i,
+  .hip-cta {
+    transition: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   화면을 통째로 차지하는 판 — 폰만
+
+   형: 「색만 바꾸는 게 아니라니까」 「탭이랑 막 겹치잖아」
+
+   옛 화면에 CSS 만 덧칠하는 동안, 껍데기(머리띠·탭·떠 있는 단추)가
+   그대로라 겹쳤고 결국 「색만 칠한 것」으로 읽혔다. 덮어 버린다 —
+   하심(/hasim)이 이미 쓰는 길이다. `fixed inset-0` 이면 깔릴 것이 없다.
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .hip-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    /* 형: 「흰 핑크 민트 이쁘게 이쁘게 힙하게」.
+       크림 한 색은 점잖긴 한데 예쁘지가 않았다. 흰 바탕 위에
+       연꽃 분홍과 민트가 아주 옅게 번진다 — 참고 영상의 그 결이되,
+       빛깔은 우리 것(연꽃 분홍)으로. */
+    background:
+      radial-gradient(58% 40% at 14% 6%, rgba(242, 120, 159, 0.16), transparent 70%),
+      radial-gradient(52% 38% at 92% 22%, rgba(120, 214, 197, 0.18), transparent 70%),
+      radial-gradient(70% 46% at 78% 96%, rgba(242, 120, 159, 0.12), transparent 72%),
+      radial-gradient(60% 40% at 6% 88%, rgba(120, 214, 197, 0.12), transparent 72%),
+      #fbfaf8;
+    color: #17140f;
+    padding: calc(env(safe-area-inset-top, 0px) + 18px) 26px
+      calc(env(safe-area-inset-bottom, 0px) + 18px);
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* 종이 결 — 아주 옅게. 곱하기라 덮지 않고 눌러 준다 */
+  .hip-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    opacity: 0.32;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  .hip-screen-top {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #8a8073;
+    font-size: 11.5px;
+    letter-spacing: 0.2em;
+  }
+  .hip-screen-top .hip-kicker {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    letter-spacing: 0.34em;
+    color: #6e6455;
+  }
+  .hip-more {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(26, 23, 20, 0.16);
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    line-height: 1;
+    color: #6e6455;
+  }
+  .hip-more:active {
+    background: rgba(26, 23, 20, 0.05);
+  }
+
+  /* 가운데 — 남은 자리를 다 쓰고 그 안에서 한복판 */
+  .hip-screen-mid {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* 아래 다섯 점 쪽으로 빈칸이 쏠려 보여, 덩이를 조금 위로 올린다 */
+    padding-bottom: 6vh;
+  }
+  .hip-big {
+    font-variant-numeric: tabular-nums;
+    font-weight: 300;
+    font-size: clamp(96px, 30vw, 150px);
+    line-height: 0.88;
+    letter-spacing: -0.06em;
+    color: #17140f;
+  }
+  .hip-under {
+    margin-top: 16px;
+    font-size: 13.5px;
+    letter-spacing: 0.16em;
+    color: #8a8073;
+  }
+  .hip-stats {
+    margin-top: 34px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid rgba(26, 23, 20, 0.14);
+    border-bottom: 1px solid rgba(26, 23, 20, 0.14);
+    padding: 20px 0;
+  }
+  .hip-stats b {
+    display: block;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 27px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: #17140f;
+  }
+  .hip-stats span {
+    display: block;
+    margin-top: 9px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: #8a8073;
+  }
+  .hip-stats div:nth-child(2) {
+    text-align: center;
+  }
+  .hip-stats div:last-child {
+    text-align: right;
+  }
+
+  /* (쓰지 않음 — 목탁 오브제가 누르는 자리를 맡는다) */
+  .hip-strike {
+    position: relative;
+    z-index: 1;
+    margin-top: 22px;
+    height: 76px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    border: 1.5px solid #17140f;
+    color: #17140f;
+    font-size: 17px;
+    letter-spacing: 0.5em;
+    display: grid;
+    place-items: center;
+    transition: background-color 0.12s;
+  }
+  .hip-strike:active {
+    background: rgba(26, 23, 20, 0.06);
+  }
+
+  /* 다섯 점 — 이게 탭이다 */
+  .hip-screen .hip-rail {
+    position: relative;
+    z-index: 1;
+    margin-top: 22px;
+    flex-shrink: 0;
+    gap: 26px;
+  }
+  .hip-screen .hip-rail a {
+    padding: 10px;
+    display: block;
+  }
+  .hip-screen .hip-rail i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(26, 23, 20, 0.2);
+    display: block;
+    transition: transform 0.2s, background-color 0.2s;
+  }
+  .hip-screen .hip-rail i[data-on="1"] {
+    background: #17140f;
+    transform: scale(1.7);
+  }
+
+  /* 판이 떠 있는 동안 아래 띠와 떠 있는 단추는 안 보인다 */
+  body:has(.hip-screen) .mobile-tabbar,
+  body:has(.hip-screen) .doryang-fab,
+  body:has(.hip-screen) .hip-topbar {
+    display: none !important;
+  }
+}
+
+/* ── 살림살이 서랍 — 「⋯」 뒤로 들어간 것들 ────────────────────
+   갈래·정근·소리·살갗·자동 목탁. 늘 떠 있을 것들이 아니다.
+   고르는 일은 치기 전에 한 번뿐이라, 화면을 차지할 이유가 없다. */
+@media (max-width: 767px) {
+  .hip-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 61;
+    background: #f3f0e9;
+    color: #17140f;
+    display: flex;
+    flex-direction: column;
+    padding: calc(env(safe-area-inset-top, 0px) + 18px) 26px
+      calc(env(safe-area-inset-bottom, 0px) + 24px);
+    overflow-y: auto;
+  }
+  .hip-sheet-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .hip-sheet-top .hip-kicker {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    letter-spacing: 0.34em;
+    color: #6e6455;
+  }
+  .hip-sheet-body {
+    margin-top: 34px;
+  }
+  .hip-sheet-label {
+    margin: 26px 0 12px;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: #9a9187;
+  }
+  .hip-sheet-label:first-child {
+    margin-top: 0;
+  }
+  .hip-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hip-chips button {
+    height: 42px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.16);
+    font-size: 13.5px;
+    color: #6e6455;
+    white-space: nowrap;
+  }
+  .hip-chips button[data-on="1"] {
+    border-color: #17140f;
+    color: #17140f;
+    background: rgba(26, 23, 20, 0.05);
+  }
+  .hip-sheet-row {
+    margin-top: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(26, 23, 20, 0.14);
+    padding-top: 22px;
+    font-size: 13.5px;
+    color: #4a443b;
+  }
+  .hip-switch {
+    width: 48px;
+    height: 27px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.22);
+    position: relative;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .hip-switch i {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: rgba(26, 23, 20, 0.3);
+    transition: transform 0.2s, background-color 0.2s;
+  }
+  .hip-switch[data-on="1"] {
+    background: #17140f;
+    border-color: #17140f;
+  }
+  .hip-switch[data-on="1"] i {
+    transform: translateX(21px);
+    background: #f3f0e9;
+  }
+  .hip-sheet-range {
+    display: block;
+    margin-top: 22px;
+  }
+  .hip-sheet-range span {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: #8a8073;
+  }
+  .hip-sheet-range b {
+    font-weight: 400;
+    color: #17140f;
+  }
+  .hip-sheet-range input {
+    margin-top: 10px;
+    width: 100%;
+    accent-color: #17140f;
+  }
+}
+
+/* ── 흰 · 핑크 · 민트 ────────────────────────────────────────
+   형: 「내가 준 동영상처럼 뭔가 흰 핑크 민트 이쁘게 이쁘게 힙하게」
+
+   먹 하나로만 가면 점잖지만 예쁘지가 않다. 큰 글씨는 먹으로 두어
+   읽히게 하고, **채워지는 것**에만 빛깔을 준다 — 차오르는 자리가
+   예뻐야 또 누르고 싶어진다. */
+@media (max-width: 767px) {
+  .hip-screen .hip-grid108 > i {
+    border-radius: 3px;
+    background: rgba(26, 23, 20, 0.07);
+  }
+  .hip-screen .hip-grid108 > i[data-on="1"] {
+    background: linear-gradient(150deg, #f7a0bf, #ef7ba4 55%, #e9628f);
+    box-shadow: 0 1px 3px rgba(233, 98, 143, 0.35);
+  }
+  /* 스물일곱마다 — 민트로 짚는다 */
+  .hip-screen .hip-grid108 > i[data-knot="1"] {
+    box-shadow: inset 0 0 0 1.5px #6fcbb8;
+  }
+  .hip-screen .hip-grid108 > i[data-on="1"][data-knot="1"] {
+    background: linear-gradient(150deg, #8fdccb, #5cc2ac);
+    box-shadow: 0 1px 3px rgba(92, 194, 172, 0.4);
+  }
+  /* 셈 — 가운데는 분홍, 끝은 민트. 숫자 셋이 곧 색 셋이다 */
+  .hip-screen .hip-stats {
+    border-color: rgba(26, 23, 20, 0.1);
+  }
+  .hip-screen .hip-stats div:nth-child(2) b {
+    color: #e3628f;
+  }
+  .hip-screen .hip-stats div:last-child b {
+    color: #43b39c;
+  }
+  .hip-screen .hip-stats span {
+    color: #a39a8f;
+  }
+  /* 누르는 자리 — 먹으로 채운다. 흰 위에서 이게 제일 세다 */
+  .hip-screen .hip-strike {
+    background: #17140f;
+    border-color: #17140f;
+    color: #fbfaf8;
+    box-shadow: 0 14px 30px rgba(26, 23, 20, 0.18);
+  }
+  .hip-screen .hip-strike:active {
+    background: #26211a;
+  }
+  /* 지금 자리 점 — 분홍 */
+  .hip-screen .hip-rail i[data-on="1"] {
+    background: #ef7ba4;
+  }
+  .hip-screen .hip-under {
+    color: #9a9187;
+  }
+  .hip-screen-top .hip-kicker {
+    color: #8b8175;
+  }
+  /* 서랍도 같은 흰 결로 */
+  .hip-sheet {
+    background:
+      radial-gradient(58% 34% at 12% 4%, rgba(242, 120, 159, 0.14), transparent 70%),
+      radial-gradient(54% 34% at 94% 16%, rgba(120, 214, 197, 0.16), transparent 70%),
+      #fbfaf8;
+  }
+  .hip-chips button[data-on="1"] {
+    border-color: #ef7ba4;
+    color: #17140f;
+    background: rgba(242, 120, 159, 0.12);
+  }
+  .hip-switch[data-on="1"] {
+    background: #ef7ba4;
+    border-color: #ef7ba4;
+  }
+  .hip-switch[data-on="1"] i {
+    background: #fff;
+  }
+  .hip-sheet-range input {
+    accent-color: #ef7ba4;
+  }
+}
+
+/* ── 오브제가 주인공 · 숨 쉬는 바탕 · 파문 · 마디 ──────────────
+   형: 「목탁이나 염주 등 원래 디자인을 빼먹진 마」 — 맞다. 숫자만
+   남긴 판을 한 번 만들어 봤는데 그건 우리 앱이 아니었다.
+   오브제를 한복판에 되돌리고, 누르는 자리도 그것으로 되돌린다. */
+@media (max-width: 767px) {
+  /* ① 숨 쉬는 바탕 — 멈춘 그라데이션은 배경이고, 흐르면 자리가 된다 */
+  .hip-bloom {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(46px);
+    z-index: 0;
+  }
+  .hip-bloom-a {
+    left: -22%;
+    top: -12%;
+    width: 78%;
+    padding-top: 78%;
+    background: radial-gradient(closest-side, rgba(242, 120, 159, 0.34), transparent 72%);
+    animation: hip-drift-a 26s ease-in-out infinite;
+  }
+  .hip-bloom-b {
+    right: -26%;
+    top: 26%;
+    width: 86%;
+    padding-top: 86%;
+    background: radial-gradient(closest-side, rgba(104, 208, 190, 0.3), transparent 72%);
+    animation: hip-drift-b 34s ease-in-out infinite;
+  }
+  @keyframes hip-drift-a {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(14%, 9%) scale(1.12); }
+  }
+  @keyframes hip-drift-b {
+    0%, 100% { transform: translate(0, 0) scale(1.06); }
+    50% { transform: translate(-12%, -8%) scale(0.94); }
+  }
+
+  /* ── 오브제 ── */
+  .hip-obj {
+    position: relative;
+    display: block;
+    width: 90%;
+    max-width: 380px;
+    margin: 0 auto 2px;
+  }
+  .hip-obj-img {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 26px 26px rgba(26, 23, 20, 0.16));
+    animation: hip-tap 0.18s ease-out;
+  }
+  @keyframes hip-tap {
+    0% { transform: scale(1); }
+    26% { transform: scale(0.955) translateY(3px); }
+    100% { transform: scale(1); }
+  }
+
+  /* ② 파문 — 목탁은 소리가 퍼지는 물건이니 눈에도 퍼져야 한다 */
+  .hip-ripple {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: 62%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    border: 1.5px solid rgba(239, 123, 164, 0.55);
+    z-index: 0;
+    animation: hip-wave 1.05s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+  .hip-ripple-2 {
+    border-color: rgba(104, 208, 190, 0.45);
+    animation-delay: 0.11s;
+  }
+  @keyframes hip-wave {
+    0% { transform: scale(0.66); opacity: 0.9; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+
+  .hip-pops {
+    position: absolute;
+    left: 50%;
+    top: 4%;
+    z-index: 2;
+  }
+  .hip-pops span {
+    position: absolute;
+    font-family: var(--font-serif);
+    font-size: 26px;
+    line-height: 1;
+    color: #e3628f;
+  }
+
+  /* ③ 숫자가 톡 */
+  .hip-screen .hip-big {
+    font-size: clamp(64px, 20vw, 96px);
+    animation: hip-pop 0.22s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  @keyframes hip-pop {
+    0% { transform: scale(1.055); }
+    100% { transform: scale(1); }
+  }
+  .hip-screen .hip-under {
+    margin-top: 10px;
+    font-size: 12.5px;
+  }
+  .hip-screen .hip-stats {
+    margin-top: 22px;
+    padding: 16px 0;
+  }
+  .hip-screen .hip-stats b { font-size: 24px; }
+
+  /* 合 — 박자가 맞는 동안만 */
+  .hip-hap {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #ef7ba4;
+    color: #fff;
+    font-family: var(--font-serif);
+    font-size: 13px;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 0.25s, transform 0.25s;
+  }
+  .hip-hap.on { opacity: 1; transform: scale(1); }
+
+  /* ④ 마디 — 스물일곱째를 지나면 격자가 민트로 한 번 훑인다 */
+  .hip-grid108.knot > i {
+    animation: hip-sweep 0.72s ease-out;
+    animation-delay: calc(var(--i) * 5ms);
+  }
+  @keyframes hip-sweep {
+    0%, 100% { box-shadow: none; }
+    40% { box-shadow: 0 0 0 1.5px #6fcbb8; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hip-bloom, .hip-obj-img, .hip-ripple, .hip-screen .hip-big,
+  .hip-grid108.knot > i { animation: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   전반 — 모든 화면에 같은 결 (폰만)
+
+   형: 「개별 기능보다 전반적인 화면을 고친 담에」
+       「전체를 다 다듬은 거를 줘봐. 전반적인 분위기를 보려고」
+
+   목탁 한 화면만 새로 짜 놓으니 나머지가 따로 놀았다. 그 화면에서
+   쓴 결(흰 바탕 · 분홍·민트 번짐 · 테 없는 흰 판 · 큰 모서리)을
+   **앱 전체에** 깐다. 기능과 배치는 손대지 않는다 — 결만 입힌다.
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  /* ── 바탕 — 흰 종이에 분홍과 민트가 아주 옅게 번진다 ── */
+  :root {
+    --color-ink: #fbfaf8;
+    --color-ink-2: #ffffff;
+    --color-ink-3: rgba(26, 23, 20, 0.08);
+    --hip-ground: #fbfaf8;
+    --hip-raise: #ffffff;
+    --hip-edge: rgba(26, 23, 20, 0.1);
+    --hip-edge-soft: rgba(26, 23, 20, 0.06);
+    --hip-dead: rgba(26, 23, 20, 0.06);
+    --hip-pink: #ef7ba4;
+    --hip-mint: #5cc2ac;
+  }
+  /* 번짐은 화면에 붙박아 둔다 — 스크롤해도 자리가 흔들리지 않는다.
+     **body 에 걸면 안 된다.** body 가 flex 라 가짜 요소가 칸을 한 자리
+     차지해, 본문이 390 → 129px 로 눌렸다(옆 서랍 폭만큼 밀린 꼴).
+     스크롤 통 안에 건다 — 거기 fixed 는 화면 기준이라 결과는 같다. */
+  #scroll-box::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(56% 38% at 12% 4%, rgba(242, 120, 159, 0.17), transparent 70%),
+      radial-gradient(52% 36% at 94% 20%, rgba(104, 208, 190, 0.18), transparent 70%),
+      radial-gradient(64% 42% at 82% 94%, rgba(242, 120, 159, 0.12), transparent 72%),
+      radial-gradient(58% 38% at 4% 86%, rgba(104, 208, 190, 0.11), transparent 72%);
+  }
+  /* 본문은 번짐 위에.
+     **머리띠와 아래 띠에는 position 을 건드리면 안 된다.** 둘 다 `fixed`
+     라 흐름 밖에 있는데, `relative` 로 바꾸니 body 의 flex 칸을 한 자리씩
+     차지해 본문이 390 → 129px 로 눌렸다. z-index 만 올린다 —
+     fixed 요소는 position 을 바꾸지 않아도 z-index 가 먹는다. */
+  #scroll-box {
+    position: relative;
+    z-index: 1;
+  }
+  .mobile-tabbar,
+  .hip-topbar {
+    z-index: 50;
+  }
+
+  /* ── 판 — 테를 걷고 그림자로 띄운다. 흰 위에 흰이 뜨는 결 ── */
+  [class~="bg-ink-2/40"],
+  [class~="bg-ink-2/50"],
+  [class~="bg-ink-2/60"],
+  [class~="bg-ink-2"] {
+    background-color: #ffffff !important;
+    border-color: transparent !important;
+    backdrop-filter: none;
+    box-shadow: 0 1px 2px rgba(26, 23, 20, 0.04), 0 10px 30px rgba(26, 23, 20, 0.07);
+  }
+  /* 모서리를 한 번 더 키운다 — 이 결의 인상이 여기서 절반 난다 */
+  [class~="rounded-[9px]"],
+  [class~="rounded-[10px]"] { border-radius: 16px; }
+  [class~="rounded-[11px]"],
+  [class~="rounded-[12px]"] { border-radius: 20px; }
+  [class~="rounded-[14px]"],
+  [class~="rounded-[15px]"] { border-radius: 24px; }
+  [class~="rounded-[16px]"] { border-radius: 26px; }
+  [class~="rounded-[18px]"] { border-radius: 30px; }
+
+  /* ── 빛깔 — 금 자리에 분홍, 알림 자리에 민트 ──
+     금은 먹빛 위의 색이다. 흰 위에서는 힘이 없다. 이 판의 점은 분홍이다. */
+  html [class~="text-gold"],
+  html [class~="text-gold-soft"] { color: #d9628d; }
+  html [class~="border-gold"] { border-color: #ef7ba4; }
+  html [class~="bg-gold"] { background-color: #ef7ba4; }
+  html [class~="bg-gold/10"],
+  html [class~="bg-gold/15"] { background-color: rgba(242, 120, 159, 0.1); }
+  html [class~="text-vermilion"] { color: #2fa98f; }
+
+  /* ── 아래 띠 · 머리띠 — 흰 판 위에 떠 있게 ── */
+  html .mobile-tabbar {
+    background: rgba(251, 250, 248, 0.82) !important;
+    backdrop-filter: blur(18px) saturate(1.1);
+  }
+  html .mobile-tabbar a { color: #a9a196; }
+  html .mobile-tabbar a[class*="text-gold"] { color: #17140f; }
+  html .mobile-tabbar a[class*="text-gold"]::before { background: #ef7ba4; }
+  html .hip-topbar { background: transparent !important; }
+
+  /* ── 주 단추 — 먹으로 채운 알약. 흰 위에서 이게 제일 세다 ── */
+  html .btn-obang,
+  html .hip-cta {
+    background: #17140f !important;
+    border-color: #17140f !important;
+    color: #fbfaf8 !important;
+    box-shadow: 0 12px 28px rgba(26, 23, 20, 0.18);
+  }
+  html .btn-obang span,
+  html .btn-obang .text-hanji,
+  html .hip-cta span { color: #fbfaf8 !important; }
+
+  /* 먹빛에서 쓰던 광과 결은 흰 위에서 때가 된다 */
+  html .obang-aura { background-image: none !important; }
+  html #scroll-box::after { opacity: 0; }
+  html .mk-halo { opacity: 0.18; }
+  html .question-glow { text-shadow: none; }
+  html .text-obang,
+  html .text-gold-grad {
+    /* `background:` 약칭에 !important 를 걸면 background-clip 까지
+       border-box 로 못박혀, 글자 모양으로 안 잘리고 **네모 전체**가
+       칠해진다(검은 덩어리가 그래서 났다). 그림만 바꾼다. */
+    background-image: linear-gradient(104deg, #8a5f16 0%, #17140f 52%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* ── 뜰 판 ─────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* 누구의 물음인가 — 알약 하나 */
+  .hip-seg {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 999px;
+    background: rgba(26, 23, 20, 0.05);
+  }
+  .hip-seg button {
+    height: 30px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: #8b8175;
+  }
+  .hip-seg button[data-on="1"] {
+    background: #fff;
+    color: #17140f;
+    box-shadow: 0 1px 3px rgba(26, 23, 20, 0.12);
+  }
+
+  /* 연꽃 — 코드로 그린다. 그림 파일 없이, 숨 쉬듯 아주 느리게 돈다 */
+  /* 자리 — 연꽃을 **광배**로 삼는다.
+     처음엔 상을 꽃 한가운데에 앉혀 봤는데, 꽃잎이 정강이를 가로질러
+     지나가고 상은 꽃을 타고 앉은 꼴이 됐다. 불상 뒤에 두는 것은
+     원래 꽃이 아니라 **광배**다 — 머리 뒤로 올리니 제자리를 찾았다.
+     연꽃은 돌고 상은 가만히 있다. */
+  .hip-seat {
+    position: relative;
+    display: block;
+    width: 74%;
+    max-width: 300px;
+    aspect-ratio: 0.82;
+  }
+  .hip-buddha {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: 0;
+    height: 96%;
+    width: auto;
+    transform: translateX(-50%);
+    /* 바닥에 닿는 그림자 한 겹 — 떠 있지 않고 앉아 있게 */
+    filter: drop-shadow(0 14px 18px rgba(26, 23, 20, 0.16));
+    pointer-events: none;
+  }
+  .hip-lotus {
+    position: absolute;
+    z-index: 0;
+    top: -2%;
+    left: 50%;
+    display: block;
+    width: 62%;
+    margin-left: -31%;
+    animation: hip-turn 64s linear infinite;
+  }
+  .hip-lotus svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .hip-lotus ellipse {
+    fill: rgba(242, 120, 159, 0.12);
+    stroke: rgba(239, 123, 164, 0.45);
+    stroke-width: 1.1;
+  }
+  .hip-lotus circle {
+    fill: rgba(104, 208, 190, 0.5);
+  }
+  @keyframes hip-turn {
+    to { transform: rotate(360deg); }
+  }
+
+  .hip-ask {
+    margin-top: 42px;
+    text-align: center;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 25px;
+    line-height: 1.7;
+    letter-spacing: -0.01em;
+    color: #17140f;
+  }
+
+  /* 물음 — 이 화면의 큰 것 하나 */
+  .hip-q {
+    text-align: center;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    line-height: 1.42;
+    letter-spacing: -0.03em;
+    color: #17140f;
+    word-break: keep-all;
+    /* brief 는 줄을 손으로 끊어 두었다 — 그 자리를 지킨다 */
+    white-space: pre-line;
+    /* 손으로 끊은 줄이 또 한 번 접힐 때, 「뿐인데,」 하나만 남지 않게
+       줄들의 길이를 고르게 맞춘다 */
+    text-wrap: balance;
+  }
+  .hip-q-a { font-size: clamp(38px, 11vw, 54px); }
+  .hip-q-b { font-size: clamp(30px, 8.6vw, 42px); }
+  .hip-q-c { font-size: clamp(24px, 6.8vw, 34px); }
+  .hip-q-by {
+    margin-top: 26px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    color: #a39a8f;
+  }
+
+  /* 달 — 실 한 올 */
+  .hip-moon {
+    position: relative;
+    z-index: 1;
+    height: 1.5px;
+    border-radius: 2px;
+    background: rgba(26, 23, 20, 0.1);
+    overflow: hidden;
+  }
+  .hip-moon i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #ef7ba4, #5cc2ac);
+    transition: width 0.8s ease-out;
+  }
+  .hip-screen .hip-under {
+    margin-top: 12px;
+    text-align: center;
+  }
+}
+
+/* ── 나(我) 판 ─────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .hip-me-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    align-self: stretch;
+  }
+  .hip-me-head img {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #fff;
+  }
+  .hip-me-name {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1;
+    color: #17140f;
+  }
+  .hip-me-rank {
+    margin-top: 8px;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: #9a9187;
+  }
+  .hip-me-rank b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    color: #ef7ba4;
+  }
+  .hip-me-bar {
+    margin-top: 22px;
+    align-self: stretch;
+    height: 1.5px;
+    border-radius: 2px;
+    background: rgba(26, 23, 20, 0.09);
+    overflow: hidden;
+  }
+  .hip-me-bar i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #ef7ba4, #5cc2ac);
+  }
+  .hip-me-next {
+    margin-top: 9px;
+    align-self: flex-end;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    color: #a39a8f;
+  }
+  .hip-me-next b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    color: #8b8175;
+  }
+  .hip-me-merit {
+    margin-top: 44px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 300;
+    font-size: clamp(60px, 19vw, 88px);
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    color: #17140f;
+  }
+  .hip-me-merit-k {
+    margin-top: 12px;
+    font-family: var(--font-serif);
+    font-size: 12px;
+    letter-spacing: 0.44em;
+    color: #a39a8f;
+  }
+  .hip-me-hits {
+    margin-top: 40px;
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid rgba(26, 23, 20, 0.1);
+    padding-top: 20px;
+  }
+  .hip-me-hits b {
+    display: block;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 21px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: #17140f;
+  }
+  .hip-me-hits span {
+    display: block;
+    margin-top: 8px;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    color: #a39a8f;
+  }
+  .hip-me-hits div:nth-child(2) b { color: #e3628f; }
+  .hip-me-hits div:nth-child(3) b { color: #43b39c; }
+}
+
+/* ── 옆으로 넘기기 ─────────────────────────────────────────────
+   점 다섯을 깔아 놓고 누르기만 되면 그건 작은 탭이다. 점은
+   「다섯 중 여기」라는 말이니 손가락으로 넘어가야 한다. */
+@media (max-width: 767px) {
+  .hip-swipe {
+    display: contents;
+  }
+  /* 판이 바뀔 때 — 형: 「탭 넘길 때 너무 빡! 두둥 좌우 파박 이런 느낌이라
+     멀미나. 그냥 자연스럽게 뜨도록」.
+     가로로 11% 를 밀어 넣었다. 판이 통째로 옆에서 날아오니, 넘길 때마다
+     화면이 한 번씩 튀었다. **가로 이동을 아예 걷는다** — 옅게 떴다가
+     또렷해질 뿐이다. 어느 쪽에서 왔는지는 아래 염주가 이미 말한다. */
+  .hip-swipe.from-right .hip-screen,
+  .hip-swipe.from-left .hip-screen {
+    animation: hip-in 0.42s cubic-bezier(0.33, 0, 0.2, 1);
+  }
+  @keyframes hip-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* 점 다섯은 판 위에 떠 있는다 — 어느 화면에서든 같은 자리 */
+  .hip-swipe > .hip-rail {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    z-index: 70;
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+  }
+  .hip-swipe > .hip-rail button { padding: 10px; }
+  .hip-swipe > .hip-rail i {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(26, 23, 20, 0.2);
+    transition: transform 0.24s, background-color 0.24s;
+  }
+  .hip-swipe > .hip-rail i[data-on="1"] {
+    background: #ef7ba4;
+    transform: scale(1.75);
+  }
+  /* 판 안에 따로 두었던 점 줄은 이제 껍데기가 맡는다 */
+  .hip-screen > .hip-rail { display: none; }
+  /* 염주 줄이 떠 있으니 판 아래에 그만큼 자리를 비운다 —
+     안 비우면 주 단추가 알 위에 올라탄다 */
+  .hip-screen { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 86px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hip-swipe.from-right .hip-screen,
+  .hip-swipe.from-left .hip-screen { animation: none; }
+}
+
+/* ── 염주 줄 — 내비게이션이 곧 염주다 ────────────────────────
+   형: 「시스템조차 탭이니 뭐니 그렇게 말고」. 맞다, 점 다섯도 결국
+   탭이다. 우리한테는 염주가 있는데 탭을 쓸 이유가 없다.
+
+   알 다섯이 실 하나에 꿰여 있다. 지금 있는 자리가 **큰 알**이고 한자
+   한 글자를 품는다. 나머지는 작은 알 — 글자는 흐리게 잠들어 있다. */
+@media (max-width: 767px) {
+  .hip-swipe > .hip-rail { display: none; }
+
+  .hip-mala {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+    z-index: 70;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  /* 실 — 알을 꿰는 한 올 */
+  .hip-mala-thread {
+    position: absolute;
+    left: 24%;
+    right: 24%;
+    top: 50%;
+    height: 1px;
+    background: rgba(26, 23, 20, 0.14);
+  }
+  .hip-mala button {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    box-shadow:
+      inset -3px -4px 7px rgba(26, 23, 20, 0.1),
+      inset 3px 3px 6px rgba(255, 255, 255, 0.9),
+      0 2px 6px rgba(26, 23, 20, 0.12);
+    transition: width 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+      height 0.28s cubic-bezier(0.22, 0.61, 0.36, 1), background-color 0.28s;
+  }
+  .hip-mala button b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 0;
+    line-height: 1;
+    color: transparent;
+    transition: font-size 0.28s, color 0.28s;
+  }
+  /* 지금 자리 — 알이 커지고 글자가 깨어난다 */
+  .hip-mala button[data-on="1"] {
+    width: 46px;
+    height: 46px;
+    background: linear-gradient(150deg, #fbe3ec, #f6b9ce 52%, #ef7ba4);
+    box-shadow:
+      inset -5px -6px 11px rgba(180, 70, 110, 0.25),
+      inset 5px 5px 10px rgba(255, 255, 255, 0.6),
+      0 6px 16px rgba(239, 123, 164, 0.4);
+  }
+  .hip-mala button[data-on="1"] b {
+    font-size: 19px;
+    color: #fff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hip-mala button, .hip-mala button b { transition: none; }
+}
+
+/* ── 폰에서는 옛 탭을 끈다 ────────────────────────────────────
+   형: 「연꽃 공양에도 탭이 보인다」 「왜 손잡고 절로만 밑에 버튼이
+   오리지날로 뜨냐」. 판마다 염주를 넣었더니 아직 안 고친 화면에서는
+   옛 탭이 그대로 떴다. 한 화면씩 고칠 일이 아니다 — 아예 끈다.
+   염주는 layout 이 한 번만 놓는다. */
+@media (max-width: 767px) {
+  .mobile-tabbar,
+  .doryang-fab {
+    display: none !important;
+  }
+  /* 옛 탭 자리를 비워 두던 여백도 걷는다 */
+  .site-foot {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px) !important;
+  }
+  /* 아직 새로 안 짠 화면들도 염주에 가리지 않게 바닥을 비운다 */
+  #scroll-box > div > main {
+    padding-bottom: 0;
+  }
+}
+
+/* ── 나머지 방들 — 동그란 버튼 ────────────────────────────────
+   형: 「동그란 버튼을 두든, 여러 메뉴는 내 도량에서 보든」.
+   아래 띠에는 알 셋만. 하루에 한 번 갈까 말까 한 방은 여기 모은다. */
+@media (max-width: 767px) {
+  .hip-rooms {
+    margin-top: 34px;
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px 8px;
+  }
+  .hip-rooms a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+  }
+  .hip-rooms i {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-serif);
+    font-style: normal;
+    font-weight: 400;
+    font-size: 21px;
+    line-height: 1;
+    color: #6e6455;
+    background: #fff;
+    box-shadow:
+      inset -3px -4px 8px rgba(26, 23, 20, 0.06),
+      0 3px 10px rgba(26, 23, 20, 0.08);
+    transition: transform 0.16s, color 0.2s, box-shadow 0.2s;
+  }
+  .hip-rooms a:active i {
+    transform: scale(0.94);
+  }
+  /* 셋씩 두 줄 — 가운데 줄은 민트, 바깥은 분홍으로 물린다.
+     여섯이 다 같은 흰 동그라미면 그냥 단추 여섯이다 */
+  .hip-rooms a:nth-child(2) i,
+  .hip-rooms a:nth-child(5) i { color: #43b39c; }
+  .hip-rooms a:nth-child(3) i,
+  .hip-rooms a:nth-child(4) i { color: #e3628f; }
+  .hip-rooms span {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: #9a9187;
+  }
+}
+
+/* ── 맨 위 로고 — 어디서든 홈으로 ─────────────────────────────
+   형: 「어디 맨 위에 로고 달든, 홈으로 가는 거도 하나 있긴 해야겠다」.
+   판 이름(百八·我)은 오른쪽으로 물리고, 왼쪽 자리는 로고가 맡는다. */
+@media (max-width: 767px) {
+  .hip-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .hip-home svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: #ef7ba4;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .hip-home b {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 0.18em;
+    color: #17140f;
+  }
+  .hip-home:active { opacity: 0.6; }
+}
+
+/* ── 목탁을 선으로 그린다 ─────────────────────────────────────
+   형: 「메인에 오늘의 물음 위 연꽃 반응형 존나 좋다. 저런 느낌
+   디자인으로 전반을 가자」. 사진으로 구운 오브제는 아무리 잘 구워도
+   남의 결이다. 선으로 그리고 천천히 움직이면 그게 우리 것이 된다. */
+@media (max-width: 767px) {
+  .hip-mok {
+    display: block;
+    width: 100%;
+    animation: hip-tap 0.18s ease-out;
+  }
+  .hip-mok svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* 숨 쉬는 테 — 연꽃과 같은 박자로 아주 느리게 */
+  .hip-mok-aura circle {
+    stroke: rgba(239, 123, 164, 0.16);
+    stroke-width: 1;
+  }
+  .hip-mok-aura {
+    transform-origin: 100px 100px;
+    animation: hip-breathe 7s ease-in-out infinite;
+  }
+  @keyframes hip-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.045); opacity: 0.5; }
+  }
+  /* 몸 — 선이 아니라 **채운다.** 선으로만 두었더니 도면처럼 보였다 */
+  .hip-mok-body {
+    fill: url(#mokBody);
+    stroke: none;
+    filter: drop-shadow(0 10px 14px rgba(222, 126, 161, 0.3));
+  }
+  .hip-mok-seam {
+    stroke: rgba(255, 255, 255, 0.45);
+    stroke-width: 2;
+  }
+  /* 입 — 채워서 판다. 선으로 그으면 웃는 얼굴이 된다 */
+  .hip-mok-mouth {
+    fill: #7e3c56;
+    stroke: none;
+    opacity: 0.9;
+  }
+  .hip-mok-lip {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 2.5;
+  }
+  /* 꼭지 — 용머리(쌍어) 자리 */
+  .hip-mok-ear {
+    fill: url(#mokEar);
+    stroke: none;
+  }
+  .hip-mok-groove {
+    fill: none;
+    stroke: rgba(126, 60, 86, 0.32);
+    stroke-width: 3;
+  }
+  /* 방석 — 이게 있어야 얼굴이 아니라 물건으로 읽힌다.
+     형: 「목탁은 핑크만 두고」 — 민트로 깔았더니 얼룩처럼 보였다 */
+  .hip-mok-mat {
+    fill: rgba(222, 126, 161, 0.18);
+    stroke: none;
+  }
+  /* 빛 한 점 — 도톰해 보이게 */
+  .hip-mok-shine {
+    fill: rgba(255, 255, 255, 0.42);
+    stroke: none;
+  }
+  /* 채 — 형: 「목탁은 핑크만 두고」 */
+  .hip-mok-stick {
+    stroke: #d4779b;
+    stroke-width: 7;
+  }
+  .hip-mok-knob {
+    fill: #c9648b;
+    stroke: none;
+  }
+
+  /* ── 염주 ── 알 스물일곱이 한 바퀴 */
+  .hip-bead-thread {
+    fill: none;
+    stroke: rgba(26, 23, 20, 0.12);
+    stroke-width: 1.4;
+  }
+  .hip-bead-one {
+    fill: rgba(26, 23, 20, 0.07);
+    stroke: none;
+    transition: fill 0.2s ease;
+  }
+  .hip-bead-one[data-on="1"] {
+    fill: url(#beadOn);
+    filter: drop-shadow(0 3px 5px rgba(210, 104, 143, 0.35));
+  }
+  .hip-bead-mom {
+    fill: url(#beadMom);
+    stroke: none;
+    filter: drop-shadow(0 4px 7px rgba(201, 160, 99, 0.4));
+  }
+
+  /* ── 싱잉볼 ── 놋 사발. 민트로 갈라 두어야 갈래가 한눈에 보인다 */
+  .hip-bowl-body {
+    fill: url(#bowlBody);
+    stroke: none;
+    filter: drop-shadow(0 12px 16px rgba(62, 156, 136, 0.28));
+  }
+  .hip-bowl-rim {
+    fill: #a7e3d4;
+    stroke: none;
+  }
+  .hip-bowl-shine {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.4);
+    stroke-width: 5;
+  }
+  .hip-bowl-mat {
+    fill: rgba(239, 123, 164, 0.22);
+    stroke: none;
+  }
+  .hip-bowl-stick {
+    fill: #d4779b;
+    stroke: none;
+  }
+  .hip-bowl-head {
+    fill: #c9648b;
+    stroke: none;
+  }
+  /* 울리는 동안 — 그릇이 아주 얕게 떤다 */
+  .hip-bowl.on svg {
+    animation: hip-hum 1.6s ease-in-out infinite;
+    transform-origin: 100px 120px;
+  }
+  @keyframes hip-hum {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.018); }
+  }
+
+  /* ── 갈래 셋 ──
+     형: 「공덕에는 오리지날처럼 위에 목탁 염주 싱잉볼로 옮길 수 있는
+     탭 주고」. 머리 바로 아래 한 줄. 테도 바탕도 없이 글자만 —
+     지금 자리만 먹으로 진해진다. */
+  .hip-lanes {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+    padding: 2px 0 4px;
+  }
+  .hip-lanes button {
+    position: relative;
+    padding: 4px 2px;
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    color: #b0a698;
+    transition: color 0.18s ease;
+  }
+  .hip-lanes button[data-on="1"] {
+    color: #17140f;
+  }
+  .hip-lanes button[data-on="1"]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--hip-pink, #ef7ba4);
+  }
+}
+
+/* ── 내 도량 — 자리 가로 · 접는 둘 ────────────────────────────
+   형: 「자리는 가로 형태로 두고, 부적 기능 접었다 펼쳤다,
+   알림도 접었다 펼쳤다」 */
+@media (max-width: 767px) {
+  .hip-seats {
+    margin-top: 22px;
+    align-self: stretch;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .hip-seats i {
+    font-family: var(--font-serif);
+    font-style: normal;
+    font-size: 17px;
+    line-height: 1;
+    color: rgba(26, 23, 20, 0.18);
+    transition: color 0.25s, transform 0.25s;
+  }
+  .hip-seats i[data-got="1"] { color: #b9849b; }
+  .hip-seats i[data-here="1"] {
+    color: #ef7ba4;
+    font-size: 25px;
+    transform: translateY(-1px);
+  }
+
+  .hip-folds {
+    margin-top: 30px;
+    align-self: stretch;
+    border-top: 1px solid rgba(26, 23, 20, 0.1);
+  }
+  .hip-folds details {
+    border-bottom: 1px solid rgba(26, 23, 20, 0.1);
+  }
+  .hip-folds summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 17px 2px;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: #6e6455;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hip-folds summary::-webkit-details-marker { display: none; }
+  .hip-folds summary b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 15px;
+    color: #ef7ba4;
+  }
+  .hip-folds summary::after {
+    content: "+";
+    margin-left: auto;
+    color: #b5aca0;
+    font-size: 15px;
+  }
+  .hip-folds details[open] summary::after { content: "\2212"; }
+  .hip-folds > details > div { padding: 0 0 18px; }
+
+  .hip-charms {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .hip-charms span {
+    display: block;
+    opacity: 0.16;
+    filter: grayscale(1);
+  }
+  .hip-charms span[data-got="1"] { opacity: 1; filter: none; }
+
+  .hip-bells { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hip-bells button {
+    height: 38px;
+    padding: 0 15px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.14);
+    font-size: 12.5px;
+    color: #8b8175;
+  }
+  .hip-bells button[data-on="1"] {
+    border-color: #ef7ba4;
+    background: rgba(242, 120, 159, 0.1);
+    color: #17140f;
+  }
+}
+
+/* ── 물음만 보기 ──────────────────────────────────────────────
+   형: 「화두만 보기 넣어주고」. 이 화면에는 물음과 되돌아가는 자리
+   하나뿐이다 — 아래 염주까지 걷는다. */
+@media (max-width: 767px) {
+  .hip-only { z-index: 80; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px); }
+  body:has(.hip-only) .hip-mala { display: none; }
+  .hip-back {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(26, 23, 20, 0.16);
+    color: #8b8175;
+    font-size: 13px;
+    line-height: 1;
+  }
+  .hip-back:active { background: rgba(26, 23, 20, 0.05); }
+}
+
+/* ── 한지 활자 — 화두 갈래의 결 ───────────────────────────────
+   형: 「이 느낌 존나 좋았거든 빼지 말고 넣고」
+   (한지 바탕 · 세로 話頭 · 第 十七 日 · 큰 세리프 물음 · 趙州 從諗 ·
+    얇은 선 하나 · 사흘째 품는 중 / 답하기)
+
+   공덕은 흰 종이에 분홍과 민트로 놀고, 화두는 한지에 먹으로 가라앉는다.
+   한 앱에 두 얼굴이 아니라 두 마음이다 — 치는 일은 즐겁고 묻는 일은
+   고요하다. 같은 낯으로 둘 이유가 없다.
+
+   이 규칙들은 전부 .hip-hanji 안에서만 산다. 공덕·내 도량·절로는
+   손대지 않는다. */
+@media (max-width: 767px) {
+  /* 형: 「시안에서 봤듯 민트도 섞어라 배경에」.
+     한지 한 겹으로 덮고 민트를 껐더니, 형이 좋다던 그 시안의 배경
+     (왼쪽 위 분홍 · 오른쪽 아래 민트가 번지는 흰 종이)이 사라졌다.
+     **바탕은 다른 판과 같이 간다.** 한지는 색이 아니라 **활자**였다 —
+     세로 話頭 · 큰 세리프 · 자간 벌린 한자 · 얇은 선 하나.
+     그것만 남기고 바탕은 되돌린다. 앱이 두 얼굴일 까닭도 없어졌다. */
+  .hip-hanji {
+    --hanji-ink: #17140f;
+    --hanji-mute: #9a9287;
+    --hanji-rule: rgba(26, 23, 20, 0.12);
+  }
+
+  /* 결 — 세로로 눕힌 話頭. 크고, 거의 안 보이게 */
+  .hip-mark {
+    position: absolute;
+    top: 74px;
+    left: -6px;
+    z-index: 0;
+    writing-mode: vertical-rl;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: clamp(84px, 25vw, 124px);
+    line-height: 0.9;
+    letter-spacing: 0.01em;
+    color: rgba(28, 26, 23, 0.055);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* 날 — 한자로 센다 */
+  .hip-hanji .hip-kicker { color: var(--hanji-mute); }
+  .hip-day {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .hip-hanji .hip-more {
+    border-color: var(--hanji-rule);
+    color: var(--hanji-mute);
+  }
+
+  .hip-hanji .hip-q { color: var(--hanji-ink); }
+  .hip-hanji .hip-q-by {
+    margin-top: 30px;
+    font-family: var(--font-serif);
+    font-size: 12px;
+    letter-spacing: 0.42em;
+    color: #a8a094;
+  }
+  .hip-hanji .hip-ask { color: var(--hanji-ink); }
+
+  /* ── 바닥 ── 얇은 선 하나가 곧 달이다 */
+  .hip-foot {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding-bottom: 4px;
+  }
+  .hip-rule {
+    position: relative;
+    height: 1px;
+    background: var(--hanji-rule);
+  }
+  .hip-rule i {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    height: 1px;
+    background: var(--hanji-ink);
+    transition: width 0.6s ease;
+  }
+  .hip-foot-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-top: 15px;
+  }
+  .hip-foot-row > span {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--hanji-mute);
+  }
+  /* 할 일 하나 — 검은 알약 대신 밑줄 한 줄. 시안에 알약은 없었다 */
+  .hip-do {
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--hanji-ink);
+    font-family: var(--font-serif);
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    color: var(--hanji-ink);
+  }
+  .hip-do:active { opacity: 0.5; }
+
+  /* 품는 날수와 내려놓기 — 아주 작게, 바닥 끝에 */
+  .hip-foot-fine {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 18px;
+  }
+  .hip-days {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .hip-days button {
+    min-width: 26px;
+    padding: 3px 0;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: #b4ac9f;
+  }
+  .hip-days button[data-on="1"] {
+    color: var(--hanji-ink);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .hip-days i {
+    margin-left: 5px;
+    font-style: normal;
+    font-family: var(--font-serif);
+    font-size: 11px;
+    color: #c0b8ab;
+  }
+  .hip-drop {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: #b4ac9f;
+  }
+  .hip-drop:active { color: #8e4763; }
+
+  /* 빈 뜰 — 한지 위의 금은 잘 앉는다. 그림자만 한 겹 덜어 낸다 */
+  .hip-hanji .hip-buddha {
+    filter: drop-shadow(0 12px 16px rgba(28, 26, 23, 0.13));
+  }
+  .hip-hanji .hip-lotus ellipse {
+    fill: rgba(200, 120, 146, 0.09);
+    stroke: rgba(190, 118, 143, 0.4);
+  }
+  .hip-hanji .hip-lotus circle { fill: rgba(154, 146, 135, 0.42); }
+
+  /* 알약(성인·어린이)과 검은 단추는 한지에 맞춰 톤만 낮춘다 */
+  .hip-hanji .hip-seg { background: rgba(28, 26, 23, 0.05); }
+  .hip-hanji .hip-strike { background: #1c1a17; }
+  .hip-hanji .hip-back {
+    border-color: var(--hanji-rule);
+    color: var(--hanji-mute);
+  }
+}
+
+/* 목탁 — 3D 렌더 한 장. 코드로 그린 것을 물린다.
+   형: 「3차원 제미나이 써서 기존 느낌으로 둥글고 귀엽게」 */
+@media (max-width: 767px) {
+  .hip-mok-img {
+    display: block;
+    width: 100%;
+  }
+  .hip-mok-img img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 14px 18px rgba(222, 126, 161, 0.26));
+  }
+}
+
+/* ── 새기고 고치는 한 덩이 ────────────────────────────────────
+   형이 짚은 버그 넷을 한 자리에 모았다. hip.css 는 거의 모든 항목이
+   건드리는 파일이라, 여기저기 흩어 놓으면 다음에 고칠 때 서로 부딪힌다.
+   전부 @media (max-width: 767px) 안이다 — 웹은 한 픽셀도 안 움직인다. */
+@media (max-width: 767px) {
+  /* ① 사유의 방 — 판 위로.
+     형: 「사유의 방 여전히 안되고」.
+     지난번엔 서랍을 웹 분기 **밖으로** 뺐다. 그건 맞았다 — DOM 에는
+     들어갔다. 그런데 안 보였다. `.hip-screen` 이 z 60 에 **불투명**하고
+     서랍은 z 50 이었다. 열리긴 열렸는데 판 뒤에 깔려 있었던 것이다.
+     70 은 염주 줄, 100 은 확인창. 그 사이 74·75 가 우리 자리다. */
+  .notes-veil { z-index: 74; }
+  .notes-panel { z-index: 75; }
+  /* 서랍이 열린 동안에는 염주를 걷는다 — 안 걷으면 알들이 글칸 위에
+     올라탄다. 닫힌 서랍도 DOM 에 남으므로 **열린 것만** 집는다 */
+  body:has(.notes-panel[aria-hidden="false"]) .hip-mala {
+    display: none !important;
+  }
+
+  /* ② 세로로 흐르는 판.
+     형: 「내 도량에서 위 아래 스크롤이 안되노」.
+     body 가 overflow:hidden 이고 `.hip-screen` 도 overflow:hidden 이라
+     **화면에 스크롤할 통이 하나도 없었다.** 가운데만 통으로 만든다.
+       · min-height: 0 — flex 자식 기본값이 auto 라 이게 없으면 통이
+         내용만큼 늘어나 overflow 가 발동조차 안 한다. 빠뜨리면 안 고쳐진다
+       · justify-content: flex-start — center 로 두면 넘친 내용이 위아래
+         양쪽으로 밀려 맨 윗줄에 스크롤로 못 닿는다
+     목탁·뜰은 안 넘치니 가운데 정렬 그대로 둔다 — 붙인 판만 흐른다. */
+  .hip-screen-scroll .hip-screen-mid {
+    justify-content: flex-start;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 22px;
+    padding-bottom: 24px;
+    scrollbar-width: none;
+  }
+  .hip-screen-scroll .hip-screen-mid::-webkit-scrollbar { display: none; }
+
+  /* ③ 옛 머리띠 — 조건 없이 끈다.
+     형: 「인연도 그렇게 이제 저 오리지날 위 탭은 안보이게 필요 없고」
+         「공덕 오른쪽 위 ,,, 기능 좋은데 겹친다」
+     두 버그는 **같은 원인 하나**다. 머리띠를 `body:has(.hip-screen)` 으로만
+     껐더니, 새 판이 없는 화면(절로)과 새 판이 잠깐 빠지는 순간(⋯ 서랍)에
+     그대로 되살아났다. #scroll-box 가 쌓임 맥락이라 z-index 로는 못 덮는다 —
+     조건을 떼는 수밖에 없다. */
+  .hip-topbar { display: none !important; }
+  /* 머리띠가 지던 자리(pt-16 = 64px)도 같이 걷는다. 안 걷으면 빈칸이 남는다 */
+  #scroll-box > div { padding-top: 0; }
+}
+
+/* ── 내 도량을 채운다 ──────────────────────────────────────────
+   형: 「법명이나 아이디 고칠 수 있도록」 「서비스 다 넣어주고」
+       「몇 번 쳤는지를 내 도량에서 보여주고」 「ⓘ로 어딘가에 표시」 */
+@media (max-width: 767px) {
+  /* 법명 — 누르면 그 자리가 글칸이 된다. 화면을 옮기지 않는다 */
+  .hip-me-name {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .hip-me-name > button:first-child {
+    font: inherit;
+    color: inherit;
+    border-bottom: 1px dotted rgba(26, 23, 20, 0.25);
+    padding-bottom: 2px;
+  }
+  .hip-reroll {
+    font-size: 15px;
+    line-height: 1;
+    color: #b7ada0;
+  }
+  .hip-reroll:active { color: var(--hip-pink, #ef7ba4); }
+  .hip-name-edit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hip-name-edit input {
+    width: 6.2em;
+    padding: 4px 2px;
+    border-bottom: 1px solid var(--hip-pink, #ef7ba4);
+    background: transparent;
+    font-family: var(--font-serif);
+    font-size: 25px;
+    letter-spacing: -0.02em;
+    color: #17140f;
+    outline: none;
+  }
+  .hip-name-ok,
+  .hip-name-no {
+    padding: 5px 11px;
+    border: 1px solid rgba(26, 23, 20, 0.16);
+    border-radius: 999px;
+    font-size: 12px;
+    color: #6b6359;
+  }
+  .hip-name-bad {
+    margin-top: 6px;
+    font-size: 11.5px;
+    color: #c2537e;
+  }
+
+  /* ⓘ — 눌러야 펴진다. 늘 펴 두면 글이 늘어난다 */
+  .hip-info {
+    display: inline-block;
+    margin-left: 7px;
+    vertical-align: middle;
+  }
+  .hip-info summary {
+    display: inline;
+    list-style: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: #b7ada0;
+  }
+  .hip-info summary::-webkit-details-marker { display: none; }
+  .hip-info[open] summary { color: var(--hip-pink, #ef7ba4); }
+  .hip-info > div {
+    margin: 10px auto 0;
+    max-width: 19em;
+    padding: 11px 14px;
+    border-radius: 14px;
+    background: rgba(26, 23, 20, 0.04);
+    font-size: 11.5px;
+    line-height: 1.85;
+    letter-spacing: 0;
+    color: #6b6359;
+    text-align: center;
+  }
+
+  /* 무엇을 몇 번 — 넷 고정이던 것을 흐르게. 한 것이 여덟이든 열이든 */
+  .hip-me-hits {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 16px;
+  }
+
+  /* 서비스 — 스물일곱 칸이 되니 동그라미를 줄이고 넉 줄로 */
+  .hip-rooms {
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 16px;
+  }
+  .hip-rooms a i {
+    width: 46px;
+    height: 46px;
+    font-size: 17px;
+  }
+  .hip-rooms a span { font-size: 10.5px; }
+  /* 여섯 칸일 때 자리마다 박아 둔 색은 스물일곱 칸에서는 안 맞는다.
+     세 칸마다 도는 규칙으로 바꾼다 — 분홍·민트·먹이 골고루 */
+  .hip-rooms a:nth-child(3n + 2) i { color: #4fb7a1; }
+  .hip-rooms a:nth-child(3n + 3) i { color: #d9679a; }
+}
+
+/* ── 그림자를 걷는다 ──────────────────────────────────────────
+   형: 「전체적으로 그림자 말인데 그림자가 있으니까 핑크랑 대비돼서
+        ㅈㄴ 별로다. 그림자는 적게 하고」
+
+   맞는 말이다. 검은 그림자는 흰 바탕에서는 「떠 있음」으로 읽히는데
+   분홍 바탕에서는 **때**로 읽힌다. 회색이 분홍과 섞이면 탁해진다.
+   그래서 두 가지를 한다 —
+     ① 검정(rgba(26,23,20,…))으로 지던 그림자는 **분홍 계열로** 바꾼다.
+        같은 색 계열끼리는 겹쳐도 탁해지지 않는다
+     ② 세기와 거리를 절반 아래로 줄인다. 있는지 없는지 모를 만큼만
+   이 덩이는 파일 맨 뒤라 앞의 규칙들을 덮는다 — 원래 값을 뒤지지 않고
+   여기 한 자리에서 결을 잡는다. */
+@media (max-width: 767px) {
+  /* 오브제 — 제일 크고 제일 눈에 걸리던 것 */
+  .hip-mok-img img {
+    filter: drop-shadow(0 6px 10px rgba(222, 126, 161, 0.16));
+  }
+  .hip-buddha,
+  .hip-hanji .hip-buddha {
+    filter: drop-shadow(0 6px 12px rgba(160, 120, 130, 0.14));
+  }
+  .hip-mok-body {
+    filter: drop-shadow(0 5px 8px rgba(222, 126, 161, 0.16));
+  }
+  .hip-bead-one[data-on="1"] { filter: none; }
+  .hip-bead-mom { filter: drop-shadow(0 2px 4px rgba(201, 160, 99, 0.22)); }
+  .hip-bowl-body {
+    filter: drop-shadow(0 6px 10px rgba(62, 156, 136, 0.15));
+  }
+
+  /* 염주 알 — 안쪽 음영만 남기고 바깥 그늘은 거의 지운다 */
+  .hip-mala button {
+    box-shadow:
+      inset -2px -3px 6px rgba(190, 120, 145, 0.1),
+      inset 2px 2px 5px rgba(255, 255, 255, 0.9);
+  }
+  .hip-mala button[data-on="1"] {
+    box-shadow:
+      inset -4px -5px 10px rgba(180, 70, 110, 0.18),
+      inset 4px 4px 9px rgba(255, 255, 255, 0.6),
+      0 2px 8px rgba(239, 123, 164, 0.22);
+  }
+
+  /* 서비스 동그라미 — 스물여섯 개가 저마다 그늘을 지면 판이 얼룩진다 */
+  .hip-rooms a i {
+    box-shadow: inset -2px -3px 6px rgba(190, 120, 145, 0.07);
+  }
+
+  /* 큰 단추 · 떠 있는 것들 */
+  .hip-strike { box-shadow: 0 4px 14px rgba(26, 23, 20, 0.1); }
+  .hip-sheet { box-shadow: none; }
+}
+
+/* ── 품는 날의 선과 달 ────────────────────────────────────────
+   형: 「품는 날에 그 선 좀만 더 두껍게 달모양 넣고 오리지날처럼 알지?」
+
+   실 한 올(1px)은 미니멀하긴 한데 **차오르는 게 안 보였다.** 두껍게 하고,
+   찬 끝에 달을 얹는다. 달은 옛 판의 .moon 그대로다 — 오른쪽 위가 밝고
+   나머지가 여려서 초승이 차오르는 것처럼 보이는, 그 동그라미.
+   차면 달이 온전히 밝아진다. */
+@media (max-width: 767px) {
+  .hip-rule {
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(28, 26, 23, 0.1);
+    overflow: visible;
+  }
+  .hip-rule i {
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, rgba(28, 26, 23, 0.4), #1c1a17);
+  }
+  /* 달 — 선 끝에 얹힌다. 선을 따라 오른쪽으로 걸어간다 */
+  .hip-moon-dot {
+    position: absolute;
+    top: 50%;
+    width: 15px;
+    height: 15px;
+    margin: -7.5px 0 0 -7.5px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 66% 40%,
+      #e8cfa0 0 44%,
+      rgba(232, 207, 160, 0.14) 46% 100%
+    );
+    box-shadow: 0 0 8px rgba(217, 180, 91, 0.3);
+    transition: left 0.6s ease;
+  }
+  /* 찼을 때 — 온달. 여린 쪽까지 다 밝아진다 */
+  .hip-moon-dot[data-full="1"] {
+    background: radial-gradient(circle at 66% 40%, #f2dcae 0 62%, #e0c68f 64% 100%);
+    box-shadow: 0 0 12px rgba(217, 180, 91, 0.5);
+  }
+}
+
+/* ── 문 — 손님이 물음을 청했을 때만 열린다 ────────────────────
+   형: 「로그인 화면은 오늘의 물음을 받으시겠습니까가 좋겠다.
+        대신 그거 로그인 안 한 상태에서 눌리면 가입부터 유도」
+   들어오기 전에 문지기부터 만나는 앱은 되고 싶지 않다. 화면은 그대로
+   두고, 단추를 눌렀을 때 그 위로 한 겹만 올라온다. */
+@media (max-width: 767px) {
+  .hip-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 78;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .hip-gate-veil {
+    position: absolute;
+    inset: 0;
+    background: rgba(28, 26, 23, 0.34);
+    backdrop-filter: blur(3px);
+  }
+  .hip-gate-card {
+    position: relative;
+    width: 100%;
+    padding: 34px 26px calc(env(safe-area-inset-bottom, 0px) + 26px);
+    border-radius: 26px 26px 0 0;
+    background: #fbfaf8;
+    text-align: center;
+    animation: hip-up 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  @keyframes hip-up {
+    from { transform: translateY(18px); opacity: 0; }
+  }
+  .hip-gate-say {
+    margin-bottom: 26px;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 21px;
+    line-height: 1.6;
+    letter-spacing: -0.02em;
+    color: #17140f;
+  }
+  .hip-gate-card .hip-strike { width: 100%; }
+  .hip-gate-bad {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #c2537e;
+  }
+  .hip-gate-later {
+    margin-top: 16px;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: #a39a8f;
+  }
+  /* 문이 열린 동안은 염주를 걷는다 */
+  body:has(.hip-gate) .hip-mala { display: none !important; }
+}
+
+/* 공덕 알림 알약 — 그림자를 걷는다.
+   형: 「공덕 쌓이는 거 팝업 뜨는 거 거기도 그림자 없애」.
+   먹빛 판에서는 0 8px 26px 검정이 「떠 있음」이었는데, 분홍 바탕에서는
+   알약 밑에 때가 낀 것처럼 보인다. 폰에서만 걷는다 — 웹은 그대로. */
+@media (max-width: 767px) {
+  [class*="shadow-[0_8px_26px"] {
+    box-shadow: 0 2px 8px rgba(222, 126, 161, 0.14) !important;
+  }
+}
+
+/* 한 것 — 알약 줄. 형: 「공덕 쌓은 거 라벨 이런 식으로 넣어.
+   모든 기능 중 공덕 주는 건 다. 대신 한 횟수를 표기」 */
+@media (max-width: 767px) {
+  .hip-me-hits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    justify-content: center;
+  }
+  .hip-me-hits span {
+    padding: 6px 13px;
+    border: 1px solid rgba(26, 23, 20, 0.11);
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    color: #8b8175;
+    white-space: nowrap;
+  }
+  .hip-me-hits span b {
+    font-weight: 500;
+    color: #17140f;
+  }
+}
+
+/* ── 살림살이가 판 안으로 ─────────────────────────────────────
+   형: 「공덕 목탁 염주 싱잉볼 다 오른쪽 위 ... 없이 그냥 화면에 녹여
+        기능 옵션」
+   서랍은 두 가지가 나빴다 — 숨겨 두면 있는 줄도 모르고, 열면 화면이
+   통째로 덮여 치던 것이 사라진다. 판 아래에 깔면 둘 다 없다.
+   치는 동안에는 눈에 안 걸리고, 내리면 거기 있다. */
+@media (max-width: 767px) {
+  .hip-opts {
+    width: 100%;
+    margin-top: 40px;
+    padding-top: 26px;
+    border-top: 1px solid rgba(26, 23, 20, 0.07);
+  }
+  .hip-opts .hip-sheet-label:first-child { margin-top: 0; }
+}
+
+/* 서비스 동그라미 — 그림자를 아주 옅게 되살린다.
+   형: 「미안한데 여기 좀만 더 그림자 아주 연하게는 넣자」.
+   다 걷었더니 동그라미가 바탕에 묻어 눌리는 것처럼 안 보였다.
+   검정이 아니라 **분홍 쪽 그늘**로 둔다 — 분홍 바탕과 안 싸운다. */
+@media (max-width: 767px) {
+  .hip-rooms a i {
+    box-shadow:
+      inset -2px -3px 6px rgba(190, 120, 145, 0.07),
+      0 2px 6px rgba(190, 130, 150, 0.13);
+  }
+  .hip-rooms a:active i {
+    box-shadow: inset -1px -2px 4px rgba(190, 120, 145, 0.1);
+  }
+}
+
+/* ── 자리 여섯 — 형이 준 원본 그대로 ──────────────────────────
+   형: 「법명 아래 바로 계급도 죽죽죽 부처까지 나오고, 그 아래
+        동자 사미 … 부처 이렇게 적어주자 한글로」
+       「그 공덕 아래 얼마가 쌓여야 부처가 되는지도 숫자로 써주자」
+   한자만 여섯 개 늘어놓으니 무슨 자리인지도, 얼마나 가야 하는지도
+   알 수 없었다. 세 줄이면 다 말한다 — 한자 · 한글 · 공덕 수. */
+@media (max-width: 767px) {
+  .hip-seats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2px;
+    width: 100%;
+    height: auto;
+  }
+  .hip-seats i {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    font-style: normal;
+  }
+  .hip-seats i b {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 15px;
+    color: #c6bcae;
+    transition: all 0.25s;
+  }
+  .hip-seats i em {
+    font-style: normal;
+    font-size: 10.5px;
+    color: #b4ac9f;
+  }
+  .hip-seats i u {
+    text-decoration: none;
+    font-size: 9.5px;
+    letter-spacing: -0.01em;
+    color: #cdc5b9;
+  }
+  /* 지나온 자리 — 물들어 있다 */
+  .hip-seats i[data-got="1"] b {
+    border-color: rgba(217, 123, 164, 0.3);
+    color: #c9648b;
+  }
+  .hip-seats i[data-got="1"] em { color: #8b8175; }
+  /* 지금 자리 — 채워진다 */
+  .hip-seats i[data-here="1"] b {
+    border-color: transparent;
+    background: linear-gradient(150deg, #fbe3ec, #f2a0bd);
+    color: #fff;
+  }
+  .hip-seats i[data-here="1"] em {
+    color: #17140f;
+    font-weight: 500;
+  }
+  .hip-seats i[data-here="1"] u { color: #b4809a; }
+}
+
+/* ── 계정 · 살림살이 · 염주·싱잉볼 자리 ──────────────────────── */
+@media (max-width: 767px) {
+  .hip-account {
+    width: 100%;
+    margin-top: 34px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(26, 23, 20, 0.07);
+    text-align: center;
+  }
+  .hip-account .hip-strike { width: 100%; }
+  .hip-acc-who {
+    font-size: 12.5px;
+    color: #8b8175;
+  }
+  .hip-acc-why {
+    margin-top: 12px;
+    font-size: 11px;
+    line-height: 1.8;
+    color: #b4ac9f;
+  }
+  .hip-acc-bad {
+    margin-top: 10px;
+    font-size: 11.5px;
+    color: #c2537e;
+  }
+  .hip-acc-out {
+    margin-top: 12px;
+    padding: 8px 20px;
+    border: 1px solid rgba(26, 23, 20, 0.14);
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: #8b8175;
+  }
+  .hip-acc-wait { font-size: 12px; color: #b4ac9f; }
+
+  /* 염주·싱잉볼이 앉는 자리 */
+  .hip-bead-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .hip-obj-foot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 10px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: #b4ac9f;
+  }
+  .hip-hush {
+    padding: 7px 15px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    border-radius: 999px;
+    font-size: 11px;
+    color: #cdc5b9;
+    transition: color 0.2s;
+  }
+  .hip-hush[data-on="1"] { color: #8b8175; }
+  .hip-chips-tight { margin-bottom: 10px; }
+
+  /* 머리 오른쪽 — 늘 손이 가는 넷 */
+  .hip-top-right {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .hip-top-count {
+    font-size: 11px;
+    color: #8b8175;
+  }
+  .hip-top-ico {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    color: #a39a8f;
+  }
+  .hip-top-ico svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .hip-top-ico b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 16px;
+  }
+  .hip-top-ico:active { color: var(--hip-pink, #ef7ba4); }
+
+  /* 연꽃 한가운데 — 형: 「가운데 샛노란색」 →
+     「완전 샛노랑으로 덮으라는 게 아니라 기존 유지하면서 겹치듯,
+      그러나 더 노랗게」.
+     꽉 찬 노랑으로 발랐더니 꽃잎의 결(겹칠수록 진해지는 그 결)에서
+     저 혼자 튀어나왔다. 꽃잎과 **같은 문법**으로 둔다 — 반투명이라
+     뒤의 꽃잎이 비치고, 겹치는 만큼 진해진다. 민트보다 확실히 노랗게. */
+  .hip-lotus circle,
+  .hip-hanji .hip-lotus circle {
+    fill: rgba(245, 199, 63, 0.5);
+    stroke: rgba(226, 173, 42, 0.45);
+    stroke-width: 1.1;
+  }
+}
+
+/* ── ⓘ — 글 대신 길 하나 ──────────────────────────────────────
+   형: 「구구절절 텍스트로 설명하는 것보다 그냥 사람들이 손가락으로
+        만지면서 바로바로 반응성을 주고 학습하도록」 「좀 이쁘게 다시」
+   회색 네모에 세 줄을 적어 뒀더니 읽히지도 않고 판만 탁해졌다.
+   수행 → 공덕 → 연꽃. 화살표 둘이면 다 말한다. */
+@media (max-width: 767px) {
+  .hip-info > div {
+    margin: 12px auto 0;
+    width: max-content;
+    max-width: 100%;
+    padding: 14px 18px 12px;
+    border: 1px solid rgba(217, 123, 164, 0.18);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(6px);
+    text-align: center;
+    letter-spacing: 0;
+  }
+  .hip-info-way {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .hip-info-way i {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-style: normal;
+    font-family: var(--font-serif);
+    font-size: 19px;
+    color: #a39a8f;
+  }
+  .hip-info-way i em {
+    font-style: normal;
+    font-family: var(--font-sans, inherit);
+    font-size: 11px;
+    letter-spacing: -0.01em;
+    color: #b4ac9f;
+  }
+  .hip-info-way i.on { color: #d9568b; }
+  .hip-info-way i.on em { color: #c9648b; }
+  .hip-info-way u {
+    text-decoration: none;
+    font-size: 12px;
+    color: #d6cec2;
+  }
+  .hip-info > div p {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #b4ac9f;
+  }
+}
+
+/* 맨 위 옅은 줄 — 연꽃까지 남은 공덕.
+   형: 「오리지날처럼 맨 위 옅은 줄로 해서 연꽃까지 얻기 위한 공덕량
+        나오게 하도록」. 줄만 있으면 눈대중으로 재야 한다. */
+@media (max-width: 767px) {
+  .merit-left {
+    position: absolute;
+    right: 12px;
+    top: 6px;
+    font-family: var(--font-serif);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: rgba(139, 129, 117, 0.75);
+    white-space: nowrap;
+  }
+}
+
+/* ── 염주는 판 바로 위에만 ────────────────────────────────────
+   형: 「겹친다 이거」 — 쪽지 알림창(z-[70]) 위로 염주가 올라탔다.
+
+   염주도 z 70 이었다. 같은 층이면 **나중에 그려지는 쪽이 이기는데**,
+   염주는 layout.tsx 맨 끝이라 늘 나중이다. 그래서 어떤 창을 열어도
+   염주가 그 위를 밟았다.
+
+   숫자를 내린다 —
+     60 판(.hip-screen) · 61 살림살이 · **62 염주** · 70 이상 창들
+   창마다 `body:has(...)` 로 하나씩 끄는 것보다 이 한 줄이 낫다.
+   앞으로 어떤 창이 새로 생겨도 저절로 염주 위에 선다. */
+@media (max-width: 767px) {
+  .hip-mala { z-index: 62; }
+}
+
+/* 손님일 때는 계정 칸이 **맨 위**로 온다.
+   형: 「로그인도 지금 안 돼. 로그인이 제일 시급」.
+   단추는 있었다 — 동그라미 스물여섯 개 아래 1,098px 지점에.
+   찾을 수 없으면 없는 것과 같다. */
+@media (max-width: 767px) {
+  .hip-account-top {
+    margin-top: 20px;
+    padding-top: 0;
+    border-top: 0;
+  }
+}

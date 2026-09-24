@@ -124,22 +124,52 @@ if (typeof window !== "undefined") {
 // 그래서 형이 준 녹음에서 **울림이 가장 긴 한 방**(목탁2.wav 4.345초 자리,
 // 1.3초를 꼬리로 끄는 타점)만 떠 왔다. 빠르기는 아래에서 높이와 여림으로
 // 만든다 — 음원을 바꾸지 않는다.
-const MOKTAK_URL = "/sfx/moktak.wav";
-let moktakBuf: AudioBuffer | null = null;
-let moktakAsked = false;
+//
+// **소리가 둘이다.**
+//
+// 형: 「목탁 소리 내가 실제로 녹음해 왔거든. 지금 거두 두고 일단
+//      목탁소리 2 이런 식으로 해서 발췌해서 다듬어서 넣어 줄 수 있나」
+//
+//   gongyu — 공유마당 「목탁2」(김용배 · CC BY). 1.3초, 울림이 길다
+//   hyung  — 형이 친 실물 목탁. 21.7초 녹음의 16.15초 자리 한 방.
+//            방 잡음 꼬리를 재우고 120Hz 아래를 걷어 0.9초로 다듬었다
+//            (`_틀/mokclean.mjs`). 으뜸 677Hz — 공유마당 것보다 높고 맑다
+//
+// 고른 소리는 목탁 화면이 서랍에 적어 두고(hwadu.moktak-sfx.v1) 여기에
+// 알려 준다. 둘 다 미리 받아 두지 않는다 — 쓰는 것만 받는다.
+export type MoktakVoice = "gongyu" | "hyung";
+const MOKTAK_URL: Record<MoktakVoice, string> = {
+  gongyu: "/sfx/moktak.wav",
+  hyung: "/sfx/moktak2.wav",
+};
+const moktakBufs: Partial<Record<MoktakVoice, AudioBuffer>> = {};
+const moktakAsked: Partial<Record<MoktakVoice, boolean>> = {};
+let moktakVoice: MoktakVoice = "gongyu";
+/** 지금 울릴 음원 — 아직 안 받아졌으면 null 이고, 빚은 소리가 대신 운다 */
+function moktakBuffer(): AudioBuffer | null {
+  return moktakBufs[moktakVoice] ?? null;
+}
 
-function loadMoktak(ac: AudioContext) {
-  if (moktakAsked) return;
-  moktakAsked = true;
-  fetch(MOKTAK_URL)
+function loadMoktak(ac: AudioContext, v: MoktakVoice = moktakVoice) {
+  if (moktakAsked[v]) return;
+  moktakAsked[v] = true;
+  fetch(MOKTAK_URL[v])
     .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error("no file"))))
     .then((b) => ac.decodeAudioData(b))
     .then((buf) => {
-      moktakBuf = buf;
+      moktakBufs[v] = buf;
     })
     .catch(() => {
       // 못 받았으면 빚은 소리로 간다 — 조용히
+      moktakAsked[v] = false;
     });
+}
+
+/** 어느 목탁으로 울릴지 — 고른 그 자리에서 받아 둔다 */
+export function setMoktakVoice(v: MoktakVoice) {
+  moktakVoice = v;
+  const ac = audio();
+  if (ac) loadMoktak(ac, v);
 }
 
 /** 미리 받아 둔다 — 목탁 방에 들어서는 순간 부르면 첫 타가 늦지 않는다 */
@@ -217,7 +247,9 @@ export function strikeMoktak(vol: number) {
 
   const t = ac.currentTime;
 
-  if (!moktakBuf) {
+  // 지금 고른 목탁 — 아직 안 받아졌으면 빚은 소리가 대신 운다
+  const buf = moktakBuffer();
+  if (!buf) {
     synthMoktak(ac, vol, 0);
     return;
   }
@@ -237,7 +269,7 @@ export function strikeMoktak(vol: number) {
   }
 
   const src = ac.createBufferSource();
-  src.buffer = moktakBuf;
+  src.buffer = buf;
   // 나무라서 생기는 흔들림. 이게 전부다 — 빠르기는 여기 안 들어온다
   src.playbackRate.value = 0.995 + Math.random() * 0.01;
 
@@ -262,7 +294,7 @@ export function strikeMoktak(vol: number) {
 
   src.start(t);
   // **꼬리를 자르지 않는다.** 음원이 제 끝까지 간다(1.3초).
-  src.stop(t + moktakBuf.duration / src.playbackRate.value + 0.05);
+  src.stop(t + buf.duration / src.playbackRate.value + 0.05);
 
   const voice = { g: out, src };
   live.push(voice);

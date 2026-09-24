@@ -12,6 +12,7 @@
 // (useSearchParams 는 Suspense 울타리가 필요하다 — Next 규칙)
 // ────────────────────────────────────────────────────────────────
 
+import HipShell from "@/components/HipShell";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import GatheringBoard from "@/components/GatheringBoard";
@@ -53,8 +54,14 @@ function GatheringInner() {
 
 export default function GatheringPage() {
   return (
-    <Suspense fallback={null}>
-      <GatheringInner />
-    </Suspense>
+    // 폰에서 좌우로 쓸어 넘길 수 있게 — 형: 「오른쪽 왼쪽 다 되도록」.
+    // 절로는 아래 염주에 알(緣)이 있는데 쓸기 껍데기가 없어서, 쓸어
+    // 들어오면 되쓸어 나갈 길이 없었다. 껍데기는 display:contents 라
+    // 화면 짜임에는 아무 영향이 없다.
+    <HipShell here="/gathering">
+      <Suspense fallback={null}>
+        <GatheringInner />
+      </Suspense>
+    </HipShell>
   );
 }

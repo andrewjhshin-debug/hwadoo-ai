@@ -39,7 +39,7 @@ export default function NotesDrawer({
     <>
       <div
         onClick={onClose}
-        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 md:bg-black/30 ${
+        className={`notes-veil fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 md:bg-black/30 ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       />

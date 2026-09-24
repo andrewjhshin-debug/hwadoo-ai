@@ -226,7 +226,22 @@ export default function BaePage() {
         </svg>
         <span className="absolute inset-0 flex flex-col items-center justify-center">
           {done ? (
-            <Dudu stage={stageOf(merit)} mood="joy" uid="bae" className="h-[150px] w-[150px]" />
+            <>
+              {/* 웹은 원래대로 — 나무 한 장 */}
+              <Dudu stage={stageOf(merit)} mood="joy" uid="bae" className="h-[150px] w-[150px]" />
+              {/* 폰 — 두두를 뺐더니 삼백 픽셀 금빛 고리가 통째로 비었다.
+                  형: 「동자승 이미지는 좀 짜쳐, 다시 그릴 테니까 빼고」.
+                  빈 원은 그림이 빠진 자리로 읽힌다. 채운 수를 그대로 둔다 —
+                  백팔을 다 돌았다는 말은 「108」 넉 자면 족하다. */}
+              <span aria-hidden className="flex flex-col items-center md:hidden">
+                <span className="font-serif text-[68px] font-light leading-none text-gold">
+                  {FULL}
+                </span>
+                <span className="mt-3 text-[12px] tracking-[0.3em] text-gold-soft">
+                  百八
+                </span>
+              </span>
+            </>
           ) : (
             <>
               <span className="font-serif text-[68px] leading-none text-hanji">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
+import HipMala from "@/components/HipMala";
 import DoryangMenu from "@/components/DoryangMenu";
 import MeritBar from "@/components/MeritBar";
 import MeritToast from "@/components/MeritToast";
@@ -177,6 +178,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </footer>
         </div>
         <MobileTabBar />
+        {/* 리뉴얼 — 폰에서는 옛 탭 대신 염주 줄이 길이다.
+            판마다 넣었더니 아직 안 고친 화면에서 옛 탭이 그대로 떴다.
+            여기 한 번만 놓고, 옛 탭은 hip.css 가 폰에서 끈다. */}
+        <HipMala />
         {/* 도량 한눈에 — 오른쪽 아래 단추 하나로 방 전부를 펼친다 */}
         <DoryangMenu />
         {/* 공덕이 붙는 순간 — +N 이 뜨고, 자리가 오르면 화면이 한 번 열린다 */}
