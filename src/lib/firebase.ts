@@ -9,16 +9,35 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 
+/** 구글 콘솔에 우리 주소를 등록했으면 true — 위 주석 참고 */
+const 손잡이를_우리집으로 = false;
+function 우리손잡이(): boolean {
+  return (
+    손잡이를_우리집으로 &&
+    typeof window !== "undefined" &&
+    window.location.hostname.endsWith("hwa-du.com")
+  );
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyAdNMHbhnjJqyB5i6rhF8SxpouTuqqN4OE",
-  // 로그인 손잡이를 우리 집 주소로 — next.config.ts 의 rewrites 가
-  // /__/auth/* 를 파이어베이스로 그대로 넘긴다. 남의 도메인 저장소를
-  // 읽을 일이 없어지니, 홈 화면 앱(리다이렉트)에서도 로그인이 끝난다.
-  // 로컬(localhost)에서는 넘길 곳이 없으니 원래 주소를 쓴다.
-  authDomain:
-    typeof window !== "undefined" && window.location.hostname.endsWith("hwa-du.com")
-      ? window.location.hostname
-      : "hwadu-9dc7b.firebaseapp.com",
+  // ── 로그인 손잡이 ─────────────────────────────────────────
+  // 우리 도메인(/__/auth/*)으로 끌어오면 홈 화면 앱에서도 로그인이
+  // 끝난다 — 남의 도메인 저장소를 읽을 일이 없어지기 때문이다.
+  // next.config.ts 의 rewrites 가 그 길을 이미 뚫어 두었다.
+  //
+  // **다만 구글 쪽에 그 주소를 등록해 두어야 한다.** 안 하면 구글이
+  // 「400 redirect_uri_mismatch」로 막는다(형이 본 그 화면).
+  //   구글 클라우드 콘솔 → hwadu-9dc7b → 사용자 인증 정보
+  //   → OAuth 2.0 클라이언트 ID → Web client (auto created…)
+  //   · 승인된 자바스크립트 원본:  https://www.hwa-du.com · https://hwa-du.com
+  //   · 승인된 리디렉션 URI:       https://www.hwa-du.com/__/auth/handler
+  //                               https://hwa-du.com/__/auth/handler
+  // 넣고 저장한 뒤 아래 한 줄을 true 로 바꾸면 끝이다.
+  // 지금은 false — 등록 전에 켜 두면 **아무도 로그인을 못 한다.**
+  authDomain: 우리손잡이()
+    ? window.location.hostname
+    : "hwadu-9dc7b.firebaseapp.com",
   databaseURL:
     "https://hwadu-9dc7b-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "hwadu-9dc7b",
