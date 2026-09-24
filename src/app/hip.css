@@ -4071,3 +4071,69 @@ html[data-theme="light"] {
     ) !important;
   }
 }
+
+/* ── 아래 띠 「라 · 뜬 알약」 ───────────────────────────────────
+   형: 「아래 탭 디자인 고심해서 다시 줘 봐」 → 일곱 중 **라** 를 골랐다.
+
+   실에 꿴 알 넷은 셋이 걸렸다 —
+     ① 꺼진 알이 흰 바탕에 흰 알이라 어디를 눌러야 하는지가 약하다
+     ② 한자가 켜진 알에만 있어 나머지 셋은 제가 무엇인지 말을 못 한다
+     ③ 실이 가늘어 염주라기보다 슬라이더로 읽힌다
+   흰 캡슐 하나가 떠 있고 그 안에 넷을 앉힌다. 캡슐이 「여기가 길목」이라고
+   먼저 말하고, 넷이 저마다 이름을 단다. 지금 자리만 분홍으로 채운다.
+   커졌다 작아지던 몸짓은 걷는다 — 자리가 안 움직여야 손이 기억한다. */
+@media (min-width: 0px) {
+  .hip-mala {
+    height: auto;
+    gap: 0;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  }
+  .hip-mala-thread { display: none; }
+  .hip-mala-track {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+    box-shadow:
+      0 8px 24px rgba(190, 120, 145, 0.18),
+      0 1px 3px rgba(26, 23, 20, 0.07);
+  }
+  .hip-mala button {
+    width: 54px;
+    height: 42px;
+    min-width: 54px;
+    border-radius: 999px;
+    background: transparent;
+    box-shadow: none;
+    transition: background 0.22s, color 0.22s;
+  }
+  .hip-mala button b {
+    font-size: 17px;
+    color: #aaa195;
+    transition: color 0.22s;
+  }
+  .hip-mala button[data-on="1"] {
+    width: 54px;
+    height: 42px;
+    background: linear-gradient(150deg, #fbc7da, #ef7ba4);
+    box-shadow: 0 3px 10px rgba(226, 110, 155, 0.3);
+  }
+  .hip-mala button[data-on="1"] b {
+    font-size: 17px;
+    color: #fff;
+  }
+  .hip-mala button:active { background: rgba(26, 23, 20, 0.04); }
+  .hip-mala button[data-on="1"]:active {
+    background: linear-gradient(150deg, #fbc7da, #ef7ba4);
+  }
+
+  /* 담기 띠 자리 — 73px 이라 66 으로는 7px 이 모자랐다 */
+  body:has(.install-banner-on) .hip-screen {
+    padding-bottom: calc(
+      env(safe-area-inset-bottom, 0px) + var(--hip-rail) + 86px
+    ) !important;
+  }
+}

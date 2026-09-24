@@ -60,7 +60,12 @@ export default function HipMala() {
 
   return (
     <nav className="hip-mala" aria-label="네 자리">
-      <i aria-hidden className="hip-mala-thread" />
+      {/* 형이 시안 일곱 중 「라 · 뜬 알약」을 골랐다.
+          실에 꿴 알 넷은 꺼진 알이 흰 바탕에 흰 알이라 **어디를 눌러야
+          하는지**가 약했고, 한자가 켜진 알에만 있어 나머지 셋은 제가
+          무엇인지 말하지 못했다. 흰 캡슐 하나가 떠 있고 그 안에 넷 —
+          경계가 또렷하고, 넷 다 제 이름을 달고 있다. */}
+      <span className="hip-mala-track">
       {BEADS.map((b, k) => (
         <button
           key={b.href}
@@ -88,6 +93,7 @@ export default function HipMala() {
           <b>{b.mark}</b>
         </button>
       ))}
+      </span>
     </nav>
   );
 }
