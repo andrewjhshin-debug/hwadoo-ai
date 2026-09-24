@@ -3139,71 +3139,6 @@ html[data-theme="light"] {
   .hip-sheet-range span b { color: #17140f; font-weight: 500; }
 }
 
-/* ── 키캡 — 연꽃 받침에 앉은 상 ────────────────────────────────
-   형: 「키캡 이 느낌으로 불상이나 캐릭터 불교로 넣어서 위아래 올라갔다
-        내려가게」 (나무로 깎은 수호신이 연꽃 통에 앉아 있는 부적)
-
-   밋밋한 자판 하나를 만들어 놨더니 「이게 뭐냐」 소리를 들었다. 맞다 —
-   키캡의 재미는 **무엇이 눌리느냐**에 있지 네모가 내려가는 데 있지 않다.
-   받침은 가만히 있고 **상만** 안으로 쑥 내려갔다, 놓으면 살짝 넘치게
-   튀어 오른다(overshoot). 그 되튐이 손끝에 남는 맛이다. */
-@media (min-width: 0px) {
-  .hip-keycap {
-    position: relative;
-    display: block;
-    width: min(250px, 64vw);
-    margin: 10px auto 0;
-    padding-bottom: 92px;
-    touch-action: manipulation;
-  }
-  /* 상 — 받침 위에 앉는다 */
-  /* 상 — 제 좌대(회색 돌)가 통 **안으로** 들어가게 깊이 앉힌다.
-     겉으로는 연꽃 통에 앉은 것으로 보인다 */
-  .hip-keycap-one {
-    position: relative;
-    z-index: 0;
-    display: block;
-    width: 58%;
-    /* 좌대(회색 돌)가 통 아가리 밑으로 완전히 들어가야 한다 —
-       조금이라도 비치면 「앉은 것」이 아니라 「얹은 것」으로 보인다 */
-    margin: 0 auto -82px;
-    /* 놓을 때는 살짝 넘치게 튀어 오른다 */
-    transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
-  }
-  .hip-keycap-one img {
-    display: block;
-    width: 100%;
-    height: auto;
-    filter: drop-shadow(0 5px 9px rgba(160, 120, 130, 0.2));
-  }
-  /* 연꽃 받침 */
-  .hip-keycap-cup {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1;
-    display: block;
-    filter: drop-shadow(0 6px 10px rgba(190, 120, 145, 0.2));
-  }
-  .hip-keycap-cup svg { display: block; width: 100%; height: auto; }
-  .cup-body { fill: #f0a6c2; }
-  .cup-rim { fill: #dd7ba3; }
-  .cup-shine {
-    fill: none;
-    stroke: rgba(255, 255, 255, 0.4);
-    stroke-width: 5;
-    stroke-linecap: round;
-  }
-  /* 눌렸다 — 상이 받침 안으로. 내려갈 때는 빠르게 */
-  .hip-keycap.on .hip-keycap-one {
-    transform: translateY(30px) scale(0.985);
-    transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
-  }
-  .hip-keycap.on .hip-keycap-one img {
-    filter: drop-shadow(0 2px 4px rgba(160, 120, 130, 0.26));
-  }
-}
 
 /* 물음만 보기 — 물음 바로 아래.
    형: 「내려」. 머리 오른쪽에 넷이 서 있어 ○ 가 다섯째로 묻혔다.
@@ -3562,4 +3497,37 @@ html[data-theme="light"] {
     padding-bottom: 28px;
   }
   .hip-strike { margin-bottom: 0; }
+}
+
+/* ── 키캡 — 연꽃 받침에 앉은 아기 부처 ────────────────────────
+   형: 「키캡 존나 이뻐 좋다」
+
+   받침과 상을 한 덩이로 구웠다. 코드로 통을 그려 상을 얹던 것보다
+   훨씬 낫다 — 그림자와 살이 한 몸이라 진짜 하나의 물건으로 보인다.
+
+   눌림은 **찌그러짐**으로 준다. 한 덩이라 안으로 들어갈 곳이 없으니,
+   바닥을 축으로 세로를 줄이고 가로를 늘린다. 손끝은 그것을
+   「말랑한 것을 눌렀다」로 읽는다. 놓으면 살짝 넘치게 돌아온다. */
+@media (min-width: 0px) {
+  .hip-keycap {
+    display: block;
+    width: min(300px, 74vw);
+    margin: 30px auto 0;
+    touch-action: manipulation;
+  }
+  .hip-keycap img {
+    display: block;
+    width: 100%;
+    height: auto;
+    transform-origin: 50% 100%;
+    filter: drop-shadow(0 8px 12px rgba(190, 120, 145, 0.2));
+    transition:
+      transform 0.36s cubic-bezier(0.2, 1.6, 0.35, 1),
+      filter 0.36s ease;
+  }
+  .hip-keycap.on img {
+    transform: translateY(6px) scale(1.04, 0.93);
+    filter: drop-shadow(0 2px 5px rgba(190, 120, 145, 0.26));
+    transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1), filter 0.07s ease;
+  }
 }

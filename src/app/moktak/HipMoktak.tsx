@@ -215,15 +215,20 @@ export default function HipMoktak({
           {tab === "bowl" && bowl}
 
           {/* ── 키캡 ──
-              형: 「키캡 이 느낌으로 불상이나 캐릭터 불교로 넣어서
-              위아래 올라갔다 내려가게」
-              (형이 보낸 것 — 나무로 깎은 수호신이 연꽃 통에 앉아 있는 부적)
+              형: 「키캡 이 느낌으로 불상이나 캐릭터 불교로 넣어서 위아래
+              올라갔다 내려가게」 「키캡 저게 지금 안 귀엽잖아 귀엽게」
+              「머리에 색을 넣든 하고, 이마에 동글동글 저거 좀 기괴하다.
+               옷도 주황색으로 가는 건 어떨까, 넘 노래 캐릭터가 다」
 
-              밋밋한 자판 하나를 만들어 놨더니 형이 「이게 뭐냐」 했다.
-              맞다. 키캡의 재미는 **무엇이 눌리느냐**에 있지 네모가
-              내려가는 데 있지 않다. 연꽃 받침에 **반가사유상**을 앉히고,
-              누르면 상이 받침 안으로 쑥 내려갔다 튀어 오른다.
-              우리 캐릭터를 새로 그릴 것도 없었다 — 이미 있었다. */}
+              연꽃 받침과 상을 **한 덩이**로 구웠다(제미나이). 코드로 통을
+              그려 상을 얹던 것보다 훨씬 낫다 — 그림자와 살이 한 몸이라
+              진짜 하나의 물건으로 보인다.
+              머리는 감청(나발 본래 색), 옷은 주황 가사, 살은 금 —
+              세 색이 갈리니 노랑 덩어리로 안 뭉친다.
+
+              눌림: 한 덩이라 아래로 내려가며 **살짝 찌그러진다.**
+              바닥을 축으로 세로가 줄고 가로가 늘면, 손끝은 그것을
+              「말랑한 것을 눌렀다」로 읽는다. */}
           {tab === "keycap" && (
             <button
               className={`hip-keycap${keyDown ? " on" : ""}`}
@@ -234,31 +239,8 @@ export default function HipMoktak({
               onPointerCancel={onKeyUp}
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              {/* 상 — 받침 안으로 내려갔다 올라온다 */}
-              <span className="hip-keycap-one" aria-hidden>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/brand/bangasa.png" alt="" />
-              </span>
-              {/* 연꽃 받침 — 아가리가 꽃잎으로 파였다 */}
-              <span className="hip-keycap-cup" aria-hidden>
-                <svg viewBox="0 0 200 78" aria-hidden>
-                  {/* 통 — 곧은 옆면에 둥근 바닥. 형이 보낸 나무 부적 그대로 */}
-                  <path
-                    className="cup-body"
-                    d="M26 14h148v28a36 36 0 0 1-36 36H62a36 36 0 0 1-36-36z"
-                  />
-                  {/* 아가리 — 얕은 꽃잎으로 판다. 깊게 파면 덩이로 보인다 */}
-                  <path
-                    className="cup-rim"
-                    d="M26 14q12.33-13 24.67 0t24.67 0 24.66 0 24.67 0 24.67 0 24.66 0v9q-12.33 13-24.66 0t-24.67 0-24.67 0-24.66 0-24.67 0-24.67 0z"
-                  />
-                  {/* 빛 한 줄 — 통이 둥글어 보이게 */}
-                  <path
-                    className="cup-shine"
-                    d="M44 30v12a26 26 0 0 0 10 21"
-                  />
-                </svg>
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/obj/keycap.png" alt="" draggable={false} />
             </button>
           )}
           {/* 살갗 — 오브제 바로 밑. 고르는 것과 보이는 것이 붙어 있어야
