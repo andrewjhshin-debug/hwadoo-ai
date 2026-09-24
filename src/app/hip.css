@@ -4169,30 +4169,29 @@ html[data-theme="light"] {
   }
   .hip-lanes { margin: 0; scroll-padding-inline: 34px; }
 
-  /* ① 흐림 — 더 있는 쪽만 */
-  .hip-lanes-wrap::before,
-  .hip-lanes-wrap::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 40px;
-    z-index: 2;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.22s;
-    border-radius: 999px;
+  /* ① 흐림 — **띠 자체를** 지워 나간다.
+     색을 덮어씌우면 바탕(분홍↔민트로 번지는)과 안 맞아 흰 얼룩이 된다.
+     마스크로 띠를 흐리면 어떤 바탕 위에서도 자연스럽게 사라진다 —
+     알약이 가장자리에서 녹아 없어지니 「더 있다」가 그대로 읽힌다. */
+  .hip-lanes {
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 100%);
+    mask-image: linear-gradient(90deg, #000 0, #000 100%);
+    transition: -webkit-mask-image 0.22s, mask-image 0.22s;
   }
-  .hip-lanes-wrap::before {
-    left: 0;
-    background: linear-gradient(90deg, #fbf7f6 22%, rgba(251, 247, 246, 0));
+  .hip-lanes-wrap[data-r="1"] .hip-lanes {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent 100%);
   }
-  .hip-lanes-wrap::after {
-    right: 0;
-    background: linear-gradient(270deg, #fbf7f6 22%, rgba(251, 247, 246, 0));
+  .hip-lanes-wrap[data-l="1"] .hip-lanes {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 44px);
+    mask-image: linear-gradient(90deg, transparent 0, #000 44px);
   }
-  .hip-lanes-wrap[data-l="1"]::before,
-  .hip-lanes-wrap[data-r="1"]::after { opacity: 1; }
+  .hip-lanes-wrap[data-l="1"][data-r="1"] .hip-lanes {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 44px,
+      #000 calc(100% - 44px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 44px,
+      #000 calc(100% - 44px), transparent 100%);
+  }
 
   /* ③ 화살표 — 그쪽에 더 있을 때만 */
   .hip-lane-arrow {
