@@ -49,6 +49,8 @@ export default function MeritBar() {
   // 서버가 그린 첫 그림과 어긋나지 않게 — 읽기 전에는 빈 줄만
   const pct = bal === null ? 0 : (bal / DAILY_TOTAL_CAP) * 100;
 
+  const left = bal === null ? null : Math.max(0, DAILY_TOTAL_CAP - bal);
+
   return (
     <div
       aria-hidden
@@ -68,6 +70,14 @@ export default function MeritBar() {
           animation: flash ? "mb-flash 1.2s ease-out" : "none",
         }}
       />
+      {/* 연꽃까지 남은 공덕 — 형: 「오리지날처럼 맨 위 옅은 줄로 해서
+          연꽃까지 얻기 위한 공덕량 나오게」.
+          줄만 있으면 「얼마나 남았나」를 눈대중으로 재야 한다. 줄 끝에
+          숫자 한 덩이를 얹는다. 다 차면 숫자 대신 연꽃이 뜬다.
+          폰에서만 — 웹은 옛 판 그대로 줄만 둔다. */}
+      <span className="merit-left md:hidden">
+        {left === null ? "" : left === 0 ? "蓮 한 송이" : `蓮 −${left.toLocaleString("ko-KR")}`}
+      </span>
     </div>
   );
 }

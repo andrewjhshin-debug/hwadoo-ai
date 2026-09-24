@@ -207,7 +207,7 @@ export default function MoktakPage() {
   // 목탁 음원 — 고른 그 자리에서 소리 쪽에도 알린다
   const [sfx, setSfx] = useState<MoktakVoice>("gongyu");
   // 폰 판의 살림살이 서랍 — 갈래·정근·소리·자동·살갗이 「⋯」 뒤로 들어간다
-  const [more, setMore] = useState(false);
+  // 「⋯」 서랍은 없앴다 — 형: 「오른쪽 위 ... 없이 그냥 화면에 녹여」
   const chooseSfx = (v: MoktakVoice) => {
     setSfx(v);
     setMoktakVoice(v);
@@ -486,6 +486,300 @@ export default function MoktakPage() {
         ? `오늘 염주 ${total.toLocaleString("ko-KR")}번 · 이번 바퀴 ${pos}/108 · 화두`
         : `오늘 싱잉볼 ${bowlHits.toLocaleString("ko-KR")}번 · 화두`;
 
+  // ── 염주 · 싱잉볼 — **원본 그대로** 폰 판으로 ──
+  // 형: 「염주 디자인은 원래 있던 거 다 적용」 「싱잉볼 염주 전부 기존 거
+  //      유지 디자인」 「핑크 고양이 염주는 그늘이 너무 많다, 그런 거 없애고」
+  //
+  // 코드로 다시 그렸던 것(고리에 알 스물일곱, 민트 사발)은 버린다.
+  // 원래 그림과 원래 굴림이 이미 다 있는데 새로 그릴 까닭이 없었다.
+  // 옮기면서 고친 것은 **색과 그늘 둘뿐**이다 —
+  //   · 먹빛 판 토큰(--color-ink-3 · --color-gold)은 흰 바탕에서 안 보이거나
+  //     튄다. 여기서만 hip 색으로 덮는다. globals.css 는 안 건드린다
+  //   · 검은 그늘은 분홍 바탕에서 때처럼 보인다. 분홍 쪽으로 옮기고 줄인다
+  // 부모가 그려서 넘긴다 — 부적·알림과 같은 수법이라 HipMoktak 은
+  // 여전히 받아 그리기만 한다.
+  const hipBead = (
+    <div className="hip-bead-wrap">
+      <div
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        className="relative touch-none select-none"
+        style={{ width: "min(340px, 42vh, 84vw)", height: "min(340px, 42vh, 84vw)" }}
+        aria-label="염주 굴리기 — 왼쪽으로 쓸거나 톡 누르면 한 알"
+      >
+        {/* 바깥 진행 고리 — 백팔이 차오른다 */}
+        <svg aria-hidden viewBox="0 0 316 316" className="absolute inset-0 h-full w-full">
+          <path d={ARC_PATH} fill="none" stroke="rgba(26,23,20,0.12)" strokeWidth="2" />
+          <path
+            d={ARC_PATH}
+            fill="none"
+            stroke="#ef7ba4"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray={ARC}
+            strokeDashoffset={ARC * (1 - pos / BEADS)}
+            style={{ transition: "stroke-dashoffset 0.2s ease-out" }}
+          />
+        </svg>
+
+        {beadWide && (
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            {Array.from({ length: RING_BEADS }, (_, i) => {
+              const t = ((i / RING_BEADS) * 360 + angle) * (Math.PI / 180);
+              const front = (1 - Math.cos(t)) / 2;
+              const sc = 0.62 + 0.52 * front;
+              const degrees = ((t * 180) / Math.PI + 360) % 360;
+              const fromMarker = (360 - degrees) % 360;
+              const lit = pos > 0 && fromMarker <= f * 360 + 360 / RING_BEADS / 2;
+              const markerDistance = Math.min(degrees, 360 - degrees);
+              const atMarker = markerDistance < 5;
+              return (
+                <img
+                  // eslint-disable-next-line @next/next/no-img-element
+                  key={i}
+                  src="/obj/bead-paw-one.png"
+                  alt=""
+                  draggable={false}
+                  className="absolute block"
+                  style={{
+                    left: `${50 + 40 * Math.sin(t)}%`,
+                    top: `${50 - 23 * Math.cos(t)}%`,
+                    width: `${17 * sc + (1 - front) * 3}%`,
+                    transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
+                    zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
+                    transition:
+                      "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
+                    // 형: 「그늘이 너무 많다 그런 거 없애고」.
+                    // 검은 drop-shadow 를 걷고, 뒤쪽 알을 68% 까지 깎던 것을
+                    // 92% 로 올린다 — 뒤 알이 죽지 않는다
+                    filter: lit
+                      ? `saturate(1.3) brightness(${(1.04 + 0.1 * front).toFixed(2)}) drop-shadow(0 0 9px rgba(239,123,164,.4))`
+                      : `brightness(${(0.92 + 0.08 * front).toFixed(2)})`,
+                  }}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* 세로형 염주 — 굴리면 돈다 */}
+        <div
+          className="absolute inset-0 grid place-items-center transition-opacity duration-300"
+          style={{ opacity: beadWide ? 0 : 1 }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={skinSrc("bead")}
+            alt=""
+            aria-hidden
+            draggable={false}
+            className="block h-[83%] w-[83%] object-contain"
+            style={{
+              transform: `rotate(${angle}deg)`,
+              transition: "transform 0.16s ease-out",
+              filter: "drop-shadow(0 6px 12px rgba(222,126,161,0.2))",
+            }}
+          />
+        </div>
+
+        {/* 물든 만큼 금빛 */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 grid place-items-center"
+          style={{
+            maskImage: goldMask,
+            WebkitMaskImage: goldMask,
+            opacity: beadWide ? 0 : 1,
+            transition: "opacity .3s",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={skinSrc("bead")}
+            alt=""
+            draggable={false}
+            className="block h-[83%] w-[83%] object-contain"
+            style={{
+              transform: `rotate(${angle}deg)`,
+              transition: "transform 0.16s ease-out",
+              filter:
+                "sepia(1) saturate(2.4) hue-rotate(-8deg) brightness(1.24) drop-shadow(0 0 12px rgba(217,180,91,0.35))",
+            }}
+          />
+        </div>
+
+        {/* 지금 넘기는 자리 */}
+        <span
+          aria-hidden
+          className="absolute left-1/2 -translate-x-1/2"
+          style={{ top: 10, fontSize: 11, letterSpacing: "0.2em", color: "#e0819f" }}
+        >
+          ▼
+        </span>
+      </div>
+
+      <div className="hip-obj-foot">
+        <span>쓸거나 눌러서 한 알</span>
+        <SkinDots kind="bead" pick={skin.bead} onPick={pickSkin("bead")} />
+      </div>
+    </div>
+  );
+
+  const hipBowl = (
+    <div className="hip-bead-wrap">
+      {/* 그릇 고르기 — 클수록 낮게 운다 */}
+      <div className="hip-chips hip-chips-tight">
+        {BOWL_TONES.map((b) => (
+          <button
+            key={b.id}
+            onClick={() => setTone(b.id)}
+            aria-pressed={tone === b.id}
+            data-on={tone === b.id ? "1" : undefined}
+          >
+            {b.label}
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={ringBowl}
+        aria-label="싱잉볼 치기"
+        className="relative flex h-[248px] w-[262px] max-w-[78vw] items-center justify-center outline-none"
+      >
+        {ringing && (
+          <>
+            <span className="bowl-breath" />
+            <span className="bowl-wave" />
+            <span className="bowl-wave bowl-wave-2" />
+            <span className="bowl-wave bowl-wave-3" />
+            <span className="bowl-wave bowl-wave-4" />
+          </>
+        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={skinSrc("bowl")}
+          alt=""
+          aria-hidden
+          className={`relative block h-full w-full object-contain ${ringing ? "bowl-shiver" : ""}`}
+          style={{ filter: "drop-shadow(0 6px 12px rgba(222,126,161,0.18))" }}
+        />
+      </button>
+
+      <div className="hip-obj-foot">
+        <button
+          onClick={stopBowl}
+          disabled={!ringing}
+          className="hip-hush"
+          data-on={ringing ? "1" : undefined}
+        >
+          손으로 감싸 그치기
+        </button>
+        <SkinDots kind="bowl" pick={skin.bowl} onPick={pickSkin("bowl")} />
+      </div>
+    </div>
+  );
+
+  // ── 살림살이 — 서랍을 없애고 판에 녹인다 ──
+  // 형: 「공덕 목탁 염주 싱잉볼 다 오른쪽 위 ... 없이 그냥 화면에 녹여
+  //      기능 옵션」.
+  // 「⋯」 뒤에 숨겨 두면 있는 줄도 모르고, 열면 화면이 통째로 덮여
+  // 치던 것이 사라진다. 판 **안쪽** 아래에 조용히 깔아 둔다 — 치는 동안
+  // 눈에 안 걸리고, 내리면 거기 있다. (바깥에 두면 fixed 판 뒤에 깔린다)
+  // 갈래(무엇을)는 머리의 탭이 이미 하고 있으니 여기서 뺀다.
+  const meOptions = (
+    <div className="hip-opts">
+        <p className="hip-sheet-label">외며 칠 말</p>
+        <div className="hip-chips">
+          {JEONGGEUN.map((g) => (
+            <button
+              key={g.id}
+              onClick={() => {
+                setGeunId(g.id);
+                try {
+                  window.localStorage.setItem(JEONGGEUN_KEY, g.id);
+                } catch {
+                  /* 서랍이 막혀도 오늘은 칠 수 있다 */
+                }
+              }}
+              aria-pressed={geunId === g.id}
+              data-on={geunId === g.id ? "1" : undefined}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
+
+        <p className="hip-sheet-label">소리</p>
+        <div className="hip-chips">
+          {MOKTAK_VOICES.map((v) => (
+            <button
+              key={v.id}
+              onClick={() => chooseSfx(v.id)}
+              aria-pressed={sfx === v.id}
+              data-on={sfx === v.id ? "1" : undefined}
+            >
+              {v.name}
+            </button>
+          ))}
+        </div>
+
+        <p className="hip-sheet-label">살갗</p>
+        <div className="hip-chips">
+          {SKINS.moktak.map((k) => (
+            <button
+              key={k.id}
+              onClick={() => pickSkin("moktak")(k.id)}
+              aria-pressed={skin.moktak === k.id}
+              data-on={skin.moktak === k.id ? "1" : undefined}
+            >
+              {k.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="hip-sheet-row">
+          <span>자동 목탁 — 틀어 두고 듣기</span>
+          <button
+            role="switch"
+            aria-checked={auto}
+            aria-label="자동 목탁"
+            onClick={() => setAuto((v) => !v)}
+            data-on={auto ? "1" : undefined}
+            className="hip-switch"
+          >
+            <i />
+          </button>
+        </div>
+        <label className="hip-sheet-range">
+          <span>
+            빠르기 <b>{bpm} 회/분</b>
+          </span>
+          <input
+            type="range"
+            min={60}
+            max={300}
+            step={6}
+            value={bpm}
+            onChange={(e) => setBpm(Number(e.target.value))}
+          />
+        </label>
+        <label className="hip-sheet-range">
+          <span>
+            음량 <b>{Math.round(vol * 100)}%</b>
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={vol}
+            onChange={(e) => setVol(Number(e.target.value))}
+          />
+        </label>
+    </div>
+  );
+
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
       {/* ── 폰 판 (刻) ──
@@ -493,7 +787,7 @@ export default function MoktakPage() {
           우리가 짠다. 셈·소리·공덕은 전부 이 파일이 쥐고 있고 저기는
           받아 그리기만 한다 — 지워도 앱은 예전 그대로 돈다.
           살림살이(갈래·정근·소리·자동·살갗)는 「⋯」 뒤 서랍으로 들어간다. */}
-      {!more && (
+      {(
         <HipMoktak
           tab={tab}
           onTab={chooseTab}
@@ -508,131 +802,10 @@ export default function MoktakPage() {
           onHit={hit}
           onAdvance={advance}
           onRing={ringBowl}
-          onMore={() => setMore(true)}
+          bead={hipBead}
+          bowl={hipBowl}
+          options={meOptions}
         />
-      )}
-      {more && (
-        <div className="hip-sheet md:hidden">
-          <div className="hip-sheet-top">
-            <span className="hip-kicker">살 림 살 이</span>
-            <button onClick={() => setMore(false)} aria-label="닫기" className="hip-more">
-              ✕
-            </button>
-          </div>
-          <div className="hip-sheet-body">
-            <p className="hip-sheet-label">무엇을</p>
-            <div className="hip-chips">
-              {(
-                [
-                  ["moktak", "목탁"],
-                  ["yeomju", "염주"],
-                  ["bowl", "싱잉볼"],
-                ] as const
-              ).map(([k, label]) => (
-                <button
-                  key={k}
-                  onClick={() => {
-                    chooseTab(k);
-                    setMore(false);
-                  }}
-                  aria-pressed={tab === k}
-                  data-on={tab === k ? "1" : undefined}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <p className="hip-sheet-label">외며 칠 말</p>
-            <div className="hip-chips">
-              {JEONGGEUN.map((g) => (
-                <button
-                  key={g.id}
-                  onClick={() => {
-                    setGeunId(g.id);
-                    try {
-                      window.localStorage.setItem(JEONGGEUN_KEY, g.id);
-                    } catch {
-                      /* 서랍이 막혀도 오늘은 칠 수 있다 */
-                    }
-                  }}
-                  aria-pressed={geunId === g.id}
-                  data-on={geunId === g.id ? "1" : undefined}
-                >
-                  {g.name}
-                </button>
-              ))}
-            </div>
-
-            <p className="hip-sheet-label">소리</p>
-            <div className="hip-chips">
-              {MOKTAK_VOICES.map((v) => (
-                <button
-                  key={v.id}
-                  onClick={() => chooseSfx(v.id)}
-                  aria-pressed={sfx === v.id}
-                  data-on={sfx === v.id ? "1" : undefined}
-                >
-                  {v.name}
-                </button>
-              ))}
-            </div>
-
-            <p className="hip-sheet-label">살갗</p>
-            <div className="hip-chips">
-              {SKINS.moktak.map((k) => (
-                <button
-                  key={k.id}
-                  onClick={() => pickSkin("moktak")(k.id)}
-                  aria-pressed={skin.moktak === k.id}
-                  data-on={skin.moktak === k.id ? "1" : undefined}
-                >
-                  {k.name}
-                </button>
-              ))}
-            </div>
-
-            <div className="hip-sheet-row">
-              <span>자동 목탁 — 틀어 두고 듣기</span>
-              <button
-                role="switch"
-                aria-checked={auto}
-                aria-label="자동 목탁"
-                onClick={() => setAuto((v) => !v)}
-                data-on={auto ? "1" : undefined}
-                className="hip-switch"
-              >
-                <i />
-              </button>
-            </div>
-            <label className="hip-sheet-range">
-              <span>
-                빠르기 <b>{bpm} 회/분</b>
-              </span>
-              <input
-                type="range"
-                min={60}
-                max={300}
-                step={6}
-                value={bpm}
-                onChange={(e) => setBpm(Number(e.target.value))}
-              />
-            </label>
-            <label className="hip-sheet-range">
-              <span>
-                음량 <b>{Math.round(vol * 100)}%</b>
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={vol}
-                onChange={(e) => setVol(Number(e.target.value))}
-              />
-            </label>
-          </div>
-        </div>
       )}
 
       <style>{`

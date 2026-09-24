@@ -2624,3 +2624,274 @@ html[data-theme="light"] {
     color: #17140f;
   }
 }
+
+/* ── 살림살이가 판 안으로 ─────────────────────────────────────
+   형: 「공덕 목탁 염주 싱잉볼 다 오른쪽 위 ... 없이 그냥 화면에 녹여
+        기능 옵션」
+   서랍은 두 가지가 나빴다 — 숨겨 두면 있는 줄도 모르고, 열면 화면이
+   통째로 덮여 치던 것이 사라진다. 판 아래에 깔면 둘 다 없다.
+   치는 동안에는 눈에 안 걸리고, 내리면 거기 있다. */
+@media (max-width: 767px) {
+  .hip-opts {
+    width: 100%;
+    margin-top: 40px;
+    padding-top: 26px;
+    border-top: 1px solid rgba(26, 23, 20, 0.07);
+  }
+  .hip-opts .hip-sheet-label:first-child { margin-top: 0; }
+}
+
+/* 서비스 동그라미 — 그림자를 아주 옅게 되살린다.
+   형: 「미안한데 여기 좀만 더 그림자 아주 연하게는 넣자」.
+   다 걷었더니 동그라미가 바탕에 묻어 눌리는 것처럼 안 보였다.
+   검정이 아니라 **분홍 쪽 그늘**로 둔다 — 분홍 바탕과 안 싸운다. */
+@media (max-width: 767px) {
+  .hip-rooms a i {
+    box-shadow:
+      inset -2px -3px 6px rgba(190, 120, 145, 0.07),
+      0 2px 6px rgba(190, 130, 150, 0.13);
+  }
+  .hip-rooms a:active i {
+    box-shadow: inset -1px -2px 4px rgba(190, 120, 145, 0.1);
+  }
+}
+
+/* ── 자리 여섯 — 형이 준 원본 그대로 ──────────────────────────
+   형: 「법명 아래 바로 계급도 죽죽죽 부처까지 나오고, 그 아래
+        동자 사미 … 부처 이렇게 적어주자 한글로」
+       「그 공덕 아래 얼마가 쌓여야 부처가 되는지도 숫자로 써주자」
+   한자만 여섯 개 늘어놓으니 무슨 자리인지도, 얼마나 가야 하는지도
+   알 수 없었다. 세 줄이면 다 말한다 — 한자 · 한글 · 공덕 수. */
+@media (max-width: 767px) {
+  .hip-seats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2px;
+    width: 100%;
+    height: auto;
+  }
+  .hip-seats i {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    font-style: normal;
+  }
+  .hip-seats i b {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 15px;
+    color: #c6bcae;
+    transition: all 0.25s;
+  }
+  .hip-seats i em {
+    font-style: normal;
+    font-size: 10.5px;
+    color: #b4ac9f;
+  }
+  .hip-seats i u {
+    text-decoration: none;
+    font-size: 9.5px;
+    letter-spacing: -0.01em;
+    color: #cdc5b9;
+  }
+  /* 지나온 자리 — 물들어 있다 */
+  .hip-seats i[data-got="1"] b {
+    border-color: rgba(217, 123, 164, 0.3);
+    color: #c9648b;
+  }
+  .hip-seats i[data-got="1"] em { color: #8b8175; }
+  /* 지금 자리 — 채워진다 */
+  .hip-seats i[data-here="1"] b {
+    border-color: transparent;
+    background: linear-gradient(150deg, #fbe3ec, #f2a0bd);
+    color: #fff;
+  }
+  .hip-seats i[data-here="1"] em {
+    color: #17140f;
+    font-weight: 500;
+  }
+  .hip-seats i[data-here="1"] u { color: #b4809a; }
+}
+
+/* ── 계정 · 살림살이 · 염주·싱잉볼 자리 ──────────────────────── */
+@media (max-width: 767px) {
+  .hip-account {
+    width: 100%;
+    margin-top: 34px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(26, 23, 20, 0.07);
+    text-align: center;
+  }
+  .hip-account .hip-strike { width: 100%; }
+  .hip-acc-who {
+    font-size: 12.5px;
+    color: #8b8175;
+  }
+  .hip-acc-why {
+    margin-top: 12px;
+    font-size: 11px;
+    line-height: 1.8;
+    color: #b4ac9f;
+  }
+  .hip-acc-bad {
+    margin-top: 10px;
+    font-size: 11.5px;
+    color: #c2537e;
+  }
+  .hip-acc-out {
+    margin-top: 12px;
+    padding: 8px 20px;
+    border: 1px solid rgba(26, 23, 20, 0.14);
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: #8b8175;
+  }
+  .hip-acc-wait { font-size: 12px; color: #b4ac9f; }
+
+  /* 염주·싱잉볼이 앉는 자리 */
+  .hip-bead-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .hip-obj-foot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 10px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: #b4ac9f;
+  }
+  .hip-hush {
+    padding: 7px 15px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    border-radius: 999px;
+    font-size: 11px;
+    color: #cdc5b9;
+    transition: color 0.2s;
+  }
+  .hip-hush[data-on="1"] { color: #8b8175; }
+  .hip-chips-tight { margin-bottom: 10px; }
+
+  /* 머리 오른쪽 — 늘 손이 가는 넷 */
+  .hip-top-right {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .hip-top-count {
+    font-size: 11px;
+    color: #8b8175;
+  }
+  .hip-top-ico {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    color: #a39a8f;
+  }
+  .hip-top-ico svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .hip-top-ico b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 16px;
+  }
+  .hip-top-ico:active { color: var(--hip-pink, #ef7ba4); }
+
+  /* 연꽃 한가운데 — 형: 「연꽃 로고 반응형에서 가운데 샛노란색 넣어줘」.
+     민트 점이었는데, 연꽃 한가운데는 연밥이라 노랗다. */
+  .hip-lotus circle,
+  .hip-hanji .hip-lotus circle {
+    fill: #f5c73f;
+  }
+}
+
+/* ── ⓘ — 글 대신 길 하나 ──────────────────────────────────────
+   형: 「구구절절 텍스트로 설명하는 것보다 그냥 사람들이 손가락으로
+        만지면서 바로바로 반응성을 주고 학습하도록」 「좀 이쁘게 다시」
+   회색 네모에 세 줄을 적어 뒀더니 읽히지도 않고 판만 탁해졌다.
+   수행 → 공덕 → 연꽃. 화살표 둘이면 다 말한다. */
+@media (max-width: 767px) {
+  .hip-info > div {
+    margin: 12px auto 0;
+    width: max-content;
+    max-width: 100%;
+    padding: 14px 18px 12px;
+    border: 1px solid rgba(217, 123, 164, 0.18);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(6px);
+    text-align: center;
+    letter-spacing: 0;
+  }
+  .hip-info-way {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .hip-info-way i {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-style: normal;
+    font-family: var(--font-serif);
+    font-size: 19px;
+    color: #a39a8f;
+  }
+  .hip-info-way i em {
+    font-style: normal;
+    font-family: var(--font-sans, inherit);
+    font-size: 11px;
+    letter-spacing: -0.01em;
+    color: #b4ac9f;
+  }
+  .hip-info-way i.on { color: #d9568b; }
+  .hip-info-way i.on em { color: #c9648b; }
+  .hip-info-way u {
+    text-decoration: none;
+    font-size: 12px;
+    color: #d6cec2;
+  }
+  .hip-info > div p {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #b4ac9f;
+  }
+}
+
+/* 맨 위 옅은 줄 — 연꽃까지 남은 공덕.
+   형: 「오리지날처럼 맨 위 옅은 줄로 해서 연꽃까지 얻기 위한 공덕량
+        나오게 하도록」. 줄만 있으면 눈대중으로 재야 한다. */
+@media (max-width: 767px) {
+  .merit-left {
+    position: absolute;
+    right: 12px;
+    top: 6px;
+    font-family: var(--font-serif);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: rgba(139, 129, 117, 0.75);
+    white-space: nowrap;
+  }
+}

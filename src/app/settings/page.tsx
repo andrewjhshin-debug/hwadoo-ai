@@ -778,6 +778,35 @@ export default function SettingsPage() {
         merit={merit.total}
         hits={meHits}
         services={meServices}
+        account={
+          user === undefined ? (
+            <p className="hip-acc-wait">불러오는 중</p>
+          ) : user ? (
+            <>
+              <p className="hip-acc-who">{user.email ?? "이메일 없음"}</p>
+              <button
+                onClick={() => logout().catch(() => {})}
+                className="hip-acc-out"
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleLogin}
+                disabled={loginBusy}
+                className="hip-strike"
+              >
+                {loginBusy ? "여는 중" : "구글로 로그인"}
+              </button>
+              <p className="hip-acc-why">
+                로그인하면 기기가 바뀌어도 이어집니다 · 만 19세 이상
+              </p>
+              {loginError && <p className="hip-acc-bad">{loginError}</p>}
+            </>
+          )
+        }
         /* 법명 고치기 — 형: 「내 도량에서 법명이나 아이디 고칠 수 있도록」.
            setName 은 어긋나면 까닭을 문자열로 돌려준다(맞으면 null) */
         onRename={(next) => setName(next) ?? null}
@@ -787,6 +816,8 @@ export default function SettingsPage() {
           const r = rankByNeed(seat.need);
           return {
             hanja: r.hanja,
+            name: r.name,
+            need: seat.need,
             got: isAdminAccount(user) || merit.total >= seat.need,
             here: myRealm.id === seat.id,
           };

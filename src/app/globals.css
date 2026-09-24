@@ -772,3 +772,5 @@ html[data-focus="1"] #scroll-box {
 @media (prefers-reduced-motion: reduce) {
   .wick, .stick-halo { animation: none; }
 }
+
+/* touch */

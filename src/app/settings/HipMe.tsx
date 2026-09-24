@@ -22,6 +22,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import HipShell from "@/components/HipShell";
+import HipTop from "@/components/HipTop";
 import { LOTUS_PRICE } from "@/lib/merit";
 
 export type HipMeProps = {
@@ -29,8 +30,10 @@ export type HipMeProps = {
   name: string;
   /** 지금 자리의 한자 · 이름 */
   rank: { hanja: string; name: string };
-  /** 여섯 자리 — 지나온 곳(got)과 지금(here) */
-  seats: { hanja: string; got: boolean; here: boolean }[];
+  /** 여섯 자리 — 지나온 곳(got)과 지금(here). 한글 이름도 같이 적는다.
+      형: 「법명 아래 바로 계급도 죽죽죽 부처까지 나오고
+           그 아래 동자 사미 … 부처 이렇게 적어주자 한글로」 */
+  seats: { hanja: string; name: string; need: number; got: boolean; here: boolean }[];
   /** 다음 자리까지 0~100 */
   pct: number;
   /** 다음 자리 한자 · 남은 공덕 · 모자란 화두 수. 꼭대기면 null.
@@ -42,6 +45,11 @@ export type HipMeProps = {
   /** 접었다 펴는 두 자리 — 안에 들어갈 것은 부모가 그려 준다 */
   charms: React.ReactNode;
   bells: React.ReactNode;
+  /** 계정 — 로그인·로그아웃. **접지 않는다.**
+      폰에서 계정 칸이 영구히 숨겨져 있어서 형이 「로그인 기능 빵났다」고
+      했다. 옛 머리띠(☰)까지 끄면서 마지막 길도 막혔었다.
+      숨길 것이 아니라 보이는 자리에 둔다 */
+  account: React.ReactNode;
   /** 서비스 전부 — 형: 「서비스 다 넣어주고」. 한자 한 글자와 이름 */
   services: { href: string; mark: string; label: string }[];
   /** 법명 고치기 — 맞으면 null, 어긋나면 까닭을 돌려준다 */
@@ -63,6 +71,7 @@ export default function HipMe({
   charms,
   bells,
   services,
+  account,
   onRename,
   onReroll,
   nameProblem,
@@ -104,10 +113,8 @@ export default function HipMe({
           </svg>
           <b>화두</b>
         </a>
-        {/* 형: 「오른쪽 위에 ⋯ 기능 필요 없어, 일단 없애.
-            대신 그거 눌린 내 도량 기능을 아래 탭 내 도량에 뜨게」 —
-            그래서 접는 자리를 없애고 이 화면이 그 내용을 다 가진다 */}
-        <span className="hip-kicker">我</span>
+        {/* 여기는 이미 내 도량이니 我 단추는 숨긴다 */}
+        <HipTop hide="me" />
       </header>
 
       <div className="hip-screen-mid">
@@ -153,15 +160,18 @@ export default function HipMe({
             {(err ?? (editing ? nameProblem(draft) : null)) && (
               <p className="hip-name-bad">{err ?? nameProblem(draft)}</p>
             )}
-            <p className="hip-me-rank">
-              <b>{rank.hanja}</b> {rank.name}
-            </p>
           </div>
         </div>
 
         {/* ── 자리 — 가로로 ──
             형: 「자리는 가로 형태로 두고」. 여섯 자리를 한 줄에 늘어놓고
             지나온 곳은 물들이고, 지금 자리만 크게. 한자 여섯이면 족하다 */}
+        {/* 형: 「법명 바로 아래 동자 이딴 거 넣지 말고, 법명 아래 바로
+            계급도 죽죽죽 부처까지 나오고, 그 아래 동자 사미 … 부처
+            이렇게 적어주자 한글로」
+            「그 공덕 아래 얼마가 쌓여야 부처가 되는지도 숫자로 써주자」.
+            지금 자리를 한 번 더 적던 줄(童 동자)을 걷었다 — 아래 여섯 자리에
+            이미 켜져 있는데 위에 또 적으니 같은 말이 두 번이었다. */}
         <div className="hip-seats">
           {seats.map((r) => (
             <i
@@ -169,7 +179,9 @@ export default function HipMe({
               data-got={r.got ? "1" : undefined}
               data-here={r.here ? "1" : undefined}
             >
-              {r.hanja}
+              <b>{r.hanja}</b>
+              <em>{r.name}</em>
+              <u>{r.need > 0 ? r.need.toLocaleString("ko-KR") : "시작"}</u>
             </i>
           ))}
         </div>
@@ -200,12 +212,25 @@ export default function HipMe({
               초공양할 수 있다고」. 세 줄이면 족하다 */}
           <details className="hip-info">
             <summary aria-label="공덕이란">ⓘ</summary>
+            {/* 형: 「구구절절 텍스트로 설명하는 것보다 그냥 사람들이 손가락으로
+                만지면서 바로바로 반응성을 주고 학습하도록」 「좀 이쁘게 다시」.
+                세 줄짜리 설명을 걷고 **길 하나**만 그린다 —
+                수행이 공덕이 되고, 공덕이 연꽃이 된다. 화살표 둘이면 끝. */}
             <div>
-              목탁·염주·절·명상 — 수행하면 공덕이 쌓입니다.
-              <br />
-              하루치를 다 채우면({LOTUS_PRICE.toLocaleString("ko-KR")}) 연꽃 한 송이.
-              <br />
-              연꽃으로 쪽지를 보내고 초를 올립니다.
+              <span className="hip-info-way">
+                <i>修</i>
+                <u>→</u>
+                <i>
+                  功
+                  <em>{LOTUS_PRICE.toLocaleString("ko-KR")}</em>
+                </i>
+                <u>→</u>
+                <i className="on">
+                  蓮
+                  <em>1</em>
+                </i>
+              </span>
+              <p>쪽지 · 초공양에 씁니다</p>
             </div>
           </details>
         </div>
@@ -238,6 +263,13 @@ export default function HipMe({
             </Link>
           ))}
         </div>
+
+        {/* ── 계정 ──
+            형: 「왜 로그인 기능이 없냐 어디서 로그인해」 「로그인 기능
+            빵났다」. 폰에서 이 칸이 영구히 숨겨져 있었다(meMore 를 켜는
+            곳이 파일 어디에도 없었다). 옛 머리띠를 끄면서 ☰ 서랍이라는
+            마지막 길까지 막혔다. **접지 않고** 여기 둔다. */}
+        <div className="hip-account">{account}</div>
 
         {/* ── 접었다 펼치는 둘 ──
             형: 「부적 기능 접었다 펼쳤다. 알림도 접었다 펼쳤다」.

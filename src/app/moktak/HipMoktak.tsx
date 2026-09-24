@@ -33,6 +33,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import HipShell from "@/components/HipShell";
+import HipTop from "@/components/HipTop";
 import { ROUND } from "@/lib/merit";
 
 export type HipTab = "moktak" | "yeomju" | "bowl";
@@ -57,7 +58,13 @@ export type HipMoktakProps = {
   /** 그릇을 울린다(울고 있으면 그친다) */
   onRing: () => void;
   /** 살림살이(정근·소리·자동·살갗)를 펴 보인다 */
-  onMore: () => void;
+  /** 살림살이(정근·소리·자동·살갗) — 부모가 그려 준 것을 판 아래에 깐다.
+      형: 「오른쪽 위 ... 없이 그냥 화면에 녹여 기능 옵션」 */
+  options: React.ReactNode;
+  /** 염주·싱잉볼 — **원래 그림과 원래 굴림 그대로.**
+      코드로 다시 그렸던 것은 버렸다. 부모가 그려서 넘긴다 */
+  bead: React.ReactNode;
+  bowl: React.ReactNode;
   /** 떠오르는 글자 */
   pops: { id: number; ch: string; dx: number; rot: number }[];
 };
@@ -78,7 +85,9 @@ export default function HipMoktak({
   onHit,
   onAdvance,
   onRing,
-  onMore,
+  options,
+  bead,
+  bowl,
   pops,
 }: HipMoktakProps) {
   // 갈래마다 세는 것이 다르다 — 큰 숫자 하나가 그 갈래의 오늘이다
@@ -122,17 +131,14 @@ export default function HipMoktak({
             </svg>
             <b>화두</b>
           </a>
-          <div className="flex items-center gap-3">
+          <HipTop>
             <span
               className={`hip-hap ${combo >= 2 ? "on" : ""}`}
               aria-hidden={combo < 2}
             >
               合
             </span>
-            <button onClick={onMore} aria-label="살림살이" className="hip-more">
-              ⋯
-            </button>
-          </div>
+          </HipTop>
         </header>
 
         {/* ── 갈래 셋 ──
@@ -167,29 +173,30 @@ export default function HipMoktak({
           <p key={`n${tab}${n}`} className="hip-big" aria-label={`오늘 ${n}번`}>
             {String(n).padStart(3, "0")}
           </p>
-          {tab === "bowl" ? (
+          {/* 형: 「목탁에서 0번 남음 이거 없애고」.
+              백팔까지 얼마 남았는지는 **바로 아래 격자가 이미 말한다.**
+              같은 것을 숫자로 한 번 더 적으니 둘 다 안 읽혔다.
+              그릇은 격자가 없으니 한 마디만 남긴다. */}
+          {tab === "bowl" && (
             <p className="hip-under">{ringing ? "울리는 중" : "그릇"}</p>
-          ) : (
-            <p className="hip-under">{left} 남음</p>
           )}
 
-          {/* ── 오브제 — 코드로 그린다 ──
-              형: 「메인에 오늘의 물음 위 연꽃 반응형 존나 좋다. 저런 느낌
-              디자인으로 전반을 가자」.
+          {/* ── 오브제 ──
+              목탁은 3D 렌더 한 장. 염주와 싱잉볼은 **원래 그림과 원래
+              굴림 그대로** 부모가 그려서 넘긴다.
+              형: 「염주 디자인은 원래 있던 거 다 적용」
+                  「싱잉볼 염주 전부 기존 거 유지 디자인」
 
-              사진으로 구운 오브제는 아무리 잘 구워도 남의 결이다.
-              연꽃처럼 **선으로 그리고 천천히 움직이면** 그게 우리 것이 된다. */}
+              염주는 **버튼으로 감싸지 않는다** — 드래그 판을 버튼에 넣으면
+              쓸 때마다 click 이 겹쳐 두 번 센다. 톡 누르기는 원본의
+              onPointerUp 이 이미 처리한다(8px 미만이면 한 알). */}
+          {tab === "yeomju" && bead}
+          {tab === "bowl" && bowl}
+
+          {tab === "moktak" && (
           <button
             onClick={touch}
-            aria-label={
-              tab === "moktak"
-                ? "목탁 치기"
-                : tab === "yeomju"
-                  ? "염주 한 알"
-                  : ringing
-                    ? "그릇 그치기"
-                    : "그릇 울리기"
-            }
+            aria-label="목탁 치기"
             className="hip-obj"
             style={{ WebkitTapHighlightColor: "transparent" }}
           >
@@ -201,9 +208,7 @@ export default function HipMoktak({
               </span>
             )}
 
-            {tab === "moktak" && <Moktak spin={n} />}
-            {tab === "yeomju" && <Yeomju lit={pos % KNOT} spin={n} />}
-            {tab === "bowl" && <Bowl ringing={ringing} spin={n} />}
+            <Moktak spin={n} />
 
             {/* 떠오르는 글자 */}
             <span aria-hidden className="hip-pops">
@@ -221,6 +226,7 @@ export default function HipMoktak({
               ))}
             </span>
           </button>
+          )}
 
           {/* 백팔 격자 — 그릇은 바퀴를 돌지 않으니 두지 않는다 */}
           {tab !== "bowl" && (
@@ -241,9 +247,14 @@ export default function HipMoktak({
           )}
 
           {/* 형이 여기 셈 줄에 빨간 X 를 쳤다 — 「이 부분 필요 없고」.
-              몇 번 쳤는지는 내 도량으로 간다(형: 「내가 쌓은 공덕은 …
-              몇 번 쳤는지를 내 도량에서 보여주고」). 치는 화면에서는
-              큰 숫자 하나면 족하다. */}
+              몇 번 쳤는지는 내 도량으로 간다. 치는 화면에서는 큰 숫자
+              하나면 족하다. */}
+
+          {/* 살림살이 — 「⋯」 서랍을 걷고 판 아래에 조용히 깐다.
+              형: 「오른쪽 위 ... 없이 그냥 화면에 녹여 기능 옵션」.
+              숨겨 두면 있는 줄도 모르고, 열면 화면이 통째로 덮여
+              치던 것이 사라진다. 내려야 보이니 치는 동안은 안 걸린다. */}
+          {options}
         </div>
       </div>
     </HipShell>
@@ -264,89 +275,6 @@ function Moktak({ spin }: { spin: number }) {
     <span key={`o${spin}`} aria-hidden className="hip-mok hip-mok-img">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/obj/moktak-pink.png" alt="" />
-    </span>
-  );
-}
-
-/** 염주 — 알 스물일곱이 한 바퀴. 넘긴 만큼 물든다 */
-function Yeomju({ lit, spin }: { lit: number; spin: number }) {
-  const R = 62;
-  return (
-    <span key={`o${spin}`} aria-hidden className="hip-mok hip-bead">
-      <svg viewBox="0 0 200 200">
-        <defs>
-          <radialGradient id="beadOn" cx="34%" cy="28%" r="80%">
-            <stop offset="0%" stopColor="#FBC3D6" />
-            <stop offset="100%" stopColor="#D2688F" />
-          </radialGradient>
-          <radialGradient id="beadMom" cx="34%" cy="28%" r="80%">
-            <stop offset="0%" stopColor="#F7E3BC" />
-            <stop offset="100%" stopColor="#C9A063" />
-          </radialGradient>
-        </defs>
-        <g className="hip-mok-aura">
-          <circle cx="100" cy="100" r="82" />
-        </g>
-        {/* 실 */}
-        <circle className="hip-bead-thread" cx="100" cy="100" r={R} />
-        {Array.from({ length: KNOT }, (_, i) => {
-          const a = (i / KNOT) * Math.PI * 2 - Math.PI / 2;
-          const x = 100 + Math.cos(a) * R;
-          const y = 100 + Math.sin(a) * R;
-          // 맨 위는 모주 — 한 바퀴가 어디서 시작하는지 알려 준다
-          if (i === 0)
-            return <circle key={i} className="hip-bead-mom" cx={x} cy={y} r="12" />;
-          return (
-            <circle
-              key={i}
-              className="hip-bead-one"
-              cx={x}
-              cy={y}
-              r="8.4"
-              data-on={i <= lit ? "1" : undefined}
-            />
-          );
-        })}
-      </svg>
-    </span>
-  );
-}
-
-/** 싱잉볼 — 놋 사발과 채. 울리는 동안 테가 떨린다 */
-function Bowl({ ringing, spin }: { ringing: boolean; spin: number }) {
-  return (
-    <span
-      key={`o${spin}`}
-      aria-hidden
-      className={`hip-mok hip-bowl${ringing ? " on" : ""}`}
-    >
-      <svg viewBox="0 0 200 200">
-        <defs>
-          <linearGradient id="bowlBody" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#8FD9C8" />
-            <stop offset="52%" stopColor="#5CC2AC" />
-            <stop offset="100%" stopColor="#3E9C88" />
-          </linearGradient>
-        </defs>
-        <g className="hip-mok-aura">
-          <circle cx="100" cy="106" r="82" />
-          <circle cx="100" cy="106" r="72" />
-        </g>
-        {/* 방석 */}
-        <ellipse className="hip-bowl-mat" cx="100" cy="158" rx="52" ry="11" />
-        {/* 사발 — 위가 열린 반타원 */}
-        <path className="hip-bowl-body" d="M38 98a62 56 0 0 0 124 0z" />
-        {/* 아가리 */}
-        <ellipse className="hip-bowl-rim" cx="100" cy="98" rx="62" ry="15" />
-        {/* 빛 한 줄 */}
-        <path className="hip-bowl-shine" d="M62 112q10 28 34 38" />
-        {/* 채 — 곧추세워 뒀더니 허공에 뜬 막대였다. 살짝 기울여
-            테에 기대 놓고, 끝에 가죽 머리를 붙인다 */}
-        <g transform="rotate(14 170 104)">
-          <rect className="hip-bowl-stick" x="164" y="40" width="12" height="82" rx="6" />
-          <circle className="hip-bowl-head" cx="170" cy="130" r="13" />
-        </g>
-      </svg>
     </span>
   );
 }
