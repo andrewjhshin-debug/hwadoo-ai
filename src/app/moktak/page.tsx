@@ -761,7 +761,7 @@ export default function MoktakPage() {
             <button
               onClick={hit}
               aria-label="목탁 치기"
-              className="rise rise-d3 mt-8 flex h-[74px] w-full items-center justify-center rounded-full border border-gold text-[17px] tracking-[0.5em] text-gold transition-colors active:bg-gold/10"
+              className="rise rise-d3 mt-8 flex h-[74px] w-full items-center justify-center rounded-full border border-gold text-[17px] tracking-[0.5em] text-gold transition-colors active:bg-gold/10 max-md:border-[#17140F] max-md:text-[#17140F] max-md:active:bg-[rgba(26,23,20,.06)]"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               <span className="[text-indent:0.5em]">치 기</span>
