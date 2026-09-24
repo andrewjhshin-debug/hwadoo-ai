@@ -1748,3 +1748,31 @@ html[data-theme="light"] {
     color: #9a9187;
   }
 }
+
+/* ── 맨 위 로고 — 어디서든 홈으로 ─────────────────────────────
+   형: 「어디 맨 위에 로고 달든, 홈으로 가는 거도 하나 있긴 해야겠다」.
+   판 이름(百八·我)은 오른쪽으로 물리고, 왼쪽 자리는 로고가 맡는다. */
+@media (max-width: 767px) {
+  .hip-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .hip-home svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: #ef7ba4;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .hip-home b {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 0.18em;
+    color: #17140f;
+  }
+  .hip-home:active { opacity: 0.6; }
+}
