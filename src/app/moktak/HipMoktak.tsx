@@ -134,7 +134,10 @@ export default function HipMoktak({
 
   return (
     <HipShell here="/moktak">
-      <div className="hip-screen" data-lane={tab}>
+      {/* hip-screen-scroll — 이 판은 살림살이까지 있어 길다.
+          형: 「내린 건 좋은데 겹치지 않게 탭이랑」.
+          통으로 안 만들면 내용이 그냥 흘러넘쳐 아래 염주를 밟는다. */}
+      <div className="hip-screen hip-screen-scroll" data-lane={tab}>
         {/* ① 숨 쉬는 바탕 — 덩이 둘이 서로 다른 박자로 아주 느리게 흐른다 */}
         <span aria-hidden className="hip-bloom hip-bloom-a" />
         <span aria-hidden className="hip-bloom hip-bloom-b" />

@@ -128,9 +128,8 @@ export default function RankPage() {
   // 한 칸 오르는 데 남은 공덕
   const gap = step ? `공덕 ${won(step.left)}` : null;
 
-  const say = mine
-    ? `${won(people)}명 가운데 내 자리`
-    : "정진한 사람들이 모이는 자리";
+  // 형: 「이딴 말 지우고」 — 들어오면 아는 것을 적어 두지 않는다
+  const say = mine ? `${won(people)}명 가운데 내 자리` : "";
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 pb-16 pt-5 sm:px-6 md:pt-9">
@@ -186,7 +185,7 @@ export default function RankPage() {
                 <span className="text-gold">{rankByNeed(step.to.need).name}</span>까지 {gap}
               </>
             ) : (
-              "가장 높은 자리입니다 — 높을수록 빨리 흐려집니다"
+              ""
             )}
           </p>
         </div>

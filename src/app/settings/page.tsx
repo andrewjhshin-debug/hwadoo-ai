@@ -231,7 +231,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/sambae", label: "삼귀의", Icon: Jeol },
   { href: "/bae", label: "백팔배", Icon: Jeol108 },
   { href: "/breath", label: "호흡 명상", Icon: Breath },
-  { href: "/mung", label: "멍 때리기", Icon: Ilwonsang },
+  { href: "/mung", label: "멍", Icon: Ilwonsang },
   { href: "/empty", label: "비움", Icon: Baru },
   { href: "/candle", label: "법당", Icon: Chotbul },
   { href: "/lotus", label: "연꽃 공양", Icon: YeonkkotGold },

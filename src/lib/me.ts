@@ -18,7 +18,7 @@
 // 둘 중 누가 이기나(mergeMe).
 // ─────────────────────────────────────────────────────────────
 
-import { ANON_NAMES } from "./anonName";
+import { ANON_2, ANON_3, ANON_NAMES, LEGACY_ANON_NAMES } from "./anonName";
 
 export const ME_KEY = "hwadu.me.v1";
 export const ME_EVENT = "hwadu-me-updated";
@@ -92,7 +92,10 @@ export function pickMe(): Me {
   return { name, face: faceFromName(name), at: Date.now(), chosen: false };
 }
 
-const GIVEN = new Set(ANON_NAMES);
+// 받은 이름인가 손으로 쓴 이름인가 — **옛 목록까지 넣는다.**
+// 목록을 통째로 갈았는데 여기에 옛 이름이 없으면, 옛 이름을 쓰던 사람이
+// 갑자기 「손으로 지은 이름」으로 승격되어 다시 뽑아도 안 바뀐다.
+const GIVEN = new Set([...ANON_NAMES, ...LEGACY_ANON_NAMES]);
 
 /**
  * 서버에서 온 것도, 옛 서랍에서 나온 것도 모양은 믿을 수 없다 — 다듬는다.
@@ -238,6 +241,32 @@ export function setName(raw: string): string | null {
     return "적지 못했어요 — 저장 공간을 확인해 주세요";
   }
   return null;
+}
+
+/**
+ * 법명을 다시 받는다 — **받은 이름 그대로**(chosen 은 false 로 둔다).
+ *
+ * 형: 「남자는 보통 2글자 여자는 3글자」.
+ * 陽 을 고른 사람에게는 두 글자에서, 陰 을 고른 사람에게는 세 글자에서
+ * 뽑는다. 아직 안 골랐으면 통째로 섞어 뽑는다 — 묻지 않는다.
+ *
+ * setName 과 다르다. setName 은 **손으로 지은 것**이라 chosen 을 켠다.
+ * 이건 받은 것이니 켜지 않는다 — 그래야 자리(受戒)의 뜻이 남는다.
+ */
+export function rerollName(kind?: "yang" | "eum"): string {
+  const pool = kind === "yang" ? ANON_2 : kind === "eum" ? ANON_3 : ANON_NAMES;
+  const me = loadMe();
+  let name = pool[Math.floor(Math.random() * pool.length)];
+  // 같은 이름이 또 나오면 한 번만 다시 — 눌렀는데 안 바뀌면 고장으로 읽힌다
+  if (me && name === me.name && pool.length > 1) {
+    name = pool[(pool.indexOf(name) + 1) % pool.length];
+  }
+  try {
+    write({ ...(me ?? pickMe()), name, at: Date.now(), chosen: false }, "local");
+  } catch {
+    /* 못 적어도 이번 판은 바뀐다 */
+  }
+  return name;
 }
 
 /** 얼굴만 바꾼다 */

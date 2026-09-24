@@ -3476,3 +3476,12 @@ html[data-theme="light"] {
     box-sizing: border-box;
   }
 }
+
+/* 살갗 점 — 오브제와 더 띄우고, 목탁은 더 크게.
+   형: 「이거 사이 위아래 목탁이랑 좀 더 이격」 「목탁 크기 더 키우라니까」 */
+@media (min-width: 0px) {
+  .hip-obj-foot { margin-top: 34px; }
+  .hip-mok-img,
+  .hip-mok { max-width: 460px; }
+  .hip-obj { margin-top: 44px; }
+}

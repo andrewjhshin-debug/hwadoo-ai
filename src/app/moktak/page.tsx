@@ -154,10 +154,12 @@ function SkinDots({
           /* 형: 「저거 색상 버튼 더 밝게 만들고」.
              55% 로 흐려 두었더니 흰 바탕에서 무슨 색인지 안 보였다.
              흐리게 하는 대신 **테로** 가른다 — 색은 늘 또렷하게 */
-          className={`h-[17px] w-[17px] rounded-full transition-all ${
+          /* 형: 「테두리 너무 두껍다, 저 버튼 색 더 밝게」.
+             ring-2 에 offset-2 까지 주니 점보다 테가 굵었다. 한 겹으로. */
+          className={`h-[16px] w-[16px] rounded-full transition-all ${
             pick === k.id
-              ? "scale-115 ring-2 ring-[#ef7ba4] ring-offset-2 ring-offset-transparent"
-              : "opacity-90 ring-1 ring-black/10 hover:opacity-100"
+              ? "scale-125 ring-[1.5px] ring-[#ef7ba4]"
+              : "ring-1 ring-black/12 hover:scale-110"
           }`}
           style={{ background: k.dot }}
         />
@@ -611,8 +613,8 @@ export default function MoktakPage() {
                     //     「채워진다」가 보인다 — sepia 로 바꿔 금으로 만든다
                     // 검은 drop-shadow 는 그대로 안 쓴다(형: 「그늘이 많다」).
                     filter: lit
-                      ? `sepia(1) saturate(3) hue-rotate(-12deg) brightness(${(1.1 + 0.16 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
-                      : `saturate(1.75) hue-rotate(-8deg) brightness(${(1.0 + 0.1 * front).toFixed(2)})`,
+                      ? `sepia(1) saturate(2.6) hue-rotate(-10deg) brightness(${(1.12 + 0.14 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.45))`
+                      : `brightness(${(1.0 + 0.08 * front).toFixed(2)})`,
                   }}
                 />
               );
@@ -635,8 +637,11 @@ export default function MoktakPage() {
             style={{
               transform: `rotate(${angle}deg)`,
               transition: "transform 0.16s ease-out",
-              filter:
-                "saturate(1.6) hue-rotate(-8deg) drop-shadow(0 6px 12px rgba(222,126,161,0.2))",
+              // 형: 「이거 원래대로 돌려라, 색상 너무 밝다」.
+              // 채도를 1.6배 올리고 색상까지 돌렸더니 나무 염주가 빨개졌다.
+              // 그림은 이미 밝혀 두었으니(lift) 여기서는 손대지 않는다 —
+              // 그늘 한 겹만.
+              filter: "drop-shadow(0 6px 12px rgba(222,126,161,0.2))",
             }}
           />
         </div>

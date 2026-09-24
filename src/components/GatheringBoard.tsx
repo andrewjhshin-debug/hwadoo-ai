@@ -1409,10 +1409,13 @@ export default function GatheringBoard({
         {/* 연꽃 잔고 — 누르면 연꽃 공양(구매)으로 */}
         <Link
           href="/lotus"
-          className="inline-flex items-center gap-1.5 rounded-[10px] border border-ink-3 px-3.5 py-2 text-[13.5px] tracking-[0.1em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+          /* 형: 「연꽃이란 말 자체는 지우고 크기도 좀 줄이고」.
+             꽃 그림이 이미 「연꽃」이라 말하고 있는데 옆에 또 적었다. */
+          aria-label="연꽃 공양"
+          className="inline-flex items-center gap-1 rounded-full border border-ink-3 px-2.5 py-1 text-[12px] tracking-[0.06em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
         >
-          <Yeonkkot className="h-[17px] w-[17px]" />
-          연꽃{user && lotusBal !== null ? ` ${lotusBal}` : ""}
+          <Yeonkkot className="h-[14px] w-[14px]" />
+          {user && lotusBal !== null ? lotusBal : ""}
         </Link>
         <button
           onClick={() => {
@@ -1420,7 +1423,7 @@ export default function GatheringBoard({
             setOpen(true);
             pushLayer();
           }}
-          className="rounded-[10px] border border-gold/50 px-4 py-2 text-[13.5px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
+          className="rounded-full border border-gold/50 px-3.5 py-1 text-[12px] tracking-[0.1em] text-gold transition-colors hover:bg-gold/10"
         >
           글 쓰기
         </button>
