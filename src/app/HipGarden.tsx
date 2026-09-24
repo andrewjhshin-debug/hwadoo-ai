@@ -79,10 +79,18 @@ export function HipGardenEmpty({
   audience,
   onAudience,
   onReceive,
+  join,
 }: {
   audience: "adult" | "student";
   onAudience: (a: "adult" | "student") => void;
   onReceive: () => void;
+  /** 손님이 단추를 눌렀을 때 — 문을 연다. 아니면 null */
+  join?: {
+    busy: boolean;
+    error: string;
+    onJoin: () => void;
+    onClose: () => void;
+  } | null;
 }) {
   return (
     <HipShell here="/">
@@ -113,10 +121,11 @@ export function HipGardenEmpty({
         </header>
 
         <div className="hip-screen-mid">
-          {/* ── 큰 것 하나 ──
-              연꽃은 코드로 그려 아주 느리게 돌고, 그 뒤로 **반가사유상**이
-              앉는다. 불상 뒤에 두는 것은 꽃이 아니라 광배다 —
-              연꽃은 돌고 상은 가만히 있다. */}
+          {/* ── 큰 것 하나 — 연꽃 ──
+              형: 「오늘의 물음을 받으시겠습니까에서 불상 치워버리고」.
+              상을 앉혀 봤는데, 물음을 받기 **전**에 누가 먼저 앉아 있으면
+              그 화면의 주인이 바뀐다. 여기 주인은 아직 오지 않은 물음이다.
+              그래서 연꽃 하나만 천천히 돈다 — 빈 자리로 둔다. */}
           <span aria-hidden className="hip-seat">
             <span className="hip-lotus">
               <svg viewBox="0 0 200 200">
@@ -133,8 +142,6 @@ export function HipGardenEmpty({
                 <circle cx="100" cy="100" r="11" />
               </svg>
             </span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/bangasa.png" alt="" className="hip-buddha" />
           </span>
           <p className="hip-ask">
             오늘의 물음을
@@ -146,6 +153,40 @@ export function HipGardenEmpty({
         <button onClick={onReceive} className="hip-strike">
           새 화두 받기
         </button>
+
+        {/* ── 문 ──
+            형: 「로그인 화면은 오늘의 물음을 받으시겠습니까가 좋겠다.
+            대신 그거 로그인 안 한 상태에서 눌리면 가입부터 유도」.
+            화면을 따로 만들지 않는다. 이 화면이 곧 로그인 화면이고,
+            손님이 단추를 눌렀을 때에야 문이 열린다 — 들어오기 전에
+            문지기부터 만나는 앱은 되고 싶지 않다. */}
+        {join && (
+          <div className="hip-gate" role="dialog" aria-label="시작하기">
+            <button
+              className="hip-gate-veil"
+              onClick={join.onClose}
+              aria-label="닫기"
+            />
+            <div className="hip-gate-card">
+              <p className="hip-gate-say">
+                물음은 받는 이가 있어야
+                <br />
+                건네집니다
+              </p>
+              <button
+                onClick={join.onJoin}
+                disabled={join.busy}
+                className="hip-strike"
+              >
+                {join.busy ? "여는 중" : "구글로 시작하기"}
+              </button>
+              {join.error && <p className="hip-gate-bad">{join.error}</p>}
+              <button onClick={join.onClose} className="hip-gate-later">
+                다음에
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </HipShell>
   );
@@ -241,12 +282,21 @@ export function HipGardenHolding({
             시안에는 막대도 알약도 없었다. **얇은 선 하나**와 그 아래
             두 마디뿐. 그 선이 곧 달이다 — 차오른 만큼 먹이 간다. */}
         <div className="hip-foot">
+          {/* 형: 「품는 날에 그 선 좀만 더 두껍게 달모양 넣고 오리지날처럼」.
+              실 한 올은 너무 가늘어 차오르는 게 안 보였다. 두껍게 하고,
+              찬 끝에 **달**을 하나 얹는다 — 옛 판의 그 달(.moon)과 같은
+              것이다. 달이 선을 따라 오른쪽으로 걸어간다. */}
           <div
             className="hip-rule"
             role="img"
             aria-label={unlocked ? "달이 찼습니다" : `${remaining} 남음`}
           >
             <i style={{ width: `${unlocked ? 100 : pct}%` }} />
+            <em
+              className="hip-moon-dot"
+              data-full={unlocked ? "1" : undefined}
+              style={{ left: `${unlocked ? 100 : pct}%` }}
+            />
           </div>
           <div className="hip-foot-row">
             <span>{unlocked ? "달이 찼습니다" : `${nalcha(day)} 품는 중`}</span>

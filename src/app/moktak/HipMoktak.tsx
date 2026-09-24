@@ -158,9 +158,10 @@ export default function HipMoktak({
           ))}
         </div>
 
-        {/* 형: 「목탁이랑 저거 민트 핑크 칸 차는 거 위치 위아래 바꾸고」.
-            셈과 격자가 위로, **오브제가 아래로** 내려왔다. 엄지가 닿는
-            자리에 치는 물건이 있어야 한다 — 위에 있으면 손을 뻗어야 한다. */}
+        {/* 형: 「목탁에서 목탁이랑 그 격자 위치 바꿔 위아래로」.
+            한 번 내렸다가 다시 올린다 — **오브제가 위, 백팔 격자가 아래.**
+            치는 물건이 눈에 먼저 들어오고, 얼마나 찼는지는 그 아래서
+            받는다. 격자는 보는 것이지 누르는 것이 아니니 밑이 맞다. */}
         <div className="hip-screen-mid">
           {/* ③ 숫자가 톡 — key 를 갈아 끼워 칠 때마다 다시 난다 */}
           <p key={`n${tab}${n}`} className="hip-big" aria-label={`오늘 ${n}번`}>
@@ -170,24 +171,6 @@ export default function HipMoktak({
             <p className="hip-under">{ringing ? "울리는 중" : "그릇"}</p>
           ) : (
             <p className="hip-under">{left} 남음</p>
-          )}
-
-          {/* 백팔 격자 — 그릇은 바퀴를 돌지 않으니 두지 않는다 */}
-          {tab !== "bowl" && (
-            <div
-              className={`hip-grid108 mt-7 w-full${knot ? " knot" : ""}`}
-              role="img"
-              aria-label={`백팔 중 ${inRound}번`}
-            >
-              {Array.from({ length: ROUND }, (_, i) => (
-                <i
-                  key={i}
-                  style={{ ["--i" as string]: String(i) }}
-                  data-on={i < inRound ? "1" : undefined}
-                  data-knot={i % KNOT === 0 ? "1" : undefined}
-                />
-              ))}
-            </div>
           )}
 
           {/* ── 오브제 — 코드로 그린다 ──
@@ -238,6 +221,24 @@ export default function HipMoktak({
               ))}
             </span>
           </button>
+
+          {/* 백팔 격자 — 그릇은 바퀴를 돌지 않으니 두지 않는다 */}
+          {tab !== "bowl" && (
+            <div
+              className={`hip-grid108 mt-7 w-full${knot ? " knot" : ""}`}
+              role="img"
+              aria-label={`백팔 중 ${inRound}번`}
+            >
+              {Array.from({ length: ROUND }, (_, i) => (
+                <i
+                  key={i}
+                  style={{ ["--i" as string]: String(i) }}
+                  data-on={i < inRound ? "1" : undefined}
+                  data-knot={i % KNOT === 0 ? "1" : undefined}
+                />
+              ))}
+            </div>
+          )}
 
           {/* 형이 여기 셈 줄에 빨간 X 를 쳤다 — 「이 부분 필요 없고」.
               몇 번 쳤는지는 내 도량으로 간다(형: 「내가 쌓은 공덕은 …

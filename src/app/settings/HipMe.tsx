@@ -210,14 +210,16 @@ export default function HipMe({
           </details>
         </div>
 
-        {/* 무엇을 몇 번 — 형: 「몇 번 쳤는지를 내 도량에서 보여주고」.
-            넷으로 자르던 것을 걷었다. 한 것은 다 보여 준다 */}
+        {/* 무엇을 몇 번 — 형: 「공덕 쌓은 거 라벨 이런 식으로 넣어.
+            모든 기능 중 공덕 주는 건 다. 대신 한 횟수를 표기」.
+            넉 장짜리 격자를 알약 줄로 바꿨다. 칸이 정해져 있지 않으니
+            여덟이든 열둘이든 줄을 바꿔 가며 다 담긴다 — 「다」 라는 말은
+            개수를 모른다는 뜻이고, 격자는 개수를 알아야 짜인다. */}
         <div className="hip-me-hits">
           {hits.map((h) => (
-            <div key={h.label}>
-              <b>{h.n.toLocaleString("ko-KR")}</b>
-              <span>{h.label}</span>
-            </div>
+            <span key={h.label}>
+              {h.label} <b>{h.n.toLocaleString("ko-KR")}</b>번
+            </span>
           ))}
         </div>
 

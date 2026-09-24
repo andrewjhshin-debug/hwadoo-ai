@@ -23,6 +23,7 @@ import {
 } from "@/lib/hwadu";
 import Question from "@/components/Question";
 import { HipGardenEmpty, HipGardenHolding, HipGardenOnly } from "./HipGarden";
+import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { fetchPublicHwadu, markSeen, type PublicHwadu } from "@/lib/thrown";
 import { plainThoughts } from "@/lib/thoughts";
 import {
@@ -150,6 +151,14 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  // 형: 「로그인 화면은 오늘의 물음을 받으시겠습니까가 좋겠다.
+  //      대신 그거 로그인 안 한 상태에서 눌리면 가입부터 유도」
+  // 화면을 따로 만들지 않는다 — 이 화면이 곧 로그인 화면이다.
+  // 손님인지 아닌지는 단추를 눌렀을 때에야 갈린다.
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [askJoin, setAskJoin] = useState(false);
+  const [joinBusy, setJoinBusy] = useState(false);
+  const [joinErr, setJoinErr] = useState("");
   // 들어올 때의 연출을 **처음 한 번만** 튼다. 화두만 보기를 한 번이라도
   // 다녀오면 그 뒤로는 그냥 화면이 있다 — 형: 「두둥 하면서 튀지 말고」
   const [seenOnce, setSeenOnce] = useState(false);
@@ -236,6 +245,29 @@ export default function Home() {
   // 같은 자리에서 문서 뿌리에 표를 붙인다 — 아래 띠(MobileTabBar)와 떠 있는
   // 도량 단추(DoryangMenu)가 그 표를 보고 스스로 사라진다(globals.css).
   // 두 부품 모두 이 화면 밖에 사는지라, 여기서 직접 감출 길이 없다.
+  useEffect(() => watchAuth((u) => setSignedIn(!!u)), []);
+
+  const join = async () => {
+    setJoinBusy(true);
+    setJoinErr("");
+    try {
+      await loginWithGoogle();
+      setAskJoin(false);
+    } catch (e) {
+      const code = (e as { code?: string })?.code ?? "";
+      setJoinErr(
+        code === "auth/popup-blocked"
+          ? "팝업이 막혔습니다. 브라우저에서 팝업을 허용해 주세요."
+          : code === "auth/popup-closed-by-user" ||
+              code === "auth/cancelled-popup-request"
+            ? "창이 닫혔습니다. 다시 해 보세요."
+            : "지금은 들어가지 못했습니다. 잠시 뒤에 다시."
+      );
+    } finally {
+      setJoinBusy(false);
+    }
+  };
+
   useEffect(() => {
     document.documentElement.dataset.focus = focusMode ? "1" : "";
     if (focusMode) window.localStorage.setItem("hwadoo-focus", "1");
@@ -453,7 +485,14 @@ export default function Home() {
       <HipGardenEmpty
         audience={(store?.audience ?? "adult") as "adult" | "student"}
         onAudience={(a) => update((base) => ({ ...base, audience: a }))}
-        onReceive={receive}
+        /* 손님이면 화두 대신 문부터 연다. signedIn 이 아직 null 이면
+           (인증을 읽는 중) 그냥 받게 둔다 — 기다리게 하지 않는다 */
+        onReceive={() => (signedIn === false ? setAskJoin(true) : receive())}
+        join={
+          askJoin
+            ? { busy: joinBusy, error: joinErr, onJoin: join, onClose: () => setAskJoin(false) }
+            : null
+        }
       />
       <div className="relative hidden flex-1 flex-col items-center justify-start px-5 pb-16 pt-6 text-center md:flex sm:justify-center sm:py-16">
         {/* 폰은 이름이 주인공이라 표식을 한 단 줄인다. 웹은 원래대로 */}

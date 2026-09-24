@@ -2438,3 +2438,189 @@ html[data-theme="light"] {
   .hip-rooms a:nth-child(3n + 2) i { color: #4fb7a1; }
   .hip-rooms a:nth-child(3n + 3) i { color: #d9679a; }
 }
+
+/* ── 그림자를 걷는다 ──────────────────────────────────────────
+   형: 「전체적으로 그림자 말인데 그림자가 있으니까 핑크랑 대비돼서
+        ㅈㄴ 별로다. 그림자는 적게 하고」
+
+   맞는 말이다. 검은 그림자는 흰 바탕에서는 「떠 있음」으로 읽히는데
+   분홍 바탕에서는 **때**로 읽힌다. 회색이 분홍과 섞이면 탁해진다.
+   그래서 두 가지를 한다 —
+     ① 검정(rgba(26,23,20,…))으로 지던 그림자는 **분홍 계열로** 바꾼다.
+        같은 색 계열끼리는 겹쳐도 탁해지지 않는다
+     ② 세기와 거리를 절반 아래로 줄인다. 있는지 없는지 모를 만큼만
+   이 덩이는 파일 맨 뒤라 앞의 규칙들을 덮는다 — 원래 값을 뒤지지 않고
+   여기 한 자리에서 결을 잡는다. */
+@media (max-width: 767px) {
+  /* 오브제 — 제일 크고 제일 눈에 걸리던 것 */
+  .hip-mok-img img {
+    filter: drop-shadow(0 6px 10px rgba(222, 126, 161, 0.16));
+  }
+  .hip-buddha,
+  .hip-hanji .hip-buddha {
+    filter: drop-shadow(0 6px 12px rgba(160, 120, 130, 0.14));
+  }
+  .hip-mok-body {
+    filter: drop-shadow(0 5px 8px rgba(222, 126, 161, 0.16));
+  }
+  .hip-bead-one[data-on="1"] { filter: none; }
+  .hip-bead-mom { filter: drop-shadow(0 2px 4px rgba(201, 160, 99, 0.22)); }
+  .hip-bowl-body {
+    filter: drop-shadow(0 6px 10px rgba(62, 156, 136, 0.15));
+  }
+
+  /* 염주 알 — 안쪽 음영만 남기고 바깥 그늘은 거의 지운다 */
+  .hip-mala button {
+    box-shadow:
+      inset -2px -3px 6px rgba(190, 120, 145, 0.1),
+      inset 2px 2px 5px rgba(255, 255, 255, 0.9);
+  }
+  .hip-mala button[data-on="1"] {
+    box-shadow:
+      inset -4px -5px 10px rgba(180, 70, 110, 0.18),
+      inset 4px 4px 9px rgba(255, 255, 255, 0.6),
+      0 2px 8px rgba(239, 123, 164, 0.22);
+  }
+
+  /* 서비스 동그라미 — 스물여섯 개가 저마다 그늘을 지면 판이 얼룩진다 */
+  .hip-rooms a i {
+    box-shadow: inset -2px -3px 6px rgba(190, 120, 145, 0.07);
+  }
+
+  /* 큰 단추 · 떠 있는 것들 */
+  .hip-strike { box-shadow: 0 4px 14px rgba(26, 23, 20, 0.1); }
+  .hip-sheet { box-shadow: none; }
+}
+
+/* ── 품는 날의 선과 달 ────────────────────────────────────────
+   형: 「품는 날에 그 선 좀만 더 두껍게 달모양 넣고 오리지날처럼 알지?」
+
+   실 한 올(1px)은 미니멀하긴 한데 **차오르는 게 안 보였다.** 두껍게 하고,
+   찬 끝에 달을 얹는다. 달은 옛 판의 .moon 그대로다 — 오른쪽 위가 밝고
+   나머지가 여려서 초승이 차오르는 것처럼 보이는, 그 동그라미.
+   차면 달이 온전히 밝아진다. */
+@media (max-width: 767px) {
+  .hip-rule {
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(28, 26, 23, 0.1);
+    overflow: visible;
+  }
+  .hip-rule i {
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, rgba(28, 26, 23, 0.4), #1c1a17);
+  }
+  /* 달 — 선 끝에 얹힌다. 선을 따라 오른쪽으로 걸어간다 */
+  .hip-moon-dot {
+    position: absolute;
+    top: 50%;
+    width: 15px;
+    height: 15px;
+    margin: -7.5px 0 0 -7.5px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 66% 40%,
+      #e8cfa0 0 44%,
+      rgba(232, 207, 160, 0.14) 46% 100%
+    );
+    box-shadow: 0 0 8px rgba(217, 180, 91, 0.3);
+    transition: left 0.6s ease;
+  }
+  /* 찼을 때 — 온달. 여린 쪽까지 다 밝아진다 */
+  .hip-moon-dot[data-full="1"] {
+    background: radial-gradient(circle at 66% 40%, #f2dcae 0 62%, #e0c68f 64% 100%);
+    box-shadow: 0 0 12px rgba(217, 180, 91, 0.5);
+  }
+}
+
+/* ── 문 — 손님이 물음을 청했을 때만 열린다 ────────────────────
+   형: 「로그인 화면은 오늘의 물음을 받으시겠습니까가 좋겠다.
+        대신 그거 로그인 안 한 상태에서 눌리면 가입부터 유도」
+   들어오기 전에 문지기부터 만나는 앱은 되고 싶지 않다. 화면은 그대로
+   두고, 단추를 눌렀을 때 그 위로 한 겹만 올라온다. */
+@media (max-width: 767px) {
+  .hip-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 78;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .hip-gate-veil {
+    position: absolute;
+    inset: 0;
+    background: rgba(28, 26, 23, 0.34);
+    backdrop-filter: blur(3px);
+  }
+  .hip-gate-card {
+    position: relative;
+    width: 100%;
+    padding: 34px 26px calc(env(safe-area-inset-bottom, 0px) + 26px);
+    border-radius: 26px 26px 0 0;
+    background: #fbfaf8;
+    text-align: center;
+    animation: hip-up 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  @keyframes hip-up {
+    from { transform: translateY(18px); opacity: 0; }
+  }
+  .hip-gate-say {
+    margin-bottom: 26px;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 21px;
+    line-height: 1.6;
+    letter-spacing: -0.02em;
+    color: #17140f;
+  }
+  .hip-gate-card .hip-strike { width: 100%; }
+  .hip-gate-bad {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #c2537e;
+  }
+  .hip-gate-later {
+    margin-top: 16px;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: #a39a8f;
+  }
+  /* 문이 열린 동안은 염주를 걷는다 */
+  body:has(.hip-gate) .hip-mala { display: none !important; }
+}
+
+/* 공덕 알림 알약 — 그림자를 걷는다.
+   형: 「공덕 쌓이는 거 팝업 뜨는 거 거기도 그림자 없애」.
+   먹빛 판에서는 0 8px 26px 검정이 「떠 있음」이었는데, 분홍 바탕에서는
+   알약 밑에 때가 낀 것처럼 보인다. 폰에서만 걷는다 — 웹은 그대로. */
+@media (max-width: 767px) {
+  [class*="shadow-[0_8px_26px"] {
+    box-shadow: 0 2px 8px rgba(222, 126, 161, 0.14) !important;
+  }
+}
+
+/* 한 것 — 알약 줄. 형: 「공덕 쌓은 거 라벨 이런 식으로 넣어.
+   모든 기능 중 공덕 주는 건 다. 대신 한 횟수를 표기」 */
+@media (max-width: 767px) {
+  .hip-me-hits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    justify-content: center;
+  }
+  .hip-me-hits span {
+    padding: 6px 13px;
+    border: 1px solid rgba(26, 23, 20, 0.11);
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    color: #8b8175;
+    white-space: nowrap;
+  }
+  .hip-me-hits span b {
+    font-weight: 500;
+    color: #17140f;
+  }
+}
