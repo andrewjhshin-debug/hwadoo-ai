@@ -3485,3 +3485,81 @@ html[data-theme="light"] {
   .hip-mok { max-width: 460px; }
   .hip-obj { margin-top: 44px; }
 }
+
+/* 연꽃 — 더 크게, 더 아래로, 연밥은 꽉 찬 샛노랑.
+   형: 「연꽃 위치 좀 더 내리고 크기 더 키우고, 가운데 노란 부분 저거
+        테두리까지 해서 채우고, 노란색 좀만 더 샛노랗게」
+
+   반투명으로 두었더니 뒤 꽃잎이 비쳐 노랑이 탁해졌다. 연밥은 꽃잎과
+   달리 **막힌 것**이다 — 꽉 채우고 테까지 같은 색으로 두른다. */
+@media (min-width: 0px) {
+  .hip-seat {
+    width: 88%;
+    max-width: 340px;
+    margin-top: 40px;
+  }
+  .hip-lotus circle,
+  .hip-hanji .hip-lotus circle {
+    fill: #ffc816;
+    stroke: #ffc816;
+    stroke-width: 3;
+  }
+  /* 꽃잎은 그대로 — 겹치면 진해지는 그 결이 이 그림의 전부다 */
+}
+
+/* 자리 상자를 연꽃에 맞춘다.
+   빈 뜰에서 상을 치운 뒤에도 상자는 상 크기(세로로 긴 0.82 비율) 그대로였다.
+   그래서 꽃은 상자 위쪽 한 귀퉁이에만 앉고, 아래로 한참이 비었다 —
+   가운데로 보이지도 않았다. 상자를 꽃 크기로 줄이면 저절로 가운데다. */
+@media (min-width: 0px) {
+  .hip-seat {
+    aspect-ratio: 1;
+    width: 72%;
+    max-width: 300px;
+    margin: 34px auto 0;
+  }
+  .hip-lotus {
+    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin-left: 0;
+  }
+  /* 상이 있는 판(키캡)은 그대로 — 거기 상자는 상의 몸이다 */
+  .hip-seat:has(.hip-buddha) {
+    aspect-ratio: 0.82;
+    width: 74%;
+  }
+  .hip-seat:has(.hip-buddha) .hip-lotus {
+    inset: auto;
+    top: -2%;
+    left: 50%;
+    width: 62%;
+    margin-left: -31%;
+  }
+  /* 큰 단추가 아래 염주에 안 닿게 */
+  .hip-strike { margin-bottom: 18px; }
+}
+
+/* ── 아래 염주의 자리는 **성역**이다 ──────────────────────────
+   형: 「탭이랑 겹치면 안 눌러지는 버그. 탭 자리는 유지해, 절대 침범
+        불가능하게 구분하라고」
+
+   판마다 바닥 여백을 따로 주고 있었다 — 그러니 한 판을 고치면 다른
+   판이 새고, 새는 자리마다 손가락이 헛돌았다.
+   **띠 높이를 한 곳에 못박고**, 모든 판이 그만큼을 비운다.
+     띠: 아래에서 14px 띄우고 높이 54px → 68px
+     그 위로 한 뼘(28px) 더 → **96px 이 성역**이다
+   판이 새로 생겨도 .hip-screen 만 쓰면 저절로 지켜진다. */
+:root { --hip-rail: 96px; }
+@media (min-width: 0px) {
+  .hip-screen {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail)) !important;
+  }
+  /* 안쪽 통은 제 몫만 — 바깥에서 이미 띠 자리를 비웠다 */
+  .hip-screen-scroll .hip-screen-mid,
+  .hip-screen .hip-screen-mid {
+    padding-bottom: 28px;
+  }
+  .hip-strike { margin-bottom: 0; }
+}

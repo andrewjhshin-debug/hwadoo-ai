@@ -140,7 +140,7 @@ export function HipGardenEmpty({
                     transform={`rotate(${i * 45} 100 100)`}
                   />
                 ))}
-                <circle cx="100" cy="100" r="11" />
+                <circle cx="100" cy="100" r="16" />
               </svg>
             </span>
           </span>
