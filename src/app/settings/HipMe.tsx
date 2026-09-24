@@ -42,6 +42,12 @@ export type HipMeProps = {
   merit: number;
   /** 무엇을 몇 번 — 많이 한 것부터 넉 장만 */
   hits: { label: string; n: number }[];
+  /** 도량 안내 · 사업자 정보 — 법으로 두어야 하는 것들 */
+  law: {
+    links: { href: string; label: string }[];
+    email: string;
+    biz: string;
+  };
   /** 접었다 펴는 두 자리 — 안에 들어갈 것은 부모가 그려 준다 */
   charms: React.ReactNode;
   bells: React.ReactNode;
@@ -65,8 +71,6 @@ export type HipMeProps = {
   nameProblem: (raw: string) => string | null;
   /** 음양 — 형: 「남자면 양 여자면 음, 그거 버튼 넣자」.
       고르면 법명 글자 수가 따라 바뀐다(陽 두 자 · 陰 세 자) */
-  yin?: "m" | "f";
-  onYin: (g: "m" | "f") => void;
 };
 
 export default function HipMe({
@@ -77,6 +81,7 @@ export default function HipMe({
   next,
   merit,
   hits,
+  law,
   charms,
   bells,
   services,
@@ -85,10 +90,17 @@ export default function HipMe({
   onRename,
   onReroll,
   nameProblem,
-  yin,
-  onYin,
 }: HipMeProps) {
   // 법명 고치기 — 그 자리에서 편다. 화면을 옮기지 않는다
+  /** 공덕 ⓘ 서랍 */
+  const [openInfo, setOpenInfo] = useState(false);
+  /** 공덕 알약 — 접힌 것이 기본. 형: 「동그라미들 접었다 펼치기 기능 둬」 */
+  const [openHits, setOpenHits] = useState(false);
+  /** 접었을 때 보일 것 — **한 번이라도 한 것**. 그게 내 살림이다.
+      아직 아무것도 안 했으면 넷만 보여 준다(빈 줄은 아무 말도 못 한다) */
+  const done = hits.filter((h) => h.n > 0);
+  const foldedHits = done.length ? done : hits.slice(0, 4);
+
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(name);
   const [err, setErr] = useState<string | null>(null);
@@ -126,7 +138,7 @@ export default function HipMe({
           <b>화두</b>
         </a>
         {/* 여기는 이미 내 도량이니 我 단추는 숨긴다 */}
-        <HipTop hide="me" />
+        <HipTop />
       </header>
 
       <div className="hip-screen-mid">
@@ -167,25 +179,9 @@ export default function HipMe({
                 <button onClick={onReroll} className="hip-reroll" aria-label="법명 다시 뽑기">
                   ↻
                 </button>
-                {/* 음양 — 법명 바로 옆이 제자리다. 누르면 그 자리에서
-                    이름이 두 자 ↔ 세 자로 바뀐다. 묻는 말은 없다 */}
-                <span className="hip-yin" role="group" aria-label="음양">
-                  {(
-                    [
-                      ["m", "陽"],
-                      ["f", "陰"],
-                    ] as const
-                  ).map(([g, mark]) => (
-                    <button
-                      key={g}
-                      onClick={() => onYin(g)}
-                      aria-pressed={yin === g}
-                      data-on={yin === g ? "1" : undefined}
-                    >
-                      {mark}
-                    </button>
-                  ))}
-                </span>
+                {/* 음양 토글은 걷었다 — 형: 「음양 필요 없고」.
+                    법명 옆에 陽·陰 두 알이 붙어 있으니 이름보다 그것이
+                    먼저 눈에 걸렸다. 글자 수는 이미 정해 둔 결대로 뽑힌다. */}
               </p>
             )}
             {(err ?? (editing ? nameProblem(draft) : null)) && (
@@ -244,16 +240,58 @@ export default function HipMe({
           {/* 형: 「공덕 시스템 유지하고 ⓘ로 어딘가에 표시. 하루 내내 공덕
               쌓으면 연꽃 하나 주고, 이걸로 인연에서 쪽지 보내거나
               초공양할 수 있다고」. 세 줄이면 족하다 */}
-          <details className="hip-info">
-            <summary aria-label="공덕이란">ⓘ</summary>
-            {/* 형: 「구구절절 텍스트로 설명하는 것보다 그냥 사람들이 손가락으로
-                만지면서 바로바로 반응성을 주고 학습하도록」 「좀 이쁘게 다시」.
-                세 줄짜리 설명을 걷고 **길 하나**만 그린다 —
-                수행이 공덕이 되고, 공덕이 연꽃이 된다. 화살표 둘이면 끝. */}
-            <div>
+          {/* 형: 「아니지 않나. 공덕은 부처까지 가는 거고 하루에 한 송이
+              주는 거잖아. 그걸 더 ⓘ에 친절하게 설명해 봐. 지금처럼 허접하게
+              펼쳐지는 것도 좀 고치고」
+
+              길을 하나로 그려 놨더니 **공덕이 연꽃으로 바뀌는 것**처럼
+              읽혔다. 아니다 — 둘은 갈래가 다르다.
+                · 공덕은 **쌓이기만** 한다. 줄지 않고, 끝은 부처다
+                · 연꽃은 **하루에 한 송이**. 그날 치를 다 채운 날 한 송이 핀다
+              그래서 두 줄로 갈라 적는다. 그림 한 줄, 말 한 줄씩.
+
+              <details> 는 열릴 때 툭 튀어나온다(높이가 0에서 제값으로
+              한 칸에 간다). grid 의 0fr → 1fr 로 바꾸면 높이를 모르고도
+              스르르 열린다. 그래서 서랍을 직접 짠다. */}
+          <button
+            type="button"
+            className="hip-info-key"
+            onClick={() => setOpenInfo((v) => !v)}
+            aria-expanded={openInfo}
+            aria-controls="hip-merit-info"
+            aria-label="공덕이란"
+          >
+            ⓘ
+          </button>
+        </div>
+
+        <div
+          id="hip-merit-info"
+          className="hip-info-drawer"
+          data-open={openInfo ? "1" : undefined}
+        >
+          <div className="hip-info-card">
+            {/* ① 공덕 — 쌓여서 부처까지 */}
+            <div className="hip-info-row">
               <span className="hip-info-way">
                 <i>修</i>
                 <u>→</u>
+                <i>功</i>
+                <u>→</u>
+                <i className="on">佛</i>
+              </span>
+              <p>
+                <b>공덕은 쌓이기만 합니다.</b>
+                <br />
+                동자에서 시작해 사미 · 수좌 · 선사 · 보살을 지나
+                <br />
+                부처까지 갑니다. 한 번 쌓인 공덕은 줄지 않습니다.
+              </p>
+            </div>
+
+            {/* ② 연꽃 — 하루에 한 송이 */}
+            <div className="hip-info-row">
+              <span className="hip-info-way">
                 <i>
                   功
                   <em>{LOTUS_PRICE.toLocaleString("ko-KR")}</em>
@@ -264,16 +302,15 @@ export default function HipMe({
                   <em>1</em>
                 </i>
               </span>
-              {/* 형: 「설명 너무 좋고. 설명할 땐 공덕 한자 없애고, 공덕
-                  채우면 연꽃 하나 준다고 하고, 하루에 하나 주는 거라고 설명.
-                  쪽지 초공양에 씁니다는 지우고」 */}
               <p>
-                공덕을 다 채우면 연꽃 한 송이
+                <b>연꽃은 하루에 한 송이입니다.</b>
                 <br />
-                하루에 한 송이까지
+                그날 공덕 {LOTUS_PRICE.toLocaleString("ko-KR")}을 다 채우면
+                <br />
+                그날의 연꽃 한 송이가 핍니다. 다음 날 다시 한 송이.
               </p>
             </div>
-          </details>
+          </div>
         </div>
 
         {/* 무엇을 몇 번 — 형: 「공덕 쌓은 거 라벨 이런 식으로 넣어.
@@ -281,12 +318,28 @@ export default function HipMe({
             넉 장짜리 격자를 알약 줄로 바꿨다. 칸이 정해져 있지 않으니
             여덟이든 열둘이든 줄을 바꿔 가며 다 담긴다 — 「다」 라는 말은
             개수를 모른다는 뜻이고, 격자는 개수를 알아야 짜인다. */}
-        <div className="hip-me-hits">
-          {hits.map((h) => (
+        {/* 형: 「동그라미들 접었다 펼치기 기능 둬」 + 왼쪽으로 붙이고.
+            갈래 전부를 깔았더니 열일곱 알이 화면 절반을 먹었다.
+            **접었을 때는 한 번이라도 한 것**만 — 그게 내 살림이다.
+            나머지는 「+12」 알 하나 뒤에 접어 둔다. 눌러 보면 무엇을
+            더 하면 공덕이 붙는지 그 자리에서 펼쳐진다. 설명은 없다. */}
+        <div className="hip-me-hits" data-open={openHits ? "1" : undefined}>
+          {(openHits ? hits : foldedHits).map((h) => (
             <span key={h.label}>
               {h.label} <b>{h.n.toLocaleString("ko-KR")}</b>번
             </span>
           ))}
+          {hits.length > foldedHits.length && (
+            <button
+              type="button"
+              className="hip-hits-more"
+              onClick={() => setOpenHits((v) => !v)}
+              aria-expanded={openHits}
+              aria-label={openHits ? "접기" : `나머지 ${hits.length - foldedHits.length}가지 펼치기`}
+            >
+              {openHits ? "－" : `＋${hits.length - foldedHits.length}`}
+            </button>
+          )}
         </div>
 
         {/* ── 서비스 전부 — 동그란 버튼으로 ──
@@ -328,6 +381,24 @@ export default function HipMe({
             </summary>
             <div>{bells}</div>
           </details>
+        </div>
+
+        {/* ── 도량 안내와 사업자 정보 ──
+            리뉴얼이 웹까지 덮으면서 아래 띠(footer)가 통째로 가려졌다 —
+            .hip-screen 이 fixed inset-0 로 화면을 덮기 때문이다. 그 바람에
+            이용약관·개인정보·사업자 정보로 가는 길이 **앱 어디에도 없어졌다.**
+            전자상거래법 제10조는 이것을 볼 수 있게 두라고 한다.
+            눈에 안 걸리게, 그러나 반드시 닿게 — 맨 아래 옅은 한 줄. */}
+        <div className="hip-law">
+          <p>
+            {law.links.map((l) => (
+              <a key={l.href} href={l.href}>
+                {l.label}
+              </a>
+            ))}
+            <a href={`mailto:${law.email}`}>문의</a>
+          </p>
+          <small>{law.biz}</small>
         </div>
       </div>
 

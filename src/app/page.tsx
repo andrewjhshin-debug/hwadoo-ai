@@ -250,6 +250,13 @@ export default function Home() {
   const join = async () => {
     setJoinBusy(true);
     setJoinErr("");
+    // 「여는 중」에 영영 멈추지 않게 — 형이 본 게 그 꼴이었다.
+    // 리다이렉트로 가면 이 창은 곧 떠나니 이 시계는 울릴 일이 없고,
+    // 팝업이 소리 없이 막히면 열두 셈 뒤에 단추를 되돌려 준다.
+    const 시계 = setTimeout(() => {
+      setJoinBusy(false);
+      setJoinErr("창이 열리지 않았습니다. 브라우저에서 팝업을 허용하거나, 사파리·크롬으로 열어 주세요.");
+    }, 12_000);
     try {
       await loginWithGoogle();
       setAskJoin(false);
@@ -264,6 +271,7 @@ export default function Home() {
             : "지금은 들어가지 못했습니다. 잠시 뒤에 다시."
       );
     } finally {
+      clearTimeout(시계);
       setJoinBusy(false);
     }
   };

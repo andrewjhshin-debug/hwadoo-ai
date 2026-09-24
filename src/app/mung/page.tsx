@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import HipRoom from "@/components/HipRoom";
 import {
   endMung,
   loadMung,
@@ -130,96 +131,100 @@ export default function MungPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-8 text-center md:pt-12">
-      <style>{CSS}</style>
+    <HipRoom here="/mung">
+      {/* 옛 껍데기에서 살릴 것은 가운데 정렬뿐이다 — 여백·폭과 아래 염주
+          자리는 이제 .hip-screen 이 쥐고 있으니 그 몫은 넘겨 준다. */}
+      <div className="flex flex-col items-center text-center">
+        <style>{CSS}</style>
 
-      {/* 無事 — 「할 일 없음」. 임제록의 無事是貴人(할 일 없는 이가 귀한
-          사람)에서 왔다. 이 방에 딱 맞는 말이고, 멍이 노는 것이 아니라
-          수행의 한 자리라는 것을 두 글자로 말해 준다.
-          (처음엔 㝱 를 썼는데 글꼴에 없어 네모로 깨졌다) */}
-      <p className="rise text-[12px] tracking-[0.35em] text-hanji-faint">
-        無事 · 멍
-      </p>
+        {/* 無事 — 「할 일 없음」. 임제록의 無事是貴人(할 일 없는 이가 귀한
+            사람)에서 왔다. 이 방에 딱 맞는 말이고, 멍이 노는 것이 아니라
+            수행의 한 자리라는 것을 두 글자로 말해 준다.
+            (처음엔 㝱 를 썼는데 글꼴에 없어 네모로 깨졌다) */}
+        <p className="rise text-[12px] tracking-[0.35em] text-hanji-faint">
+          無事 · 멍
+        </p>
 
-      {stage === "done" ? (
-        <>
-          <p className="rise rise-d1 mt-6 font-serif text-[52px] font-light leading-none text-hanji">
-            {sayDuration(last.sec)}
-          </p>
-          <p className="rise rise-d1 mt-3 break-keep text-[13px] leading-6 text-hanji-dim">
-            {last.sec < MUNG_MIN_SEC
-              ? "너무 짧았어요. 스무 초는 넘겨야 셈에 듭니다."
-              : last.record
-                ? "지금까지 가장 오래 앉았습니다."
-                : "잘 앉으셨습니다."}
-          </p>
-          {last.gained > 0 && (
-            <p className="rise rise-d2 mt-4 inline-block rounded-full border border-gold/45 px-3.5 py-1.5 text-[11.5px] text-gold">
-              공덕 +{last.gained.toLocaleString("ko-KR")}
+        {stage === "done" ? (
+          <>
+            <p className="rise rise-d1 mt-6 font-serif text-[52px] font-light leading-none text-hanji">
+              {sayDuration(last.sec)}
             </p>
-          )}
-          <div className="rise rise-d2 mt-8 flex w-full max-w-[280px] flex-col gap-2.5">
+            <p className="rise rise-d1 mt-3 break-keep text-[13px] leading-6 text-hanji-dim">
+              {last.sec < MUNG_MIN_SEC
+                ? "너무 짧았어요. 스무 초는 넘겨야 셈에 듭니다."
+                : last.record
+                  ? "지금까지 가장 오래 앉았습니다."
+                  : "잘 앉으셨습니다."}
+            </p>
+            {last.gained > 0 && (
+              <p className="rise rise-d2 mt-4 inline-block rounded-full border border-gold/45 px-3.5 py-1.5 text-[11.5px] text-gold">
+                공덕 +{last.gained.toLocaleString("ko-KR")}
+              </p>
+            )}
+            <div className="rise rise-d2 mt-8 flex w-full max-w-[280px] flex-col gap-2.5">
+              <button
+                onClick={begin}
+                className="rounded-full border border-gold/55 bg-gold/[0.07] px-6 py-3.5 text-[13.5px] tracking-[0.18em] text-gold-soft transition-colors hover:bg-gold/15"
+              >
+                한 번 더
+              </button>
+              <Link
+                href="/"
+                className="rounded-full border border-ink-3 px-6 py-2.5 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:text-hanji"
+              >
+                뜰로
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="rise rise-d1 mt-7 break-keep font-serif text-[27px] leading-[1.5] text-hanji sm:text-[31px]">
+              아무것도
+              <br />
+              하지 마세요
+            </p>
+            <p className="rise rise-d1 mt-5 break-keep text-[13px] leading-7 text-hanji-dim">
+              화면에 점 하나만 남습니다.
+              <br />
+              건드리거나 앱을 나가면 끝납니다.
+            </p>
+            {/* 얼마나 앉았는지는 **끝난 뒤에만** 알려 준다. 재는 것이 보이면
+                쳐다보게 되고, 쳐다보는 동안은 멍이 아니다. */}
+            <p className="rise rise-d2 mt-3 text-[11.5px] leading-6 text-hanji-faint">
+              시간은 끝난 뒤에 알려 드립니다.
+            </p>
+
             <button
               onClick={begin}
-              className="rounded-full border border-gold/55 bg-gold/[0.07] px-6 py-3.5 text-[13.5px] tracking-[0.18em] text-gold-soft transition-colors hover:bg-gold/15"
+              className="rise rise-d2 mt-9 w-full max-w-[280px] rounded-full border border-gold/55 bg-gold/[0.07] px-6 py-4 text-[14px] tracking-[0.18em] text-gold-soft transition-colors hover:border-gold/75 hover:bg-gold/15 hover:text-gold"
             >
-              한 번 더
+              시작
             </button>
-            <Link
-              href="/"
-              className="rounded-full border border-ink-3 px-6 py-2.5 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:text-hanji"
-            >
-              뜰로
-            </Link>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="rise rise-d1 mt-7 break-keep font-serif text-[27px] leading-[1.5] text-hanji sm:text-[31px]">
-            아무것도
-            <br />
-            하지 마세요
-          </p>
-          <p className="rise rise-d1 mt-5 break-keep text-[13px] leading-7 text-hanji-dim">
-            화면에 점 하나만 남습니다.
-            <br />
-            건드리거나 앱을 나가면 끝납니다.
-          </p>
-          {/* 얼마나 앉았는지는 **끝난 뒤에만** 알려 준다. 재는 것이 보이면
-              쳐다보게 되고, 쳐다보는 동안은 멍이 아니다. */}
-          <p className="rise rise-d2 mt-3 text-[11.5px] leading-6 text-hanji-faint">
-            시간은 끝난 뒤에 알려 드립니다.
-          </p>
 
-          <button
-            onClick={begin}
-            className="rise rise-d2 mt-9 w-full max-w-[280px] rounded-full border border-gold/55 bg-gold/[0.07] px-6 py-4 text-[14px] tracking-[0.18em] text-gold-soft transition-colors hover:border-gold/75 hover:bg-gold/15 hover:text-gold"
-          >
-            시작
-          </button>
-
-          {book && (book.best > 0 || book.todaySec > 0) && (
-            <div className="rise rise-d3 mt-10 w-full max-w-[280px] border-t border-ink-3 pt-4">
-              <dl className="flex items-baseline justify-between text-[12px]">
-                <dt className="text-hanji-faint">가장 오래</dt>
-                <dd className="font-serif text-gold-soft">
-                  {sayDuration(book.best)}
-                </dd>
-              </dl>
-              <dl className="mt-2 flex items-baseline justify-between text-[12px]">
-                <dt className="text-hanji-faint">오늘</dt>
-                <dd className="text-hanji-dim">{sayDuration(book.todaySec)}</dd>
-              </dl>
-              <dl className="mt-2 flex items-baseline justify-between text-[12px]">
-                <dt className="text-hanji-faint">지금까지</dt>
-                <dd className="text-hanji-dim">
-                  {book.times.toLocaleString("ko-KR")}번
-                </dd>
-              </dl>
-            </div>
-          )}
-        </>
-      )}
-    </div>
+            {book && (book.best > 0 || book.todaySec > 0) && (
+              <div className="rise rise-d3 mt-10 w-full max-w-[280px] border-t border-ink-3 pt-4">
+                <dl className="flex items-baseline justify-between text-[12px]">
+                  <dt className="text-hanji-faint">가장 오래</dt>
+                  <dd className="font-serif text-gold-soft">
+                    {sayDuration(book.best)}
+                  </dd>
+                </dl>
+                <dl className="mt-2 flex items-baseline justify-between text-[12px]">
+                  <dt className="text-hanji-faint">오늘</dt>
+                  <dd className="text-hanji-dim">{sayDuration(book.todaySec)}</dd>
+                </dl>
+                <dl className="mt-2 flex items-baseline justify-between text-[12px]">
+                  <dt className="text-hanji-faint">지금까지</dt>
+                  <dd className="text-hanji-dim">
+                    {book.times.toLocaleString("ko-KR")}번
+                  </dd>
+                </dl>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </HipRoom>
   );
 }

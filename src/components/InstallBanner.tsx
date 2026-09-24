@@ -81,9 +81,15 @@ export default function InstallBanner() {
     <div
       role="region"
       aria-label="홈 화면에 담기 안내"
-      className={`fixed inset-x-0 bottom-[76px] z-40 border-t border-ink-3 bg-ink-2/95 backdrop-blur transition-all duration-700 ease-out motion-reduce:transition-none md:bottom-0 ${
+      /* install-banner — 리뉴얼 판이 이 표를 보고 제 바닥을 그만큼 비운다.
+         이 띠는 #scroll-box 바깥이라 z-40 인데도 판(.hip-screen, z-60)을
+         **덮는다** — 판의 z 는 z-1 통 안에 갇힌 값이라 밖에서는 안 통한다.
+         그래서 z 로 겨루지 않고 **자리를 나눈다**: 띠는 염주 위로 올라가고,
+         판은 띠 높이만큼 아래를 비운다. 실제로 형이 「새 화두 받기」를
+         눌러도 아무 일이 없던 까닭이 이것이었다 — 단추가 띠 밑에 있었다. */
+      className={`install-banner fixed inset-x-0 bottom-[76px] z-40 border-t border-ink-3 bg-ink-2/95 backdrop-blur transition-all duration-700 ease-out motion-reduce:transition-none md:bottom-0 ${
         shown
-          ? "translate-y-0 opacity-100"
+          ? "install-banner-on translate-y-0 opacity-100"
           : "pointer-events-none translate-y-6 opacity-0"
       }`}
     >

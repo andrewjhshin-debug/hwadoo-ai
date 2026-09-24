@@ -35,6 +35,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { PALETTE, TEMPLATES, buildMandala } from "@/lib/mandala";
 import { useConfirm } from "@/components/Confirm";
+import HipRoom from "@/components/HipRoom";
 import { addMerit } from "@/lib/merit";
 
 const ERASE = "erase";
@@ -355,60 +356,67 @@ export default function MandalaPage() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-2 py-3 sm:px-4 sm:py-6">
-      <style>{THEME_CSS}</style>
+    <HipRoom here="/mandala">
+      {/* 옛 껍데기가 쥐던 여백·폭(mx-auto max-w-2xl flex-1 px-2 py-3 sm:px-4 sm:py-6)은
+          버렸다 — .hip-screen 이 제 여백과 아래 염주 자리를 이미 쥐고 있다.
+          다만 위에서 아래로 쌓아 가운데로 모으던 flex-col items-center 는
+          알맹이 생김새라, 이 속 div 로 그대로 살린다. w-full 을 빼면 안쪽
+          w-full max-w-[480px] 들이 기댈 폭을 잃어 판이 쪼그라든다 */}
+      <div className="flex w-full flex-col items-center">
+        <style>{THEME_CSS}</style>
 
-      {/* 상단 — 겹을 둘로 줄였다: [한자 뱃지 + 이름](데스크톱) · [알약 세그먼트].
-          모바일은 판이 스크롤 없이 들어와야 하니 제목 줄을 통째로 접는다 */}
-      <div className="rise flex items-center gap-3 sm:gap-4">
-        <h1 className="hidden items-center gap-2 sm:flex">
-          <span
-            aria-hidden="true"
-            title="曼陀羅"
-            className="flex h-6 w-6 items-center justify-center rounded-full border border-gold/40 font-serif text-[11px] text-gold"
-          >
-            曼
-          </span>
-          <span className="text-xs tracking-[0.3em] text-hanji-dim">만다라</span>
-        </h1>
-        {/* 알약 세그먼트 — 고른 쪽만 먹으로 채운다. 껍데기 여백(p-0.5)만큼 버튼
-            여백을 줄여 높이는 전과 같다 — 판 크기 계산(390px 예약)을 흔들지 않는다 */}
-        <div className="flex items-center gap-0.5 rounded-full border border-ink-3 bg-ink-2/60 p-0.5">
-          <button
-            onClick={() => changeMode("color")}
-            aria-pressed={mode === "color"}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] tracking-[0.1em] transition-colors ${
-              mode === "color" ? "bg-hanji text-ink" : "text-hanji-dim hover:text-hanji"
-            }`}
-          >
-            <Icon d={I_DROP} />
-            색칠
-          </button>
-          <button
-            onClick={() => changeMode("draw")}
-            aria-pressed={mode === "draw"}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] tracking-[0.1em] transition-colors ${
-              mode === "draw" ? "bg-hanji text-ink" : "text-hanji-dim hover:text-hanji"
-            }`}
-          >
-            <Icon d={I_PEN} />
-            그리기
-          </button>
+        {/* 상단 — 겹을 둘로 줄였다: [한자 뱃지 + 이름](데스크톱) · [알약 세그먼트].
+            모바일은 판이 스크롤 없이 들어와야 하니 제목 줄을 통째로 접는다 */}
+        <div className="rise flex items-center gap-3 sm:gap-4">
+          <h1 className="hidden items-center gap-2 sm:flex">
+            <span
+              aria-hidden="true"
+              title="曼陀羅"
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-gold/40 font-serif text-[11px] text-gold"
+            >
+              曼
+            </span>
+            <span className="text-xs tracking-[0.3em] text-hanji-dim">만다라</span>
+          </h1>
+          {/* 알약 세그먼트 — 고른 쪽만 먹으로 채운다. 껍데기 여백(p-0.5)만큼 버튼
+              여백을 줄여 높이는 전과 같다 — 판 크기 계산(390px 예약)을 흔들지 않는다 */}
+          <div className="flex items-center gap-0.5 rounded-full border border-ink-3 bg-ink-2/60 p-0.5">
+            <button
+              onClick={() => changeMode("color")}
+              aria-pressed={mode === "color"}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] tracking-[0.1em] transition-colors ${
+                mode === "color" ? "bg-hanji text-ink" : "text-hanji-dim hover:text-hanji"
+              }`}
+            >
+              <Icon d={I_DROP} />
+              색칠
+            </button>
+            <button
+              onClick={() => changeMode("draw")}
+              aria-pressed={mode === "draw"}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] tracking-[0.1em] transition-colors ${
+                mode === "draw" ? "bg-hanji text-ink" : "text-hanji-dim hover:text-hanji"
+              }`}
+            >
+              <Icon d={I_PEN} />
+              그리기
+            </button>
+          </div>
+        </div>
+
+        {mode === "color" ? (
+          <ColorMode color={color} onPick={changeColor} />
+        ) : (
+          <DrawMode color={color} onPick={changeColor} />
+        )}
+
+        <div className="mt-6 hidden text-center md:block">
+          <Link href="/" className="text-xs tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim">
+            ← 화두로 돌아가기
+          </Link>
         </div>
       </div>
-
-      {mode === "color" ? (
-        <ColorMode color={color} onPick={changeColor} />
-      ) : (
-        <DrawMode color={color} onPick={changeColor} />
-      )}
-
-      <div className="mt-6 hidden text-center md:block">
-        <Link href="/" className="text-xs tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim">
-          ← 화두로 돌아가기
-        </Link>
-      </div>
-    </div>
+    </HipRoom>
   );
 }
 

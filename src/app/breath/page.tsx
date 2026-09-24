@@ -21,6 +21,7 @@
 // ────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
+import HipRoom from "@/components/HipRoom";
 import { recordMeditation } from "@/lib/meditation";
 import {
   loopPhase,
@@ -384,211 +385,218 @@ export default function BreathPage() {
   );
 
   return (
-    // 판(ready·breathing·done)마다 아래 내용의 양이 달라, 가운데 정렬이
-    // 덩어리를 그때그때 다시 잡았다. 그래서 시작만 눌러도 원과 제목이
-    // 위로 쑥 올라갔다 — 형: 「할 때마다 위치가 조금씩 바뀌어서 멀미남」.
-    // **위에서부터** 세우고, 아래 칸은 키를 못박는다(아래 min-h).
-    // 그러면 원은 어느 판에서도 한 픽셀도 안 움직인다.
-    <div className="flex flex-1 flex-col items-center justify-start px-6 pb-4 pt-6 text-center sm:pt-10">
-      {/* 클라이언트 페이지라 metadata 는 못 내보낸다 — 만다라와 같은 관례 */}
-      <style>{BREATH_CSS}</style>
+    // 공양 판과 한 껍데기를 쓴다 — 머리띠·갈래 띠·바탕 번짐·아래 염주
+    // 자리를 HipRoom 이 다 쥔다. 그래서 옛 여백과 flex-1 은 버렸다:
+    // .hip-screen 이 이미 제 여백을 갖고 있어, 겹치면 원이 아래로 밀린다.
+    <HipRoom here="/breath">
+      {/* 판(ready·breathing·done)마다 아래 내용의 양이 달라, 가운데 정렬이
+          덩어리를 그때그때 다시 잡았다. 그래서 시작만 눌러도 원과 제목이
+          위로 쑥 올라갔다 — 형: 「할 때마다 위치가 조금씩 바뀌어서 멀미남」.
+          **위에서부터** 세우고, 아래 칸은 키를 못박는다(아래 min-h).
+          그러면 원은 어느 판에서도 한 픽셀도 안 움직인다.
+          이 세로 쌓기·가운데 정렬은 껍데기가 아니라 **알맹이의 생김새**라,
+          껍데기를 HipRoom 에 넘기면서도 이 칸에 그대로 살려 둔다. */}
+      <div className="flex w-full flex-col items-center justify-start text-center">
+        {/* 클라이언트 페이지라 metadata 는 못 내보낸다 — 만다라와 같은 관례 */}
+        <style>{BREATH_CSS}</style>
 
-      {/* 머리는 두 겹까지 — 한자 한 줄과 제목 한 줄.
-          나머지 안내는 아래 접힌 자리에 그대로 들어 있다 */}
-      <p className="rise text-[11px] tracking-[0.5em] text-gold-soft">
-        息 · 호흡
-      </p>
-      <h1 className="rise rise-d1 mt-2 break-keep font-serif text-lg font-light text-hanji">
-        숨이 돌아오는 자리
-      </h1>
+        {/* 머리는 두 겹까지 — 한자 한 줄과 제목 한 줄.
+            나머지 안내는 아래 접힌 자리에 그대로 들어 있다 */}
+        <p className="rise text-[11px] tracking-[0.5em] text-gold-soft">
+          息 · 호흡
+        </p>
+        <h1 className="rise rise-d1 mt-2 break-keep font-serif text-lg font-light text-hanji">
+          숨이 돌아오는 자리
+        </h1>
 
-      {/* 원은 transform 으로만 커지므로 자리는 흔들리지 않는다 */}
-      <div
-        className="rise rise-d2 relative mt-4 flex items-center justify-center"
-        style={{ width: RING_BOX, height: RING_BOX }}
-      >
-        <svg
-          aria-hidden
-          viewBox={`0 0 ${RING_BOX} ${RING_BOX}`}
-          className="absolute inset-0 h-full w-full -rotate-90"
+        {/* 원은 transform 으로만 커지므로 자리는 흔들리지 않는다 */}
+        <div
+          className="rise rise-d2 relative mt-4 flex items-center justify-center"
+          style={{ width: RING_BOX, height: RING_BOX }}
         >
-          <circle
-            cx={RING_BOX / 2}
-            cy={RING_BOX / 2}
-            r={RING_R}
-            fill="none"
-            stroke="var(--color-ink-3)"
-            strokeWidth="1"
-          />
-          {stage === "breathing" && (
+          <svg
+            aria-hidden
+            viewBox={`0 0 ${RING_BOX} ${RING_BOX}`}
+            className="absolute inset-0 h-full w-full -rotate-90"
+          >
             <circle
-              className="breath-ring"
               cx={RING_BOX / 2}
               cy={RING_BOX / 2}
               r={RING_R}
               fill="none"
-              stroke="var(--color-gold)"
-              strokeWidth="2"
-              strokeLinecap="round"
+              stroke="var(--color-ink-3)"
+              strokeWidth="1"
             />
-          )}
-        </svg>
-
-        <div
-          aria-hidden
-          className={`breath-circle ${
-            stage === "breathing" ? "breath-anim" : "breath-idle"
-          }`}
-        />
-
-        {/* 동그라미가 곧 단추다 — 시작도 마침도 여기서.
-            아래 단추까지 손을 내리는 게 한 박자였다. 명상은 그 한 박자가
-            아깝다. 원이 가장 크고 눈이 이미 거기 가 있다.
-
-            처음엔 숨 쉬는 중에는 안 받게 해 두었다. 눈 감고 하는 일이라
-            스쳐 누르면 판이 끝나 버린다고 봤는데, 형 말이 맞다 —
-            **시작을 원으로 하면 마침도 원이어야 한다.** 시작은 원인데
-            마치려면 단추를 찾아 눈을 떠야 하면 그게 더 이상하다. */}
-        <button
-          type="button"
-          onClick={stage === "breathing" ? finish : begin}
-          aria-label={
-            stage === "breathing"
-              ? "마치다"
-              : stage === "done"
-                ? "한 번 더 명상"
-                : "숨 고르기 시작"
-          }
-          className="absolute inset-0 z-10 rounded-full transition-transform active:scale-[0.97]"
-        />
-
-        {/* 큰 숫자 하나 — 이 화면의 카피는 문장이 아니라 이 숫자다.
-            손길은 안 받는다(pointer-events-none). 이게 없으면 숫자 위를
-            누른 손가락이 여기서 멎어 아래 단추까지 안 내려간다 —
-            하필 원 한가운데가, 제일 누르기 좋은 자리가 죽는다. */}
-        <div className="pointer-events-none absolute flex flex-col items-center">
-          <p
-            aria-live="polite"
-            className="text-[11px] tracking-[0.4em] text-hanji-faint"
-          >
-            {hero.cap}
-          </p>
-          <p
-            className={`mt-1 font-serif ${heroSize} font-light leading-none tabular-nums text-hanji`}
-          >
-            {hero.n}
-            <span className="ml-1 text-[13px] tracking-[0.2em] text-hanji-faint">
-              {hero.unit}
-            </span>
-          </p>
-        </div>
-      </div>
-
-      {/* 판마다 바뀌는 칸 — **키를 못박아 둔다.** 안이 무엇으로 차든
-          위쪽(제목·원)은 제자리를 지킨다. */}
-      <div className="flex min-h-[212px] w-full flex-col items-center">
-      {stage === "ready" && (
-        <div className="rise rise-d3 flex w-full max-w-[300px] flex-col items-center">
-          <p className="mt-4 break-keep text-[13px] leading-6 text-hanji-dim">
-            눈을 감고 하면 더 효과적입니다.
-          </p>
-          <div className="mt-4 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={begin}
-              className="btn-obang px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
-            >
-              숨을 고르다
-            </button>
-            {soundButton}
-          </div>
-
-        </div>
-      )}
-      </div>
-
-      {stage === "breathing" && (
-        <div className="flex flex-col items-center">
-          {/* 알아차림의 말 — 숨마다 돌아가며 하나씩 */}
-          <p className="mt-4 break-keep text-[12.5px] tracking-wide text-gold-soft/90">
-            {GUIDES[Math.floor(seconds / SEC_PER_BREATH) % GUIDES.length]}
-          </p>
-          <p className="mt-1.5 text-[11px] tabular-nums tracking-[0.3em] text-hanji-faint">
-            {clock}
-          </p>
-          {/* 숫자를 보고 있으면 명상이 아니라 구경이다 */}
-          <p className="mt-2.5 text-[12px] tracking-[0.2em] text-gold-soft">
-            눈을 감고 하면 더 효과적입니다
-          </p>
-          <div className="mt-4 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={finish}
-              className="rounded-full border border-ink-3 px-9 py-3 text-[13px] tracking-[0.3em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-            >
-              마치다
-            </button>
-            {soundButton}
-          </div>
-        </div>
-      )}
-
-      {stage === "done" && (
-        <div className="flex flex-col items-center">
-          {/* 늘 「공덕 21」이라 적혀 있었다. 실제로는 식마다 붙으니
-              삼 분이면 378 이고, 하루 몫이 찼으면 0 이다. 세 배가 아니라
-              열여덟 배가 어긋났다. 붙은 값을 그대로 적는다. */}
-          <p className="mt-4 break-keep text-[12.5px] tracking-wide text-hanji-dim">
-            {earned > 0 ? (
-              <>
-                공덕{" "}
-                <span className="text-vermilion">
-                  {earned.toLocaleString("ko-KR")}
-                </span>{" "}
-                · 오늘 {today}식째
-              </>
-            ) : (
-              <>오늘 호흡 몫이 찼어요 · 오늘 {today}식째</>
+            {stage === "breathing" && (
+              <circle
+                className="breath-ring"
+                cx={RING_BOX / 2}
+                cy={RING_BOX / 2}
+                r={RING_R}
+                fill="none"
+                stroke="var(--color-gold)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             )}
-          </p>
-          <div className="mt-4 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={begin}
-              className="btn-obang px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
+          </svg>
+
+          <div
+            aria-hidden
+            className={`breath-circle ${
+              stage === "breathing" ? "breath-anim" : "breath-idle"
+            }`}
+          />
+
+          {/* 동그라미가 곧 단추다 — 시작도 마침도 여기서.
+              아래 단추까지 손을 내리는 게 한 박자였다. 명상은 그 한 박자가
+              아깝다. 원이 가장 크고 눈이 이미 거기 가 있다.
+
+              처음엔 숨 쉬는 중에는 안 받게 해 두었다. 눈 감고 하는 일이라
+              스쳐 누르면 판이 끝나 버린다고 봤는데, 형 말이 맞다 —
+              **시작을 원으로 하면 마침도 원이어야 한다.** 시작은 원인데
+              마치려면 단추를 찾아 눈을 떠야 하면 그게 더 이상하다. */}
+          <button
+            type="button"
+            onClick={stage === "breathing" ? finish : begin}
+            aria-label={
+              stage === "breathing"
+                ? "마치다"
+                : stage === "done"
+                  ? "한 번 더 명상"
+                  : "숨 고르기 시작"
+            }
+            className="absolute inset-0 z-10 rounded-full transition-transform active:scale-[0.97]"
+          />
+
+          {/* 큰 숫자 하나 — 이 화면의 카피는 문장이 아니라 이 숫자다.
+              손길은 안 받는다(pointer-events-none). 이게 없으면 숫자 위를
+              누른 손가락이 여기서 멎어 아래 단추까지 안 내려간다 —
+              하필 원 한가운데가, 제일 누르기 좋은 자리가 죽는다. */}
+          <div className="pointer-events-none absolute flex flex-col items-center">
+            <p
+              aria-live="polite"
+              className="text-[11px] tracking-[0.4em] text-hanji-faint"
             >
-              한 번 더 명상
-            </button>
-            {soundButton}
+              {hero.cap}
+            </p>
+            <p
+              className={`mt-1 font-serif ${heroSize} font-light leading-none tabular-nums text-hanji`}
+            >
+              {hero.n}
+              <span className="ml-1 text-[13px] tracking-[0.2em] text-hanji-faint">
+                {hero.unit}
+              </span>
+            </p>
           </div>
         </div>
-      )}
 
-      {/* 안내는 지우지 않고 접었다 — 처음 앉는 사람만 펴 보면 된다.
-          한 판을 마쳤다고 사라지지 않는다. 한 판은 삼 분이고, 그 사이에
-          안내를 다 외우는 사람은 없다. 숨 쉬는 동안만 비운다. */}
-      {/* 「처음이신가요」는 **늘 둔다.** 한 판이 끝나면 사라지게 했더니,
-          정작 두 번째 판에서 궁금해진 사람이 찾을 데가 없었다.
-          접혀 있으니 자리도 안 먹는다. */}
-      <details className="rise rise-d3 mt-5 w-full max-w-[300px] rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3 text-left">
-          <summary className="cursor-pointer list-none text-[12.5px] text-hanji-dim marker:hidden">
-            <span className="text-gold-soft">＋</span> 처음이신가요
-          </summary>
-          <div className="mt-3 space-y-2.5 border-t border-ink-3 pt-3">
-            <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
-              날숨을 들숨보다 길게 — 몸이 스스로 가라앉습니다. 넷을 세며
-              천천히 들이쉬고, 여섯을 세며 길게 내쉽니다.
+        {/* 판마다 바뀌는 칸 — **키를 못박아 둔다.** 안이 무엇으로 차든
+            위쪽(제목·원)은 제자리를 지킨다. */}
+        <div className="flex min-h-[212px] w-full flex-col items-center">
+        {stage === "ready" && (
+          <div className="rise rise-d3 flex w-full max-w-[300px] flex-col items-center">
+            <p className="mt-4 break-keep text-[13px] leading-6 text-hanji-dim">
+              눈을 감고 하면 더 효과적입니다.
             </p>
-            <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
-              화면을 보지 않아도 됩니다. 숨소리가 차오르면 들숨, 잦아들면
-              날숨입니다.
-            </p>
-            <p className="break-keep text-[12px] leading-6 text-hanji-faint">
-              열 번을 세는 동안이 한 식(息)입니다. 한 식마다 공덕{" "}
-              {MERIT_VALUE.breath} — 오래 앉을수록 더 쌓입니다.
-            </p>
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={begin}
+                className="btn-obang px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
+              >
+                숨을 고르다
+              </button>
+              {soundButton}
+            </div>
+
           </div>
-      </details>
-    </div>
+        )}
+        </div>
+
+        {stage === "breathing" && (
+          <div className="flex flex-col items-center">
+            {/* 알아차림의 말 — 숨마다 돌아가며 하나씩 */}
+            <p className="mt-4 break-keep text-[12.5px] tracking-wide text-gold-soft/90">
+              {GUIDES[Math.floor(seconds / SEC_PER_BREATH) % GUIDES.length]}
+            </p>
+            <p className="mt-1.5 text-[11px] tabular-nums tracking-[0.3em] text-hanji-faint">
+              {clock}
+            </p>
+            {/* 숫자를 보고 있으면 명상이 아니라 구경이다 */}
+            <p className="mt-2.5 text-[12px] tracking-[0.2em] text-gold-soft">
+              눈을 감고 하면 더 효과적입니다
+            </p>
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={finish}
+                className="rounded-full border border-ink-3 px-9 py-3 text-[13px] tracking-[0.3em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+              >
+                마치다
+              </button>
+              {soundButton}
+            </div>
+          </div>
+        )}
+
+        {stage === "done" && (
+          <div className="flex flex-col items-center">
+            {/* 늘 「공덕 21」이라 적혀 있었다. 실제로는 식마다 붙으니
+                삼 분이면 378 이고, 하루 몫이 찼으면 0 이다. 세 배가 아니라
+                열여덟 배가 어긋났다. 붙은 값을 그대로 적는다. */}
+            <p className="mt-4 break-keep text-[12.5px] tracking-wide text-hanji-dim">
+              {earned > 0 ? (
+                <>
+                  공덕{" "}
+                  <span className="text-vermilion">
+                    {earned.toLocaleString("ko-KR")}
+                  </span>{" "}
+                  · 오늘 {today}식째
+                </>
+              ) : (
+                <>오늘 호흡 몫이 찼어요 · 오늘 {today}식째</>
+              )}
+            </p>
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={begin}
+                className="btn-obang px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
+              >
+                한 번 더 명상
+              </button>
+              {soundButton}
+            </div>
+          </div>
+        )}
+
+        {/* 안내는 지우지 않고 접었다 — 처음 앉는 사람만 펴 보면 된다.
+            한 판을 마쳤다고 사라지지 않는다. 한 판은 삼 분이고, 그 사이에
+            안내를 다 외우는 사람은 없다. 숨 쉬는 동안만 비운다. */}
+        {/* 「처음이신가요」는 **늘 둔다.** 한 판이 끝나면 사라지게 했더니,
+            정작 두 번째 판에서 궁금해진 사람이 찾을 데가 없었다.
+            접혀 있으니 자리도 안 먹는다. */}
+        <details className="rise rise-d3 mt-5 w-full max-w-[300px] rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3 text-left">
+            <summary className="cursor-pointer list-none text-[12.5px] text-hanji-dim marker:hidden">
+              <span className="text-gold-soft">＋</span> 처음이신가요
+            </summary>
+            <div className="mt-3 space-y-2.5 border-t border-ink-3 pt-3">
+              <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
+                날숨을 들숨보다 길게 — 몸이 스스로 가라앉습니다. 넷을 세며
+                천천히 들이쉬고, 여섯을 세며 길게 내쉽니다.
+              </p>
+              <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
+                화면을 보지 않아도 됩니다. 숨소리가 차오르면 들숨, 잦아들면
+                날숨입니다.
+              </p>
+              <p className="break-keep text-[12px] leading-6 text-hanji-faint">
+                열 번을 세는 동안이 한 식(息)입니다. 한 식마다 공덕{" "}
+                {MERIT_VALUE.breath} — 오래 앉을수록 더 쌓입니다.
+              </p>
+            </div>
+        </details>
+      </div>
+    </HipRoom>
   );
 }

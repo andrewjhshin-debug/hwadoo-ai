@@ -269,18 +269,11 @@ export default function SettingsPage() {
   const [meMore, setMeMore] = useState(false);
   // 법명·얼굴 — 서랍은 붙고 난 뒤에 읽는다(렌더 중 읽으면 하이드레이션이 깨진다)
   const [me, setMe] = useState<ReturnType<typeof loadMe>>(null);
-  // 음양 — 형: 「차라리 남자면 양 여자면 음, 그거 버튼 넣자」.
-  // store 에 gender 칸은 진작 있었는데(m=陽 · f=陰) 쓰는 곳이 없어
-  // 잠들어 있었다. 여기서 깨운다 — 고르면 법명 글자 수가 따라 바뀐다.
+  // 음양 고르개는 걷었다 — 형: 「음양 필요 없고」.
+  // 다만 **이미 골라 둔 결은 그대로 쓴다** — 법명을 다시 뽑을 때
+  // 두 자로 갈지 세 자로 갈지는 store 의 gender 가 조용히 쥔다.
   const [yin, setYin] = useState<"m" | "f" | undefined>(undefined);
   useEffect(() => setYin(loadStore().gender), []);
-  const pickYin = (g: "m" | "f") => {
-    setYin(g);
-    const base = loadStore();
-    saveStore({ ...base, gender: g });
-    // 고른 즉시 그 결로 법명을 다시 준다 — 누르면 바로 바뀌는 것이 설명이다
-    rerollName(g === "m" ? "yang" : "eum");
-  };
 
   useEffect(() => {
     setMe(loadMe());
@@ -795,6 +788,15 @@ export default function SettingsPage() {
         hits={meHits}
         services={meServices}
         guest={user === null}
+        law={{
+          links: [
+            { href: "/about", label: "서비스 소개" },
+            { href: "/terms", label: "이용약관" },
+            { href: "/privacy", label: "개인정보" },
+          ],
+          email: CONTACT_EMAIL,
+          biz: `${BIZ_NAME} · 대표 ${BIZ_OWNER} · 사업자등록번호 ${BIZ_REG_NO} · 통신판매업신고 ${BIZ_MAIL_ORDER_NO} · ${BIZ_ADDRESS} · 연락처 ${BIZ_PHONE ?? CONTACT_EMAIL}`,
+        }}
         account={
           user === undefined ? (
             <p className="hip-acc-wait">불러오는 중</p>
@@ -860,8 +862,6 @@ export default function SettingsPage() {
           rerollName(yin === "m" ? "yang" : yin === "f" ? "eum" : undefined)
         }
         nameProblem={nameProblem}
-        yin={yin}
-        onYin={pickYin}
         seats={REALMS.map((seat) => {
           const r = rankByNeed(seat.need);
           return {

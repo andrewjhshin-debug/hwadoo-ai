@@ -14,8 +14,9 @@
 
 import HipShell from "@/components/HipShell";
 import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import GatheringBoard from "@/components/GatheringBoard";
+import PullToRefresh from "@/components/PullToRefresh";
 
 function GatheringInner() {
   const sp = useSearchParams();
@@ -25,7 +26,21 @@ function GatheringInner() {
   // 글 안에 들어가면 머리글도 접는다 — 위 공간을 아낀다
   const [view, setView] = useState<"list" | "post" | "write">("list");
 
-  return (
+  // 형: 「인연 같은 경우는 밑으로 쭈욱 스크롤하면 새로고침 기능 잊지 말고」
+  // 게시판은 남이 쓴 글을 보러 오는 곳이라 손으로 새로 받을 길이 있어야
+  // 한다. 판을 통째로 다시 끼워(key) 글을 새로 읽게 하고, 서버 쪽 캐시도
+  // 같이 턴다. 목록을 보고 있을 때만 — 글을 쓰는 중에 갈아 끼우면
+  // 쓰던 것이 날아간다.
+  const router = useRouter();
+  const [fresh, setFresh] = useState(0);
+  const 새로받기 = async () => {
+    router.refresh();
+    setFresh((v) => v + 1);
+    // 다시 그려질 틈을 준다 — 너무 빨리 끝나면 돈 것 같지가 않다
+    await new Promise((r) => setTimeout(r, 620));
+  };
+
+  const 알맹이 = (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-0 pb-16 pt-4 sm:px-6 md:pt-10">
       {view === "list" && (
         <>
@@ -41,6 +56,7 @@ function GatheringInner() {
       )}
       <section className={view === "list" ? "rise rise-d1 mt-5" : ""}>
         <GatheringBoard
+          key={fresh}
           initialTemple={temple}
           initialDate={date}
           autoOpen={autoOpen}
@@ -49,6 +65,13 @@ function GatheringInner() {
       </section>
 
     </div>
+  );
+
+  // 글을 쓰거나 읽는 중에는 당겨도 안 걸린다 — 목록일 때만
+  return view === "list" ? (
+    <PullToRefresh onRefresh={새로받기}>{알맹이}</PullToRefresh>
+  ) : (
+    알맹이
   );
 }
 

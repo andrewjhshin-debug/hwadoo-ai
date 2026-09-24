@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Dudu from "@/components/Dudu";
+import HipRoom from "@/components/HipRoom";
 import { addMerit, loadMerit, stageOf } from "@/lib/merit";
 import { grantCharm } from "@/lib/charm";
 import { buzz, strikeJukbi, strikeMoktak, warmJukbi } from "@/lib/sound";
@@ -194,228 +195,233 @@ export default function BaePage() {
   const pct = count / FULL;
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-8 md:pt-12">
-      <p className="rise text-xs tracking-[0.5em] text-gold-soft">百八拜 · 백팔배</p>
-      <p className="rise rise-d1 mt-3 text-[12.5px] tracking-[0.15em] text-hanji-dim">
-        {senseOn ? "폰을 지니고 절하세요 — 일어설 때마다 한 배" : "일어설 때마다 한 번"}
-      </p>
+    <HipRoom here="/bae">
+      {/* 옛 껍데기가 주던 것 중 **가운데로 모으는 것만** 살린다 —
+          여백·폭(px-6 pb-16 max-w-xl)은 .hip-screen 이 이미 쥐고 있고,
+          아래 염주 자리도 거기서 비켜 준다. */}
+      <div className="flex w-full flex-col items-center">
+        <p className="rise text-xs tracking-[0.5em] text-gold-soft">百八拜 · 백팔배</p>
+        <p className="rise rise-d1 mt-3 text-[12.5px] tracking-[0.15em] text-hanji-dim">
+          {senseOn ? "폰을 지니고 절하세요 — 일어설 때마다 한 배" : "일어설 때마다 한 번"}
+        </p>
 
-      {/* 셈판 — 큰 원 하나가 전부다 */}
-      <button
-        onClick={bow}
-        disabled={done}
-        aria-label="한 배 세기"
-        className="rise rise-d2 relative mt-8 block select-none outline-none disabled:cursor-default"
-        style={{ WebkitTapHighlightColor: "transparent" }}
-      >
-        <svg viewBox="0 0 300 300" className="h-[300px] w-[300px]" aria-hidden>
-          <circle cx="150" cy="150" r="132" fill="none" stroke="var(--color-ink-3)" strokeWidth="10" />
-          <circle
-            cx="150"
-            cy="150"
-            r="132"
-            fill="none"
-            stroke="var(--color-gold)"
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeDasharray={RING}
-            strokeDashoffset={RING * (1 - pct)}
-            transform="rotate(-90 150 150)"
-            style={{ transition: "stroke-dashoffset 0.35s ease-out" }}
-          />
-        </svg>
-        <span className="absolute inset-0 flex flex-col items-center justify-center">
-          {done ? (
-            <>
-              {/* 웹은 원래대로 — 나무 한 장 */}
-              <Dudu stage={stageOf(merit)} mood="joy" uid="bae" className="h-[150px] w-[150px]" />
-              {/* 폰 — 두두를 뺐더니 삼백 픽셀 금빛 고리가 통째로 비었다.
-                  형: 「동자승 이미지는 좀 짜쳐, 다시 그릴 테니까 빼고」.
-                  빈 원은 그림이 빠진 자리로 읽힌다. 채운 수를 그대로 둔다 —
-                  백팔을 다 돌았다는 말은 「108」 넉 자면 족하다. */}
-              <span aria-hidden className="flex flex-col items-center md:hidden">
-                <span className="font-serif text-[68px] font-light leading-none text-gold">
-                  {FULL}
+        {/* 셈판 — 큰 원 하나가 전부다 */}
+        <button
+          onClick={bow}
+          disabled={done}
+          aria-label="한 배 세기"
+          className="rise rise-d2 relative mt-8 block select-none outline-none disabled:cursor-default"
+          style={{ WebkitTapHighlightColor: "transparent" }}
+        >
+          <svg viewBox="0 0 300 300" className="h-[300px] w-[300px]" aria-hidden>
+            <circle cx="150" cy="150" r="132" fill="none" stroke="var(--color-ink-3)" strokeWidth="10" />
+            <circle
+              cx="150"
+              cy="150"
+              r="132"
+              fill="none"
+              stroke="var(--color-gold)"
+              strokeWidth="10"
+              strokeLinecap="round"
+              strokeDasharray={RING}
+              strokeDashoffset={RING * (1 - pct)}
+              transform="rotate(-90 150 150)"
+              style={{ transition: "stroke-dashoffset 0.35s ease-out" }}
+            />
+          </svg>
+          <span className="absolute inset-0 flex flex-col items-center justify-center">
+            {done ? (
+              <>
+                {/* 웹은 원래대로 — 나무 한 장 */}
+                <Dudu stage={stageOf(merit)} mood="joy" uid="bae" className="h-[150px] w-[150px]" />
+                {/* 폰 — 두두를 뺐더니 삼백 픽셀 금빛 고리가 통째로 비었다.
+                    형: 「동자승 이미지는 좀 짜쳐, 다시 그릴 테니까 빼고」.
+                    빈 원은 그림이 빠진 자리로 읽힌다. 채운 수를 그대로 둔다 —
+                    백팔을 다 돌았다는 말은 「108」 넉 자면 족하다. */}
+                <span aria-hidden className="flex flex-col items-center md:hidden">
+                  <span className="font-serif text-[68px] font-light leading-none text-gold">
+                    {FULL}
+                  </span>
+                  <span className="mt-3 text-[12px] tracking-[0.3em] text-gold-soft">
+                    百八
+                  </span>
                 </span>
-                <span className="mt-3 text-[12px] tracking-[0.3em] text-gold-soft">
-                  百八
+              </>
+            ) : (
+              <>
+                <span className="font-serif text-[68px] leading-none text-hanji">
+                  {count}
                 </span>
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="font-serif text-[68px] leading-none text-hanji">
-                {count}
-              </span>
-              <span className="mt-2 text-[12px] tracking-[0.3em] text-hanji-faint">
-                / {FULL}
-              </span>
-              <span className="mt-4 text-[11.5px] tracking-[0.2em] text-gold-soft">
-                {sense === "calibrating"
-                  ? "선 자세를 재는 중…"
-                  : sense === "down"
-                    ? "일어서면 한 배"
-                    : count === 0
-                      ? senseOn
-                        ? "절하면 세어져요"
-                        : "눌러서 시작"
-                      : `${left} 남음`}
-              </span>
-            </>
-          )}
-        </span>
-      </button>
+                <span className="mt-2 text-[12px] tracking-[0.3em] text-hanji-faint">
+                  / {FULL}
+                </span>
+                <span className="mt-4 text-[11.5px] tracking-[0.2em] text-gold-soft">
+                  {sense === "calibrating"
+                    ? "선 자세를 재는 중…"
+                    : sense === "down"
+                      ? "일어서면 한 배"
+                      : count === 0
+                        ? senseOn
+                          ? "절하면 세어져요"
+                          : "눌러서 시작"
+                        : `${left} 남음`}
+                </span>
+              </>
+            )}
+          </span>
+        </button>
 
-      {/* 곁에서 건네는 한 마디 */}
-      <p className="mt-4 h-6 text-[12.5px] tracking-wide text-gold-soft">{say}</p>
+        {/* 곁에서 건네는 한 마디 */}
+        <p className="mt-4 h-6 text-[12.5px] tracking-wide text-gold-soft">{say}</p>
 
-      {done ? (
-        <div className="rise mt-2 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 py-5 text-center">
-          <p className="break-keep font-serif text-[17px] leading-8 text-hanji">
-            백팔배를 마쳤습니다.
-          </p>
-          <p className="mt-2 break-keep text-[12.5px] leading-6 text-hanji-dim">
-            번뇌 백여덟을 하나씩 내려놓았어요. 공덕 324가 쌓였습니다 —
-            <br />
-            내 도량에서 남에게 회향할 수 있어요.
-          </p>
-          <div className="mt-4 flex justify-center gap-2">
-            <button
-              onClick={reset}
-              className="rounded-[10px] border border-ink-3 px-4 py-2 text-[12px] tracking-[0.15em] text-hanji-dim transition-colors hover:text-hanji"
-            >
-              한 번 더
-            </button>
-            <Link
-              href="/settings"
-              className="rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
-            >
-              회향하러 가기
-            </Link>
+        {done ? (
+          <div className="rise mt-2 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 py-5 text-center">
+            <p className="break-keep font-serif text-[17px] leading-8 text-hanji">
+              백팔배를 마쳤습니다.
+            </p>
+            <p className="mt-2 break-keep text-[12.5px] leading-6 text-hanji-dim">
+              번뇌 백여덟을 하나씩 내려놓았어요. 공덕 324가 쌓였습니다 —
+              <br />
+              내 도량에서 남에게 회향할 수 있어요.
+            </p>
+            <div className="mt-4 flex justify-center gap-2">
+              <button
+                onClick={reset}
+                className="rounded-[10px] border border-ink-3 px-4 py-2 text-[12px] tracking-[0.15em] text-hanji-dim transition-colors hover:text-hanji"
+              >
+                한 번 더
+              </button>
+              <Link
+                href="/settings"
+                className="rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
+              >
+                회향하러 가기
+              </Link>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="rise rise-d3 mt-2 w-full max-w-sm space-y-4 rounded-[14px] border border-ink-3 bg-ink-2/40 px-5 py-5">
-          {/* ── 몸으로 세기 ──
-              손가락으로 백여덟 번 누르는 건 수행이 아니다. 폰을 지니고 실제로
-              절하면 기울기가 그 몸짓을 그리니, 일어설 때마다 한 배로 친다. */}
-          <div>
-            <div className="flex items-center justify-between">
+        ) : (
+          <div className="rise rise-d3 mt-2 w-full max-w-sm space-y-4 rounded-[14px] border border-ink-3 bg-ink-2/40 px-5 py-5">
+            {/* ── 몸으로 세기 ──
+                손가락으로 백여덟 번 누르는 건 수행이 아니다. 폰을 지니고 실제로
+                절하면 기울기가 그 몸짓을 그리니, 일어설 때마다 한 배로 친다. */}
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] tracking-[0.2em] text-hanji-dim">
+                  몸으로 세기
+                </span>
+                <button
+                  role="switch"
+                  aria-checked={senseOn}
+                  aria-label="몸으로 세기"
+                  onClick={() => {
+                    setSenseWanted((v) => !v);
+                    void toggleSense();
+                  }}
+                  className={`relative h-[26px] w-[46px] rounded-full border transition-colors ${
+                    senseOn ? "border-gold bg-gold" : "border-hanji-faint bg-transparent"
+                  }`}
+                >
+                  <span
+                    aria-hidden
+                    className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full transition-transform duration-200 ${
+                      senseOn ? "translate-x-5 bg-ink" : "bg-hanji-faint"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* 살아 있다는 표 — 숙일수록 차오른다. 이게 없으면 고장 난 줄 안다 */}
+              {sensing && (
+                <div className="mt-3 h-[5px] overflow-hidden rounded-full bg-ink-3">
+                  <div
+                    className="h-full rounded-full bg-gold transition-[width] duration-100"
+                    style={{ width: `${Math.round(depth * 100)}%` }}
+                  />
+                </div>
+              )}
+
+              <p className="mt-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
+                {!senseWanted
+                  ? "눌러서 세어도 됩니다."
+                  : sense === "denied"
+                    ? "움직임을 쓰려면 권한이 필요해요. 눌러서 세어도 됩니다."
+                    : sense === "unsupported"
+                      ? // 「이 기기에서는 기울기를 못 읽어요」는 기계 설명이었다.
+                        // 형: 「웹은 움직임을 못 읽어요. 눌러서 세어도 됩니다.
+                        // 이런 식으로」 — 쓰는 사람의 말로 적는다.
+                        "웹은 움직임을 못 읽어요. 눌러서 세어도 됩니다."
+                      : sense === "asking"
+                        ? "권한을 묻는 중…"
+                        : "주머니에 휴대폰을 넣고 절하면 세어집니다."}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-ink-3 pt-4">
               <span className="text-[12px] tracking-[0.2em] text-hanji-dim">
-                몸으로 세기
+                죽비 — 박자 이끌기
               </span>
               <button
                 role="switch"
-                aria-checked={senseOn}
-                aria-label="몸으로 세기"
-                onClick={() => {
-                  setSenseWanted((v) => !v);
-                  void toggleSense();
-                }}
+                aria-checked={auto}
+                aria-label="죽비"
+                onClick={() => setAuto((v) => !v)}
                 className={`relative h-[26px] w-[46px] rounded-full border transition-colors ${
-                  senseOn ? "border-gold bg-gold" : "border-hanji-faint bg-transparent"
+                  auto ? "border-gold bg-gold" : "border-hanji-faint bg-transparent"
                 }`}
               >
                 <span
                   aria-hidden
                   className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full transition-transform duration-200 ${
-                    senseOn ? "translate-x-5 bg-ink" : "bg-hanji-faint"
+                    auto ? "translate-x-5 bg-ink" : "bg-hanji-faint"
                   }`}
                 />
               </button>
             </div>
-
-            {/* 살아 있다는 표 — 숙일수록 차오른다. 이게 없으면 고장 난 줄 안다 */}
-            {sensing && (
-              <div className="mt-3 h-[5px] overflow-hidden rounded-full bg-ink-3">
-                <div
-                  className="h-full rounded-full bg-gold transition-[width] duration-100"
-                  style={{ width: `${Math.round(depth * 100)}%` }}
-                />
-              </div>
-            )}
-
-            <p className="mt-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
-              {!senseWanted
-                ? "눌러서 세어도 됩니다."
-                : sense === "denied"
-                  ? "움직임을 쓰려면 권한이 필요해요. 눌러서 세어도 됩니다."
-                  : sense === "unsupported"
-                    ? // 「이 기기에서는 기울기를 못 읽어요」는 기계 설명이었다.
-                      // 형: 「웹은 움직임을 못 읽어요. 눌러서 세어도 됩니다.
-                      // 이런 식으로」 — 쓰는 사람의 말로 적는다.
-                      "웹은 움직임을 못 읽어요. 눌러서 세어도 됩니다."
-                    : sense === "asking"
-                      ? "권한을 묻는 중…"
-                      : "주머니에 휴대폰을 넣고 절하면 세어집니다."}
-            </p>
-          </div>
-
-          <div className="flex items-center justify-between border-t border-ink-3 pt-4">
-            <span className="text-[12px] tracking-[0.2em] text-hanji-dim">
-              죽비 — 박자 이끌기
-            </span>
-            <button
-              role="switch"
-              aria-checked={auto}
-              aria-label="죽비"
-              onClick={() => setAuto((v) => !v)}
-              className={`relative h-[26px] w-[46px] rounded-full border transition-colors ${
-                auto ? "border-gold bg-gold" : "border-hanji-faint bg-transparent"
-              }`}
-            >
-              <span
-                aria-hidden
-                className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full transition-transform duration-200 ${
-                  auto ? "translate-x-5 bg-ink" : "bg-hanji-faint"
-                }`}
+            <label className="block">
+              <span className="flex justify-between text-[11px] tracking-wide text-hanji-faint">
+                <span>한 배에</span>
+                <span>{spb.toFixed(1)}초</span>
+              </span>
+              <input
+                type="range"
+                min={2}
+                max={8}
+                step={0.5}
+                value={spb}
+                onChange={(e) => setSpb(Number(e.target.value))}
+                className="mt-1.5 w-full accent-[#D9B45B]"
               />
-            </button>
+            </label>
+            <label className="block">
+              <span className="flex justify-between text-[11px] tracking-wide text-hanji-faint">
+                <span>소리</span>
+                <span>{Math.round(vol * 100)}%</span>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={vol}
+                onChange={(e) => setVol(Number(e.target.value))}
+                className="mt-1.5 w-full accent-[#D9B45B]"
+              />
+            </label>
+            {count > 0 && (
+              <button
+                onClick={reset}
+                className="w-full rounded-[10px] border border-ink-3 py-2 text-[11.5px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
+              >
+                처음부터
+              </button>
+            )}
           </div>
-          <label className="block">
-            <span className="flex justify-between text-[11px] tracking-wide text-hanji-faint">
-              <span>한 배에</span>
-              <span>{spb.toFixed(1)}초</span>
-            </span>
-            <input
-              type="range"
-              min={2}
-              max={8}
-              step={0.5}
-              value={spb}
-              onChange={(e) => setSpb(Number(e.target.value))}
-              className="mt-1.5 w-full accent-[#D9B45B]"
-            />
-          </label>
-          <label className="block">
-            <span className="flex justify-between text-[11px] tracking-wide text-hanji-faint">
-              <span>소리</span>
-              <span>{Math.round(vol * 100)}%</span>
-            </span>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.05}
-              value={vol}
-              onChange={(e) => setVol(Number(e.target.value))}
-              className="mt-1.5 w-full accent-[#D9B45B]"
-            />
-          </label>
-          {count > 0 && (
-            <button
-              onClick={reset}
-              className="w-full rounded-[10px] border border-ink-3 py-2 text-[11.5px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
-            >
-              처음부터
-            </button>
-          )}
-        </div>
-      )}
+        )}
 
-      <p className="mt-6 text-[11.5px] tracking-wide text-hanji-faint">
-        지금까지 쌓은 공덕 {merit.toLocaleString("ko-KR")}
-      </p>
-    </div>
+        <p className="mt-6 text-[11.5px] tracking-wide text-hanji-faint">
+          지금까지 쌓은 공덕 {merit.toLocaleString("ko-KR")}
+        </p>
+      </div>
+    </HipRoom>
   );
 }

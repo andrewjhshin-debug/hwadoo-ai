@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import HipLanes, { type LaneTab } from "@/components/HipLanes";
 
 // ─────────────────────────────────────────────────────────────
 // 공덕 — 폰 판. 功.
@@ -38,16 +38,9 @@ import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
 import { ROUND } from "@/lib/merit";
 
-export type HipTab = "moktak" | "yeomju" | "bowl" | "keycap";
+/** 갈래 이름은 HipLanes 가 쥔다 — 여기서는 옛 이름으로 다시 내보낸다 */
+export type HipTab = LaneTab;
 
-/** 갈래 띠 뒤쪽 — 이 자리에서 바뀌지 않고 **문이 열리는** 수행들 */
-const ROOMS = [
-  { href: "/bae", label: "백팔배" },
-  { href: "/mung", label: "멍" },
-  { href: "/mandala", label: "만다라" },
-  { href: "/sambae", label: "삼귀의" },
-  { href: "/hasim", label: "하심" },
-] as const;
 
 export type HipMoktakProps = {
   /** 지금 갈래 — 머리의 탭으로 옮긴다 */
@@ -162,52 +155,20 @@ export default function HipMoktak({
             </svg>
             <b>화두</b>
           </a>
-          <HipTop>
-            <span
-              className={`hip-hap ${combo >= 2 ? "on" : ""}`}
-              aria-hidden={combo < 2}
-            >
-              合
-            </span>
-          </HipTop>
+          {/* 合 은 머리에서 내렸다 — 형: 「저거 오른쪽 위 말고 목탁이랑
+              숫자 사이에 넣자」. 치는 동안 눈은 목탁에 가 있는데 박자 표는
+              화면 반대편 귀퉁이에서 깜빡였다. 보라는 것을 안 보이는 데
+              두었으니 켜지는 줄도 몰랐다. 손이 가는 자리 옆으로 옮긴다. */}
+          <HipTop />
         </header>
 
         {/* ── 갈래 셋 ──
             형: 「공덕에는 오리지날처럼 위에 목탁 염주 싱잉볼로 옮길 수 있는
             탭 주고」. 서랍 뒤에 있던 것을 머리로 올렸다. */}
-        {/* 형: 「백팔배 탭 없애고 공덕 키캡 옆으로 옮겨라.
-                 멍 만다라 삼귀의 하심 역시」
-
-            공덕을 주는 수행이 내 도량 격자에도, 여기에도 흩어져 있었다.
-            **주는 것끼리 한 줄에** 세운다 — 앞 넷은 이 자리에서 바로
-            바뀌는 물건이고, 뒤 다섯은 문을 열고 들어가는 방이다.
-            누르면 물건은 갈리고 방은 열린다. 눌러 보면 안다.
-            아홉이 한 줄에 안 들어가니 띠가 옆으로 흐른다. */}
-        <div className="hip-lanes" role="tablist" aria-label="무엇을">
-          {(
-            [
-              ["moktak", "목탁"],
-              ["yeomju", "염주"],
-              ["bowl", "싱잉볼"],
-              ["keycap", "키캡"],
-            ] as const
-          ).map(([k, label]) => (
-            <button
-              key={k}
-              role="tab"
-              aria-selected={tab === k}
-              data-on={tab === k ? "1" : undefined}
-              onClick={() => tab !== k && onTab(k)}
-            >
-              {label}
-            </button>
-          ))}
-          {ROOMS.map(({ href, label }) => (
-            <Link key={href} href={href} className="hip-lane-room">
-              {label}
-            </Link>
-          ))}
-        </div>
+        {/* 갈래 띠는 HipLanes 가 쥔다 — 방 여섯도 같은 띠를 쓴다.
+            여기서만 그리면 문을 여는 순간 띠가 사라져서, 방마다 다른
+            앱처럼 보였다. 한 군데서 만들어 열 자리가 같이 쓴다. */}
+        <HipLanes tab={tab} onTab={onTab} />
 
         {/* 형: 「목탁에서 목탁이랑 그 격자 위치 바꿔 위아래로」.
             한 번 내렸다가 다시 올린다 — **오브제가 위, 백팔 격자가 아래.**
@@ -217,6 +178,20 @@ export default function HipMoktak({
           {/* ③ 숫자가 톡 — key 를 갈아 끼워 칠 때마다 다시 난다 */}
           <p key={`n${tab}${n}`} className="hip-big" aria-label={`오늘 ${n}번`}>
             {String(n).padStart(3, "0")}
+          </p>
+
+          {/* ── 박자 ──
+              형: 「이말 넣어 — 박자가 맞고 있어요 · 4번째. 이거 일정하게
+              하는 거 유도하게 하는 거 넘 좋다」
+
+              合 한 글자만으로는 그것이 칭찬인지 무슨 표시인지 알 수 없었다.
+              **몇 번째로 고르게 치고 있는지**까지 적어 주면, 숫자가 올라가는
+              것을 보려고 손이 저절로 박자를 맞춘다. 설명 대신 셈이 이끈다.
+              자리는 늘 잡아 둔다 — 떴다 사라지며 아래를 밀어 올리면
+              목탁이 손 밑에서 움직인다. */}
+          <p className={`hip-beat${combo >= 2 ? " on" : ""}`} aria-live="polite">
+            <b>合</b>
+            <span>박자가 맞고 있어요 · {combo}번째</span>
           </p>
           {/* 형: 「목탁에서 0번 남음 이거 없애고」.
               백팔까지 얼마 남았는지는 **바로 아래 격자가 이미 말한다.**
@@ -263,8 +238,21 @@ export default function HipMoktak({
               onPointerCancel={onKeyUp}
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/obj/keycap.png" alt="" draggable={false} />
+              {/* 형: 「키캡 눌리는 모션을 두라고. 두 개 이미지를 분리해서
+                  꽃받침이랑 부처상을.. 그다음에 부처상이 위아래 자연스럽게
+                  키캡처럼 움직이면서 소리 나도록 해야지」
+
+                  한 장일 때는 통째로 찌그러뜨리는 수밖에 없었다 — 받침까지
+                  같이 눌리니 「말랑한 덩어리」이지 키캡이 아니었다.
+                  두 장으로 가른다. **윗알(부처상)만 내려가고 받침은 가만히.**
+                  그래야 손끝이 진짜 키를 눌렀다고 읽는다.
+                  받침이 위에 깔리므로 부처상이 내려가면 그 뒤로 숨는다. */}
+              <span className="hip-keycap-stack">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="hip-keycap-buddha" src="/obj/keycap-buddha.png" alt="" draggable={false} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="hip-keycap-cup" src="/obj/keycap-cup.png" alt="" draggable={false} />
+              </span>
             </button>
           )}
           {/* 살갗 — 오브제 바로 밑. 고르는 것과 보이는 것이 붙어 있어야

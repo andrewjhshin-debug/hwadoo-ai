@@ -169,11 +169,10 @@ export function HipGardenEmpty({
               aria-label="닫기"
             />
             <div className="hip-gate-card">
-              <p className="hip-gate-say">
-                물음은 받는 이가 있어야
-                <br />
-                건네집니다
-              </p>
+              {/* 형: 「이 말 없애고」 — 「물음은 받는 이가 있어야 건네집니다」.
+                  바로 위에 「오늘의 물음을 받으시겠습니까」가 이미 있는데
+                  그 아래 또 한 마디를 얹고 있었다. 같은 말을 두 번 하면
+                  둘 다 안 읽힌다. 단추 하나면 족하다. */}
               <button
                 onClick={join.onJoin}
                 disabled={join.busy}

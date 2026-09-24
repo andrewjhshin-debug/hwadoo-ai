@@ -19,18 +19,25 @@
 // ─────────────────────────────────────────────────────────────
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import LotusCount from "@/components/LotusCount";
 import SoundMuteToggle from "@/components/SoundMuteToggle";
 
 export default function HipTop({
-  /** 이 판에서 갈 곳이 아닌 것은 숨긴다 (내 도량에서 내 도량 단추는 군더더기) */
-  hide,
-  /** 판이 더 얹고 싶은 것 — 예: 뜰의 ○(물음만 보기) */
+  /** 이 판이 더 얹고 싶은 것 — 예: 뜰의 ○(물음만 보기) */
   children,
 }: {
-  hide?: "me";
   children?: React.ReactNode;
 }) {
+  // 형: 「맨 위 탭 연꽃이랑 기타 등등 있는 거 위치 맞춰. 탭마다 왔다 갔다
+  //      하지 말고. 내 도량에도 그냥 똑같이, 위 탭에는 한자 我 넣어 둬」
+  //
+  // 내 도량에서만 我 를 빼고 있었다 — 군더더기라고 생각했는데, 넷이던
+  // 줄이 셋이 되면서 **나머지 셋이 통째로 오른쪽으로 밀렸다.** 판을
+  // 넘길 때마다 연꽃 셈이 자리를 옮기니 눈이 그것을 따라다녔다.
+  // 자리는 고정이 먼저다. 지금 있는 자리는 지우는 대신 **채워서** 알린다.
+  const path = usePathname();
+  const here = path === "/settings";
   return (
     <div className="hip-top-right">
       <LotusCount look="line" className="hip-top-count" />
@@ -41,7 +48,11 @@ export default function HipTop({
           <path d="M3.6 7l8.4 6 8.4-6" />
         </svg>
       </Link>
-      {hide !== "me" && (
+      {here ? (
+        <span className="hip-top-ico" data-on="1" aria-current="page">
+          <b>我</b>
+        </span>
+      ) : (
         <Link href="/settings" aria-label="내 도량" className="hip-top-ico">
           <b>我</b>
         </Link>

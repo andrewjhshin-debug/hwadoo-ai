@@ -3532,35 +3532,9 @@ html[data-theme="light"] {
   }
 }
 
-/* ── 음양 ─────────────────────────────────────────────────────
-   형: 「차라리 남자면 양 여자면 음, 그거 버튼 넣자」
-
-   얼굴 자리에 한자 한 글자(牛)를 박아 두니 무슨 뜻인지 알 수 없었다.
-   고를 수 있는 것으로 바꾼다. 묻는 말은 한 마디도 없다 — 누르면
-   법명이 그 자리에서 두 자 ↔ 세 자로 바뀐다. 그게 설명이다.
-   (실제 관례가 그렇다 — 남성 두 자, 여성은 뒤에 心·行·華·香 을 붙여 세 자) */
-@media (min-width: 0px) {
-  .hip-yin {
-    display: inline-flex;
-    flex: 0 0 auto;
-    padding: 3px;
-    border-radius: 999px;
-    background: rgba(26, 23, 20, 0.05);
-  }
-  .hip-yin button {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    font-family: var(--font-serif);
-    font-size: 15px;
-    color: #b4ac9f;
-    transition: background 0.2s, color 0.2s;
-  }
-  .hip-yin button[data-on="1"] {
-    background: linear-gradient(150deg, #fbe3ec, #f2a0bd);
-    color: #fff;
-  }
-}
+/* 음양 고르개는 걷었다 — 형: 「음양 필요 없고」.
+   법명 옆에 陽·陰 두 알이 붙어 있으니 이름보다 그것이 먼저 눈에 걸렸다.
+   글자 수(두 자 ↔ 세 자)는 이미 골라 둔 결대로 조용히 따라간다. */
 
 /* ── 삼귀의 · 백팔배 — 번지는 것을 분홍과 민트로 ────────────────
    형: 「삼귀의 뒤에 번지는 거 핑크랑 민트로 다시」
@@ -3715,5 +3689,385 @@ html[data-theme="light"] {
   .hip-screen > .hip-lanes:not(.hip-bloom):not(.hip-mark) {
     max-width: min(760px, 92vw);
     width: max-content;
+  }
+}
+
+/* ── 공덕 알약 — 왼쪽에 붙이고, 접었다 편다 ────────────────────
+   형: 「저거 왼쪽으로 붙이고 동그라미들 접었다 펼치기 기능 둬」
+
+   갈래 전부를 깔았더니 열일곱 알이 화면 절반을 먹었다. 가운데 정렬이라
+   줄마다 시작점이 달라 눈이 쉴 자리가 없었다. 왼쪽에 붙이면 줄머리가
+   한 줄로 서고, 접으면 **한 번이라도 한 것**만 남는다.
+   펼치개는 알약과 같은 옷을 입되 채워 둔다 — 누르는 것임을 색으로 안다. */
+@media (min-width: 0px) {
+  .hip-me-hits {
+    justify-content: flex-start;
+    align-self: stretch;
+  }
+  .hip-hits-more {
+    flex: 0 0 auto;
+    min-width: 42px;
+    padding: 6px 13px;
+    border-radius: 999px;
+    border: 1px solid rgba(226, 122, 158, 0.34);
+    background: rgba(242, 160, 189, 0.14);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #d2578c;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+  }
+  .hip-hits-more:active { background: rgba(242, 160, 189, 0.3); }
+}
+
+/* ── 물건이 판을 꽉 채우게 됐다 ────────────────────────────────
+   형: 「목탁 더 키우라니까 크게!!」
+   상자가 작았던 게 아니라 그림이 판 가운데 쪼그려 앉아 있었다(목탁은
+   1024 판에서 616px, 60%). 빈 여백을 잘라 내니 같은 상자에서 1.6배가
+   됐다. 키캡은 세로로 길어졌으니 **높이로 잡아 준다** — 가로로만 재면
+   화면 밖으로 자란다. */
+@media (min-width: 0px) {
+  .hip-keycap {
+    width: auto;
+    display: flex;
+    justify-content: center;
+  }
+  .hip-keycap img {
+    width: auto;
+    max-width: var(--hip-obj-w);
+    height: var(--hip-obj-w);
+    max-height: 46vh;
+  }
+}
+
+/* ── 박자 — 목탁과 숫자 사이 ───────────────────────────────────
+   형: 「이 말 넣어 — 박자가 맞고 있어요 · 4번째. 저거 오른쪽 위 말고
+        목탁이랑 숫자 사이에 넣자. 이거 일정하게 하는 거 유도하게 하는
+        거 넘 좋다」
+   자리는 늘 잡아 둔다. 떴다 사라지며 아래를 밀어 올리면 목탁이 손
+   밑에서 움직인다 — 치는 물건이 움직이면 그건 고장이다. */
+@media (min-width: 0px) {
+  .hip-beat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 22px;
+    margin-top: 2px;
+    opacity: 0;
+    transform: translateY(-3px);
+    transition: opacity 0.28s ease, transform 0.28s ease;
+  }
+  .hip-beat.on { opacity: 1; transform: none; }
+  .hip-beat b {
+    display: grid;
+    place-items: center;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background: linear-gradient(150deg, #efd9a6, #c9a063);
+    font-family: var(--font-serif);
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #fff;
+  }
+  .hip-beat span {
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: #b08a4f;
+  }
+}
+
+/* ── 공덕 ⓘ — 툭 튀어나오지 않게 ───────────────────────────────
+   형: 「지금처럼 허접하게 펼쳐지는 것도 좀 고치고」
+   <details> 는 높이가 0에서 제값으로 한 칸에 간다. grid 의 0fr → 1fr
+   로 바꾸면 **높이를 몰라도** 스르르 열린다. */
+@media (min-width: 0px) {
+  .hip-info-key {
+    margin-left: 7px;
+    font-size: 12px;
+    color: #c3bbb0;
+    transition: color 0.2s;
+  }
+  .hip-info-key[aria-expanded="true"] { color: #e3628f; }
+  .hip-info-drawer {
+    display: grid;
+    grid-template-rows: 0fr;
+    align-self: center;
+    width: 100%;
+    max-width: 380px;
+    transition: grid-template-rows 0.34s cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 0.26s ease, margin-top 0.34s ease;
+    opacity: 0;
+    margin-top: 0;
+  }
+  .hip-info-drawer[data-open="1"] {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 14px;
+  }
+  .hip-info-card {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0;
+  }
+  .hip-info-drawer[data-open="1"] .hip-info-card {
+    padding: 16px 18px;
+    border: 1px solid rgba(26, 23, 20, 0.08);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.72);
+  }
+  .hip-info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .hip-info-row p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.75;
+    letter-spacing: 0.005em;
+    color: #8b8175;
+    text-align: left;
+  }
+  .hip-info-row p b {
+    font-weight: 500;
+    color: #17140f;
+  }
+}
+
+/* ── 갈래 띠 — 지금 있는 방도 채워진다 ─────────────────────────
+   물건은 알약이 채워지는데 방은 안 채워지면, 방에 들어간 순간
+   「아무 데도 아닌 곳」이 된다. */
+@media (min-width: 0px) {
+  .hip-lane-room[data-on="1"] {
+    background: #fff;
+    color: #17140f;
+    box-shadow: 0 1px 3px rgba(190, 130, 150, 0.18);
+  }
+  /* 머리 오른쪽 — 지금 있는 자리는 지우지 말고 채워서 알린다.
+     형: 「탭마다 왔다 갔다 하지 말고 내 도량에도 그냥 똑같이」 */
+  .hip-top-ico[data-on="1"] {
+    color: #e3628f;
+    opacity: 1;
+  }
+}
+
+/* ── 스크롤 없이 보이게 ────────────────────────────────────────
+   형: 「여기 좀만 더 올려라. 절대 스크롤 안 하고 볼 수 있게」
+       (살갗 고르는 점 셋이 아래 염주 띠에 반쯤 잘려 있었다)
+
+   물건을 **가로로만** 재고 있었다. 화면이 짧은 폰에서는 가로가 넉넉하니
+   물건이 커지고, 그만큼 아래가 밀려 살갗 점이 띠 밑으로 내려갔다.
+   남은 **높이**로도 같이 재야 한다 — 머리띠·갈래 띠·숫자·박자가 위를
+   먹고, 살갗 점과 염주 띠가 아래를 먹는다. 그 나머지가 물건의 몫이다.
+   svh 를 쓴다 — 주소창이 나와 있을 때의 **가장 작은** 높이라, 주소창이
+   내려와도 잘리지 않는다.
+   키가 큰 폰(844 이상)에서는 가로가 먼저 걸리므로 전과 똑같다. */
+@media (min-width: 0px) {
+  :root {
+    --hip-obj-w: max(
+      200px,
+      min(calc(100vw - 22px), calc(100svh - 450px), 420px)
+    );
+  }
+}
+@media (min-width: 768px) {
+  :root { --hip-obj-w: min(408px, calc(100svh - 430px)); }
+}
+
+/* 싱잉볼 갈래만 한 줄을 더 인다 — 그릇 고르기(작은·중간·큰) 알약이
+   물건 위에 한 줄 더 있어서, 같은 셈으로는 살갗 점이 띠를 밟는다. */
+@media (min-width: 0px) {
+  .hip-screen[data-lane="bowl"] {
+    --hip-obj-w: max(
+      190px,
+      min(calc(100vw - 22px), calc(100svh - 528px), 420px)
+    );
+  }
+}
+@media (min-width: 768px) {
+  .hip-screen[data-lane="bowl"] { --hip-obj-w: min(408px, calc(100svh - 488px)); }
+}
+
+/* ── 당겨서 새로고침 ───────────────────────────────────────────
+   형: 「인연 같은 경우는 밑으로 쭈욱 스크롤하면 새로고침 기능 잊지 말고」
+   글자는 없다. 당기는 만큼 연꽃이 따라 내려오며 커지고, 문턱을 넘으면
+   분홍이 든다. 놓으면 돈다. 손이 먼저 알고 눈이 따라온다. */
+@media (min-width: 0px) {
+  .ptr { position: relative; }
+  .ptr-mark {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 3px 10px rgba(190, 120, 145, 0.18);
+    pointer-events: none;
+  }
+  .ptr-mark svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: #c9c1b6;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.2s;
+  }
+  .ptr-mark.on svg { stroke: #e3628f; }
+  .ptr-mark.spin svg { animation: ptr-spin 0.9s linear infinite; }
+  @keyframes ptr-spin {
+    to { transform: rotate(360deg); }
+  }
+}
+
+/* ── 방 알맹이는 칸을 꽉 쓴다 ──────────────────────────────────
+   .hip-screen-mid 가 align-items:center 라, 안에 든 것은 제 글자 폭만큼만
+   쪼그라든다. 방에서 옛 껍데기의 w-full 을 걷어 내고 보니 알맹이 속
+   `w-full max-w-[280px]` 같은 것들이 기댈 폭을 잃고 납작해졌다.
+   방 알맹이 칸은 늘 꽉 편다 — 안에서 제 폭을 잡는 것은 그대로 잡게. */
+@media (min-width: 0px) {
+  .hip-room-body {
+    width: 100%;
+    max-width: 460px;
+    margin-inline: auto;
+  }
+  /* 방마다 머리 글귀가 바로 띠에 붙지 않게 한 숨 */
+  .hip-room .hip-room-body { margin-top: 14px; }
+}
+
+/* ── 서랍도 염주 자리를 비킨다 ─────────────────────────────────
+   형: 「탭이랑 겹치면 안 눌러지는 버그. 탭 자리는 유지해, 절대 침범
+        불가능하게 구분하라고」
+
+   .hip-sheet 는 화면을 통째로 덮는 서랍(z-61)인데 아래 염주 띠가
+   z-62 라 그 위를 덮는다. 서랍 맨 아랫줄(자동 목탁)이 띠에 가려
+   눌리지 않았다. 띠를 내리는 대신 **서랍 바닥을 비운다** —
+   띠 자리는 어떤 판도 침범하지 못한다. */
+@media (min-width: 0px) {
+  .hip-sheet {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail) + 20px);
+  }
+}
+
+/* 도량 안내·사업자 정보 — 맨 아래 옅은 한 줄.
+   리뉴얼이 화면을 덮으면서 옛 footer 가 통째로 가려져, 이용약관·개인정보·
+   사업자 정보로 갈 길이 앱에서 사라졌었다. 눈에 안 걸리되 반드시 닿게. */
+@media (min-width: 0px) {
+  .hip-law {
+    align-self: stretch;
+    margin-top: 30px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(26, 23, 20, 0.07);
+    text-align: center;
+  }
+  .hip-law p {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 16px;
+    margin: 0;
+  }
+  .hip-law a {
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    color: #a39a8f;
+  }
+  .hip-law small {
+    display: block;
+    margin-top: 12px;
+    font-size: 10px;
+    line-height: 1.8;
+    color: #c3bbb0;
+    word-break: keep-all;
+  }
+}
+
+/* ── 키캡 두 겹 — 윗알만 내려간다 ──────────────────────────────
+   형: 「두 개 이미지를 분리해서 꽃받침이랑 부처상을.. 부처상이 위아래
+        자연스럽게 키캡처럼 움직이면서 소리 나도록」
+
+   두 장은 **판이 같아서** 그냥 포개면 저절로 맞는다(자리 계산 없음).
+   받침이 위(z 2), 부처상이 아래(z 1) — 내려가면 받침 뒤로 숨는다.
+   내려갈 때는 빠르게(0.07s), 돌아올 때는 살짝 넘치게(스프링). 진짜 키가
+   그렇다. 그림자도 같이 눌린다 — 바닥에 닿으면 그늘이 얕아진다. */
+@media (min-width: 0px) {
+  .hip-keycap-stack {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 595 / 875;
+  }
+  .hip-keycap-stack img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .hip-keycap-buddha {
+    z-index: 1;
+    transform-origin: 50% 100%;
+    filter: drop-shadow(0 7px 10px rgba(190, 120, 145, 0.18));
+    transition:
+      transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1),
+      filter 0.34s ease;
+  }
+  .hip-keycap-cup {
+    z-index: 2;
+    filter: drop-shadow(0 6px 10px rgba(190, 120, 145, 0.16));
+  }
+  .hip-keycap.on .hip-keycap-buddha {
+    transform: translateY(3.4%) scaleY(0.982);
+    filter: drop-shadow(0 2px 4px rgba(190, 120, 145, 0.2));
+    transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1), filter 0.07s ease;
+  }
+  /* 한 장짜리 시절의 「통째로 찌그러뜨리기」는 걷는다 */
+  .hip-keycap.on img { transform: none; }
+  .hip-keycap.on .hip-keycap-buddha { transform: translateY(3.4%) scaleY(0.982); }
+  /* 통(stack)이 높이를 쥐므로 그림 자체는 폭·높이를 안 잡는다 */
+  .hip-keycap {
+    height: var(--hip-obj-w);
+    max-height: 46vh;
+  }
+  .hip-keycap img { width: 100%; height: 100%; max-width: none; max-height: none; }
+}
+
+/* ── 담기 띠는 자리를 나눈다 ───────────────────────────────────
+   형: 「지금 큰일 난 게 화두 로그인이 안 돼」
+
+   원인은 로그인이 아니었다. 「새 화두 받기」 단추 위를 **PWA 담기 띠가
+   덮고 있었다.** 눌러도 띠가 받아 먹으니 아무 일이 없었다.
+
+   띠는 z-40, 판은 z-60 인데 왜 졌나 — 판(.hip-screen)은 z-index:1 짜리
+   통(#scroll-box) 안에 있어서 그 60 이 통 밖에서는 아무 힘이 없다.
+   멍 판이 아래 염주에 졌던 것과 **같은 함정**이다.
+
+   z 로 겨루지 않는다. 자리를 나눈다 —
+     · 띠는 아래 염주 위로 올라가 앉고
+     · 판은 띠가 떠 있는 동안 그만큼 아래를 더 비운다
+   덮는 것이 없으면 이길 일도 없다. */
+@media (min-width: 0px) {
+  body:has(.hip-screen) .install-banner {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail));
+    z-index: 63; /* 염주(62) 바로 위 — 가리는 게 아니라 얹힌다 */
+    border-radius: 18px 18px 0 0;
+  }
+  /* 띠가 떠 있는 동안만 — 판 바닥을 띠 높이만큼 더 비운다 */
+  body:has(.install-banner-on) .hip-screen {
+    padding-bottom: calc(
+      env(safe-area-inset-bottom, 0px) + var(--hip-rail) + 66px
+    ) !important;
   }
 }

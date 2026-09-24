@@ -12,10 +12,17 @@
 //
 // 절할 때마다 광배가 한 겹씩 밝아지고, 셋을 채우면 금빛이 퍼진다.
 // 광배는 그림이 아니라 SVG 다 — 그래야 한 겹씩 살아난다.
+//
+// 껍데기는 HipRoom 이 쥔다 — 머리띠도 갈래 띠도 아래 염주 자리도 공양 판과
+// 똑같은 것을 쓴다. 옛 여백(mx-auto max-w-xl px-6 pb-16 pt-6)은 버렸다.
+// .hip-screen 이 제 여백과 아래 염주 자리를 이미 쥐고 있어서, 겹쳐 주면
+// 두 번 밀려 아래 염주알을 밟는다. 가운데 정렬도 .hip-screen-mid 가 준다
+// (flex · column · align-items:center) — 그래서 items-center 도 안 들고 왔다.
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import HipRoom from "@/components/HipRoom";
 import Info from "@/components/Info";
 import { addMerit, inRound, loadMerit, ROUND } from "@/lib/merit";
 import { buzz, hushVoice, setVoice, strikeBell, warmJukbi } from "@/lib/sound";
@@ -91,7 +98,7 @@ export default function SambaePage() {
 
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
+    <HipRoom here="/sambae">
       <style>{`
         @keyframes sb-bow { 0%{transform:scale(1)} 34%{transform:scale(.955) translateY(6px)} 100%{transform:scale(1)} }
         @keyframes sb-spread { 0%{transform:scale(.86);opacity:.55} 100%{transform:scale(1.5);opacity:0} }
@@ -242,6 +249,6 @@ export default function SambaePage() {
           오늘 이미 {rounds}번 했어요
         </p>
       )}
-    </div>
+    </HipRoom>
   );
 }

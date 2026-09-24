@@ -28,6 +28,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import HipRoom from "@/components/HipRoom";
 import { addMerit } from "@/lib/merit";
 
 /**
@@ -210,232 +211,246 @@ export default function HasimPage() {
   const ready = unit > 0 && paper > 0;
 
   return (
-    <div
-      ref={boxRef}
-      // **화면을 통째로 덮는다.**
-      //
-      // 한동안 방 안에 70vh 짜리 통으로 앉혀 두었다. 형이 그걸 보고
-      // 「개판났노, 그냥 하심 쭈욱 나오게, 오른쪽 위에 나가기 하면
-      // 되겠다」 했다. 맞다 — 낮추는 자리에 서랍과 띠가 같이 보이면
-      // 낮추는 게 아니다. 나가는 문 하나만 남긴다.
-      //
-      // fixed 로 덮되 **자기 키를 자로 삼는 통이 자기 안을 따라가면
-      // 끝이 없다**(예전에 삼천만 픽셀로 부푼 그 버그). inset-0 은 키가
-      // 화면에 못박혀 있어 그 일이 안 생긴다.
-      className="fixed inset-0 z-[100] overflow-y-auto overscroll-contain"
-      style={{ background: skin.paper, transition: "background .35s" }}
-    >
-      {/* 나가는 문과 빛깔 — 오른쪽 위 한 자리에 나란히.
-          먹빛 종이에 금글씨가 기본이고, 눌러 흰 종이로 바꾼다. */}
-      <div className="sticky top-3 z-20 float-right mr-3 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={flip}
-          aria-label={`${skin.next}로`}
-          className="rounded-full px-3 py-1.5 text-[11px] tracking-[0.2em] backdrop-blur transition-opacity hover:opacity-100"
-          style={{
-            color: skin.dim,
-            border: `1px solid ${skin.line}`,
-            background: ink === "gold" ? "rgba(255,255,255,.04)" : "rgba(255,255,255,.7)",
-            opacity: 0.9,
-          }}
-        >
-          {skin.next}
-        </button>
-        <Link
-          href="/"
-          className="rounded-full px-3.5 py-1.5 text-[11px] tracking-[0.25em] backdrop-blur transition-opacity hover:opacity-100"
-          style={{
-            color: skin.dim,
-            border: `1px solid ${skin.line}`,
-            background: ink === "gold" ? "rgba(255,255,255,.04)" : "rgba(255,255,255,.7)",
-            opacity: 0.9,
-          }}
-        >
-          나가기
-        </Link>
-      </div>
+    // 공양 판과 한 껍데기를 쓴다 — 머리띠·갈래 띠·바탕 번짐·아래 염주
+    // 자리를 HipRoom 이 다 쥔다. 형: 「목탁 염주 키캡처럼 위 메뉴탭 두고
+    // 똑같이 비율 조정하고, 뜨는 화면 조정도 똑같이. 목탁 염주 키캡이랑
+    // 구분 안 되도록 이어지도록」
+    //
+    // 예전엔 화면을 통째로 덮었다(fixed inset-0 z-[100]). 그때는 머리에
+    // 걸 띠가 아예 없어서 「나가기」 하나만 남기는 것이 맞았다. 지금은
+    // 갈래 띠가 어느 방에나 걸려 있다 — 하심만 덮어 버리면 문을 여는
+    // 순간 그 띠가 사라져 다시 딴 앱이 된다.
+    //
+    // scroll 은 끈다. 이 방은 **제 통을 제가 쥐어야** 한다 — 아래 상자가
+    // ref 로 제 키를 재서 「한 칸」의 자로 쓰기 때문이다. HipRoom 이 대신
+    // 흘려 주면 잴 통이 없어지고 unit 이 0 으로 주저앉는다.
+    <HipRoom here="/hasim" scroll={false}>
+      {/* 종이 — 살갗(먹빛/흰 종이)에 따라 깔리는 색판이자, 내려가는 통.
+          껍데기는 넘겼어도 **이 상자는 알맹이다.** 색판이 여기 붙어 있고,
+          제 키가 한 칸의 자이며, 굴린 깊이로 공덕을 셈한다.
 
-      {/* 오른쪽 가장자리에 실 한 오라기로 「얼마나 내려왔나」를 보여 주었다.
-          형: 「스크롤 보여주지마 없애」. 맞다 — 얼마 남았는지 보이면
-          그건 끝을 재는 일이지 낮추는 일이 아니다. 지웠다. */}
-
-      <div className="relative" style={{ height: u(DEPTH) }}>
-        <div
-          className="relative mx-auto h-full"
-          style={{ width: paper > 0 ? paper : "100%" }}
-        >
-          {/* ── 머리 — 가로획 · 점 · 세로획의 시작 ──
-              먹으로 찍힌 그림을 **가리개로만** 쓴다. 먹 자리에 원하는
-              빛깔을 깐다 — 그림 한 장으로 금글씨도 먹글씨도 나온다. */}
-          <div
-            aria-label="下"
-            role="img"
-            className="pointer-events-none absolute left-0 w-full select-none"
+          fixed 를 걷었으니 키를 딴 데서 받아야 한다. flex-1 로 방에 남은
+          자리만큼만 차지한다. **min-h-0 을 빠뜨리면 안 된다** — flex 자식의
+          기본 최소키는 제 내용이라, 일흔다섯 칸짜리 속을 그대로 키로 삼아
+          통이 제 안을 따라 끝없이 부푼다(예전에 삼천만 픽셀로 부풀던 그
+          버그). 0 으로 못박아 두면 키가 내용을 안 따라간다. */}
+      <div
+        ref={boxRef}
+        className="relative min-h-0 w-full flex-1 overflow-y-auto overscroll-contain"
+        style={{ background: skin.paper, transition: "background .35s" }}
+      >
+        {/* 나가는 문과 빛깔 — 오른쪽 위 한 자리에 나란히.
+            먹빛 종이에 금글씨가 기본이고, 눌러 흰 종이로 바꾼다. */}
+        <div className="sticky top-3 z-20 float-right mr-3 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={flip}
+            aria-label={`${skin.next}로`}
+            className="rounded-full px-3 py-1.5 text-[11px] tracking-[0.2em] backdrop-blur transition-opacity hover:opacity-100"
             style={{
-              top: headTop,
-              height: ready ? headH : 0,
-              backgroundColor: skin.brush,
-              maskImage: "url(/seo/ha-head.png)",
-              WebkitMaskImage: "url(/seo/ha-head.png)",
-              maskSize: "100% 100%",
-              WebkitMaskSize: "100% 100%",
-              maskRepeat: "no-repeat",
-              WebkitMaskRepeat: "no-repeat",
+              color: skin.dim,
+              border: `1px solid ${skin.line}`,
+              background: ink === "gold" ? "rgba(255,255,255,.04)" : "rgba(255,255,255,.7)",
+              opacity: 0.9,
             }}
-          />
-
-          {/* 心 — 下 **아래**, 오른편에.
-              처음엔 가로획 옆에 나란히 두었는데 붓이 워낙 굵어 글자를
-              통째로 삼켜 버렸다. 점(별획) 밑으로 내리니 위에서부터
-              下 → 心 으로 읽힌다. 형이 말한 「세로로」가 이거다.
-
-              이것도 **폰트가 아니라 그림이다.** 명조로 찍었더니 옆에 선
-              진짜 붓글씨한테 바로 들통났다. `_틀/simcut.mjs` 가 붓 글꼴로
-              뼈대를 뜨고 그 위에 下 세로획에서 떠 온 먹 결을 덮는다. */}
-          <div
-            aria-label="心"
-            role="img"
-            className="pointer-events-none absolute select-none"
+          >
+            {skin.next}
+          </button>
+          <Link
+            href="/"
+            className="rounded-full px-3.5 py-1.5 text-[11px] tracking-[0.25em] backdrop-blur transition-opacity hover:opacity-100"
             style={{
-              backgroundColor: skin.brush,
-              maskImage: "url(/seo/ha-sim.png)",
-              WebkitMaskImage: "url(/seo/ha-sim.png)",
-              maskSize: "100% 100%",
-              WebkitMaskSize: "100% 100%",
-              maskRepeat: "no-repeat",
-              WebkitMaskRepeat: "no-repeat",
-              aspectRatio: "633 / 403",
-              // 30%는 下 옆에서 너무 컸다. 한 글자가 다른 글자를 밀면
-              // 두 글자가 아니라 한 덩어리로 보인다. 작게, 그리고 점에서
-              // 한 뼘 더 떨어뜨린다.
-              right: "7%",
-              width: "24%",
-              // 下 의 **아래**로 완전히 내린다. 0.86 자리에 두었더니
-              // 점(별획)과 같은 띠에 앉아 두 글자가 엉겼다.
-              top: headTop + headH + 26,
-              transform: "rotate(-3deg)",
+              color: skin.dim,
+              border: `1px solid ${skin.line}`,
+              background: ink === "gold" ? "rgba(255,255,255,.04)" : "rgba(255,255,255,.7)",
+              opacity: 0.9,
             }}
-          />
+          >
+            나가기
+          </Link>
+        </div>
 
-          {/* ── 몸통 — 거울로 뒤집어 가며 잇는 비백 세로획 ──
-              같은 그림을 그냥 반복하면 이음매마다 결이 끊긴다.
-              한 칸씩 뒤집으면 맞닿는 두 끝이 서로의 거울이라 자국이 없다. */}
-          {ready && (
+        {/* 오른쪽 가장자리에 실 한 오라기로 「얼마나 내려왔나」를 보여 주었다.
+            형: 「스크롤 보여주지마 없애」. 맞다 — 얼마 남았는지 보이면
+            그건 끝을 재는 일이지 낮추는 일이 아니다. 지웠다. */}
+
+        <div className="relative" style={{ height: u(DEPTH) }}>
+          <div
+            className="relative mx-auto h-full"
+            style={{ width: paper > 0 ? paper : "100%" }}
+          >
+            {/* ── 머리 — 가로획 · 점 · 세로획의 시작 ──
+                먹으로 찍힌 그림을 **가리개로만** 쓴다. 먹 자리에 원하는
+                빛깔을 깐다 — 그림 한 장으로 금글씨도 먹글씨도 나온다. */}
             <div
-              aria-hidden
-              className="pointer-events-none absolute overflow-hidden"
+              aria-label="下"
+              role="img"
+              className="pointer-events-none absolute left-0 w-full select-none"
               style={{
-                left: `${MID_LEFT}%`,
-                width: `${MID_WIDTH}%`,
-                top: midTop,
-                height: midH,
+                top: headTop,
+                height: ready ? headH : 0,
+                backgroundColor: skin.brush,
+                maskImage: "url(/seo/ha-head.png)",
+                WebkitMaskImage: "url(/seo/ha-head.png)",
+                maskSize: "100% 100%",
+                WebkitMaskSize: "100% 100%",
+                maskRepeat: "no-repeat",
+                WebkitMaskRepeat: "no-repeat",
               }}
-            >
-              {Array.from({ length: segs }, (_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    position: "absolute",
-                    top: i * segH,
-                    left: 0,
-                    right: 0,
-                    height: segH + 1, // 1px 겹쳐 반올림 틈을 메운다
-                    backgroundColor: skin.brush,
-                    maskImage: "url(/seo/ha-mid.png)",
-                    WebkitMaskImage: "url(/seo/ha-mid.png)",
-                    maskSize: "100% 100%",
-                    WebkitMaskSize: "100% 100%",
-                    transform: i % 2 ? "scaleY(-1)" : undefined,
-                  }}
-                />
-              ))}
-            </div>
-          )}
+            />
 
-          {/* ── 끝 — 먹으로 맺는다 ──
-              붓을 지그시 눌렀다 떼는 자국 하나(수필, 收筆)가 남고,
-              그 아래 서예로 두 줄. 여기까지 온 사람만 본다. */}
-          {ready && (
-            <>
+            {/* 心 — 下 **아래**, 오른편에.
+                처음엔 가로획 옆에 나란히 두었는데 붓이 워낙 굵어 글자를
+                통째로 삼켜 버렸다. 점(별획) 밑으로 내리니 위에서부터
+                下 → 心 으로 읽힌다. 형이 말한 「세로로」가 이거다.
+
+                이것도 **폰트가 아니라 그림이다.** 명조로 찍었더니 옆에 선
+                진짜 붓글씨한테 바로 들통났다. `_틀/simcut.mjs` 가 붓 글꼴로
+                뼈대를 뜨고 그 위에 下 세로획에서 떠 온 먹 결을 덮는다. */}
+            <div
+              aria-label="心"
+              role="img"
+              className="pointer-events-none absolute select-none"
+              style={{
+                backgroundColor: skin.brush,
+                maskImage: "url(/seo/ha-sim.png)",
+                WebkitMaskImage: "url(/seo/ha-sim.png)",
+                maskSize: "100% 100%",
+                WebkitMaskSize: "100% 100%",
+                maskRepeat: "no-repeat",
+                WebkitMaskRepeat: "no-repeat",
+                aspectRatio: "633 / 403",
+                // 30%는 下 옆에서 너무 컸다. 한 글자가 다른 글자를 밀면
+                // 두 글자가 아니라 한 덩어리로 보인다. 작게, 그리고 점에서
+                // 한 뼘 더 떨어뜨린다.
+                right: "7%",
+                width: "24%",
+                // 下 의 **아래**로 완전히 내린다. 0.86 자리에 두었더니
+                // 점(별획)과 같은 띠에 앉아 두 글자가 엉겼다.
+                top: headTop + headH + 26,
+                transform: "rotate(-3deg)",
+              }}
+            />
+
+            {/* ── 몸통 — 거울로 뒤집어 가며 잇는 비백 세로획 ──
+                같은 그림을 그냥 반복하면 이음매마다 결이 끊긴다.
+                한 칸씩 뒤집으면 맞닿는 두 끝이 서로의 거울이라 자국이 없다. */}
+            {ready && (
               <div
                 aria-hidden
-                className="pointer-events-none absolute select-none"
+                className="pointer-events-none absolute overflow-hidden"
                 style={{
-                  left: `${TAIL_LEFT}%`,
-                  width: `${TAIL_WIDTH}%`,
-                  top: endTop,
-                  height: tailH,
-                  backgroundColor: skin.brush,
-                  maskImage: "url(/seo/ha-tail.png)",
-                  WebkitMaskImage: "url(/seo/ha-tail.png)",
-                  maskSize: "100% 100%",
-                  WebkitMaskSize: "100% 100%",
+                  left: `${MID_LEFT}%`,
+                  width: `${MID_WIDTH}%`,
+                  top: midTop,
+                  height: midH,
                 }}
-              />
-              <div
-                className="absolute inset-x-0 text-center"
-                style={{ top: endTop + tailH + 30 }}
               >
-                {/* 끝에서 만나는 한 줄 — 들어올 때마다 다르다.
-                    형: 「하심 관련된 선사들 말 랜덤으로」 */}
-                <p
-                  className="font-serif text-[22px] leading-[1.9] sm:text-[26px]"
-                  style={{ color: skin.brush }}
-                >
-                  {SAYINGS[say].lines.map((l, i) => (
-                    <span key={i}>
-                      {l}
-                      {i < SAYINGS[say].lines.length - 1 && <br />}
-                    </span>
-                  ))}
-                </p>
-                {SAYINGS[say].by && (
-                  <p className="mt-5 text-[12px] tracking-[0.3em]" style={{ color: skin.dim }}>
-                    — {SAYINGS[say].by}
-                  </p>
-                )}
-
-                {/* 낙관 한 점 — 붉은 도장 */}
-                <p
-                  className="mt-9 inline-block px-2 py-1 font-serif text-[13px] tracking-[0.2em]"
-                  style={{ color: "#B23A2E", border: "1.5px solid #B23A2E" }}
-                >
-                  下心
-                </p>
-
-                {/* 끝까지 내려온 값 — 형: 「다 내리면 그것도 공덕 주고」 */}
-                {/* 붙은 값은 오른쪽 위 토스트가 말한다. 여기서는 **다
-                    찼을 때만** 한 줄 — 아무 말도 없으면 왜 안 주나 싶다. */}
-                {got === 0 && (
-                  <p className="mt-5 text-[12.5px] tracking-[0.2em]" style={{ color: skin.dim }}>
-                    오늘 몫은 이미 받았어요
-                  </p>
-                )}
-
-                {/* 끝까지 온 사람이 다시 위로 백 화면을 굴러 올라갈 이유가
-                    없다. 형: 「하심 끝나고 되돌아가면 다시 메뉴로」 */}
-                <div className="mt-9 pb-2">
-                  <Link
-                    href="/"
-                    className="inline-block rounded-full px-6 py-2.5 text-[11.5px] tracking-[0.3em] transition-opacity hover:opacity-100"
-                    style={{ color: skin.dim, border: `1px solid ${skin.line}`, opacity: 0.85 }}
-                  >
-                    나가기
-                  </Link>
-                </div>
+                {Array.from({ length: segs }, (_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      position: "absolute",
+                      top: i * segH,
+                      left: 0,
+                      right: 0,
+                      height: segH + 1, // 1px 겹쳐 반올림 틈을 메운다
+                      backgroundColor: skin.brush,
+                      maskImage: "url(/seo/ha-mid.png)",
+                      WebkitMaskImage: "url(/seo/ha-mid.png)",
+                      maskSize: "100% 100%",
+                      WebkitMaskSize: "100% 100%",
+                      transform: i % 2 ? "scaleY(-1)" : undefined,
+                    }}
+                  />
+                ))}
               </div>
-            </>
-          )}
+            )}
 
-          {/* 「하 심」 이라 적어 두었던 자리 — 지웠다.
-              下 와 心 이 이미 그 말이다. 그림 옆에 같은 말을 또 적으면
-              그림을 못 믿는다는 뜻이 된다. */}
-          {/* 「아래로 내려 보세요」라 적어 두었던 자리 — 지웠다.
-              형: 「없애 장난하냐」. 종이가 아래로 길면 내리라는 뜻이다. */}
+            {/* ── 끝 — 먹으로 맺는다 ──
+                붓을 지그시 눌렀다 떼는 자국 하나(수필, 收筆)가 남고,
+                그 아래 서예로 두 줄. 여기까지 온 사람만 본다. */}
+            {ready && (
+              <>
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute select-none"
+                  style={{
+                    left: `${TAIL_LEFT}%`,
+                    width: `${TAIL_WIDTH}%`,
+                    top: endTop,
+                    height: tailH,
+                    backgroundColor: skin.brush,
+                    maskImage: "url(/seo/ha-tail.png)",
+                    WebkitMaskImage: "url(/seo/ha-tail.png)",
+                    maskSize: "100% 100%",
+                    WebkitMaskSize: "100% 100%",
+                  }}
+                />
+                <div
+                  className="absolute inset-x-0 text-center"
+                  style={{ top: endTop + tailH + 30 }}
+                >
+                  {/* 끝에서 만나는 한 줄 — 들어올 때마다 다르다.
+                      형: 「하심 관련된 선사들 말 랜덤으로」 */}
+                  <p
+                    className="font-serif text-[22px] leading-[1.9] sm:text-[26px]"
+                    style={{ color: skin.brush }}
+                  >
+                    {SAYINGS[say].lines.map((l, i) => (
+                      <span key={i}>
+                        {l}
+                        {i < SAYINGS[say].lines.length - 1 && <br />}
+                      </span>
+                    ))}
+                  </p>
+                  {SAYINGS[say].by && (
+                    <p className="mt-5 text-[12px] tracking-[0.3em]" style={{ color: skin.dim }}>
+                      — {SAYINGS[say].by}
+                    </p>
+                  )}
 
+                  {/* 낙관 한 점 — 붉은 도장 */}
+                  <p
+                    className="mt-9 inline-block px-2 py-1 font-serif text-[13px] tracking-[0.2em]"
+                    style={{ color: "#B23A2E", border: "1.5px solid #B23A2E" }}
+                  >
+                    下心
+                  </p>
+
+                  {/* 끝까지 내려온 값 — 형: 「다 내리면 그것도 공덕 주고」 */}
+                  {/* 붙은 값은 오른쪽 위 토스트가 말한다. 여기서는 **다
+                      찼을 때만** 한 줄 — 아무 말도 없으면 왜 안 주나 싶다. */}
+                  {got === 0 && (
+                    <p className="mt-5 text-[12.5px] tracking-[0.2em]" style={{ color: skin.dim }}>
+                      오늘 몫은 이미 받았어요
+                    </p>
+                  )}
+
+                  {/* 끝까지 온 사람이 다시 위로 백 화면을 굴러 올라갈 이유가
+                      없다. 형: 「하심 끝나고 되돌아가면 다시 메뉴로」 */}
+                  <div className="mt-9 pb-2">
+                    <Link
+                      href="/"
+                      className="inline-block rounded-full px-6 py-2.5 text-[11.5px] tracking-[0.3em] transition-opacity hover:opacity-100"
+                      style={{ color: skin.dim, border: `1px solid ${skin.line}`, opacity: 0.85 }}
+                    >
+                      나가기
+                    </Link>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* 「하 심」 이라 적어 두었던 자리 — 지웠다.
+                下 와 心 이 이미 그 말이다. 그림 옆에 같은 말을 또 적으면
+                그림을 못 믿는다는 뜻이 된다. */}
+            {/* 「아래로 내려 보세요」라 적어 두었던 자리 — 지웠다.
+                형: 「없애 장난하냐」. 종이가 아래로 길면 내리라는 뜻이다. */}
+
+          </div>
         </div>
       </div>
-    </div>
+    </HipRoom>
   );
 }

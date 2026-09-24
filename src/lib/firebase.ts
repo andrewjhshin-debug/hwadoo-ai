@@ -11,7 +11,14 @@ import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAdNMHbhnjJqyB5i6rhF8SxpouTuqqN4OE",
-  authDomain: "hwadu-9dc7b.firebaseapp.com",
+  // 로그인 손잡이를 우리 집 주소로 — next.config.ts 의 rewrites 가
+  // /__/auth/* 를 파이어베이스로 그대로 넘긴다. 남의 도메인 저장소를
+  // 읽을 일이 없어지니, 홈 화면 앱(리다이렉트)에서도 로그인이 끝난다.
+  // 로컬(localhost)에서는 넘길 곳이 없으니 원래 주소를 쓴다.
+  authDomain:
+    typeof window !== "undefined" && window.location.hostname.endsWith("hwa-du.com")
+      ? window.location.hostname
+      : "hwadu-9dc7b.firebaseapp.com",
   databaseURL:
     "https://hwadu-9dc7b-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "hwadu-9dc7b",

@@ -247,23 +247,30 @@ body {
   }
 }
 
+/* 형: 「인연 저거 뜨는 거 빠르게, 바로 떠. 두둥 이렇게 하지 말고」
+   (앞서도 —「메인에서 탭 넘길 때 너무 빡! 두둥 좌우 파박… 멀미 나」)
+
+   1.6초에 딜레이가 1.9초까지 있었다. 처음 한 번은 그윽하지만, 판을
+   오갈 때마다 화면이 **아래에서 떠오르기를 기다려야** 한다. 기다리는
+   순간 그건 분위기가 아니라 지연이다.
+   결은 남기고 시간만 걷는다 — 뜨는 것은 그대로, 다만 눈 깜짝할 새에. */
 .rise {
-  animation: rise 1.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: rise 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 .rise-slow {
-  animation: rise 2.4s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: rise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 .rise-d1 {
-  animation-delay: 0.4s;
+  animation-delay: 0.05s;
 }
 .rise-d2 {
-  animation-delay: 0.9s;
+  animation-delay: 0.1s;
 }
 .rise-d3 {
-  animation-delay: 1.4s;
+  animation-delay: 0.15s;
 }
 .rise-d4 {
-  animation-delay: 1.9s;
+  animation-delay: 0.2s;
 }
 
 /* ─── 일원상의 숨 ─── */
@@ -838,6 +845,30 @@ html[data-focus="1"] #scroll-box {
 /* touch */
 
 /* touch */
+
+/* 손대기 */
+
+/* 손대기 */
+
+/* 손대기 */
+
+/* 손대기 */
+
+/* 손대기 */
+
+/* 손대기 */
+
+/* 손대기 */
+
+/* 손대기 */
+
+/* 손대기 */
+
+/* 손대기 */
+
+/* 손대기 */
+
+/* 손대기 */
 
 /* 손대기 */
 

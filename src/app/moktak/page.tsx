@@ -172,6 +172,13 @@ type Pop = { id: number; ch: string; dx: number; rot: number };
 
 export default function MoktakPage() {
   const [tab, setTab] = useState<PracticeTab>("moktak");
+  // 방(백팔배·멍·호흡…)에서 물건 알약을 누르면 ?lane=… 을 달고 돌아온다.
+  // useSearchParams 는 이 판을 통째로 동적으로 만들어 버리니 쓰지 않는다 —
+  // 들어온 뒤 한 번 읽으면 족한 일이다.
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get("lane");
+    if (v === "moktak" || v === "yeomju" || v === "bowl" || v === "keycap") setTab(v);
+  }, []);
   // 탭을 고른 순간 저장한다. 새로 들어올 때 처음 탭이 잠깐 덮어쓰는 일을
   // 막기 위해, 탭 변화 전체를 감시하는 effect 대신 이 길 하나에서만 적는다.
   const chooseTab = (next: PracticeTab) => {
@@ -563,11 +570,21 @@ export default function MoktakPage() {
         {/* 바깥 진행 고리 — 백팔이 차오른다 */}
         <svg aria-hidden viewBox="0 0 316 316" className="absolute inset-0 h-full w-full">
           <path d={ARC_PATH} fill="none" stroke="rgba(26,23,20,0.12)" strokeWidth="2" />
+          {/* 차오르는 획은 금이다 — 형: 「저거 동그라미 차는 거 핑크 말고
+              황금색으로 가자」. 알이 갈색·금빛인데 둘레만 분홍이라 물건과
+              따로 놀았다. 금으로 두르면 염주 한 벌이 된다. */}
+          <defs>
+            <linearGradient id="hip-arc-gold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#E8C871" />
+              <stop offset="0.5" stopColor="#C9A063" />
+              <stop offset="1" stopColor="#E3BE6A" />
+            </linearGradient>
+          </defs>
           <path
             d={ARC_PATH}
             fill="none"
-            stroke="#ef7ba4"
-            strokeWidth="3"
+            stroke="url(#hip-arc-gold)"
+            strokeWidth="3.4"
             strokeLinecap="round"
             strokeDasharray={ARC}
             strokeDashoffset={ARC * (1 - pos / BEADS)}

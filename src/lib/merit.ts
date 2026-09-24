@@ -786,12 +786,17 @@ export function stageOf(total: number): number {
 
 /** 다음 자리까지 얼마나 남았는가 — null 이면 끝자리 */
 export function nextRank(total: number): { rank: Rank; left: number } | null {
+  // 뒷방 주인은 이미 꼭대기다 — rankOf·stageOf 는 owner 를 보는데 여기만
+  // 안 보고 있었다. 그래서 「부처」라고 적어 놓고 바로 밑에 「사미까지
+  // 20,771 남음」이 같이 떴다. 끝자리에 앉은 이에게 다음 자리는 없다.
+  if (owner) return null;
   for (const x of RANKS) if (total < x.need) return { rank: x, left: x.need - total };
   return null;
 }
 
 /** 이 자리에서 다음 자리까지 얼마나 왔는가 (0~1) */
 export function stageProgress(total: number): number {
+  if (owner) return 1; // 꼭대기는 늘 가득 — 부처인데 진행바가 0% 이면 안 된다
   const here = rankOf(total);
   const next = nextRank(total);
   if (!next) return 1;

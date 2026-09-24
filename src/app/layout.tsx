@@ -74,14 +74,14 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     type: "website",
     images: [
-      { url: `${SITE_URL}/og-v5.png`, width: 1200, height: 630, alt: "화두 — 답을 드리지 않습니다, 물음을 드립니다." },
+      { url: `${SITE_URL}/og-v6.png`, width: 1200, height: 630, alt: "화두 — 답을 드리지 않습니다, 물음을 드립니다." },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "화두AI는 당신에게 묻는다.",
     description: "답을 드리지 않습니다 — 물음을 드립니다.",
-    images: [`${SITE_URL}/og-v5.png`],
+    images: [`${SITE_URL}/og-v6.png`],
   },
 };
 
