@@ -69,6 +69,9 @@ export type HipMoktakProps = {
       코드로 다시 그렸던 것은 버렸다. 부모가 그려서 넘긴다 */
   /** 지금 고른 목탁 살갗 그림 */
   mokSrc: string;
+  /** 키캡 갈래에서 무엇을 누르나 — 동자인가 목탁인가 */
+  keySkin: "dongja" | "moktak";
+  onKeySkin: (k: "dongja" | "moktak") => void;
   bead: React.ReactNode;
   bowl: React.ReactNode;
   /** 살갗 점 — 오브제 바로 밑. 형: 「목탁 밑에 작은 색상 버튼 동그라미로」 */
@@ -101,6 +104,8 @@ export default function HipMoktak({
   onRing,
   options,
   mokSrc,
+  keySkin,
+  onKeySkin,
   bead,
   bowl,
   dots,
@@ -250,12 +255,32 @@ export default function HipMoktak({
                   두 장으로 가른다. **윗알(부처상)만 내려가고 받침은 가만히.**
                   그래야 손끝이 진짜 키를 눌렀다고 읽는다.
                   받침이 위에 깔리므로 부처상이 내려가면 그 뒤로 숨는다. */}
-              <span className="hip-keycap-stack">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className="hip-keycap-buddha" src="/obj/keycap-buddha.png" alt="" draggable={false} />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className="hip-keycap-cup" src="/obj/keycap-cup.png" alt="" draggable={false} />
-              </span>
+              {keySkin === "moktak" ? (
+                /* ── 목탁 키캡 ──
+                   형: 「목탁 모양인데 키캡 되도록 하나 만들어 봐, 나무 재질」
+                       「방석 필요 없다」 「목탁 치는 거도 필요 없다」
+
+                   그러면 목탁 **자체가** 키캡이다. 목탁은 입(슬릿)을 사이에
+                   두고 윗뚜껑과 몸통으로 나뉘어 보인다 — 누르면 윗뚜껑이
+                   내려가 입이 닫힌다. 진짜 목탁이 울리는 모양 그대로다.
+
+                   그림을 새로 그릴 것이 없다. **같은 그림 두 장을 겹쳐
+                   놓고 위아래로 오려** 쓴다(clip-path). 그러니 살갗 넉 벌
+                   (분홍·나무·금·옥)에 그대로 다 먹는다. */
+                <span className="hip-keycap-stack hip-keycap-mok">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="hip-mokcap-body" src={mokSrc} alt="" draggable={false} />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="hip-mokcap-lid" src={mokSrc} alt="" draggable={false} />
+                </span>
+              ) : (
+                <span className="hip-keycap-stack">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="hip-keycap-buddha" src="/obj/keycap-buddha.png" alt="" draggable={false} />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="hip-keycap-cup" src="/obj/keycap-cup.png" alt="" draggable={false} />
+                </span>
+              )}
             </button>
           )}
           {/* 살갗 — 오브제 바로 밑. 고르는 것과 보이는 것이 붙어 있어야
@@ -299,6 +324,28 @@ export default function HipMoktak({
               숫자 밑에 있으면 무엇의 색을 고르는 것인지 안 보인다.
               고르는 것과 보이는 것이 붙어 있어야 고른 티가 바로 난다. */}
           {tab === "moktak" && <div className="hip-obj-foot">{dots}</div>}
+          {/* 키캡도 살갗이 둘이다 — 동자와 목탁. 목탁을 고르면 목탁 살갗
+              (분홍·나무·금·옥)이 그대로 따라온다 */}
+          {tab === "keycap" && (
+            <div className="hip-obj-foot">
+              <span className="hip-chips hip-chips-tight">
+                {(
+                  [
+                    ["dongja", "동자"],
+                    ["moktak", "목탁"],
+                  ] as const
+                ).map(([k, t]) => (
+                  <button
+                    key={k}
+                    onClick={() => onKeySkin(k)}
+                    data-on={keySkin === k ? "1" : undefined}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </span>
+            </div>
+          )}
 
           {/* 백팔 격자는 걷었다 —
               형: 「저 그리드 없애고 그 자리 더 활용해. 그리드 격자 필요 없다」.
