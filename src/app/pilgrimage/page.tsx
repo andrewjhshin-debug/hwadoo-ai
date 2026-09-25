@@ -199,7 +199,10 @@ export default function PilgrimagePage() {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-16 pt-8 md:pt-12">
+    /* 아래 염주 자리는 성역이다 — pb-16(64px)로는 띠(56)와 그 아래 여백을
+       못 비켜서 맨 끝 「함께 가기」가 띠 밑에 깔렸다. 굴려도 안 빠진다.
+       형: 「이런 초보적 실수 하지 마」 */
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 pb-[calc(env(safe-area-inset-bottom,0px)+var(--hip-rail,96px)+24px)] pt-8 md:pb-16 md:pt-12">
       {/* ── 머리 ──
              연꽃·공덕 알약을 여기 걸어 뒀는데, 이 방에서 쓰는 셈이 아니다.
              연꽃은 법당과 쪽지에서 쓰고, 여기서 하는 일은 절에 가는 것이다.

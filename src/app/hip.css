@@ -5203,3 +5203,41 @@ html[data-theme="light"] {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
   }
 }
+
+/* ── 설치 띠가 뜨면 **모든 판**이 그만큼 비운다 ────────────────
+   형: 「이런 초보적 실수 하지 마」 — 그래서 한 군데만 고치지 않고 판
+   스물둘을 히트테스트로 훑었다. 끝까지 굴려 본 뒤에도 덮여 있는 것만
+   추리니 남은 범인은 하나였다 — 「홈 화면에 담을까요」 띠.
+
+   아래 염주 띠는 굴리면 빠져나온다. 설치 띠는 굴려도 안 빠진다. 그래서
+   판이 아니라 **굴림통**이 띠 높이를 비워야 한다.
+   ·.hip-screen 에만 주던 여백을 진짜 굴림통(.hip-screen-mid)과 옛 판의
+     main 에도 준다. 띠는 아래 염주(76) 위에 73 높이로 앉으니 149 를
+     비우면 닿지 않는다. */
+@media (min-width: 0px) {
+  body:has(.install-banner-on) .hip-screen-scroll .hip-screen-mid {
+    padding-bottom: 104px;
+  }
+  body:has(.install-banner-on) main {
+    padding-bottom: calc(var(--hip-rail, 96px) + 84px) !important;
+  }
+}
+@media (min-width: 768px) {
+  /* 넓은 화면에서는 띠가 바닥에 붙고 염주가 없다 */
+  body:has(.install-banner-on) .hip-screen-scroll .hip-screen-mid {
+    padding-bottom: 88px;
+  }
+  body:has(.install-banner-on) main { padding-bottom: 96px !important; }
+}
+
+/* 굴림통이 하나 더 있었다 — #scroll-box.
+   옛 판들은 main 이 아니라 이 통 안에서 굴러서, main 에 준 여백이 통의
+   굴림 끝을 못 늘렸다(순례 「함께 가기」가 설치 띠 밑에 남았다). */
+@media (min-width: 0px) {
+  body:has(.install-banner-on) #scroll-box {
+    padding-bottom: calc(var(--hip-rail, 96px) + 84px);
+  }
+}
+@media (min-width: 768px) {
+  body:has(.install-banner-on) #scroll-box { padding-bottom: 96px; }
+}
