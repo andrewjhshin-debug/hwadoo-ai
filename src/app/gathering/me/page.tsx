@@ -249,20 +249,41 @@ export default function 인연내프로필() {
         <여럿 이름="관심" 목록={관심들} 값={me?.care} 고치기={(v) => 고치기({ care: v })} />
         <여럿 이름="데이트" 목록={데이트들} 값={me?.date} 고치기={(v) => 고치기({ date: v })} />
 
-        <div className="hip-yeon-row">
+        {/* ── 절 ── 여기부터는 **따로 동의**를 받는다.
+            개인정보보호법 23조가 종교를 민감정보로 묶고, 다른 동의와
+            별도로 받으라고 한다. 「다니는 절」은 종교를 그대로 말한다.
+            끄면 두 칸이 잠기고, 이미 적은 것도 남에게 안 나간다. */}
+        <label className="hip-yeon-agree">
+          <input
+            type="checkbox"
+            checked={!!me?.religionOk}
+            onChange={(e) =>
+              고치기(
+                e.target.checked
+                  ? { religionOk: true, religionAt: Date.now() }
+                  : { religionOk: false }
+              )
+            }
+          />
+          <span>절 이름을 프로필에 씁니다</span>
+        </label>
+
+        <div className="hip-yeon-row" data-off={!me?.religionOk ? "1" : undefined}>
           <b>다니는 절</b>
           <input
             defaultValue={me?.temple ?? ""}
+            disabled={!me?.religionOk}
             onBlur={(e) => 고치기({ temple: e.target.value.trim().slice(0, 30) })}
             maxLength={30}
             aria-label="다니는 절"
           />
         </div>
 
-        <div className="hip-yeon-row">
+        <div className="hip-yeon-row" data-off={!me?.religionOk ? "1" : undefined}>
           <b>가고 싶은 절</b>
           <input
             defaultValue={me?.wantTemple ?? ""}
+            disabled={!me?.religionOk}
             onBlur={(e) =>
               고치기({ wantTemple: e.target.value.trim().slice(0, 30) })
             }

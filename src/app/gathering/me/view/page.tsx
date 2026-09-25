@@ -98,7 +98,10 @@ export default function 내프로필보기() {
               </div>
 
               <div className="hip-yeon-tags">
-                {me.temple && <span data-temple="1">{me.temple}</span>}
+                {/* 절은 따로 동의한 사람 것만 — 서버도 같은 줄로 막는다 */}
+                {me.religionOk && me.temple && (
+                  <span data-temple="1">{me.temple}</span>
+                )}
                 {me.job && <span>{me.job}</span>}
                 {me.tall ? <span>{me.tall}cm</span> : null}
                 {me.mbti && <span>{me.mbti}</span>}

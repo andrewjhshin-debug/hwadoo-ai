@@ -45,6 +45,7 @@ type 프로필 = {
   date?: string[];
   temple?: string;
   wantTemple?: string;
+  religionOk?: boolean;
   line?: string;
   photos?: { url: string; state: string }[];
   merit?: { rank?: string; total?: number };
@@ -59,8 +60,11 @@ function 추려서(p: 프로필) {
     name: p.name ?? "",
     born: p.born ?? 0,
     area: p.area ?? "",
-    temple: p.temple ?? "",
-    wantTemple: p.wantTemple ?? "",
+    // 절은 **따로 동의한 사람 것만** 내보낸다. 동의를 껐는데 옛 값이
+    // 문서에 남아 있을 수 있으니, 내보내는 자리에서 한 번 더 막는다 —
+    // 지우는 것에 기대지 않는다.
+    temple: p.religionOk ? (p.temple ?? "") : "",
+    wantTemple: p.religionOk ? (p.wantTemple ?? "") : "",
     job: p.job ?? "",
     tall: p.tall ?? 0,
     mbti: p.mbti ?? "",
@@ -87,7 +91,10 @@ function 추려서(p: 프로필) {
  */
 function 점수(나: 프로필, 너: 프로필): number {
   let s = 0;
-  if (나.temple && 너.temple && 나.temple === 너.temple) s += 50;
+  // 동의하지 않은 절은 셈에도 안 쓴다 — 안 보여 줄 것으로 짝을 지으면
+  // 그 자체가 종교 정보를 쓴 것이다
+  const 절 = (p: 프로필, k: "temple" | "wantTemple") => (p.religionOk ? p[k] : undefined);
+  if (절(나, "temple") && 절(너, "temple") && 나.temple === 너.temple) s += 50;
   if (나.area && 너.area && 나.area === 너.area) s += 30;
   // 형: 「수행 지우고 MBTI 랑 … 취향도 골프 와인 … 요즘 어떤 것에 관심이」
   // 겹치는 것이 곧 말 붙일 거리다. 관심이 취향보다 세다 — 지금 마음이
@@ -99,8 +106,8 @@ function 점수(나: 프로필, 너: 프로필): number {
   s += 겹(나.date, 너.date) * 4;
   s += 겹(나.vibe, 너.vibe) * 2;
   // 가 보고 싶은 절이 상대가 다니는 절이면 — 이보다 좋은 구실이 없다
-  if (나.wantTemple && 너.temple && 나.wantTemple === 너.temple) s += 40;
-  if (너.wantTemple && 나.temple && 너.wantTemple === 나.temple) s += 40;
+  if (절(나, "wantTemple") && 절(너, "temple") && 나.wantTemple === 너.temple) s += 40;
+  if (절(너, "wantTemple") && 절(나, "temple") && 너.wantTemple === 나.temple) s += 40;
   // 계급이 비슷하면 결이 맞는다 — 꾸준함의 결
   const a = 나.merit?.total ?? 0, b = 너.merit?.total ?? 0;
   if (a && b) s += Math.max(0, 12 - Math.abs(Math.log10(a + 1) - Math.log10(b + 1)) * 8);

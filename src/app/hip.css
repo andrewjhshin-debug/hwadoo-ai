@@ -5241,3 +5241,27 @@ html[data-theme="light"] {
 @media (min-width: 768px) {
   body:has(.install-banner-on) #scroll-box { padding-bottom: 96px; }
 }
+
+/* ── 따로 받는 동의 한 줄 ─────────────────────────────────────
+   개인정보보호법 23조 — 종교는 민감정보라 다른 동의와 **별도로** 받는다.
+   글을 길게 늘어놓지 않는다(형: 「구구절절 텍스트 많이 넣지 마라」).
+   네모 하나와 한 마디. 끄면 아래 두 칸이 잠기고, 잠긴 것이 눈에 보인다. */
+@media (min-width: 0px) {
+  .hip-yeon-agree {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: #6f665c;
+    cursor: pointer;
+  }
+  .hip-yeon-agree input {
+    width: 19px;
+    height: 19px;
+    accent-color: #ef7ba4;
+    flex: 0 0 auto;
+  }
+  .hip-yeon-row[data-off="1"] { opacity: 0.4; }
+  .hip-yeon-row[data-off="1"] input { cursor: not-allowed; }
+}
