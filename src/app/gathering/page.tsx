@@ -57,11 +57,26 @@ function GatheringInner() {
               형: 「인연으로 데이팅앱 갈 거야」
               게시판은 그대로 두고 그 위에 한 겹을 얹는다. 글로 설명하지
               않는다 — 눌러서 제 프로필을 채우다 보면 무엇인지 안다. */}
-          <Link href="/gathering/me" className="rise rise-d1 hip-yeon-door">
+          <Link href="/gathering/yeon" className="rise rise-d1 hip-yeon-door">
             <b>道伴</b>
             <span>
-              도반 찾기
+              오늘의 인연
               <i>절에 같이 갈 사람 · 하루 한 사람</i>
+            </span>
+            <u>›</u>
+          </Link>
+          {/* 문은 둘 — 보러 가는 문과 내 얼굴을 고치는 문.
+              전에는 하나뿐이라 「도반 찾기」를 눌러도 제 프로필 칸만
+              나왔다. 무엇을 하는 곳인지가 안 보였다. */}
+          <Link
+            href="/gathering/me"
+            className="rise rise-d1 hip-yeon-door"
+            data-thin="1"
+          >
+            <b>我</b>
+            <span>
+              내 프로필
+              <i>사진과 한 마디를 채워야 판에 선다</i>
             </span>
             <u>›</u>
           </Link>

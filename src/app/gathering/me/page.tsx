@@ -252,7 +252,7 @@ export default function 인연내프로필() {
             onBlur={(e) => 고치기({ line: e.target.value.trim().slice(0, 60) })}
             placeholder="새벽 예불 좋아합니다"
             maxLength={60}
-            aria-label="한 줄"
+            aria-label="한 마디"
           />
         </div>
 
@@ -275,6 +275,16 @@ export default function 인연내프로필() {
                 : "지금은 아무에게도 안 보입니다"}
           </small>
         </div>
+
+        {/* 남이 보는 나 — 고치는 칸과 보이는 카드는 다른 물건이다.
+            형: 「그 프로필 사진이랑 아래에 프로필 쓴 거 보이도록」 */}
+        <a href="/gathering/me/view" className="hip-yeon-peek">
+          남이 보는 나
+          <svg viewBox="0 0 24 24" aria-hidden>
+            <circle cx="10.5" cy="10.5" r="6.4" />
+            <path d="M15.2 15.2 L20 20" />
+          </svg>
+        </a>
 
         <p className="hip-yeon-foot">
           사진은 올린 뒤 한 번 살펴봅니다. 법명 말고는 아무것도 보이지 않습니다.

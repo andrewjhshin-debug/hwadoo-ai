@@ -21,6 +21,15 @@
       ]
     },
     {
+      "//": "오늘의 인연, 지난 90일에 이미 만난 사람 — api/yeon/today 의 뽑기. 없으면 뽑기가 통째로 죽어 「아직 마주칠 사람이 없습니다」만 뜬다.",
+      "collectionGroup": "yeon-daily",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uid", "order": "ASCENDING" },
+        { "fieldPath": "day", "order": "DESCENDING" }
+      ]
+    },
+    {
       "//": "모멘트 태그별 — fetchMoments(tag)",
       "collectionGroup": "moments",
       "queryScope": "COLLECTION",

@@ -4667,3 +4667,347 @@ html[data-theme="light"] {
     max-height: none !important;
   }
 }
+
+/* ── 오늘의 인연 — 한 장 ───────────────────────────────────────
+   형: 「뽑기 → 오늘의 인연 한 장 → 합장 → 쪽지함 열기 → 차단·신고」
+
+   글로 설명하지 않는다. **사진 한 장 · 이름 한 줄 · 단추 둘**이 전부다.
+   사진이 카드의 몸이고, 이름과 지역은 그 위에 얹는다 — 따로 두면 두
+   덩이가 되고, 얹으면 한 사람이 된다.
+   ⋯(막기·신고)은 사진 오른쪽 위 붙박이. 어디 있는지 찾는 일이 없도록. */
+@media (min-width: 0px) {
+  .hip-yeon-card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .hip-yeon-face {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    /* 카드 + 두 손이 **한 화면에** 들어야 한다. 아래 염주 자리는 성역이라
+       한 뼘도 밟으면 안 된다(형: 「탭 자리는 절대 침범 불가능하게」).
+       작은 폰(375×667)에서 재 보니 손이 띠를 17px 밟고 있었다. 사진이
+       남은 키를 다 먹지 않게 천장을 낮춘다 — 넘치면 사진이 잘릴 뿐,
+       단추는 언제나 제자리에 있다. */
+    max-height: calc(100svh - 408px);
+    min-height: 200px;
+    border-radius: 22px;
+    overflow: hidden;
+    background: rgba(26, 23, 20, 0.05);
+    box-shadow: 0 8px 26px rgba(190, 120, 145, 0.16);
+  }
+  .hip-yeon-face img,
+  .hip-yeon-face em {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* 사진이 없을 리 없지만(사진 없으면 판에 못 선다), 비면 연꽃빛 한 장 */
+  .hip-yeon-face em {
+    background: linear-gradient(150deg, rgba(251, 199, 218, 0.5), rgba(196, 234, 223, 0.5));
+  }
+  /* 여러 장이면 위에 눈금 — 몇 장인지가 먼저 보여야 누른다 */
+  .hip-yeon-ticks {
+    position: absolute;
+    inset: 9px 12px auto;
+    z-index: 3;
+    display: flex;
+    gap: 4px;
+  }
+  .hip-yeon-ticks i {
+    flex: 1;
+    height: 2.5px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.42);
+  }
+  .hip-yeon-ticks i[data-on="1"] { background: #fff; }
+  .hip-yeon-more {
+    position: absolute;
+    top: 16px;
+    right: 12px;
+    z-index: 4;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: rgba(24, 20, 18, 0.34);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+  }
+  .hip-yeon-menu {
+    position: absolute;
+    top: 52px;
+    right: 12px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    min-width: 108px;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 10px 28px rgba(26, 23, 20, 0.18);
+  }
+  .hip-yeon-menu button {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 13px;
+    color: #4a443b;
+  }
+  .hip-yeon-menu button + button { border-top: 1px solid rgba(26, 23, 20, 0.07); }
+  /* 이름은 사진 아랫단에 얹는다 — 어두운 물이 아래에서 올라와 글자를 받친다 */
+  .hip-yeon-who {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 2;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 46px 16px 15px;
+    background: linear-gradient(transparent, rgba(24, 18, 20, 0.58));
+    color: #fff;
+  }
+  .hip-yeon-who b { font-size: 20px; font-weight: 500; letter-spacing: 0.01em; }
+  .hip-yeon-who i,
+  .hip-yeon-who u {
+    font-style: normal;
+    text-decoration: none;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.82);
+  }
+  .hip-yeon-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .hip-yeon-tags span {
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.1);
+    font-size: 12px;
+    color: #6f665c;
+  }
+  /* 다니는 절이 가장 센 고리다 — 그것만 물들인다 */
+  .hip-yeon-tags span[data-temple="1"] {
+    border-color: rgba(226, 122, 158, 0.45);
+    background: rgba(239, 123, 164, 0.08);
+    color: #d2578c;
+  }
+  .hip-yeon-tags span[data-rank="1"] {
+    border-color: rgba(166, 124, 26, 0.32);
+    color: #8a6408;
+  }
+  .hip-yeon-line {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: #4a443b;
+    word-break: keep-all;
+  }
+  /* 두 손 — 넘기는 쪽은 옅게, 합장은 연꽃빛. 크기가 곧 무게다 */
+  .hip-yeon-hands {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 14px;
+  }
+  .hip-yeon-hands .hip-ghost { flex: 0 0 38%; }
+  /* 인연의 주 단추는 **연꽃빛**이다.
+     판의 주 단추(.hip-cta)는 `html .hip-cta { background:#17140f !important }`
+     로 먹빛이 박혀 있다. 그 못을 뽑으면 앱 전체가 흔들리니, 인연은 제
+     이름을 쓴다 — 이미 있는 .hip-yeon-go button 과 같은 빛깔. */
+  .hip-yeon-hap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    padding: 0 30px;
+    border-radius: 999px;
+    background: linear-gradient(150deg, #fbc7da, #ef7ba4);
+    border: 0;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(226, 110, 155, 0.32);
+    transition: transform 0.16s;
+  }
+  .hip-yeon-hap:active { transform: scale(0.985); }
+  .hip-yeon-hands .hip-yeon-hap { flex: 1; }
+  .hip-yeon-hands button:disabled,
+  .hip-yeon-hands .hip-yeon-hap:disabled { opacity: 0.45; box-shadow: none; }
+
+  /* 한 글자와 한 줄 — 닿았을 때 · 오늘 끝났을 때 · 아직일 때 */
+  .hip-yeon-met {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin: 12vh 0 0;
+    text-align: center;
+  }
+  .hip-yeon-met > b {
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    border-radius: 999px;
+    background: linear-gradient(150deg, #fbc7da, #ef7ba4);
+    font-family: var(--font-serif, serif);
+    font-size: 34px;
+    font-weight: 400;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(226, 110, 155, 0.28);
+  }
+  .hip-yeon-met[data-quiet="1"] > b {
+    background: rgba(26, 23, 20, 0.05);
+    color: #a39a8f;
+    box-shadow: none;
+  }
+  .hip-yeon-met > p { margin: 0; font-size: 15px; color: #4a443b; }
+  .hip-yeon-met .hip-yeon-hap { min-width: 180px; }
+  .hip-yeon-tomorrow { font-size: 12px; color: #a39a8f; letter-spacing: 0.06em; }
+
+  /* 신고 — 까닭 넷. 고르는 일이 일이 되면 아무도 안 누른다 */
+  .hip-yeon-why {
+    position: fixed;
+    inset: 0;
+    z-index: 63;
+    display: grid;
+    place-items: end center;
+    background: rgba(24, 20, 18, 0.32);
+    padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  }
+  .hip-yeon-why > div {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 14px 40px rgba(26, 23, 20, 0.22);
+  }
+  .hip-yeon-why p {
+    margin: 0;
+    padding: 16px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: #a39a8f;
+  }
+  .hip-yeon-why button {
+    padding: 15px 16px;
+    border-top: 1px solid rgba(26, 23, 20, 0.07);
+    font-size: 14px;
+    color: #4a443b;
+  }
+  .hip-yeon-why button[data-off="1"] { color: #a39a8f; }
+}
+
+/* ── 내 도량의 동그란 얼굴 ─────────────────────────────────────
+   형: 「동그라미 프로필에 사진 하고 그 안에 돋보기 넣고, 그걸 누르면
+        다른 화면으로 가고」
+   돋보기는 **얼굴 안**에 있다. 옆에 「프로필 보기」라고 쓰면 그건 설명이지
+   물건이 아니다. */
+@media (min-width: 0px) {
+  .hip-me-face {
+    position: relative;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    overflow: visible;
+    border-radius: 999px;
+  }
+  .hip-me-face img,
+  .hip-me-face em {
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    object-fit: cover;
+    display: grid;
+    place-items: center;
+    font-style: normal;
+    font-family: var(--font-serif, serif);
+    font-size: 19px;
+    color: #fff;
+    background: linear-gradient(150deg, #fbc7da, #ef7ba4);
+  }
+  .hip-me-face img { box-shadow: 0 2px 10px rgba(190, 120, 145, 0.24); }
+  .hip-me-face i {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(26, 23, 20, 0.2);
+  }
+  .hip-me-face i svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: #d2578c;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+  .hip-me-face:active { transform: scale(0.96); }
+
+  /* 「보는 중」 — 아직 남에게 안 보이는 사진 */
+  .hip-yeon-wait {
+    position: absolute;
+    top: 16px;
+    left: 12px;
+    z-index: 3;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(24, 20, 18, 0.42);
+    backdrop-filter: blur(6px);
+    font-size: 11px;
+    color: #fff;
+  }
+  .hip-yeon-line[data-empty="1"] { color: #c3bbb0; }
+  /* 카드 아래 두 손이 Link 일 때도 단추처럼 */
+  .hip-yeon-hands a {
+    display: grid;
+    place-items: center;
+    text-decoration: none;
+  }
+}
+
+/* 남이 보는 나 — 고치는 칸 아래 한 줄. 돋보기를 달아 「본다」는 뜻만 */
+@media (min-width: 0px) {
+  .hip-yeon-peek {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    align-self: center;
+    margin-top: 4px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(226, 122, 158, 0.4);
+    font-size: 12.5px;
+    color: #d2578c;
+    text-decoration: none;
+  }
+  .hip-yeon-peek svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+  /* 문 둘 — 두 번째는 조금 얕게. 무게가 다른 것이 눈에 보여야 한다 */
+  .hip-yeon-door[data-thin="1"] {
+    background: rgba(26, 23, 20, 0.03);
+    box-shadow: none;
+  }
+}

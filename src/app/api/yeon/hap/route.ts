@@ -85,7 +85,23 @@ export async function POST(req: Request) {
   if (이미.exists)
     return Response.json({ ok: true, matched: true, thread: 이미.data()!.thread });
 
-  // 쪽지방을 연다 — 기존 dm-threads 를 그대로 쓴다
+  // 쪽지방을 연다 — 기존 dm-threads 를 그대로 쓴다.
+  //
+  // **모양을 꼭 맞춰야 한다.** 쪽지함(/letters)은 한 줄을 그릴 때
+  // `t.ownerUid === 나 ? t.requesterName : t.ownerName` 로 상대 이름을
+  // 집는다. 인연 방에 그 칸이 없으면 undefined 가 되고, 바로 다음 줄의
+  // `.slice(0,1)` 에서 터져 **쪽지함 전체가 하얗게 죽는다** — 그 한 줄이
+  // 아니라 판이 통째로.
+  // 쪽지 보내기도 마찬가지다. sendMessage 가 방 문서를 갱신하는데,
+  // 규칙이 `requesterUid` 가 그대로인지 보므로 그 칸이 없으면 거절된다.
+  // 그래서 모임 글에서 열린 방과 **같은 칸을 다 채운다.**
+  const [나문서, 저문서] = await Promise.all([
+    db.doc(`yeon-profiles/${me}`).get(),
+    db.doc(`yeon-profiles/${to}`).get(),
+  ]);
+  const 내이름 = (나문서.data()?.name as string) || "도반";
+  const 저이름 = (저문서.data()?.name as string) || "도반";
+
   const thread = db.collection("dm-threads").doc();
   const 때 = FieldValue.serverTimestamp();
   const batch = db.batch();
@@ -93,6 +109,15 @@ export async function POST(req: Request) {
     members: [me, to],
     // 인연으로 열린 방은 청할 것이 없다 — 바로 이어진 사이다
     status: "accepted",
+    requesterUid: me,
+    requesterName: 내이름,
+    ownerUid: to,
+    ownerName: 저이름,
+    // 모임 글에서 온 방이 아니다. 쪽지함이 제목 자리에 이것을 적는다
+    postId: "",
+    postTitle: "因緣 · 인연",
+    intro: "",
+    msgCount: 0,
     from: me,
     to,
     kind: "yeon",

@@ -93,7 +93,9 @@ export function 들어올수있나(born: number): boolean {
 export function 채비됐나(p: 인연프로필 | null): boolean {
   if (!p) return false;
   if (!p.sex || !p.born || !p.area) return false;
-  // 형: 「가입할 때 사진 무조건」 — 통과된 사진이 한 장은 있어야 한다
+  // 형: 「가입할 때 사진이랑 프로필 넣어야 가입되는 걸로」
+  // 사진만으로는 카드가 얼굴 한 장이다. 한 마디가 있어야 사람이 읽힌다.
+  if (!p.line?.trim()) return false;
   return p.photos.some((f) => f.state === "ok");
 }
 
@@ -104,6 +106,8 @@ export function 모자란것(p: 인연프로필 | null): string[] {
   if (!p?.sex) 빠진.push("성별");
   if (!p?.born) 빠진.push("나이");
   if (!p?.area) 빠진.push("지역");
+  // 형: 「사진이랑 프로필 넣어야 가입」 — 한 마디가 그 프로필이다
+  if (!p?.line?.trim()) 빠진.push("한 마디");
   return 빠진;
 }
 

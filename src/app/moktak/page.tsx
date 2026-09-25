@@ -573,10 +573,16 @@ export default function MoktakPage() {
   // conic-gradient 는 언제나 시계로 돈다. 뒤집는 길은 하나뿐이다 —
   // **끝에서부터** 칠한다. 검은 조각을 1turn 쪽에 붙여 두면 그 조각이
   // 자라는 방향이 12시에서 왼쪽, 곧 반시계가 된다.
+  // 금은 **알이 놓인 띠에만** 든다. 부채꼴로 통째로 덮으면 가운데 술까지
+  // 반쪽이 금이 되어, 물드는 게 아니라 부채꼴 하나가 돌아가는 것처럼 보인다.
+  // 그림에서 잰 값 — 알 띠는 반지름 63%~87% 사이에 있다(1 = 그림 반폭).
+  // 그림이 통의 83% 로 앉으므로 통 기준으로는 52%~72%.
+  const 알띠 =
+    "radial-gradient(closest-side circle at 50% 50%, #0000 0 46%, #000 53% 79%, #0000 86%)";
   const goldMask =
     f <= 0
       ? "linear-gradient(#0000, #0000)"
-      : `conic-gradient(at 50% 50%, #0000 0turn ${Math.max(0, 1 - f - 0.008)}turn, #000 ${1 - f}turn 1turn)`;
+      : `conic-gradient(at 50% 50%, #0000 0turn ${Math.max(0, 1 - f - 0.008)}turn, #000 ${1 - f}turn 1turn), ${알띠}`;
   const phrases = Math.floor(hits / geun.ch.length); // 몇 편 왔나
   const shareText =
     tab === "moktak"
@@ -762,6 +768,9 @@ export default function MoktakPage() {
           style={{
             maskImage: goldMask,
             WebkitMaskImage: goldMask,
+            // 겹 둘을 **겹치는 데만** 남긴다 — 부채꼴 ∩ 알 띠
+            maskComposite: "intersect",
+            WebkitMaskComposite: "source-in",
             opacity: beadWide ? 0 : 1,
             transition: "opacity .3s",
           }}

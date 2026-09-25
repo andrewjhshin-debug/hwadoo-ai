@@ -82,6 +82,7 @@ import {
   promptInstall,
 } from "@/lib/install";
 import { loadVisits, visitDayKey } from "@/components/VisitLedger";
+import YeonAvatar from "@/components/YeonAvatar";
 import { loadMeditations } from "@/lib/meditation";
 import {
   Person,
@@ -925,7 +926,10 @@ export default function SettingsPage() {
           사람이 찾던 자리를 없애지는 않는다). ── */}
       {user && (
         <div className="mt-5 flex items-center justify-between gap-3 rounded-[12px] border border-ink-3 bg-ink-2/40 px-4 py-3">
-          <div className="min-w-0">
+          {/* 동그란 얼굴 — 누르면 남이 보는 나로. 형: 「동그라미 프로필에
+              사진 하고 그 안에 돋보기 넣고」 */}
+          <YeonAvatar />
+          <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] text-hanji">
               {user.displayName ?? "수행자"}님
             </p>

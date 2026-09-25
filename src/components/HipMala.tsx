@@ -36,7 +36,13 @@ export const BEADS: Bead[] = [
   { mark: "話", name: "화두", href: "/", also: ["/my-hwadu", "/archive", "/room"] },
   { mark: "功", name: "공덕", href: "/moktak", also: [] },
   // 형: 「메인 아래 탭은 화두, 손잡고 절로(게시판)」
-  { mark: "緣", name: "절로", href: "/gathering", also: ["/pilgrimage"] },
+  // 인연 세 방(오늘의 인연 · 내 프로필 · 프로필 보기)도 緣 안이다
+  {
+    mark: "緣",
+    name: "절로",
+    href: "/gathering",
+    also: ["/pilgrimage", "/gathering/yeon", "/gathering/me", "/gathering/me/view"],
+  },
   {
     mark: "我",
     // 형: 「아래탭 맨 오른쪽 앱은 연꽃공양 말고 내 도량으로」.

@@ -552,8 +552,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // 차단 — 제 목록만
-    match /yeon-blocks/{uid}/{other} {
+    // 차단 — 제 목록만.
+    // 길이 틀려 있었다. 서버는 `yeon-blocks/{uid}/list/{other}` 를 읽는데
+    // 규칙은 `yeon-blocks/{uid}/{other}` 를 말하고 있었다 — 그 길에는
+    // 문서가 없으니 아무것도 지키지 못했고, 브라우저에서 막기를 쓰면
+    // 그대로 거절됐다. 서버가 쓰는 길로 맞춘다.
+    match /yeon-blocks/{uid}/list/{other} {
       allow read, write: if isAdmin()
         || (request.auth != null && request.auth.uid == uid);
     }
