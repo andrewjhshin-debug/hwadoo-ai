@@ -123,7 +123,7 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     hanja: "我",
     doors: [
       { href: "/settings", label: "내 도량", say: "공덕과 부적", Icon: Person },
-      { href: "/lotus", label: "연꽃 공양", say: "등을 밝히다", Icon: YeonkkotGold },
+      { href: "/lotus", label: "연꽃", say: "등을 밝히다", Icon: YeonkkotGold },
       { href: "/goods", label: "굿즈", say: "불교용품", Icon: Bojagi },
     ],
   },

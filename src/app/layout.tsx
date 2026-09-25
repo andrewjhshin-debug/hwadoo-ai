@@ -140,6 +140,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/privacy" className="transition-colors hover:text-hanji-dim">
                 개인정보처리방침
               </Link>
+              <Link
+                href="/youth"
+                className="transition-colors hover:text-gold-soft"
+              >
+                청소년보호정책
+              </Link>
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
                 className="transition-colors hover:text-hanji-dim"

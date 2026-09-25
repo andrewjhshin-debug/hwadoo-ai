@@ -232,7 +232,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/breath", label: "호흡 명상", Icon: Breath },
   { href: "/empty", label: "비움", Icon: Baru },
   { href: "/candle", label: "법당", Icon: Chotbul },
-  { href: "/lotus", label: "연꽃 공양", Icon: YeonkkotGold },
+  { href: "/lotus", label: "연꽃", Icon: YeonkkotGold },
   { href: "/community", label: "연지원", Icon: LotusPond },
   { href: "/archive", label: "지난 화두", Icon: Seogo },
   { href: "/sutra", label: "외우기", Icon: Book },
@@ -793,6 +793,7 @@ export default function SettingsPage() {
             { href: "/about", label: "서비스 소개" },
             { href: "/terms", label: "이용약관" },
             { href: "/privacy", label: "개인정보" },
+            { href: "/youth", label: "청소년보호" },
           ],
           email: CONTACT_EMAIL,
           biz: `${BIZ_NAME} · 대표 ${BIZ_OWNER} · 사업자등록번호 ${BIZ_REG_NO} · 통신판매업신고 ${BIZ_MAIL_ORDER_NO} · ${BIZ_ADDRESS} · 연락처 ${BIZ_PHONE ?? CONTACT_EMAIL}`,
@@ -1782,6 +1783,8 @@ export default function SettingsPage() {
             { href: "/ganhwaseon", label: "간화선이란?" },
             { href: "/terms", label: "이용약관" },
             { href: "/privacy", label: "개인정보처리방침" },
+            // 만 19세 이상 서비스는 이 자리가 법정 의무다
+            { href: "/youth", label: "청소년보호정책" },
           ].map((l) => (
             <Link
               key={l.href}

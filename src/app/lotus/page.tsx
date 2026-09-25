@@ -1,7 +1,16 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 연꽃 공양 — 화두의 디지털 재화(연꽃) 구매 흐름.
+// 연꽃 — 화두 안에서 쓰는 서비스 이용권 구매.
+//
+// **결제 화면에서는 「공양」이라 부르지 않는다.**
+// 심사자는 이 화면 한 장으로 업종을 가른다. 「공양·보시·시주」가 있으면
+// 헌금으로 읽히고, 헌금은 심사 가능 PG 가 세 곳뿐인 데다 비고에 「탈세
+// 위험」이 붙고 기부금단체 인증을 요구한다 — 우리는 기부금단체가 아니다.
+// 그 자리에서 반려된다.
+//
+// 「공양」이라는 말은 우리 정서의 중심이라 버리지 않는다. 다만 **쓰는
+// 자리에만** 둔다 — 법당·초·회향. 결제 화면은 법당이 아니라 상거래 화면이다.
 // · PG 심사가 늦어져 계좌이체(무통장입금)로 직접 받는다:
 //   [상품 선택] → [수취 계정 확인] → [결제하기] → 입금 안내(계좌·금액)
 //   → 입금자명 적고 [입금했습니다] → orders 문서 + 관리자 메일 →
@@ -45,7 +54,7 @@ const PRODUCTS: Product[] = [
     n: 1,
     price: 1000,
     each: 1000,
-    label: "연꽃 한 송이",
+    label: "연꽃 1개 · 이용권",
     pill: "한 송이",
   },
   {
@@ -53,7 +62,7 @@ const PRODUCTS: Product[] = [
     n: 10,
     price: 9000,
     each: 900,
-    label: "연꽃 열 송이",
+    label: "연꽃 10개 · 이용권",
     pill: "열 송이",
     best: true,
   },
@@ -62,7 +71,7 @@ const PRODUCTS: Product[] = [
     n: 30,
     price: 24000,
     each: 800,
-    label: "연꽃 서른 송이",
+    label: "연꽃 30개 · 이용권",
     pill: "서른 송이",
   },
 ];
@@ -125,7 +134,7 @@ function MyLotus() {
       <p className="relative mt-3 border-t border-ink-3 pt-2.5 text-[11px] leading-5 text-hanji-faint">
         {n > 0
           ? "쪽지 한 통 · 등 한 번 · 인연 한 손길에 한 송이씩 나갑니다"
-          : "공덕을 모아 바꾸거나, 아래에서 공양할 수 있습니다"}
+          : "공덕을 모아 바꾸거나, 아래에서 구매할 수 있습니다"}
       </p>
     </div>
   );
@@ -159,10 +168,10 @@ function LotusClosed() {
       <div className="text-center">
         <YeonkkotGold className="mx-auto h-11 w-11 opacity-80" />
         <h1 className="mt-4 font-serif text-[22px] font-light text-hanji">
-          연꽃 공양
+          연꽃
         </h1>
         <p className="mt-2.5 break-keep text-[13px] leading-7 text-hanji-dim">
-          연꽃은 화두 안에서 쓰는 디지털 재화입니다.
+          연꽃은 화두 안에서 쓰는 서비스 이용권입니다.
           <br />
           지금은 베타 기간이라 <span className="text-gold-soft">판매를 잠시 닫아</span> 두었습니다.
         </p>
@@ -196,8 +205,8 @@ function LotusClosed() {
         ))}
       </ul>
       <p className="mt-3 text-[11.5px] leading-6 text-hanji-faint">
-        표시 가격은 부가세 포함입니다. 여러 송이를 한 번에 공양하면 송이당 값이
-        내려갑니다.
+        표시 가격은 부가세 포함입니다. 여러 개를 한 번에 구매하면 개당 값이
+        내려갑니다. 구매한 연꽃의 사용 기간은 구매일로부터 5년입니다.
       </p>
 
       {/* ── 쓰임 · 제공 · 환불 — 사기 전에 보여야 하는 것들 ── */}
@@ -233,7 +242,7 @@ function LotusClosed() {
 
       {/* 사는 단추가 앉을 자리 — 지금은 안내만 */}
       <div className="mt-7 rounded-full border border-dashed border-ink-3 px-6 py-4 text-center text-[13px] text-hanji-faint">
-        공양 자리는 채비가 끝나는 대로 엽니다
+        판매는 채비가 끝나는 대로 엽니다
       </div>
 
       <p className="mt-6 break-keep text-center text-[12.5px] leading-6 text-hanji-faint">
@@ -311,7 +320,7 @@ function LotusInner() {
           蓮
         </span>
         <h1 className="mt-4 text-xs tracking-[0.5em] text-gold-soft">
-          연꽃 공양
+          연꽃
         </h1>
         {/* 사러 온 자리에서 제일 먼저 궁금한 것은 「지금 내가 몇 송이인가」다.
             아래 지갑 칸까지 내려가야 보이던 것을 머리에 올렸다. */}
