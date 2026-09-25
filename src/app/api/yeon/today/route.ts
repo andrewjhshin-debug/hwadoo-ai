@@ -34,8 +34,17 @@ type 프로필 = {
   sex?: "m" | "f";
   born?: number;
   area?: string;
+  job?: string;
+  tall?: number;
+  mbti?: string;
+  smoke?: string;
+  drink?: string;
+  vibe?: string[];
+  like?: string[];
+  care?: string[];
+  date?: string[];
   temple?: string;
-  practice?: string[];
+  wantTemple?: string;
   line?: string;
   photos?: { url: string; state: string }[];
   merit?: { rank?: string; total?: number };
@@ -51,11 +60,21 @@ function 추려서(p: 프로필) {
     born: p.born ?? 0,
     area: p.area ?? "",
     temple: p.temple ?? "",
-    practice: p.practice ?? [],
+    wantTemple: p.wantTemple ?? "",
+    job: p.job ?? "",
+    tall: p.tall ?? 0,
+    mbti: p.mbti ?? "",
+    vibe: p.vibe ?? [],
+    like: p.like ?? [],
+    care: p.care ?? [],
+    date: p.date ?? [],
     line: p.line ?? "",
     rank: p.merit?.rank ?? "",
     photos: (p.photos ?? []).filter((f) => f.state === "ok").map((f) => f.url),
   };
+  // 흡연·음주는 **안 보낸다.** 카드에서 먼저 물을 것이 아니다 —
+  // 알약이 열두 개면 사람이 안 읽힌다(형: 「심플리시티가 핵심」).
+  // 프로필에는 받아 두고, 쪽지가 열린 뒤에 쓸 자리를 따로 둔다.
 }
 
 /**
@@ -70,8 +89,18 @@ function 점수(나: 프로필, 너: 프로필): number {
   let s = 0;
   if (나.temple && 너.temple && 나.temple === 너.temple) s += 50;
   if (나.area && 너.area && 나.area === 너.area) s += 30;
-  const 겹침 = (나.practice ?? []).filter((x) => (너.practice ?? []).includes(x));
-  s += 겹침.length * 6;
+  // 형: 「수행 지우고 MBTI 랑 … 취향도 골프 와인 … 요즘 어떤 것에 관심이」
+  // 겹치는 것이 곧 말 붙일 거리다. 관심이 취향보다 세다 — 지금 마음이
+  // 가 있는 쪽이라서.
+  const 겹 = (a?: string[], b?: string[]) =>
+    (a ?? []).filter((x) => (b ?? []).includes(x)).length;
+  s += 겹(나.care, 너.care) * 7;
+  s += 겹(나.like, 너.like) * 5;
+  s += 겹(나.date, 너.date) * 4;
+  s += 겹(나.vibe, 너.vibe) * 2;
+  // 가 보고 싶은 절이 상대가 다니는 절이면 — 이보다 좋은 구실이 없다
+  if (나.wantTemple && 너.temple && 나.wantTemple === 너.temple) s += 40;
+  if (너.wantTemple && 나.temple && 너.wantTemple === 나.temple) s += 40;
   // 계급이 비슷하면 결이 맞는다 — 꾸준함의 결
   const a = 나.merit?.total ?? 0, b = 너.merit?.total ?? 0;
   if (a && b) s += Math.max(0, 12 - Math.abs(Math.log10(a + 1) - Math.log10(b + 1)) * 8);

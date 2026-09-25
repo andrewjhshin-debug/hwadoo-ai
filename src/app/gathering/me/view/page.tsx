@@ -99,9 +99,16 @@ export default function 내프로필보기() {
 
               <div className="hip-yeon-tags">
                 {me.temple && <span data-temple="1">{me.temple}</span>}
-                {(me.practice ?? []).map((x) => (
-                  <span key={x}>{x}</span>
-                ))}
+                {me.job && <span>{me.job}</span>}
+                {me.tall ? <span>{me.tall}cm</span> : null}
+                {me.mbti && <span>{me.mbti}</span>}
+                {me.smoke && <span>흡연 {me.smoke}</span>}
+                {me.drink && <span>음주 {me.drink}</span>}
+                {[...(me.vibe ?? []), ...(me.like ?? []), ...(me.care ?? [])].map(
+                  (x) => (
+                    <span key={x}>{x}</span>
+                  )
+                )}
                 {me.merit?.rank && <span data-rank="1">{me.merit.rank}</span>}
               </div>
 

@@ -40,6 +40,10 @@ export default function 오늘의인연() {
   const [닿음, 닿음잡기] = useState<string | null>(null); // 쪽지방 id
   const [장, 장잡기] = useState(0); // 사진 몇 번째
   const [메뉴, 메뉴잡기] = useState(false);
+  // 엎어 둔 카드 — 형: 「카드 형식으로 돌아가서 공개되면 도파민 터지고」
+  // 뒤집은 것은 브라우저에 적어 둔다. 같은 날 다시 들어와도 또 엎지 않는다.
+  const [뒤집힘, 뒤집힘잡기] = useState(true);
+  const [도는중, 도는중잡기] = useState(false);
   const [신고창, 신고창잡기] = useState(false);
   const 통 = useRef<HTMLDivElement | null>(null);
 
@@ -72,7 +76,26 @@ export default function 오늘의인연() {
     장잡기(0);
     메뉴잡기(false);
     신고창잡기(false);
-  }, [이?.uid]);
+    도는중잡기(false);
+    if (!이) return;
+    let 봤나 = false;
+    try {
+      봤나 = localStorage.getItem(열쇠(이.uid)) === "1";
+    } catch {
+      // 사생활 창에서는 저장이 막힌다. 그러면 늘 엎어서 보여 준다
+    }
+    뒤집힘잡기(봤나);
+  }, [이?.uid]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  const 뒤집기 = () => {
+    if (!이 || 도는중) return;
+    도는중잡기(true);
+    try {
+      localStorage.setItem(열쇠(이.uid), "1");
+    } catch {}
+    // 반 바퀴 돌아 등을 보일 때 알맹이로 갈아 끼운다
+    window.setTimeout(() => 뒤집힘잡기(true), 330);
+  };
 
   const 치우기 = (uid: string) => 끝난이잡기((v) => [...v, uid]);
 
@@ -189,6 +212,22 @@ export default function 오늘의인연() {
   const 사진 = 이.photos.length ? 이.photos : [];
   const 살 = 이.born ? 나이(이.born) : 0;
 
+  if (!뒤집힘)
+    return (
+      <껍데기>
+        <button
+          className="hip-yeon-flip"
+          data-go={도는중 ? "1" : undefined}
+          onClick={뒤집기}
+          aria-label="오늘의 인연 열기"
+        >
+          <span>
+            <b>緣</b>
+          </span>
+        </button>
+      </껍데기>
+    );
+
   return (
     <껍데기>
       <div className="hip-yeon-card" ref={통}>
@@ -238,11 +277,24 @@ export default function 오늘의인연() {
         {/* ── 무엇을 하는 사람인가 ── */}
         <div className="hip-yeon-tags">
           {이.temple && <span data-temple="1">{이.temple}</span>}
-          {이.practice.map((x) => (
+          {이.job && <span>{이.job}</span>}
+          {이.tall ? <span>{이.tall}cm</span> : null}
+          {이.mbti && <span>{이.mbti}</span>}
+          {[...이.vibe, ...이.like, ...이.care].map((x) => (
             <span key={x}>{x}</span>
           ))}
           {이.rank && <span data-rank="1">{이.rank}</span>}
         </div>
+
+        {/* 데이트 · 가고 싶은 절 — 말 붙일 거리가 되는 것만 한 줄 더 */}
+        {(이.date.length > 0 || 이.wantTemple) && (
+          <div className="hip-yeon-tags" data-soft="1">
+            {이.wantTemple && <span data-temple="1">{이.wantTemple} 가고 싶어요</span>}
+            {이.date.map((x) => (
+              <span key={x}>{x}</span>
+            ))}
+          </div>
+        )}
 
         {이.line && <p className="hip-yeon-line">{이.line}</p>}
       </div>
@@ -288,6 +340,12 @@ function 껍데기({ children }: { children: React.ReactNode }) {
       </div>
     </HipRoom>
   );
+}
+
+/** 오늘 이 사람을 이미 뒤집었나 — 날이 바뀌면 열쇠도 바뀐다 */
+function 열쇠(uid: string) {
+  const 날 = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
+  return `hwadu.yeon.open:${날}:${uid}`;
 }
 
 /** 서버 말을 사람 말로 */

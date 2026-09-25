@@ -22,6 +22,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import HipDayBar from "@/components/HipDayBar";
 import { BEADS, beadOf } from "./HipMala";
 
 /** 손가락이 이만큼은 가야 넘긴다 — 세로로 읽다가 살짝 흔들린 것과 가른다.
@@ -101,6 +102,9 @@ export default function HipShell({
          갈래는 **위 띠**로 옮긴다 — 둘 다 눈에 보이는 자리다.
          보이지 않는 손짓을 지우면, 보이는 자리가 살아난다. */
     >
+      {/* 맨 위 한 줄 — 오늘 쌓은 공덕. 형: 「맨 위에 그 하루치 공덕
+          쌓이는 거 줄로 오리지날처럼 하되 핑크색으로」 */}
+      <HipDayBar />
       {children}
     </div>
   );

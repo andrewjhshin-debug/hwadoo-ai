@@ -81,6 +81,11 @@ const ARC_BOTTOM =
 // 위 가운데에서 **왼쪽으로** 돈다. 오른손으로 염주를 굴리면 알은 몸 쪽으로
 // 넘어오니, 앞에서 보면 반시계다 — 굴리는 손과 차오르는 쪽이 같아진다.
 // 시작점(158 12)만 같고 sweep 을 0 으로 뒤집어 지나는 차례도 뒤집는다.
+/** 알 한가운데를 지나는 실 — 반지름은 그림에서 쟀다(316 틀에서 98) */
+const ARC_MID_CCW =
+  "M158 60 A98 98 0 0 0 60 158 A98 98 0 0 0 158 256 " +
+  "A98 98 0 0 0 256 158 A98 98 0 0 0 158 60";
+const ARC_MID = 2 * Math.PI * 98;
 const ARC_TOP_CCW =
   "M158 12 A146 146 0 0 0 12 158 A146 146 0 0 0 158 304 " +
   "A146 146 0 0 0 304 158 A146 146 0 0 0 158 12";
@@ -294,6 +299,7 @@ export default function MoktakPage() {
   const [hits, setHits] = useState(0);
   const [pops, setPops] = useState<Pop[]>([]);
   const [combo, setCombo] = useState(0); // 고른 박자로 이어 친 수
+  const [keyCombo, setKeyCombo] = useState(0); // 키캡 쪽 박자
   const [auto, setAuto] = useState(false);
   const [bpm, setBpm] = useState(168);
   const popId = useRef(0);
@@ -317,12 +323,34 @@ export default function MoktakPage() {
   // 그 두 소리 사이가 키보드를 키보드로 만든다.
   const [keyHits, setKeyHits] = useState(0);
   const [keyDown, setKeyDown] = useState(false);
+  // 키캡에도 박자를 센다 — 형: 「키캡도 눌렸을 때 합이 맞으면 목탁처럼
+  // 그 기능 넣어, 계속 누르도록 유도하게」
+  // 목탁이 쓰는 셈을 그대로 쓴다(최근 세 간격이 고르면 하나씩 오른다).
+  // 다만 **제 통을 따로 둔다** — 목탁 치다 키캡으로 넘어왔다고 남의 박자를
+  // 물려받으면, 안 친 박자가 맞았다고 나온다.
+  const keyBeats = useRef<number[]>([]);
+  const keyLastAt = useRef(0);
+
   const pressKey = () => {
     clickKeycap(vol, "down");
     earn("keycap");
     buzz(5);
     setKeyHits((n) => n + 1);
     setKeyDown(true);
+
+    const now = performance.now();
+    const gap = now - keyLastAt.current;
+    if (keyLastAt.current && gap > 120 && gap < 2200) {
+      const list = [...keyBeats.current, gap].slice(-3);
+      keyBeats.current = list;
+      const avg = list.reduce((s, x) => s + x, 0) / list.length;
+      const even = list.every((x) => Math.abs(x - avg) / avg < 0.16);
+      setKeyCombo((c) => (list.length >= 2 && even ? c + 1 : 0));
+    } else {
+      keyBeats.current = [];
+      setKeyCombo(0);
+    }
+    keyLastAt.current = now;
   };
   const releaseKey = () => {
     if (!keyDown) return;
@@ -761,34 +789,42 @@ export default function MoktakPage() {
           />
         </div>
 
-        {/* 물든 만큼 금빛 */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 grid place-items-center"
-          style={{
-            maskImage: goldMask,
-            WebkitMaskImage: goldMask,
-            // 겹 둘을 **겹치는 데만** 남긴다 — 부채꼴 ∩ 알 띠
-            maskComposite: "intersect",
-            WebkitMaskComposite: "source-in",
-            opacity: beadWide ? 0 : 1,
-            transition: "opacity .3s",
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={skinSrc("bead")}
-            alt=""
-            draggable={false}
-            className="block h-[83%] w-[83%] object-contain"
-            style={{
-              transform: `rotate(${angle}deg)`,
-              transition: "transform 0.16s ease-out",
-              filter:
-                "sepia(1) saturate(2.4) hue-rotate(-8deg) brightness(1.24) drop-shadow(0 0 12px rgba(217,180,91,0.35))",
-            }}
-          />
-        </div>
+        {/* ── 알 한가운데를 지나는 금실 ───────────────────────────
+            형: 「세로 염주 여전히 안 맞다. 염주알 중앙에 황금 선을 두고
+                 채워지도록 해 봐. 지금 염주 도는 거랑 황금 채워지는 게
+                 어긋난다니까」
+
+            맞는 말이다. 알은 **돌고**(rotate) 금빛 겹은 **안 돌았다**.
+            통에 붙은 부채꼴 아래로 알이 미끄러져 지나가니, 셀 때마다
+            금이 딴 알에 가 붙었다. 겹을 같이 돌리면 이번엔 시작점이
+            표(12시)에서 떨어져 나간다 — 어느 쪽이든 하나는 어긋난다.
+
+            그래서 금을 **알에서 뗀다.** 염주는 본래 실에 꿴 것이니,
+            알 한가운데를 지나는 실 한 줄이 금으로 물든다. 실은 동그라미라
+            돌아도 그대로다 — 어긋날 것이 없다.
+            반지름은 그림에서 쟀다(알 띠 63~87% 의 한가운데 75%). */}
+        {!beadWide && (
+          <svg
+            aria-hidden
+            viewBox="0 0 316 316"
+            className="pointer-events-none absolute inset-0 h-full w-full"
+          >
+            <path d={ARC_MID_CCW} fill="none" stroke="rgba(226,186,116,0.22)" strokeWidth="4" />
+            <path
+              d={ARC_MID_CCW}
+              fill="none"
+              stroke="url(#hip-arc-gold)"
+              strokeWidth="4.6"
+              strokeLinecap="round"
+              strokeDasharray={ARC_MID}
+              strokeDashoffset={ARC_MID * (1 - pos / BEADS)}
+              style={{
+                transition: "stroke-dashoffset 0.14s ease-out",
+                filter: "drop-shadow(0 0 5px rgba(217,180,91,0.55))",
+              }}
+            />
+          </svg>
+        )}
 
         {/* 지금 넘기는 자리 */}
         <span
@@ -974,7 +1010,7 @@ export default function MoktakPage() {
           mokSrc={skinSrc("moktak")}
           keySkin={keySkin}
           onKeySkin={setKeySkin}
-          combo={combo}
+          combo={tab === "keycap" ? keyCombo : combo}
           pos={pos}
           ringing={ringing}
           pops={pops}

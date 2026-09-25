@@ -24,7 +24,14 @@ export type 오늘사람 = {
   born: number;
   area: string;
   temple: string;
-  practice: string[];
+  wantTemple: string;
+  job: string;
+  tall: number;
+  mbti: string;
+  vibe: string[];
+  like: string[];
+  care: string[];
+  date: string[];
   line: string;
   rank: string;
   /** 통과된 사진만 */

@@ -747,39 +747,11 @@ export default function Home() {
             </details>
           </div>
 
-          {/* 차 한 잔 — 회향의 여운이 남은 자리에서만 조용히 청한다.
-              모바일은 카카오페이 바로, PC는 찻자리(QR)로. 링크가 없으면 접는다. */}
-          {DONATION_URL && (
-            <div className="mt-3 w-full max-w-xl rounded-[14px] border border-gold/25 bg-gold/5 px-5 py-4 text-left">
-              <p className="text-[10px] tracking-[0.34em] text-gold-soft">
-                喫茶去 · 차 한 잔
-              </p>
-              <p className="mt-2 break-keep text-[13px] leading-6 text-hanji-dim">
-                {current.durationDays >= 21
-                  ? "긴 물음을 끝까지 품으셨습니다. 이 도량이 그 곁에 있었다면 — 차 한 잔 값으로 등불을 보태 주실 수 있습니다."
-                  : "이 물음이 마음에 남았다면 — 차 한 잔 값으로 도량의 등불을 보태 주실 수 있습니다."}
-              </p>
-              <a
-                href={DONATION_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3.5 inline-flex items-center gap-2 rounded-full border border-gold/50 px-5 py-2.5 text-[12px] tracking-[0.2em] text-gold transition-colors hover:bg-gold/10 sm:hidden"
-              >
-                <Teacup className="h-4 w-4" />
-                차 한 잔 올리기
-              </a>
-              <Link
-                href="/tea"
-                className="mt-3.5 hidden items-center gap-2 rounded-full border border-gold/50 px-5 py-2.5 text-[12px] tracking-[0.2em] text-gold transition-colors hover:bg-gold/10 sm:inline-flex"
-              >
-                <Teacup className="h-4 w-4" />
-                차 한 잔 올리기
-              </Link>
-              <p className="mt-2.5 break-keep text-[11px] leading-5 text-hanji-faint">
-                찻값은 이 도량을 잇는 데 쓰입니다.
-              </p>
-            </div>
-          )}
+          {/* 차 한 잔은 여기서 뺐다.
+              형: 「여기에 차 한 잔 빼, 돈 달라고 티 내는 거 티 난다」
+              회향을 막 끝낸 자리에서 값을 청하면, 앞 화면이 통째로
+              그 청을 위한 밑밥으로 읽힌다. 찻자리(/tea)와 내 도량에는
+              그대로 있으니, 낼 사람은 제 발로 간다. */}
 
           <button
             onClick={archiveCurrent}

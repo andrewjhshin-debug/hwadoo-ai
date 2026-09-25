@@ -34,17 +34,25 @@ export default function HipRoom({
   lanes = true,
   /** 아래 염주 넷 중 어느 알이 켜지나. 공양 방은 功, 인연은 緣 */
   rail = "/moktak",
+  /** 바탕을 흰 종이 한 장으로 — 번짐도 결도 없이.
+      형: 「하심 흰 종이 버전이 디폴트로 하되 뒷배경은 아예 흰 배경으로」 */
+  plain = false,
   children,
 }: {
   here: string;
   scroll?: boolean;
   lanes?: boolean;
   rail?: string;
+  plain?: boolean;
   children: ReactNode;
 }) {
   return (
     <HipShell here={rail}>
-      <div className={`hip-screen${scroll ? " hip-screen-scroll" : ""} hip-room`}>
+      <div
+        className={`hip-screen${scroll ? " hip-screen-scroll" : ""} hip-room${
+          plain ? " hip-room-plain" : ""
+        }`}
+      >
         {/* 숨 쉬는 바탕 — 덩이 둘이 서로 다른 박자로 아주 느리게 흐른다 */}
         <span aria-hidden className="hip-bloom hip-bloom-a" />
         <span aria-hidden className="hip-bloom hip-bloom-b" />

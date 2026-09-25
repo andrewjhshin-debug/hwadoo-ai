@@ -66,7 +66,7 @@ const TAIL_RATIO = 1.3448;
 type Ink = "gold" | "ink";
 const SKIN: Record<Ink, { paper: string; brush: string; dim: string; line: string; next: string }> = {
   gold: { paper: "#12100E", brush: "#D9B45B", dim: "rgba(217,180,91,.55)", line: "rgba(217,180,91,.22)", next: "흰 종이" },
-  ink: { paper: "#F4F2EC", brush: "#14110E", dim: "rgba(20,17,14,.5)", line: "rgba(20,17,14,.15)", next: "먹빛" },
+  ink: { paper: "#FFFFFF", brush: "#14110E", dim: "rgba(20,17,14,.5)", line: "rgba(20,17,14,.15)", next: "먹빛" },
   // 분홍 벌은 걷었다 — 형: 「하심은 먹색이 디폴트로, 하심 분홍식은 지우고」.
   // 하심은 엎드리는 일이다. 먹빛 어둠 위 금글씨 하나면 족하다.
 };
@@ -113,8 +113,9 @@ export default function HasimPage() {
   const [paper, setPaper] = useState(0);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
-  /** 먹빛 종이에 금글씨가 기본. 원하면 흰 종이에 먹글씨 */
-  const [ink, setInk] = useState<Ink>("gold");
+  /** 흰 종이에 먹글씨가 기본. 원하면 먹빛 종이에 금글씨.
+      형: 「하심 흰 종이 버전이 디폴트로 하되 뒷배경은 아예 흰 배경으로」 */
+  const [ink, setInk] = useState<Ink>("ink");
   /** 이번에 만날 한 줄 — 들어올 때 한 번 뽑는다 */
   const [say, setSay] = useState(0);
   /** 바닥에 닿았을 때 붙은 공덕(0 이면 오늘 이미 받았거나 천장) */
@@ -224,7 +225,7 @@ export default function HasimPage() {
     // scroll 은 끈다. 이 방은 **제 통을 제가 쥐어야** 한다 — 아래 상자가
     // ref 로 제 키를 재서 「한 칸」의 자로 쓰기 때문이다. HipRoom 이 대신
     // 흘려 주면 잴 통이 없어지고 unit 이 0 으로 주저앉는다.
-    <HipRoom here="/hasim" scroll={false}>
+    <HipRoom here="/hasim" scroll={false} plain={ink === "ink"}>
       {/* 종이 — 살갗(먹빛/흰 종이)에 따라 깔리는 색판이자, 내려가는 통.
           껍데기는 넘겼어도 **이 상자는 알맹이다.** 색판이 여기 붙어 있고,
           제 키가 한 칸의 자이며, 굴린 깊이로 공덕을 셈한다.

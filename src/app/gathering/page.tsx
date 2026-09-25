@@ -59,25 +59,17 @@ function GatheringInner() {
               않는다 — 눌러서 제 프로필을 채우다 보면 무엇인지 안다. */}
           <Link href="/gathering/yeon" className="rise rise-d1 hip-yeon-door">
             <b>道伴</b>
-            <span>
-              오늘의 인연
-              <i>절에 같이 갈 사람 · 하루 한 사람</i>
-            </span>
+            <span>오늘의 인연</span>
             <u>›</u>
           </Link>
-          {/* 문은 둘 — 보러 가는 문과 내 얼굴을 고치는 문.
-              전에는 하나뿐이라 「도반 찾기」를 눌러도 제 프로필 칸만
-              나왔다. 무엇을 하는 곳인지가 안 보였다. */}
+          {/* 문은 둘. 설명은 안 붙인다 — 형: 「개 같은 멘트 넣지 말라고 했다」 */}
           <Link
             href="/gathering/me"
             className="rise rise-d1 hip-yeon-door"
             data-thin="1"
           >
             <b>我</b>
-            <span>
-              내 프로필
-              <i>사진과 한 마디를 채워야 판에 선다</i>
-            </span>
+            <span>내 프로필</span>
             <u>›</u>
           </Link>
 
