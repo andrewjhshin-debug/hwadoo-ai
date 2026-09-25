@@ -615,7 +615,7 @@ export default function MoktakPage() {
             /* 형: 「황금빛이랑 염주랑 약간 딜레이가 있어. 딱딱 떨어지게 해,
                멀미난다」 — 알은 한 칸씩 툭툭 켜지는데 획만 0.2초 미끄러지니
                둘이 어긋나 보였다. 같은 박자로 맞춘다 — 획도 알처럼 툭. */
-            style={{ transition: "stroke-dashoffset 0.06s linear" }}
+            style={{ transition: "stroke-dashoffset 0.14s ease-out" }}
           />
         </svg>
 
@@ -629,17 +629,36 @@ export default function MoktakPage() {
               // 형: 「빨간 줄로 세로로 그은 데가 기준점이고, 그 앞부터
               //      황금색이 채워지게」 — 기준은 **아래 가운데**(180도)다.
               // 손이 굴리는 알이 거기 있는데 금은 저 위에서 시작하고 있었다.
+              // ── 금이 차는 셈 ────────────────────────────────
+              // 형: 「금 고리가 알보다 먼저 가는 것도 문제고, 자연스럽지가
+              //      않아」 — 까닭이 있었다. 고리에 세운 알은 스물일곱인데
+              //      셈은 백여덟이다. **알 하나가 네 타를 맡는다.** 고리는
+              //      한 타마다 움직이고 알은 네 타에 한 번 툭 켜지니, 세 타
+              //      동안 고리가 앞서 달리다 알이 뒤늦게 따라붙었다.
+              //
+              // 알도 **조금씩** 차게 한다. 물결이 그 알을 지나간 만큼만
+              // 금이 든다. 그러면 한 타마다 어딘가는 반드시 움직이고,
+              // 고리와 알이 같은 것을 말하게 된다.
+              const 칸 = 360 / RING_BEADS;
               const fromMarker = (180 - degrees + 360) % 360;
-              const lit = pos > 0 && fromMarker <= f * 360 + 360 / RING_BEADS / 2;
+              const 물결 = f * 360;
+              const 채움 = pos === 0
+                ? 0
+                : Math.max(0, Math.min(1, (물결 - (fromMarker - 칸 / 2)) / 칸));
               const markerDistance = Math.abs(degrees - 180);
               const atMarker = markerDistance < 5;
+              // 형: 「싸구려 레몬색도 문제」
+              // sepia 도 hue-rotate 도 답이 아니었다. sepia 는 결을 뭉개
+              // 레몬색을 만들고, hue-rotate 는 진짜 색상 회전이 아니라
+              // 행렬 근사라 채도가 주저앉아 겨자색이 된다.
+              // 금빛 알을 **따로 구워 뒀다**(bead-paw-one-gold.png) —
+              // 화소마다 HSL 로 풀어 색만 옮기고 그늘을 진한 호박빛으로
+              // 깔았다. 결이 살아 있으니 금붙이로 보인다.
+              const 분홍결 = `saturate(1.45) brightness(${(1.05 + 0.08 * front).toFixed(2)})`;
+              const 금결 = `brightness(${(1.0 + 0.09 * front).toFixed(2)})`;
               return (
-                <img
-                  // eslint-disable-next-line @next/next/no-img-element
+                <span
                   key={i}
-                  src={그림("/obj/bead-paw-one.png")}
-                  alt=""
-                  draggable={false}
                   className="absolute block"
                   style={{
                     left: `${50 + 40 * Math.sin(t)}%`,
@@ -647,27 +666,37 @@ export default function MoktakPage() {
                     width: `${17 * sc + (1 - front) * 3}%`,
                     transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
                     zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
+                    // 자리도 색도 **같은 박자**로. 하나만 미끄러지면 어긋난다
                     transition:
                       "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
-                    // 형: 「왜 이렇게 시꺼멓냐고. 우리가 만든 샛핑크에
-                    //      채워지는 건 황금색으로 하라니까?」
-                    //
-                    // 두 가지를 틀렸었다 —
-                    //  ① 안 넘긴 알이 칙칙했다. 원본 그림이 바랜 살구빛이라
-                    //     그대로 쓰면 죽는다. 채도를 올리고 색을 분홍 쪽으로
-                    //     돌려 **샛핑크**로 세운다
-                    //  ② 넘긴 알도 분홍으로 두었다. 넘긴 표시가 **금빛**이라야
-                    //     「채워진다」가 보인다 — sepia 로 바꿔 금으로 만든다
-                    // 검은 drop-shadow 는 그대로 안 쓴다(형: 「그늘이 많다」).
-                    filter: lit
-                      ? `sepia(1) saturate(2.6) hue-rotate(-10deg) brightness(${(1.12 + 0.14 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.45))`
-                      // 형: 「고양이 염주 색 또 왤케 탁해졌냐」.
-                      // 색상(hue)을 돌리면 빨개지고, 안 건드리면 탁하다.
-                      // **채도만** 올린다 — 분홍은 분홍대로 또렷해지고
-                      // 색이 딴 데로 가지 않는다
-                      : `saturate(1.45) brightness(${(1.05 + 0.08 * front).toFixed(2)})`,
                   }}
-                />
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={그림("/obj/bead-paw-one.png")}
+                    alt=""
+                    draggable={false}
+                    className="block w-full"
+                    style={{ filter: 분홍결 }}
+                  />
+                  {/* 금은 **덮는다** — 색을 갈아 끼우는 게 아니라 위에 얹어
+                      스며들게. 그래야 차오르는 것이 보인다 */}
+                  {채움 > 0 && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={그림("/obj/bead-paw-one-gold.png")}
+                      alt=""
+                      aria-hidden
+                      draggable={false}
+                      className="absolute inset-0 block w-full"
+                      style={{
+                        filter: 금결,
+                        opacity: 채움,
+                        transition: "opacity .14s ease-out",
+                      }}
+                    />
+                  )}
+                </span>
               );
             })}
           </div>
