@@ -82,7 +82,7 @@ export default function 인연내프로필() {
 
   if (있나 === false) {
     return (
-      <HipRoom here="/gathering/me">
+      <HipRoom here="/gathering/me" lanes={false} rail="/gathering">
         <div className="hip-yeon">
           <p className="hip-yeon-head">因緣 · 도반 찾기</p>
           <p className="hip-yeon-say">들어온 뒤에 열립니다</p>
@@ -95,7 +95,7 @@ export default function 인연내프로필() {
   const 올해 = new Date().getFullYear();
 
   return (
-    <HipRoom here="/gathering/me">
+    <HipRoom here="/gathering/me" lanes={false} rail="/gathering">
       <div className="hip-yeon">
         <p className="hip-yeon-head">因緣 · 도반 찾기</p>
 

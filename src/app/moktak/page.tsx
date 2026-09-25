@@ -77,6 +77,13 @@ const ARC_TOP =
 const ARC_BOTTOM =
   "M158 304 A146 146 0 0 0 304 158 A146 146 0 0 0 158 12 " +
   "A146 146 0 0 0 12 158 A146 146 0 0 0 158 304";
+// 형: 「세로형 염주 차는 거 시계 반대 방향으로 고쳐」
+// 위 가운데에서 **왼쪽으로** 돈다. 오른손으로 염주를 굴리면 알은 몸 쪽으로
+// 넘어오니, 앞에서 보면 반시계다 — 굴리는 손과 차오르는 쪽이 같아진다.
+// 시작점(158 12)만 같고 sweep 을 0 으로 뒤집어 지나는 차례도 뒤집는다.
+const ARC_TOP_CCW =
+  "M158 12 A146 146 0 0 0 12 158 A146 146 0 0 0 158 304 " +
+  "A146 146 0 0 0 304 158 A146 146 0 0 0 158 12";
 
 // 염불 여섯 자 — 목탁을 칠 때마다 한 자씩
 /**
@@ -560,14 +567,16 @@ export default function MoktakPage() {
   // 물든 만큼만 금빛 겹을 보여 준다 — 위 가운데의 표시점에서 반시계로.
   // 바깥 고리와 같은 출발점·방향이어야, 금빛이 갑자기 아래쪽에 덧칠된 듯 보이지 않는다.
   const f = pos / BEADS;
-  // 세로형의 금 — 위 가운데(12시)에서 시계 방향으로 찬다.
-  // from 을 -f*360 으로 주고 있었다. 그러면 채워진 조각이 **통째로 뒤로
-  // 돌아** 시작점이 매번 옮겨 다닌다 — 형이 「어디로 가냐」 한 게 이것이다.
-  // from 을 빼면 conic-gradient 는 본래 12시에서 시작해 시계로 돈다.
+  // 세로형의 금 — 위 가운데(12시)에서 **반시계**로 찬다.
+  // 형: 「세로형 염주 차는 거 시계 반대 방향으로 고쳐」
+  //
+  // conic-gradient 는 언제나 시계로 돈다. 뒤집는 길은 하나뿐이다 —
+  // **끝에서부터** 칠한다. 검은 조각을 1turn 쪽에 붙여 두면 그 조각이
+  // 자라는 방향이 12시에서 왼쪽, 곧 반시계가 된다.
   const goldMask =
     f <= 0
       ? "linear-gradient(#0000, #0000)"
-      : `conic-gradient(at 50% 50%, #000 0turn ${f}turn, #0000 ${f + 0.008}turn 1turn)`;
+      : `conic-gradient(at 50% 50%, #0000 0turn ${Math.max(0, 1 - f - 0.008)}turn, #000 ${1 - f}turn 1turn)`;
   const phrases = Math.floor(hits / geun.ch.length); // 몇 편 왔나
   const shareText =
     tab === "moktak"
@@ -606,7 +615,11 @@ export default function MoktakPage() {
       >
         {/* 바깥 진행 고리 — 백팔이 차오른다 */}
         <svg aria-hidden viewBox="0 0 316 316" className="absolute inset-0 h-full w-full">
-          <path d={beadWide ? ARC_BOTTOM : ARC_TOP} fill="none" stroke="rgba(26,23,20,0.12)" strokeWidth="2" />
+          {/* 아직 안 찬 자리 — 형: 「고양이 염주 뒤에 있는 거 넘 검게 하지 말고」
+              먹빛(26,23,20)을 깔아 두었더니 흰 판에서 잿빛 철사로 보였다.
+              금이 지나갈 길이니 **금의 옅은 쪽**으로 깐다. 물들기 전과 후가
+              같은 한 벌이 된다. */}
+          <path d={beadWide ? ARC_BOTTOM : ARC_TOP_CCW} fill="none" stroke="rgba(226,186,116,0.30)" strokeWidth="2" />
           {/* 차오르는 획은 금이다 — 형: 「저거 동그라미 차는 거 핑크 말고
               황금색으로 가자」. 알이 갈색·금빛인데 둘레만 분홍이라 물건과
               따로 놀았다. 금으로 두르면 염주 한 벌이 된다. */}
@@ -621,7 +634,7 @@ export default function MoktakPage() {
             </linearGradient>
           </defs>
           <path
-            d={beadWide ? ARC_BOTTOM : ARC_TOP}
+            d={beadWide ? ARC_BOTTOM : ARC_TOP_CCW}
             fill="none"
             stroke="url(#hip-arc-gold)"
             strokeWidth="3.4"

@@ -28,15 +28,22 @@ export default function HipRoom({
   here,
   /** 판이 길면 통으로 만들어 흐르게 한다. 짧은 방은 꺼 둔다 */
   scroll = true,
+  /** 공양 갈래 띠(목탁·염주·…)를 그릴까.
+      형: 「도반 찾기에 저 위 공덕 메뉴 뜬다, 이거 고쳐」 — 인연은 공양
+      방이 아니다. 갈 데도 아닌 열 칸을 머리에 이고 있었다. */
+  lanes = true,
+  /** 아래 염주 넷 중 어느 알이 켜지나. 공양 방은 功, 인연은 緣 */
+  rail = "/moktak",
   children,
 }: {
   here: string;
   scroll?: boolean;
+  lanes?: boolean;
+  rail?: string;
   children: ReactNode;
 }) {
   return (
-    // 아래 염주는 늘 功 에 머문다 — 이 여섯은 다 공양 판 안이다
-    <HipShell here="/moktak">
+    <HipShell here={rail}>
       <div className={`hip-screen${scroll ? " hip-screen-scroll" : ""} hip-room`}>
         {/* 숨 쉬는 바탕 — 덩이 둘이 서로 다른 박자로 아주 느리게 흐른다 */}
         <span aria-hidden className="hip-bloom hip-bloom-a" />
@@ -54,7 +61,7 @@ export default function HipRoom({
           <HipTop />
         </header>
 
-        <HipLanes room={here} />
+        {lanes && <HipLanes room={here} />}
 
         <div className="hip-screen-mid hip-room-body">{children}</div>
       </div>
