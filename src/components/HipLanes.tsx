@@ -79,9 +79,19 @@ export default function HipLanes({
     살피기();
     el.addEventListener("scroll", 살피기, { passive: true });
     window.addEventListener("resize", 살피기);
-    // 지금 자리가 띠 밖에 있으면 끌어다 놓는다 — 어디 있는지부터 보여야 한다
+    // 지금 자리가 띠 밖에 있으면 끌어다 놓는다 — 어디 있는지부터 보여야 한다.
+    //
+    // scrollIntoView 로 하면 안 된다. 그것은 **조상까지 전부** 굴린다.
+    // 판(.hip-screen)이 배경 덩이 때문에 가로로 조금 넘쳐 있었는데, 띠가
+    // 알약을 보이게 하려고 부를 때마다 판이 통째로 옆으로 밀렸다 —
+    // 방마다 알약 자리가 다르니 밀린 양도 달라서, 삼귀의는 77, 하심은
+    // 119. 형: 「위치 임마, 만다라랑 하심 호흡 멍 다 중앙에」.
+    // 띠 제 몸만 굴린다.
     const on = el.querySelector<HTMLElement>('[data-on="1"]');
-    on?.scrollIntoView({ block: "nearest", inline: "center" });
+    if (on) {
+      const 가고픈 = on.offsetLeft + on.offsetWidth / 2 - el.clientWidth / 2;
+      el.scrollLeft = Math.max(0, Math.min(가고픈, el.scrollWidth - el.clientWidth));
+    }
     return () => {
       el.removeEventListener("scroll", 살피기);
       window.removeEventListener("resize", 살피기);

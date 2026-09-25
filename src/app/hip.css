@@ -743,7 +743,13 @@ html[data-theme="light"] {
     color: #17140f;
     padding: calc(env(safe-area-inset-top, 0px) + 18px) 26px
       calc(env(safe-area-inset-bottom, 0px) + 18px);
-    overflow: hidden;
+    /* 판은 **옆으로 굴러서는 안 된다.**
+       hidden 은 손으로는 못 굴려도 코드로는 굴릴 수 있다. 배경 덩이가
+       오른쪽으로 조금 삐져나와 판의 굴림 폭이 화면보다 넓어져 있었고,
+       그 틈으로 판이 통째로 옆으로 밀려 방마다 내용이 딴 데 가 있었다.
+       clip 은 굴림통 자체를 안 만든다 — 코드로도 못 민다. */
+    overflow-x: clip;
+    overflow-y: hidden;
     -webkit-tap-highlight-color: transparent;
   }
   /* 종이 결 — 아주 옅게. 곱하기라 덮지 않고 눌러 준다 */
@@ -4035,7 +4041,25 @@ html[data-theme="light"] {
   }
   /* 한 장짜리 시절의 「통째로 찌그러뜨리기」는 걷는다 */
   .hip-keycap.on img { transform: none; }
-  .hip-keycap.on .hip-keycap-buddha { transform: translateY(3.4%) scaleY(0.982); }
+  /* ── 눌리면 꽃받침이 **받는다** ──────────────────────────
+     형: 「키캡 눌렸을 때 이격 뜨는 것도 자연스럽게 다시」
+
+     부처상만 내려가니 뒤 꽃잎과 어깨 사이에 **흰 틈**이 열렸다. 앉아
+     있던 몸이 빠진 자리를 아무도 안 메웠기 때문이다.
+     방석은 받으면 부푼다 — 밑동은 붙박이로 두고 위턱만 한 뼘 들어
+     올리면, 꽃잎이 먼저 가서 그 틈을 덮는다. 누른 느낌은 그대로고
+     틈만 사라진다. 내려가는 폭도 조금 줄여 둘이 같이 만난다. */
+  .hip-keycap-cup {
+    transform-origin: 50% 100%;
+    transition:
+      transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1),
+      filter 0.34s ease;
+  }
+  .hip-keycap.on .hip-keycap-buddha { transform: translateY(2.4%) scaleY(0.985); }
+  .hip-keycap.on .hip-keycap-cup {
+    transform: scaleY(1.018);
+    transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
+  }
   /* 통(stack)이 높이를 쥐므로 그림 자체는 폭·높이를 안 잡는다 */
   .hip-keycap {
     height: var(--hip-obj-w);
@@ -4295,7 +4319,17 @@ html[data-theme="light"] {
   }
   /* 방 안에서 가로로 넘치는 것은 스스로 줄인다 — 만다라 그림판처럼 */
   .hip-room-body > * { max-width: 100%; }
-  .hip-room .hip-screen-mid { align-items: stretch; }
+  /* 형: 「위치 임마, 이거랑 만다라랑 하심 호흡 멍 다 중앙에 정교하게」
+     stretch 로 두었더니 여섯 방의 알맹이가 죄다 왼쪽에 붙었다. 방들은
+     본래 **가운데로 서는 통** 안에 쓰여 있었다(불상·숫자·글귀에 가운데
+     정렬이 하나도 없다 — 통이 해 주던 것이다).
+     가운데로 세운다. `w-full`·`max-w-sm` 을 단 것들은 제 폭을 스스로
+     말하고 있으니 가운데여도 납작해지지 않는다. */
+  .hip-room .hip-screen-mid { align-items: center; }
+  /* 가운데로 세우면 폭을 안 밝힌 아이는 제 알맹이만큼만 서게 된다.
+     방 알맹이 통(첫 겹)은 늘 꽉 펴 준다 — 만다라 그림판·하심 통이
+     여기에 기대 있다 */
+  .hip-room-body > div:only-child { width: 100%; }
 }
 
 /* ── 목탁 판을 한 화면에 ───────────────────────────────────────
