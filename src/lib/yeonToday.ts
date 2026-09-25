@@ -21,6 +21,7 @@ import { auth, db } from "@/lib/firebase";
 export type 오늘사람 = {
   uid: string;
   name: string;
+  sex: "m" | "f" | "";
   born: number;
   area: string;
   temple: string;

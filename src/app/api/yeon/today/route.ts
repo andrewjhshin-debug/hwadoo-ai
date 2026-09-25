@@ -58,6 +58,8 @@ function 추려서(p: 프로필) {
   return {
     uid: p.uid,
     name: p.name ?? "",
+    // 청실홍실의 빛깔을 가르는 데 쓴다 — 청실은 음, 홍실은 양
+    sex: p.sex ?? "",
     born: p.born ?? 0,
     area: p.area ?? "",
     // 절은 **따로 동의한 사람 것만** 내보낸다. 동의를 껐는데 옛 값이

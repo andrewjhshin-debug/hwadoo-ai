@@ -61,12 +61,21 @@ export default function InyeonThread({
   leftGender,
   rightGender,
   className = "",
+  낮 = false,
 }: {
   leftName: string;
   rightName: string;
   leftGender?: G;
   rightGender?: G;
   className?: string;
+  /**
+   * 흰 판(리뉴얼)에 걸 때 — **해질 녘 대신 동틀 녘**.
+   *
+   * 먹빛 판에서 쓰던 그대로 흰 바탕에 얹으니 검은 상자 하나가 떠 있는
+   * 꼴이었다. 뜻(두 기운이 섞이는 짧은 참)은 그대로 두고 시각만 옮긴다 —
+   * 해질 녘도 동틀 녘도 이쪽과 저쪽이 섞이는 때다.
+   */
+  낮?: boolean;
 }) {
   // 한 화면에 여러 실이 걸릴 수 있다 — 그라디언트 id 가 겹치면
   // 나중 것이 앞것의 물감을 빼앗는다(연꽃 아이콘에서 한 번 겪었다).
@@ -116,11 +125,16 @@ export default function InyeonThread({
       <div
         className="relative overflow-hidden rounded-[16px] border border-ink-3 px-4 pb-3.5 pt-4"
         style={{
-          background:
-            "radial-gradient(120% 90% at 18% 118%, rgba(94,127,178,.20), transparent 62%)," +
-            "radial-gradient(120% 90% at 82% 118%, rgba(193,85,59,.20), transparent 62%)," +
-            "radial-gradient(90% 120% at 50% -10%, rgba(217,180,91,.10), transparent 64%)," +
-            "linear-gradient(180deg, #100e0c, #16120f)",
+          background: 낮
+            ? // 동틀 녘 — 흰 종이 위로 청·홍이 아주 옅게 번진다
+              "radial-gradient(120% 90% at 18% 118%, rgba(94,127,178,.16), transparent 62%)," +
+              "radial-gradient(120% 90% at 82% 118%, rgba(226,110,155,.18), transparent 62%)," +
+              "radial-gradient(90% 120% at 50% -10%, rgba(255,214,120,.16), transparent 64%)," +
+              "linear-gradient(180deg, #fffdfb, #fdf7f4)"
+            : "radial-gradient(120% 90% at 18% 118%, rgba(94,127,178,.20), transparent 62%)," +
+              "radial-gradient(120% 90% at 82% 118%, rgba(193,85,59,.20), transparent 62%)," +
+              "radial-gradient(90% 120% at 50% -10%, rgba(217,180,91,.10), transparent 64%)," +
+              "linear-gradient(180deg, #100e0c, #16120f)",
         }}
       >
         <p className="text-center text-[10px] tracking-[0.46em] text-hanji-faint/80">

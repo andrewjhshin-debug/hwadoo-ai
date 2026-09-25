@@ -18,9 +18,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
+import InyeonThread from "@/components/InyeonThread";
 import { useConfirm } from "@/components/Confirm";
 import { watchAuth } from "@/lib/sync";
-import { 나이 } from "@/lib/yeon";
+import { 나이, 내프로필, type 인연프로필 } from "@/lib/yeon";
 import {
   오늘뽑기,
   합장,
@@ -43,7 +44,7 @@ import {
  */
 const 가안들: 오늘사람[] = [
   {
-    uid: "demo-1", name: "보련화", born: new Date().getFullYear() - 34,
+    uid: "demo-1", name: "보련화", sex: "f", born: new Date().getFullYear() - 34,
     area: "서울", temple: "봉은사", wantTemple: "해인사", job: "디자이너",
     tall: 164, mbti: "INFP",
     vibe: ["상냥", "차분"], like: ["카페", "전시", "차(茶)"],
@@ -52,7 +53,7 @@ const 가안들: 오늘사람[] = [
     rank: "보살", photos: ["/obj/keycap.png"],
   },
   {
-    uid: "demo-2", name: "무애", born: new Date().getFullYear() - 38,
+    uid: "demo-2", name: "무애", sex: "m", born: new Date().getFullYear() - 38,
     area: "경기", temple: "용주사", wantTemple: "통도사", job: "개발자",
     tall: 178, mbti: "ENTP",
     vibe: ["유머", "털털"], like: ["등산", "맛집", "드라이브"],
@@ -61,7 +62,7 @@ const 가안들: 오늘사람[] = [
     rank: "居士", photos: ["/obj/buddha.png"],
   },
   {
-    uid: "demo-3", name: "청연", born: new Date().getFullYear() - 29,
+    uid: "demo-3", name: "청연", sex: "f", born: new Date().getFullYear() - 29,
     area: "부산", temple: "범어사", wantTemple: "송광사", job: "간호사",
     tall: 160, mbti: "ISFJ",
     vibe: ["다정", "성실"], like: ["요가", "바다", "독서"],
@@ -79,6 +80,10 @@ export default function 오늘의인연() {
   const [탈, 탈잡기] = useState<string>("");
   const [바쁨, 바쁨잡기] = useState(false);
   const [닿음, 닿음잡기] = useState<string | null>(null); // 쪽지방 id
+  // 실 빛깔을 가르려면 **양쪽**을 알아야 한다 — 내 것은 내가 읽어 둔다
+  const [나, 나잡기] = useState<인연프로필 | null>(null);
+  // 닿은 그 사람 — 치우고 나면 목록에서 사라지니 따로 붙잡아 둔다
+  const [닿은이, 닿은이잡기] = useState<오늘사람 | null>(null);
   const [장, 장잡기] = useState(0); // 사진 몇 번째
   const [메뉴, 메뉴잡기] = useState(false);
   // 엎어 둔 카드 — 형: 「카드 형식으로 돌아가서 공개되면 도파민 터지고」
@@ -104,7 +109,10 @@ export default function 오늘의인연() {
     () =>
       watchAuth((u) => {
         있나잡기(!!u);
-        if (u) void 읽기();
+        if (u) {
+          void 읽기();
+          void 내프로필().then(나잡기);
+        }
       }),
     [읽기]
   );
@@ -147,6 +155,7 @@ export default function 오늘의인연() {
     if (!이 || 바쁨) return;
     // 가안은 서버에 없는 사람이다. 물으면 not-today 가 돌아온다
     if (가안인가) {
+      닿은이잡기(이);
       치우기(이.uid);
       if (act === "hap") 닿음잡기("demo");
       return;
@@ -158,6 +167,7 @@ export default function 오늘의인연() {
         탈잡기(r.탈);
         return;
       }
+      닿은이잡기(이);
       치우기(이.uid);
       if (r.matched && r.thread) 닿음잡기(r.thread);
     } finally {
@@ -205,7 +215,21 @@ export default function 오늘의인연() {
     return (
       <껍데기>
         <div className="hip-yeon-met">
-          <b aria-hidden>合</b>
+          {/* ── 청실홍실 ──
+              형: 「지금 청실홍실 기능 있는 거지?」 — 있었다. 다만 모임
+              게시판에만 걸려 있었다. **두 사람이 맺어지는 자리**가 여긴데
+              정작 여기엔 없었다.
+              청실은 음, 홍실은 양. 두 실이 양쪽에서 나와 가운데 매듭
+              하나로 묶인다. 合 한 글자보다 이쪽이 그 순간이다. */}
+          {닿은이 && (
+            <InyeonThread
+              leftName={나?.name || "나"}
+              rightName={닿은이.name || "도반"}
+              leftGender={나?.sex}
+              rightGender={닿은이.sex || undefined}
+              낮
+            />
+          )}
           <p>인연이 닿았습니다</p>
           <Link href="/letters" className="hip-yeon-hap">
             쪽지함 열기
