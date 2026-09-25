@@ -127,6 +127,25 @@ export type 인연프로필 = {
 
 export const YEON = "yeon-profiles";
 
+/**
+ * 휴대폰 본인확인을 **문턱으로 세울까** — 한 칸 스위치.
+ *
+ * 형이 PG(포트원 등) 계약을 맺으면 본인확인도 같이 열린다. 그때
+ * 이 한 줄을 true 로 올리면 —
+ *   · 프로필에 「휴대폰 본인확인」 줄이 서고
+ *   · 확인 전에는 판에 못 서고(모자란것)
+ *   · 서버도 뽑기에서 확인 안 된 사람을 빼낸다
+ * 지금은 확인할 길이 없으니 꺼 둔다. **꺼 둔 채로 코드는 다 있다** —
+ * 로그인 손잡이(firebase.ts)와 같은 수법이다.
+ *
+ * 왜 필요한가 — 사진과 1:1 쪽지와 오프라인 동행이 오가는 판이다.
+ * 만 19세 확인을 태어난 해 고르기 하나에 기대고 있는데, 그건 확인이
+ * 아니라 자기 신고다. 청소년보호정책(/youth)에도 「인연 기능을 이용하려면
+ * 휴대전화 본인확인을 거쳐야 한다」고 이미 적어 두었다 — 적어 둔 것과
+ * 도는 것이 다르면 그게 더 나쁘다.
+ */
+export const 본인확인_켬 = false;
+
 /** 만 나이 — 생일을 안 받으므로 해로만 센다(보수적으로 한 살 낮춰 본다) */
 export function 나이(born: number, 올해 = new Date().getFullYear()): number {
   return Math.max(0, 올해 - born);
@@ -144,6 +163,7 @@ export function 채비됐나(p: 인연프로필 | null): boolean {
   // 형: 「가입할 때 사진이랑 프로필 넣어야 가입되는 걸로」
   // 사진만으로는 카드가 얼굴 한 장이다. 한 마디가 있어야 사람이 읽힌다.
   if (!p.line?.trim()) return false;
+  if (본인확인_켬 && !p.verified) return false;
   return p.photos.some((f) => f.state === "ok");
 }
 
@@ -156,6 +176,7 @@ export function 모자란것(p: 인연프로필 | null): string[] {
   if (!p?.area) 빠진.push("지역");
   // 형: 「사진이랑 프로필 넣어야 가입」 — 한 마디가 그 프로필이다
   if (!p?.line?.trim()) 빠진.push("한 마디");
+  if (본인확인_켬 && !p?.verified) 빠진.push("본인확인");
   return 빠진;
 }
 

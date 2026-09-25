@@ -34,6 +34,7 @@ import {
   나이,
   들어올수있나,
   모자란것,
+  본인확인_켬,
   사진빼기,
   사진올리기,
   프로필저장,
@@ -301,6 +302,24 @@ export default function 인연내프로필() {
             aria-label="한 마디"
           />
         </div>
+
+        {/* 휴대폰 본인확인 — 스위치가 켜졌을 때만 선다(yeon.ts 본인확인_켬).
+            업체(포트원 등)가 붙기 전에는 이 줄 자체가 안 뜬다. */}
+        {본인확인_켬 && (
+          <div className="hip-yeon-row">
+            <b>본인확인</b>
+            {me?.verified ? (
+              <span className="hip-yeon-done">마쳤습니다</span>
+            ) : (
+              <button
+                className="hip-yeon-verify"
+                onClick={() => 탈잡기("본인확인 창을 준비 중입니다")}
+              >
+                휴대폰으로 확인
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="hip-yeon-go">
           <button

@@ -55,6 +55,7 @@ export type 인연탈 =
   | "bad-token"
   | "no-profile"
   | "not-open"
+  | "need-verify"
   | "not-today"
   | "blocked"
   | "bad-target"

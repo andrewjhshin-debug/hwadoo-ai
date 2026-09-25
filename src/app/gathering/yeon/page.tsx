@@ -242,7 +242,7 @@ export default function 오늘의인연() {
     );
 
   // ── 프로필이 아직 ── (들어와 있는데 프로필이 없을 때만)
-  if (있나 && (탈 === "no-profile" || 탈 === "not-open"))
+  if (있나 && (탈 === "no-profile" || 탈 === "not-open" || 탈 === "need-verify"))
     return (
       <껍데기>
         <div className="hip-yeon-met">
@@ -250,7 +250,9 @@ export default function 오늘의인연() {
           <p>
             {탈 === "no-profile"
               ? "내 프로필부터 만들어 주세요"
-              : "사진이 통과되면 열립니다"}
+              : 탈 === "need-verify"
+                ? "휴대폰 본인확인을 마치면 열립니다"
+                : "사진이 통과되면 열립니다"}
           </p>
           <Link href="/gathering/me" className="hip-yeon-hap">
             내 프로필

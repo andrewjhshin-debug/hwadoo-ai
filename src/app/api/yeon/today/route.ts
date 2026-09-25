@@ -23,6 +23,8 @@ import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 // 라우트 파일은 핸들러 말고 못 내보낸다 — 나눠 쓸 것은 lib 에 둔다
 import { COOLDOWN_DAYS, FREE_PICKS, MAX_PICKS, today } from "@/lib/yeonPick";
+// 문턱 스위치 하나 — 켜면 확인 안 된 사람은 판에도 못 서고 뽑히지도 않는다
+import { 본인확인_켬 } from "@/lib/yeon";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -46,6 +48,7 @@ type 프로필 = {
   temple?: string;
   wantTemple?: string;
   religionOk?: boolean;
+  verified?: boolean;
   line?: string;
   photos?: { url: string; state: string }[];
   merit?: { rank?: string; total?: number };
@@ -126,6 +129,7 @@ async function 뽑기(db: Firestore, uid: string, 몇: number) {
   if (!나s.exists) return { err: "no-profile" as const };
   const 나 = { uid, ...나s.data() } as 프로필;
   if (나.state !== "활동") return { err: "not-open" as const };
+  if (본인확인_켬 && !나.verified) return { err: "need-verify" as const };
 
   // 내가 막은 사람 · 이미 본 사람
   const [막음, 지난] = await Promise.all([
@@ -159,6 +163,7 @@ async function 뽑기(db: Firestore, uid: string, 몇: number) {
   }
   // 사진이 통과된 사람만 — 얼굴 없는 계정은 판에 안 선다
   후보 = 후보.filter((p) => (p.photos ?? []).some((f) => f.state === "ok"));
+  if (본인확인_켬) 후보 = 후보.filter((p) => p.verified);
   if (!후보.length) return { picks: [] as string[] };
 
   후보.sort((a, b) => 점수(나, b) - 점수(나, a));
