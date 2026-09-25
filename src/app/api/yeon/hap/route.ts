@@ -17,20 +17,11 @@
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
-import { today } from "../today/route";
+import { MERIT_ON_MATCH, QUIET_HOURS, pairId, today } from "@/lib/yeonPick";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** 인연이 닿으면 양쪽에 붙는 공덕 — 만남도 수행이다 */
-const MERIT_ON_MATCH = 30;
-/** 아무 말 없이 이만큼 지나면 방이 조용히 닫힌다 */
-export const QUIET_HOURS = 72;
-
-/** 둘을 늘 같은 순서로 — 방 이름이 하나여야 한다 */
-export function 짝이름(a: string, b: string): string {
-  return a < b ? `${a}_${b}` : `${b}_${a}`;
-}
 
 export async function POST(req: Request) {
   const app = adminApp();
@@ -88,7 +79,7 @@ export async function POST(req: Request) {
   const 저쪽 = await db.doc(`yeon-haps/${to}_${me}`).get();
   if (!저쪽.exists) return Response.json({ ok: true, matched: false });
 
-  const id = 짝이름(me, to);
+  const id = pairId(me, to);
   const 방 = db.doc(`yeon-matches/${id}`);
   const 이미 = await 방.get();
   if (이미.exists)

@@ -21,20 +21,12 @@
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
+// 라우트 파일은 핸들러 말고 못 내보낸다 — 나눠 쓸 것은 lib 에 둔다
+import { COOLDOWN_DAYS, FREE_PICKS, MAX_PICKS, today } from "@/lib/yeonPick";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** 그냥 볼 수 있는 수. 더 보려면 연꽃 한 송이에 한 사람 */
-export const FREE_PICKS = 1;
-/** 연꽃을 써도 하루 이만큼까지. 무한 스와이프는 하지 않는다 */
-export const MAX_PICKS = 3;
-/** 한 번 뽑힌 사람은 이만큼 지나야 다시 온다 */
-const COOLDOWN_DAYS = 90;
-
-export function today(): string {
-  return new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
-}
 
 type 프로필 = {
   uid: string;
