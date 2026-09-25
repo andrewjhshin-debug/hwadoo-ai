@@ -140,7 +140,9 @@ const SKINS = {
     // 형: 「밑에 색상 눌렀을 때 안 바뀐다」 — 분홍이 목록에 아예 없었고,
     // 그림도 분홍으로 **박혀** 있었다. 넷을 다 세우고 분홍을 기본으로
     { id: "pink", name: "분홍", src: "/obj/moktak-pink.png", dot: "#f1a6c0" },
-    { id: "clay", name: "흙", src: "/obj/moktak.png", dot: "#c98f5e" },
+    // 흙(나무)은 걷었다 — 형: 「일단 목탁은 나무 재질 빼고 지우고」.
+    // 그림(moktak.png)은 그대로 둔다. 금·옥이 거기서 뽑혀 나오고,
+    // 되살리려면 이 한 줄만 다시 세우면 된다.
     { id: "gold", name: "금", src: "/obj/moktak-gold.png", dot: "#d7ae55" },
     { id: "jade", name: "옥", src: "/obj/moktak-jade.png", dot: "#a8d8c0" },
   ],

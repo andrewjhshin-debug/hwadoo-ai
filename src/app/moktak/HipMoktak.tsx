@@ -260,7 +260,7 @@ export default function HipMoktak({
                   두 장으로 가른다. **윗알(부처상)만 내려가고 받침은 가만히.**
                   그래야 손끝이 진짜 키를 눌렀다고 읽는다.
                   받침이 위에 깔리므로 부처상이 내려가면 그 뒤로 숨는다. */}
-              {keySkin === "moktak" ? (
+              {false ? (
                 /* ── 목탁 키캡 ──
                    형: 「목탁 키캡 새 디자인해서 다시. 지금 너무 밤티야.
                         기존 거 활용하지 말고 새로 만들어」
@@ -331,28 +331,10 @@ export default function HipMoktak({
               숫자 밑에 있으면 무엇의 색을 고르는 것인지 안 보인다.
               고르는 것과 보이는 것이 붙어 있어야 고른 티가 바로 난다. */}
           {tab === "moktak" && <div className="hip-obj-foot">{dots}</div>}
-          {/* 키캡도 살갗이 둘이다 — 동자와 목탁. 목탁을 고르면 목탁 살갗
-              (분홍·나무·금·옥)이 그대로 따라온다 */}
-          {tab === "keycap" && (
-            <div className="hip-obj-foot">
-              <span className="hip-chips hip-chips-tight">
-                {(
-                  [
-                    ["dongja", "동자"],
-                    ["moktak", "목탁"],
-                  ] as const
-                ).map(([k, t]) => (
-                  <button
-                    key={k}
-                    onClick={() => onKeySkin(k)}
-                    data-on={keySkin === k ? "1" : undefined}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </span>
-            </div>
-          )}
+          {/* 키캡 살갗 고르기(동자/목탁)는 걷었다 —
+              형: 「키캡도 동자만 둬라」. 목탁 키캡 그림 두 장은
+              public/obj 에 그대로 있고(mokcap-lid · mokcap-body), 아래
+              keySkin 갈래도 살려 두었다. 이 줄만 되살리면 다시 고른다. */}
 
           {/* 백팔 격자는 걷었다 —
               형: 「저 그리드 없애고 그 자리 더 활용해. 그리드 격자 필요 없다」.

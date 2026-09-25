@@ -802,7 +802,7 @@ export default function Home() {
           </div>
         </div>
         {/* 아래 입력창 — 화면 아래에 앉되, 대화를 덮지 않는다 */}
-        <div className="shrink-0 border-t border-ink-3 bg-ink/95 px-4 pb-3 pt-3 backdrop-blur md:pb-[calc(env(safe-area-inset-bottom)+12px)]">
+        <div className="hip-write-foot shrink-0 border-t border-ink-3 bg-ink/95 px-4 pt-3 backdrop-blur">
           <div className="mx-auto w-full max-w-xl">
             {/* 글칸은 늘 한 줄을 다 쓴다 — 좁게 눌리지 않도록 */}
             <textarea

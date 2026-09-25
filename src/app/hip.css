@@ -5182,3 +5182,24 @@ html[data-theme="light"] {
   /* 단추에 `margin-top:auto` 를 주면 남는 키를 **단추가** 먹어 사진이
      안 큰다. 남는 키는 사진 몫이다 — 단추는 알맹이가 다 찬 뒤 그 아래. */
 }
+
+/* ── 답 쓰는 자리도 염주 자리를 비킨다 ─────────────────────────
+   형: 「모바일에서 화두 쓰고 회향하려면 밑에 모바일 탭이랑 겹친다.
+        이런 초보적 실수 하지 마」 — 맞는 말이다.
+
+   답 쓰는 판은 `fixed inset-0` 으로 화면을 통째로 덮는데, 아래 염주 띠는
+   그 위에 뜬다. 밑판에 pb-3 만 주었으니 「나가기 · 회향」 한 줄이 띠 밑에
+   깔렸다. 띠 자리는 어떤 판도 침범하지 못한다 — 여기도 마찬가지다. */
+@media (min-width: 0px) {
+  .hip-write-foot {
+    padding-bottom: calc(
+      env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) + 10px
+    );
+  }
+}
+@media (min-width: 768px) {
+  /* 넓은 화면에는 아래 띠가 없다 — 원래대로 */
+  .hip-write-foot {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  }
+}
