@@ -504,5 +504,58 @@ service cloud.firestore {
     match /gifts/{id} {
       allow read, write: if false;
     }
+
+    // ── 인연 · 도반 찾기 ─────────────────────────────────────
+    // 형: 「인연으로 데이팅앱 갈 거야. 가입할 때 사진 무조건 넣어야 하고,
+    //      매칭되면 서로 쪽지합 열리게」
+    //
+    // 프로필은 **활동 중이고 통과된 사진이 있는 것만** 남이 읽는다.
+    // 심사중·쉼·정지는 본인과 뒷방만 본다 — 얼굴 없는 계정이 판에 서면
+    // 그 판의 값이 통째로 깎인다.
+    match /yeon-profiles/{uid} {
+      // 규칙 언어는 한글 이름을 못 쓴다 — 뜻은 「활동 중이고 사진이 있다」
+      function isOpen() {
+        return resource.data.state == '활동'
+          && resource.data.photos.size() > 0;
+      }
+      allow read: if isAdmin()
+        || (request.auth != null && request.auth.uid == uid)
+        || (request.auth != null && isOpen());
+
+      // 제 것만 쓴다. 바꿀 수 없는 것 둘 —
+      //  · state 를 '정지' 로는 스스로 못 간다(뒷방 몫)
+      //  · 사진의 통과 여부(photos[].state)는 손댈 수 없어야 하지만
+      //    규칙으로 배열 속을 못 보므로, **통과 표시는 서버(API)에서만**
+      //    찍는다. 여기서는 올리는 것까지만 허락한다
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update: if isAdmin()
+        || (request.auth != null && request.auth.uid == uid
+            && request.resource.data.state != '정지');
+      allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+    }
+
+    // 합장 — **보낸 것만** 쓴다. 받은 목록은 서버로만 센다.
+    // 「누가 나에게 합장했나」가 연꽃으로 파는 것이라, 클라이언트가
+    // 읽을 수 있으면 값이 통째로 무너진다.
+    match /yeon-haps/{id} {
+      allow read: if isAdmin();
+      allow create: if request.auth != null
+        && request.resource.data.from == request.auth.uid
+        && id == request.auth.uid + '_' + request.resource.data.to;
+      allow update, delete: if isAdmin();
+    }
+
+    // 인연이 닿은 것 — 양쪽만 읽는다. 맺고 끊는 것은 서버 몫
+    match /yeon-matches/{id} {
+      allow read: if isAdmin()
+        || (request.auth != null && request.auth.uid in resource.data.pair);
+      allow write: if isAdmin();
+    }
+
+    // 차단 — 제 목록만
+    match /yeon-blocks/{uid}/{other} {
+      allow read, write: if isAdmin()
+        || (request.auth != null && request.auth.uid == uid);
+    }
   }
 }

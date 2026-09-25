@@ -12,6 +12,7 @@
 // (useSearchParams 는 Suspense 울타리가 필요하다 — Next 규칙)
 // ────────────────────────────────────────────────────────────────
 
+import Link from "next/link";
 import HipShell from "@/components/HipShell";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -51,6 +52,19 @@ function GatheringInner() {
           <p className="rise rise-d1 mt-2.5 px-5 text-center text-[11.5px] tracking-wide text-hanji-faint sm:px-0">
             만 19세 이상만 이용할 수 있습니다 · 익명 법명으로 활동합니다
           </p>
+
+          {/* ── 도반 찾기로 가는 문 ──────────────────────────────
+              형: 「인연으로 데이팅앱 갈 거야」
+              게시판은 그대로 두고 그 위에 한 겹을 얹는다. 글로 설명하지
+              않는다 — 눌러서 제 프로필을 채우다 보면 무엇인지 안다. */}
+          <Link href="/gathering/me" className="rise rise-d1 hip-yeon-door">
+            <b>道伴</b>
+            <span>
+              도반 찾기
+              <i>절에 같이 갈 사람 · 하루 한 사람</i>
+            </span>
+            <u>›</u>
+          </Link>
 
         </>
       )}

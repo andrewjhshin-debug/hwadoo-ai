@@ -4350,3 +4350,213 @@ html[data-theme="light"] {
   .sambae-halo circle:nth-of-type(2) { stroke: rgba(92, 194, 172, 0.5); }
   .sambae-halo circle:nth-of-type(3) { stroke: rgba(239, 123, 164, 0.38); }
 }
+
+/* ── 인연 · 도반 찾기 — 내 프로필 ──────────────────────────────
+   형: 「인연으로 데이팅앱 갈 거야. 가입할 때 사진 무조건」
+   흰 종이에 분홍·민트, 글은 적게. 못 채운 칸은 알약으로 띄워 두고,
+   다 채우면 그 줄이 사라진다 — 그게 설명이다. */
+@media (min-width: 0px) {
+  .hip-yeon {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 14px;
+    padding-bottom: 20px;
+  }
+  .hip-yeon-head {
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.34em;
+    color: #c08aa0;
+  }
+  .hip-yeon-say {
+    margin: 40px 0;
+    text-align: center;
+    font-size: 13px;
+    color: #a39a8f;
+  }
+  .hip-yeon-need {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+  .hip-yeon-need span {
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(226, 122, 158, 0.4);
+    background: rgba(242, 160, 189, 0.12);
+    font-size: 11.5px;
+    color: #d2578c;
+  }
+
+  /* 사진 — 넉넉한 네모, 상태가 그림 위에 얹힌다 */
+  .hip-yeon-shots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .hip-yeon-shots > span {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(26, 23, 20, 0.05);
+  }
+  .hip-yeon-shots img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .hip-yeon-shots > span[data-state="pending"] img { filter: saturate(0.5) brightness(1.06); }
+  .hip-yeon-shots > span i {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    font-size: 10px;
+    font-style: normal;
+    color: #8b8175;
+  }
+  .hip-yeon-shots > span i[data-no="1"] { color: #d2578c; }
+  .hip-yeon-shots > span button {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    font-size: 11px;
+    color: #6f665c;
+  }
+  .hip-yeon-add {
+    aspect-ratio: 3 / 4;
+    border-radius: 14px;
+    border: 1px dashed rgba(226, 122, 158, 0.5);
+    background: rgba(242, 160, 189, 0.07);
+    font-size: 22px;
+    color: #d2578c;
+  }
+
+  .hip-yeon-name {
+    margin: 2px 0 0;
+    text-align: center;
+    font-family: var(--font-serif);
+    font-size: 22px;
+    letter-spacing: 0.14em;
+    color: #17140f;
+  }
+  .hip-yeon-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hip-yeon-row > b {
+    flex: 0 0 66px;
+    font-size: 11.5px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: #a39a8f;
+  }
+  .hip-yeon-row-wide { flex-direction: column; align-items: stretch; gap: 7px; }
+  .hip-yeon-row input,
+  .hip-yeon-row select {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 13px;
+    border-radius: 12px;
+    border: 1px solid rgba(26, 23, 20, 0.1);
+    background: rgba(255, 255, 255, 0.6);
+    font-size: 13.5px;
+    color: #17140f;
+    outline: none;
+  }
+  .hip-yeon-row input:focus,
+  .hip-yeon-row select:focus { border-color: rgba(226, 122, 158, 0.55); }
+  .hip-yeon-row .hip-chips { flex: 1; justify-content: flex-start; margin: 0; }
+
+  .hip-yeon-go {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    margin-top: 6px;
+  }
+  .hip-yeon-go button {
+    padding: 13px 30px;
+    border-radius: 999px;
+    background: linear-gradient(150deg, #fbc7da, #ef7ba4);
+    font-size: 14.5px;
+    letter-spacing: 0.08em;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(226, 110, 155, 0.3);
+  }
+  .hip-yeon-go button[data-on="1"] {
+    background: rgba(26, 23, 20, 0.06);
+    color: #6f665c;
+    box-shadow: none;
+  }
+  .hip-yeon-go button:disabled { opacity: 0.4; box-shadow: none; }
+  .hip-yeon-go small { font-size: 11px; color: #a39a8f; }
+  .hip-yeon-bad { margin: 0; font-size: 11.5px; color: #d2578c; }
+  .hip-yeon-foot {
+    margin: 4px 0 0;
+    text-align: center;
+    font-size: 10.5px;
+    line-height: 1.7;
+    color: #c3bbb0;
+    word-break: keep-all;
+  }
+}
+
+/* 도반 찾기로 가는 문 — 게시판 머리 아래 한 칸 */
+@media (min-width: 0px) {
+  .hip-yeon-door {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 18px 0;
+    padding: 13px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(226, 122, 158, 0.28);
+    background: linear-gradient(120deg, rgba(251, 214, 228, 0.5), rgba(196, 234, 223, 0.42));
+  }
+  .hip-yeon-door > b {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.82);
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-weight: 400;
+    color: #d2578c;
+  }
+  .hip-yeon-door > span {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    color: #17140f;
+  }
+  .hip-yeon-door > span i {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    font-style: normal;
+    color: #8b8175;
+  }
+  .hip-yeon-door > u {
+    text-decoration: none;
+    font-size: 17px;
+    color: #c08aa0;
+  }
+}

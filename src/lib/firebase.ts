@@ -8,6 +8,7 @@ import { getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
+import { getStorage } from "firebase/storage";
 
 /** 구글 콘솔에 우리 주소를 등록했으면 true — 위 주석 참고 */
 const 손잡이를_우리집으로 = false;
@@ -51,3 +52,6 @@ const app = getApps()[0] ?? initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const rtdb = getDatabase(app);
+// 인연(도반 찾기)의 사진이 여기 앉는다. 올린 사진은 바로 안 걸리고
+// 뒷방이 통과시킨 뒤에야 남에게 보인다 — src/lib/yeon.ts
+export const storage = getStorage(app);
