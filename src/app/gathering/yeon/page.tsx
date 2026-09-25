@@ -321,26 +321,30 @@ export default function 오늘의인연() {
         </div>
 
         {/* ── 무엇을 하는 사람인가 ── */}
+        {/* 알약은 **여섯까지.**
+            형: 「심플리시티가 핵심이다」 — 열두 개를 다 깔았더니 사람이
+            아니라 표가 됐고, 단추가 화면 밖으로 밀렸다.
+            말 붙일 구실이 되는 순서로 여섯만 세운다 — 다니는 절, 가고
+            싶은 절, 직업, MBTI, 그리고 관심·취향에서 남은 자리만큼. */}
         <div className="hip-yeon-tags">
-          {이.temple && <span data-temple="1">{이.temple}</span>}
-          {이.job && <span>{이.job}</span>}
-          {이.tall ? <span>{이.tall}cm</span> : null}
-          {이.mbti && <span>{이.mbti}</span>}
-          {[...이.vibe, ...이.like, ...이.care].map((x) => (
-            <span key={x}>{x}</span>
-          ))}
-          {이.rank && <span data-rank="1">{이.rank}</span>}
-        </div>
-
-        {/* 데이트 · 가고 싶은 절 — 말 붙일 거리가 되는 것만 한 줄 더 */}
-        {(이.date.length > 0 || 이.wantTemple) && (
-          <div className="hip-yeon-tags" data-soft="1">
-            {이.wantTemple && <span data-temple="1">{이.wantTemple} 가고 싶어요</span>}
-            {이.date.map((x) => (
-              <span key={x}>{x}</span>
+          {(
+            [
+              이.temple ? { t: 이.temple, 절: true } : null,
+              이.wantTemple ? { t: `${이.wantTemple} ↗`, 절: true } : null,
+              이.job ? { t: 이.job } : null,
+              이.mbti ? { t: 이.mbti } : null,
+              ...이.care.map((x) => ({ t: x })),
+              ...이.like.map((x) => ({ t: x })),
+              이.tall ? { t: `${이.tall}cm` } : null,
+            ].filter(Boolean) as { t: string; 절?: boolean }[]
+          )
+            .slice(0, 6)
+            .map((c, i) => (
+              <span key={`${c.t}${i}`} data-temple={c.절 ? "1" : undefined}>
+                {c.t}
+              </span>
             ))}
-          </div>
-        )}
+        </div>
 
         {이.line && <p className="hip-yeon-line">{이.line}</p>}
       </div>

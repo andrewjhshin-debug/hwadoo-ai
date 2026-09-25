@@ -4684,7 +4684,7 @@ html[data-theme="light"] {
        작은 폰(375×667)에서 재 보니 손이 띠를 17px 밟고 있었다. 사진이
        남은 키를 다 먹지 않게 천장을 낮춘다 — 넘치면 사진이 잘릴 뿐,
        단추는 언제나 제자리에 있다. */
-    max-height: calc(100svh - 408px);
+    max-height: calc(100svh - 448px);
     min-height: 200px;
     border-radius: 22px;
     overflow: hidden;
@@ -5047,7 +5047,7 @@ html[data-theme="light"] {
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    max-height: calc(100svh - 408px);
+    max-height: calc(100svh - 448px);
     min-height: 200px;
     perspective: 1200px;
     background: none;
@@ -5152,4 +5152,44 @@ html[data-theme="light"] {
 }
 @media (min-width: 768px) {
   .hip-screen[data-lane="moktak"] .hip-obj-foot { margin-top: 44px; }
+}
+
+/* ── 사람 카드를 보는 동안엔 설치 띠를 끈다 ────────────────────
+   「홈 화면에 담을까요」 띠가 **합장 단추 위를 덮고 있었다.** 로그인
+   단추를 덮었던 그 사고와 똑같다 — 띠는 #scroll-box 바깥이라 판의 z 로는
+   못 이긴다. 판에 아래 여백을 더 줘도 소용이 없다. 인연 카드는 위에서부터
+   쌓이므로 아래를 비운다고 내용이 올라오지 않는다.
+   카드를 더 줄이는 길도 있지만, 사진이 손톱만 해진다.
+   **이름을 불러 끈다.** 남의 얼굴을 보는 자리에서 앱 설치를 조를 일이
+   아니다 — 그 한 화면만 비켜 주면 된다. */
+@media (min-width: 0px) {
+  body:has(.hip-yeon-flip) .install-banner,
+  body:has(.hip-yeon-card) .install-banner { display: none !important; }
+}
+
+/* ── 카드 화면은 한 화면에 딱 ─────────────────────────────────
+   사진 천장을 `100svh - 얼마` 로 못박아 두었더니, 알약 줄이 한 줄 늘거나
+   설치 띠가 뜨면 그만큼 알맹이가 통을 넘쳐 **단추가 통 밖으로** 밀렸다.
+   눈에는 사라진 것처럼 보이지만 실은 굴려야 나오는 자리에 있었다.
+   숫자를 더 빼는 대신 **자리를 나눈다** — 단추는 늘 맨 아래 붙박이고,
+   사진이 남는 키를 먹는다. 알약이 늘면 사진이 그만큼 준다. */
+@media (min-width: 0px) {
+  .hip-yeon:has(.hip-yeon-card),
+  .hip-yeon:has(.hip-yeon-flip) {
+    height: 100%;
+    min-height: 0;
+  }
+  .hip-yeon-card {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .hip-yeon-face,
+  .hip-yeon-flip {
+    flex: 1 1 auto;
+    min-height: 130px;
+    max-height: none;
+    aspect-ratio: auto;
+  }
+  /* 단추에 `margin-top:auto` 를 주면 남는 키를 **단추가** 먹어 사진이
+     안 큰다. 남는 키는 사진 몫이다 — 단추는 알맹이가 다 찬 뒤 그 아래. */
 }
