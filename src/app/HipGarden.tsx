@@ -129,34 +129,16 @@ export function HipGardenEmpty({
               그래서 연꽃 하나만 천천히 돈다 — 빈 자리로 둔다. */}
           <span aria-hidden className="hip-seat">
             <span className="hip-lotus">
-              {/* 형: 「그냥 뚱뚱한 잎사귀 원래 거로 회귀하고,
-                  지금 노랑색은 저 테두리만 채우고」 (별 모양을 그려 줬다)
+              {/* 형: 「난 이거 좋았다, 이걸로 가되 가운데 노란색 부분만
+                  신경 써 봐」 「뾰족 튀어나온 부분까지도」
 
-                  잎을 가늘게 하고 노란 잎을 겹쳐 놨더니 꽃이 두 벌이 됐다.
-                  잎은 원래 두께로 되돌린다. 노랑은 **여덟 잎이 모두 겹치는
-                  자리** — 가운데의 그 별 — 만 채운다. 그건 새로 그리는 게
-                  아니라 잎 여덟의 **교집합**이다. 오려 내기(clipPath)를
-                  여덟 번 물려 쓰면 정확히 그 모양만 남는다.
-                  꽃과 따로 노는 단추가 아니라, 꽃이 스스로 만든 자리다. */}
+                  잎 여덟이 **다** 겹치는 자리만 채웠더니 점 하나가 됐다.
+                  형이 그려 준 건 뾰족한 별이다. 그 별의 정체는 —
+                  **마주 보는 잎 둘이 겹치는 자리**다. 잎은 가운데를 살짝
+                  지나 반대편까지 뻗으니, 마주 본 한 쌍은 한가운데에서
+                  길쭉한 씨 모양으로 겹친다. 그 씨가 네 쌍이면 여덟 갈래
+                  별이 된다. 새로 그리는 게 아니라 꽃이 스스로 만든 자리다. */}
               <svg viewBox="0 0 200 200">
-                <defs>
-                  {Array.from({ length: 8 }, (_, i) => (
-                    <clipPath
-                      key={`k${i}`}
-                      id={`hip-lotus-k${i}`}
-                      clipPathUnits="userSpaceOnUse"
-                      clipPath={i ? `url(#hip-lotus-k${i - 1})` : undefined}
-                    >
-                      <ellipse
-                        cx="100"
-                        cy="62"
-                        rx="15"
-                        ry="45"
-                        transform={`rotate(${i * 45} 100 100)`}
-                      />
-                    </clipPath>
-                  ))}
-                </defs>
                 {Array.from({ length: 8 }, (_, i) => (
                   <ellipse
                     key={i}
@@ -167,15 +149,10 @@ export function HipGardenEmpty({
                     transform={`rotate(${i * 45} 100 100)`}
                   />
                 ))}
-                {/* 여덟이 다 겹치는 그 별만 노랗게 */}
-                <rect
-                  className="hip-lotus-core"
-                  x="0"
-                  y="0"
-                  width="200"
-                  height="200"
-                  clipPath="url(#hip-lotus-k7)"
-                />
+                {/* 가운데 별 — 잎이 겹치는 자리는 너무 얇아서 점이 됐다.
+                    형이 그려 준 그 별을 **그대로 그린다.** 뾰족한 끝 여덟이
+                    잎이 뻗는 방향과 같으니, 꽃이 만든 자리처럼 앉는다. */}
+                <path className="hip-lotus-core" d="M100.0 66.0 L105.2 87.5 L124.0 76.0 L112.5 94.8 L134.0 100.0 L112.5 105.2 L124.0 124.0 L105.2 112.5 L100.0 134.0 L94.8 112.5 L76.0 124.0 L87.5 105.2 L66.0 100.0 L87.5 94.8 L76.0 76.0 L94.8 87.5 Z" />
               </svg>
             </span>
           </span>

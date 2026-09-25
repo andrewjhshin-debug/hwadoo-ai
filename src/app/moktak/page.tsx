@@ -64,7 +64,17 @@ const ARC = 2 * Math.PI * 146; // 바깥 진행 고리 둘레
 // 방향(sweep)은 그대로인데 목적지 차례가 거꾸로니 원이 아니라 나비가
 // 됐다. 형: 「그냥 다시 동그라미 형태로 채워지는 걸로 회귀해」
 // 차례는 원래대로 두고(아래→오른쪽→위→왼쪽) 시작만 아래로 옮긴다.
-const ARC_PATH =
+// 기준점은 **염주 꼴마다 다르다.**
+// 형: 「세로형은 저 삼각형 기준을 원래 맨 처음대로 가운데 정중앙 맨 위로
+//      올리고, 거기서부터 황금 채워지면서 원도 채워지도록」
+//   · 세로형(정면에서 본 고리) — 母珠가 위에 있다. 위 가운데에서 **시계
+//     방향**으로 찬다. 마스크(conic-gradient)가 본래 그렇게 돈다
+//   · 가로형(비스듬히 누운 고리) — 손이 굴리는 알이 앞(아래)에 있다.
+//     아래 가운데에서 **반시계**로 찬다
+const ARC_TOP =
+  "M158 12 A146 146 0 0 1 304 158 A146 146 0 0 1 158 304 " +
+  "A146 146 0 0 1 12 158 A146 146 0 0 1 158 12";
+const ARC_BOTTOM =
   "M158 304 A146 146 0 0 0 304 158 A146 146 0 0 0 158 12 " +
   "A146 146 0 0 0 12 158 A146 146 0 0 0 158 304";
 
@@ -548,10 +558,14 @@ export default function MoktakPage() {
   // 물든 만큼만 금빛 겹을 보여 준다 — 위 가운데의 표시점에서 반시계로.
   // 바깥 고리와 같은 출발점·방향이어야, 금빛이 갑자기 아래쪽에 덧칠된 듯 보이지 않는다.
   const f = pos / BEADS;
+  // 세로형의 금 — 위 가운데(12시)에서 시계 방향으로 찬다.
+  // from 을 -f*360 으로 주고 있었다. 그러면 채워진 조각이 **통째로 뒤로
+  // 돌아** 시작점이 매번 옮겨 다닌다 — 형이 「어디로 가냐」 한 게 이것이다.
+  // from 을 빼면 conic-gradient 는 본래 12시에서 시작해 시계로 돈다.
   const goldMask =
     f <= 0
       ? "linear-gradient(#0000, #0000)"
-      : `conic-gradient(from ${-f * 360}deg at 50% 50%, #000 0turn ${f}turn, #0000 ${f + 0.008}turn 1turn)`;
+      : `conic-gradient(at 50% 50%, #000 0turn ${f}turn, #0000 ${f + 0.008}turn 1turn)`;
   const phrases = Math.floor(hits / geun.ch.length); // 몇 편 왔나
   const shareText =
     tab === "moktak"
@@ -590,7 +604,7 @@ export default function MoktakPage() {
       >
         {/* 바깥 진행 고리 — 백팔이 차오른다 */}
         <svg aria-hidden viewBox="0 0 316 316" className="absolute inset-0 h-full w-full">
-          <path d={ARC_PATH} fill="none" stroke="rgba(26,23,20,0.12)" strokeWidth="2" />
+          <path d={beadWide ? ARC_BOTTOM : ARC_TOP} fill="none" stroke="rgba(26,23,20,0.12)" strokeWidth="2" />
           {/* 차오르는 획은 금이다 — 형: 「저거 동그라미 차는 거 핑크 말고
               황금색으로 가자」. 알이 갈색·금빛인데 둘레만 분홍이라 물건과
               따로 놀았다. 금으로 두르면 염주 한 벌이 된다. */}
@@ -605,7 +619,7 @@ export default function MoktakPage() {
             </linearGradient>
           </defs>
           <path
-            d={ARC_PATH}
+            d={beadWide ? ARC_BOTTOM : ARC_TOP}
             fill="none"
             stroke="url(#hip-arc-gold)"
             strokeWidth="3.4"
@@ -756,10 +770,15 @@ export default function MoktakPage() {
         <span
           aria-hidden
           className="absolute left-1/2 -translate-x-1/2"
-          /* 표도 아래로 — 금이 여기서 시작하니 표도 여기 있어야 한다 */
-          style={{ bottom: 6, fontSize: 11, letterSpacing: "0.2em", color: "#e0819f" }}
+          /* 표는 금이 시작하는 자리에 — 가로형은 아래, 세로형은 위 */
+          style={{
+            ...(beadWide ? { bottom: 6 } : { top: 4 }),
+            fontSize: 11,
+            letterSpacing: "0.2em",
+            color: "#e0819f",
+          }}
         >
-          ▲
+          {beadWide ? "▲" : "▼"}
         </span>
       </div>
 
@@ -1452,9 +1471,9 @@ export default function MoktakPage() {
                 viewBox="0 0 316 316"
                 className="absolute inset-0 h-full w-full"
               >
-                <path d={ARC_PATH} fill="none" stroke="var(--color-ink-3)" strokeWidth="2" />
+                <path d={ARC_TOP} fill="none" stroke="var(--color-ink-3)" strokeWidth="2" />
                 <path
-                  d={ARC_PATH}
+                  d={ARC_TOP}
                   fill="none"
                   stroke="var(--color-gold)"
                   strokeWidth="3"
