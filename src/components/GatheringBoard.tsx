@@ -1311,30 +1311,35 @@ export default function GatheringBoard({
                   />
                 )}
               </div>
-              <label className="flex flex-col gap-1.5 text-[10.5px] tracking-wide text-hanji-faint">
-                날짜 (선택)
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  aria-label="날짜 (선택)"
-                  className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
-                />
-              </label>
-              <label className="flex flex-col gap-1.5 text-[10.5px] tracking-wide text-hanji-faint">
-                시작 시간 (선택)
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  aria-label="시작 시간 (선택)"
-                  className="rounded-[10px] border border-ink-3 bg-transparent px-4 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
-                />
-              </label>
+              {/* 형: 「시간 올리고」 — 날짜와 시각은 **한 가지 일**이다.
+                  둘을 위아래로 늘어놓으니 폼이 길어지고, 시각은 저 아래
+                  혼자 떨어져 있었다. 한 줄에 나란히 세운다. */}
+              <div className="flex gap-2">
+                <label className="flex flex-1 flex-col gap-1.5 text-[10.5px] tracking-wide text-hanji-faint">
+                  날짜 (선택)
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    aria-label="날짜 (선택)"
+                    className="w-full rounded-[10px] border border-ink-3 bg-transparent px-3 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
+                  />
+                </label>
+                <label className="flex flex-1 flex-col gap-1.5 text-[10.5px] tracking-wide text-hanji-faint">
+                  시작 시각 (선택)
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    aria-label="시작 시각 (선택)"
+                    className="w-full rounded-[10px] border border-ink-3 bg-transparent px-3 py-2.5 text-[13px] text-hanji outline-none transition-colors focus:border-gold/40 [color-scheme:dark]"
+                  />
+                </label>
+              </div>
             </div>
-            <p className="text-[11.5px] leading-5 text-hanji-faint">
-              양/음(남·여) 문양은 내 도량에서 설정할 수 있습니다.
-            </p>
+            {/* 형: 「저 문구 지우고」 — 「양/음(남·여) 문양은 내 도량에서
+                설정할 수 있습니다」. 글을 쓰러 온 사람에게 딴 화면의
+                설정 이야기를 할 자리가 아니다. */}
             {formError && (
               <p className="text-[12px] leading-6 text-vermilion">
                 {formError}
