@@ -5133,27 +5133,23 @@ html[data-theme="light"] {
   .hip-screen.hip-room-plain .hip-bloom { opacity: 0; }
 }
 
-/* ── 꽃받침의 먼 쪽 ────────────────────────────────────────────
-   형: 「불상 뒤에 벽이 있다고 생각하고 핑크 연꽃을 저기도 채워 놔 줄 수
-        없나. 눌렸을 때도 뒤가 비어 보이지 않게」
+/* 꽃받침의 「먼 쪽」을 같은 그림으로 흉내 내던 겹은 걷었다.
+   형: 「꼼수 말고 정공법으로 가자고. 연꽃이랑 미륵이랑 따로 만든 다음에
+        미륵을 밑으로 눌리게 하라고」 — 맞는 말이다.
+   흐리고 어둡게 눌러 놓은 같은 꽃이 부처상 뒤에 붙으니, 그릇의 먼 쪽이
+   아니라 분홍 덩이 하나가 더 낀 것처럼 보였다.
+   답은 **두 물건을 따로 굽는 것**이다. 동자는 통짜로, 연꽃은 빈 그릇으로.
+   동자를 연꽃 **뒤에** 놓으면 내려가도 연꽃 제 몸이 벽이라 빌 자리가 없다. */
 
-   연꽃은 그릇인데 앞턱만 있었다. 부처상이 내려가면 그 자리가 뚫린다.
-   같은 그림을 한 장 더 깔되 **뒤쪽 테**로 — 위로 올리고 가로로 좁히면
-   그릇의 먼 쪽이 된다. 먼 쪽이니 조금 어둡고 조금 흐리다. */
+/* ── 목탁 판 — 물건과 단추 사이를 벌린다 ──────────────────────
+   형: (목탁과 색 단추 사이 · 색 단추와 정근 알약 사이에 동그라미)
+       「저기 공간 좀 띄워라」
+   목탁 그림의 아랫단이 색 동그라미에 거의 닿아 있어서, 물건과 고르는
+   자리가 한 덩이로 읽혔다. 물건이 숨 쉴 자리를 준다. */
 @media (min-width: 0px) {
-  .hip-keycap-back {
-    z-index: 0;
-    transform-origin: 50% 100%;
-    transform: translateY(-9%) scale(0.93, 0.74);
-    filter: brightness(0.93) saturate(0.92) blur(0.3px);
-  }
-  /* 눌리면 앞턱이 부풀어 오르니 먼 쪽도 같이 조금 올라온다 —
-     둘이 한 그릇으로 움직여야 소품이 아니라 물건이다 */
-  .hip-keycap.on .hip-keycap-back {
-    transform: translateY(-10.4%) scale(0.93, 0.755);
-    transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
-  }
-  .hip-keycap-back {
-    transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
-  }
+  .hip-screen[data-lane="moktak"] .hip-obj-foot { margin-top: 30px; }
+  .hip-screen[data-lane="moktak"] .hip-opts { margin-top: 30px; }
+}
+@media (min-width: 768px) {
+  .hip-screen[data-lane="moktak"] .hip-obj-foot { margin-top: 44px; }
 }

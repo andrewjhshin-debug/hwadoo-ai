@@ -280,18 +280,6 @@ export default function HipMoktak({
                 </span>
               ) : (
                 <span className="hip-keycap-stack">
-                  {/* ── 뒤 꽃잎 ──
-                      형: 「동그라미 친 작은 부분은 거기에도 불상 뒤에 벽이
-                      있다고 생각하고 핑크 연꽃을 저기도 채워 놔 줄 수
-                      없나. 눌렸을 때도 뒤가 비어 보이지 않게」
-
-                      맞다. 연꽃은 그릇인데 **앞턱만** 있었다. 부처상이
-                      내려가면 그 자리가 그냥 뚫려서, 뒤가 없는 무대 소품처럼
-                      보였다. 같은 꽃받침을 한 장 더 깔되 **뒤쪽 테**로 —
-                      위로 올리고 가로로 좁히면 그릇의 먼 쪽이 된다.
-                      먼 쪽이니 조금 어둡다. 새 그림은 필요 없다. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-keycap-back" src="/obj/keycap-cup.png" alt="" draggable={false} aria-hidden />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img className="hip-keycap-buddha" src="/obj/keycap-buddha.png" alt="" draggable={false} />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
