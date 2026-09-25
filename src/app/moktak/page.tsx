@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 5;
+const 그림판 = 6;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
