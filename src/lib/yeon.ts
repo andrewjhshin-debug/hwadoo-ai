@@ -210,9 +210,24 @@ export async function 사진올리기(file: File): Promise<사진> {
   // 이름에 시각을 박아 겹치지 않게. 확장자는 형식에서 뽑는다
   const ext = file.type.split("/")[1].replace("jpeg", "jpg");
   const path = `yeon/${u.uid}/${Date.now()}.${ext}`;
-  await uploadBytes(sref(storage, path), file, { contentType: file.type });
-  const url = await getDownloadURL(sref(storage, path));
-  return { path, url, state: "pending", at: Date.now() };
+  try {
+    await uploadBytes(sref(storage, path), file, { contentType: file.type });
+    const url = await getDownloadURL(sref(storage, path));
+    return { path, url, state: "pending", at: Date.now() };
+  } catch (e) {
+    // 「사진을 올리지 못했습니다」 한 줄로 삼키면 다음 사람이 또 처음부터
+    // 파야 한다. 저장소가 아예 안 열려 있던 것을 찾는 데 한나절을 썼다.
+    // **까닭을 그대로 보여 준다** — 고칠 사람이 바로 알아보게.
+    const 코드 = (e as { code?: string })?.code ?? "";
+    const 말 = {
+      "storage/unauthorized": "저장소 규칙이 막고 있습니다 (npm run rules:deploy)",
+      "storage/unauthenticated": "다시 들어와 주세요",
+      "storage/retry-limit-exceeded": "그물이 약합니다. 잠시 뒤 다시",
+      "storage/quota-exceeded": "저장소가 찼습니다",
+      "storage/unknown": "저장소가 아직 안 열렸을 수 있습니다",
+    }[코드];
+    throw new Error(말 ? `${말} (${코드})` : `사진을 올리지 못했습니다 (${코드 || "까닭 모름"})`);
+  }
 }
 
 /** 사진 한 장을 지운다(목록에서만 — 저장소 청소는 뒷방이 한다) */
