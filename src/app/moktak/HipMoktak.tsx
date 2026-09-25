@@ -262,21 +262,23 @@ export default function HipMoktak({
                   받침이 위에 깔리므로 부처상이 내려가면 그 뒤로 숨는다. */}
               {keySkin === "moktak" ? (
                 /* ── 목탁 키캡 ──
-                   형: 「목탁 모양인데 키캡 되도록 하나 만들어 봐, 나무 재질」
-                       「방석 필요 없다」 「목탁 치는 거도 필요 없다」
+                   형: 「목탁 키캡 새 디자인해서 다시. 지금 너무 밤티야.
+                        기존 거 활용하지 말고 새로 만들어」
+                       「꼼수 말고 정공법으로 가자고」
 
-                   그러면 목탁 **자체가** 키캡이다. 목탁은 입(슬릿)을 사이에
-                   두고 윗뚜껑과 몸통으로 나뉘어 보인다 — 누르면 윗뚜껑이
-                   내려가 입이 닫힌다. 진짜 목탁이 울리는 모양 그대로다.
-
-                   그림을 새로 그릴 것이 없다. **같은 그림 두 장을 겹쳐
-                   놓고 위아래로 오려** 쓴다(clip-path). 그러니 살갗 넉 벌
-                   (분홍·나무·금·옥)에 그대로 다 먹는다. */
-                <span className="hip-keycap-stack hip-keycap-mok">
+                   전에는 옆에서 본 목탁 **한 장**을 clip-path 로 오려
+                   위아래인 척했다. 그래서 눌러도 종이 두 장이 어긋나는
+                   것으로 보였다.
+                   이번엔 **두 조각을 따로 구웠다** — 윗반통(돔)과 아랫반통
+                   (물고기 새기고 구멍 뚫린 사발). 둘은 같은 각도·같은 폭
+                   으로 한 번에 렌더한 것이라 포개면 한 덩어리가 된다.
+                   가만두면 사이가 벌어져 있고, 누르면 윗반통이 곧바로
+                   내려앉아 닫힌다. 진짜 키가 그렇다. */
+                <span className="hip-keycap-stack hip-mokcap">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-mokcap-body" src={mokSrc} alt="" draggable={false} />
+                  <img className="hip-mokcap-bd" src="/obj/mokcap-body.png" alt="" draggable={false} />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-mokcap-lid" src={mokSrc} alt="" draggable={false} />
+                  <img className="hip-mokcap-lid" src="/obj/mokcap-lid.png" alt="" draggable={false} />
                 </span>
               ) : (
                 <span className="hip-keycap-stack">
