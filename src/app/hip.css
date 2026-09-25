@@ -4265,16 +4265,88 @@ html[data-theme="light"] {
    끝은 뾰족하게 뻗는다. 반투명이라 층이 그대로 보인다 —
    형: 「기존처럼 레이어가 보이게 반투명으로 두라고」 */
 @media (min-width: 0px) {
+  /* 여덟 잎이 다 겹치는 별 하나 — 잎 자체는 원래 결(분홍 반투명) 그대로 */
   .hip-lotus .hip-lotus-core,
   .hip-hanji .hip-lotus .hip-lotus-core {
-    fill: rgba(255, 200, 22, 0.42);
-    stroke: rgba(255, 200, 22, 0.55);
-    stroke-width: 1.2;
+    fill: #ffc816;
+    stroke: none;
   }
-  .hip-lotus circle,
-  .hip-hanji .hip-lotus circle {
-    fill: rgba(255, 200, 22, 0.72);
-    stroke: rgba(255, 200, 22, 0.72);
-    stroke-width: 2;
+}
+
+/* ── 방 알맹이가 키를 받게 ─────────────────────────────────────
+   형: 「하심은 더더욱 이딴 식」 「얘도 안 맞다」(만다라·삼귀의)
+   방들의 알맹이는 `flex-1 min-h-0` 로 **남은 키를 받아** 제 안을 굴리게
+   짜여 있다. 그런데 새 껍데기(.hip-room-body)를 그냥 블록으로 두었더니
+   flex-1 이 아무 뜻이 없어져, 하심은 통이 0 으로 접히고 만다라는 제
+   폭대로 삐져나갔다. 통을 **세로 flex 로 세우고 남은 키를 넘긴다.** */
+@media (min-width: 0px) {
+  .hip-room-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
   }
+  /* 방 안에서 가로로 넘치는 것은 스스로 줄인다 — 만다라 그림판처럼 */
+  .hip-room-body > * { max-width: 100%; }
+  .hip-room .hip-screen-mid { align-items: stretch; }
+}
+
+/* ── 목탁 판을 한 화면에 ───────────────────────────────────────
+   형: 「목탁 크기 더 줄이고, 나무아미타불 텍스트 더 키우고 글자에 효과,
+        밑에 색상 버튼 자꾸 목탁이랑 겹쳐서 안 눌려진다고 좀 띄우고,
+        관세음·나무아미·옴 마니는 가로로 한 번에 들어가게,
+        그 밑에 것도 위로 올려서 한 화면에 차게」 */
+@media (min-width: 0px) {
+  /* 물건을 한 번 더 줄인다 — 아래 것들이 다 들어와야 한다 */
+  .hip-screen[data-lane="moktak"] .hip-mok-img,
+  .hip-screen[data-lane="moktak"] .hip-mok { width: calc(var(--hip-obj-w) * 0.7); }
+
+  /* 살갗 점 — 목탁 그림의 투명한 아랫자락이 점 위를 덮어 안 눌렸다.
+     띄우고, 점을 그림 **위로** 올린다(z). 손이 먼저 닿아야 한다 */
+  .hip-screen[data-lane="moktak"] .hip-obj-foot {
+    position: relative;
+    z-index: 3;
+    margin-top: 26px;
+  }
+  .hip-screen[data-lane="moktak"] .hip-obj { position: relative; z-index: 1; }
+
+  /* 정근 셋을 한 줄로 — 줄이 갈리면 판이 한 뼘 더 길어진다 */
+  .hip-screen[data-lane="moktak"] .hip-opts .hip-chips {
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .hip-screen[data-lane="moktak"] .hip-opts .hip-chips button {
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 9px 12px;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    color: #6f665c;
+    /* 「글자에 효과」 — 새김. 위는 희게 들리고 아래로 아주 옅은 그늘 */
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.98),
+      0 -1px 0 rgba(160, 120, 130, 0.1);
+  }
+  .hip-screen[data-lane="moktak"] .hip-opts .hip-chips button[data-on="1"],
+  .hip-screen[data-lane="moktak"] .hip-opts .hip-chips button[aria-pressed="true"] {
+    color: #17140f;
+    font-weight: 600;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 1),
+      0 2px 7px rgba(226, 110, 155, 0.34);
+  }
+  /* 그 아래(자동 목탁)도 바짝 올린다 */
+  .hip-screen[data-lane="moktak"] .hip-opts { margin-top: 10px; }
+  .hip-screen[data-lane="moktak"] .hip-opts .hip-sheet-row { margin-top: 8px; }
+}
+
+/* 삼귀의 뒤 고리 셋 — 형: 「뒤 3개 동그라미는 핑크 민트 핑크」 */
+@media (min-width: 0px) {
+  .sambae-halo circle:nth-of-type(1) { stroke: rgba(239, 123, 164, 0.5); }
+  .sambae-halo circle:nth-of-type(2) { stroke: rgba(92, 194, 172, 0.5); }
+  .sambae-halo circle:nth-of-type(3) { stroke: rgba(239, 123, 164, 0.38); }
 }

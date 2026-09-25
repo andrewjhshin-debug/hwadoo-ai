@@ -96,10 +96,11 @@ export default function HipMe({
   const [openInfo, setOpenInfo] = useState(false);
   /** 공덕 알약 — 접힌 것이 기본. 형: 「동그라미들 접었다 펼치기 기능 둬」 */
   const [openHits, setOpenHits] = useState(false);
-  /** 접었을 때 보일 것 — **한 번이라도 한 것**. 그게 내 살림이다.
-      아직 아무것도 안 했으면 넷만 보여 준다(빈 줄은 아무 말도 못 한다) */
-  const done = hits.filter((h) => h.n > 0);
-  const foldedHits = done.length ? done : hits.slice(0, 4);
+  /** 접었을 때 보일 것 — 형: 「이거 3개까지만 나오고 나머진 접고」.
+      한 것만 남겼더니 아홉 줄이 되어 여전히 화면을 먹었다. **가장 많이 한
+      셋**이면 족하다 — 내 살림이 무엇인지는 그 셋이 이미 말한다.
+      (hits 는 많이 한 것부터 정렬되어 온다) */
+  const foldedHits = hits.slice(0, 3);
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(name);

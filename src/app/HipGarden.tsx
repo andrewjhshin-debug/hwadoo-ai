@@ -129,39 +129,53 @@ export function HipGardenEmpty({
               그래서 연꽃 하나만 천천히 돈다 — 빈 자리로 둔다. */}
           <span aria-hidden className="hip-seat">
             <span className="hip-lotus">
-              {/* 형: 「잎사귀 더 얕게. 가운데는 노란 동그라미가 아니라
-                  **채우라**니까, 뾰족 튀어나온 부분까지도」
+              {/* 형: 「그냥 뚱뚱한 잎사귀 원래 거로 회귀하고,
+                  지금 노랑색은 저 테두리만 채우고」 (별 모양을 그려 줬다)
 
-                  가운데를 동그라미로 놓으니 노란 자리가 꽃과 따로 놀았다 —
-                  잎을 가로질러 원이 잘려 있으니, 꽃에 단추 하나를 붙인 꼴.
-                  노랑도 **잎의 결로** 채운다. 같은 여덟 방향으로 작은 잎을
-                  겹쳐 놓으면 끝이 뾰족한 별이 된다. 겹치는 자리는 더 진해져
-                  가운데가 저절로 여물고, 반투명이라 층이 그대로 보인다.
-                  바깥 잎은 더 가늘게(15 → 11) — 「얕게」. */}
+                  잎을 가늘게 하고 노란 잎을 겹쳐 놨더니 꽃이 두 벌이 됐다.
+                  잎은 원래 두께로 되돌린다. 노랑은 **여덟 잎이 모두 겹치는
+                  자리** — 가운데의 그 별 — 만 채운다. 그건 새로 그리는 게
+                  아니라 잎 여덟의 **교집합**이다. 오려 내기(clipPath)를
+                  여덟 번 물려 쓰면 정확히 그 모양만 남는다.
+                  꽃과 따로 노는 단추가 아니라, 꽃이 스스로 만든 자리다. */}
               <svg viewBox="0 0 200 200">
+                <defs>
+                  {Array.from({ length: 8 }, (_, i) => (
+                    <clipPath
+                      key={`k${i}`}
+                      id={`hip-lotus-k${i}`}
+                      clipPathUnits="userSpaceOnUse"
+                      clipPath={i ? `url(#hip-lotus-k${i - 1})` : undefined}
+                    >
+                      <ellipse
+                        cx="100"
+                        cy="62"
+                        rx="15"
+                        ry="45"
+                        transform={`rotate(${i * 45} 100 100)`}
+                      />
+                    </clipPath>
+                  ))}
+                </defs>
                 {Array.from({ length: 8 }, (_, i) => (
                   <ellipse
                     key={i}
                     cx="100"
                     cy="62"
-                    rx="11"
+                    rx="15"
                     ry="45"
                     transform={`rotate(${i * 45} 100 100)`}
                   />
                 ))}
-                {/* 가운데 — 뾰족한 끝까지 노랗게 */}
-                {Array.from({ length: 8 }, (_, i) => (
-                  <ellipse
-                    key={`c${i}`}
-                    className="hip-lotus-core"
-                    cx="100"
-                    cy="74"
-                    rx="10"
-                    ry="30"
-                    transform={`rotate(${i * 45} 100 100)`}
-                  />
-                ))}
-                <circle cx="100" cy="100" r="15" />
+                {/* 여덟이 다 겹치는 그 별만 노랗게 */}
+                <rect
+                  className="hip-lotus-core"
+                  x="0"
+                  y="0"
+                  width="200"
+                  height="200"
+                  clipPath="url(#hip-lotus-k7)"
+                />
               </svg>
             </span>
           </span>

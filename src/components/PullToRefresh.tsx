@@ -28,10 +28,17 @@ const 최대 = 116;
 
 export default function PullToRefresh({
   onRefresh,
+  /** 꺼 두면 손짓만 놓는다 — **껍데기는 그대로 둔다.**
+      쓸 때만 감싸려고 `조건 ? <PullToRefresh>…</PullToRefresh> : …` 로
+      갈랐더니, 조건이 바뀌는 순간 리액트가 **나무를 통째로 갈아** 안쪽이
+      처음부터 다시 났다. 인연에서 「글 쓰기」를 눌러도 목록으로 튕기던
+      까닭이 이것이다. 켜고 끄기는 소품으로 한다 — 자리는 안 바뀐다. */
+  enabled = true,
   children,
 }: {
   /** 새로고침 — 끝날 때까지 기다린다(await) */
   onRefresh: () => void | Promise<void>;
+  enabled?: boolean;
   children: React.ReactNode;
 }) {
   const [pull, setPull] = useState(0);
@@ -61,14 +68,14 @@ export default function PullToRefresh({
 
   useEffect(() => {
     const 시작하기 = (e: TouchEvent) => {
-      if (busy) return;
+      if (busy || !enabled) return;
       if (window.scrollY > 2) return; // 맨 위에서만
       시작.current = e.touches[0].clientY;
       시작X.current = e.touches[0].clientX;
       가로.current = false;
     };
     const 끌기 = (e: TouchEvent) => {
-      if (시작.current == null || busy) return;
+      if (시작.current == null || busy || !enabled) return;
       const dy = e.touches[0].clientY - 시작.current;
       const dx = e.touches[0].clientX - 시작X.current;
       // 형: 「왜 인연에서 화면 쓸어도 공덕으로 안 가지, 오른쪽으로 쓸어도」
@@ -103,7 +110,7 @@ export default function PullToRefresh({
       window.removeEventListener("touchend", 끝내기);
       window.removeEventListener("touchcancel", 끝내기);
     };
-  }, [busy, 끝내기]);
+  }, [busy, enabled, 끝내기]);
 
   const t = Math.min(1, pull / 문턱);
   const 익음 = pull >= 문턱 || busy;

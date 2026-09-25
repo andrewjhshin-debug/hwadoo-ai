@@ -67,11 +67,13 @@ function GatheringInner() {
     </div>
   );
 
-  // 글을 쓰거나 읽는 중에는 당겨도 안 걸린다 — 목록일 때만
-  return view === "list" ? (
-    <PullToRefresh onRefresh={새로받기}>{알맹이}</PullToRefresh>
-  ) : (
-    알맹이
+  // 글을 쓰거나 읽는 중에는 당겨도 안 걸린다 — 다만 **껍데기는 늘 있다.**
+  // 조건으로 감싸고 벗기면 리액트가 나무를 갈아 안쪽이 처음부터 다시 난다
+  // (「글 쓰기」를 눌러도 목록으로 튕겼다). 스위치로만 끈다.
+  return (
+    <PullToRefresh onRefresh={새로받기} enabled={view === "list"}>
+      {알맹이}
+    </PullToRefresh>
   );
 }
 

@@ -142,6 +142,9 @@ export default function SambaePage() {
             fill="url(#sb_aura)"
             style={{ animation: "sb-breathe 4s ease-in-out infinite" }}
           />
+          {/* 형: 「뒤 3개 동그라미는 핑크 민트 핑크 이렇게」.
+              금 한 색으로 세 겹이면 그냥 무늬인데, 색이 갈리면 **몇 번째**
+              인지가 색으로 보인다 — 귀의할 곳 셋(佛·法·僧)이 색으로 센다. */}
           {[0, 1, 2].map((k) => (
             <circle
               key={k}
@@ -149,9 +152,9 @@ export default function SambaePage() {
               cy="126"
               r={72 + k * 21}
               fill="none"
-              stroke="var(--color-gold)"
+              stroke={["#ef7ba4", "#5cc2ac", "#ef7ba4"][k]}
               strokeWidth={n > k ? 2.4 : 1}
-              opacity={n > k ? 0.85 : 0.16}
+              opacity={n > k ? 0.85 : 0.2}
               style={{ transition: "opacity .5s, stroke-width .5s" }}
             />
           ))}

@@ -60,9 +60,13 @@ const ARC = 2 * Math.PI * 146; // 바깥 진행 고리 둘레
 // 손이 굴리는 알은 **앞쪽(아래 가운데)** 에 있다. 그런데 금은 저 위에서
 // 시작하고 있었으니, 굴린 곳과 차오르는 곳이 따로 놀았다.
 // 아래 가운데에서 시작해 알이 넘어가는 쪽(반시계)으로 밀려 나간다.
+// 시작점만 아래로 옮기면 될 일을, 지나는 차례까지 뒤집어 놨다. 호의
+// 방향(sweep)은 그대로인데 목적지 차례가 거꾸로니 원이 아니라 나비가
+// 됐다. 형: 「그냥 다시 동그라미 형태로 채워지는 걸로 회귀해」
+// 차례는 원래대로 두고(아래→오른쪽→위→왼쪽) 시작만 아래로 옮긴다.
 const ARC_PATH =
-  "M158 304 A146 146 0 0 0 12 158 A146 146 0 0 0 158 12 " +
-  "A146 146 0 0 0 304 158 A146 146 0 0 0 158 304";
+  "M158 304 A146 146 0 0 0 304 158 A146 146 0 0 0 158 12 " +
+  "A146 146 0 0 0 12 158 A146 146 0 0 0 158 304";
 
 // 염불 여섯 자 — 목탁을 칠 때마다 한 자씩
 /**
@@ -133,7 +137,8 @@ const SKINS = {
     // 있는 편이 낫다(형: 「고양이 염주 없는데?」).
     // 제대로 된 그림은 제미나이로 받는다 —
     // `화두 이미지/[오브제] 염주-발바닥-프롬프트.md` 를 그대로 붙이면 된다.
-    { id: "paw", name: "발바닥", src: "/obj/bead-paw.png", dot: "#e0cdaa", wide: true },
+    // 형: 「밑에 색상도 핑크로 바꾸고」 — 알이 분홍인데 점만 미색이었다
+    { id: "paw", name: "발바닥", src: "/obj/bead-paw.png", dot: "#f08ba8", wide: true },
   ],
   bowl: [
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
@@ -607,7 +612,10 @@ export default function MoktakPage() {
             strokeLinecap="round"
             strokeDasharray={ARC}
             strokeDashoffset={ARC * (1 - pos / BEADS)}
-            style={{ transition: "stroke-dashoffset 0.2s ease-out" }}
+            /* 형: 「황금빛이랑 염주랑 약간 딜레이가 있어. 딱딱 떨어지게 해,
+               멀미난다」 — 알은 한 칸씩 툭툭 켜지는데 획만 0.2초 미끄러지니
+               둘이 어긋나 보였다. 같은 박자로 맞춘다 — 획도 알처럼 툭. */
+            style={{ transition: "stroke-dashoffset 0.06s linear" }}
           />
         </svg>
 
@@ -618,9 +626,12 @@ export default function MoktakPage() {
               const front = (1 - Math.cos(t)) / 2;
               const sc = 0.62 + 0.52 * front;
               const degrees = ((t * 180) / Math.PI + 360) % 360;
-              const fromMarker = (360 - degrees) % 360;
+              // 형: 「빨간 줄로 세로로 그은 데가 기준점이고, 그 앞부터
+              //      황금색이 채워지게」 — 기준은 **아래 가운데**(180도)다.
+              // 손이 굴리는 알이 거기 있는데 금은 저 위에서 시작하고 있었다.
+              const fromMarker = (180 - degrees + 360) % 360;
               const lit = pos > 0 && fromMarker <= f * 360 + 360 / RING_BEADS / 2;
-              const markerDistance = Math.min(degrees, 360 - degrees);
+              const markerDistance = Math.abs(degrees - 180);
               const atMarker = markerDistance < 5;
               return (
                 <img
