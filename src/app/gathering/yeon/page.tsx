@@ -30,6 +30,47 @@ import {
   type 오늘사람,
 } from "@/lib/yeonToday";
 
+/**
+ * 가안 — 아직 아무도 없을 때 세우는 한 장.
+ *
+ * 형: 「오늘의 인연 눌리면 카드 뜨도록 하는 거야. 일단 가안으로 적용해 봐.
+ *      카드 1개만 띄우게, 눌리면 돌려서 넘어가게, 랜덤 사진 아무거나 해서」
+ *
+ * 판이 비어 있으면 아무것도 안 뜨니 **손맛을 볼 수가 없다.** 사람이 찰
+ * 때까지는 이 한 장으로 엎고 뒤집고 넘겨 본다. 진짜 사람이 한 명이라도
+ * 있으면 이 장은 저절로 안 나온다.
+ * 사진은 우리 그림이다 — 남의 얼굴을 흉내 내지 않는다.
+ */
+const 가안들: 오늘사람[] = [
+  {
+    uid: "demo-1", name: "보련화", born: new Date().getFullYear() - 34,
+    area: "서울", temple: "봉은사", wantTemple: "해인사", job: "디자이너",
+    tall: 164, mbti: "INFP",
+    vibe: ["상냥", "차분"], like: ["카페", "전시", "차(茶)"],
+    care: ["명상", "자기계발"], date: ["절 나들이", "산책"],
+    line: "새벽 예불 좋아합니다. 조용히 같이 앉을 사람이면 좋겠어요.",
+    rank: "보살", photos: ["/obj/keycap.png"],
+  },
+  {
+    uid: "demo-2", name: "무애", born: new Date().getFullYear() - 38,
+    area: "경기", temple: "용주사", wantTemple: "통도사", job: "개발자",
+    tall: 178, mbti: "ENTP",
+    vibe: ["유머", "털털"], like: ["등산", "맛집", "드라이브"],
+    care: ["건강", "여행"], date: ["등산", "맛집"],
+    line: "주말마다 산에 갑니다. 절이 있으면 더 좋고요.",
+    rank: "居士", photos: ["/obj/buddha.png"],
+  },
+  {
+    uid: "demo-3", name: "청연", born: new Date().getFullYear() - 29,
+    area: "부산", temple: "범어사", wantTemple: "송광사", job: "간호사",
+    tall: 160, mbti: "ISFJ",
+    vibe: ["다정", "성실"], like: ["요가", "바다", "독서"],
+    care: ["결혼", "가족"], date: ["바다", "차 한잔"],
+    line: "바다 보이는 절이 좋아요.",
+    rank: "선남", photos: ["/obj/bowl.png"],
+  },
+];
+
 export default function 오늘의인연() {
   const confirm = useConfirm();
   const [있나, 있나잡기] = useState<boolean | null>(null);
@@ -68,8 +109,11 @@ export default function 오늘의인연() {
     [읽기]
   );
 
-  // 오늘 아직 안 본 사람 — 맨 앞 한 장만 세운다
-  const 남은 = (사람들 ?? []).filter((p) => !끝난이.includes(p.uid));
+  // 오늘 아직 안 본 사람 — 맨 앞 한 장만 세운다.
+  // 진짜 사람이 하나도 없으면 가안 한 장을 대신 세운다(형: 「일단 가안으로」)
+  const 진짜 = (사람들 ?? []).filter((p) => !끝난이.includes(p.uid));
+  const 가안인가 = 있나 === false || (사람들 !== null && 사람들.length === 0);
+  const 남은 = 가안인가 ? 가안들.filter((p) => !끝난이.includes(p.uid)) : 진짜;
   const 이 = 남은[0];
 
   useEffect(() => {
@@ -101,6 +145,12 @@ export default function 오늘의인연() {
 
   const 누름 = async (act: "hap" | "pass") => {
     if (!이 || 바쁨) return;
+    // 가안은 서버에 없는 사람이다. 물으면 not-today 가 돌아온다
+    if (가안인가) {
+      치우기(이.uid);
+      if (act === "hap") 닿음잡기("demo");
+      return;
+    }
     바쁨잡기(true);
     try {
       const r = await 합장(이.uid, act);
@@ -124,6 +174,7 @@ export default function 오늘의인연() {
       { confirm: "막기", cancel: "두기" }
     );
     if (!ok) return;
+    if (가안인가) return 치우기(이.uid);
     try {
       await 막기(이.uid);
       치우기(이.uid);
@@ -136,6 +187,7 @@ export default function 오늘의인연() {
     if (!이) return;
     신고창잡기(false);
     메뉴잡기(false);
+    if (가안인가) return 치우기(이.uid);
     try {
       await 신고({ uid: 이.uid, name: 이.name }, 까닭);
       await 막기(이.uid);
@@ -145,13 +197,8 @@ export default function 오늘의인연() {
     }
   };
 
-  // ── 들어오기 전 ──────────────────────────────────────────
-  if (있나 === false)
-    return (
-      <껍데기>
-        <p className="hip-yeon-say">들어온 뒤에 열립니다</p>
-      </껍데기>
-    );
+  // 들어오기 전에도 **가안 한 장**은 보여 준다 — 무엇을 하는 곳인지는
+  // 설명이 아니라 한 번 눌러 보는 것으로 안다
 
   // ── 인연이 닿았다 ────────────────────────────────────────
   if (닿음)
@@ -170,8 +217,8 @@ export default function 오늘의인연() {
       </껍데기>
     );
 
-  // ── 프로필이 아직 ────────────────────────────────────────
-  if (탈 === "no-profile" || 탈 === "not-open")
+  // ── 프로필이 아직 ── (들어와 있는데 프로필이 없을 때만)
+  if (있나 && (탈 === "no-profile" || 탈 === "not-open"))
     return (
       <껍데기>
         <div className="hip-yeon-met">
@@ -188,7 +235,8 @@ export default function 오늘의인연() {
       </껍데기>
     );
 
-  if (사람들 === null)
+  // 손님은 서버에 못 묻는다 — 가안이 바로 선다(가안인가 가 true)
+  if (있나 === null || (있나 === true && 사람들 === null))
     return (
       <껍데기>
         <p className="hip-yeon-say">…</p>
@@ -201,9 +249,7 @@ export default function 오늘의인연() {
       <껍데기>
         <div className="hip-yeon-met" data-quiet="1">
           <b aria-hidden>空</b>
-          <p>
-            {사람들.length ? "오늘은 여기까지" : "아직 마주칠 사람이 없습니다"}
-          </p>
+          <p>오늘은 여기까지</p>
           <span className="hip-yeon-tomorrow">내일 다시 한 사람</span>
         </div>
       </껍데기>

@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "rules:deploy": "firebase deploy --only firestore:rules,firestore:indexes"
+    "rules:deploy": "firebase deploy --only firestore:rules,firestore:indexes,storage"
   },
   "overrides": {
     "jose": "5.9.6"

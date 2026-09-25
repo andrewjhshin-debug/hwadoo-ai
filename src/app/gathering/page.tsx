@@ -48,20 +48,6 @@ function GatheringInner() {
           <p className="rise px-5 text-center text-[13px] tracking-[0.5em] text-gold-soft sm:px-0">
             因緣 · 인연
           </p>
-          {/* 만 19세 고지 — 로그인·화면 크기와 무관하게 게시판에서 늘 보인다 */}
-          <p className="rise rise-d1 mt-2.5 px-5 text-center text-[11.5px] tracking-wide text-hanji-faint sm:px-0">
-            만 19세 이상만 이용할 수 있습니다 · 익명 법명으로 활동합니다
-          </p>
-
-          {/* ── 도반 찾기로 가는 문 ──────────────────────────────
-              형: 「인연으로 데이팅앱 갈 거야」
-              게시판은 그대로 두고 그 위에 한 겹을 얹는다. 글로 설명하지
-              않는다 — 눌러서 제 프로필을 채우다 보면 무엇인지 안다. */}
-          <Link href="/gathering/yeon" className="rise rise-d1 hip-yeon-door">
-            <b>道伴</b>
-            <span>오늘의 인연</span>
-            <u>›</u>
-          </Link>
           {/* 문은 둘. 설명은 안 붙인다 — 형: 「개 같은 멘트 넣지 말라고 했다」 */}
           <Link
             href="/gathering/me"

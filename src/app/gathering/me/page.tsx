@@ -40,6 +40,10 @@ import {
   내프로필,
 } from "@/lib/yeon";
 
+/** 사진은 다섯 장까지 — 형: 「한 5개 정도만 서버에 저장되도록 일단」
+    더 받아도 고르는 일이 일이 되고, 저장소 값도 사람 수만큼 곱해진다 */
+const 사진칸 = 5;
+
 export default function 인연내프로필() {
   const [me, setMe] = useState<인연프로필 | null>(null);
   const [있나, 있나잡기] = useState<boolean | null>(null);
@@ -78,7 +82,7 @@ export default function 인연내프로필() {
     올리는중잡기(true);
     try {
       const 이미 = me?.photos ?? [];
-      const 받을 = Array.from(fs).slice(0, Math.max(0, 6 - 이미.length));
+      const 받을 = Array.from(fs).slice(0, Math.max(0, 사진칸 - 이미.length));
       const 새것 = [];
       for (const f of 받을) 새것.push(await 사진올리기(f));
       await 고치기({ photos: [...이미, ...새것] });
@@ -132,7 +136,7 @@ export default function 인연내프로필() {
               {f.state === "no" && <i data-no="1">다시</i>}
             </span>
           ))}
-          {(me?.photos?.length ?? 0) < 6 && (
+          {(me?.photos?.length ?? 0) < 사진칸 && (
             <button
               className="hip-yeon-add"
               onClick={() => 파일.current?.click()}

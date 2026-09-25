@@ -789,42 +789,40 @@ export default function MoktakPage() {
           />
         </div>
 
-        {/* ── 알 한가운데를 지나는 금실 ───────────────────────────
-            형: 「세로 염주 여전히 안 맞다. 염주알 중앙에 황금 선을 두고
-                 채워지도록 해 봐. 지금 염주 도는 거랑 황금 채워지는 게
-                 어긋난다니까」
+        {/* ── 물든 만큼 금빛 ──────────────────────────────────
+            형: 「아니 염주 원래처럼 황금색 배경으로 덮어지도록 다시
+                 원래처럼 고쳐, 직전처럼」
 
-            맞는 말이다. 알은 **돌고**(rotate) 금빛 겹은 **안 돌았다**.
-            통에 붙은 부채꼴 아래로 알이 미끄러져 지나가니, 셀 때마다
-            금이 딴 알에 가 붙었다. 겹을 같이 돌리면 이번엔 시작점이
-            표(12시)에서 떨어져 나간다 — 어느 쪽이든 하나는 어긋난다.
-
-            그래서 금을 **알에서 뗀다.** 염주는 본래 실에 꿴 것이니,
-            알 한가운데를 지나는 실 한 줄이 금으로 물든다. 실은 동그라미라
-            돌아도 그대로다 — 어긋날 것이 없다.
-            반지름은 그림에서 쟀다(알 띠 63~87% 의 한가운데 75%). */}
-        {!beadWide && (
-          <svg
-            aria-hidden
-            viewBox="0 0 316 316"
-            className="pointer-events-none absolute inset-0 h-full w-full"
-          >
-            <path d={ARC_MID_CCW} fill="none" stroke="rgba(226,186,116,0.22)" strokeWidth="4" />
-            <path
-              d={ARC_MID_CCW}
-              fill="none"
-              stroke="url(#hip-arc-gold)"
-              strokeWidth="4.6"
-              strokeLinecap="round"
-              strokeDasharray={ARC_MID}
-              strokeDashoffset={ARC_MID * (1 - pos / BEADS)}
-              style={{
-                transition: "stroke-dashoffset 0.14s ease-out",
-                filter: "drop-shadow(0 0 5px rgba(217,180,91,0.55))",
-              }}
-            />
-          </svg>
-        )}
+            알 한가운데로 금실 한 줄을 지나가게 해 봤는데(돌아도 안
+            어긋나니까) 형이 아니라고 했다. 실은 너무 가늘어서 「차오른다」로
+            안 읽힌다. **알이 통째로 금이 되는 것**이 이 물건의 맛이다.
+            되돌린다 — 같은 그림을 한 장 더 얹고 부채꼴 ∩ 알 띠 로 오린다. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 grid place-items-center"
+          style={{
+            maskImage: goldMask,
+            WebkitMaskImage: goldMask,
+            maskComposite: "intersect",
+            WebkitMaskComposite: "source-in",
+            opacity: beadWide ? 0 : 1,
+            transition: "opacity .3s",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={skinSrc("bead")}
+            alt=""
+            draggable={false}
+            className="block h-[83%] w-[83%] object-contain"
+            style={{
+              transform: `rotate(${angle}deg)`,
+              transition: "transform 0.16s ease-out",
+              filter:
+                "sepia(1) saturate(2.4) hue-rotate(-8deg) brightness(1.24) drop-shadow(0 0 12px rgba(217,180,91,0.35))",
+            }}
+          />
+        </div>
 
         {/* 지금 넘기는 자리 */}
         <span

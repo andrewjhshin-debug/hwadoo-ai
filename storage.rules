@@ -1,0 +1,53 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────
+// 저장소(Storage) 규칙 — 사진이 사는 곳.
+//
+// 형: 「지금 실제 사진은 안 올라가는 거냐? 와꾸만 짜 봐. 한 5개 정도만
+//      서버에 저장되도록 일단, 나중에 늘리더라도」
+//
+// **이 파일이 아예 없었다.** 코드는 사진을 올리고 있었는데(yeon.ts 의
+// 사진올리기 → yeon/{uid}/{시각}.{확장자}) 저장소는 규칙을 받은 적이
+// 없으니, 기본값대로 브라우저의 쓰기를 통째로 막고 있었다.
+// 프로필에서 ＋ 를 눌러도 아무 일도 안 일어난 까닭이 이것이다.
+//
+// 규칙은 세 가지만 본다 —
+//   ① 제 칸에만 쓴다 (yeon/{내 uid}/…)
+//   ② 그림이어야 한다 (jpeg · png · webp)
+//   ③ 8MB 까지 (yeon.ts 가 클라이언트에서 거르는 것과 같은 수)
+//
+// 읽기는 열어 둔다. 사진의 url 은 다운로드 토큰이 박힌 긴 주소라
+// 주소를 아는 사람만 볼 수 있고, 그 주소는 서버(api/yeon/today)가
+// **통과된 사진만** 골라서 내보낸다.
+// ─────────────────────────────────────────────────────────────
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isPhoto() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp)')
+        && request.resource.size < 8 * 1024 * 1024;
+    }
+
+    // ── 인연 프로필 사진 ────────────────────────────────────
+    match /yeon/{uid}/{shot} {
+      allow read: if true;
+      allow create, update: if signedIn()
+        && request.auth.uid == uid
+        && isPhoto();
+      // 본인이 지울 수 있다. 목록에서 빼는 것(yeon.ts 사진빼기)과 달리
+      // 실물까지 지우는 길 — 탈퇴·교체 때 쓴다
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    // ── 그 밖은 전부 잠근다 ─────────────────────────────────
+    // 새 쓰임이 생기면 여기 위에 칸을 하나 더 판다. 열어 두고 잊는 것보다
+    // 막아 두고 막혔다고 듣는 편이 언제나 싸다.
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

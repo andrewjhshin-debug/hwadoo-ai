@@ -36,19 +36,20 @@ export default function YeonAvatar({ size = 52 }: { size?: number }) {
     (me?.photos ?? []).find((f) => f.state === "pending")?.url ??
     null;
 
+  // 형: 「이거 걍 없애고 그냥 작게 로그인 정보 간략히 돌려」
+  // 사진이 없으면 분홍 동그라미에 緣 한 글자만 덩그러니 떴다 — 아무
+  // 쓸모가 없는데 자리만 먹는다. **얼굴이 있을 때만** 선다.
+  if (!얼굴) return null;
+
   return (
     <Link
-      href={me ? "/gathering/me/view" : "/gathering/me"}
+      href="/gathering/me/view"
       className="hip-me-face"
       style={{ width: size, height: size }}
-      aria-label={me ? "남이 보는 내 프로필" : "인연 프로필 만들기"}
+      aria-label="남이 보는 내 프로필"
     >
-      {얼굴 ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={얼굴} alt="" draggable={false} />
-      ) : (
-        <em aria-hidden>緣</em>
-      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={얼굴} alt="" draggable={false} />
       {/* 돋보기 — 얼굴 안 오른아래 */}
       <i aria-hidden>
         <svg viewBox="0 0 24 24">
