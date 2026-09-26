@@ -4602,13 +4602,13 @@ html[data-theme="light"] {
   }
   body:has(.hip-write-pop) .hip-mala { display: none !important; }
 
-  .hip-yeon-face {
+  .hip-me-face {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 12px;
   }
-  .hip-yeon-face-one {
+  .hip-me-face-one {
     position: relative;
     width: 100%;
     max-width: 268px;
@@ -4618,9 +4618,9 @@ html[data-theme="light"] {
     background: rgba(26, 23, 20, 0.05);
     border: 1px solid rgba(26, 23, 20, 0.07);
   }
-  .hip-yeon-face-one img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hip-me-face-one img { width: 100%; height: 100%; object-fit: cover; display: block; }
   /* 아직 한 장도 없을 때 — 빈 네모에 점선 한 겹 */
-  .hip-yeon-face-one i {
+  .hip-me-face-one i {
     position: absolute;
     inset: 0;
     display: grid;
@@ -4633,7 +4633,7 @@ html[data-theme="light"] {
     color: #d9a9bd;
   }
   /* 몇 장인가 — 한 장뿐이면 안 적는다 */
-  .hip-yeon-face-one b {
+  .hip-me-face-one b {
     position: absolute;
     right: 7px;
     top: 7px;
@@ -4648,7 +4648,7 @@ html[data-theme="light"] {
     font-size: 11px;
     font-weight: 500;
   }
-  .hip-yeon-face-one u,
+  .hip-me-face-one u,
   .hip-yeon-big span u {
     position: absolute;
     left: 6px;
@@ -4661,7 +4661,7 @@ html[data-theme="light"] {
     color: #d2578c;
   }
   /* 단추 둘은 사진 **안** 바닥에 떠 있다 — 그림 위라 흰 알약으로 */
-  .hip-yeon-face-acts {
+  .hip-me-face-acts {
     position: absolute;
     left: 50%;
     bottom: 10px;
@@ -4674,7 +4674,7 @@ html[data-theme="light"] {
     backdrop-filter: blur(8px);
     box-shadow: 0 4px 14px rgba(26, 23, 20, 0.16);
   }
-  .hip-yeon-face-acts button {
+  .hip-me-face-acts button {
     display: grid;
     place-items: center;
     width: 40px;
@@ -4685,9 +4685,9 @@ html[data-theme="light"] {
     color: #d2578c;
     transition: all 0.16s;
   }
-  .hip-yeon-face-acts button:active { transform: translateY(1px); background: rgba(242, 160, 189, 0.3); }
-  .hip-yeon-face-acts button:disabled { opacity: 0.3; }
-  .hip-yeon-face-acts svg {
+  .hip-me-face-acts button:active { transform: translateY(1px); background: rgba(242, 160, 189, 0.3); }
+  .hip-me-face-acts button:disabled { opacity: 0.3; }
+  .hip-me-face-acts svg {
     width: 20px; height: 20px;
     fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round;
   }
@@ -4956,9 +4956,12 @@ html[data-theme="light"] {
     margin: 0 auto;
     min-height: 0;
     gap: 10px;
-    /* 형: 「이거 저 밑까지 늘리고」 — 통 밑으로 빈 띠가 한 겹 더
-       있었다. 띠(염주) 자리만 남기고 통이 그 위까지 내려온다 */
-    padding: 18px 14px calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) - 18px);
+    /* 형: 「아예 밑 공간까지 다 쓰고」
+       `flex: 1 1 auto` 만으로는 안 늘어난다 — 바깥에 기댈 플렉스 칸이
+       없으면 「남는 키」라는 게 없기 때문이다. 화면 키를 **직접** 쥔다.
+       띠(염주) 자리만 남기고 나머지는 전부 통이 먹는다. */
+    height: 100dvh;
+    padding: 18px 14px calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) - 24px);
   }
   .hip-hall-top {
     display: flex;
@@ -5003,20 +5006,19 @@ html[data-theme="light"] {
      없으면 어긋날 일도 없다. */
   .hip-hall-acts {
     position: absolute;
-    left: 12px;
     right: 12px;
     bottom: 12px;
     z-index: 6;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    pointer-events: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 9px;
   }
-  .hip-hall-acts > button { pointer-events: auto; }
-  .hip-hall-go {
-    height: 52px;
-    padding: 0 22px;
+  .hip-hall-go,
+  .hip-hall-read {
+    min-width: 76px;
+    height: 48px;
+    padding: 0 20px;
     border-radius: 999px;
     background: linear-gradient(160deg, #f2789f, #e0518a);
     color: #fff;
@@ -5088,7 +5090,9 @@ html[data-theme="light"] {
     justify-content: center;
     gap: 2px 0;
     margin-top: auto;
-    padding: 14px 4px 6px;
+    /* 오른쪽은 단추 두 개가 서 있는 자리 — 공양물이 그 밑으로 안 간다
+       (형: 「초쌀 이런 거랑 사연보러가기랑 공양 겹친다」) */
+    padding: 14px 92px 6px 4px;
     /* 불단 한 줄 — 물건이 허공에 뜨지 않게 바닥선을 한 가닥 */
     background: linear-gradient(transparent, rgba(226, 122, 158, 0.07) 70%);
     border-top: 1px solid rgba(226, 122, 158, 0.16);
@@ -5100,8 +5104,9 @@ html[data-theme="light"] {
     /* 단추가 기대는 자리 — 「기댈 데가 없어 화면 모서리로 갔다」를
        두 번 겪지 않으려면 여기 position 이 있어야 한다 */
     position: relative;
-    /* 단추 한 줄이 그 위에 떠 있다 — 그만큼만 안에서 비운다 */
-    padding-bottom: 72px;
+    /* 단추 둘이 오른쪽 아래 귀퉁이에만 선다 — 불단은 그 왼쪽으로
+       흐르므로 바닥을 통째로 비울 필요가 없다. 한 줄만 */
+    padding-bottom: 16px;
   }
   .hip-gong {
     position: relative;
@@ -5150,8 +5155,6 @@ html[data-theme="light"] {
 
   /* 사연 보러가기 — 왼쪽 아래. 올리는 단추와 짝을 이룬다 */
   .hip-hall-read {
-    height: 52px;
-    padding: 0 20px;
     border-radius: 999px;
     border: 1px solid rgba(26, 23, 20, 0.12);
     background: rgba(255, 255, 255, 0.92);
@@ -6401,4 +6404,14 @@ html[data-theme="light"] {
   .hip-deung-foot { margin: 8px 0 0; text-align: center; font-size: 11px; color: #c3bbb0; }
   .hip-deung-bad { margin: 10px 0 0; font-size: 12px; color: #d2578c; }
   .hip-deung-bad a { text-decoration: underline; }
+}
+
+/* ── 설치 띠가 뜨면 법당도 비운다 ─────────────────────────────
+   법당은 HipRoom 껍데기를 안 쓰고 제 키(100dvh)를 쥔다. 그러니 다른
+   판에 걸어 둔 「띠 뜨면 비우기」가 여기만 안 닿았다 — 단추 두 개가
+   띠 밑에 깔린다. 같은 셈을 여기도 건다. */
+@media (min-width: 0px) {
+  body:has(.install-banner-on) .hip-hall {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) + 60px);
+  }
 }

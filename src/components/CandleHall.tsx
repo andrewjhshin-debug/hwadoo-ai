@@ -441,9 +441,12 @@ export default function CandleHall() {
           통 밖에 한 줄로 세웠더니 통이 그만큼 짧아지고, 그 아래로
           빈 띠가 하나 더 생겼다. 통은 띠 바로 위까지 내려오고,
           단추는 그 안에 떠 있는다 — 왼쪽은 읽으러, 오른쪽은 올리러 */}
+      {/* 형: 「그 버튼 명은 공양이랑 사연으로 해서 오른쪽 아래 위아래로」
+          가로로 나란히 두니 통 바닥 한 줄을 통째로 먹었다. 오른쪽
+          아래 귀퉁이에 위아래로 세우면 한 손가락 자리만 쓴다 */}
       <div className="hip-hall-acts">
         <button className="hip-hall-read" onClick={() => 사연판잡기(true)}>
-          사연 보러가기
+          사연
         </button>
         <button className="hip-hall-go" onClick={start} aria-label="공양 올리기">공양</button>
       </div>
