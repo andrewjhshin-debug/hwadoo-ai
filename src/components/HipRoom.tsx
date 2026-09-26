@@ -37,6 +37,10 @@ export default function HipRoom({
   /** 바탕을 흰 종이 한 장으로 — 번짐도 결도 없이.
       형: 「하심 흰 종이 버전이 디폴트로 하되 뒷배경은 아예 흰 배경으로」 */
   plain = false,
+  /** 먹빛 한 벌 — 형: 「만다라 배경 오리지날 버전처럼 그 먹색으로」.
+      색을 칠하는 판(만다라)은 흰 바탕에서 색이 다 떠 버린다. 먹 위에
+      올려야 물감이 물감으로 보인다. */
+  dark = false,
   children,
 }: {
   here: string;
@@ -44,6 +48,7 @@ export default function HipRoom({
   lanes?: boolean;
   rail?: string;
   plain?: boolean;
+  dark?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -51,7 +56,7 @@ export default function HipRoom({
       <div
         className={`hip-screen${scroll ? " hip-screen-scroll" : ""} hip-room${
           plain ? " hip-room-plain" : ""
-        }`}
+        }${dark ? " hip-room-dark" : ""}`}
       >
         {/* 숨 쉬는 바탕 — 덩이 둘이 서로 다른 박자로 아주 느리게 흐른다 */}
         <span aria-hidden className="hip-bloom hip-bloom-a" />

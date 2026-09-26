@@ -356,7 +356,7 @@ export default function MandalaPage() {
   };
 
   return (
-    <HipRoom here="/mandala">
+    <HipRoom here="/mandala" dark>
       {/* 옛 껍데기가 쥐던 여백·폭(mx-auto max-w-2xl flex-1 px-2 py-3 sm:px-4 sm:py-6)은
           버렸다 — .hip-screen 이 제 여백과 아래 염주 자리를 이미 쥐고 있다.
           다만 위에서 아래로 쌓아 가운데로 모으던 flex-col items-center 는

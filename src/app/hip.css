@@ -5319,3 +5319,35 @@ html[data-theme="light"] {
   }
   .hip-deung:active .hip-deung-sway { transform: scale(0.96); }
 }
+
+/* ── 먹빛 한 벌 — 색칠하는 판만 ────────────────────────────────
+   형: 「만다라 배경 오리지날 버전처럼 그 먹색으로」
+
+   흰 바탕에서는 물감이 다 떠 버린다. 붉은 주황도 초록도 흰 종이 위에서는
+   제 값이 안 난다 — 먹 위에 올려야 색이 색으로 보인다. 단청이 그래서
+   먹빛 기둥에 올라간다.
+   색 토큰은 안 건드린다(다른 마흔 판이 물고 있다). **이 판에서만** 덮는다. */
+@media (min-width: 0px) {
+  .hip-screen.hip-room-dark {
+    background:
+      radial-gradient(58% 40% at 14% 6%, rgba(242, 120, 159, 0.1), transparent 70%),
+      radial-gradient(52% 38% at 92% 22%, rgba(120, 214, 197, 0.1), transparent 70%),
+      #14110e;
+    color: #f2ece1;
+  }
+  .hip-screen.hip-room-dark::before { opacity: 0.18; mix-blend-mode: screen; }
+  .hip-screen.hip-room-dark .hip-bloom { opacity: 0.5; }
+  /* 먹 위에서 글자와 테를 뒤집는다 — 토큰을 이 판 안에서만 갈아 끼운다 */
+  .hip-screen.hip-room-dark {
+    --color-hanji: #f2ece1;
+    --color-hanji-dim: #cfc6b6;
+    --color-hanji-faint: #98907f;
+    --color-ink-2: #1c1815;
+    --color-ink-3: rgba(242, 236, 225, 0.14);
+    --hip-edge: rgba(242, 236, 225, 0.16);
+    --hip-edge-soft: rgba(242, 236, 225, 0.09);
+    --hip-raise: #1c1815;
+  }
+  .hip-screen.hip-room-dark .hip-lane-room { color: #cfc6b6; }
+  .hip-screen.hip-room-dark .hip-lane-room[data-on="1"] { background: #f2ece1; color: #17140f; }
+}
