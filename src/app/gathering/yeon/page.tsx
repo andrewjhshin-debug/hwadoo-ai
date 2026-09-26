@@ -15,6 +15,7 @@
 // 단추 둘. 모르는 것은 눌러 보면 안다.
 // ─────────────────────────────────────────────────────────────
 
+import { Yeonkkot } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
@@ -333,51 +334,53 @@ export default function 오늘의인연() {
     );
 
   // ── 오늘은 여기까지 ──────────────────────────────────────
-  if (!이)
+  //
+  // 형: 「화면 구성을 직사각형으로 6개 깔고, 그 밑에 4개 카드 추가로
+  //      열기로 가고, 카드 좀 이쁘게 다시 디자인해서 올려」
+  //
+  // 여태 이 자리는 **空 한 글자**였다. 비었다는 말은 맞지만, 여기가
+  // 무엇을 하는 곳인지는 한 마디도 안 했다 — 하루에 몇을 볼 수 있는지,
+  // 지금 몇을 봤는지, 무엇을 더 열 수 있는지가 전부 글 밖에 있었다.
+  //
+  // 여섯 자리를 그대로 깐다. 본 자리는 채워지고, 다음 자리는 옅게
+  // 빛나고, 연꽃을 써야 열리는 자리에는 蓮 이 앉는다. 그 밑에 단추
+  // 하나 — **연꽃으로 남은 몇을 연다.** 空 도 「오늘은 여기까지」도
+  // 지운다. 판이 이미 그 말을 하고 있다.
+  if (!이) {
+    const 본만큼 = 끝난이.length;
+    const 더열수 = 칸.max - 칸.cap; // 연꽃으로 열 수 있는 자리
     return (
       <껍데기>
-        <div className="hip-yeon-met" data-quiet="1">
-          {/* 「내일 다시 한 사람」은 걷었다 — 형: 「멘트 넣지 말라고 했다」.
-              空 한 글자와 한 줄이면 오늘 몫이 끝났다는 말은 이미 다 했다. */}
-          <b aria-hidden>空</b>
-          <p>오늘은 여기까지</p>
-          {/* 더 보려면 연꽃 한 송이. 하루 천장에 닿으면 아예 안 그린다 —
-              살 수 없는 것을 내밀어 봐야 서로 피곤하다 */}
-          {있나 && 칸.cap < 칸.max && (
-            <button className="hip-yeon-hap" disabled={바쁨} onClick={더보기}>
-              연꽃 한 송이로 한 사람 더
-              {/* 몇 장이 남았는지가 보여야 누른다 — 끝이 없어 보이면
-                  아무도 첫 장을 안 산다 */}
-              <i>오늘 {칸.max - 칸.cap}번 더</i>
-            </button>
-          )}
-          {탈 && <p className="hip-yeon-bad">{말로(탈)}</p>}
-        </div>
-
-        {/* ── 하루 여섯 자리 ─────────────────────────────────
-            형: 「지금은 돌릴 게 없는 거 알아. 그래도 시스템 와꾸만
-                 보게 하루 6개 카드 깔아줘. 당연히 눌려도 반응은
-                 안 하게」
-
-            판이 비면 空 한 글자뿐이라, 이 자리가 무엇을 하는 곳인지
-            모른다. 오늘 설 수 있는 여섯 자리를 그대로 깔아 둔다 —
-            **본 자리는 채워지고, 남은 자리는 비어 있고, 연꽃을 써야
-            열리는 자리에는 蓮 이 붙는다.** 그림이 곧 설명이다.
-            누르는 물건이 아니다(ul · pointer-events 없음 · aria-hidden). */}
-        <ul className="hip-yeon-slots" aria-hidden>
-          {Array.from({ length: 칸.max }, (_, i) => (
-            <li
-              key={i}
-              data-done={i < 끝난이.length ? "1" : undefined}
-              data-pay={i >= 칸.cap ? "1" : undefined}
-            >
-              <b>{i + 1}</b>
-              {i >= 칸.cap && <i>蓮</i>}
-            </li>
-          ))}
+        <ul className="hip-yeon-deck" aria-hidden>
+          {Array.from({ length: 칸.max }, (_, i) => {
+            const 봤나 = i < 본만큼;
+            const 값 = i >= 칸.cap;
+            return (
+              <li
+                key={i}
+                data-done={봤나 ? "1" : undefined}
+                data-pay={!봤나 && 값 ? "1" : undefined}
+                data-next={!봤나 && i === 본만큼 ? "1" : undefined}
+              >
+                <em>{i + 1}</em>
+                <span>{봤나 ? "緣" : 값 ? "蓮" : "·"}</span>
+              </li>
+            );
+          })}
         </ul>
+
+        {/* 남은 자리를 여는 한 손 — 하루 천장에 닿으면 아예 안 그린다.
+            살 수 없는 것을 내밀어 봐야 서로 피곤하다 */}
+        {있나 && 칸.cap < 칸.max && (
+          <button className="hip-yeon-more" disabled={바쁨} onClick={더보기}>
+            <Yeonkkot className="h-[17px] w-[17px]" />
+            카드 {더열수}개 더 열기
+          </button>
+        )}
+        {탈 && <p className="hip-yeon-bad">{말로(탈)}</p>}
       </껍데기>
     );
+  }
 
   const 사진 = 이.photos ?? [];
   // 오늘 몇 째인가 — 본 사람 수로 센다

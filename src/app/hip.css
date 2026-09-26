@@ -4608,17 +4608,25 @@ html[data-theme="light"] {
     align-items: center;
     gap: 12px;
   }
+  /* 형: 「동그라미 말고 그냥 직사각형으로」 — 모서리를 깎다 보니
+     달걀이 됐다. 네모는 네모로 둔다(살짝만 물린다). */
   .hip-me-face-one {
     position: relative;
     width: 100%;
     max-width: 268px;
     aspect-ratio: 3 / 4;
-    border-radius: 18px;
+    border-radius: 10px;
     overflow: hidden;
     background: rgba(26, 23, 20, 0.05);
     border: 1px solid rgba(26, 23, 20, 0.07);
   }
-  .hip-me-face-one img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hip-me-face-one img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 0;
+  }
   /* 아직 한 장도 없을 때 — 빈 네모에 점선 한 겹 */
   .hip-me-face-one i {
     position: absolute;
@@ -4660,36 +4668,33 @@ html[data-theme="light"] {
     text-decoration: none;
     color: #d2578c;
   }
-  /* 단추 둘은 사진 **안** 바닥에 떠 있다 — 그림 위라 흰 알약으로 */
+  /* 형: 「＋랑 돋보기는 오른쪽 아래 정도에 그냥 배경 없이 배치해」
+     흰 알약을 깔았더니 사진 한가운데 딱지가 하나 붙은 꼴이었다.
+     맨 아이콘 둘만 귀퉁이에 둔다 — 어두운 사진에서도 보이게
+     글자에 그늘 한 겹만 준다 */
   .hip-me-face-acts {
     position: absolute;
-    left: 50%;
-    bottom: 10px;
-    transform: translateX(-50%);
+    right: 8px;
+    bottom: 6px;
     display: flex;
-    gap: 8px;
-    padding: 5px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 4px 14px rgba(26, 23, 20, 0.16);
+    gap: 2px;
   }
   .hip-me-face-acts button {
     display: grid;
     place-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(242, 160, 189, 0.14);
-    font-size: 18px;
-    color: #d2578c;
-    transition: all 0.16s;
+    width: 34px;
+    height: 34px;
+    background: none;
+    font-size: 19px;
+    color: #fff;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
+    transition: transform 0.16s, opacity 0.16s;
   }
-  .hip-me-face-acts button:active { transform: translateY(1px); background: rgba(242, 160, 189, 0.3); }
-  .hip-me-face-acts button:disabled { opacity: 0.3; }
+  .hip-me-face-acts button:active { transform: translateY(1px) scale(0.94); }
+  .hip-me-face-acts button:disabled { opacity: 0.35; }
   .hip-me-face-acts svg {
-    width: 20px; height: 20px;
-    fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round;
+    width: 19px; height: 19px;
+    fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
   }
 
   /* 돋보기 판 — 올린 것을 죽 늘어놓고 여기서 뺀다 */
@@ -5142,7 +5147,11 @@ html[data-theme="light"] {
     50% { opacity: 0.9; transform: translateX(-50%) scale(1.06); }
   }
   @media (prefers-reduced-motion: reduce) { .hip-gong-flame { animation: none; } }
-  .hip-gong-name {
+  /* 물건 밑에 이름을 안 적는다 — 형: 「법명 나오게 하지 말고」
+     「이 밑에도 글자 안 나오게 가자」. 누구 것인지는 눌러서 사연에서
+     읽는다. 불단에 글자가 깔리면 공양물이 아니라 목록이 된다 */
+  .hip-gong-name { display: none; }
+  .hip-gong-name-off {
     margin-top: 2px;
     max-width: 100%;
     overflow: hidden;
@@ -6140,7 +6149,9 @@ html[data-theme="light"] {
     flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
-    gap: 2px 0;
+    /* 줄 사이도 당긴다 — 뒤 켜의 밑자락을 앞 켜가 덮어야 천장이
+       꽉 찬다. 아래에서 위로 쌓이게 뒤집어 그린다 */
+    gap: 0;
     padding: 0 2px 18px;
     /* 천장 — 등이 걸린 가로대 */
     border-top: 1px solid rgba(226, 122, 158, 0.28);
@@ -6162,10 +6173,16 @@ html[data-theme="light"] {
        (형: 「ㅅㅂ 아직 크게 뜬다고」).
        깊이는 transform 으로 준다 — 어긋나도 그 줄만 버려지고 크기는
        상수로 남는다. 판이 죽지 않는 쪽으로 짠다. */
-    width: 22%;
-    min-width: 52px;
+    /* 폭은 **몇 개가 걸렸나**가 정한다(--deung-w, 천장이 넘겨준다).
+       많이 걸릴수록 작아지고 촘촘해진다 — 형: 「많이 걸릴수록
+       크기·원근 조절해서」. 넘겨주지 않으면 스물둘(옛 값) */
+    width: calc(var(--deung-w, 22) * 1%);
+    min-width: 30px;
     max-width: 92px;
-    margin-inline: -2.2%;
+    margin-inline: -1.6%;
+    /* 켜끼리도 겹친다 — 뒤 켜의 밑자락(쪽지)을 앞 켜가 덮어야
+       천장이 꽉 차 보인다. 줄 간격이 벌어지면 격자로 되돌아간다 */
+    margin-block-end: -9%;
     transform: scale(calc(1 - var(--깊이, 0) * 0.3));
     transform-origin: 50% 0;
     opacity: calc(1 - var(--깊이, 0) * 0.3);
@@ -6177,7 +6194,7 @@ html[data-theme="light"] {
     background: none;
     border: 0;
   }
-  @media (min-width: 520px) { .hip-deung { width: 15%; } }
+
   .hip-deung-line {
     position: absolute;
     top: 0;
@@ -6342,7 +6359,16 @@ html[data-theme="light"] {
     border-radius: 16px;
     background: radial-gradient(80% 90% at 50% 0%, rgba(242, 120, 159, 0.12), transparent 72%);
   }
+  .hip-deung-preview {
+    height: 148px;
+    place-items: center;
+  }
   .hip-deung-preview .hip-deung { width: 96px; max-width: 96px; }
+  /* 서는 것(쌀·초·향)은 폭이 아니라 **키**로 맞춘다 — 그릇은 납작하고
+     초는 길어서 폭으로 맞추면 쌀만 콩알이 된다 */
+  .hip-deung-preview .hip-gong { width: auto; max-width: none; min-width: 0; }
+  .hip-deung-preview .hip-gong-body { width: auto !important; height: 122px; }
+  .hip-deung-preview .hip-gong-img { width: auto; height: 100%; }
   .hip-deung-lab {
     display: flex;
     align-items: baseline;
@@ -6416,54 +6442,105 @@ html[data-theme="light"] {
   }
 }
 
-/* ── 하루 여섯 자리 — 판이 빌 때 와꾸만 ────────────────────────
-   형: 「시스템 와꾸만 보게 하루 6개 카드 깔아줘. 눌려도 반응은 안 하게」
-   본 자리는 채워지고, 남은 자리는 비어 있고, 연꽃을 써야 열리는 자리에는
-   蓮 이 붙는다. 손이 닿지 않는다 — 보는 것이지 누르는 것이 아니다. */
+/* ── 오늘의 여섯 자리 ──────────────────────────────────────────
+   형: 「화면 구성을 직사각형으로 6개 깔고, 그 밑에 4개 카드 추가로
+        열기로 가고, 카드 좀 이쁘게 다시 디자인해서 올려」
+
+   본 자리는 연꽃빛으로 차고(緣), 다음 자리는 옅게 숨 쉬고,
+   연꽃을 써야 열리는 자리에는 蓮 이 앉는다. 누르는 물건이 아니다. */
 @media (min-width: 0px) {
-  .hip-yeon-slots {
+  .hip-yeon-deck {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 9px;
+    gap: 10px;
     width: 100%;
-    max-width: 330px;
-    margin: 18px auto 0;
+    max-width: 340px;
+    margin: 6px auto 0;
     padding: 0;
     list-style: none;
     pointer-events: none;
     user-select: none;
   }
-  .hip-yeon-slots li {
+  .hip-yeon-deck li {
     position: relative;
     aspect-ratio: 3 / 4;
     display: grid;
     place-items: center;
-    border-radius: 13px;
-    border: 1px dashed rgba(26, 23, 20, 0.14);
-    background: rgba(26, 23, 20, 0.022);
+    border-radius: 16px;
+    border: 1px solid rgba(26, 23, 20, 0.07);
+    background: linear-gradient(160deg, #fff, #fdfbfa);
+    box-shadow: 0 2px 8px rgba(26, 23, 20, 0.04);
+    overflow: hidden;
   }
-  .hip-yeon-slots b {
-    font-family: var(--font-serif);
-    font-weight: 300;
-    font-size: 19px;
-    color: rgba(26, 23, 20, 0.16);
-  }
-  /* 이미 본 자리 — 채워져 있다 */
-  .hip-yeon-slots li[data-done="1"] {
-    border-style: solid;
-    border-color: rgba(226, 122, 158, 0.3);
-    background: rgba(242, 160, 189, 0.12);
-  }
-  .hip-yeon-slots li[data-done="1"] b { color: rgba(210, 87, 140, 0.5); }
-  /* 연꽃을 써야 열리는 자리 */
-  .hip-yeon-slots li[data-pay="1"] { border-color: rgba(212, 166, 74, 0.32); }
-  .hip-yeon-slots i {
+  /* 번호는 귀퉁이에 작게 — 카드의 주인은 가운데 한 글자다 */
+  .hip-yeon-deck em {
     position: absolute;
-    right: 5px;
-    bottom: 4px;
+    left: 9px;
+    top: 7px;
     font-family: var(--font-serif);
     font-style: normal;
-    font-size: 10px;
-    color: rgba(196, 152, 62, 0.6);
+    font-size: 11px;
+    color: rgba(26, 23, 20, 0.2);
   }
+  .hip-yeon-deck span {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 26px;
+    line-height: 1;
+    color: rgba(26, 23, 20, 0.12);
+  }
+
+  /* 이미 본 자리 — 연꽃빛으로 찬다 */
+  .hip-yeon-deck li[data-done="1"] {
+    border-color: rgba(226, 122, 158, 0.28);
+    background: linear-gradient(160deg, rgba(252, 214, 229, 0.85), rgba(246, 176, 205, 0.7));
+    box-shadow: 0 4px 14px rgba(226, 122, 158, 0.16);
+  }
+  .hip-yeon-deck li[data-done="1"] em { color: rgba(255, 255, 255, 0.78); }
+  .hip-yeon-deck li[data-done="1"] span { color: #fff; font-size: 28px; }
+
+  /* 바로 다음 자리 — 숨을 쉰다. 여기가 다음이라는 것만 말한다 */
+  .hip-yeon-deck li[data-next="1"] {
+    border-color: rgba(226, 122, 158, 0.4);
+    animation: hip-deck-breathe 2.8s ease-in-out infinite;
+  }
+  @keyframes hip-deck-breathe {
+    0%, 100% { box-shadow: 0 2px 8px rgba(226, 122, 158, 0.1); }
+    50% { box-shadow: 0 4px 18px rgba(226, 122, 158, 0.26); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hip-yeon-deck li[data-next="1"] { animation: none; }
+  }
+
+  /* 연꽃을 써야 열리는 자리 */
+  .hip-yeon-deck li[data-pay="1"] {
+    border-style: dashed;
+    border-color: rgba(212, 166, 74, 0.34);
+    background: linear-gradient(160deg, rgba(253, 250, 242, 0.9), rgba(250, 245, 232, 0.7));
+  }
+  .hip-yeon-deck li[data-pay="1"] span { color: rgba(196, 152, 62, 0.45); font-size: 22px; }
+  .hip-yeon-deck li[data-pay="1"] em { color: rgba(196, 152, 62, 0.35); }
+
+  /* 남은 자리를 여는 한 손 */
+  .hip-yeon-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 340px;
+    height: 50px;
+    margin: 14px auto 0;
+    border-radius: 999px;
+    border: 0;
+    background: linear-gradient(160deg, #f2789f, #e0518a);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    box-shadow: 0 8px 22px rgba(226, 110, 155, 0.3);
+  }
+  .hip-yeon-more:active { transform: translateY(1px); }
+  .hip-yeon-more:disabled { opacity: 0.45; box-shadow: none; }
+  .hip-yeon-more svg { fill: rgba(255, 255, 255, 0.92); }
 }

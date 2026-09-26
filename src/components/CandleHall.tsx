@@ -16,11 +16,27 @@ import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type
 
 type Comment = { id: string; by?: string; body?: string };
 
-function CandleMark({ c, onClick, i, mine }: { c: Candle; onClick: () => void; i: number; mine?: boolean }) {
-  // 원근 — 세 켜로 나눈다. 같은 켜가 나란히 서지 않게 3 으로 돌린다
-  const 깊이 = [0, 0.52, 0.86][i % 3];
-  // 줄 길이를 세 층으로 — 진짜 법당의 천장이 그렇다. 나란히 걸면 격자가 된다
-  const 줄 = [16, 34, 24, 44, 28][i % 5];
+/** 한 줄에 몇 개나 — **많이 걸릴수록 촘촘해진다.**
+ *
+ *  형: 「연등은 많이 걸릴수록 크기? 원근? 조절해서 이렇게 보이도록」
+ *      (김부따처럼 천장이 등으로 꽉 차는 그림)
+ *
+ *  등 크기를 상수로 두면 열 개까지는 예쁜데 백 개가 되면 스무 줄이
+ *  되어 천장이 아니라 목록이 된다. 진짜 법당은 등이 늘면 **줄 수가
+ *  아니라 밀도**가 는다 — 한 줄에 더 많이, 더 작게, 더 겹쳐서.
+ *  그래서 한 줄에 서는 수를 수에서 끌어낸다(√). 셋에서 아홉까지.
+ */
+function 한줄에(n: number) {
+  return Math.min(9, Math.max(3, Math.round(Math.sqrt(n * 1.7))));
+}
+
+function CandleMark({ c, onClick, i, 열, mine }: { c: Candle; onClick: () => void; i: number; 열: number; mine?: boolean }) {
+  // 켜 — **줄(row)이 곧 깊이다.** 위로 갈수록 뒤에 있고, 뒤엣것은
+  // 작고 옅다. 지그재그로 흩던 옛 셈은 등이 몇 개 없을 때만 통했다
+  const 줄번호 = Math.floor(i / 열);
+  const 깊이 = Math.min(0.86, 줄번호 * 0.3);
+  // 줄 길이 — 같은 켜 안에서도 조금씩 달라야 격자가 안 된다
+  const 줄 = [14, 26, 18, 32, 22][i % 5] + 줄번호 * 6;
   // 씨는 **사람마다 고정** — 같은 이가 오면 늘 같은 빛깔의 등이 걸린다
   const seed = c.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
   // 옛 문서에는 갈래 칸이 없다 — 없으면 연등이다(여태 다 연등이었다)
@@ -54,17 +70,22 @@ function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => vo
           <button onClick={onClose}>닫기</button>
         </div>
 
-        {/* 무엇을 올릴까 — 셋. 고른 대로 바로 위에 걸려 보인다 */}
-        <div className="hip-deung-pick">
-          {/* 형: 「초랑 향은 일단 빼고」 — 그림은 두고 고르는 자리에서만
-              내린다. 이미 올린 것은 그대로 불단에 선다 */}
-          {([["deung", "연등"], ["ssal", "쌀"]] as const).map(([k, t]) => (
+        {/* 무엇을 올릴까 — 넷. 고른 대로 바로 위에 걸려 보인다.
+            형: 「공양에 왜 초랑 향이랑 없냐」 — 그림이 다 있는데
+            고르는 자리에서만 빠져 있었다 */}
+        <div className="hip-deung-pick" data-four="1">
+          {([["deung", "연등"], ["ssal", "쌀"], ["cho", "초"], ["hyang", "향"]] as const).map(([k, t]) => (
             <button key={k} data-on={gift === k ? "1" : undefined} onClick={() => setGift(k)}>
               <b>{t}</b>
             </button>
           ))}
         </div>
 
+        {/* 형: 「저거 사이즈는 유지, 쌀로 될 때 너무 작아진다.
+                 법명 나오게 하지 말고」
+            미리보기 칸이 물건 크기를 안 잡고 있어서, 등은 크고 쌀은
+            제 그림 비율대로 쪼그라들었다. 칸이 키를 쥔다 — 무엇을
+            골라도 같은 자리에 같은 크기로 선다. */}
         <div className="hip-deung-preview">
           <Gongyang 갈래={gift} name={미리} seed={씨} drop={18} />
         </div>
@@ -374,7 +395,34 @@ export default function CandleHall() {
   const [사연판, 사연판잡기] = useState(false);
   const load = useCallback(() => { void fetchCandles().then(setPublicCandles).catch(() => setPublicCandles([])); void fetchMyCandles().then(setMine).catch(() => setMine([])); }, []);
   useEffect(() => watchAuth((u) => { setMe(u); load(); }), [load]);
-  const start = async () => { if (!me) { await loginWithGoogle(); return; } setForm(true); };
+  // ── 뒤로가기는 **한 층만** 걷는다 ─────────────────────────
+  // 형: 「공양에서 뒤로 가기 눌리면 다시 공양이 돼야지, 인연 페이지로 간다」
+  //
+  // 공양 쓰는 판도, 사연 게시판도 주소를 안 바꾼다(제자리에서 뜨는 판이다).
+  // 그러니 폰의 뒤로가기는 그 판을 못 보고 **한 주소 앞**으로 간다 —
+  // 법당에 오기 전에 있던 인연으로. 판을 열 때 층을 하나 쌓고,
+  // popstate 가 위에서부터 한 겹씩 접는다(게시판이 이미 그렇게 한다).
+  const 층쌓기 = () => {
+    try { window.history.pushState({ hwadooLayer: true }, ""); } catch { /* 못 쌓아도 판은 열린다 */ }
+  };
+  /** popstate 가 지금 무엇이 떠 있는지 읽도록 — 효과는 한 번만 건다 */
+  const 층 = useRef({ form: false, open: false, 사연판: false });
+  층.current = { form, open: !!open, 사연판 };
+  useEffect(() => {
+    const onPop = () => {
+      const l = 층.current;
+      if (l.form) return void setForm(false);
+      if (l.open) return void setOpen(null);
+      if (l.사연판) return void 사연판잡기(false);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  /** 화면의 닫기 단추도 **뒤로가기를 부른다** — 쌓은 층을 같이 걷으려고 */
+  const 닫기 = () => window.history.back();
+
+  const start = async () => { if (!me) { await loginWithGoogle(); return; } 층쌓기(); setForm(true); };
+  const 열기 = (c: Candle) => { 층쌓기(); setOpen(c); };
   const activeMine = mine.filter((c) => c.until > Date.now());
   // 형: 「함께 건 연등 / 내 연등 구분 말고, 저 은은한 박스는 유지하고
   //      다 저기에만 걸리게 한다」 「공양 버튼 오른쪽 아래 두기만 하고
@@ -422,13 +470,30 @@ export default function CandleHall() {
               등이 아무리 많아도 여기까지만 쓰고, 넘치면 안에서 굴린다.
               그래야 아래 불단이 늘 제자리에 있다 */}
           <div className="hip-hall-ceil">
-            <div className="hip-deung-sky">
-              {등들.map((c, i) => <CandleMark key={c.id} c={c} i={i} mine={c.uid === me?.uid} onClick={() => setOpen(c)}/>)}
+            <div
+              className="hip-deung-sky"
+              /* 폭 = 한 자리 몫 + 겹치는 몫. 옆 여백이 -1.6% 씩이라
+                 **차지하는 폭은 정확히 100/열** 이 된다 — 그래야 눈에
+                 보이는 줄과 위에서 센 줄(깊이)이 어긋나지 않는다.
+                 남는 3.2% 가 서로 겹치는 몫이다(띄엄띄엄 걸면 격자가
+                 되고, 겹쳐야 천장이 찬다) */
+              style={{ "--deung-w": String(100 / 한줄에(등들.length) + 3.2) } as React.CSSProperties}
+            >
+              {등들.map((c, i) => (
+                <CandleMark
+                  key={c.id}
+                  c={c}
+                  i={i}
+                  열={한줄에(등들.length)}
+                  mine={c.uid === me?.uid}
+                  onClick={() => 열기(c)}
+                />
+              ))}
             </div>
           </div>
           {물들.length > 0 && (
             <div className="hip-hall-altar">
-              {물들.map((c, i) => <CandleMark key={c.id} c={c} i={i} mine={c.uid === me?.uid} onClick={() => setOpen(c)}/>)}
+              {물들.map((c, i) => <CandleMark key={c.id} c={c} i={i} 열={99} mine={c.uid === me?.uid} onClick={() => 열기(c)}/>)}
             </div>
           )}
         </>
@@ -445,7 +510,7 @@ export default function CandleHall() {
           가로로 나란히 두니 통 바닥 한 줄을 통째로 먹었다. 오른쪽
           아래 귀퉁이에 위아래로 세우면 한 손가락 자리만 쓴다 */}
       <div className="hip-hall-acts">
-        <button className="hip-hall-read" onClick={() => 사연판잡기(true)}>
+        <button className="hip-hall-read" onClick={() => { 층쌓기(); 사연판잡기(true); }}>
           사연
         </button>
         <button className="hip-hall-go" onClick={start} aria-label="공양 올리기">공양</button>
@@ -455,9 +520,9 @@ export default function CandleHall() {
       <사연목록
         들={다걸린것}
         me={me}
-        onClose={() => 사연판잡기(false)}
-        onPick={(c) => { 사연판잡기(false); setOpen(c); }}
+        onClose={닫기}
+        onPick={(c) => { 사연판잡기(false); setOpen(c); }}  /* 층은 그대로 한 겹 — 목록이 닫히고 자리가 선다 */
       />
     )}
-    {form && <CandleForm onClose={() => setForm(false)} onDone={() => { setForm(false); load(); }}/>} {open && <Story c={open} me={me} onClose={() => setOpen(null)} onChanged={load}/>}</div>;
+    {form && <CandleForm onClose={닫기} onDone={() => { setForm(false); load(); 닫기(); }}/>} {open && <Story c={open} me={me} onClose={닫기} onChanged={load}/>}</div>;
 }
