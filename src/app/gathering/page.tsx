@@ -48,7 +48,14 @@ function GatheringInner() {
           <p className="rise px-5 text-center text-[13px] tracking-[0.5em] text-gold-soft sm:px-0">
             因緣 · 인연
           </p>
-          {/* 문은 둘. 설명은 안 붙인다 — 형: 「개 같은 멘트 넣지 말라고 했다」 */}
+          {/* 문은 둘. 설명은 안 붙인다 — 형: 「개 같은 멘트 넣지 말라고 했다」
+              형: 「인연에서 내 프로필처럼 새 인연 찾기 이렇게 탭 주고,
+                   매일매일 카드 눌리면 보이게」 */}
+          <Link href="/gathering/yeon" className="rise rise-d1 hip-yeon-door">
+            <b>緣</b>
+            <span>새 인연 찾기</span>
+            <u>›</u>
+          </Link>
           <Link
             href="/gathering/me"
             className="rise rise-d1 hip-yeon-door"
