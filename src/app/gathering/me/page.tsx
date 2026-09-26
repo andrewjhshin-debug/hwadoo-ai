@@ -150,9 +150,11 @@ export default function 인연내프로필() {
   };
 
   const [크게, 크게잡기] = useState(false);
+  /** 지금 앞에 선 장 */
+  const [장, 장잡기] = useState(0);
+  /** 옆으로 미는 손가락이 내려앉은 자리 */
+  const 민다 = useRef<number | null>(null);
   const 장수 = me?.photos?.length ?? 0;
-  /** 가운데 한 장 — 내려간 것(no)은 얼굴로 안 세운다 */
-  const 첫장 = (me?.photos ?? []).find((f) => f.state !== "no") ?? me?.photos?.[0];
 
   const 사진고르기 = async (fs: FileList | null) => {
     if (!fs?.length) return;
@@ -214,39 +216,79 @@ export default function 인연내프로필() {
             먼저 보여 준 셈이다. 얼굴은 하나면 된다. 나머지는 돋보기
             안에 있다. */}
         <div className="hip-mepic">
-          <span className="hip-mepic-one" data-state={첫장?.state}>
-            {첫장 ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={첫장.url} alt="" />
-            ) : (
-              <i aria-hidden>얼굴</i>
-            )}
-            {장수 > 1 && <b>{장수}</b>}
-            {첫장?.state === "no" && <u>다시</u>}
+          {/* ── 사진은 **겹쳐 쌓인다** ─────────────────────────
+              형: 「＋는 사진 늘어나면 겹치면서 옆으로 스르르 넘어가는
+                   기능 넣고」 「살짝씩 뒤로 겹치고, 옆으로 넘기면 그
+                   사진으로 넘어가도록」
 
-            {/* 형: 「＋랑 돋보기는 사진 안에 넣어 기능을」 —
-                사진 밖에 두었더니 판이 셋(사진 · 단추 · 빈 통)으로
-                읽혔다. 손은 사진 위에서 움직이는 게 맞다 */}
+              장수를 뱃지로 적던 것은 걷었다 — 「2」라는 글자는 두 장이
+              있다는 **말**이지 두 장이 **보이는** 것이 아니다.
+              뒤에 한 뼘씩 물려 세우면 몇 장인지가 눈에 그냥 보이고,
+              옆으로 밀면 그 장이 앞으로 온다. */}
+          <div
+            className="hip-mepic-stage"
+            onPointerDown={(e) => { 민다.current = e.clientX; }}
+            onPointerMove={(e) => {
+              if (민다.current === null) return;
+              const dx = e.clientX - 민다.current;
+              if (Math.abs(dx) < 44) return;
+              민다.current = null;
+              if (장수 < 2) return;
+              장잡기((v) => (dx < 0 ? (v + 1) % 장수 : (v - 1 + 장수) % 장수));
+            }}
+            onPointerUp={() => { 민다.current = null; }}
+            onPointerCancel={() => { 민다.current = null; }}
+          >
+            {장수 === 0 && <span data-empty="1" style={{ "--d": 0 } as React.CSSProperties}><i aria-hidden>얼굴</i></span>}
+            {(me?.photos ?? []).map((f, i) => {
+              // 앞에서부터 셋만 그린다 — 넷째부터는 어차피 안 보인다
+              const d = (i - 장 + 장수) % 장수;
+              if (d > 2) return null;
+              return (
+                <span
+                  key={f.path}
+                  data-state={f.state}
+                  data-front={d === 0 ? "1" : undefined}
+                  style={{ "--d": d } as React.CSSProperties}
+                  onClick={() => { if (d > 0) 장잡기(i); }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={f.url} alt="" draggable={false} />
+                  {d === 0 && f.state === "no" && <u>다시</u>}
+                </span>
+              );
+            })}
+
+            {/* 형: 「＋랑 돋보기는 오른쪽 아래 정도에 그냥 배경 없이」 */}
             <div className="hip-mepic-acts">
-            <button
-              onClick={() => 파일.current?.click()}
-              disabled={올리는중 || 장수 >= 사진칸}
-              aria-label="사진 추가"
-            >
-              {올리는중 ? "…" : "＋"}
-            </button>
-            <button
-              onClick={() => 크게잡기(true)}
-              disabled={장수 === 0}
-              aria-label="최종본 보기"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden>
-                <circle cx="10.5" cy="10.5" r="6.5" />
-                <path d="M15.4 15.4 21 21" />
-              </svg>
-            </button>
+              <button
+                onClick={() => 파일.current?.click()}
+                disabled={올리는중 || 장수 >= 사진칸}
+                aria-label="사진 추가"
+              >
+                {올리는중 ? "…" : "＋"}
+              </button>
+              <button
+                onClick={() => 크게잡기(true)}
+                disabled={장수 === 0}
+                aria-label="남이 보는 내 프로필"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden>
+                  <circle cx="10.5" cy="10.5" r="6.5" />
+                  <path d="M15.4 15.4 21 21" />
+                </svg>
+              </button>
             </div>
-          </span>
+          </div>
+
+          {/* 몇 째 장인가 — 글자 대신 점 */}
+          {장수 > 1 && (
+            <div className="hip-mepic-dots" aria-hidden>
+              {(me?.photos ?? []).map((f, i) => (
+                <i key={f.path} data-on={i === 장 ? "1" : undefined} onClick={() => 장잡기(i)} />
+              ))}
+            </div>
+          )}
 
           <input
             ref={파일}

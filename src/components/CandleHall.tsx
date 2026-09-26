@@ -652,6 +652,8 @@ export default function CandleHall() {
   /** 무엇을 올릴지 고르는 판(밑에서 올라온다) */
   const [고르기, 고르기잡기] = useState(false);
   const [고른것, 고른것잡기] = useState<공양갈래>("deung");
+  /** 아래에서 위로 쓸기 — 손가락이 내려앉은 자리 */
+  const 쓸기 = useRef<number | null>(null);
   const load = useCallback(() => { void fetchCandles().then(setPublicCandles).catch(() => setPublicCandles([])); void fetchMyCandles().then(setMine).catch(() => setMine([])); }, []);
   useEffect(() => watchAuth((u) => { setMe(u); load(); }), [load]);
   // ── 뒤로가기는 **한 층만** 걷는다 ─────────────────────────
@@ -821,12 +823,46 @@ export default function CandleHall() {
       {/* 형: 「그 버튼 명은 공양이랑 사연으로 해서 오른쪽 아래 위아래로」
           가로로 나란히 두니 통 바닥 한 줄을 통째로 먹었다. 오른쪽
           아래 귀퉁이에 위아래로 세우면 한 손가락 자리만 쓴다 */}
+      {/* 형: 「버튼이 너무 커. 작게 하고 로고로 대체해, 한글 말고」
+          두 자짜리 알약 둘이 불단 오른쪽을 다 먹었다. 손가락 자리
+          (46px) 하나만 남기고 글자는 그림에 맡긴다 */}
       <div className="hip-hall-acts">
-        <button className="hip-hall-read" onClick={() => { 층쌓기(); 사연판잡기(true); }}>
-          사연
+        <button
+          className="hip-hall-read"
+          onClick={() => { 층쌓기(); 사연판잡기(true); }}
+          aria-label="사연 보러가기"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.5 12.2c0 3.8-3.8 6.9-8.5 6.9-1 0-2-.15-2.9-.4L4 20.5l1.5-3.3A6.6 6.6 0 0 1 3.5 12.2c0-3.8 3.8-6.9 8.5-6.9s8.5 3.1 8.5 6.9Z" />
+          </svg>
         </button>
-        <button className="hip-hall-go" onClick={start} aria-label="공양 올리기">공양</button>
       </div>
+
+      {/* ── 공양은 **아래에서 위로 쓸면** 나온다 ─────────────
+          형: 「공양은 지워. 공양은 아래에서 위로 쓸면 나오게 해,
+               레퍼런스 준 거처럼」
+
+          단추를 지우면 길도 같이 지워진다 — 손짓만 남기면 아무도
+          못 찾는다(형이 여러 번 겪은 일이다: 「보이지 않는 손짓을
+          지우면 보이는 자리가 살아난다」).
+          그래서 **손잡이는 남긴다.** 밑변에 짧은 금 하나.
+          위로 쓸어도 열리고, 톡 눌러도 열린다 — 손짓은 빠른 길이지
+          유일한 길이 아니다. */}
+      <button
+        type="button"
+        className="hip-hall-pull"
+        aria-label="공양 올리기"
+        onClick={start}
+        onPointerDown={(e) => { 쓸기.current = e.clientY; }}
+        onPointerMove={(e) => {
+          if (쓸기.current === null) return;
+          if (쓸기.current - e.clientY > 40) { 쓸기.current = null; void start(); }
+        }}
+        onPointerUp={() => { 쓸기.current = null; }}
+        onPointerCancel={() => { 쓸기.current = null; }}
+      >
+        <i aria-hidden />
+      </button>
     </div>
     {사연판 && (
       <사연목록

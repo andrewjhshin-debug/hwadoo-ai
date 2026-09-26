@@ -17,7 +17,7 @@
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
-import { 지갑열기 } from "@/lib/wallet";
+import { 지갑열기, 무상기한 } from "@/lib/wallet";
 import { FIRST_GRANT } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -81,8 +81,8 @@ export async function POST(req: Request) {
       tx.set(
         wallet,
         처음인가
-          ? { lotus: FIRST_GRANT + GRANT, paid: 0, free: FIRST_GRANT + GRANT }
-          : { lotus: FieldValue.increment(GRANT), free: FieldValue.increment(GRANT) },
+          ? { lotus: FIRST_GRANT + GRANT, paid: 0, free: FIRST_GRANT + GRANT, freeUntil: 무상기한() }
+          : { lotus: FieldValue.increment(GRANT), free: FieldValue.increment(GRANT), freeUntil: 무상기한() },
         { merge: true }
       );
       return true;

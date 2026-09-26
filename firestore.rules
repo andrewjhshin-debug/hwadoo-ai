@@ -316,8 +316,8 @@ service cloud.firestore {
       }
       allow update: if dmIsAdmin()
         || (dmOn() && request.auth != null && request.auth.uid == uid
-            && request.resource.data.keys().hasOnly(['lotus', 'paid', 'free'])
-            && sameLotusCell('paid') && sameLotusCell('free')
+            && request.resource.data.keys().hasOnly(['lotus', 'paid', 'free', 'freeUntil'])
+            && sameLotusCell('paid') && sameLotusCell('free') && sameLotusCell('freeUntil')
             && request.resource.data.lotus is int
             && request.resource.data.lotus >= 0
             && request.resource.data.lotus == resource.data.lotus - 1);

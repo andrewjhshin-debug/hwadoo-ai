@@ -25,6 +25,7 @@
 //   한 글자도 줄이지 않았다. 원문 그대로 <details> 안에 접기만 했다.
 // ─────────────────────────────────────────────────────────────
 
+import type { 지갑 } from "@/lib/wallet";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LOTUS_OPEN } from "@/lib/config";
@@ -32,7 +33,7 @@ import { YeonkkotGold } from "@/components/icons";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { BANK_INFO, CONTACT_EMAIL } from "@/lib/config";
-import { FIRST_GRANT, getLotus } from "@/lib/dm";
+import { FIRST_GRANT, getLotus, 내지갑 } from "@/lib/dm";
 import { Yeonkkot } from "@/components/icons";
 import { createOrder } from "@/lib/orders";
 import { LotusMark } from "@/components/icons";
@@ -95,17 +96,25 @@ const won = (n: number) => n.toLocaleString("ko-KR") + "원";
  * 사실은 '아직 모른다'이다.
  */
 function MyLotus() {
-  const [n, setN] = useState<number | null>(null);
+  // 형: 「내 연꽃이 몇 개인지도 표기하는 란 만들어. 공덕으로 받은 연꽃은
+  //      내가 산 연꽃이랑 구분해서 나오게」
+  const [w, setW] = useState<지갑 | null>(null);
   useEffect(() => {
     const off = watchAuth((u) => {
-      if (!u) return setN(null);
-      void getLotus()
-        .then(setN)
-        .catch(() => setN(null));
+      if (!u) return setW(null);
+      void 내지갑()
+        .then(setW)
+        .catch(() => setW(null));
     });
     return off;
   }, []);
-  if (n === null) return null;
+  if (!w) return null;
+  const n = w.lotus;
+  /** 무상분이 며칠 남았나 — 0 이면 기한이 없는 옛 무상분 */
+  const 남은날 =
+    w.free > 0 && w.freeUntil > 0
+      ? Math.max(0, Math.ceil((w.freeUntil - Date.now()) / 86_400_000))
+      : 0;
   return (
     <div className="relative mt-6 w-full max-w-[19rem] overflow-hidden rounded-[18px] border border-gold/25 bg-ink-2/60 px-5 py-4">
       {/* 옅은 금빛 무리 — 잔고가 놓인 자리에 온기를 준다 */}
@@ -131,9 +140,25 @@ function MyLotus() {
           </p>
         </div>
       </div>
+      {/* 산 것과 받은 것을 **가른다** — 환불되는 것과 안 되는 것이
+          다르고, 무상분은 이레면 시든다. 섞어 놓으면 나중에 다툰다 */}
+      {n > 0 && (
+        <p className="relative mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-hanji-dim">
+          <span>
+            산 것 <b className="font-normal text-hanji tabular-nums">{w.paid}</b>
+          </span>
+          <span className="text-ink-3">·</span>
+          <span>
+            받은 것 <b className="font-normal text-hanji tabular-nums">{w.free}</b>
+            {남은날 > 0 && (
+              <i className="ml-1 not-italic text-vermilion/80">{남은날}일 뒤 시듦</i>
+            )}
+          </span>
+        </p>
+      )}
       <p className="relative mt-3 border-t border-ink-3 pt-2.5 text-[11px] leading-5 text-hanji-faint">
         {n > 0
-          ? "쪽지 한 통 · 등 한 번 · 인연 한 손길에 한 송이씩 나갑니다"
+          ? "쪽지 · 등 · 인연 한 손길에 한 송이. 받은 것부터 나갑니다"
           : "공덕을 모아 바꾸거나, 아래에서 구매할 수 있습니다"}
       </p>
     </div>
@@ -216,28 +241,36 @@ function LotusClosed() {
       <div className="mt-3 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4">
         <ul className="space-y-2 break-keep text-[13px] leading-7 text-hanji-dim">
           <li>
-            · <span className="text-hanji">쪽지 청하기</span> — 인연 게시판에서
-            글쓴이·댓글 단 이에게 1:1 쪽지를 청할 때 연꽃 1송이가 쓰입니다.
-            상대가 수락해 열린 대화의 쪽지는 무료·무제한.
+            · <span className="text-hanji">쓰임</span> — 쪽지 청하기 · 공양
+            올리기 · 인연 한 사람 더. 한 번에 1송이. 열린 대화는 무료.
           </li>
           <li>
-            · <span className="text-hanji">처음 오신 분께</span> — 첫 계정에
-            연꽃 {FIRST_GRANT}송이를 무료로 드립니다.
+            · <span className="text-hanji">처음 오신 분께</span> — 연꽃{" "}
+            {FIRST_GRANT}송이.
           </li>
         </ul>
-        <ul className="mt-4 space-y-1.5 border-t border-ink-3/60 pt-4 break-keep text-[12px] leading-6 text-hanji-faint">
-          <li>· 제공 시점 — 결제 완료 즉시 수취 계정에 지급됩니다.</li>
-          <li>· 유효기간 — 제한 없음 (소진 시까지 계정에 남습니다).</li>
-          <li>
-            · 환불 — 사용하지 않은 연꽃은 결제일로부터 7일 이내 전액 환불됩니다.
-            일부 사용 시 남은 수량 기준으로 환불합니다. 문의: {CONTACT_EMAIL}
-          </li>
-          <li>
-            · 무상으로 받은 연꽃(첫 선물 · 공덕을 바꾸어 받은 것 · 이벤트)은
-            환불·현금화·양도되지 않습니다. 둘이 섞여 있으면 무상분을 먼저 쓴
-            것으로 봅니다.
-          </li>
-        </ul>
+        {/* 형: 「이 말 좀 함축적이고 미니멀하게 다듬어 보고」
+            「공덕으로 받은 연꽃은 환불 안 됨 … 7일이면 사라진다고 하고
+             고지도 하고」 — 넉 줄을 두 줄로 줄이고, 산 것과 받은 것을
+            **표로 가른다.** 읽을 것이 아니라 대조할 것이라서 그렇다. */}
+        <div className="mt-4 border-t border-ink-3/60 pt-4">
+          <dl className="grid grid-cols-[4.2rem_1fr] gap-x-3 gap-y-2 break-keep text-[12px] leading-6">
+            <dt className="text-hanji-faint">산 연꽃</dt>
+            <dd className="text-hanji-dim">
+              결제 즉시 지급 · 5년 · <span className="text-hanji">7일 내 전액 환불</span>
+              (쓴 만큼 빼고)
+            </dd>
+            <dt className="text-hanji-faint">받은 연꽃</dt>
+            <dd className="text-hanji-dim">
+              첫 선물 · 공덕 교환 · 이벤트 ·{" "}
+              <span className="text-vermilion/85">받은 날부터 7일</span> · 환불·양도 안 됨
+            </dd>
+          </dl>
+          <p className="mt-3 text-[11.5px] leading-6 text-hanji-faint">
+            둘이 섞여 있으면 <span className="text-hanji-dim">받은 것부터</span> 나갑니다.
+            문의 {CONTACT_EMAIL}
+          </p>
+        </div>
       </div>
 
       {/* 사는 단추가 앉을 자리 — 지금은 안내만 */}

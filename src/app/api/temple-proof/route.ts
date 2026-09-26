@@ -21,7 +21,7 @@ import {
   type DocumentData,
 } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
-import { 지갑열기 } from "@/lib/wallet";
+import { 지갑열기, 무상기한 } from "@/lib/wallet";
 import { FIRST_GRANT } from "@/lib/config";
 import { TEMPLES } from "@/lib/pilgrimage";
 import { ANON_NAMES } from "@/lib/anonName";
@@ -178,8 +178,8 @@ export async function POST(req: Request) {
           tx.set(
             지갑,
             처음인가
-              ? { lotus: FIRST_GRANT + 1, paid: 0, free: FIRST_GRANT + 1 }
-              : { lotus: FieldValue.increment(1), free: FieldValue.increment(1) },
+              ? { lotus: FIRST_GRANT + 1, paid: 0, free: FIRST_GRANT + 1, freeUntil: 무상기한() }
+              : { lotus: FieldValue.increment(1), free: FieldValue.increment(1), freeUntil: 무상기한() },
             { merge: true }
           );
         });

@@ -4549,119 +4549,70 @@ html[data-theme="light"] {
   }
 
   /* 사진 — 넉넉한 네모, 상태가 그림 위에 얹힌다 */
-  /* ── 얼굴 한 장 ─── (`.hip-me-face` 는 **내 도량 아바타**의 이름이다.
-     그 규칙이 img 에 border-radius:999px 를 걸어 이 네모 사진이 달걀로
-     보였다 — 형: 「사각형으로 사진 뜨게 하라니까 동그라미 말고」.
-     `.hip-mark`·`.hip-yeon-face`·`.hip-yeon-more` 에 이어 **네 번째**
-     이름 충돌이다. 앞으로 새 이름은 짓기 전에 grep 한다.) ─────────────────────────────────────────
-     형: 「사진은 가운데 하나만 두고 ＋랑 돋보기 넣어서
-          사진 추가랑 최종본 보기」 */
-  .hip-write-pop {
-    position: fixed;
-    inset: 0;
-    z-index: 92;
-    display: grid;
-    place-items: center;
-    padding: 24px;
-    background: rgba(24, 20, 18, 0.45);
-    backdrop-filter: blur(3px);
-  }
-  .hip-write-pop > div {
-    width: 100%;
-    max-width: 320px;
-    padding: 18px;
-    border-radius: 20px;
-    background: #fff;
-  }
-  .hip-write-pop p {
-    margin: 0 0 10px;
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    color: #a39a8f;
-  }
-  .hip-write-pop input {
-    width: 100%;
-    padding: 11px 13px;
-    border-radius: 13px;
-    border: 1px solid rgba(26, 23, 20, 0.14);
-    background: #fdfcfb;
-    font-size: 15px;
-    color: #17140f;
-  }
-  .hip-write-pop input:focus { outline: none; border-color: rgba(226, 122, 158, 0.55); }
-  .hip-write-pop > div > div { display: flex; gap: 8px; margin-top: 12px; }
-  .hip-write-pop > div > div button {
-    flex: 1;
-    height: 42px;
-    border-radius: 999px;
-    border: 1px solid rgba(26, 23, 20, 0.12);
-    font-size: 13.5px;
-    color: #6e6455;
-  }
-  .hip-write-pop > div > div button[data-go="1"] {
-    border: 0;
-    background: #ef7ba4;
-    color: #fff;
-    font-weight: 600;
-  }
-  body:has(.hip-write-pop) .hip-mala { display: none !important; }
+  /* ── 사진은 겹쳐 쌓인다 ─────────────────────────────────
+     형: 「살짝씩 뒤로 겹치고, 옆으로 넘기면 그 사진으로 넘어가도록」
 
+     장수를 뱃지로 적던 것은 걷었다 — 「2」라는 글자는 두 장이 있다는
+     **말**이지 두 장이 **보이는** 것이 아니다. 뒤에 한 뼘씩 물려 세우면
+     몇 장인지가 눈에 그냥 보인다.
+     (`.hip-me-face` 는 **내 도량 아바타**의 이름이라 못 쓴다 —
+      그 규칙의 border-radius:999px 가 네모 사진을 달걀로 만들었다.) */
   .hip-mepic {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
   }
-  /* 형: 「동그라미 말고 그냥 직사각형으로」 — 모서리를 깎다 보니
-     달걀이 됐다. 네모는 네모로 둔다(살짝만 물린다). */
-  .hip-mepic-one {
+  .hip-mepic-stage {
     position: relative;
     width: 100%;
     max-width: 268px;
     aspect-ratio: 3 / 4;
+    /* 세로 굴림은 판에 넘기고 가로만 내가 먹는다 */
+    touch-action: pan-y;
+    user-select: none;
+  }
+  .hip-mepic-stage > span {
+    position: absolute;
+    inset: 0;
     border-radius: 10px;
     overflow: hidden;
     background: rgba(26, 23, 20, 0.05);
     border: 1px solid rgba(26, 23, 20, 0.07);
+    /* 뒤로 갈수록 오른쪽으로 한 뼘씩, 조금 작게, 조금 옅게 */
+    transform: translateX(calc(var(--d, 0) * 7%)) scale(calc(1 - var(--d, 0) * 0.055));
+    transform-origin: 50% 100%;
+    z-index: calc(10 - var(--d, 0));
+    opacity: calc(1 - var(--d, 0) * 0.22);
+    box-shadow: 0 4px 14px rgba(26, 23, 20, 0.12);
+    transition:
+      transform 0.34s cubic-bezier(0.2, 0.9, 0.24, 1),
+      opacity 0.34s,
+      box-shadow 0.34s;
   }
-  .hip-mepic-one img {
+  .hip-mepic-stage > span[data-front="1"] { box-shadow: 0 6px 20px rgba(26, 23, 20, 0.16); }
+  .hip-mepic-stage img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
     border-radius: 0;
+    pointer-events: none;
   }
   /* 아직 한 장도 없을 때 — 빈 네모에 점선 한 겹 */
-  .hip-mepic-one i {
+  .hip-mepic-stage > span[data-empty="1"] { border-style: dashed; border-color: rgba(226, 122, 158, 0.45); }
+  .hip-mepic-stage i {
     position: absolute;
     inset: 0;
     display: grid;
     place-items: center;
-    border-radius: 18px;
-    border: 1px dashed rgba(226, 122, 158, 0.45);
     font-style: normal;
     font-size: 12px;
     letter-spacing: 0.2em;
     color: #d9a9bd;
   }
-  /* 몇 장인가 — 한 장뿐이면 안 적는다 */
-  .hip-mepic-one b {
-    position: absolute;
-    right: 7px;
-    top: 7px;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
-    border-radius: 999px;
-    display: grid;
-    place-items: center;
-    background: rgba(26, 23, 20, 0.55);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 500;
-  }
-  .hip-mepic-one u,
-  .hip-yeon-big span u {
+  /* 내려간 사진 */
+  .hip-mepic-stage u {
     position: absolute;
     left: 6px;
     bottom: 6px;
@@ -4672,14 +4623,24 @@ html[data-theme="light"] {
     text-decoration: none;
     color: #d2578c;
   }
-  /* 형: 「＋랑 돋보기는 오른쪽 아래 정도에 그냥 배경 없이 배치해」
-     흰 알약을 깔았더니 사진 한가운데 딱지가 하나 붙은 꼴이었다.
-     맨 아이콘 둘만 귀퉁이에 둔다 — 어두운 사진에서도 보이게
-     글자에 그늘 한 겹만 준다 */
+
+  /* 몇 째 장인가 — 글자 대신 점 */
+  .hip-mepic-dots { display: flex; gap: 5px; }
+  .hip-mepic-dots i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(26, 23, 20, 0.16);
+    transition: width 0.22s, background 0.22s;
+  }
+  .hip-mepic-dots i[data-on="1"] { width: 16px; border-radius: 999px; background: #e87ba4; }
+
+  /* 형: 「＋랑 돋보기는 오른쪽 아래 정도에 그냥 배경 없이 배치해」 */
   .hip-mepic-acts {
     position: absolute;
     right: 8px;
     bottom: 6px;
+    z-index: 20;
     display: flex;
     gap: 2px;
   }
@@ -4700,62 +4661,6 @@ html[data-theme="light"] {
     width: 19px; height: 19px;
     fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
   }
-
-  /* 돋보기 판 — 올린 것을 죽 늘어놓고 여기서 뺀다 */
-  .hip-yeon-big {
-    position: fixed;
-    inset: 0;
-    z-index: 90;
-    display: grid;
-    place-items: center;
-    padding: 20px;
-    background: rgba(24, 20, 18, 0.5);
-    backdrop-filter: blur(3px);
-  }
-  .hip-yeon-big > div {
-    width: 100%;
-    max-width: 420px;
-    max-height: 82dvh;
-    overflow-y: auto;
-    padding: 16px;
-    border-radius: 22px;
-    background: #fff;
-  }
-  .hip-yeon-big p {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 0 0 12px;
-    font-size: 12.5px;
-    letter-spacing: 0.06em;
-    color: #8b8175;
-  }
-  .hip-yeon-big p button { font-size: 12.5px; color: #a39a8f; }
-  .hip-yeon-big > div > div {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-  .hip-yeon-big span {
-    position: relative;
-    aspect-ratio: 3 / 4;
-    border-radius: 14px;
-    overflow: hidden;
-    background: rgba(26, 23, 20, 0.05);
-  }
-  .hip-yeon-big img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .hip-yeon-big span > button {
-    position: absolute;
-    right: 5px;
-    top: 5px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.92);
-    font-size: 11px;
-    color: #6f665c;
-  }
-  body:has(.hip-yeon-big) .hip-mala { display: none !important; }
 
   .hip-yeon-shots {
     display: grid;
@@ -5027,11 +4932,17 @@ html[data-theme="light"] {
     align-items: flex-end;
     gap: 9px;
   }
+  /* 형: 「버튼이 너무 커. 작게 하고 로고로 대체해」 — 두 자짜리
+     알약 둘이 불단 오른쪽을 다 먹었다. 동그란 손가락 자리 하나씩만 */
   .hip-hall-go,
   .hip-hall-read {
-    min-width: 76px;
-    height: 48px;
-    padding: 0 20px;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    min-width: 0;
+    height: 46px;
+    padding: 0;
+    border-radius: 50%;
     border-radius: 999px;
     background: linear-gradient(160deg, #f2789f, #e0518a);
     color: #fff;
@@ -5040,7 +4951,9 @@ html[data-theme="light"] {
     letter-spacing: 0.06em;
     box-shadow: 0 10px 26px rgba(226, 110, 155, 0.36);
   }
-  .hip-hall-go:active { transform: translateY(1px); }
+  .hip-hall-go:active, .hip-hall-read:active { transform: translateY(1px); }
+  .hip-hall-go svg { fill: #fff; }
+  .hip-hall-read svg { color: #8b8175; }
 
   /* 천장 — 법당의 윗부분. 등이 넘치면 여기 안에서만 굴린다 */
   .hip-hall-ceil {
@@ -5105,7 +5018,7 @@ html[data-theme="light"] {
     margin-top: auto;
     /* 오른쪽은 단추 두 개가 서 있는 자리 — 공양물이 그 밑으로 안 간다
        (형: 「초쌀 이런 거랑 사연보러가기랑 공양 겹친다」) */
-    padding: 14px 92px 6px 4px;
+    padding: 14px 62px 6px 4px;
     /* 불단 한 줄 — 물건이 허공에 뜨지 않게 바닥선을 한 가닥 */
     background: linear-gradient(transparent, rgba(226, 122, 158, 0.07) 70%);
     border-top: 1px solid rgba(226, 122, 158, 0.16);
@@ -5172,7 +5085,6 @@ html[data-theme="light"] {
 
   /* 사연 보러가기 — 왼쪽 아래. 올리는 단추와 짝을 이룬다 */
   .hip-hall-read {
-    border-radius: 999px;
     border: 1px solid rgba(26, 23, 20, 0.12);
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(6px);
@@ -6035,11 +5947,15 @@ html[data-theme="light"] {
       0 12px 30px rgba(190, 140, 90, 0.2);
   }
   .hip-yeon-card[data-big="1"] .hip-yeon-who b { font-size: 22px; }
+  /* 붙박이 카드는 한 줄만 — 그런데 줄 높이를 안 맞춰 두어 글자가
+     **가로로 반 잘려** 보였다. 한 줄의 키를 못박는다 */
   .hip-yeon-card[data-big="1"] .hip-yeon-line {
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-height: 1.6;
+    max-height: 1.6em;
   }
 }
 
@@ -6937,4 +6853,36 @@ html[data-theme="light"] {
     color: #c3bbb0;
   }
   body:has(.hip-gift) .hip-mala { display: none !important; }
+}
+
+/* ── 공양은 밑에서 쓸어 올린다 ────────────────────────────────
+   형: 「공양은 지워. 공양은 아래에서 위로 쓸면 나오게 해」
+   손짓만 남기면 아무도 못 찾는다. 밑변에 짧은 금 하나를 남긴다 —
+   위로 쓸어도 열리고 톡 눌러도 열린다. */
+@media (min-width: 0px) {
+  .hip-hall-pull {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 6;
+    height: 34px;
+    display: grid;
+    place-items: end center;
+    padding-bottom: 8px;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.55));
+    border: 0;
+    touch-action: pan-y;
+  }
+  .hip-hall-pull i {
+    display: block;
+    width: 46px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(226, 122, 158, 0.42);
+    transition: width 0.2s, background 0.2s;
+  }
+  .hip-hall-pull:active i { width: 62px; background: rgba(226, 122, 158, 0.7); }
+  /* 사연 단추는 그 금 위에 선다 */
+  .hip-hall-acts { bottom: 40px; }
 }

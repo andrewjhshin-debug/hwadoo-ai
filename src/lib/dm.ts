@@ -12,6 +12,7 @@
 //   관리자에게만 보인다 (dmVisible 헬퍼).
 // ─────────────────────────────────────────────────────────────
 
+import { 갖춘지갑, type 지갑 } from "@/lib/wallet";
 import {
   addDoc,
   collection,
@@ -242,6 +243,29 @@ export async function sendMessage(
 
 /** 뒷방 주인이 늘 쥐고 있는 수 — 기능을 시험하려면 마르지 않아야 한다 */
 export const OWNER_LOTUS = 999;
+
+/**
+ * 지갑을 갈래까지 갖춰 읽는다 — 산 것 · 무상분 · 무상분 기한.
+ *
+ * 형: 「내 연꽃이 몇 개인지도 표기하는 란 만들어. 공덕으로 받은 연꽃은
+ *      환불 안 됨, 내가 산 연꽃이랑 구분해서 나오게」
+ *
+ * 세는 셈은 서버와 **한 함수**를 쓴다(lib/wallet 갖춘지갑) — 무상분이
+ * 이레를 넘겼는지도 거기서 판단한다. 화면과 서버가 다른 수를 말하면
+ * 어느 쪽도 못 믿는다.
+ */
+export async function 내지갑(): Promise<지갑> {
+  const u = auth.currentUser;
+  if (!u) return { lotus: 0, paid: 0, free: 0, freeUntil: 0, 시든것: 0 };
+  if (isAdminAccount(u))
+    return { lotus: OWNER_LOTUS, paid: OWNER_LOTUS, free: 0, freeUntil: 0, 시든것: 0 };
+  try {
+    const snap = await getDoc(doc(db, "wallets", u.uid));
+    return 갖춘지갑(snap.exists() ? snap.data() : undefined);
+  } catch {
+    return { lotus: 0, paid: 0, free: 0, freeUntil: 0, 시든것: 0 };
+  }
+}
 
 export async function getLotus(): Promise<number> {
   const u = auth.currentUser;
