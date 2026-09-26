@@ -372,7 +372,7 @@ export default function 오늘의인연() {
         {/* 남은 자리를 여는 한 손 — 하루 천장에 닿으면 아예 안 그린다.
             살 수 없는 것을 내밀어 봐야 서로 피곤하다 */}
         {있나 && 칸.cap < 칸.max && (
-          <button className="hip-yeon-more" disabled={바쁨} onClick={더보기}>
+          <button className="hip-deck-go" disabled={바쁨} onClick={더보기}>
             <Yeonkkot className="h-[17px] w-[17px]" />
             카드 {더열수}개 더 열기
           </button>

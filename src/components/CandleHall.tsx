@@ -68,9 +68,60 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onCli
   return <span className="hip-hang" data-mine={mine ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
 }
 
-function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+/** 무엇을 올릴까 — **밑에서 올라오는 판**.
+ *
+ *  형: 「이거 팝업 스타일로 가자. 공양 끌어 올리면 여러 공양 아이템
+ *       나오고, 또 눌리면 팝업으로 사연 쓰기. 사연 버튼은 남기고」
+ *
+ *  여태 고르는 알약 넷이 **사연 쓰는 판 안**에 있었다. 무엇을 올릴지
+ *  아직 안 정했는데 이름 칸과 사연 칸이 먼저 보이니, 판을 열자마자
+ *  「쓰는 일」로 읽혔다. 고르는 일과 쓰는 일은 다른 일이다 —
+ *  먼저 고르고, 고른 다음에 쓴다.
+ */
+const 공양들: { k: 공양갈래; 이름: string; 그림: string; 말: string }[] = [
+  { k: "deung", 이름: "연등", 그림: "/obj/deung.png", 말: "천장에 걸린다" },
+  { k: "ssal", 이름: "쌀", 그림: "/obj/gong-ssal.png", 말: "불단에 올린다" },
+  { k: "cho", 이름: "초", 그림: "/obj/gong-cho.png", 말: "불단에 밝힌다" },
+  { k: "hyang", 이름: "향", 그림: "/obj/gong-hyang.png", 말: "향로에 꽂는다" },
+];
+
+function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => void; onClose: () => void }) {
+  return (
+    <div className="hip-gift" role="dialog" aria-label="공양 고르기" onClick={onClose}>
+      <div className="hip-gift-box" onClick={(e) => e.stopPropagation()}>
+        {/* 손잡이 — 밑에서 올라온 판이라는 표 */}
+        <i className="hip-gift-grip" aria-hidden />
+        <div className="hip-gift-top">
+          <p>供養 · 무엇을 올릴까요</p>
+          <button onClick={onClose}>닫기</button>
+        </div>
+        <ul className="hip-gift-grid">
+          {공양들.map((g) => (
+            <li key={g.k}>
+              <button type="button" onClick={() => onPick(g.k)}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={g.그림} alt="" draggable={false} />
+                <b>{g.이름}</b>
+                <i>{g.말}</i>
+                <em>
+                  <Yeonkkot className="h-[12px] w-[12px]" />
+                  {PRIVATE_CANDLE_PRICE}
+                </em>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p className="hip-gift-foot">
+          공개로 걸면 연꽃 {PUBLIC_CANDLE_PRICE}송이 · {PUBLIC_BURN_DAYS}일
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose: () => void; onDone: () => void }) {
   // 형: 「연등 공양, 쌀 공양, 초 공양 이렇게 달 수 있게 하자」
-  const [gift, setGift] = useState<공양갈래>("deung");
+  const gift = 갈래;
   const [visibility, setVisibility] = useState<"private" | "public">("private");
   const [forName, setForName] = useState(""); const [wish, setWish] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const key = useRef("");
   const publicCandle = visibility === "public"; const cost = publicCandle ? PUBLIC_CANDLE_PRICE : PRIVATE_CANDLE_PRICE;
@@ -93,18 +144,6 @@ function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => vo
           <p>供養 · 공양 올리기</p>
           <button onClick={onClose}>닫기</button>
         </div>
-
-        {/* 무엇을 올릴까 — 넷. 고른 대로 바로 위에 걸려 보인다.
-            형: 「공양에 왜 초랑 향이랑 없냐」 — 그림이 다 있는데
-            고르는 자리에서만 빠져 있었다 */}
-        <div className="hip-deung-pick" data-four="1">
-          {([["deung", "연등"], ["ssal", "쌀"], ["cho", "초"], ["hyang", "향"]] as const).map(([k, t]) => (
-            <button key={k} data-on={gift === k ? "1" : undefined} onClick={() => setGift(k)}>
-              <b>{t}</b>
-            </button>
-          ))}
-        </div>
-
         {/* 형: 「저거 사이즈는 유지, 쌀로 될 때 너무 작아진다.
                  법명 나오게 하지 말고」
             미리보기 칸이 물건 크기를 안 잡고 있어서, 등은 크고 쌀은
@@ -610,6 +649,9 @@ export default function CandleHall() {
   const [내것만, 내것만잡기] = useState(false);
   // 형: 「사연 보러가기 누르면 게시판 느낌으로. 하나하나 눌리면 오바 같고」
   const [사연판, 사연판잡기] = useState(false);
+  /** 무엇을 올릴지 고르는 판(밑에서 올라온다) */
+  const [고르기, 고르기잡기] = useState(false);
+  const [고른것, 고른것잡기] = useState<공양갈래>("deung");
   const load = useCallback(() => { void fetchCandles().then(setPublicCandles).catch(() => setPublicCandles([])); void fetchMyCandles().then(setMine).catch(() => setMine([])); }, []);
   useEffect(() => watchAuth((u) => { setMe(u); load(); }), [load]);
   // ── 뒤로가기는 **한 층만** 걷는다 ─────────────────────────
@@ -623,12 +665,13 @@ export default function CandleHall() {
     try { window.history.pushState({ hwadooLayer: true }, ""); } catch { /* 못 쌓아도 판은 열린다 */ }
   };
   /** popstate 가 지금 무엇이 떠 있는지 읽도록 — 효과는 한 번만 건다 */
-  const 층 = useRef({ form: false, open: false, 사연판: false });
-  층.current = { form, open: !!open, 사연판 };
+  const 층 = useRef({ form: false, 고르기: false, open: false, 사연판: false });
+  층.current = { form, 고르기, open: !!open, 사연판 };
   useEffect(() => {
     const onPop = () => {
       const l = 층.current;
       if (l.form) return void setForm(false);
+      if (l.고르기) return void 고르기잡기(false);
       if (l.open) return void setOpen(null);
       if (l.사연판) return void 사연판잡기(false);
     };
@@ -638,7 +681,8 @@ export default function CandleHall() {
   /** 화면의 닫기 단추도 **뒤로가기를 부른다** — 쌓은 층을 같이 걷으려고 */
   const 닫기 = () => window.history.back();
 
-  const start = async () => { if (!me) { await loginWithGoogle(); return; } 층쌓기(); setForm(true); };
+  /** 무엇을 올릴까 — 먼저 고르고, 고른 다음에 쓴다 */
+  const start = async () => { if (!me) { await loginWithGoogle(); return; } 층쌓기(); 고르기잡기(true); };
   const 열기 = (c: Candle) => { 층쌓기(); setOpen(c); };
   const activeMine = mine.filter((c) => c.until > Date.now());
   // 형: 「함께 건 연등 / 내 연등 구분 말고, 저 은은한 박스는 유지하고
@@ -792,5 +836,11 @@ export default function CandleHall() {
         onPick={(c) => { 사연판잡기(false); setOpen(c); }}  /* 층은 그대로 한 겹 — 목록이 닫히고 자리가 선다 */
       />
     )}
-    {form && <CandleForm onClose={닫기} onDone={() => { setForm(false); load(); 닫기(); }}/>} {open && <Story c={open} me={me} onClose={닫기} onChanged={load}/>}</div>;
+    {고르기 && (
+      <공양고르기
+        onClose={닫기}
+        onPick={(k) => { 고른것잡기(k); 고르기잡기(false); setForm(true); }}
+      />
+    )}
+    {form && <CandleForm 갈래={고른것} onClose={닫기} onDone={() => { setForm(false); load(); 닫기(); }}/>} {open && <Story c={open} me={me} onClose={닫기} onChanged={load}/>}</div>;
 }

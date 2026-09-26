@@ -6453,12 +6453,16 @@ html[data-theme="light"] {
    본 자리는 연꽃빛으로 차고(緣), 다음 자리는 옅게 숨 쉬고,
    연꽃을 써야 열리는 자리에는 蓮 이 앉는다. 누르는 물건이 아니다. */
 @media (min-width: 0px) {
+  /* 형: 「카드 더 크게. 버튼은 밑으로. 이건 스크롤 기능 넣어도 된다,
+     밑에까지 가도 돼 버튼이」
+     석 줄로 깔면 카드가 엄지손톱만 하다. **두 줄**로 키운다 — 한 화면에
+     다 안 들어와도 좋다(이 판은 굴러간다). */
   .hip-yeon-deck {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
     width: 100%;
-    max-width: 340px;
+    max-width: 420px;
     margin: 6px auto 0;
     padding: 0;
     list-style: none;
@@ -6479,17 +6483,17 @@ html[data-theme="light"] {
   /* 번호는 귀퉁이에 작게 — 카드의 주인은 가운데 한 글자다 */
   .hip-yeon-deck em {
     position: absolute;
-    left: 9px;
-    top: 7px;
+    left: 12px;
+    top: 9px;
     font-family: var(--font-serif);
     font-style: normal;
-    font-size: 11px;
+    font-size: 13px;
     color: rgba(26, 23, 20, 0.2);
   }
   .hip-yeon-deck span {
     font-family: var(--font-serif);
     font-weight: 300;
-    font-size: 26px;
+    font-size: 34px;
     line-height: 1;
     color: rgba(26, 23, 20, 0.12);
   }
@@ -6501,7 +6505,7 @@ html[data-theme="light"] {
     box-shadow: 0 4px 14px rgba(226, 122, 158, 0.16);
   }
   .hip-yeon-deck li[data-done="1"] em { color: rgba(255, 255, 255, 0.78); }
-  .hip-yeon-deck li[data-done="1"] span { color: #fff; font-size: 28px; }
+  .hip-yeon-deck li[data-done="1"] span { color: #fff; font-size: 38px; }
 
   /* 바로 다음 자리 — 숨을 쉰다. 여기가 다음이라는 것만 말한다 */
   .hip-yeon-deck li[data-next="1"] {
@@ -6522,19 +6526,24 @@ html[data-theme="light"] {
     border-color: rgba(212, 166, 74, 0.34);
     background: linear-gradient(160deg, rgba(253, 250, 242, 0.9), rgba(250, 245, 232, 0.7));
   }
-  .hip-yeon-deck li[data-pay="1"] span { color: rgba(196, 152, 62, 0.45); font-size: 22px; }
+  .hip-yeon-deck li[data-pay="1"] span { color: rgba(196, 152, 62, 0.45); font-size: 30px; }
   .hip-yeon-deck li[data-pay="1"] em { color: rgba(196, 152, 62, 0.35); }
 
   /* 남은 자리를 여는 한 손 */
-  .hip-yeon-more {
+  /* 단추는 **카드 밑에.** 판이 길어지면 굴려서 닿는다.
+     이름이 `.hip-yeon-more` 였다 — 그건 **카드의 ⋯ 메뉴**다
+     (position:absolute · 40×40 · 오른쪽 위). 그래서 이 단추가 판
+     꼭대기로 날아가 있었다. `.hip-mark`·`.hip-yeon-face` 에 이어
+     세 번째다. 이름을 가른다. */
+  .hip-deck-go {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     width: 100%;
-    max-width: 340px;
-    height: 50px;
-    margin: 14px auto 0;
+    max-width: 420px;
+    height: 54px;
+    margin: 16px auto 8px;
     border-radius: 999px;
     border: 0;
     background: linear-gradient(160deg, #f2789f, #e0518a);
@@ -6544,9 +6553,9 @@ html[data-theme="light"] {
     letter-spacing: 0.04em;
     box-shadow: 0 8px 22px rgba(226, 110, 155, 0.3);
   }
-  .hip-yeon-more:active { transform: translateY(1px); }
-  .hip-yeon-more:disabled { opacity: 0.45; box-shadow: none; }
-  .hip-yeon-more svg { fill: rgba(255, 255, 255, 0.92); }
+  .hip-deck-go:active { transform: translateY(1px); }
+  .hip-deck-go:disabled { opacity: 0.45; box-shadow: none; }
+  .hip-deck-go svg { fill: rgba(255, 255, 255, 0.92); }
 }
 
 /* ── 사연 한 줄 — 게시판의 그 줄 ──────────────────────────────
@@ -6803,4 +6812,121 @@ html[data-theme="light"] {
   }
   .hip-cmt .hip-cmt-re + .hip-cmt-re { border-top: 0; }
   .hip-say-write.hip-cmt-re { margin-top: 6px; }
+}
+
+/* ── 공양 고르는 판 — 밑에서 올라온다 ─────────────────────────
+   형: 「이거 팝업 스타일로 가자. 공양 끌어 올리면 여러 공양 아이템
+        나오고, 또 눌리면 팝업으로 사연 쓰기. 사연 버튼은 남기고」
+   고르는 일과 쓰는 일을 가른다 — 먼저 고르고, 고른 다음에 쓴다. */
+@media (min-width: 0px) {
+  .hip-gift {
+    position: fixed;
+    inset: 0;
+    z-index: 88;
+    display: flex;
+    align-items: flex-end;
+    background: rgba(24, 20, 18, 0.42);
+    backdrop-filter: blur(3px);
+    animation: hip-gift-veil 0.22s ease both;
+  }
+  @keyframes hip-gift-veil { from { opacity: 0 } to { opacity: 1 } }
+  .hip-gift-box {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 22px);
+    border-radius: 26px 26px 0 0;
+    background: #fdfcfb;
+    box-shadow: 0 -10px 40px rgba(26, 23, 20, 0.18);
+    animation: hip-gift-up 0.3s cubic-bezier(0.2, 0.9, 0.24, 1) both;
+  }
+  @keyframes hip-gift-up { from { transform: translateY(100%) } to { transform: translateY(0) } }
+  @media (prefers-reduced-motion: reduce) {
+    .hip-gift, .hip-gift-box { animation: none; }
+  }
+  /* 손잡이 — 밑에서 올라온 판이라는 표 */
+  .hip-gift-grip {
+    display: block;
+    width: 42px;
+    height: 4px;
+    margin: 4px auto 12px;
+    border-radius: 999px;
+    background: rgba(26, 23, 20, 0.16);
+  }
+  .hip-gift-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .hip-gift-top p {
+    margin: 0;
+    font-size: 12.5px;
+    letter-spacing: 0.22em;
+    color: #c08aa0;
+  }
+  .hip-gift-top button { font-size: 12.5px; color: #a39a8f; }
+
+  .hip-gift-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .hip-gift-grid button {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    padding: 14px 10px 12px;
+    border-radius: 18px;
+    border: 1px solid rgba(26, 23, 20, 0.07);
+    background: linear-gradient(170deg, #fff, #fbf8f6);
+    transition: transform 0.16s, border-color 0.16s, box-shadow 0.16s;
+  }
+  .hip-gift-grid button:active {
+    transform: translateY(1px);
+    border-color: rgba(226, 122, 158, 0.45);
+    box-shadow: 0 6px 18px rgba(226, 122, 158, 0.16);
+  }
+  /* 그림은 **키로** 맞춘다 — 폭으로 맞추면 쌀만 콩알이 된다 */
+  .hip-gift-grid img {
+    display: block;
+    width: auto;
+    height: 84px;
+    object-fit: contain;
+    margin-bottom: 6px;
+  }
+  .hip-gift-grid b { font-size: 14px; font-weight: 600; color: #17140f; }
+  .hip-gift-grid i {
+    font-style: normal;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: #a39a8f;
+  }
+  .hip-gift-grid em {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(242, 160, 189, 0.14);
+    font-style: normal;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #d2578c;
+  }
+  .hip-gift-grid em svg { fill: #e87ba4; }
+  .hip-gift-foot {
+    margin: 12px 0 0;
+    text-align: center;
+    font-size: 11px;
+    color: #c3bbb0;
+  }
+  body:has(.hip-gift) .hip-mala { display: none !important; }
 }
