@@ -6544,3 +6544,121 @@ html[data-theme="light"] {
   .hip-yeon-more:disabled { opacity: 0.45; box-shadow: none; }
   .hip-yeon-more svg { fill: rgba(255, 255, 255, 0.92); }
 }
+
+/* ── 사연 한 줄 — 게시판의 그 줄 ──────────────────────────────
+   형: 「내리기가 메인이 아니잖아. 공감 버튼 크기도 너무 커.
+        댓글 달기처럼 해두고 내리기는 구석진 데로 숨기고 댓글 쓰기로
+        가자. 자연스러운 게시판처럼 보이도록」
+
+   판 너비만 한 알약이 둘(공감 · 내리기) 서 있었다. 큰 것이 둘이면
+   눈은 아래 것을 먼저 읽는다 — 그래서 「내리는 판」으로 보였다.
+   글자 크기의 작은 줄 하나로 줄인다. */
+@media (min-width: 0px) {
+  .hip-say-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 12px 0 0;
+    padding: 8px 0;
+    border-top: 1px solid rgba(26, 23, 20, 0.07);
+    border-bottom: 1px solid rgba(26, 23, 20, 0.07);
+    font-size: 12.5px;
+    color: #8b8175;
+  }
+  .hip-say-bar > i { flex: 1 1 auto; } /* 밀개 — ⋯ 를 끝으로 민다 */
+  .hip-say-bar button,
+  .hip-say-bar span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 7px;
+    border: 0;
+    border-radius: 9px;
+    background: none;
+    font-size: 12.5px;
+    color: #8b8175;
+    transition: background 0.16s, color 0.16s;
+  }
+  .hip-say-bar button:active { background: rgba(26, 23, 20, 0.05); }
+  .hip-say-bar button:disabled { opacity: 0.4; }
+  /* 누른 공감 — 채워진 하트 */
+  .hip-say-bar button[data-on="1"] { color: #d2578c; }
+  .hip-say-bar button[data-on="1"] svg { fill: #d2578c; stroke: #d2578c; }
+  .hip-say-bar [data-stat="1"] { color: #a39a8f; }
+  .hip-say-bar [data-more="1"] {
+    padding: 0 10px;
+    font-size: 17px;
+    letter-spacing: 0.06em;
+    color: #b5aca1;
+  }
+
+  /* ⋯ 서랍 — 제 것 손보는 일만 여기 든다 */
+  .hip-say-drawer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    margin: 6px 0 0;
+    padding: 6px;
+    border-radius: 14px;
+    background: rgba(26, 23, 20, 0.035);
+  }
+  .hip-say-drawer button {
+    height: 40px;
+    border-radius: 10px;
+    background: none;
+    font-size: 13px;
+    color: #6e6455;
+    text-align: left;
+    padding: 0 12px;
+  }
+  .hip-say-drawer button:active { background: rgba(255, 255, 255, 0.8); }
+  .hip-say-drawer button[data-danger="1"] { color: #c2456f; }
+
+  /* 고치는 칸 */
+  .hip-say-edit { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 0; }
+  .hip-say-edit input,
+  .hip-say-edit textarea {
+    width: 100%;
+    padding: 11px 13px;
+    border-radius: 12px;
+    border: 1px solid rgba(26, 23, 20, 0.14);
+    background: #fdfcfb;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: #17140f;
+    resize: none;
+  }
+  .hip-say-edit input:focus,
+  .hip-say-edit textarea:focus { outline: none; border-color: rgba(226, 122, 158, 0.55); }
+  .hip-say-edit > div { display: flex; align-items: center; gap: 8px; }
+  .hip-say-edit > div span { flex: 1 1 auto; font-size: 11px; color: #c3bbb0; }
+  .hip-say-edit > div button {
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    font-size: 13px;
+    color: #6e6455;
+  }
+  .hip-say-edit > div button[data-go="1"] {
+    border: 0;
+    background: #ef7ba4;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* 나만 보는 공양 — 댓글이 없는 까닭 한 줄 */
+  .hip-say-only {
+    margin: 18px 0 0;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: #c3bbb0;
+  }
+
+  /* 댓글 쓰는 칸이 **목록 위**로 올라왔다 */
+  .hip-say-write { margin-top: 12px; }
+  .hip-say-cmt { margin-top: 10px; }
+}

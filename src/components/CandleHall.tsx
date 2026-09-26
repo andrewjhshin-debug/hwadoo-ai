@@ -9,12 +9,24 @@ import LotusCount, { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
 import { loadMe } from "@/lib/me";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { EXTEND_DAYS, POUR_PER_DAY, POUR_UNIT, PRIVATE_BURN_DAYS, PRIVATE_CANDLE_PRICE, PUBLIC_BURN_DAYS, PUBLIC_CANDLE_PRICE } from "@/lib/candleSpec";
 import { giveMerit } from "@/lib/merit";
 import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
 
 type Comment = { id: string; by?: string; body?: string };
+
+/** 게시판의 작은 그림 둘 — 글자와 같은 키로 선다 */
+const 하트 = () => (
+  <svg viewBox="0 0 24 24" aria-hidden width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M12 20.3 4.3 12.9a4.7 4.7 0 0 1 6.6-6.7l1.1 1 1.1-1a4.7 4.7 0 0 1 6.6 6.7Z" />
+  </svg>
+);
+const 말풍선 = () => (
+  <svg viewBox="0 0 24 24" aria-hidden width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M20.5 12.2c0 3.8-3.8 6.9-8.5 6.9-1 0-2-.15-2.9-.4L4 20.5l1.5-3.3A6.6 6.6 0 0 1 3.5 12.2c0-3.8 3.8-6.9 8.5-6.9s8.5 3.1 8.5 6.9Z" />
+  </svg>
+);
 
 /** 한 줄에 몇 개나 — **많이 걸릴수록 촘촘해진다.**
  *
@@ -169,6 +181,12 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
   const [모임, 모임잡기] = useState(c.pool ?? 0);
   const [나눔말, 나눔말잡기] = useState("");
   const mine = me?.uid === c.uid;
+  /** 제 것 손보는 서랍(⋯) — 늘리기·고치기·내리기는 여기 들어간다 */
+  const [서랍, 서랍잡기] = useState(false);
+  /** 고치는 중인가 — 형: 「사연도 작성자가 편집할 수 있도록 두자」 */
+  const [고침, 고침잡기] = useState(false);
+  const [사연글, 사연글잡기] = useState(c.wish ?? "");
+  const [이름글, 이름글잡기] = useState(c.forName ?? "");
 
   const read = useCallback(() => {
     void fetch(`/api/candle/comment?id=${encodeURIComponent(c.id)}`)
@@ -258,6 +276,22 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
     } finally { setBusy(false); }
   };
 
+  /** 고친 것을 적는다 — 사연과 이름 둘뿐이다(규칙이 그 둘만 연다) */
+  const 고쳐쓰기 = async () => {
+    if (!me || busy) return;
+    setBusy(true);
+    try {
+      await updateDoc(doc(db, "candles", c.id), {
+        wish: 사연글.slice(0, 120),
+        forName: 이름글.trim().slice(0, 20) || (c.forName ?? "이름 없는 기원"),
+      });
+      고침잡기(false);
+      onChanged();
+    } catch {
+      나눔말잡기("고치지 못했습니다");
+    } finally { setBusy(false); }
+  };
+
   const 남은 = daysLeft(c);
   const 처음 = c.visibility === "public" ? PUBLIC_BURN_DAYS : PRIVATE_BURN_DAYS;
 
@@ -275,20 +309,85 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
           <b>{남은}일 남음</b>
         </div>
 
-        <p className="hip-say-wish">{c.wish}</p>
-        <p className="hip-say-by">{c.by || "이름 없는 이"}</p>
+        {/* ── 사연 — 제 것이면 그 자리에서 고친다 ─────────────
+            형: 「사연도 작성자가 편집할 수 있도록 두자」 */}
+        {고침 ? (
+          <div className="hip-say-edit">
+            <input
+              value={이름글}
+              onChange={(e) => 이름글잡기(e.target.value.slice(0, 20))}
+              placeholder="쪽지에 적을 이름"
+            />
+            <textarea
+              value={사연글}
+              onChange={(e) => 사연글잡기(e.target.value.slice(0, 120))}
+              rows={4}
+              placeholder="사연이나 기원하는 내용"
+            />
+            <div>
+              <span>{사연글.length} / 120</span>
+              <button onClick={() => { 고침잡기(false); 사연글잡기(c.wish ?? ""); 이름글잡기(c.forName ?? ""); }}>그만</button>
+              <button data-go="1" onClick={고쳐쓰기} disabled={busy}>다 고쳤다</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p className="hip-say-wish">{c.wish}</p>
+            <p className="hip-say-by">{c.by || "이름 없는 이"}</p>
+          </>
+        )}
 
-        {/* 공감 · 공덕 나누기 */}
-        <div className="hip-say-acts">
-          <button onClick={공감누름} disabled={!me || busy || mine} data-on={눌렀나 ? "1" : undefined}>
-            공감 {공감 > 0 ? 공감 : ""}
-          </button>
-          {!mine && (
-            <button onClick={나눔누름} disabled={!me || busy}>
-              공덕 {POUR_UNIT} 나누기
+        {/* ── 한 줄 — 게시판의 그 줄 ─────────────────────────
+            형: 「내리기가 메인이 아니잖아. 공감 버튼 크기도 너무 커.
+                 자연스러운 게시판처럼 보이도록. 내리기는 구석진 데로
+                 숨기고 댓글 쓰기로 가자」
+
+            공감이 판 너비만 한 알약 한 줄, 내리기가 또 한 줄이었다.
+            둘 다 크니 「이 판은 내리는 판」으로 읽혔다. 게시판의 그
+            줄로 바꾼다 — 작은 글씨, 아이콘 하나, 숫자.
+            제 것 손보는 일은 ⋯ 서랍 안으로 들어간다. */}
+        <div className="hip-say-bar">
+          {mine ? (
+            /* 제 공양에 제가 공감하는 건 나눔이 아니다. 그래서 막혀
+               있는데, 죽은 단추로 두니 「왜 공감이 안 되냐」가 됐다.
+               단추를 없애고 **수만** 적는다 */
+            <span data-stat="1"><하트 /> {공감}</span>
+          ) : (
+            <button onClick={공감누름} disabled={!me || busy} data-on={눌렀나 ? "1" : undefined}>
+              <하트 /> {공감 > 0 ? 공감 : "공감"}
             </button>
           )}
+
+          {c.visibility === "public" && (
+            <span data-stat="1"><말풍선 /> {comments.length}</span>
+          )}
+
+          {!mine && (
+            <button onClick={나눔누름} disabled={!me || busy}>공덕 {POUR_UNIT}</button>
+          )}
+
+          <i aria-hidden />
+
+          {mine && (
+            <button data-more="1" onClick={() => 서랍잡기((v) => !v)} aria-label="내 공양 손보기">⋯</button>
+          )}
         </div>
+
+        {/* ⋯ 서랍 — 늘리기 · 고치기 · 내리기 */}
+        {mine && 서랍 && (
+          <div className="hip-say-drawer">
+            {c.visibility === "public" && (
+              <button onClick={() => { 서랍잡기(false); void extend(); }} disabled={busy}>
+                연꽃 1송이로 {EXTEND_DAYS}일 더
+              </button>
+            )}
+            <button onClick={() => { 서랍잡기(false); 고침잡기(true); }}>사연 고치기</button>
+            <button data-danger="1" onClick={async () => { await removeCandle(c.id); onChanged(); onClose(); }}>
+              내리기
+            </button>
+          </div>
+        )}
+
         {/* 그릇 — 서른 바퀴가 차면 하루가 는다 */}
         {!mine && (
           <div className="hip-say-pool">
@@ -298,34 +397,31 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
         )}
         {나눔말 && <p className="hip-say-note">{나눔말}</p>}
 
-        {c.visibility === "public" && (
+        {c.visibility === "public" ? (
           <>
-            <div className="hip-say-cmt">
-              {comments.map((x) => (
-                <p key={x.id}><span>{x.by ?? "이름 없는 이"}</span>{x.body}</p>
-              ))}
-            </div>
+            {/* 댓글 — 이 판의 주인공. 쓰는 칸이 목록 **위**에 선다 */}
             {me && (
               <div className="hip-say-write">
                 <input
                   value={body}
                   onChange={(e) => setBody(e.target.value.slice(0, 240))}
-                  placeholder="한마디 남기기"
+                  placeholder="댓글 쓰기"
+                  onKeyDown={(e) => { if (e.key === "Enter") void post(); }}
                 />
                 <button onClick={post} disabled={!body.trim() || busy}>남기기</button>
               </div>
             )}
+            <div className="hip-say-cmt">
+              {comments.map((x) => (
+                <p key={x.id}><span>{x.by ?? "이름 없는 이"}</span>{x.body}</p>
+              ))}
+            </div>
           </>
+        ) : (
+          /* 나만 보는 공양에는 댓글이 없다 — 볼 사람이 나뿐이라서다.
+             빈 판은 고장으로 읽히니 까닭을 한 줄로만 말한다 */
+          <p className="hip-say-only">나만 보는 공양입니다</p>
         )}
-
-        <div className="hip-say-mine">
-          {mine && c.visibility === "public" && (
-            <button onClick={extend} disabled={busy}>연꽃 1송이 · +{EXTEND_DAYS}일</button>
-          )}
-          {mine && (
-            <button onClick={async () => { await removeCandle(c.id); onChanged(); onClose(); }}>내리기</button>
-          )}
-        </div>
       </div>
     </div>
   );

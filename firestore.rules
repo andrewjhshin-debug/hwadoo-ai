@@ -463,6 +463,18 @@ service cloud.firestore {
         // 등은 사흘. 기기 시계가 조금 어긋나도 걸리지 않게 하루를 얹어 4일.
         // (초의 날수 상한은 여기 없다 — 초는 서버가 제 시계로 잰다)
         && request.resource.data.until <= request.time.toMillis() + 345600000;
+      // 사연 고치기 — **제 것만.** 형: 「사연도 작성자가 편집할 수 있도록」
+      // 고칠 수 있는 칸은 사연과 이름 둘뿐이다. 날수(until)도 갈래
+      // (visibility)도 값이 드는 것이라 서버만 건드린다.
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.uid
+        && request.resource.data.diff(resource.data)
+             .affectedKeys().hasOnly(['wish', 'forName'])
+        && request.resource.data.wish is string
+        && request.resource.data.wish.size() <= 120
+        && request.resource.data.forName is string
+        && request.resource.data.forName.size() > 0
+        && request.resource.data.forName.size() <= 20;
       // 같이 빌기 — 로그인한 사람이 ±1. 그 밖의 칸은 못 건드린다.
       allow update: if isAdmin()
         || (request.auth != null
