@@ -58,7 +58,13 @@ export default function 인연내프로필() {
   const [저장됨, 저장됨잡기] = useState(false);
   /** 법명은 스스로 **한 번만** 고친다 — 그 뒤로는 뒷방을 거친다 */
   const 이름잠김 = !!me?.nameChanged;
-  useEffect(() => 법명잡기(loadMe()?.name ?? ""), []);
+  /** 칸에 적히는 글자 — 누르기 전까지는 장부에 안 적는다 */
+  const [이름초, 이름초잡기] = useState("");
+  useEffect(() => {
+    const n = loadMe()?.name ?? "";
+    법명잡기(n);
+    이름초잡기(n);
+  }, []);
 
   /** 법명이 인연 프로필에 없으면 한 번 적어 준다.
       법명은 브라우저 장부(me.ts)에 있고 인연 카드는 프로필의 name 을
@@ -131,7 +137,9 @@ export default function 인연내프로필() {
       return;
     }
     법명잡기(새);
+    이름초잡기(새);
     await 고치기({ name: 새, nameChanged: true });
+    이름말잡기(true);
   };
 
   /** 저장 — 다 찼으면 판에도 세운다 */
@@ -343,16 +351,40 @@ export default function 인연내프로필() {
             법명은 남이 나를 부르는 이름이다. 아무 때나 갈리면 어제 쪽지를
             주고받은 사람이 오늘 딴 사람이 된다. **한 번만** 스스로 고치고,
             그 뒤로는 뒷방을 거친다. */}
+        {/* 형: 「이거 아이디 고치면 고친다고, 고치기나 승인하기 뭐 이렇게
+                 해야지」
+            칸에 글자만 바꾸면 **아무 일도 안 일어난 것처럼** 보였다
+            (칸을 벗어날 때 조용히 적히고 있었다). 고치는 일은 한 번뿐인
+            일이라 더 그렇다 — 누르는 자리를 따로 둔다. */}
         <div className="hip-yeon-name-row">
           <input
             className="hip-yeon-name-in"
-            defaultValue={법명}
+            value={이름초}
             disabled={이름잠김}
             maxLength={12}
             aria-label="법명"
             placeholder="법명"
-            onBlur={(e) => 이름고치기(e.target.value)}
+            onChange={(e) => 이름초잡기(e.target.value)}
           />
+          {!이름잠김 && 이름초.trim() !== 법명 && 이름초.trim() !== "" && (
+            <button
+              type="button"
+              className="hip-yeon-name-go"
+              onClick={() => void 이름고치기(이름초)}
+            >
+              고치기
+            </button>
+          )}
+          {이름잠김 && (
+            <button
+              type="button"
+              className="hip-yeon-name-go"
+              data-ask="1"
+              onClick={() => 이름말잡기(true)}
+            >
+              승인 요청
+            </button>
+          )}
           <button
             type="button"
             className="hip-yeon-ii"

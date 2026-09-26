@@ -325,11 +325,28 @@ export default function 오늘의인연() {
       </껍데기>
     );
 
-  // 손님은 서버에 못 묻는다 — 가안이 바로 선다(가안인가 가 true)
-  if (있나 === null || (있나 === true && 사람들 === null))
+  // ── 기다리는 동안에도 **엎어 둔 카드는 세운다** ──────────
+  // 형: 「오늘의 인연 눌렸을 때 왜 이렇게 느리게 뜨냐」
+  //
+  // 서버가 오늘의 사람을 골라 오기까지(첫 판은 프로필 통을 훑는다)
+  // 화면은 「…」 한 글자였다. 그런데 **처음 보는 것은 어차피 엎어 둔
+  // 카드**다 — 고른 사람은 뒤집어야 보인다. 그러니 기다릴 이유가 없다.
+  // 카드를 먼저 세우고 그 뒤에서 채운다. 다 오기 전에 누르면
+  // 그때만 잠깐 숨을 고른다.
+  if (있나 === null)
     return (
       <껍데기>
         <p className="hip-yeon-say">…</p>
+      </껍데기>
+    );
+  if (있나 === true && 사람들 === null)
+    return (
+      <껍데기>
+        <button className="hip-yeon-flip" data-wait="1" disabled aria-label="오늘의 인연 여는 중">
+          <span>
+            <b>緣</b>
+          </span>
+        </button>
       </껍데기>
     );
 
@@ -387,10 +404,16 @@ export default function 오늘의인연() {
   const 본만큼 = 끝난이.length;
   const 살 = 이.born ? 나이(이.born) : 0;
 
+  // 엎었나 폈나는 브라우저 장부에 있다(칠한 뒤에 읽는다). 그 한 틱도
+  // 「…」로 비우지 않는다 — 엎어 둔 카드가 맞는 그림이다
   if (뒤집힘 === null)
     return (
       <껍데기>
-        <p className="hip-yeon-say">…</p>
+        <button className="hip-yeon-flip" disabled aria-label="오늘의 인연">
+          <span>
+            <b>緣</b>
+          </span>
+        </button>
       </껍데기>
     );
 

@@ -244,6 +244,9 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
   /** 어느 댓글에 답글을 쓰는 중인가 */
   const [답할것, 답할것잡기] = useState<string | null>(null);
   const [답글, 답글잡기] = useState("");
+  /** 처음엔 몇 개만 — 형: 「유튜브 준 거랑 거의 동일하게, 댓글 더보기」 */
+  const [다펴기, 다펴기잡기] = useState(false);
+  const 첫줄 = 3;
 
   const read = useCallback(() => {
     void (async () => {
@@ -523,8 +526,7 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
                 붙는다 — 답글의 답글도 같은 겹에 붙인다(서버가 그렇게
                 접어 준다). */}
             <div className="hip-say-cmt">
-              {comments
-                .filter((x) => !x.to)
+              {(다펴기 ? comments.filter((x) => !x.to) : comments.filter((x) => !x.to).slice(0, 첫줄))
                 .map((x) => {
                   const 답들 = comments.filter((y) => y.to === x.id);
                   return (
@@ -575,6 +577,13 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
                     </div>
                   );
                 })}
+
+              {/* 유튜브의 그 줄 — 접어 두고 「댓글 n개 모두 보기」 */}
+              {!다펴기 && comments.filter((x) => !x.to).length > 첫줄 && (
+                <button className="hip-cmt-more" onClick={() => 다펴기잡기(true)}>
+                  댓글 {comments.length}개 모두 보기
+                </button>
+              )}
             </div>
           </>
         ) : (
@@ -628,8 +637,13 @@ function 사연목록({
                     {c.uid === me?.uid && <u>내 공양</u>}
                   </span>
                   <span className="hip-say-body">{c.wish}</span>
+                  {/* 형: 「쓴 이름은 나오지 않게, 제목이랑 내용만 살짝.
+                           그래야 댓 다니까」
+                      이름이 붙으면 「누가 썼나」가 먼저 읽힌다 — 아는
+                      사람이면 눈치가 보이고, 모르는 사람이면 남의 일이
+                      된다. 사연만 남기면 사연에 대고 말하게 된다.
+                      쓴 이는 한 자리 안(사연 판)에서만 보인다. */}
                   <span className="hip-say-foot">
-                    <em>{c.by || "이름 없는 이"}</em>
                     {(c.cheers ?? 0) > 0 && <s>공감 {c.cheers}</s>}
                     <time>{daysLeft(c)}일 남음</time>
                   </span>

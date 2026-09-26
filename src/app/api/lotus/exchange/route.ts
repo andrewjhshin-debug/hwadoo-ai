@@ -22,7 +22,14 @@ import { FIRST_GRANT } from "@/lib/config";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** 하루에 바꿀 수 있는 송이 수 — 하루 공덕 천장이 2,160 이라 한 송이면 넉넉하다 */
+/**
+ * 하루에 바꿀 수 있는 송이 수 — **한 송이.**
+ *
+ * 공덕 값을 두 배로 올려 연꽃까지 가는 길이 한 시간 반으로 짧아졌다
+ * (merit.ts DAILY_TOTAL_CAP 주석). 그렇다고 하루에 두 송이를 열면
+ * 파는 연꽃이 반값이 된다 — **빨리 닿게 하되 하루 몫은 그대로** 둔다.
+ * 남는 공덕은 연꽃이 아니라 사다리로 간다.
+ */
 const DAILY_CAP = 1;
 
 function today(): string {
