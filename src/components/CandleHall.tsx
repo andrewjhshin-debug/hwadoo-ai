@@ -4,21 +4,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
+import Yeondeung from "@/components/Yeondeung";
 import LotusCount, { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
 import { loadMe } from "@/lib/me";
 import { auth } from "@/lib/firebase";
 import { EXTEND_DAYS, PRIVATE_BURN_DAYS, PRIVATE_CANDLE_PRICE, PUBLIC_BURN_DAYS, PUBLIC_CANDLE_PRICE } from "@/lib/candleSpec";
-import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle } from "@/lib/candle";
+import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
 
 type Comment = { id: string; by?: string; body?: string };
 
-function CandleMark({ c, onClick }: { c: Candle; onClick: () => void }) {
-  return <button onClick={onClick} className="group flex w-[82px] shrink-0 flex-col items-center text-center">
-    <span className="relative block h-[102px] w-[82px]"><span className="absolute left-1/2 top-4 h-14 w-14 -translate-x-1/2 rounded-full bg-gold/25 blur-xl" />
-      {/* eslint-disable-next-line @next/next/no-img-element */}<img src="/obj/candle.png" alt="켜진 초" className="relative h-full w-full object-contain drop-shadow-[0_0_14px_rgba(217,180,91,.45)] transition-transform group-hover:-translate-y-1" /></span>
-    <span className="mt-1 max-w-full truncate text-[10px] text-hanji-dim">{c.forName}</span><span className="text-[10px] text-gold-soft">{daysLeft(c)}일</span>
-  </button>;
+function CandleMark({ c, onClick, i }: { c: Candle; onClick: () => void; i: number }) {
+  // 줄 길이를 세 층으로 — 진짜 법당의 천장이 그렇다. 나란히 걸면 격자가 된다
+  const 줄 = [16, 34, 24, 44, 28][i % 5];
+  // 씨는 **사람마다 고정** — 같은 이가 오면 늘 같은 빛깔의 등이 걸린다
+  const seed = c.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
+  return <Yeondeung name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} dim={!burning(c)} onClick={onClick} />;
 }
 
 function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
@@ -31,11 +32,11 @@ function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => vo
     catch { setError("초를 올리지 못했습니다. 잠시 뒤 다시 해 주세요."); } finally { setBusy(false); }
   };
   return <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/90 p-5 backdrop-blur-sm"><div className="mx-auto w-full max-w-sm py-8">
-    <div className="flex items-center justify-between"><p className="text-[11px] tracking-[.3em] text-gold-soft">燭 · 초 올리기</p><button onClick={onClose} className="text-[12px] text-hanji-faint">닫기</button></div>
+    <div className="flex items-center justify-between"><p className="text-[11px] tracking-[.3em] text-gold-soft">燈 · 연등 달기</p><button onClick={onClose} className="text-[12px] text-hanji-faint">닫기</button></div>
     <div className="mt-7 grid grid-cols-2 gap-2"><button onClick={() => setVisibility("private")} className={`rounded-[14px] border p-4 text-left ${!publicCandle ? "border-gold bg-gold/10" : "border-ink-3"}`}><p className="text-[14px] text-hanji">연꽃 1송이</p><p className="mt-1 text-[11px] text-hanji-faint">나만 보기 · {PRIVATE_BURN_DAYS}일</p></button><button onClick={() => setVisibility("public")} className={`rounded-[14px] border p-4 text-left ${publicCandle ? "border-gold bg-gold/10" : "border-ink-3"}`}><p className="text-[14px] text-hanji">연꽃 2송이</p><p className="mt-1 text-[11px] text-hanji-faint">모두 보기 · {PUBLIC_BURN_DAYS}일</p></button></div>
     <label className="mt-7 block text-[11px] tracking-[.2em] text-hanji-faint">이름 <span className="tracking-normal">(선택)</span></label><input value={forName} onChange={(e) => setForName(e.target.value.slice(0, 20))} className="mt-2 w-full rounded-[11px] border border-ink-3 bg-ink-2/60 px-3.5 py-3 text-[14px] text-hanji outline-none focus:border-gold/45" />
     <label className="mt-6 block text-[11px] tracking-[.2em] text-hanji-faint">{publicCandle ? "사연" : "마음"}</label><textarea value={wish} onChange={(e) => setWish(e.target.value.slice(0, 120))} rows={5} className="mt-2 w-full resize-none rounded-[11px] border border-ink-3 bg-ink-2/60 px-3.5 py-3 text-[14px] leading-7 text-hanji outline-none focus:border-gold/45" />
-    {error && <p className="mt-3 text-[12px] text-vermilion">{error} <Link href="/lotus" className="underline">연꽃 공양</Link></p>}<button onClick={submit} disabled={!wish.trim() || busy} className="mt-6 flex w-full items-center justify-center gap-2 rounded-[12px] bg-gold py-3.5 text-[14px] font-medium text-ink disabled:opacity-35"><Yeonkkot className="h-4 w-4" />{busy ? "올리는 중" : `연꽃 ${cost}송이로 초 밝히기`}</button><p className="mt-2 text-center text-[11px] text-hanji-faint">{days}일 동안 탑니다</p>
+    {error && <p className="mt-3 text-[12px] text-vermilion">{error} <Link href="/lotus" className="underline">연꽃 공양</Link></p>}<button onClick={submit} disabled={!wish.trim() || busy} className="mt-6 flex w-full items-center justify-center gap-2 rounded-[12px] bg-gold py-3.5 text-[14px] font-medium text-ink disabled:opacity-35"><Yeonkkot className="h-4 w-4" />{busy ? "올리는 중" : `연꽃 ${cost}송이로 연등 달기`}</button><p className="mt-2 text-center text-[11px] text-hanji-faint">{days}일 동안 탑니다</p>
   </div></div>;
 }
 
@@ -57,8 +58,8 @@ export default function CandleHall() {
   useEffect(() => watchAuth((u) => { setMe(u); load(); }), [load]);
   const start = async () => { if (!me) { await loginWithGoogle(); return; } setForm(true); };
   const activeMine = mine.filter((c) => c.until > Date.now());
-  return <div className="mx-auto w-full max-w-xl flex-1 px-6 py-12"><div className="flex items-center gap-2"><span className="w-0 sm:w-20"/><h1 className="flex-1 text-center text-xs tracking-[.5em] text-gold-soft">燭 · 초 공양</h1><LotusCount className="shrink-0" merit={false}/></div><div className="mt-7 flex justify-center"><button onClick={start} className="rounded-full bg-gold px-6 py-3 text-[13px] font-medium text-ink">초 밝히기</button></div>
-    <section className="mt-10"><p className="text-[11px] tracking-[.3em] text-hanji-faint">함께 밝힌 초</p><div className="mt-3 min-h-[160px] rounded-[16px] border border-ink-3 px-4 py-6" style={{ background: "radial-gradient(80% 100% at 50% 100%, rgba(117,78,27,.35), transparent 72%)" }}>{publicCandles === null ? <p className="py-10 text-center text-[12px] text-hanji-faint">불을 살피는 중</p> : publicCandles.length ? <div className="flex flex-wrap justify-center gap-x-3 gap-y-6">{publicCandles.map((c) => <CandleMark key={c.id} c={c} onClick={() => setOpen(c)}/>)}</div> : <p className="py-6 text-center text-[12px] text-hanji-faint">아직 함께 밝힌 초가 없습니다.</p>}
-      {activeMine.length > 0 && <div className="mt-5 border-t border-ink-3/70 pt-4"><p className="mb-3 text-[10px] tracking-[.25em] text-hanji-faint">내 초</p><div className="flex flex-wrap justify-center gap-x-3 gap-y-6">{activeMine.map((c) => <CandleMark key={c.id} c={c} onClick={() => setOpen(c)}/>)}</div></div>}</div></section>
+  return <div className="mx-auto w-full max-w-xl flex-1 px-6 py-12"><div className="flex items-center gap-2"><span className="w-0 sm:w-20"/><h1 className="flex-1 text-center text-xs tracking-[.5em] text-gold-soft">法堂 · 법당</h1><LotusCount className="shrink-0" merit={false}/></div><div className="mt-7 flex justify-center"><button onClick={start} className="rounded-full bg-gold px-6 py-3 text-[13px] font-medium text-ink">연등 달기</button></div>
+    <section className="mt-10"><p className="text-[11px] tracking-[.3em] text-hanji-faint">함께 건 연등</p><div className="mt-3 min-h-[200px] rounded-[16px] border border-ink-3 px-2 pb-4 pt-0" style={{ background: "radial-gradient(90% 70% at 50% 0%, rgba(242,120,159,.12), transparent 72%)" }}>{publicCandles === null ? <p className="py-10 text-center text-[12px] text-hanji-faint">등을 살피는 중</p> : publicCandles.length ? <div className="hip-deung-sky">{publicCandles.map((c, i) => <CandleMark key={c.id} c={c} i={i} onClick={() => setOpen(c)}/>)}</div> : <p className="py-6 text-center text-[12px] text-hanji-faint">아직 걸린 연등이 없습니다.</p>}
+      {activeMine.length > 0 && <div className="mt-5 border-t border-ink-3/70 pt-4"><p className="mb-3 text-[10px] tracking-[.25em] text-hanji-faint">내 연등</p><div className="hip-deung-sky">{activeMine.map((c, i) => <CandleMark key={c.id} c={c} i={i} onClick={() => setOpen(c)}/>)}</div></div>}</div></section>
     {form && <CandleForm onClose={() => setForm(false)} onDone={() => { setForm(false); load(); }}/>} {open && <Story c={open} me={me} onClose={() => setOpen(null)} onChanged={load}/>}</div>;
 }
