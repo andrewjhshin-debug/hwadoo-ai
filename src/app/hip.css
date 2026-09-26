@@ -5202,16 +5202,21 @@ html[data-theme="light"] {
   }
   /* 뒤집기의 **뒷마무리** — 뒷면이 등을 보이며 사라진 그 자리에서
      카드가 남은 반 바퀴를 돌아 선다. 둘을 이어 붙이지 않으면 빈 판이
-     한 번 스친다. */
-  .hip-yeon:has(.hip-yeon-card) { perspective: 1400px; }
+     한 번 스친다.
+
+     **perspective 는 쓰지 않는다.** 어미에 perspective 를 걸었더니 그
+     상자가 `position: fixed` 의 담는 상자가 되어, 같은 안에 있는 신고
+     판(inset:0 fixed)이 화면이 아니라 카드 상자에 붙었다 — 시트가 화면
+     밑에서 떠 있고 막이 띠를 안 덮었다.
+     깊이 없이 돌려도 「카드가 돌아 선다」로 읽힌다(납작하게 접혔다 펴진다).
+     transform-style 도 같은 까닭으로 안 쓴다. */
   .hip-yeon-card {
     animation: hip-yeon-turn 0.34s cubic-bezier(0.22, 0.9, 0.24, 1) both;
-    transform-style: preserve-3d;
   }
   @keyframes hip-yeon-turn {
-    0% { transform: rotateY(84deg); opacity: 0; }
+    0% { transform: scaleX(0.1); opacity: 0; }
     60% { opacity: 1; }
-    100% { transform: rotateY(0deg); opacity: 1; }
+    100% { transform: scaleX(1); opacity: 1; }
   }
   .hip-yeon-card[data-big="1"] .hip-yeon-face {
     box-shadow:

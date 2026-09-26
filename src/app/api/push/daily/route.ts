@@ -11,7 +11,7 @@
 
 import type { App } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getMessaging, type TokenMessage } from "firebase-admin/messaging";
 import { adminApp, BATCH, cleanDeadTokens } from "@/lib/firebaseAdmin";
 import { SITE_URL } from "@/lib/config";
@@ -169,7 +169,14 @@ async function 조용한방걷기(app: App): Promise<number> {
         }
         if (t.exists) await t.ref.delete();
       }
-      await d.ref.set({ closed: true, closedAt: 지금 }, { merge: true });
+      // **thread 칸을 비운다.** 방을 지워 놓고 가리키는 자국만 남기면,
+      // 둘이 다시 만나 한쪽이 합장할 때 hap 이 「방은 이미 있다」며 그
+      // 죽은 id 를 돌려준다 — 「인연이 닿았습니다」가 뜨는데 쪽지함엔
+      // 아무것도 없다. 그 짝은 그 뒤로 영영 새 방을 못 연다.
+      await d.ref.set(
+        { closed: true, closedAt: 지금, thread: FieldValue.delete() },
+        { merge: true }
+      );
       몇 += 1;
     } catch {
       // 한 방이 안 닫혀도 나머지는 닫는다
@@ -206,7 +213,7 @@ export async function GET(request: Request) {
   // 그 방은 조용히 닫는다(yeonPick.ts QUIET_HOURS).
   // 여기 얹는 까닭 — 크론 한 자리를 더 파면 공짜 판의 몫을 쓴다.
   // 하루 한 번이면 충분한 일이라 아침 문안과 같은 걸음으로 간다.
-  const 닫은방 = await 조용한방걷기(app).catch(() => 0);
+
 
   // 장부의 토큰 전부 — 문서 ID가 곧 토큰, uid 가 있으면 로그인 구독자다
   const snapshot = await db.collection("push-tokens").get();
@@ -277,5 +284,9 @@ export async function GET(request: Request) {
   // 죽은 토큰 청소 — 실패한 묶음은 다음 아침에 다시
   const cleaned = await cleanDeadTokens(db, dead);
 
+  // 조용한 방 걷기 — 푸시·메일을 다 보낸 **뒤**에 한다.
+  // 앞에 세우면 60초 한도를 이 일이 먼저 먹어, 사람이 늘수록 아침 문안이
+  // 못 나갈 수 있다. 이건 급하지 않은 청소다.
+  const 닫은방 = await 조용한방걷기(app).catch(() => 0);
   return Response.json({ sent, failed, cleaned, mailed, closed: 닫은방 });
 }

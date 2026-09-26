@@ -30,7 +30,13 @@ export function setDailyAccount(uid: string, owned: boolean) {
       const base = window.localStorage.getItem(DAILY_KEY);
       if (owned && base) {
         if (!window.localStorage.getItem(k)) window.localStorage.setItem(k, base);
-        window.localStorage.removeItem(dailyKey());
+        // **바탕 칸을 지운다.** `dailyKey()` 는 방금 keyUid 를 세웠으니
+        // 이제 **계정 칸**을 가리킨다 — 그걸 지우면 손님 시절 것을 옮겨
+        // 놓자마자 도로 지우는 셈이라, 들어올 때마다 하루 장부가 비었다.
+        // 하루 천장(DAILY_CAP·DAILY_TOTAL_CAP)이 로그인한 사람에게는
+        // 사실상 없었다 — 새로고침 한 번이면 풀렸다.
+        // merit.ts 의 setMeritAccount 는 처음부터 제대로 되어 있다.
+        window.localStorage.removeItem(DAILY_KEY);
       }
     } catch {
       // 서랍이 막혀도 오늘은 수행할 수 있다

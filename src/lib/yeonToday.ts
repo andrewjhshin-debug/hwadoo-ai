@@ -66,6 +66,7 @@ export type 인연탈 =
   | "server-not-ready"
   | "need-lotus"
   | "max-today"
+  | "no-one"
   | "무엇인가";
 
 async function 표() {

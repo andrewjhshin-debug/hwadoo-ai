@@ -7,11 +7,13 @@
 // 싶으면 연꽃을 낸다. 하루 MAX_PICKS 까지, 그 위로는 안 판다 —
 // 무한 스와이프를 하지 않는 것이 이 판의 값이다.
 //
-// **왜 연꽃 쓰기와 뽑기를 한 길에서 하나** —
-//   둘로 나누면 연꽃만 빠지고 사람은 안 늘어나는 자리가 생긴다(그 사이에
-//   판이 끊기면). 여기서는 **먼저 하루치 칸을 늘리고, 그 다음에** 연꽃을
-//   뺀다. 거꾸로 하지 않는다 — 어긋나더라도 손님이 손해 보는 쪽으로는
-//   안 기울게.
+// **차례가 값이다** —
+//   ① 먼저 **사람을 찾는다.** 없으면 아무것도 안 받고 돌려보낸다.
+//      (처음엔 지갑부터 긁고 나중에 뽑았다. 후보가 0명이면 뽑기가 빈손으로
+//       와도 되돌리는 길이 없어 **연꽃만 조용히 탔다.**)
+//   ② 찾았으면 연꽃을 뺀다
+//   ③ 그 다음에 칸과 사람을 적는다
+//   어긋나더라도 손님이 손해 보는 쪽으로는 안 기울게.
 //
 // 인증: Authorization: Bearer <파이어베이스 ID 토큰>
 // POST → { ok, cap }
@@ -20,7 +22,7 @@
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
-import { FREE_PICKS, MAX_PICKS, today } from "@/lib/yeonPick";
+import { FREE_PICKS, MAX_PICKS, today, 뽑기 } from "@/lib/yeonPick";
 import { isAdminAccount } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +52,15 @@ export async function POST(req: Request) {
   if (cap >= MAX_PICKS)
     return Response.json({ error: "max-today" }, { status: 409 });
 
-  // 뒷방 주인은 값을 안 치른다 — 초 켜기·연꽃 쓰기와 같은 셈
+  // ① 사람부터 — 없으면 **아무것도 안 받는다**
+  const 지금picks: string[] = s.exists ? (s.data()!.picks ?? []) : [];
+  const 골라 = await 뽑기(db, uid, 1, 지금picks);
+  if ("err" in 골라) return Response.json({ error: 골라.err }, { status: 409 });
+  const 새사람 = 골라.picks.filter((x) => !지금picks.includes(x));
+  if (!새사람.length)
+    return Response.json({ error: "no-one" }, { status: 409 });
+
+  // ② 값 — 뒷방 주인은 안 치른다(초 켜기·연꽃 쓰기와 같은 셈)
   const 공짜 = isAdminAccount({ uid, email });
 
   if (!공짜) {
@@ -82,8 +92,11 @@ export async function POST(req: Request) {
     if (남음 < 0) return Response.json({ error: "need-lotus" }, { status: 402 });
   }
 
-  await 칸.set({ uid, day, cap: cap + 1 }, { merge: true });
-  // 새 사람은 /api/yeon/today 가 채운다 — 거기 한 군데서만 뽑아야
-  // 90일 쿨다운·차단·점수 셈이 두 군데로 갈리지 않는다
+  // ③ 칸과 사람을 함께 적는다. 뽑기는 lib 한 군데에만 있어서
+  //    쿨다운·차단·점수 셈이 today 와 갈리지 않는다
+  await 칸.set(
+    { uid, day, cap: cap + 1, picks: 지금picks.concat(새사람) },
+    { merge: true }
+  );
   return Response.json({ ok: true, cap: cap + 1, max: MAX_PICKS });
 }

@@ -93,8 +93,15 @@ export async function POST(req: Request) {
   const id = pairId(me, to);
   const 방 = db.doc(`yeon-matches/${id}`);
   const 이미 = await 방.get();
-  if (이미.exists)
-    return Response.json({ ok: true, matched: true, thread: 이미.data()!.thread });
+  // 짝 문서가 있어도 **방이 살아 있을 때만** 그 id 를 돌려준다.
+  // 사흘 조용해서 걷힌 방은 thread 칸이 비어 있다(api/push/daily) —
+  // 그걸 그대로 돌려주면 「인연이 닿았습니다」가 뜨는데 쪽지함엔 아무것도
+  // 없고, 그 짝은 영영 새 방을 못 연다.
+  const 옛방: string | undefined = 이미.exists ? 이미.data()!.thread : undefined;
+  if (옛방) {
+    const t = await db.doc(`dm-threads/${옛방}`).get();
+    if (t.exists) return Response.json({ ok: true, matched: true, thread: 옛방 });
+  }
 
   // 쪽지방을 연다 — 기존 dm-threads 를 그대로 쓴다.
   //

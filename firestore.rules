@@ -302,9 +302,23 @@ service cloud.firestore {
         || (dmOn() && request.auth != null && request.auth.uid == uid
             && request.resource.data.keys().hasOnly(['lotus'])
             && request.resource.data.lotus == 3);
+      // 유상분·무상분 칸(paid·free) —
+      //   서버(api/lotus/spend · api/yeon/more)가 환불 셈을 위해 지갑을
+      //   둘로 나눠 적는다. 관리자 SDK 라 규칙을 안 타고 들어가는데,
+      //   그 뒤로 **브라우저가 그 문서를 못 고치게** 된다 —
+      //   hasOnly(['lotus']) 가 이미 있는 두 칸 때문에 거짓이 되기 때문이다.
+      //   (updateDoc 한 칸만 고쳐도 request.resource.data 는 합쳐진 문서다)
+      //   그러면 게시판 쪽지 청하기가 연꽃이 있는데도 막힌다.
+      //   칸은 허락하되 **손대지 못하게** 못박는다.
+      function sameLotusCell(k) {
+        return !(k in request.resource.data) && !(k in resource.data)
+          || (k in request.resource.data) && (k in resource.data)
+             && request.resource.data[k] == resource.data[k];
+      }
       allow update: if dmIsAdmin()
         || (dmOn() && request.auth != null && request.auth.uid == uid
-            && request.resource.data.keys().hasOnly(['lotus'])
+            && request.resource.data.keys().hasOnly(['lotus', 'paid', 'free'])
+            && sameLotusCell('paid') && sameLotusCell('free')
             && request.resource.data.lotus is int
             && request.resource.data.lotus >= 0
             && request.resource.data.lotus == resource.data.lotus - 1);
@@ -540,9 +554,18 @@ service cloud.firestore {
           || (k in request.resource.data) && (k in resource.data)
              && request.resource.data[k] == resource.data[k];
       }
+      // **없는 칸을 점으로 읽으면 규칙이 그 자리에서 죽는다.**
+      //
+      // `request.resource.data.state != '정지'` 한 줄이 프로필 고치기를
+      // 통째로 막고 있었다 — 프로필저장() 은 state 를 안 적고, state 를
+      // 적는 유일한 자리(「인연 받기」)는 나머지를 다 채워야 눌린다.
+      // 그러니 처음 만든 뒤 **두 번째 저장부터** 문이 닫혔다.
+      // (형: 「인연 프로필 채우려면 계속 이렇게 뜸」)
+      // 있을 때만 본다.
       allow update: if isAdmin()
         || (request.auth != null && request.auth.uid == uid
-            && request.resource.data.state != '정지'
+            && (!('state' in request.resource.data)
+                || request.resource.data.state != '정지')
             && same('verified') && same('merit'));
       allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
     }

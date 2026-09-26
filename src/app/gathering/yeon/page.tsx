@@ -104,7 +104,18 @@ export default function 오늘의인연() {
 
   const 읽기 = useCallback(async () => {
     탈잡기("");
-    const r = await 오늘뽑기();
+    // **반드시 잡는다.** 표(getIdToken)나 그물이 거절하면 여기서 던져지고,
+    // 그러면 `사람들` 이 null 인 채로 남아 화면이 「…」에 영영 갇힌다.
+    // 손님은 가안이 서니 멀쩡해 보이고 **로그인한 사람만** 갇힌다 —
+    // 제일 못 찾는 갈래다.
+    let r: Awaited<ReturnType<typeof 오늘뽑기>>;
+    try {
+      r = await 오늘뽑기();
+    } catch {
+      사람들잡기([]);
+      탈잡기("server-not-ready");
+      return;
+    }
     if ("탈" in r) {
       사람들잡기([]);
       탈잡기(r.탈);
@@ -179,7 +190,7 @@ export default function 오늘의인연() {
     바쁨잡기(true);
     탈잡기("");
     try {
-      const r = await 한사람더();
+      const r = await 한사람더().catch(() => ({ 탈: "server-not-ready" as const }));
       if ("탈" in r) {
         탈잡기(r.탈);
         return;
@@ -504,6 +515,7 @@ function 말로(탈: string): string {
       "no-token": "다시 들어와 주세요",
       "need-lotus": "연꽃이 모자랍니다",
       "max-today": "오늘은 여기까지",
+      "no-one": "아직 마주칠 사람이 없습니다",
     }[탈] ?? 탈
   );
 }
