@@ -92,7 +92,14 @@ export default function 인연내프로필() {
       const 이미 = me?.photos ?? [];
       const 받을 = Array.from(fs).slice(0, Math.max(0, 사진칸 - 이미.length));
       const 새것 = [];
-      for (const f of 받을) 새것.push(await 사진올리기(f));
+      for (const f of 받을) {
+        새것.push(await 사진올리기(f));
+        // **한 장 굽고 한 번 쉰다.**
+        // 잇달아 구우면 앞엣것이 아직 안 치워졌는데 다음 것을 편다 —
+        // 폰에서 판 그리는 일꾼이 거기서 죽는다(형이 본 그 창).
+        // 한 박자 비워 주면 브라우저가 그 사이에 치운다.
+        await new Promise((r) => setTimeout(r, 120));
+      }
       await 고치기({ photos: [...이미, ...새것] });
     } catch (e) {
       탈잡기(e instanceof Error ? e.message : "사진을 올리지 못했습니다");

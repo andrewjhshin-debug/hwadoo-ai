@@ -4063,12 +4063,17 @@ html[data-theme="light"] {
      비지 않게 옷자락을 늘여야 했다 — 전부 **가르느라** 생긴 일이었다.
      물건 하나가 통째로 내려가면 그게 키캡이다. 통(stack) 밑변에서
      잘리니 판 속으로 들어가는 것으로 읽힌다. */
+  /* 몸은 뒤(1), 받침은 앞(2). 누르면 **몸만** 그릇 속으로 내려간다 —
+     받침은 한 화소도 안 움직인다(형: 「받침은 그대로 있도록」).
+     몸이 온몸 통짜라, 내려가도 빈 데가 안 생긴다. */
   .hip-keycap-buddha {
+    z-index: 1;
     transform-origin: 50% 100%;
     transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
   }
+  .hip-keycap-cup { z-index: 2; }
   .hip-keycap.on .hip-keycap-buddha {
-    transform: translateY(14%);
+    transform: translateY(13%);
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
   }
   /* 한 장짜리 시절의 「통째로 찌그러뜨리기」는 걷는다 */

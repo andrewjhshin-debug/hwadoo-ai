@@ -221,6 +221,71 @@ export async function 프로필저장(
  */
 async function 다시굽기(file: File): Promise<{ 짐: Blob; 종류: string; 끝: string }> {
   const 통째 = { 짐: file as Blob, 종류: file.type, 끝: "jpg" };
+
+  // 긴 변 한도. 카드 사진은 화면에서 390px 남짓이라 두 배(780)면 충분하고,
+  // 1280 이면 넉넉하다. 1600 에서 내린 까닭은 **메모리**다 — 줄인 판도
+  // 화소 수만큼 자리를 먹는다(1600 ≈ 7.7MB, 1280 ≈ 4.9MB).
+  const 한도 = 1280;
+
+  const 굽기 = async (그림: ImageBitmap | HTMLImageElement, w: number, h: number) => {
+    const 배 = Math.max(w, h) > 한도 ? 한도 / Math.max(w, h) : 1;
+    const W = Math.max(1, Math.round(w * 배)), H = Math.max(1, Math.round(h * 배));
+    // OffscreenCanvas 가 있으면 그쪽으로 — 판(DOM)에 캔버스를 매달지 않으니
+    // 다 쓰고 나면 곧바로 치워진다
+    if (typeof OffscreenCanvas !== "undefined") {
+      const c = new OffscreenCanvas(W, H);
+      const x = c.getContext("2d");
+      if (!x) return null;
+      x.imageSmoothingQuality = "high";
+      x.drawImage(그림 as CanvasImageSource, 0, 0, W, H);
+      return await c.convertToBlob({ type: "image/jpeg", quality: 0.86 });
+    }
+    const c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const x = c.getContext("2d");
+    if (!x) return null;
+    x.imageSmoothingQuality = "high";
+    x.drawImage(그림 as CanvasImageSource, 0, 0, W, H);
+    const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/jpeg", 0.86));
+    // 다 구웠으면 판을 0×0 으로 줄여 자리를 바로 놓아 준다
+    c.width = 0; c.height = 0;
+    return blob;
+  };
+
+  // ── ① 줄여서 **펴는** 길 (createImageBitmap) ──────────────
+  //
+  // 형: 「내 프로필 등록이 왜 자꾸 페이지 couldn't load 라고 뜰까」
+  //
+  // 까닭이 여기 있었다. `new Image()` 로 열면 브라우저가 **원본을 통째로
+  // 펼친 뒤** 줄인다. 아이폰 사진 4032×3024 = 1,220만 화소 × 4바이트
+  // = **48MB 한 덩이**다. HEIC 푸는 중간 버퍼, 줄인 판, JPEG 굽는 버퍼가
+  // 거기 겹친다. 게다가 사진 칸이 여러 장을 받으므로 앞엣것이 아직 안
+  // 치워졌는데 다음 것을 편다 — 폰 한 판 몫을 그대로 넘긴다.
+  // 그러면 코드가 던지는 게 아니라 **판 그리는 일꾼이 죽는다.**
+  // 브라우저는 그걸 「이 페이지를 불러올 수 없습니다」로 적는다.
+  // 콘솔에 아무 자국이 없던 까닭이 이것이다 — 오류가 아니라 부고였다.
+  //
+  // createImageBitmap 에 resizeWidth 를 주면 **처음부터 그 크기로 푼다.**
+  // 48MB 짜리 한 덩이가 아예 안 생긴다.
+  if (typeof createImageBitmap === "function") {
+    let bmp: ImageBitmap | null = null;
+    try {
+      bmp = await createImageBitmap(file, {
+        resizeWidth: 한도,
+        resizeQuality: "high",
+      } as ImageBitmapOptions);
+      // 세로로 긴 사진이면 폭 기준으로 줄인 것이 한도를 넘을 수 있다 —
+      // 굽기가 한 번 더 잰다
+      const blob = await 굽기(bmp, bmp.width, bmp.height);
+      if (blob) return { 짐: blob, 종류: "image/jpeg", 끝: "jpg" };
+    } catch {
+      /* 이 길이 막히면 아래 옛길로 */
+    } finally {
+      bmp?.close();
+    }
+  }
+
+  // ── ② 옛길 — 여기서도 한도는 지킨다 ───────────────────────
   try {
     const url = URL.createObjectURL(file);
     try {
@@ -231,18 +296,9 @@ async function 다시굽기(file: File): Promise<{ 짐: Blob; 종류: string; �
         img.onerror = () => no(new Error("못 연다"));
         img.src = url;
       });
-      const 긴 = Math.max(img.naturalWidth, img.naturalHeight);
-      const 배 = 긴 > 1600 ? 1600 / 긴 : 1;
-      const c = document.createElement("canvas");
-      c.width = Math.round(img.naturalWidth * 배);
-      c.height = Math.round(img.naturalHeight * 배);
-      const x = c.getContext("2d");
-      if (!x) return 통째;
-      x.imageSmoothingQuality = "high";
-      x.drawImage(img, 0, 0, c.width, c.height);
-      const blob = await new Promise<Blob | null>((r) =>
-        c.toBlob(r, "image/jpeg", 0.86)
-      );
+      const blob = await 굽기(img, img.naturalWidth, img.naturalHeight);
+      // 다 썼으면 그림도 놓아 준다
+      img.src = "";
       if (!blob) return 통째;
       return { 짐: blob, 종류: "image/jpeg", 끝: "jpg" };
     } finally {

@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 20;
+const 그림판 = 21;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -189,13 +189,21 @@ const SKINS = {
   // 형한테 제대로 들었다. 그 말이 아니었다 — **가르지 말라**는 말이다.
   // 물건 하나가 통째로 내려가면 그게 키캡이다. 자른 데가 없으니 이격도,
   // 빈 데도, 겹쳐서 낀 자리도 없다.
+  // 키캡 셋 — 형이 **몸과 받침을 따로 구워 준** 그림.
+  //
+  // 형: 「키캡 몸이랑 받침 분리한 이미지 줬으니까, 그거 활용해서 키캡처럼
+  //      눌리면 본체만 내려가고 받침은 그대로 있도록」
+  //
+  // 여태 한 장을 갈라 쓰느라 애를 먹었다 — 자른 선이 곧 이격이었다.
+  // 이제 처음부터 두 물건이라 자를 일이 없다. 받침이 앞(z 2), 몸이 뒤(z 1).
+  // 몸은 온몸이 다 있으니 그릇 속으로 내려가도 빈 데가 안 생긴다.
   keycap: [
     { id: "dongja", name: "동자", src: "/obj/keycap-dongja.png",
-      ar: 664 / 920, dot: "#ef86b0" },
+      cup: "/obj/keycap-dongja-cup.png", ar: 465 / 824, dot: "#ef86b0" },
     { id: "podae", name: "포대", src: "/obj/keycap-podae.png",
-      ar: 558 / 605, dot: "#d9a06f" },
+      cup: "/obj/keycap-podae-cup.png", ar: 612 / 862, dot: "#d9a06f" },
     { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk.png",
-      ar: 516 / 660, dot: "#cfa03c" },
+      cup: "/obj/keycap-mireuk-cup.png", ar: 659 / 972, dot: "#cfa03c" },
   ],
 } as const;
 
@@ -280,7 +288,7 @@ export default function MoktakPage() {
   /** 키캡 한 장 — 통짜 그대로 */
   const keySrc = (() => {
     const k = SKINS.keycap.find((x) => x.id === skin.keycap) ?? SKINS.keycap[0];
-    return { src: 그림(k.src), ar: k.ar };
+    return { src: 그림(k.src), cup: 그림(k.cup), ar: k.ar };
   })();
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
   const beadWide = (
@@ -495,6 +503,12 @@ export default function MoktakPage() {
       for (const k of SKINS[kind]) {
         const im = new window.Image();
         im.src = k.src;
+        // 받침도 미리 받아 둔다 — 점을 눌렀을 때 몸만 먼저 오면 한 판
+        // 동안 받침 없이 떠 있다
+        if ("cup" in k) {
+          const im2 = new window.Image();
+          im2.src = k.cup;
+        }
       }
     }
   }, []);
