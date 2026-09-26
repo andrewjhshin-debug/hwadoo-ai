@@ -51,3 +51,6 @@ next-env.d.ts
 *.jks
 *.keystore
 _gk.mjs
+
+# 임시 스크립트
+_*.mjs
