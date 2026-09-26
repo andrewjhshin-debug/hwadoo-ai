@@ -182,7 +182,10 @@ export function 모자란것(p: 인연프로필 | null): string[] {
   if (!p || !(p.photos ?? []).length) 빠진.push("사진");
   if (!p?.sex) 빠진.push("성별");
   if (!p?.born) 빠진.push("나이");
-  if (!p?.area) 빠진.push("지역");
+  // 칸 이름은 「거주」인데 모자란 것은 「지역」이라 적고 있었다 —
+  // 형이 두 번 짚었다. 같은 것을 두 이름으로 부르면 어느 칸을 채우라는
+  // 말인지 모른다. 칸 이름 그대로.
+  if (!p?.area) 빠진.push("거주");
   // 형: 「사진이랑 프로필 넣어야 가입」 — 한 마디가 그 프로필이다
   if (!p?.line?.trim()) 빠진.push("한 마디");
   if (본인확인_켬 && !p?.verified) 빠진.push("본인확인");

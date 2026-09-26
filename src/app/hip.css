@@ -4640,20 +4640,22 @@ html[data-theme="light"] {
     gap: 7px;
     margin-top: 6px;
   }
+  /* 저장 — 형: 「저장 버튼 회색 말고 더 눈에 띄게」
+     회색이던 까닭은 옛 규칙이다: 활동 중이면 「쉬는 중으로」라 눌러
+     끄는 단추였으니 가라앉혀 두었다. 이제는 **저장**이다 — 끝내는
+     자리는 늘 또렷해야 한다. 폭도 다 쓴다. */
   .hip-yeon-go button {
-    padding: 13px 30px;
-    border-radius: 999px;
-    background: linear-gradient(150deg, #fbc7da, #ef7ba4);
-    font-size: 14.5px;
-    letter-spacing: 0.08em;
+    width: 100%;
+    height: 54px;
+    border-radius: 16px;
+    background: linear-gradient(150deg, #f3789f, #e0518a);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
     color: #fff;
-    box-shadow: 0 4px 14px rgba(226, 110, 155, 0.3);
+    box-shadow: 0 8px 22px rgba(226, 110, 155, 0.36);
   }
-  .hip-yeon-go button[data-on="1"] {
-    background: rgba(26, 23, 20, 0.06);
-    color: #6f665c;
-    box-shadow: none;
-  }
+  .hip-yeon-go button:active { transform: translateY(1px); }
   .hip-yeon-go button:disabled { opacity: 0.4; box-shadow: none; }
   .hip-yeon-go small { font-size: 11px; color: #a39a8f; }
   .hip-yeon-bad { margin: 0; font-size: 11.5px; color: #d2578c; }
