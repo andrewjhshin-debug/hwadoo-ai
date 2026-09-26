@@ -69,6 +69,8 @@ export type HipMoktakProps = {
       코드로 다시 그렸던 것은 버렸다. 부모가 그려서 넘긴다 */
   /** 지금 고른 목탁 살갗 그림 */
   mokSrc: string;
+  /** 지금 고른 키캡 두 겹 — 받침(앞) · 몸(뒤) */
+  keySrc: { cup: string; buddha: string };
   /** 키캡 갈래에서 무엇을 누르나 — 동자인가 목탁인가 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
@@ -102,6 +104,7 @@ export default function HipMoktak({
   onRing,
   options,
   mokSrc,
+  keySrc,
   bead,
   bowl,
   dots,
@@ -258,12 +261,15 @@ export default function HipMoktak({
                   받침이 위에 깔리므로 부처상이 내려가면 그 뒤로 숨는다. */}
                 <span className="hip-keycap-stack">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-keycap-buddha" src="/obj/keycap-buddha.png" alt="" draggable={false} />
+                  <img className="hip-keycap-buddha" src={keySrc.buddha} alt="" draggable={false} />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-keycap-cup" src="/obj/keycap-cup.png" alt="" draggable={false} />
+                  <img className="hip-keycap-cup" src={keySrc.cup} alt="" draggable={false} />
                 </span>
             </button>
           )}
+          {/* 살갗 점 — 키캡도 물건 바로 밑에서 고른다.
+              형: 「그럼 저기서 포대랑 미륵으로도 키캡 만들어라」 */}
+          {tab === "keycap" && <div className="hip-obj-foot">{dots}</div>}
           {/* 살갗 — 오브제 바로 밑. 고르는 것과 보이는 것이 붙어 있어야
               고른 티가 바로 난다 */}
           {tab === "moktak" && (

@@ -1189,13 +1189,30 @@ html[data-theme="light"] {
     left: 50%;
     top: 4%;
     z-index: 2;
+    /* 무리는 **어미**가 쓴다. 글자 쪽 filter 는 솟을 때 blur 로 쓰이는데,
+       filter 는 덮어쓰는 성질이라 둘이 한 자리에 있으면 하나가 죽는다 */
+    filter: drop-shadow(0 0 10px rgba(227, 98, 143, 0.35))
+            drop-shadow(0 2px 3px rgba(210, 162, 74, 0.28));
   }
+  /* 「나무아미타불」 여섯 자가 한 자씩 떠오른다.
+     형: 「이 텍스트 더 크게, 글자에 뭐 효과 둬」.
+     26px 로는 목탁 옆에서 부스러기처럼 보였다. 키운 뒤에 —
+     · 글자 속은 **분홍→금** 결로 채운다(살갗이 아니라 빛으로 읽히게)
+     · 뒤로 옅은 금빛 무리를 둔다. 흰 바탕에서도 획이 안 묻힌다
+     background-clip 은 글자 모양으로 칠을 오리는 것이라 text-shadow 가
+     안 먹는다 — 무리는 drop-shadow 로 준다(글자 모양을 따라간다). */
   .hip-pops span {
     position: absolute;
     font-family: var(--font-serif);
-    font-size: 26px;
+    font-size: 40px;
+    font-weight: 600;
     line-height: 1;
+    letter-spacing: -0.02em;
     color: #e3628f;
+    background: linear-gradient(170deg, #f3789f 0%, #e0518a 42%, #d2a24a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   /* ③ 숫자가 톡 */
@@ -5350,4 +5367,112 @@ html[data-theme="light"] {
   }
   .hip-screen.hip-room-dark .hip-lane-room { color: #cfc6b6; }
   .hip-screen.hip-room-dark .hip-lane-room[data-on="1"] { background: #f2ece1; color: #17140f; }
+}
+
+/* ── 연등 달기 — 쓰는 동안 이미 걸려 있다 ─────────────────────
+   형이 참고로 준 판(김부따)은 빈 칸에 글만 쓰게 한다. 우리는 맨 위에
+   **내 등이 이미 걸려 있고**, 이름을 치면 쪽지에 그대로 적힌다.
+   무엇을 만드는 중인지가 글이 아니라 물건으로 보인다. */
+@media (min-width: 0px) {
+  .hip-deung-form {
+    position: fixed;
+    inset: 0;
+    z-index: 63;
+    overflow-y: auto;
+    background: rgba(24, 20, 18, 0.34);
+    backdrop-filter: blur(3px);
+    padding: 18px 14px calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) + 18px);
+  }
+  .hip-deung-form-box {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 400px;
+    padding: 16px 16px 20px;
+    border-radius: 22px;
+    background: #fffdfb;
+    box-shadow: 0 16px 44px rgba(26, 23, 20, 0.22);
+  }
+  .hip-deung-form-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .hip-deung-form-top p {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: #c08aa0;
+  }
+  .hip-deung-form-top button { font-size: 12.5px; color: #a39a8f; }
+  /* 미리 걸린 등 — 연분홍 하늘 한 조각 */
+  .hip-deung-preview {
+    display: grid;
+    place-items: start center;
+    margin: 12px 0 4px;
+    padding: 0 0 6px;
+    border-radius: 16px;
+    background: radial-gradient(80% 90% at 50% 0%, rgba(242, 120, 159, 0.12), transparent 72%);
+  }
+  .hip-deung-preview .hip-deung { width: 96px; max-width: 96px; }
+  .hip-deung-lab {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 14px 0 6px;
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
+    color: #a39a8f;
+  }
+  .hip-deung-lab span { letter-spacing: 0; font-size: 11px; color: #c3bbb0; }
+  .hip-deung-in {
+    width: 100%;
+    padding: 12px 13px;
+    border-radius: 12px;
+    border: 1px solid rgba(26, 23, 20, 0.1);
+    background: #fff;
+    font-size: 14.5px;
+    color: #17140f;
+    outline: none;
+  }
+  .hip-deung-in:focus { border-color: rgba(226, 122, 158, 0.55); }
+  .hip-deung-area { resize: none; line-height: 1.75; }
+  .hip-deung-pick {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .hip-deung-pick button {
+    padding: 12px 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(26, 23, 20, 0.1);
+    text-align: left;
+    background: #fff;
+  }
+  .hip-deung-pick button[data-on="1"] {
+    border-color: rgba(226, 122, 158, 0.55);
+    background: rgba(239, 123, 164, 0.07);
+  }
+  .hip-deung-pick b { display: block; font-size: 13.5px; font-weight: 500; color: #17140f; }
+  .hip-deung-pick i { display: block; margin-top: 3px; font-style: normal; font-size: 11px; color: #a39a8f; }
+  .hip-deung-go {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 52px;
+    margin-top: 16px;
+    border-radius: 999px;
+    border: 0;
+    background: linear-gradient(150deg, #fbc7da, #ef7ba4);
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(226, 110, 155, 0.32);
+  }
+  .hip-deung-go:disabled { opacity: 0.4; box-shadow: none; }
+  .hip-deung-foot { margin: 8px 0 0; text-align: center; font-size: 11px; color: #c3bbb0; }
+  .hip-deung-bad { margin: 10px 0 0; font-size: 12px; color: #d2578c; }
+  .hip-deung-bad a { text-decoration: underline; }
 }

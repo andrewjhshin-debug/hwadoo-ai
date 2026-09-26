@@ -25,19 +25,88 @@ function CandleMark({ c, onClick, i }: { c: Candle; onClick: () => void; i: numb
 function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
   const [visibility, setVisibility] = useState<"private" | "public">("private");
   const [forName, setForName] = useState(""); const [wish, setWish] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const key = useRef("");
-  const publicCandle = visibility === "public"; const cost = publicCandle ? PUBLIC_CANDLE_PRICE : PRIVATE_CANDLE_PRICE; const days = publicCandle ? PUBLIC_BURN_DAYS : PRIVATE_BURN_DAYS;
+  const publicCandle = visibility === "public"; const cost = publicCandle ? PUBLIC_CANDLE_PRICE : PRIVATE_CANDLE_PRICE;
   const submit = async () => {
     if (!wish.trim() || busy) return; if (!key.current) key.current = crypto.randomUUID().replaceAll("-", ""); setBusy(true); setError("");
     try { const r = await lightCandle({ forName, wish, visibility }, key.current); if (!r) { setError("연꽃이 모자랍니다"); return; } pingLotus(); onDone(); }
-    catch { setError("초를 올리지 못했습니다. 잠시 뒤 다시 해 주세요."); } finally { setBusy(false); }
+    catch { setError("연등을 달지 못했습니다. 잠시 뒤 다시 해 주세요."); } finally { setBusy(false); }
   };
-  return <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/90 p-5 backdrop-blur-sm"><div className="mx-auto w-full max-w-sm py-8">
-    <div className="flex items-center justify-between"><p className="text-[11px] tracking-[.3em] text-gold-soft">燈 · 연등 달기</p><button onClick={onClose} className="text-[12px] text-hanji-faint">닫기</button></div>
-    <div className="mt-7 grid grid-cols-2 gap-2"><button onClick={() => setVisibility("private")} className={`rounded-[14px] border p-4 text-left ${!publicCandle ? "border-gold bg-gold/10" : "border-ink-3"}`}><p className="text-[14px] text-hanji">연꽃 1송이</p><p className="mt-1 text-[11px] text-hanji-faint">나만 보기 · {PRIVATE_BURN_DAYS}일</p></button><button onClick={() => setVisibility("public")} className={`rounded-[14px] border p-4 text-left ${publicCandle ? "border-gold bg-gold/10" : "border-ink-3"}`}><p className="text-[14px] text-hanji">연꽃 2송이</p><p className="mt-1 text-[11px] text-hanji-faint">모두 보기 · {PUBLIC_BURN_DAYS}일</p></button></div>
-    <label className="mt-7 block text-[11px] tracking-[.2em] text-hanji-faint">이름 <span className="tracking-normal">(선택)</span></label><input value={forName} onChange={(e) => setForName(e.target.value.slice(0, 20))} className="mt-2 w-full rounded-[11px] border border-ink-3 bg-ink-2/60 px-3.5 py-3 text-[14px] text-hanji outline-none focus:border-gold/45" />
-    <label className="mt-6 block text-[11px] tracking-[.2em] text-hanji-faint">{publicCandle ? "사연" : "마음"}</label><textarea value={wish} onChange={(e) => setWish(e.target.value.slice(0, 120))} rows={5} className="mt-2 w-full resize-none rounded-[11px] border border-ink-3 bg-ink-2/60 px-3.5 py-3 text-[14px] leading-7 text-hanji outline-none focus:border-gold/45" />
-    {error && <p className="mt-3 text-[12px] text-vermilion">{error} <Link href="/lotus" className="underline">연꽃 공양</Link></p>}<button onClick={submit} disabled={!wish.trim() || busy} className="mt-6 flex w-full items-center justify-center gap-2 rounded-[12px] bg-gold py-3.5 text-[14px] font-medium text-ink disabled:opacity-35"><Yeonkkot className="h-4 w-4" />{busy ? "올리는 중" : `연꽃 ${cost}송이로 연등 달기`}</button><p className="mt-2 text-center text-[11px] text-hanji-faint">{days}일 동안 탑니다</p>
-  </div></div>;
+  // 달기 전에 **내 등이 어떻게 걸리는지** 보여 준다.
+  // 형이 참고로 준 판은 빈 칸에 글만 쓰게 한다. 우리는 쓰는 동안 등이
+  // 이미 걸려 있고 쪽지에 이름이 적힌다 — 무엇을 만드는 중인지가
+  // 글이 아니라 물건으로 보인다.
+  const 미리 = forName.trim() || loadMe()?.name || "이름 없는 이";
+  const 씨 = 미리.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
+
+  return (
+    <div className="hip-deung-form" role="dialog" aria-label="연등 달기">
+      <div className="hip-deung-form-box">
+        <div className="hip-deung-form-top">
+          <p>燈 · 연등 달기</p>
+          <button onClick={onClose}>닫기</button>
+        </div>
+
+        <div className="hip-deung-preview">
+          <Yeondeung name={미리} seed={씨} drop={18} />
+        </div>
+
+        <label className="hip-deung-lab">쪽지에 적을 이름</label>
+        <input
+          value={forName}
+          onChange={(e) => setForName(e.target.value.slice(0, 20))}
+          placeholder={loadMe()?.name ?? "이름 없는 이"}
+          className="hip-deung-in"
+        />
+
+        <label className="hip-deung-lab">
+          마음
+          <span>{wish.length} / 120</span>
+        </label>
+        <textarea
+          value={wish}
+          onChange={(e) => setWish(e.target.value.slice(0, 120))}
+          rows={4}
+          placeholder="마음에 품은 것을 적어 보세요"
+          className="hip-deung-in hip-deung-area"
+        />
+
+        <div className="hip-deung-pick">
+          <button
+            onClick={() => setVisibility("private")}
+            data-on={!publicCandle ? "1" : undefined}
+          >
+            <b>연꽃 1송이</b>
+            <i>나만 보기 · {PRIVATE_BURN_DAYS}일</i>
+          </button>
+          <button
+            onClick={() => setVisibility("public")}
+            data-on={publicCandle ? "1" : undefined}
+          >
+            <b>연꽃 2송이</b>
+            <i>법당에 걸기 · {PUBLIC_BURN_DAYS}일</i>
+          </button>
+        </div>
+
+        {error && (
+          <p className="hip-deung-bad">
+            {error} <Link href="/lotus">연꽃 공양</Link>
+          </p>
+        )}
+
+        <button
+          onClick={submit}
+          disabled={!wish.trim() || busy}
+          className="hip-deung-go"
+        >
+          <Yeonkkot className="h-4 w-4" />
+          {busy ? "다는 중" : `연꽃 ${cost}송이로 달기`}
+        </button>
+        {/* 「3일 동안 걸립니다」 — 뺀다. 바로 위 고르는 칸에 이미
+            「나만 보기 · 3일」이라 적혀 있다. 같은 말을 두 번 하면
+            둘 다 안 읽힌다(형: 「개같은 멘트 넣지 말라고 했다」) */}
+      </div>
+    </div>
+  );
 }
 
 function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onClose: () => void; onChanged: () => void }) {

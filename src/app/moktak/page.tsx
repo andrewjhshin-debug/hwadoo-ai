@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 6;
+const 그림판 = 8;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -169,6 +169,26 @@ const SKINS = {
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
     { id: "indigo", name: "쪽빛", src: "/obj/bowl-indigo.png", dot: "#3b3560" },
     { id: "verdigris", name: "청동녹", src: "/obj/bowl-verdigris.png", dot: "#5f9a93" },
+  ],
+  // 키캡 셋 — 형: 「그럼 저기서 포대랑 미륵으로도 키캡 만들어라 딱 됐네 ㅋ」
+  //
+  // 한동안 동자 하나만 두었다(형: 「키캡도 동자만 둬라」). 그때 지운 건
+  // 목탁 키캡이었고 — 목탁은 키캡이 아니라 목탁이었으니 지운 게 맞다.
+  // 이번 셋은 다르다. 셋 다 **연꽃 위에 앉은 한 분**이라 누르는 결이 같다.
+  // 살갗을 갈아 끼우는 것이지 물건이 바뀌는 게 아니다.
+  //
+  // 장마다 두 겹이다 — 받침(cup)은 앞에 가만히, 몸(buddha)은 뒤에서
+  // 내려간다. 그래야 손끝이 「키를 눌렀다」로 읽는다.
+  keycap: [
+    { id: "dongja", name: "동자", src: "/obj/keycap-dongja.png",
+      cup: "/obj/keycap-dongja-cup.png", buddha: "/obj/keycap-dongja-buddha.png",
+      dot: "#ef86b0" },
+    { id: "podae", name: "포대", src: "/obj/keycap-podae-cup.png",
+      cup: "/obj/keycap-podae-cup.png", buddha: "/obj/keycap-podae-buddha.png",
+      dot: "#d9a06f" },
+    { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk-cup.png",
+      cup: "/obj/keycap-mireuk-cup.png", buddha: "/obj/keycap-mireuk-buddha.png",
+      dot: "#cfa03c" },
   ],
 } as const;
 
@@ -242,6 +262,7 @@ export default function MoktakPage() {
     // 처음 들어온 사람에게 보이는 것이 곧 이 앱의 얼굴이다 — 발바닥을 기본으로
     bead: "paw",
     bowl: SKINS.bowl[0].id,
+    keycap: SKINS.keycap[0].id, // 동자
   });
   const skinSrc = (kind: SkinKind) =>
     그림(
@@ -249,6 +270,11 @@ export default function MoktakPage() {
         (k) => k.id === skin[kind]
       )?.src ?? SKINS[kind][0].src
     );
+  /** 키캡 두 겹 — 받침(앞) · 몸(뒤) */
+  const keySrc = (() => {
+    const k = SKINS.keycap.find((x) => x.id === skin.keycap) ?? SKINS.keycap[0];
+    return { cup: 그림(k.cup), buddha: 그림(k.buddha) };
+  })();
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
   const beadWide = (
     SKINS.bead as readonly { id: string; wide?: boolean }[]
@@ -439,6 +465,10 @@ export default function MoktakPage() {
             SKINS.bead.some((k) => k.id === got.bead) && got.bead ? got.bead : s.bead,
           bowl:
             SKINS.bowl.some((k) => k.id === got.bowl) && got.bowl ? got.bowl : s.bowl,
+          keycap:
+            SKINS.keycap.some((k) => k.id === got.keycap) && got.keycap
+              ? got.keycap
+              : s.keycap,
         }));
       }
     } catch {
@@ -454,10 +484,18 @@ export default function MoktakPage() {
     // 그때서야 삼백 몇 KB 짜리 PNG 를 받으러 갔다. 받아 그리는 동안
     // 자리가 비어 깜빡였다. 아홉 장 다 합쳐 5MB 남짓이니 방에 들어설 때
     // 한꺼번에 받아 둔다. 그 뒤로는 점을 눌러도 곧바로 바뀐다.
-    for (const kind of ["moktak", "bead", "bowl"] as const) {
+    for (const kind of ["moktak", "bead", "bowl", "keycap"] as const) {
       for (const k of SKINS[kind]) {
         const im = new window.Image();
         im.src = k.src;
+        // 키캡은 통짜를 안 쓴다 — 두 겹을 미리 받아 둬야 점을 눌렀을 때
+        // 받침만 먼저 오고 몸이 늦게 오는 일이 없다
+        if ("cup" in k) {
+          for (const u of [k.cup, k.buddha]) {
+            const im2 = new window.Image();
+            im2.src = u;
+          }
+        }
       }
     }
   }, []);
@@ -734,11 +772,19 @@ export default function MoktakPage() {
               const 칸 = 360 / RING_BEADS;
               const fromMarker = (180 - degrees + 360) % 360;
               const 물결 = f * 360;
+              // 물결은 **母珠 다음 알**에서 시작한다.
+              // 기준 자리(0도)는 박아 둔 母珠가 덮고 있어서, 거기서
+              // 시작하면 첫 네 타 동안 금이 하나도 안 보인다 —
+              // 치는데 아무 일도 안 일어나는 것처럼 느껴진다.
+              // 한 칸 밀어 두면 첫 타부터 母珠 옆이 물든다.
               const 채움 = pos === 0
                 ? 0
-                : Math.max(0, Math.min(1, (물결 - (fromMarker - 칸 / 2)) / 칸));
-              const markerDistance = Math.abs(degrees - 180);
-              const atMarker = markerDistance < 5;
+                : Math.max(0, Math.min(1, (물결 - (fromMarker - 칸)) / 칸));
+              // 맨 앞자리는 **박아 둔 알**이 맡는다(아래 참고).
+              // 예전엔 180도에 가까운 알을 골라 1.07배로 키우고 맨 앞으로
+              // 끌어올렸는데, 알은 늘 그 자리를 **지나가는 중**이라 켜졌다
+              // 꺼졌다 했다 — 형: 「막 앞뒤앞뒤가 되잖아 멀미나」.
+              // 튀기는 걷고, 도는 알은 그냥 흐르게 둔다.
               // 형: 「싸구려 레몬색도 문제」
               // sepia 도 hue-rotate 도 답이 아니었다. sepia 는 결을 뭉개
               // 레몬색을 만들고, hue-rotate 는 진짜 색상 회전이 아니라
@@ -759,8 +805,8 @@ export default function MoktakPage() {
                     // 알이 고리 밖으로 조금 나가도 좋다 — 염주는 울타리
                     // 안에 든 물건이 아니라 손에 잡히는 물건이다
                     width: `${20 * sc + (1 - front) * 4}%`,
-                    transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
-                    zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
+                    transform: "translate(-50%, -50%)",
+                    zIndex: Math.round(front * 100),
                     // 자리도 색도 **같은 박자**로. 하나만 미끄러지면 어긋난다
                     transition:
                       "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
@@ -794,6 +840,45 @@ export default function MoktakPage() {
                 </span>
               );
             })}
+
+            {/* ── 맨 앞 한 알 — 박아 둔다 ──────────────────────
+                형: 「가로 염주 딱 가운데 알은 하나 박아둬. 지금 막
+                     앞뒤앞뒤가 되잖아 멀미나, 맨 앞 거」
+
+                도는 알들은 앞자리를 **지나갈** 뿐이라 누가 「지금 알」인지
+                가만 있질 않았다. 손가락이 짚고 있는 자리가 흔들리면
+                굴리는 맛이 안 난다.
+                아래 한가운데(180도)에 제일 큰 알 하나를 못 박고, 도는
+                알들은 그 뒤로 흘려보낸다. 이 알에만 **이번 알이 얼마나
+                찼나**(네 타에 한 알)가 든다 — 손끝이 보는 자리와 셈이
+                말하는 자리가 같아진다. */}
+            <span
+              className="absolute block"
+              style={{
+                left: "50%",
+                top: "73%",
+                // 뒤로 지나가는 알(앞에서 22.8%)을 덮을 만큼은 커야 한다.
+                // 덜 크면 둘이 겹쳐 보여 오히려 어지럽다
+                width: "25.1%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 120,
+              }}
+            >
+              {/* 母珠 — **금이 안 든다.**
+                  한 알이 네 타를 맡으니, 여기에 「이번 알이 얼마나 찼나」를
+                  들리면 네 타마다 금이 찼다 꺼졌다 한다. 박아 두는 뜻이
+                  없어진다. 이 알은 한 바퀴가 시작하고 끝나는 자리다 —
+                  늘 같은 낯으로 거기 있어야 그게 기준이 된다.
+                  금은 그 옆을 지나가는 알들이 받는다. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={그림("/obj/bead-paw-one.png")}
+                alt=""
+                draggable={false}
+                className="block w-full"
+                style={{ filter: "saturate(1.45) brightness(1.13)" }}
+              />
+            </span>
           </div>
         )}
 
@@ -1027,8 +1112,13 @@ export default function MoktakPage() {
 
   // 살갗 점 — 오브제 바로 밑에 붙는다. 형: 「목탁 밑에 작은 색상 버튼
   // 동그라미로 기존 오리지날처럼」
+  // 키캡 갈래에서는 키캡 살갗을 고른다 — 고르는 자리는 늘 물건 바로 밑
   const moktakDots = (
-    <SkinDots kind="moktak" pick={skin.moktak} onPick={pickSkin("moktak")} />
+    <SkinDots
+      kind={tab === "keycap" ? "keycap" : "moktak"}
+      pick={tab === "keycap" ? skin.keycap : skin.moktak}
+      onPick={pickSkin(tab === "keycap" ? "keycap" : "moktak")}
+    />
   );
 
   return (
@@ -1047,6 +1137,7 @@ export default function MoktakPage() {
           beadHits={total}
           bowlHits={bowlHits}
           mokSrc={skinSrc("moktak")}
+          keySrc={keySrc}
           combo={tab === "keycap" ? keyCombo : combo}
           pos={pos}
           ringing={ringing}
@@ -1098,10 +1189,14 @@ export default function MoktakPage() {
           14%  { opacity: 0.7; }
           100% { transform: scale(1.55); opacity: 0; border-width: 0.5px; }
         }
+        /* 글자가 커졌으니 길도 길어야 한다 — 40px 짜리가 96px 만 오르면
+           제자리에서 사라지는 것처럼 보인다. 솟을 때 한 번 크게 부풀렸다가
+           (1.3) 제 크기로 내려앉는 결을 두면 「톡」이 손끝에 읽힌다. */
         @keyframes mk-pop {
-          0% { transform: translateY(0) scale(0.7); opacity: 0; }
-          22% { transform: translateY(-18px) scale(1.12); opacity: 1; }
-          100% { transform: translateY(-96px) scale(0.94); opacity: 0; }
+          0% { transform: translateY(0) scale(0.55); opacity: 0; filter: blur(3px); }
+          18% { transform: translateY(-22px) scale(1.3); opacity: 1; filter: blur(0); }
+          34% { transform: translateY(-38px) scale(1); }
+          100% { transform: translateY(-140px) scale(0.86); opacity: 0; filter: blur(0); }
         }
 /* 목탁 뒤 광명 — 형: 「더 은은하게 2줄 정도로, 넘 많이 안 퍼지게」.
            번지는 무리(radial-gradient)를 걷어내고 **가느다란 고리 두 줄**만

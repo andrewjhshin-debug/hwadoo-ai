@@ -50,7 +50,7 @@ const 가안들: 오늘사람[] = [
     vibe: ["상냥", "차분"], like: ["카페", "전시", "차(茶)"],
     care: ["명상", "자기계발"], date: ["절 나들이", "산책"],
     line: "새벽 예불 좋아합니다. 조용히 같이 앉을 사람이면 좋겠어요.",
-    rank: "보살", photos: ["/obj/keycap.png"],
+    rank: "보살", photos: ["/obj/keycap-dongja.png"],
   },
   {
     uid: "demo-2", name: "무애", sex: "m", born: new Date().getFullYear() - 38,
