@@ -4549,6 +4549,74 @@ html[data-theme="light"] {
     color: #a39a8f;
   }
   .hip-yeon-row-wide { flex-direction: column; align-items: stretch; gap: 7px; }
+  /* ── 이름표 밑이 휑하던 까닭 ─────────────────────────────
+     형: 「이격 왜 있냐, 하지 말고」
+     위 `.hip-yeon-row > b` 에 `flex: 0 0 66px` 이 걸려 있다. 가로로 선
+     줄에서는 그게 **폭**이지만, 이 줄은 세로다(column) — 세로줄에서
+     flex-basis 는 **키**다. 그래서 「흡연」 한 글자가 66px 짜리 상자를
+     쓰고 그 아래가 통째로 비었다. 세로일 때는 제 키만 쓰게 한다. */
+  .hip-yeon-row-wide > b { flex: 0 0 auto; }
+  /* 다 골랐으면 나머지는 눌리지 않는다 — 막는 말은 안 띄운다 */
+  .hip-chips button:disabled { opacity: 0.32; }
+
+  /* ── 법명 ── 여기서 고친다. 스스로는 한 번만 */
+  .hip-yeon-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .hip-yeon-name-in {
+    width: min(62%, 220px);
+    border: 0;
+    border-bottom: 1px solid rgba(26, 23, 20, 0.14);
+    background: transparent;
+    padding: 6px 2px;
+    text-align: center;
+    font-family: var(--font-serif);
+    font-size: 22px;
+    letter-spacing: 0.18em;
+    color: #2a2520;
+    outline: none;
+  }
+  .hip-yeon-name-in:focus { border-bottom-color: rgba(226, 122, 158, 0.6); }
+  .hip-yeon-name-in:disabled {
+    border-bottom-color: transparent;
+    color: #2a2520;
+    opacity: 1;
+  }
+  .hip-yeon-ii {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.2);
+    font: italic 600 11px/1 serif;
+    color: #a39a8f;
+  }
+  .hip-yeon-name-say {
+    margin: 6px 0 0;
+    text-align: center;
+    font-size: 11.5px;
+    line-height: 1.7;
+    color: #a39a8f;
+  }
+  /* 내 소개 — 넓은 칸 */
+  .hip-yeon-intro {
+    width: 100%;
+    min-height: 96px;
+    resize: vertical;
+    border-radius: 14px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    background: rgba(255, 255, 255, 0.6);
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: #2a2520;
+    outline: none;
+  }
+  .hip-yeon-intro:focus { border-color: rgba(226, 122, 158, 0.55); }
   .hip-yeon-row input,
   .hip-yeon-row select {
     flex: 1;
@@ -4661,6 +4729,51 @@ html[data-theme="light"] {
   }
   .hip-hall-go:active { transform: translateY(1px); }
 
+  /* 천장 — 법당의 윗부분. 등이 넘치면 여기 안에서만 굴린다 */
+  .hip-hall-ceil {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: 6px;
+  }
+  /* 「내 것」 — 누르면 남의 것이 희미해진다. **거르지 않고 밝기로 가른다** */
+  .hip-hall-mine {
+    flex: 0 0 auto;
+    padding: 6px 13px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    background: rgba(255, 255, 255, 0.7);
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    color: #8b8175;
+    transition: all 0.18s;
+  }
+  .hip-hall-mine[data-on="1"] {
+    border-color: rgba(226, 122, 158, 0.55);
+    background: #ef7ba4;
+    color: #fff;
+  }
+  .hip-mark { display: contents; }
+  .hip-hall-sky[data-mine-only="1"] .hip-deung,
+  .hip-hall-sky[data-mine-only="1"] .hip-gong {
+    opacity: 0.22;
+    filter: saturate(0.3);
+    transition: opacity 0.24s, filter 0.24s;
+  }
+  .hip-hall-sky[data-mine-only="1"] .hip-mark[data-mine="1"] .hip-deung,
+  .hip-hall-sky[data-mine-only="1"] .hip-mark[data-mine="1"] .hip-gong {
+    opacity: 1;
+    filter: none;
+    /* 밝아진다 — 뒤에 옅은 무리를 하나 두어 「내 것」이 켜진 것처럼 */
+    drop-shadow: none;
+  }
+  .hip-hall-sky[data-mine-only="1"] .hip-mark[data-mine="1"] .hip-deung-img,
+  .hip-hall-sky[data-mine-only="1"] .hip-mark[data-mine="1"] .hip-gong-svg {
+    filter: drop-shadow(0 0 14px rgba(255, 196, 120, 0.85))
+            drop-shadow(0 0 4px rgba(255, 228, 176, 0.9))
+            brightness(1.06);
+  }
+
   /* 불단 — 칸의 **아래쪽**에 붙는다. 등이 적어도 공양물은 늘 바닥에 */
   .hip-hall-altar {
     position: sticky;
@@ -4676,7 +4789,7 @@ html[data-theme="light"] {
     background: linear-gradient(transparent, rgba(226, 122, 158, 0.07) 70%);
     border-top: 1px solid rgba(226, 122, 158, 0.16);
   }
-  .hip-hall-sky { display: flex; flex-direction: column; }
+  .hip-hall-sky { display: flex; flex-direction: column; overflow: hidden; }
   .hip-gong {
     position: relative;
     flex: 0 0 auto;

@@ -118,6 +118,10 @@ export type 인연프로필 = {
   photos: 사진[];
   /** 심사중 → 활동. 쉼은 본인이 끈 것, 정지는 뒷방이 끈 것 */
   state: "심사중" | "활동" | "쉼" | "정지";
+  /** 법명을 스스로 한 번 고쳤나 — 그 뒤로는 뒷방을 거친다.
+      형: 「한 번 설정하고, 고치는 건 한 번만 고쳐진다고 ⓘ 로 표시.
+           승인 받아야 고쳐진다고 써 주고」 */
+  nameChanged?: boolean;
   verified?: boolean;
   /** 공덕 요약 — 하루 한 번 구워 둔다. 계급이 곧 꾸준함의 증거다 */
   merit?: { rank: string; total: number; given: number };

@@ -19,7 +19,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
 import { watchAuth } from "@/lib/sync";
-import { loadMe } from "@/lib/me";
+import { loadMe, setName } from "@/lib/me";
 import {
   YEON,
   type 인연프로필,
@@ -52,6 +52,12 @@ export default function 인연내프로필() {
   const [탈, 탈잡기] = useState("");
   const 파일 = useRef<HTMLInputElement | null>(null);
   const [법명, 법명잡기] = useState("");
+  const [이름말, 이름말잡기] = useState(false);
+  const [이름탈, 이름탈잡기] = useState("");
+  const [저장중, 저장중잡기] = useState(false);
+  const [저장됨, 저장됨잡기] = useState(false);
+  /** 법명은 스스로 **한 번만** 고친다 — 그 뒤로는 뒷방을 거친다 */
+  const 이름잠김 = !!me?.nameChanged;
   useEffect(() => 법명잡기(loadMe()?.name ?? ""), []);
 
   const 다시읽기 = useCallback(async () => {
@@ -76,11 +82,55 @@ export default function 인연내프로필() {
 
   const 고치기 = async (part: Partial<인연프로필>) => {
     탈잡기("");
-    setMe((v) => ({ ...(v ?? ({} as 인연프로필)), ...part }));
+    const 다음 = { ...(me ?? ({} as 인연프로필)), ...part };
+    setMe(다음);
     try {
-      await 프로필저장(part);
+      // ── 다 채우면 **저절로 선다** ────────────────────────
+      // 형: 「인연 받기를 눌러야 활동이 된다 — 어쩌라고?」
+      //
+      // 맞는 말이다. 다 채운 사람에게 단추 하나를 더 누르게 할 까닭이
+      // 없다. 안 누르면 아무에게도 안 보이는데, 안 보인다는 것도 안
+      // 알려 준다 — 문턱이 아니라 **함정**이었다.
+      // 채워지는 그 순간 판에 선다. 쉬고 싶으면 아래에서 내리면 된다.
+      const 설수있나 = 모자란것(다음).length === 0;
+      const 처음서나 = 설수있나 && 다음.state !== "활동" && 다음.state !== "쉼";
+      await 프로필저장(처음서나 ? { ...part, state: "활동" } : part);
+      if (처음서나) {
+        setMe({ ...다음, state: "활동" });
+        // 방금 섰다는 것은 말해 준다 — 조용히 서면 선 줄을 모른다
+        탈잡기("");
+      }
     } catch (e) {
       탈잡기(e instanceof Error ? e.message : "저장하지 못했습니다");
+    }
+  };
+
+  /** 법명 고치기 — 브라우저 장부와 인연 프로필 둘 다 */
+  const 이름고치기 = async (raw: string) => {
+    const 새 = raw.trim();
+    이름탈잡기("");
+    if (!새 || 새 === 법명) return;
+    const bad = setName(새);
+    if (bad) {
+      이름탈잡기(bad);
+      return;
+    }
+    법명잡기(새);
+    await 고치기({ name: 새, nameChanged: true });
+  };
+
+  /** 저장 — 다 찼으면 판에도 세운다 */
+  const 저장하기 = async () => {
+    if (저장중) return;
+    저장중잡기(true);
+    저장됨잡기(false);
+    try {
+      const 설수있나 = 모자란것(me).length === 0;
+      await 고치기(설수있나 && me?.state !== "쉼" ? { state: "활동" } : {});
+      저장됨잡기(true);
+      window.setTimeout(() => 저장됨잡기(false), 2200);
+    } finally {
+      저장중잡기(false);
     }
   };
 
@@ -147,7 +197,9 @@ export default function 인연내프로필() {
               >
                 ✕
               </button>
-              {f.state === "pending" && <i>보는 중</i>}
+              {/* 「보는 중」은 걷었다 — 형: 「보는 중 이런 말 지우고」.
+                  기다리는 동안 사진 위에 딱지가 붙어 있으면 제 얼굴이
+                  아니라 심사 서류로 보인다. 내려간 것만 말한다. */}
               {f.state === "no" && <i data-no="1">다시</i>}
             </span>
           ))}
@@ -175,7 +227,40 @@ export default function 인연내프로필() {
 
         {/* 법명은 브라우저 장부에 있다. 그리는 첫 판에 바로 읽으면
             서버가 그린 글자와 달라져 리액트가 판을 다시 짠다. 뜬 뒤에 읽는다 */}
-        <p className="hip-yeon-name">{법명 || "법명"}</p>
+        {/* ── 법명 ── 형: 「저기서 아이디도 고칠 수 있게」
+            「고치는 거 귀찮으니까 한 번 설정하고, 고치는 건 한 번만
+             고쳐진다고 ⓘ 로 표시. 승인 받아야 고쳐진다고 써 주고」
+
+            법명은 남이 나를 부르는 이름이다. 아무 때나 갈리면 어제 쪽지를
+            주고받은 사람이 오늘 딴 사람이 된다. **한 번만** 스스로 고치고,
+            그 뒤로는 뒷방을 거친다. */}
+        <div className="hip-yeon-name-row">
+          <input
+            className="hip-yeon-name-in"
+            defaultValue={법명}
+            disabled={이름잠김}
+            maxLength={12}
+            aria-label="법명"
+            placeholder="법명"
+            onBlur={(e) => 이름고치기(e.target.value)}
+          />
+          <button
+            type="button"
+            className="hip-yeon-ii"
+            aria-label="법명 안내"
+            onClick={() => 이름말잡기((v) => !v)}
+          >
+            i
+          </button>
+        </div>
+        {이름말 && (
+          <p className="hip-yeon-name-say">
+            {이름잠김
+              ? "이미 한 번 고쳤습니다. 더 고치려면 문의로 알려 주세요 — 승인 뒤에 바뀝니다."
+              : "법명은 스스로 한 번만 고칠 수 있습니다. 그 뒤에는 승인을 거칩니다."}
+          </p>
+        )}
+        {이름탈 && <p className="hip-yeon-bad">{이름탈}</p>}
 
         {/* ── 한 낱말로 끝나는 것들 ── */}
         <div className="hip-yeon-row">
@@ -200,7 +285,9 @@ export default function 인연내프로필() {
             onChange={(e) => 고치기({ born: Number(e.target.value) })}
             aria-label="태어난 해"
           >
-            <option value="">고르기</option>
+            {/* 빈 칸은 **말없이** 둔다 — 형: 「고르기 이딴 거 쓰지 말고
+                그냥 암말 하지 말고」. 고르라는 말은 화살표가 이미 하고 있다 */}
+            <option value=""></option>
             {Array.from({ length: 62 }, (_, i) => 올해 - 19 - i).map((y) => (
               <option key={y} value={y}>
                 만 {나이(y, 올해)}세 · {y}년생
@@ -219,7 +306,9 @@ export default function 인연내프로필() {
             onChange={(e) => 고치기({ area: e.target.value })}
             aria-label="사는 곳"
           >
-            <option value="">고르기</option>
+            {/* 빈 칸은 **말없이** 둔다 — 형: 「고르기 이딴 거 쓰지 말고
+                그냥 암말 하지 말고」. 고르라는 말은 화살표가 이미 하고 있다 */}
+            <option value=""></option>
             {지역들.map((a) => (
               <option key={a} value={a}>
                 {a}
@@ -245,7 +334,9 @@ export default function 인연내프로필() {
             onChange={(e) => 고치기({ tall: Number(e.target.value) })}
             aria-label="키"
           >
-            <option value="">고르기</option>
+            {/* 빈 칸은 **말없이** 둔다 — 형: 「고르기 이딴 거 쓰지 말고
+                그냥 암말 하지 말고」. 고르라는 말은 화살표가 이미 하고 있다 */}
+            <option value=""></option>
             {Array.from({ length: 61 }, (_, i) => 140 + i).map((c) => (
               <option key={c} value={c}>
                 {c} cm
@@ -254,12 +345,28 @@ export default function 인연내프로필() {
           </select>
         </div>
 
+        {/* 형: 「한마디 말고 내 소개 이렇게 쓸 수 있도록 하고, 칸 더 넓히고,
+            내 소개는 키 바로 밑에」 — 한 줄로는 사람이 안 읽힌다 */}
+        <div className="hip-yeon-row hip-yeon-row-wide">
+          <b>내 소개</b>
+          <textarea
+            className="hip-yeon-intro"
+            rows={4}
+            defaultValue={me?.line ?? ""}
+            onBlur={(e) => 고치기({ line: e.target.value.trim().slice(0, 200) })}
+            maxLength={200}
+            aria-label="내 소개"
+          />
+        </div>
+
+
         <하나 이름="MBTI" 목록={MBTI들} 값={me?.mbti} 고치기={(v) => 고치기({ mbti: v })} />
         <하나 이름="흡연" 목록={흡연들} 값={me?.smoke} 고치기={(v) => 고치기({ smoke: v })} />
         <하나 이름="음주" 목록={음주들} 값={me?.drink} 고치기={(v) => 고치기({ drink: v })} />
 
         {/* ── 여럿 고르는 것들 — 없는 것은 ＋ 로 ── */}
-        <여럿 이름="성격" 목록={성격들} 값={me?.vibe} 고치기={(v) => 고치기({ vibe: v })} />
+        {/* 형: 「성격 선택 5개까지」 — 스물을 다 고르면 그건 성격이 아니라 목록이다 */}
+        <여럿 이름="성격" 목록={성격들} 값={me?.vibe} 최대={5} 고치기={(v) => 고치기({ vibe: v })} />
         <여럿 이름="취향" 목록={취향들} 값={me?.like} 고치기={(v) => 고치기({ like: v })} />
         <여럿 이름="관심" 목록={관심들} 값={me?.care} 고치기={(v) => 고치기({ care: v })} />
         <여럿 이름="데이트" 목록={데이트들} 값={me?.date} 고치기={(v) => 고치기({ date: v })} />
@@ -287,17 +394,9 @@ export default function 인연내프로필() {
           />
           <span>절 이름을 프로필에 씁니다</span>
         </label>
-        {/* 고지 — 민감정보라 무엇을·왜·얼마나 갖고 있는지 적어야 한다.
-            평소엔 접어 둔다(형: 「멘트 넣지 말라고 했다」). 법이 요구하는
-            것은 「알 수 있게 하라」지 「늘 펴 두라」가 아니다. */}
-        <details className="hip-yeon-legal">
-          <summary>무엇을 받나</summary>
-          <p>
-            다니는 절 · 가고 싶은 절 — 도반을 찾아 이어 주는 데만 씁니다.
-            동의를 물리면 그 자리에서 지웁니다. 동의하지 않아도 인연은
-            그대로 쓸 수 있습니다.
-          </p>
-        </details>
+        {/* 고지 접이는 걷었다 — 형: 「무엇을 받나 이딴 말 지우고」.
+            법이 요구하는 「알 수 있게 하라」는 개인정보처리방침(/privacy)이
+            받는다. 같은 말을 판마다 붙이면 아무도 안 읽는다. */}
 
         <div className="hip-yeon-row" data-off={!me?.religionOk ? "1" : undefined}>
           <b>다니는 절</b>
@@ -323,16 +422,6 @@ export default function 인연내프로필() {
           />
         </div>
 
-        <div className="hip-yeon-row hip-yeon-row-wide">
-          <b>한 마디</b>
-          <input
-            defaultValue={me?.line ?? ""}
-            onBlur={(e) => 고치기({ line: e.target.value.trim().slice(0, 60) })}
-            maxLength={60}
-            aria-label="한 마디"
-          />
-        </div>
-
         {/* 휴대폰 본인확인 — 스위치가 켜졌을 때만 선다(yeon.ts 본인확인_켬).
             업체(포트원 등)가 붙기 전에는 이 줄 자체가 안 뜬다. */}
         {본인확인_켬 && (
@@ -352,24 +441,20 @@ export default function 인연내프로필() {
         )}
 
         <div className="hip-yeon-go">
+          {/* 형: 「다 썼는데 왜 저장이 안 되지. 인연 받기 말고 저장으로 고치고」
+              칸마다 손을 떼면 이미 저장된다. 그런데 **눌러서 끝내는 자리**가
+              없으니 다 쓰고도 끝난 줄을 모른다. 이 단추가 그 자리다 —
+              늘 눌리고, 다 찼으면 판에도 세운다. */}
           <button
             data-on={me?.state === "활동" ? "1" : undefined}
-            disabled={빠진.length > 0}
-            onClick={() =>
-              고치기({ state: me?.state === "활동" ? "쉼" : "활동" })
-            }
+            disabled={저장중}
+            onClick={저장하기}
           >
-            {me?.state === "활동" ? "쉬는 중으로" : "인연 받기"}
+            {저장중 ? "저장하는 중" : 저장됨 ? "저장했습니다" : "저장"}
           </button>
         </div>
 
-        <a href="/gathering/me/view" className="hip-yeon-peek">
-          남이 보는 나
-          <svg viewBox="0 0 24 24" aria-hidden>
-            <circle cx="10.5" cy="10.5" r="6.4" />
-            <path d="M15.2 15.2 L20 20" />
-          </svg>
-        </a>
+        {/* 「남이 보는 나」는 걷었다 — 형: 「남이 보는 나 지우고」 */}
       </div>
     </HipRoom>
   );
@@ -416,28 +501,38 @@ function 여럿({
   이름,
   목록,
   값,
+  최대,
   고치기,
 }: {
   이름: string;
   목록: readonly string[];
   값?: string[];
+  /** 몇 개까지 고를 수 있나 — 없으면 얼마든지 */
+  최대?: number;
   고치기: (v: string[]) => void;
 }) {
   const [적는중, 적는중잡기] = useState(false);
   const 고른것 = 값 ?? [];
   const 밖의것 = 고른것.filter((x) => !목록.includes(x));
 
-  const 뒤집기 = (x: string) =>
-    고치기(고른것.includes(x) ? 고른것.filter((y) => y !== x) : [...고른것, x]);
+  const 찼나 = !!최대 && 고른것.length >= 최대;
+  const 뒤집기 = (x: string) => {
+    if (고른것.includes(x)) return 고치기(고른것.filter((y) => y !== x));
+    // 차면 **더 안 담는다.** 막는 말을 띄우지 않는다 — 안 눌리는 것이
+    // 이미 말이다(형: 「멘트 넣지 말라고 했다」)
+    if (찼나) return;
+    고치기([...고른것, x]);
+  };
 
   return (
     <div className="hip-yeon-row hip-yeon-row-wide">
       <b>{이름}</b>
-      <span className="hip-chips hip-chips-tight">
+      <span className="hip-chips hip-chips-tight" data-full={찼나 ? "1" : undefined}>
         {목록.map((x) => (
           <button
             key={x}
             data-on={고른것.includes(x) ? "1" : undefined}
+            disabled={찼나 && !고른것.includes(x)}
             onClick={() => 뒤집기(x)}
           >
             {x}

@@ -814,13 +814,16 @@ export default function MoktakPage() {
                     key={i}
                     className="absolute block"
                     style={{
-                      left: `${50 + 40 * Math.sin(t)}%`,
-                      top: `${50 - 23 * Math.cos(t)}%`,
+                      // 형: 「알 더 작게, 더 크게. 원 튀어나가도 됨」
+                      // 고리를 키운다 — 금 테두리 밖으로 나가도 좋다.
+                      // 염주는 울타리 안에 든 물건이 아니라 손에 쥐는 것이다
+                      left: `${50 + 46 * Math.sin(t)}%`,
+                      top: `${50 - 27 * Math.cos(t)}%`,
                       // 형: 「동그라미 울타리 튀어나와도 되니까 알 더 크게」
                       // 형: 「염주 원래 모양대로 해. 알 더 줄이고」
                       // 알이 서로 닿아 도넛처럼 보였다. 염주는 **알과
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
-                      width: `${16 * sc + (1 - front) * 3}%`,
+                      width: `${13.5 * sc + (1 - front) * 2.5}%`,
                       transform: "translate(-50%, -50%)",
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다

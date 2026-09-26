@@ -14,13 +14,14 @@ import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type
 
 type Comment = { id: string; by?: string; body?: string };
 
-function CandleMark({ c, onClick, i }: { c: Candle; onClick: () => void; i: number }) {
+function CandleMark({ c, onClick, i, mine }: { c: Candle; onClick: () => void; i: number; mine?: boolean }) {
   // 줄 길이를 세 층으로 — 진짜 법당의 천장이 그렇다. 나란히 걸면 격자가 된다
   const 줄 = [16, 34, 24, 44, 28][i % 5];
   // 씨는 **사람마다 고정** — 같은 이가 오면 늘 같은 빛깔의 등이 걸린다
   const seed = c.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
   // 옛 문서에는 갈래 칸이 없다 — 없으면 연등이다(여태 다 연등이었다)
-  return <Gongyang 갈래={c.gift ?? "deung"} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} dim={!burning(c)} onClick={onClick} />;
+  // 내 것인가 — 「내 것만」을 켜면 이 표를 보고 나머지가 희미해진다
+  return <span className="hip-mark" data-mine={mine ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} dim={!burning(c)} onClick={onClick} /></span>;
 }
 
 function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
@@ -135,6 +136,8 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
 
 export default function CandleHall() {
   const [me, setMe] = useState<User | null>(null); const [publicCandles, setPublicCandles] = useState<Candle[] | null>(null); const [mine, setMine] = useState<Candle[]>([]); const [form, setForm] = useState(false); const [open, setOpen] = useState<Candle | null>(null);
+  // 형: 「내 연등 이렇게 하면 딱 티나게, 나머진 희미해지고 내 것만 밝아져서」
+  const [내것만, 내것만잡기] = useState(false);
   const load = useCallback(() => { void fetchCandles().then(setPublicCandles).catch(() => setPublicCandles([])); void fetchMyCandles().then(setMine).catch(() => setMine([])); }, []);
   useEffect(() => watchAuth((u) => { setMe(u); load(); }), [load]);
   const start = async () => { if (!me) { await loginWithGoogle(); return; } setForm(true); };
@@ -158,21 +161,40 @@ export default function CandleHall() {
   const 물들 = 다걸린것.filter((c) => (c.gift ?? "deung") !== "deung");
 
   return <div className="hip-hall">
-    <div className="hip-hall-top"><span/><h1>法堂 · 법당</h1><LotusCount className="shrink-0" merit={false}/></div>
+    <div className="hip-hall-top">
+      {/* 「내 것만」 — 누르면 남의 것이 희미해지고 내 것만 밝아진다.
+          거르지 않는다(사라지면 법당이 빈다) — **밝기로 가른다.**
+          절에서 제 등을 찾는 일이 그렇다: 다 걸려 있는데 내 것만 눈에 든다 */}
+      <button
+        className="hip-hall-mine"
+        data-on={내것만 ? "1" : undefined}
+        onClick={() => 내것만잡기((v) => !v)}
+        aria-pressed={내것만}
+      >
+        내 것
+      </button>
+      <h1>法堂 · 법당</h1>
+      <LotusCount className="shrink-0" merit={false}/>
+    </div>
     {/* 형: 「위는 연등, 아래는 초 쌀 등등 뭐 이런 식으로 가자」
         절이 그렇다 — 등은 천장에 매달리고 공양물은 불단 위에 놓인다.
         한 칸 안에서 위아래로만 가른다(칸을 또 쪼개지 않는다). */}
-    <div className="hip-hall-sky">
+    <div className="hip-hall-sky" data-mine-only={내것만 ? "1" : undefined}>
       {publicCandles === null ? (
         <p className="hip-hall-say">등을 살피는 중</p>
       ) : 다걸린것.length ? (
         <>
-          <div className="hip-deung-sky">
-            {등들.map((c, i) => <CandleMark key={c.id} c={c} i={i} onClick={() => setOpen(c)}/>)}
+          {/* 천장 — 법당의 **윗부분**. 형: 「법당은 윗부분만 연등으로」
+              등이 아무리 많아도 여기까지만 쓰고, 넘치면 안에서 굴린다.
+              그래야 아래 불단이 늘 제자리에 있다 */}
+          <div className="hip-hall-ceil">
+            <div className="hip-deung-sky">
+              {등들.map((c, i) => <CandleMark key={c.id} c={c} i={i} mine={c.uid === me?.uid} onClick={() => setOpen(c)}/>)}
+            </div>
           </div>
           {물들.length > 0 && (
             <div className="hip-hall-altar">
-              {물들.map((c, i) => <CandleMark key={c.id} c={c} i={i} onClick={() => setOpen(c)}/>)}
+              {물들.map((c, i) => <CandleMark key={c.id} c={c} i={i} mine={c.uid === me?.uid} onClick={() => setOpen(c)}/>)}
             </div>
           )}
         </>
