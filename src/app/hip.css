@@ -5039,10 +5039,10 @@ html[data-theme="light"] {
     top: env(safe-area-inset-top, 0px);
     left: 0;
     right: 0;
-    height: 3px;
+    height: 4px;
     z-index: 64;
     pointer-events: none;
-    background: rgba(239, 123, 164, 0.1);
+    background: rgba(239, 123, 164, 0.14);
   }
   .hip-daybar i {
     display: block;
@@ -5050,6 +5050,11 @@ html[data-theme="light"] {
     transform-origin: left center;
     background: linear-gradient(90deg, #fbc7da, #ef7ba4);
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  /* 쌓인 순간 잠깐 밝아진다 — 한 타가 0.003% 라 색만으로는 안 보인다 */
+  .hip-daybar[data-tick="1"] i {
+    box-shadow: 0 0 10px rgba(239, 123, 164, 0.85);
+    filter: brightness(1.25);
   }
   /* 다 찼으면 — 오늘 몫을 채웠다는 것이 한눈에 */
   .hip-daybar[data-full="1"] i {
@@ -5222,4 +5227,95 @@ html[data-theme="light"] {
     color: #d2578c;
   }
   .hip-yeon-done { font-size: 13px; color: #5cc2ac; }
+}
+
+/* ── 법당 — 천장에 걸린 연등 ───────────────────────────────────
+   형: 「법당 - 초공양 말고 그냥 법당. 저 연등을 막 걸고 그 아래 쪽지 적은
+        디자인. 한 30개 함께 있는 모양. 김부따 어플 같은데 우리만의
+        독창적 느낌으로」
+
+   김부따는 **흰 종이등이 격자로 촘촘히** 박히고 아래 네모 쪽지가 붙는다.
+   우리는 연꽃 등이다 —
+     · 등마다 빛깔이 조금씩 다르고, **저마다 다른 박자로** 흔들린다
+       (서로 나눌 수 없는 초를 주어 스무 개가 한 몸처럼 흔들리지 않게)
+     · 줄 길이가 달라 층이 진다 — 진짜 법당의 천장이 그렇다
+     · 쪽지는 한지 조각처럼 윗변만 걸려 아래가 살짝 들린다 */
+@media (min-width: 0px) {
+  .hip-deung-sky {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2px 0;
+    padding: 0 2px 18px;
+    /* 천장 — 등이 걸린 가로대 */
+    border-top: 1px solid rgba(226, 122, 158, 0.28);
+  }
+  .hip-deung {
+    position: relative;
+    flex: 0 0 auto;
+    width: 19%;
+    min-width: 58px;
+    max-width: 82px;
+    padding-top: var(--deung-len, 24px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: none;
+    border: 0;
+  }
+  @media (min-width: 520px) { .hip-deung { width: 12.5%; } }
+  .hip-deung-line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: var(--deung-len, 24px);
+    background: linear-gradient(rgba(226, 122, 158, 0.5), rgba(226, 122, 158, 0.22));
+  }
+  /* 흔들림은 **줄 끝을 축으로** — 매달린 것은 제 가운데가 아니라 걸린
+     자리를 축으로 돈다. 이 한 줄이 「달려 있다」와 「떠 있다」를 가른다 */
+  .hip-deung-sway {
+    display: block;
+    transform-origin: 50% -20%;
+    animation: hip-deung-sway ease-in-out infinite;
+  }
+  @keyframes hip-deung-sway {
+    0%, 100% { transform: rotate(-2.6deg); }
+    50% { transform: rotate(2.6deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hip-deung-sway { animation: none; }
+  }
+  .hip-deung-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 4px 10px rgba(226, 110, 155, 0.22));
+  }
+  /* 쪽지 — 한지 한 조각 */
+  .hip-deung-note {
+    position: relative;
+    margin-top: -4px;
+    max-width: 100%;
+    padding: 4px 7px 5px;
+    border-radius: 3px 3px 5px 5px;
+    background: linear-gradient(#fffdf8, #fdf4e8);
+    box-shadow: 0 1px 3px rgba(26, 23, 20, 0.12);
+    transform: rotate(-1.2deg);
+  }
+  .hip-deung:nth-child(even) .hip-deung-note { transform: rotate(1.4deg); }
+  .hip-deung-note b {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #6f665c;
+  }
+  .hip-deung:active .hip-deung-sway { transform: scale(0.96); }
 }
