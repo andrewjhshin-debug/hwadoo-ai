@@ -4050,12 +4050,23 @@ html[data-theme="light"] {
   /* 그늘은 **없다.** 형: 「허접한 인상을 주지 마, 아예 그림자는 지우고」
      연꽃 밑에 분홍 그늘을 깔아 두었더니, 흰 판에서 잿빛 얼룩 한 덩이로
      보였다. 물건은 판 위에 그냥 놓여 있으면 된다. */
+  /* ── 오브제가 **앞**, 연꽃이 **뒤** ──────────────────────
+     형: 「아예 오브제가 뒤 연꽃을 덮도록 해서 그냥 바로 쑥 내려가도록
+          해. 그것도 키캡이잖나」 「굳이 이격을 둬서 비는 공간이 나오게
+          할 필요가 없어 보이는데」
+
+     맞는 말이었다. 여태 연꽃을 앞에 두고 그 뒤로 몸을 숨겼는데, 그러려면
+     몸을 **어디선가 잘라야** 했다 — 자른 선이 곧 이격이고, 그 선이 손등을
+     지나면 낀 것처럼 보이고, 내려간 자리가 비지 않게 옷자락을 늘여 둬야
+     했다. 셋 다 **가르느라** 생긴 일이다.
+     뒤집으면 하나도 안 생긴다. 앞에는 자르지 않은 통짜가 서고, 누르면
+     그대로 내려가 판 밑변에서 잘린다. */
   .hip-keycap-buddha {
-    z-index: 1;
+    z-index: 2;
     transform-origin: 50% 100%;
     transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
   }
-  .hip-keycap-cup { z-index: 2; }
+  .hip-keycap-cup { z-index: 1; }
   .hip-keycap.on .hip-keycap-buddha {
     transform: translateY(3.4%) scaleY(0.982);
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
@@ -4076,8 +4087,10 @@ html[data-theme="light"] {
      **더 멀리** 내려보낸다. 판 밑변에서 잘리니 받침 뒤로 사라진다. */
   /* 형: 「동자승 키캡 너무 내려간다」 — 11% 는 머리까지 잠겼다.
      연꽃 깊이가 살갗마다 다르니 폭도 따로 준다(--keycap-dip). */
+  /* 통짜가 **그냥 내려간다** — 찌그러뜨리지 않는다.
+     가른 데가 없으니 눌린 티를 따로 낼 것도 없다 */
   .hip-keycap.on .hip-keycap-buddha {
-    transform: translateY(var(--keycap-dip, 7%)) scaleY(0.972);
+    transform: translateY(var(--keycap-dip, 11%));
   }
   /* 받침은 **가만히 있는다** — 형: 「키캡은 받침은 고정」
      한동안 눌릴 때 받침도 살짝 부풀렸다. 몸이 빠진 자리에 틈이 열리던

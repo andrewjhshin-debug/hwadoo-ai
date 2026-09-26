@@ -55,9 +55,16 @@ export default function 인연내프로필() {
   useEffect(() => 법명잡기(loadMe()?.name ?? ""), []);
 
   const 다시읽기 = useCallback(async () => {
-    const p = await 내프로필();
-    setMe(p);
-    if (p?.name) 법명잡기(p.name);
+    // **반드시 잡는다.** 규칙이 막거나 그물이 끊기면 여기서 던져지는데,
+    // 부르는 쪽이 `void 다시읽기()` 라 아무도 안 받는다 — 삼켜지지 않은
+    // 넘어짐이 되어 판 밖으로 나간다.
+    try {
+      const p = await 내프로필();
+      setMe(p);
+      if (p?.name) 법명잡기(p.name);
+    } catch (e) {
+      탈잡기(e instanceof Error ? e.message : "프로필을 읽지 못했습니다");
+    }
   }, []);
 
   useEffect(() => {

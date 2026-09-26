@@ -46,12 +46,20 @@ function 묵었나(x: unknown): boolean {
 
 export default function FreshChunks() {
   useEffect(() => {
-    // 무사히 한 판 떴으면 표를 지운다 — 다음에 또 넘어져도 한 번은 준다
-    try {
-      window.sessionStorage.removeItem(표);
-    } catch {
-      /* 사생활 창에서는 서랍이 막힌다. 그러면 되살리기를 한 번도 안 한다 */
-    }
+    // ── 표를 **바로 지우면 안 된다** ──────────────────────
+    // 처음엔 뜨자마자 지웠다. 그러면 「넘어짐 → 다시 열기 → 뜨자마자
+    // 표 지움 → 또 넘어짐 → 또 다시 열기」로 **끝없이 돈다.**
+    // 브라우저는 그걸 보다가 「이 페이지를 불러올 수 없습니다」로 손을
+    // 든다 — 고치려던 바로 그 창이 더 자주 뜬다.
+    // 스무 초를 버텼으면 그때 지운다. 그 안에 또 넘어지면 표가 살아
+    // 있으니 다시 열지 않고, 넘어진 채로 둔다(적어도 화면은 남는다).
+    const 치우개 = window.setTimeout(() => {
+      try {
+        window.sessionStorage.removeItem(표);
+      } catch {
+        /* 사생활 창에서는 서랍이 막힌다 */
+      }
+    }, 20_000);
 
     const 되살리기 = () => {
       try {
@@ -74,6 +82,7 @@ export default function FreshChunks() {
     window.addEventListener("error", 넘어짐);
     window.addEventListener("unhandledrejection", 삼킨넘어짐);
     return () => {
+      window.clearTimeout(치우개);
       window.removeEventListener("error", 넘어짐);
       window.removeEventListener("unhandledrejection", 삼킨넘어짐);
     };

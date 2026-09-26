@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 17;
+const 그림판 = 19;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -185,13 +185,13 @@ const SKINS = {
     // 판은 제 몸에 맞추고, 상자가 살갗마다 그 비율을 쓴다.
     { id: "dongja", name: "동자", src: "/obj/keycap-dongja.png",
       cup: "/obj/keycap-dongja-cup.png", buddha: "/obj/keycap-dongja-buddha.png",
-      ar: 601 / 860, dip: "8%", dot: "#ef86b0" },
+      ar: 935 / 961, dip: "12%", dot: "#ef86b0" },
     { id: "podae", name: "포대", src: "/obj/keycap-podae-cup.png",
       cup: "/obj/keycap-podae-cup.png", buddha: "/obj/keycap-podae-buddha.png",
-      ar: 667 / 643, dip: "10%", dot: "#d9a06f" },
+      ar: 826 / 581, dip: "14%", dot: "#d9a06f" },
     { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk-cup.png",
       cup: "/obj/keycap-mireuk-cup.png", buddha: "/obj/keycap-mireuk-buddha.png",
-      ar: 564 / 643, dip: "10%", dot: "#cfa03c" },
+      ar: 768 / 634, dip: "13%", dot: "#cfa03c" },
   ],
 } as const;
 
