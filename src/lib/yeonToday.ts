@@ -37,6 +37,8 @@ export type 오늘사람 = {
   rank: string;
   /** 통과된 사진만 */
   photos: string[];
+  /** 붙박이 한 장(운영자) — 맨 앞에 크게 선다 */
+  pinned?: boolean;
 };
 
 export type 오늘 = {

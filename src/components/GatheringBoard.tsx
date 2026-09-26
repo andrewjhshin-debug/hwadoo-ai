@@ -1080,11 +1080,14 @@ export default function GatheringBoard({
         {/* 청실홍실 — 함께 가겠다는 이가 붙으면 실이 걸린다 */}
         {tied && (
           <div className="mt-4">
+            {/* 낮 — 이 판은 흰 카드 위다. 안 넘기면 먹빛 상자에 먹빛
+                글자가 되어 이름이 통째로 안 읽혔다 */}
             <InyeonThread
               leftName={p.authorName}
               rightName={tied.authorName}
               leftGender={p.gender}
               rightGender={tied.gender}
+              낮
             />
           </div>
         )}

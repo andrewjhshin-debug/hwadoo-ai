@@ -47,10 +47,13 @@ export async function POST(req: Request) {
   const db = getFirestore(app);
   const day = today();
 
-  // 오늘 뽑힌 사람에게만 할 수 있다 — 아무 uid 에나 합장하는 길을 막는다
+  // 오늘 뽑힌 사람에게만 할 수 있다 — 아무 uid 에나 합장하는 길을 막는다.
+  // 붙박이(운영자) 한 장도 오늘 판에 선 사람이니 같이 본다.
   const 오늘 = await db.doc(`yeon-daily/${me}_${day}`).get();
-  const picks: string[] = 오늘.exists ? (오늘.data()!.picks ?? []) : [];
-  if (!picks.includes(to))
+  const 지금 = 오늘.exists ? 오늘.data()! : null;
+  const picks: string[] = 지금?.picks ?? [];
+  const pin: string[] = 지금?.pin ?? [];
+  if (!picks.includes(to) && !pin.includes(to))
     return Response.json({ error: "not-today" }, { status: 409 });
 
   // 막은 사이면 아무 일도 없다
@@ -65,6 +68,14 @@ export async function POST(req: Request) {
     { done: FieldValue.arrayUnion(to) },
     { merge: true }
   );
+
+  // 붙박이는 **날이 바뀌어도** 다시 안 선다. 하루치 칸(yeon-daily)은
+  // 날마다 새로 생기니, 한 번 본 붙박이는 따로 적어 둔다.
+  if (pin.includes(to))
+    await db.doc(`yeon-pins/${me}`).set(
+      { done: FieldValue.arrayUnion(to) },
+      { merge: true }
+    );
 
   if (act === "pass") return Response.json({ ok: true, matched: false });
 

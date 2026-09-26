@@ -5162,6 +5162,45 @@ html[data-theme="light"] {
   }
   /* 단추에 `margin-top:auto` 를 주면 남는 키를 **단추가** 먹어 사진이
      안 큰다. 남는 키는 사진 몫이다 — 단추는 알맹이가 다 찬 뒤 그 아래. */
+
+  /* ── 붙박이 한 장 — 운영자 ────────────────────────────────
+     형: 「새 인연찾기에서 관리자인 내 카드를 키워줘」
+
+     사진은 이미 남는 키를 다 먹는다. 그러니 「키운다」는 천장을 올리는
+     일이 아니라 **밑을 비우는 일**이다 — 알약을 넷으로 줄이고 한 마디를
+     한 줄로 묶으면 그만큼이 통째로 사진 몫이 된다.
+     이름표는 안 단다(형: 「멘트 넣지 말라고 했다」). 큰 사진과 금테
+     한 줄이면 「이 사람이 다르다」가 이미 읽힌다.
+
+     **이 블록 위(4637·4643)에 적으면 안 먹는다** — 여기 규칙들이 덮는다. */
+  .hip-yeon-card[data-big="1"] {
+    gap: 9px;
+  }
+  /* 뒤집기의 **뒷마무리** — 뒷면이 등을 보이며 사라진 그 자리에서
+     카드가 남은 반 바퀴를 돌아 선다. 둘을 이어 붙이지 않으면 빈 판이
+     한 번 스친다. */
+  .hip-yeon:has(.hip-yeon-card) { perspective: 1400px; }
+  .hip-yeon-card {
+    animation: hip-yeon-turn 0.34s cubic-bezier(0.22, 0.9, 0.24, 1) both;
+    transform-style: preserve-3d;
+  }
+  @keyframes hip-yeon-turn {
+    0% { transform: rotateY(84deg); opacity: 0; }
+    60% { opacity: 1; }
+    100% { transform: rotateY(0deg); opacity: 1; }
+  }
+  .hip-yeon-card[data-big="1"] .hip-yeon-face {
+    box-shadow:
+      0 0 0 1.5px rgba(212, 166, 74, 0.5),
+      0 12px 30px rgba(190, 140, 90, 0.2);
+  }
+  .hip-yeon-card[data-big="1"] .hip-yeon-who b { font-size: 22px; }
+  .hip-yeon-card[data-big="1"] .hip-yeon-line {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 
 /* ── 답 쓰는 자리도 염주 자리를 비킨다 ─────────────────────────

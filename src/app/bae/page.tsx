@@ -266,12 +266,15 @@ export default function BaePage() {
             alt=""
             aria-hidden
             draggable={false}
-            className="pointer-events-none absolute left-1/2 w-[86%] -translate-x-1/2 select-none"
-            style={{ bottom: "-4%", opacity: 0.95 }}
+            /* 형이 정방향으로 새로 구워 줬다 — 비스듬히 누운 것보다
+               넓적하다(1850×1189). 86% 로 두면 동그라미 밖으로 삐져나오고
+               글자까지 먹는다. 안에 얌전히 앉힌다. */
+            className="pointer-events-none absolute left-1/2 w-[68%] -translate-x-1/2 select-none"
+            style={{ bottom: "-1%", opacity: 0.95 }}
           />
           {/* 글자는 방석 **위**에 선다 — 가운데 정렬 그대로 두면 숫자가
               방석 위에 얹혀 둘 다 안 읽힌다. 아래를 비워 위로 민다 */}
-          <span className="absolute inset-0 flex flex-col items-center justify-center pb-[34%]">
+          <span className="absolute inset-0 flex flex-col items-center justify-center pb-[38%]">
             {done ? (
               <>
                 {/* 동상은 걷었다 — 형: 「동상 지우고」.

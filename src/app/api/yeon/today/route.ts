@@ -23,6 +23,7 @@ import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 // 라우트 파일은 핸들러 말고 못 내보낸다 — 나눠 쓸 것은 lib 에 둔다
 import { COOLDOWN_DAYS, FREE_PICKS, MAX_PICKS, today } from "@/lib/yeonPick";
+import { ADMIN_UID } from "@/lib/config";
 // 문턱 스위치 하나 — 켜면 확인 안 된 사람은 판에도 못 서고 뽑히지도 않는다
 import { 본인확인_켬 } from "@/lib/yeon";
 
@@ -57,9 +58,11 @@ type 프로필 = {
 };
 
 /** 남에게 내보낼 만큼만 — 프로필을 통째로 넘기지 않는다 */
-function 추려서(p: 프로필) {
+function 추려서(p: 프로필, 붙박이 = false) {
   return {
     uid: p.uid,
+    // 붙박이 — 운영자 한 장. 화면이 이걸 보고 카드를 키운다
+    pinned: 붙박이 || undefined,
     name: p.name ?? "",
     // 청실홍실의 빛깔을 가르는 데 쓴다 — 청실은 음, 홍실은 양
     sex: p.sex ?? "",
@@ -79,7 +82,15 @@ function 추려서(p: 프로필) {
     date: p.date ?? [],
     line: p.line ?? "",
     rank: p.merit?.rank ?? "",
-    photos: (p.photos ?? []).filter((f) => f.state === "ok").map((f) => f.url),
+    // **거부된 것만** 뺀다.
+    //
+    // 예전에는 `state === "ok"` 만 내보냈다. 그런데 "ok" 를 찍는 코드가
+    // 이 저장소 어디에도 없었다 — 사진올리기(yeon.ts)는 늘 "pending" 을
+    // 적고, 뒷방에도 심사 칸이 없다. 그래서 프로필을 다 채운 사람도
+    // 영원히 아무에게도 안 보였고, 후보가 늘 0이라 화면은 가안 석 장으로
+    // 떨어졌다. **인연이 통째로 안 돌고 있었다.**
+    // 베타에서는 올라온 것을 일단 세우고, 신고가 들어오면 "no" 로 내린다.
+    photos: (p.photos ?? []).filter((f) => f.state !== "no").map((f) => f.url),
   };
   // 흡연·음주는 **안 보낸다.** 카드에서 먼저 물을 것이 아니다 —
   // 알약이 열두 개면 사람이 안 읽힌다(형: 「심플리시티가 핵심」).
@@ -161,8 +172,9 @@ async function 뽑기(db: Firestore, uid: string, 몇: number) {
     const 본 = new Set(후보.map((p) => p.uid));
     후보 = 후보.concat(더.filter((p) => !본.has(p.uid)));
   }
-  // 사진이 통과된 사람만 — 얼굴 없는 계정은 판에 안 선다
-  후보 = 후보.filter((p) => (p.photos ?? []).some((f) => f.state === "ok"));
+  // 사진이 있는 사람만 — 얼굴 없는 계정은 판에 안 선다.
+  // 「통과(ok)된 것만」이었는데 통과를 찍는 코드가 없어 늘 0명이었다.
+  후보 = 후보.filter((p) => (p.photos ?? []).some((f) => f.state !== "no"));
   if (본인확인_켬) 후보 = 후보.filter((p) => p.verified);
   if (!후보.length) return { picks: [] as string[] };
 
@@ -205,6 +217,34 @@ export async function GET(req: Request) {
     await 칸.set({ uid, day, picks, cap }, { merge: true });
   }
 
+  // ── 붙박이 한 장 — 운영자 ────────────────────────────────
+  // 형: 「새 인연찾기에서 관리자인 내 카드를 키워줘」
+  //
+  // 판이 비어 있는 동안 처음 들어온 사람이 보는 것은 가안 한 장뿐이다.
+  // 사람이 찰 때까지, 문을 연 사람이 맨 앞에 선다 — 누가 하는 곳인지가
+  // 「소개」가 아니라 **한 장의 카드**로 읽힌다.
+  //
+  // 하루치 몫(cap)에서 빼지 않는다. 빼면 무료 한 장을 운영자가 먹어
+  // 진짜 인연을 하루에 한 사람도 못 보게 된다.
+  // 한 번 합장하거나 넘긴 사람에게는 다시 안 선다 — yeon-pins 에 적는다.
+  let 붙박이 = "";
+  if (ADMIN_UID && ADMIN_UID !== uid && !picks.includes(ADMIN_UID)) {
+    const [운, 본적, 내가막음, 쟤가막음] = await Promise.all([
+      db.doc(`yeon-profiles/${ADMIN_UID}`).get(),
+      db.doc(`yeon-pins/${uid}`).get(),
+      db.doc(`yeon-blocks/${uid}/list/${ADMIN_UID}`).get(),
+      db.doc(`yeon-blocks/${ADMIN_UID}/list/${uid}`).get(),
+    ]);
+    const p = 운.exists ? ({ uid: ADMIN_UID, ...운.data() } as 프로필) : null;
+    const 섰나 = !!p && p.state === "활동" && (p.photos ?? []).some((f) => f.state !== "no");
+    const 이미: string[] = 본적.exists ? (본적.data()!.done ?? []) : [];
+    if (섰나 && !이미.includes(ADMIN_UID) && !내가막음.exists && !쟤가막음.exists)
+      붙박이 = ADMIN_UID;
+  }
+  // 합장 길목이 「오늘 뽑힌 사람인가」를 보므로, 붙박이도 그 칸에 적어 둔다
+  if (붙박이 && !(지금?.pin ?? []).includes(붙박이))
+    await 칸.set({ uid, day, pin: [붙박이] }, { merge: true });
+
   // 오늘 뽑힌 사람들의 프로필을 **서버가 추려서** 준다
   const 사람 = await Promise.all(
     picks.map(async (id) => {
@@ -212,12 +252,17 @@ export async function GET(req: Request) {
       return d.exists ? 추려서({ uid: id, ...d.data() } as 프로필) : null;
     })
   );
+  const 운카드 = 붙박이
+    ? await db.doc(`yeon-profiles/${붙박이}`).get().then((d) =>
+        d.exists ? 추려서({ uid: 붙박이, ...d.data() } as 프로필, true) : null
+      )
+    : null;
 
   // 내가 오늘 이미 합장했거나 넘긴 사람
   const 한것: string[] = 지금?.done ?? [];
 
   return Response.json({
-    picks: 사람.filter(Boolean),
+    picks: [운카드, ...사람].filter(Boolean),
     done: 한것,
     cap,
     max: MAX_PICKS,

@@ -88,7 +88,12 @@ export default function 오늘의인연() {
   const [메뉴, 메뉴잡기] = useState(false);
   // 엎어 둔 카드 — 형: 「카드 형식으로 돌아가서 공개되면 도파민 터지고」
   // 뒤집은 것은 브라우저에 적어 둔다. 같은 날 다시 들어와도 또 엎지 않는다.
-  const [뒤집힘, 뒤집힘잡기] = useState(true);
+  //
+  // **처음 값은 「모름」(null)이다.** true 로 두었더니 첫 칠에서 카드가
+  // 한 판 열린 채 보이고 나서 엎혔다 — 뒤집기 전에 얼굴이 새어 나갔다.
+  // 엎었나 폈나는 브라우저에 적힌 것을 읽어야 아는데 그건 칠한 뒤(useEffect)
+  // 라, 그 사이는 아무것도 안 그린다.
+  const [뒤집힘, 뒤집힘잡기] = useState<boolean | null>(null);
   const [도는중, 도는중잡기] = useState(false);
   const [신고창, 신고창잡기] = useState(false);
   const 통 = useRef<HTMLDivElement | null>(null);
@@ -120,7 +125,14 @@ export default function 오늘의인연() {
   // 오늘 아직 안 본 사람 — 맨 앞 한 장만 세운다.
   // 진짜 사람이 하나도 없으면 가안 한 장을 대신 세운다(형: 「일단 가안으로」)
   const 진짜 = (사람들 ?? []).filter((p) => !끝난이.includes(p.uid));
-  const 가안인가 = 있나 === false || (사람들 !== null && 사람들.length === 0);
+  // 가안은 **손님에게만.**
+  //
+  // 예전엔 「사람이 없으면」도 가안을 세웠다. 그런데 사진 문턱이 막혀
+  // 후보가 늘 0이었으므로, 프로필을 다 채운 진짜 사람도 보련화·무애·청연을
+  // 봤다. 거기서 합장하면 서버에 가지 않고 곧장 「인연이 닿았습니다」가
+  // 뜨는데 쪽지함에는 방이 없다 — **가짜 매칭**이다.
+  // 들어와 있는 사람에게는 없으면 없다고 한다(「오늘은 여기까지」).
+  const 가안인가 = 있나 === false;
   const 남은 = 가안인가 ? 가안들.filter((p) => !끝난이.includes(p.uid)) : 진짜;
   const 이 = 남은[0];
 
@@ -145,8 +157,10 @@ export default function 오늘의인연() {
     try {
       localStorage.setItem(열쇠(이.uid), "1");
     } catch {}
-    // 반 바퀴 돌아 등을 보일 때 알맹이로 갈아 끼운다
-    window.setTimeout(() => 뒤집힘잡기(true), 330);
+    // 등을 보이는 **그 순간** 갈아 끼운다.
+    // 330ms 로 두었더니 뒷면은 220ms 께 이미 사라지고(backface-visibility)
+    // 카드는 아직 안 와서, 그 사이 **빈 판**이 한참 보였다.
+    window.setTimeout(() => 뒤집힘잡기(true), 175);
   };
 
   const 치우기 = (uid: string) => 끝난이잡기((v) => [...v, uid]);
@@ -274,15 +288,23 @@ export default function 오늘의인연() {
     return (
       <껍데기>
         <div className="hip-yeon-met" data-quiet="1">
+          {/* 「내일 다시 한 사람」은 걷었다 — 형: 「멘트 넣지 말라고 했다」.
+              空 한 글자와 한 줄이면 오늘 몫이 끝났다는 말은 이미 다 했다. */}
           <b aria-hidden>空</b>
           <p>오늘은 여기까지</p>
-          <span className="hip-yeon-tomorrow">내일 다시 한 사람</span>
         </div>
       </껍데기>
     );
 
   const 사진 = 이.photos.length ? 이.photos : [];
   const 살 = 이.born ? 나이(이.born) : 0;
+
+  if (뒤집힘 === null)
+    return (
+      <껍데기>
+        <p className="hip-yeon-say">…</p>
+      </껍데기>
+    );
 
   if (!뒤집힘)
     return (
@@ -302,7 +324,11 @@ export default function 오늘의인연() {
 
   return (
     <껍데기>
-      <div className="hip-yeon-card" ref={통}>
+      {/* 붙박이 한 장 — 운영자. 형: 「새 인연찾기에서 관리자인 내 카드를
+          키워줘」. 판이 빌 동안 문을 연 사람이 맨 앞에 선다.
+          이름표를 따로 달지 않는다(형: 「멘트 넣지 말라고 했다」) —
+          큰 카드와 금테 한 줄이면 「이 사람이 다르다」가 이미 읽힌다. */}
+      <div className="hip-yeon-card" data-big={이.pinned ? "1" : undefined} ref={통}>
         {/* ── 사진 — 톡 누르면 다음 장. 여러 장이면 위에 눈금 ── */}
         <div
           className="hip-yeon-face"
@@ -364,7 +390,7 @@ export default function 오늘의인연() {
               이.tall ? { t: `${이.tall}cm` } : null,
             ].filter(Boolean) as { t: string; 절?: boolean }[]
           )
-            .slice(0, 6)
+            .slice(0, 이.pinned ? 4 : 6)
             .map((c, i) => (
               <span key={`${c.t}${i}`} data-temple={c.절 ? "1" : undefined}>
                 {c.t}
