@@ -4027,11 +4027,17 @@ html[data-theme="light"] {
   .hip-keycap-stack {
     position: relative;
     display: block;
-    width: 100%;
+    /* 높이는 단추가 쥐고 폭은 비율이 정한다 — width:100% 를 남겨 두면
+       가로·세로를 둘 다 못 박은 셈이라 aspect-ratio 가 죽는다 */
     height: 100%;
-    /* 셋(동자·포대·미륵)의 그림판을 한 비율로 구워 두었다 —
-       갈아 끼워도 물건이 들썩이지 않는다 */
-    aspect-ratio: 1.15;
+    width: auto;
+    margin-inline: auto;
+    /* 살갗마다 제 비율(--keycap-ar). 한 비율로 맞추려고 여백을 덧댔더니
+       상자 안에서 물건이 작아졌다 — 형: 「윗부분이 너무 짧뚱이잖아」 */
+    aspect-ratio: var(--keycap-ar, 0.72);
+    /* 몸이 **쑥** 내려가도 밖으로 안 새게. 받침 밑동이 곧 판 밑변이라,
+       여기서 자르면 물건 바닥에서 딱 잘린다 */
+    overflow: hidden;
   }
   .hip-keycap-stack img {
     position: absolute;
@@ -4068,18 +4074,21 @@ html[data-theme="light"] {
     transform-origin: 50% 100%;
     transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
   }
-  /* 연꽃이 커졌으니 더 깊이 내려간다 — 형: 「확실히 아래로 눌려지는
-     느낌으로」. 2.4% 는 큰 그릇 안에서 티도 안 났다 */
-  .hip-keycap.on .hip-keycap-buddha { transform: translateY(6.2%) scaleY(0.972); }
+  /* **쑥** 내려간다 — 형: 「정상적인 크기에서 아래로 쑥 내려가도록」
+     물건을 줄여서 깊이를 만드는 게 아니라, 물건은 제 크기로 두고
+     **더 멀리** 내려보낸다. 판 밑변에서 잘리니 받침 뒤로 사라진다. */
+  .hip-keycap.on .hip-keycap-buddha { transform: translateY(11%) scaleY(0.965); }
   .hip-keycap.on .hip-keycap-cup {
-    transform: scaleY(1.03);
+    transform: scaleY(1.035);
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
   }
   /* 통(stack)이 높이를 쥐므로 그림 자체는 폭·높이를 안 잡는다.
-     판이 세로보다 가로로 넓어서(1.15) 높이만 잡으면 폭이 화면을
-     넘는다 — 폭 쪽 한도도 같이 건다 */
+     살갗에 따라 판이 가로로 넓을 수 있으니 폭 쪽 한도도 같이 건다 */
   .hip-keycap {
-    height: min(var(--hip-obj-w), calc((100vw - 22px) / 1.15), 46vh);
+    height: min(var(--hip-obj-w), 46vh);
+    max-width: calc(100vw - 22px);
+    display: flex;
+    justify-content: center;
   }
   .hip-keycap img { width: 100%; height: 100%; max-width: none; max-height: none; }
 }
