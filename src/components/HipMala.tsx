@@ -35,6 +35,13 @@ export type Bead = { mark: string; name: string; href: string; also: string[] };
 export const BEADS: Bead[] = [
   { mark: "話", name: "화두", href: "/", also: ["/my-hwadu", "/archive", "/room"] },
   { mark: "功", name: "공덕", href: "/moktak", also: [] },
+  // 형: 「아래 탭 중 하나에 법당 하나 넣어. 공덕 옆에 두면 되겠다, 가운데」
+  //
+  // 법당은 하루에 한 번 갈까 말까 한 방이 아니게 됐다 — 연등·쌀·초 셋을
+  // 걸고, 남이 건 것을 보러 온다. 서랍 속에 두면 아무도 안 간다.
+  // 자리는 **가운데**다: 공덕을 쌓고(功) → 그 공덕으로 올리고(堂) →
+  // 사람을 만난다(緣). 띠를 왼쪽에서 오른쪽으로 읽으면 그게 이 앱이다.
+  { mark: "堂", name: "법당", href: "/candle", also: [] },
   // 형: 「메인 아래 탭은 화두, 손잡고 절로(게시판)」
   // 인연 세 방(오늘의 인연 · 내 프로필 · 프로필 보기)도 緣 안이다
   {
@@ -50,7 +57,7 @@ export const BEADS: Bead[] = [
     // 읽어 주는 이름만 바로잡는다
     name: "내 도량",
     href: "/settings",
-    also: ["/rank", "/hasim", "/breath", "/mung", "/empty", "/candle", "/tamjinchi", "/lotus"],
+    also: ["/rank", "/hasim", "/breath", "/mung", "/empty", "/tamjinchi", "/lotus"],
   },
 ];
 

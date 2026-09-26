@@ -72,14 +72,14 @@ function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => vo
         />
 
         <label className="hip-deung-lab">
-          마음
+          사연
           <span>{wish.length} / 120</span>
         </label>
         <textarea
           value={wish}
           onChange={(e) => setWish(e.target.value.slice(0, 120))}
           rows={4}
-          placeholder="마음에 품은 것을 적어 보세요"
+          placeholder="사연이나 기원하는 내용을 적어 보세요"
           className="hip-deung-in hip-deung-area"
         />
 
