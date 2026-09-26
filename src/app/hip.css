@@ -6939,3 +6939,31 @@ html[data-theme="light"] {
     .hip-yeon-flip[data-wait="1"] { animation: none; opacity: 0.8; }
   }
 }
+
+/* ── 돋보기 — 남이 보는 내 카드 ───────────────────────────────
+   인연 판의 카드를 **그대로** 세운다(.hip-yeon-card 를 같이 쓴다).
+   다만 여기서는 누를 것이 아니라 볼 것이라, 손과 ⋯ 는 안 얹는다. */
+@media (min-width: 0px) {
+  .hip-mepic-peek { margin-bottom: 14px; }
+  .hip-mepic-peek .hip-yeon-face { max-height: 46vh; }
+  .hip-mepic-peek .hip-yeon-more,
+  .hip-mepic-peek .hip-yeon-menu { display: none; }
+  .hip-mepic-note {
+    margin: 14px 0 8px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: #a39a8f;
+  }
+  /* 「내려감」 딱지 */
+  .hip-yeon-big span u {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    font-size: 10px;
+    text-decoration: none;
+    color: #d2578c;
+  }
+}

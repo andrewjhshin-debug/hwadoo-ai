@@ -308,19 +308,77 @@ export default function 인연내프로필() {
           />
         </div>
 
-        {/* 돋보기 — 올린 것을 **큰 판**으로 죽 본다. 여기서 빼기도 한다 */}
+        {/* ── 돋보기 — **남이 보는 내 카드** ─────────────────
+            형: 「돋보기 눌리면 남이 보는 전체 내 프로필 어떻게 보이는지
+                 보여주고」
+
+            여태 여기는 「올린 사진 목록」이었다. 그건 **내가 가진 것**을
+            보여 주는 판이지 **남이 보는 것**이 아니다. 인연 판에 서는
+            그 카드를 그대로 세운다 — 같은 CSS(.hip-yeon-card)를 쓰므로
+            글자 크기 하나까지 진짜와 같다. 손은 안 걸어 둔다(보는 판이다).
+            여기서 사진도 뺄 수 있게 한 장씩 ✕ 를 얹는다. */}
         {크게 && (
           <div
             className="hip-yeon-big"
             role="dialog"
-            aria-label="올린 사진"
+            aria-label="남이 보는 내 프로필"
             onClick={() => 크게잡기(false)}
           >
             <div onClick={(e) => e.stopPropagation()}>
               <p>
-                올린 사진 {장수}장
+                남이 보는 내 프로필
                 <button onClick={() => 크게잡기(false)} aria-label="닫기">닫기</button>
               </p>
+
+              {(() => {
+                const 보일사진 = (me?.photos ?? []).filter((f) => f.state !== "no");
+                const 태그 = [
+                  me?.temple ? { t: me.temple, 절: true } : null,
+                  me?.wantTemple ? { t: `${me.wantTemple} ↗`, 절: true } : null,
+                  me?.date?.[0] ? { t: me.date[0] } : null,
+                  me?.job ? { t: me.job } : null,
+                  me?.mbti ? { t: me.mbti } : null,
+                  ...(me?.care ?? []).map((x) => ({ t: x })),
+                  ...(me?.like ?? []).map((x) => ({ t: x })),
+                  me?.tall ? { t: `${me.tall}cm` } : null,
+                ].filter(Boolean) as { t: string; 절?: boolean }[];
+                const 살 = me?.born ? 나이(me.born, 올해) : 0;
+                return (
+                  <div className="hip-yeon-card hip-mepic-peek">
+                    <div className="hip-yeon-face">
+                      {보일사진.length > 1 && (
+                        <span className="hip-yeon-ticks" aria-hidden>
+                          {보일사진.map((f, i) => (
+                            <i key={f.path} data-on={i === (장 % 보일사진.length) ? "1" : undefined} />
+                          ))}
+                        </span>
+                      )}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {보일사진.length ? (
+                        <img src={보일사진[장 % 보일사진.length].url} alt="" draggable={false} />
+                      ) : (
+                        <em />
+                      )}
+                      <span className="hip-yeon-who">
+                        <b>{me?.name || 법명 || "이름 없는 이"}</b>
+                        {살 > 0 && <i>{살}</i>}
+                        {me?.area && <u>{me.area}</u>}
+                      </span>
+                    </div>
+                    <div className="hip-yeon-tags">
+                      {태그.slice(0, 6).map((c, i) => (
+                        <span key={`${c.t}${i}`} data-temple={c.절 ? "1" : undefined}>
+                          {c.t}
+                        </span>
+                      ))}
+                    </div>
+                    {me?.line && <p className="hip-yeon-line">{me.line}</p>}
+                  </div>
+                );
+              })()}
+
+              {/* 남에게는 안 보이는 자리 — 여기서만 사진을 뺀다 */}
+              <p className="hip-mepic-note">올린 사진 {장수}장 · 눌러서 빼기</p>
               <div>
                 {(me?.photos ?? []).map((f) => (
                   <span key={f.path} data-state={f.state}>
@@ -332,7 +390,7 @@ export default function 인연내프로필() {
                     >
                       ✕
                     </button>
-                    {f.state === "no" && <u>다시</u>}
+                    {f.state === "no" && <u>내려감</u>}
                   </span>
                 ))}
               </div>
