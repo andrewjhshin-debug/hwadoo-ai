@@ -380,24 +380,6 @@ export default function 오늘의인연() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {사진[장] ? <img src={사진[장]} alt="" draggable={false} /> : <em />}
 
-          {/* ⋯ — 막기·신고. 사진 위 오른쪽, 늘 같은 자리 */}
-          <button
-            className="hip-yeon-more"
-            aria-label="이 사람에 대해"
-            onClick={(e) => {
-              e.stopPropagation();
-              메뉴잡기((v) => !v);
-            }}
-          >
-            ⋯
-          </button>
-          {메뉴 && (
-            <div className="hip-yeon-menu" onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => 신고창잡기(true)}>신고</button>
-              <button onClick={막기누름}>막기</button>
-            </div>
-          )}
-
           {/* 이름은 사진 위에 얹는다 — 카드가 한 덩이로 읽힌다 */}
           <span className="hip-yeon-who">
             <b>{이.name || "이름 없는 이"}</b>
@@ -417,6 +399,11 @@ export default function 오늘의인연() {
             [
               이.temple ? { t: 이.temple, 절: true } : null,
               이.wantTemple ? { t: `${이.wantTemple} ↗`, 절: true } : null,
+              // **하고 싶은 데이트 한 칸.** 받아 놓고 한 번도 안 그리고
+              // 있었다 — 카드에서 이보다 말 붙이기 좋은 칸이 없다
+              // (「절 나들이」 「맛집」 한 마디면 첫 쪽지가 저절로 써진다).
+              // 한 칸만 — 열두 개를 다 깔면 사람이 아니라 표가 된다
+              이.date[0] ? { t: 이.date[0] } : null,
               이.job ? { t: 이.job } : null,
               이.mbti ? { t: 이.mbti } : null,
               ...이.care.map((x) => ({ t: x })),
@@ -433,6 +420,27 @@ export default function 오늘의인연() {
         </div>
 
         {이.line && <p className="hip-yeon-line">{이.line}</p>}
+
+        {/* ⋯ — 막기·신고. **사진 밖에 둔다.**
+            사진 칸은 모서리를 둥글리느라 overflow:hidden 이라, 그 안에
+            메뉴를 열면 아래가 잘려 「막기」가 안 보였다. 카드를 기준으로
+            같은 자리(사진 오른쪽 위)에 띄우면 잘릴 것이 없다. */}
+        <button
+          className="hip-yeon-more"
+          aria-label="이 사람에 대해"
+          onClick={(e) => {
+            e.stopPropagation();
+            메뉴잡기((v) => !v);
+          }}
+        >
+          ⋯
+        </button>
+        {메뉴 && (
+          <div className="hip-yeon-menu" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => 신고창잡기(true)}>신고</button>
+            <button onClick={막기누름}>막기</button>
+          </div>
+        )}
       </div>
 
       {/* ── 두 손 ── */}

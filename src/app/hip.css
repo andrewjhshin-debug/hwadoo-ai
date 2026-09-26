@@ -4704,13 +4704,17 @@ html[data-theme="light"] {
     background: rgba(255, 255, 255, 0.42);
   }
   .hip-yeon-ticks i[data-on="1"] { background: #fff; }
+  /* ⋯ 는 이제 **카드**를 기준으로 선다(사진 안에 두면 메뉴가 잘렸다).
+     그러니 카드가 기준점을 가져야 한다 */
+  .hip-yeon-card { position: relative; }
   .hip-yeon-more {
     position: absolute;
-    top: 16px;
-    right: 12px;
+    top: 12px;
+    right: 10px;
     z-index: 4;
-    width: 32px;
-    height: 32px;
+    /* 32px 은 엄지에 작다 — 손가락 한 마디가 44px 언저리다 */
+    width: 40px;
+    height: 40px;
     border-radius: 999px;
     background: rgba(24, 20, 18, 0.34);
     backdrop-filter: blur(6px);
