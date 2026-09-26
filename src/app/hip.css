@@ -6180,9 +6180,13 @@ html[data-theme="light"] {
     min-width: 30px;
     max-width: 92px;
     margin-inline: -1.6%;
-    /* 켜끼리도 겹친다 — 뒤 켜의 밑자락(쪽지)을 앞 켜가 덮어야
-       천장이 꽉 차 보인다. 줄 간격이 벌어지면 격자로 되돌아간다 */
-    margin-block-end: -9%;
+    /* ── 켜끼리 **크게** 겹친다 ────────────────────────
+       형: 「겹치더라도 내가 준 레퍼런스처럼」
+       -9% 로는 줄 사이가 훤히 비어 격자로 읽혔다. 레퍼런스의 천장은
+       앞 켜가 뒤 켜의 아랫배까지 먹는다 — 그 정도로 물려야 「천장이
+       등으로 덮였다」가 된다. 판을 그리는 차례가 위→아래라, 나중에
+       그려지는 **아랫줄(앞)이 위를 덮는다.** */
+    margin-block-end: calc(var(--deung-lap, -9) * 1%);
     transform: scale(calc(1 - var(--깊이, 0) * 0.3));
     transform-origin: 50% 0;
     opacity: calc(1 - var(--깊이, 0) * 0.3);
@@ -6661,4 +6665,65 @@ html[data-theme="light"] {
   /* 댓글 쓰는 칸이 **목록 위**로 올라왔다 */
   .hip-say-write { margin-top: 12px; }
   .hip-say-cmt { margin-top: 10px; }
+}
+
+/* ── 기다림의 줄은 닳는다 ─────────────────────────────────────
+   형: 「채워진 게 줄어드는 게 더 동기부여 되지 않을까」
+   가득에서 시작해 닳는다. 다 닳으면(달이 차면) 도로 가득 차면서
+   먹빛이 진해진다 — 「이제 쓸 수 있다」가 줄 하나로 읽힌다. */
+@media (min-width: 0px) {
+  .hip-rule i[data-left="1"] {
+    height: 2px;
+    top: -0.5px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, rgba(28, 26, 23, 0.5), rgba(28, 26, 23, 0.26));
+    transition: width 0.8s cubic-bezier(0.3, 0, 0.2, 1), background 0.6s;
+  }
+  /* 다 찼을 때 — 연꽃빛 한 줄 */
+  .hip-foot:has(.hip-moon-dot[data-full="1"]) .hip-rule i[data-left="1"] {
+    background: linear-gradient(90deg, #f2789f, #e0518a);
+  }
+}
+
+/* ── 천장은 아래가 앞이다 ─────────────────────────────────────
+   형: 「이건 내가 말한 원근법 느낌이 아닌데?」
+   앞엣것(아랫줄)이 크고 진하고 **위에 얹힌다.** 뒤로 갈수록 작고 옅고
+   위로 올라간다. z 는 깊이가 정한다 — 아랫줄일수록 높다. */
+@media (min-width: 0px) {
+  .hip-deung-sky { align-items: flex-end; }
+  /* 실은 안 그린다 */
+  .hip-deung-line { display: none !important; }
+  .hip-deung { padding-top: var(--deung-len, 6px); }
+  /* 뒤엣것은 살짝 흐리게 — 깊이가 눈으로도 읽히게 */
+  .hip-deung-img { filter: none; }
+  .hip-deung[style*="--깊이"] .hip-deung-sway { will-change: transform; }
+
+  /* 향로 — 한 채뿐. 올린 수는 어깨에 작은 수로 */
+  .hip-censer .hip-gong-body { width: 108% !important; }
+  .hip-censer b {
+    position: absolute;
+    right: -2px;
+    top: 0;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: rgba(26, 23, 20, 0.5);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 500;
+  }
+
+  /* 자리가 다 찼다 — 한 줄로만 */
+  .hip-hall-full {
+    position: absolute;
+    left: 12px;
+    bottom: 18px;
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: #b5aca1;
+  }
 }

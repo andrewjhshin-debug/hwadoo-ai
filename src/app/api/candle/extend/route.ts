@@ -3,6 +3,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { EXTEND_DAYS } from "@/lib/candleSpec";
 import { isAdminAccount } from "@/lib/config";
+import { 갖춘지갑 } from "@/lib/wallet";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -47,16 +48,43 @@ export async function POST(req: Request) {
     const out = await db.runTransaction(async (tx) => {
       const [candleSnap, walletSnap] = await Promise.all([tx.get(candle), tx.get(wallet)]);
       const c = candleSnap.data();
-      if (!candleSnap.exists || c?.uid !== uid || c.visibility !== "public") return null;
+      if (!candleSnap.exists || !c) return null;
+      // ── 남도 늘려 줄 수 있다 ────────────────────────────────
+      // 형: 「사람들이 내 공덕이나 연꽃 나눔 하면 기한 늘어나도록」
+      //
+      // 여태 **제 것만** 늘릴 수 있었다(c.uid !== uid 면 404).
+      // 그러니 남의 사연을 읽고 마음이 움직여도 할 수 있는 게 공덕
+      // 나누기 하나뿐이었다 — 그건 서른 사람이 모여야 하루다.
+      // 공개된 등이면 누구든 제 연꽃으로 하루를 보탤 수 있다.
+      // 나만 보는 등은 주인만(볼 사람이 주인뿐이라 그렇다).
+      // 나만 보는 등은 늘릴 자리가 아니다(볼 사람이 주인뿐이라 그렇다)
+      const 주인인가 = c.uid === uid;
+      if (c.visibility !== "public") return null;
+
+      const 이제 = Date.now();
+      const 지금까지 = Math.max(이제, Number(c.until) || 이제);
+      // 끝없이 쌓이지 않게 — 아흔 날이 천장이다. 넘으면 값을 안 받는다
+      if (지금까지 + EXTEND_DAYS * DAY > 이제 + 90 * DAY) return "full" as const;
+
       if (!free) {
-        const lotus = walletSnap.data()?.lotus;
-        if (typeof lotus !== "number" || lotus < 1) return "no-lotus" as const;
-        tx.update(wallet, { lotus: FieldValue.increment(-1) });
+        // 지갑을 읽는 셈도 한 군데다 — 옛 지갑({lotus}만)도 셋으로 갖춘다
+        const 지갑 = 갖춘지갑(walletSnap.data());
+        if (지갑.lotus < 1) return "no-lotus" as const;
+        tx.set(
+          wallet,
+          { lotus: 지갑.lotus - 1, paid: 지갑.paid, free: Math.max(0, 지갑.free - 1) },
+          { merge: true }
+        );
       }
-      tx.update(candle, { until: Math.max(Date.now(), Number(c.until) || Date.now()) + EXTEND_DAYS * DAY });
+      tx.update(candle, {
+        until: 지금까지 + EXTEND_DAYS * DAY,
+        // 누가 보태 주었나 — 사연 판에서 「n명이 함께」로 읽는다
+        ...(주인인가 ? {} : { gifts: FieldValue.increment(1) }),
+      });
       return "ok" as const;
     });
     if (out === "no-lotus") return Response.json({ error: "no-lotus" }, { status: 402 });
+    if (out === "full") return Response.json({ error: "full" }, { status: 409 });
     if (out !== "ok") return Response.json({ error: "not-found" }, { status: 404 });
     return Response.json({ ok: true });
   } catch {

@@ -67,8 +67,9 @@ export default function Yeondeung({
       }
       aria-label={`${name} 연등`}
     >
-      {/* 실 — 천장에서 등까지 */}
-      <i className="hip-deung-line" aria-hidden />
+      {/* 실은 안 그린다 — 형: 「위에 다는 선은 없어도 되겠다」
+          그림에 이미 고리와 끈이 달려 있는데 그 위로 또 선을 그으니
+          등마다 안테나가 하나씩 붙은 꼴이었다. 레퍼런스에도 없다 */}
 
       <span
         className="hip-deung-sway"

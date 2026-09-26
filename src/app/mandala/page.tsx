@@ -88,6 +88,18 @@ html[data-theme="light"] .mandala-board {
   .m-tool { min-height: 42px; padding-top: 8px; padding-bottom: 8px; }
   .m-chip { min-height: 42px; }
   .m-roomy .m-dot { height: 28px; width: 28px; }
+  /* 형: 「이거 동그라미가 살짝 찌그러지는 거 수정」
+     알이 격자 칸(grid)에 들어 있다. 격자는 칸이 모자라면 칸에 든 것을
+     **눌러 맞춘다** — shrink-0 은 플렉스 말이라 여기서는 아무 일도 안
+     한다. 가로세로를 1:1 로 못박고, 어느 쪽으로도 안 눌리게 바닥을 깐다. */
+  .m-dot {
+    aspect-ratio: 1 / 1;
+    flex: 0 0 auto;
+    min-width: 24px;
+    min-height: 24px;
+  }
+  .m-roomy .m-dot { min-width: 28px; min-height: 28px; }
+  @media (min-width: 640px) { .m-dot { min-width: 28px; min-height: 28px; } }
 }
 `;
 

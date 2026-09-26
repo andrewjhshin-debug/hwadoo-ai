@@ -395,12 +395,22 @@ export function HipGardenHolding({
               })}
             </p>
           )}
+          {/* ── 줄은 **줄어든다** ──────────────────────────────
+              형: 「달 차는 거, 말은 차는 거지만 채워진 게 줄어드는 게
+                   더 동기부여 되지 않을까 고민해 보고 고쳐 봐」
+
+              맞다. 그리고 까닭이 하나 더 있다 — **바로 위 숫자가
+              줄어들고 있다**(23시간 59분 36초). 그 밑에서 줄이 차오르면
+              둘이 서로 반대로 움직인다. 한 판에서 같은 하나를 두 가지
+              방향으로 그리니 어느 쪽도 한눈에 안 읽혔다.
+              줄을 숫자와 같은 쪽으로 돌린다: 가득 찼다가 **닳는다.**
+              달이 차는 것은 옆의 ● 하나가 맡는다(그건 그대로 찬다). */}
           <div
             className="hip-rule"
             role="img"
             aria-label={unlocked ? "달이 찼습니다" : `${remaining} 남음`}
           >
-            <i style={{ width: `${unlocked ? 100 : pct}%` }} />
+            <i style={{ width: `${unlocked ? 100 : 100 - pct}%` }} data-left="1" />
           </div>
           <div className="hip-foot-row">
             <span>

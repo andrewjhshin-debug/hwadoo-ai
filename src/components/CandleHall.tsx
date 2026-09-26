@@ -10,7 +10,7 @@ import { Yeonkkot } from "@/components/icons";
 import { loadMe } from "@/lib/me";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { EXTEND_DAYS, POUR_PER_DAY, POUR_UNIT, PRIVATE_BURN_DAYS, PRIVATE_CANDLE_PRICE, PUBLIC_BURN_DAYS, PUBLIC_CANDLE_PRICE } from "@/lib/candleSpec";
+import { EXTEND_DAYS, POUR_PER_DAY, POUR_UNIT, PRIVATE_BURN_DAYS, PRIVATE_CANDLE_PRICE, PUBLIC_BURN_DAYS, PUBLIC_CANDLE_PRICE, 자리, 향꽂이 } from "@/lib/candleSpec";
 import { giveMerit } from "@/lib/merit";
 import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
 
@@ -42,13 +42,25 @@ function 한줄에(n: number) {
   return Math.min(9, Math.max(3, Math.round(Math.sqrt(n * 1.7))));
 }
 
-function CandleMark({ c, onClick, i, 열, mine }: { c: Candle; onClick: () => void; i: number; 열: number; mine?: boolean }) {
-  // 켜 — **줄(row)이 곧 깊이다.** 위로 갈수록 뒤에 있고, 뒤엣것은
-  // 작고 옅다. 지그재그로 흩던 옛 셈은 등이 몇 개 없을 때만 통했다
+/** 등 하나가 차지하는 폭(%) — 옆 여백 -1.6% 를 얹은 값 */
+function 폭(n: number) {
+  return 100 / 한줄에(n) + 3.2;
+}
+
+function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onClick: () => void; i: number; 열: number; 줄수?: number; mine?: boolean }) {
+  // ── 원근 — **맨 아랫줄이 앞이다** ─────────────────────────
+  // 형: 「이건 내가 말한 원근법 느낌이 아닌데? 겹치더라도 내가 준
+  //      레퍼런스처럼 하고, 위에 다는 선은 없어도 되겠다」
+  //
+  // 여태 **첫 줄(맨 위)을 앞**으로 두었다. 그러니 위엣것이 크고 아랫것이
+  // 작아, 천장이 아니라 벽에 붙은 포스터로 보였다.
+  // 진짜 천장은 눈에 가까운 쪽 — **아래쪽 줄이 크고 앞**이고, 뒤로
+  // 갈수록 위로 올라가며 작아지고 옅어진다. 뒤집는다.
   const 줄번호 = Math.floor(i / 열);
-  const 깊이 = Math.min(0.86, 줄번호 * 0.3);
-  // 줄 길이 — 같은 켜 안에서도 조금씩 달라야 격자가 안 된다
-  const 줄 = [14, 26, 18, 32, 22][i % 5] + 줄번호 * 6;
+  const 뒤로 = 줄수 > 1 ? (줄수 - 1 - 줄번호) / (줄수 - 1) : 0; // 0 앞(맨 아래) ~ 1 뒤(맨 위)
+  const 깊이 = 뒤로 * 0.88;
+  // 줄(실)은 이제 안 그린다 — 띄우는 몫만 조금. 뒤엣것일수록 바짝
+  const 줄 = (4 + (i % 3) * 3) * (1 - 뒤로 * 0.6);
   // 씨는 **사람마다 고정** — 같은 이가 오면 늘 같은 빛깔의 등이 걸린다
   const seed = c.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
   // 옛 문서에는 갈래 칸이 없다 — 없으면 연등이다(여태 다 연등이었다)
@@ -268,11 +280,15 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
         headers: { "content-type": "application/json", authorization: `Bearer ${await me.getIdToken()}` },
         body: JSON.stringify({ id: c.id }),
       });
-      if (r.ok) { pingLotus(); onChanged(); return; }
+      if (r.ok) { pingLotus(); 나눔말잡기(mine ? "" : `${EXTEND_DAYS}일 보탰습니다`); onChanged(); return; }
       // **조용히 실패하지 않는다.** 연꽃이 모자라면 402 가 오는데 화면은
       // 아무 말도 안 했다 — 눌러도 아무 일이 없으니 고장으로 읽힌다.
       // (관리자는 값을 안 치러 늘 성공하니 형 계정으로는 안 보였다)
-      나눔말잡기(r.status === 402 ? "연꽃이 모자랍니다" : "늘리지 못했습니다");
+      나눔말잡기(
+        r.status === 402 ? "연꽃이 모자랍니다"
+        : r.status === 409 ? "더 늘릴 수 없습니다"
+        : "늘리지 못했습니다"
+      );
     } finally { setBusy(false); }
   };
 
@@ -298,15 +314,18 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
   return (
     <div className="hip-say" role="dialog" aria-label="사연" onClick={onClose}>
       <div className="hip-say-box" onClick={(e) => e.stopPropagation()}>
+        {/* 형: 「저거 하나는 지우고 맨 위가 0일 남음이 나오면 될 듯」
+            이름이 머리에 한 번, 쪽지 이름으로 또 한 번 — 같은 말이 두
+            줄이었다. 머리에는 이 판에서 제일 급한 것 하나만 둔다:
+            **며칠 남았나.** 그 밑 줄자가 줄어드는 것을 보여 준다. */}
         <div className="hip-say-top">
-          <p>{c.forName || "이름 없는 기원"}</p>
+          <p data-day={남은 <= 1 ? "1" : undefined}>{남은}일 남음</p>
           <button onClick={onClose}>닫기</button>
         </div>
 
-        {/* 남은 날 — 줄자로. 줄어드는 것이 보여야 아깝다 */}
-        <div className="hip-say-left">
+        {/* 남은 날 — 줄자로. 글자는 위에 있으니 여기는 띠만 */}
+        <div className="hip-say-left" data-bare="1">
           <i style={{ width: `${Math.max(2, Math.min(100, (남은 / 처음) * 100))}%` }} />
-          <b>{남은}일 남음</b>
         </div>
 
         {/* ── 사연 — 제 것이면 그 자리에서 고친다 ─────────────
@@ -364,6 +383,15 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
 
           {!mine && (
             <button onClick={나눔누름} disabled={!me || busy}>공덕 {POUR_UNIT}</button>
+          )}
+          {/* 형: 「사람들이 내 공덕이나 연꽃 나눔 하면 기한 늘어나도록」
+              공덕은 서른 사람이 모여야 하루다. 연꽃은 한 송이가 곧
+              사흘 — 남의 등에도 보탤 수 있게 연다 */}
+          {!mine && c.visibility === "public" && (
+            <button onClick={() => void extend()} disabled={!me || busy}>
+              <Yeonkkot className="h-[13px] w-[13px]" />
+              {EXTEND_DAYS}일
+            </button>
           )}
 
           <i aria-hidden />
@@ -534,9 +562,26 @@ export default function CandleHall() {
     ...activeMine.filter((m) => !(publicCandles ?? []).some((p) => p.id === m.id)),
   ];
 
-  // 등은 천장, 쌀·초는 불단
-  const 등들 = 다걸린것.filter((c) => (c.gift ?? "deung") === "deung");
-  const 물들 = 다걸린것.filter((c) => (c.gift ?? "deung") !== "deung");
+  // ── 자리는 정해져 있다 ─────────────────────────────────
+  // 형: 「향로는 아무리 사연 많이 달아도 하나만. 연등도 최대 갯수랑
+  //      다 찼을 때 와꾸까지. 무한대로 다는 거 아니다. 초 역시」
+  //
+  // 넘치는 것은 **버리지 않는다** — 장부에도 사연 게시판에도 그대로
+  // 있고, 여기 천장과 불단에만 안 선다. 서는 것은 늘 최근 것부터.
+  const 갈래로 = (k: string) => 다걸린것.filter((c) => (c.gift ?? "deung") === k);
+  const 등들 = 갈래로("deung").slice(0, 자리.deung);
+  const 초들 = 갈래로("cho").slice(0, 자리.cho);
+  const 쌀들 = 갈래로("ssal").slice(0, 자리.ssal);
+  const 향들 = 갈래로("hyang");
+  // 향로는 하나 — 올린 수는 꽂힌 향으로 센다
+  const 향로 = 향들[0] ?? null;
+  const 물들 = [...쌀들, ...초들];
+  /** 못 선 것 — 「자리가 다 찼다」를 말해 주는 수 */
+  const 못선것 =
+    Math.max(0, 갈래로("deung").length - 자리.deung) +
+    Math.max(0, 갈래로("cho").length - 자리.cho) +
+    Math.max(0, 갈래로("ssal").length - 자리.ssal) +
+    Math.max(0, 향들.length - 1);
 
   return <div className="hip-hall">
     <div className="hip-hall-top">
@@ -573,7 +618,17 @@ export default function CandleHall() {
                  보이는 줄과 위에서 센 줄(깊이)이 어긋나지 않는다.
                  남는 3.2% 가 서로 겹치는 몫이다(띄엄띄엄 걸면 격자가
                  되고, 겹쳐야 천장이 찬다) */
-              style={{ "--deung-w": String(100 / 한줄에(등들.length) + 3.2) } as React.CSSProperties}
+              style={
+                {
+                  "--deung-w": String(폭(등들.length)),
+                  // 켜끼리 얼마나 물리나. **%로 준 세로 여백은 폭을 기준으로
+                  // 잰다**(CSS 가 그렇다) — 그걸 모르고 -34% 를 줬더니 여섯
+                  // 켜가 한 켜로 포개졌다. 그림 비율(663/920 = 0.721)로
+                  // 키를 되돌려 계산한다: 한 켜 키 = 폭 ÷ 0.721.
+                  // 그 키의 **44%** 만큼 물린다 — 앞 켜가 뒤 켜의 아랫배까지 먹는다
+                  "--deung-lap": String(-(폭(등들.length) / 0.721) * 0.44),
+                } as React.CSSProperties
+              }
             >
               {등들.map((c, i) => (
                 <CandleMark
@@ -581,21 +636,45 @@ export default function CandleHall() {
                   c={c}
                   i={i}
                   열={한줄에(등들.length)}
+                  줄수={Math.ceil(등들.length / 한줄에(등들.length))}
                   mine={c.uid === me?.uid}
                   onClick={() => 열기(c)}
                 />
               ))}
             </div>
           </div>
-          {물들.length > 0 && (
+          {(물들.length > 0 || 향로) && (
             <div className="hip-hall-altar">
               {물들.map((c, i) => <CandleMark key={c.id} c={c} i={i} 열={99} mine={c.uid === me?.uid} onClick={() => 열기(c)}/>)}
+              {/* 향로는 한 채뿐 — 올린 수만큼 향이 꽂힌다(아홉까지) */}
+              {향로 && (
+                <span
+                  className="hip-hang"
+                  data-mine={향들.some((x) => x.uid === me?.uid) ? "1" : undefined}
+                >
+                  <button
+                    type="button"
+                    className="hip-gong hip-censer"
+                    onClick={() => 열기(향로)}
+                    aria-label={`향 공양 ${향들.length}`}
+                  >
+                    <span className="hip-gong-body">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img className="hip-gong-img" src="/obj/gong-hyang.png" alt="" draggable={false} />
+                      {향들.length > 1 && <b>{Math.min(향들.length, 999)}</b>}
+                    </span>
+                  </button>
+                </span>
+              )}
             </div>
           )}
         </>
       ) : (
         <p className="hip-hall-say">아직 걸린 공양이 없습니다.</p>
       )}
+
+      {/* 자리가 다 찼을 때 — 못 선 것이 몇인지만. 사연에서는 다 읽힌다 */}
+      {못선것 > 0 && <p className="hip-hall-full">자리가 찼습니다 · {못선것} 더</p>}
 
       {/* ── 두 손은 **통 안에** ────────────────────────────
           형: 「이거 저 밑까지 늘리고 버튼을 그 안에 위에 올려」
