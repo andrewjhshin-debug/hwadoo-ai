@@ -69,8 +69,8 @@ export type HipMoktakProps = {
       코드로 다시 그렸던 것은 버렸다. 부모가 그려서 넘긴다 */
   /** 지금 고른 목탁 살갗 그림 */
   mokSrc: string;
-  /** 지금 고른 키캡 두 겹 — 받침(앞) · 몸(뒤) */
-  keySrc: { cup: string; buddha: string; ar: number; dip: string };
+  /** 지금 고른 키캡 — 통짜 한 장 */
+  keySrc: { src: string; ar: number };
   /** 키캡 갈래에서 무엇을 누르나 — 동자인가 목탁인가 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
@@ -259,16 +259,16 @@ export default function HipMoktak({
                   두 장으로 가른다. **윗알(부처상)만 내려가고 받침은 가만히.**
                   그래야 손끝이 진짜 키를 눌렀다고 읽는다.
                   받침이 위에 깔리므로 부처상이 내려가면 그 뒤로 숨는다. */}
+                {/* 통짜 한 장. 누르면 **그냥 내려간다** —
+                    받침과 몸으로 가르지 않는다(형: 「굳이 이격을 둬서
+                    비는 공간이 나오게 할 필요가 없어 보이는데」).
+                    가른 데가 없으니 이격도 빈 데도 없다. */}
                 <span
                   className="hip-keycap-stack"
-                  style={
-                    { "--keycap-ar": keySrc.ar, "--keycap-dip": keySrc.dip } as React.CSSProperties
-                  }
+                  style={{ "--keycap-ar": keySrc.ar } as React.CSSProperties}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-keycap-buddha" src={keySrc.buddha} alt="" draggable={false} />
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-keycap-cup" src={keySrc.cup} alt="" draggable={false} />
+                  <img className="hip-keycap-buddha" src={keySrc.src} alt="" draggable={false} />
                 </span>
             </button>
           )}

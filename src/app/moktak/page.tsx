@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 19;
+const 그림판 = 20;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -179,19 +179,23 @@ const SKINS = {
   //
   // 장마다 두 겹이다 — 받침(cup)은 앞에 가만히, 몸(buddha)은 뒤에서
   // 내려간다. 그래야 손끝이 「키를 눌렀다」로 읽는다.
+  // 키캡 셋 — **한 장씩.**
+  //
+  // 형: 「아예 오브제가 뒤 연꽃을 덮도록 해서 그냥 바로 쑥 내려가도록 해.
+  //      그것도 키캡이잖나」 「굳이 이격을 둬서 비는 공간이 나오게 할
+  //      필요가 없어 보이는데」
+  //
+  // 이 말을 「뒤에 연꽃을 한 장 더 깔라」로 잘못 읽고 그릇을 뒤에 세웠다가
+  // 형한테 제대로 들었다. 그 말이 아니었다 — **가르지 말라**는 말이다.
+  // 물건 하나가 통째로 내려가면 그게 키캡이다. 자른 데가 없으니 이격도,
+  // 빈 데도, 겹쳐서 낀 자리도 없다.
   keycap: [
-    // ar = 그림판 비율(가로/세로). 셋을 한 비율로 맞추려고 여백을 덧댔더니
-    // 상자 안에서 물건이 작아졌다 — 형: 「윗부분이 너무 짧뚱이잖아」.
-    // 판은 제 몸에 맞추고, 상자가 살갗마다 그 비율을 쓴다.
     { id: "dongja", name: "동자", src: "/obj/keycap-dongja.png",
-      cup: "/obj/keycap-dongja-cup.png", buddha: "/obj/keycap-dongja-buddha.png",
-      ar: 935 / 961, dip: "12%", dot: "#ef86b0" },
-    { id: "podae", name: "포대", src: "/obj/keycap-podae-cup.png",
-      cup: "/obj/keycap-podae-cup.png", buddha: "/obj/keycap-podae-buddha.png",
-      ar: 826 / 581, dip: "14%", dot: "#d9a06f" },
-    { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk-cup.png",
-      cup: "/obj/keycap-mireuk-cup.png", buddha: "/obj/keycap-mireuk-buddha.png",
-      ar: 768 / 634, dip: "13%", dot: "#cfa03c" },
+      ar: 664 / 920, dot: "#ef86b0" },
+    { id: "podae", name: "포대", src: "/obj/keycap-podae.png",
+      ar: 558 / 605, dot: "#d9a06f" },
+    { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk.png",
+      ar: 516 / 660, dot: "#cfa03c" },
   ],
 } as const;
 
@@ -273,10 +277,10 @@ export default function MoktakPage() {
         (k) => k.id === skin[kind]
       )?.src ?? SKINS[kind][0].src
     );
-  /** 키캡 두 겹 — 받침(앞) · 몸(뒤) */
+  /** 키캡 한 장 — 통짜 그대로 */
   const keySrc = (() => {
     const k = SKINS.keycap.find((x) => x.id === skin.keycap) ?? SKINS.keycap[0];
-    return { cup: 그림(k.cup), buddha: 그림(k.buddha), ar: k.ar, dip: k.dip };
+    return { src: 그림(k.src), ar: k.ar };
   })();
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
   const beadWide = (
@@ -491,14 +495,6 @@ export default function MoktakPage() {
       for (const k of SKINS[kind]) {
         const im = new window.Image();
         im.src = k.src;
-        // 키캡은 통짜를 안 쓴다 — 두 겹을 미리 받아 둬야 점을 눌렀을 때
-        // 받침만 먼저 오고 몸이 늦게 오는 일이 없다
-        if ("cup" in k) {
-          for (const u of [k.cup, k.buddha]) {
-            const im2 = new window.Image();
-            im2.src = u;
-          }
-        }
       }
     }
   }, []);
