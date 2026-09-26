@@ -534,7 +534,8 @@ service cloud.firestore {
       //    열어 두었더니 브라우저에서 제 문서에 그대로 써 넣을 수 있었다 —
       //    본인확인 문턱과 계급이 둘 다 이름뿐이 된다.
       //    안 보내면(둘 다 없으면) 그대로 두는 것으로 본다.
-      function 그대로(k) {
+      // 이름은 영문으로 — 규칙 언어는 한글 이름을 못 쓴다(위 isOpen 과 같다)
+      function same(k) {
         return !(k in request.resource.data) && !(k in resource.data)
           || (k in request.resource.data) && (k in resource.data)
              && request.resource.data[k] == resource.data[k];
@@ -542,7 +543,7 @@ service cloud.firestore {
       allow update: if isAdmin()
         || (request.auth != null && request.auth.uid == uid
             && request.resource.data.state != '정지'
-            && 그대로('verified') && 그대로('merit'));
+            && same('verified') && same('merit'));
       allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
     }
 
