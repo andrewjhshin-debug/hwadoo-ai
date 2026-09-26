@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 23;
+const 그림판 = 24;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -199,11 +199,11 @@ const SKINS = {
   // 몸은 온몸이 다 있으니 그릇 속으로 내려가도 빈 데가 안 생긴다.
   keycap: [
     { id: "dongja", name: "동자", src: "/obj/keycap-dongja.png",
-      cup: "/obj/keycap-dongja-cup.png", ar: 465 / 824, dot: "#ef86b0" },
+      cup: "/obj/keycap-dongja-cup.png", ar: 465 / 785, dot: "#ef86b0" },
     { id: "podae", name: "포대", src: "/obj/keycap-podae.png",
-      cup: "/obj/keycap-podae-cup.png", ar: 612 / 862, dot: "#d9a06f" },
+      cup: "/obj/keycap-podae-cup.png", ar: 612 / 767, dot: "#d9a06f" },
     { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk.png",
-      cup: "/obj/keycap-mireuk-cup.png", ar: 659 / 972, dot: "#cfa03c" },
+      cup: "/obj/keycap-mireuk-cup.png", ar: 624 / 838, dot: "#cfa03c" },
   ],
 } as const;
 
@@ -817,7 +817,10 @@ export default function MoktakPage() {
                       left: `${50 + 40 * Math.sin(t)}%`,
                       top: `${50 - 23 * Math.cos(t)}%`,
                       // 형: 「동그라미 울타리 튀어나와도 되니까 알 더 크게」
-                      width: `${20 * sc + (1 - front) * 4}%`,
+                      // 형: 「염주 원래 모양대로 해. 알 더 줄이고」
+                      // 알이 서로 닿아 도넛처럼 보였다. 염주는 **알과
+                      // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
+                      width: `${16 * sc + (1 - front) * 3}%`,
                       transform: "translate(-50%, -50%)",
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다

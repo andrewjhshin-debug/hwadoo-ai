@@ -240,23 +240,10 @@ export default function HasimPage() {
         className="relative min-h-0 w-full flex-1 overflow-y-auto overscroll-contain"
         style={{ background: skin.paper, transition: "background .35s" }}
       >
-        {/* 나가는 문과 빛깔 — 오른쪽 위 한 자리에 나란히.
-            먹빛 종이에 금글씨가 기본이고, 눌러 흰 종이로 바꾼다. */}
+        {/* 나가는 문 하나. 빛깔 고르는 단추는 **걷었다** —
+            형: 「하심에 먹 버전 없애고」.
+            하심은 흰 종이에 먹글씨 하나다. 고를 것이 없으면 고민도 없다. */}
         <div className="sticky top-3 z-20 float-right mr-3 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={flip}
-            aria-label={`${skin.next}로`}
-            className="rounded-full px-3 py-1.5 text-[11px] tracking-[0.2em] backdrop-blur transition-opacity hover:opacity-100"
-            style={{
-              color: skin.dim,
-              border: `1px solid ${skin.line}`,
-              background: ink === "gold" ? "rgba(255,255,255,.04)" : "rgba(255,255,255,.7)",
-              opacity: 0.9,
-            }}
-          >
-            {skin.next}
-          </button>
           <Link
             href="/"
             className="rounded-full px-3.5 py-1.5 text-[11px] tracking-[0.25em] backdrop-blur transition-opacity hover:opacity-100"

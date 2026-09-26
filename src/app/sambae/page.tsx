@@ -194,7 +194,10 @@ export default function SambaePage() {
 
       {/* ── 마쳤다 ── */}
       {done && (
-        <div className="rise mt-3 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 py-4 text-center">
+        /* 형: 「저거 밑에 짤린다, 한 화면에」 — 「한 번 더 · 백팔배로」가
+           아래 염주 자리에 깔렸다. 염주 자리는 성역이라 그만큼 비운다
+           (hip-write-foot 이 --hip-rail 만큼 여백을 준다) */
+        <div className="rise hip-write-foot mt-3 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 pt-4 text-center">
           <p className="font-serif text-[26px] leading-none text-gold">+9</p>
           <p className="mt-1.5 text-[11.5px] tracking-[0.2em] text-hanji-faint">공덕</p>
           <p className="mt-3 break-keep text-[12.5px] leading-6 text-hanji-dim">

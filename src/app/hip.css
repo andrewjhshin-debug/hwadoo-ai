@@ -1097,7 +1097,11 @@ html[data-theme="light"] {
     background: #fff;
   }
   .hip-sheet-range input {
+    /* accent-color 는 **찬 쪽만** 칠한다. 안 찬 쪽(트랙)은 브라우저
+       기본값이라 안드로이드 크롬에서 **새까맣게** 나왔다
+       (형: 「저거 검은색 말고 옅은색으로」). 트랙을 따로 칠한다. */
     accent-color: #ef7ba4;
+    background: transparent;
   }
 }
 
@@ -3160,6 +3164,17 @@ html[data-theme="light"] {
   /* 이름표를 걷었으니 알약 사이만 띄운다 */
   .hip-opts .hip-chips { margin-bottom: 18px; }
   .hip-sheet-range span b { color: #17140f; font-weight: 500; }
+  /* 안 찬 쪽 — 옅은 잿분홍 한 줄. 웹킷과 파이어폭스가 이름을 달리 쓴다 */
+  .hip-sheet-range input::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(26, 23, 20, 0.12);
+  }
+  .hip-sheet-range input::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(26, 23, 20, 0.12);
+  }
 }
 
 
@@ -4072,8 +4087,11 @@ html[data-theme="light"] {
     transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
   }
   .hip-keycap-cup { z-index: 2; }
+  /* 형: 「키캡 오브제가 안으로 들어가야지」 — 13% 로는 그릇 뒤로 비켜설
+     뿐이었다. 쉬는 자리에서 이미 그릇에 담겨 있고(그릇이 몸을 6할쯤
+     덮는다), 누르면 거기서 한 뼘 더 가라앉는다 */
   .hip-keycap.on .hip-keycap-buddha {
-    transform: translateY(13%);
+    transform: translateY(18%);
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
   }
   /* 한 장짜리 시절의 「통째로 찌그러뜨리기」는 걷는다 */
