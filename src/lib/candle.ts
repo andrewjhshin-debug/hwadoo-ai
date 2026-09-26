@@ -40,6 +40,8 @@ import {
 // 치수는 candleSpec.ts 에 있다 — /api/candle/light 도 같은 자를 쓴다.
 // 여기서 그대로 다시 내보내므로 부르던 쪽은 손댈 것이 없다.
 export {
+  POUR_UNIT,
+  POUR_PER_DAY,
   CANDLE_PRICE,
   BURN_DAYS,
   NAME_MAX,
@@ -79,6 +81,10 @@ export type Candle = {
   lotusCost?: number;
   /** 이전 초 문서 호환용 — 새 흐름에서는 쓰지 않는다. */
   hapjang?: number;
+  /** 공감 — 몇이 손을 모았나 */
+  cheers?: number;
+  /** 모인 공덕 — 서른 바퀴가 차면 하루가 는다(POUR_PER_DAY) */
+  pool?: number;
   until: number; // 언제 꺼지는가 (밀리초)
   createdAt?: { seconds: number };
 };

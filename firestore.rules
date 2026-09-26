@@ -519,6 +519,21 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── 공감 · 공덕 나누기 ──────────────────────────────────
+    // 형: 「공감이나 댓 쓸 수 있게」 「사람들이 내 공덕 나눠주기」
+    //
+    // 둘 다 **서버(api/candle/cheer)만** 쓴다. 공감 수와 모인 공덕은
+    // 초 문서의 수 한 칸이라, 브라우저가 쓸 수 있으면 아무나 백만을
+    // 적는다. 읽기는 열어 둔다 — 누가 손을 모았는지는 감출 것이 아니다.
+    match /candle-cheers/{key} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    match /candle-pours/{key} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
     // ── 인연 · 도반 찾기 ─────────────────────────────────────
     // 형: 「인연으로 데이팅앱 갈 거야. 가입할 때 사진 무조건 넣어야 하고,
     //      매칭되면 서로 쪽지합 열리게」

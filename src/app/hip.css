@@ -4835,6 +4835,198 @@ html[data-theme="light"] {
     color: #8b8175;
   }
 
+  /* 사연 보러가기 — 왼쪽 아래. 올리는 단추와 짝을 이룬다 */
+  .hip-hall-read {
+    position: absolute;
+    left: 14px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) + 8px);
+    z-index: 5;
+    height: 52px;
+    padding: 0 20px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(6px);
+    font-size: 13.5px;
+    letter-spacing: 0.04em;
+    color: #6e6455;
+    box-shadow: 0 6px 18px rgba(26, 23, 20, 0.08);
+  }
+  .hip-hall-read:active { transform: translateY(1px); }
+
+  /* ── 사연 ── 게시판 결. 목록도 한 자리도 같은 통을 쓴다 */
+  .hip-say {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: end center;
+    background: rgba(26, 23, 20, 0.34);
+    backdrop-filter: blur(3px);
+  }
+  .hip-say-box {
+    width: 100%;
+    max-width: 560px;
+    max-height: 88dvh;
+    overflow-y: auto;
+    border-radius: 22px 22px 0 0;
+    background: #fbfaf8;
+    padding: 16px 18px calc(env(safe-area-inset-bottom, 0px) + 22px);
+  }
+  .hip-say-top {
+    position: sticky;
+    top: -16px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: -16px -18px 12px;
+    padding: 16px 18px 10px;
+    background: #fbfaf8;
+  }
+  .hip-say-top p {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: #2a2520;
+  }
+  .hip-say-top button {
+    font-size: 12.5px;
+    letter-spacing: 0.1em;
+    color: #a39a8f;
+  }
+  .hip-say-list { list-style: none; margin: 0; padding: 0; }
+  .hip-say-list li + li { border-top: 1px solid rgba(26, 23, 20, 0.07); }
+  .hip-say-list button {
+    display: block;
+    width: 100%;
+    padding: 14px 2px;
+    text-align: left;
+  }
+  .hip-say-head { display: flex; align-items: center; gap: 7px; }
+  .hip-say-head b { font-size: 15px; font-weight: 600; color: #2a2520; }
+  .hip-say-head i {
+    font-style: normal;
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(242, 120, 159, 0.14);
+    color: #c2456f;
+  }
+  .hip-say-head u {
+    text-decoration: none;
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(212, 166, 74, 0.16);
+    color: #9a7420;
+  }
+  .hip-say-body {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: 5px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #6e6455;
+  }
+  .hip-say-foot {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+    font-size: 11px;
+    color: #a39a8f;
+  }
+  .hip-say-foot em, .hip-say-foot s, .hip-say-foot time {
+    font-style: normal;
+    text-decoration: none;
+  }
+  .hip-say-foot time { margin-left: auto; }
+
+  /* 남은 날 — 줄자 */
+  .hip-say-left, .hip-say-pool {
+    position: relative;
+    height: 26px;
+    border-radius: 999px;
+    background: rgba(26, 23, 20, 0.06);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .hip-say-left i, .hip-say-pool i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #f3789f, #e0518a);
+    transition: width 0.4s;
+  }
+  .hip-say-pool i { background: linear-gradient(90deg, #e6c06a, #d2a24a); }
+  .hip-say-left b, .hip-say-pool b {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: #4a423a;
+  }
+  .hip-say-wish {
+    margin: 0 0 8px;
+    font-size: 15px;
+    line-height: 1.85;
+    color: #2a2520;
+    white-space: pre-wrap;
+  }
+  .hip-say-by { margin: 0 0 14px; font-size: 11.5px; color: #a39a8f; }
+  .hip-say-acts { display: flex; gap: 8px; margin-bottom: 10px; }
+  .hip-say-acts button {
+    flex: 1;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    font-size: 13px;
+    color: #6e6455;
+  }
+  .hip-say-acts button[data-on="1"] {
+    border-color: rgba(226, 122, 158, 0.6);
+    background: rgba(242, 120, 159, 0.12);
+    color: #c2456f;
+  }
+  .hip-say-acts button:disabled { opacity: 0.38; }
+  .hip-say-note { margin: 0 0 10px; font-size: 12px; color: #c2456f; }
+  .hip-say-cmt { margin-top: 16px; border-top: 1px solid rgba(26, 23, 20, 0.07); padding-top: 12px; }
+  .hip-say-cmt p { margin: 0 0 9px; font-size: 13px; line-height: 1.7; color: #4a423a; }
+  .hip-say-cmt span { margin-right: 7px; color: #c2456f; }
+  .hip-say-write { display: flex; gap: 7px; margin-top: 10px; }
+  .hip-say-write input {
+    flex: 1;
+    min-width: 0;
+    height: 42px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    padding: 0 14px;
+    font-size: 13px;
+    outline: none;
+  }
+  .hip-say-write button {
+    padding: 0 16px;
+    border-radius: 999px;
+    background: #ef7ba4;
+    color: #fff;
+    font-size: 13px;
+  }
+  .hip-say-mine { display: flex; gap: 8px; margin-top: 18px; }
+  .hip-say-mine button {
+    flex: 1;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    font-size: 12.5px;
+    color: #8b8175;
+  }
+
   /* 공양 셋 고르기 — 한 줄에 셋 */
   .hip-deung-pick[data-four="1"] { grid-template-columns: repeat(4, 1fr); }
   .hip-deung-pick[data-four="1"] button { padding: 11px 4px; }
