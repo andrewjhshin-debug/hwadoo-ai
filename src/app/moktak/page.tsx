@@ -755,7 +755,10 @@ export default function MoktakPage() {
                   style={{
                     left: `${50 + 40 * Math.sin(t)}%`,
                     top: `${50 - 23 * Math.cos(t)}%`,
-                    width: `${17 * sc + (1 - front) * 3}%`,
+                    // 형: 「동그라미 울타리 튀어나와도 되니까 알 더 크게」
+                    // 알이 고리 밖으로 조금 나가도 좋다 — 염주는 울타리
+                    // 안에 든 물건이 아니라 손에 잡히는 물건이다
+                    width: `${20 * sc + (1 - front) * 4}%`,
                     transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
                     zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                     // 자리도 색도 **같은 박자**로. 하나만 미끄러지면 어긋난다
