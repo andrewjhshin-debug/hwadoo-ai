@@ -83,30 +83,43 @@ export async function POST(req: Request) {
   }
 
   // ── 공덕 나누기 ──
-  // 한 자리에 하루 한 번. 두 번째부터는 조용히 돌려보낸다
+  // 한 자리에 하루 한 번.
+  //
+  // **그 검사가 트랜잭션 밖에 있었다.** 밖에서 한 번 보고 안에서 쓰면,
+  // 한꺼번에 서른 번을 쏘면 서른 번 다 「없다」를 보고 서른 번 다 적힌다 —
+  // 혼자서 하루를 늘릴 수 있었다. 「서른 사람이 손을 모아야」가 그 자리에서
+  // 깨진다. 읽는 것도 쓰는 것도 **한 트랜잭션 안**에서 한다.
   const 날 = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
   const 자국 = db.doc(`candle-pours/${id}_${uid}_${날}`);
-  if ((await 자국.get()).exists)
-    return Response.json({ error: "already-today" }, { status: 409 });
 
+  let 이미 = false;
   const 늘었나 = await db.runTransaction(async (tx) => {
-    const d = (await tx.get(초)).data()!;
+    // 트랜잭션은 **읽기를 다 하고** 쓴다
+    const [자국s, 초s] = await Promise.all([tx.get(자국), tx.get(초)]);
+    if (자국s.exists) {
+      이미 = true;
+      return false;
+    }
+    const d = 초s.data()!;
+    // 이미 꺼진 것에는 안 붓는다 — 부어도 살아나지 않는다
+    const until = typeof d.until === "number" ? d.until : 0;
+    if (until <= Date.now()) {
+      이미 = true;
+      return false;
+    }
     const 모인 = (typeof d.pool === "number" ? d.pool : 0) + POUR_UNIT;
     const 하루 = 모인 >= POUR_PER_DAY;
     tx.set(
       초,
-      harvest(하루, 모인, typeof d.until === "number" ? d.until : Date.now()),
+      하루
+        ? { pool: 모인 - POUR_PER_DAY, until: until + DAY }
+        : { pool: 모인 },
       { merge: true }
     );
     tx.set(자국, { id, uid, day: 날, at: FieldValue.serverTimestamp() });
     return 하루;
   });
 
+  if (이미) return Response.json({ error: "already-today" }, { status: 409 });
   return Response.json({ ok: true, added: 늘었나, unit: POUR_UNIT });
-
-  /** 하루가 찼으면 날을 늘리고 그릇을 비운다 */
-  function harvest(하루: boolean, 모인: number, until: number) {
-    if (!하루) return { pool: 모인 };
-    return { pool: 모인 - POUR_PER_DAY, until: Math.max(until, Date.now()) + DAY };
-  }
 }

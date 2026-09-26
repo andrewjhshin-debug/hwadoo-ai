@@ -231,11 +231,11 @@ service cloud.firestore {
     }
 
     // ── 쪽지 — 공통 판별 ──
+    // 뒷방 판별은 **한 가지여야 한다.** 여기만 부계정 하나가 빠져 있어서
+    // 그 메일로 들어오면 「연꽃 없이 무제한」이라 적힌 단추가 아무 일도
+    // 안 했다(catch 가 삼켜서 말도 안 나왔다). isAdmin 과 같이 둔다.
     function dmIsAdmin() {
-      return request.auth != null
-        && (request.auth.uid == "HvYY1QPhLiMLc5NezM1jt0QdUiM2"
-            || (request.auth.token.email == "iphonecharging1@gmail.com"
-                && request.auth.token.email_verified == true));
+      return isAdmin();
     }
     function dmOpen() {
       return true; // 쪽지 전체 개방 스위치 — config.ts DM_ENABLED 와 함께
@@ -430,13 +430,25 @@ service cloud.firestore {
     // 대신 **거짓으로 오래 태우지 못하게** until 을 가둔다 —
     // 초는 49일, 등은 이레. 그 위로 적으면 아예 안 써진다.
     match /candles/{id} {
-      allow read: if true;
+      // **「나만 보기」는 정말 나만 본다.**
+      // `read: if true` 로 열어 두고 공개 여부는 브라우저 filter 하나가
+      // 지키고 있었다 — 주소만 알면 남의 사연과 이름이 통째로 읽혔다.
+      // 사연은 사람이 제일 깊은 데를 적는 칸이다. 규칙이 지켜야 한다.
+      allow read: if resource.data.visibility == 'public'
+        || !('visibility' in resource.data)   // 옛 문서(갈래 없음) — 공개로 보던 것
+        || isAdmin()
+        || (request.auth != null && request.auth.uid == resource.data.uid);
       // 값이 드는 초(tier 'candle')는 **브라우저가 못 세운다** —
       // /api/candle/light 가 지갑과 초를 한 트랜잭션에 묶어 쓴다(Admin SDK).
       // 예전엔 브라우저가 연꽃을 먼저 빼고 문서를 나중에 썼는데, 그 사이에서
       // 엎어지면 연꽃만 사라졌다. 여기 이 규칙이 그 길을 아예 닫는다.
       // 회향의 등(tier 'light')은 값이 안 드니 그대로 브라우저에 열어 둔다.
-      allow create: if request.auth != null
+      // 회향의 등(tier 'light')을 브라우저가 세우던 길은 **닫는다.**
+      // 이 길로 초를 세우는 코드가 한 줄도 없는데 문만 열려 있었다 —
+      // 콘솔 한 줄로 연꽃 0송이짜리 공개 초를 남의 법명으로 무제한
+      // 걸 수 있었다. 값이 드는 것도 안 드는 것도 서버가 세운다.
+      allow create: if false
+        && request.auth != null
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.tier == 'light'
         && request.resource.data.forName is string
@@ -577,10 +589,16 @@ service cloud.firestore {
       // 그러니 처음 만든 뒤 **두 번째 저장부터** 문이 닫혔다.
       // (형: 「인연 프로필 채우려면 계속 이렇게 뜸」)
       // 있을 때만 본다.
+      // **정지당한 사람은 스스로 못 일어난다.**
+      // 「'정지' 로는 못 간다」만 막고 있었다 — 이미 정지인 사람이
+      // '활동' 으로 쓰는 것은 막지 않았으니, 저장 한 번이면 도로 판에
+      // 섰다. 뒷방이 내린 것을 본인이 무를 수 있으면 내린 것이 아니다.
       allow update: if isAdmin()
         || (request.auth != null && request.auth.uid == uid
             && (!('state' in request.resource.data)
                 || request.resource.data.state != '정지')
+            && (!('state' in resource.data)
+                || resource.data.state != '정지')
             && same('verified') && same('merit'));
       allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
     }
@@ -598,12 +616,14 @@ service cloud.firestore {
     // 합장 — **보낸 것만** 쓴다. 받은 목록은 서버로만 센다.
     // 「누가 나에게 합장했나」가 연꽃으로 파는 것이라, 클라이언트가
     // 읽을 수 있으면 값이 통째로 무너진다.
+    // 합장은 **서버만** 적는다.
+    // 예전엔 「보낸 것만 쓴다」까지 보고 브라우저에 열어 두었는데, 그러면
+    // 콘솔 한 줄로 아무에게나 미리 깔아 둘 수 있다 — 오늘 뽑혔는지,
+    // 막힌 사이인지, 연꽃을 냈는지를 규칙은 못 본다. 그 검사는 전부
+    // /api/yeon/hap 이 하고 있으니, 문도 거기 하나만 둔다.
     match /yeon-haps/{id} {
       allow read: if isAdmin();
-      allow create: if request.auth != null
-        && request.resource.data.from == request.auth.uid
-        && id == request.auth.uid + '_' + request.resource.data.to;
-      allow update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     // 인연이 닿은 것 — 양쪽만 읽는다. 맺고 끊는 것은 서버 몫

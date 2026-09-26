@@ -121,8 +121,9 @@ export default function 오늘의인연() {
       탈잡기(r.탈);
       return;
     }
-    사람들잡기(r.picks);
-    끝난이잡기(r.done);
+    // 막은 사람은 서버 목록에 안 남는다 — 여기서 뺀다
+    사람들잡기(r.picks.filter((p) => !막은이.current.includes(p.uid)));
+    끝난이잡기([...r.done, ...막은이.current]);
     칸잡기({ cap: r.cap, max: r.max });
   }, []);
 
@@ -182,7 +183,12 @@ export default function 오늘의인연() {
     window.setTimeout(() => 뒤집힘잡기(true), 175);
   };
 
-  const 치우기 = (uid: string) => 끝난이잡기((v) => [...v, uid]);
+  const 치우기 = (uid: string) => 끝난이잡기((v) => (v.includes(uid) ? v : [...v, uid]));
+  /** 막기·신고로 치운다 — 다시 읽어도 안 돌아오게 따로 적어 둔다 */
+  const 영영치우기 = (uid: string) => {
+    if (!막은이.current.includes(uid)) 막은이.current.push(uid);
+    치우기(uid);
+  };
 
   /** 연꽃 한 송이로 한 사람 더 */
   const 더보기 = async () => {
@@ -226,6 +232,12 @@ export default function 오늘의인연() {
     }
   };
 
+  /** 막았거나 신고한 사람 — 이 판이 살아 있는 동안은 다시 안 세운다.
+      서버 목록(done)은 합장·넘김만 적는다. 막기·신고는 그 칸에 안 적히니
+      다시 읽으면 그 카드가 되살아나고, 서버는 「막힌 사이」라며 합장도
+      다음에도 거절한다 — 그날 인연이 통째로 멈춘다. */
+  const 막은이 = useRef<string[]>([]);
+
   const 막기누름 = async () => {
     if (!이) return;
     메뉴잡기(false);
@@ -235,10 +247,10 @@ export default function 오늘의인연() {
       { confirm: "막기", cancel: "두기" }
     );
     if (!ok) return;
-    if (가안인가) return 치우기(이.uid);
+    if (가안인가) return 영영치우기(이.uid);
     try {
       await 막기(이.uid);
-      치우기(이.uid);
+      영영치우기(이.uid);
     } catch {
       탈잡기("막지 못했습니다");
     }
@@ -248,11 +260,11 @@ export default function 오늘의인연() {
     if (!이) return;
     신고창잡기(false);
     메뉴잡기(false);
-    if (가안인가) return 치우기(이.uid);
+    if (가안인가) return 영영치우기(이.uid);
     try {
       await 신고({ uid: 이.uid, name: 이.name }, 까닭);
       await 막기(이.uid);
-      치우기(이.uid);
+      영영치우기(이.uid);
     } catch {
       탈잡기("보내지 못했습니다");
     }

@@ -21,7 +21,11 @@ export async function POST(req: Request) {
   try {
     const t = await getAuth(app).verifyIdToken(token);
     uid = t.uid;
-    email = t.email;
+    // **메일이 확인된 것만** 관리자 판별에 쓴다. 안 보면 남이 그 메일을
+    // 제 계정에 달아 놓는 것만으로 값을 안 치르는 문이 열린다.
+    // 규칙(isAdmin)과 형제 라우트 넷은 다 본다 — 한쪽만 느슨하면
+    // 그쪽이 문이 된다.
+    email = t.email_verified ? (t.email ?? undefined) : undefined;
   } catch {
     return Response.json({ error: "bad-token" }, { status: 401 });
   }

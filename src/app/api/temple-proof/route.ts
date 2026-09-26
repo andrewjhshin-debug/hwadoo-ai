@@ -21,6 +21,8 @@ import {
   type DocumentData,
 } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
+import { 지갑열기 } from "@/lib/wallet";
+import { FIRST_GRANT } from "@/lib/config";
 import { TEMPLES } from "@/lib/pilgrimage";
 import { ANON_NAMES } from "@/lib/anonName";
 import type { App } from "firebase-admin/app";
@@ -167,10 +169,20 @@ export async function POST(req: Request) {
       // 이미 있으면 여기 오지 않는다. 절을 옮겨 다니며 여러 번 받는 것은
       // 막지 않는다. 그건 정말로 절을 여러 곳 간 것이다.
       try {
-        await db.doc(`wallets/${uid}`).set(
-          { lotus: FieldValue.increment(1) },
-          { merge: true }
-        );
+        // 지갑이 없으면 **첫 선물을 함께** 얹는다 — 지갑을 만드는 길이
+        // 여럿인데 선물을 얹는 곳이 일부뿐이라, 절 인증을 먼저 한 사람은
+        // 세 송이를 영영 못 받았다(lib/wallet)
+        const 지갑 = db.doc(`wallets/${uid}`);
+        await db.runTransaction(async (tx) => {
+          const { 처음인가 } = await 지갑열기(tx, 지갑);
+          tx.set(
+            지갑,
+            처음인가
+              ? { lotus: FIRST_GRANT + 1, paid: 0, free: FIRST_GRANT + 1 }
+              : { lotus: FieldValue.increment(1), free: FieldValue.increment(1) },
+            { merge: true }
+          );
+        });
         lotus = 1;
       } catch {
         // 연꽃을 못 줘도 참배 자체는 남는다 — 이 한 줄 때문에 인증을 무르지 않는다

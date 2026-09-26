@@ -17,6 +17,8 @@
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
+import { 지갑열기 } from "@/lib/wallet";
+import { FIRST_GRANT } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -72,7 +74,17 @@ export async function POST(req: Request) {
         lotus: GRANT,
         at: FieldValue.serverTimestamp(),
       });
-      tx.set(wallet, { lotus: FieldValue.increment(GRANT) }, { merge: true });
+      // **첫 지갑이면 선물을 함께 얹는다.**
+      // 지갑을 만드는 길이 여럿인데 선물을 얹는 곳은 일부뿐이었다 —
+      // 보상을 먼저 받은 사람은 세 송이를 영영 못 받았다(lib/wallet).
+      const { 처음인가 } = await 지갑열기(tx, wallet);
+      tx.set(
+        wallet,
+        처음인가
+          ? { lotus: FIRST_GRANT + GRANT, paid: 0, free: FIRST_GRANT + GRANT }
+          : { lotus: FieldValue.increment(GRANT), free: FieldValue.increment(GRANT) },
+        { merge: true }
+      );
       return true;
     });
 

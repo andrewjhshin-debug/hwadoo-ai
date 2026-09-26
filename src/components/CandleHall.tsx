@@ -8,7 +8,8 @@ import Gongyang, { type 공양갈래 } from "@/components/Gongyang";
 import LotusCount, { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
 import { loadMe } from "@/lib/me";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { EXTEND_DAYS, POUR_PER_DAY, POUR_UNIT, PRIVATE_BURN_DAYS, PRIVATE_CANDLE_PRICE, PUBLIC_BURN_DAYS, PUBLIC_CANDLE_PRICE } from "@/lib/candleSpec";
 import { giveMerit } from "@/lib/merit";
 import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
@@ -154,6 +155,17 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
       .then((x) => setComments(Array.isArray(x.comments) ? x.comments : []));
   }, [c.id]);
   useEffect(() => { if (c.visibility === "public") read(); }, [c.visibility, read]);
+  // **이미 공감했나**를 읽어 온다. 안 읽어 오면 다시 열었을 때 눌림이
+  // 꺼져 있고, 누르는 순간 서버는 「두 번째」로 보아 **조용히 거둔다** —
+  // 공감하려다 공감을 무르는 꼴이 된다.
+  useEffect(() => {
+    if (!me) return;
+    let 살아있다 = true;
+    void getDoc(doc(db, "candle-cheers", `${c.id}_${me.uid}`))
+      .then((s) => { if (살아있다) 눌렀나잡기(s.exists()); })
+      .catch(() => {});
+    return () => { 살아있다 = false; };
+  }, [c.id, me]);
 
   const 두드리기 = async (act: "cheer" | "pour") => {
     if (!me || busy) return null;
@@ -217,7 +229,11 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
         headers: { "content-type": "application/json", authorization: `Bearer ${await me.getIdToken()}` },
         body: JSON.stringify({ id: c.id }),
       });
-      if (r.ok) { pingLotus(); onChanged(); }
+      if (r.ok) { pingLotus(); onChanged(); return; }
+      // **조용히 실패하지 않는다.** 연꽃이 모자라면 402 가 오는데 화면은
+      // 아무 말도 안 했다 — 눌러도 아무 일이 없으니 고장으로 읽힌다.
+      // (관리자는 값을 안 치러 늘 성공하니 형 계정으로는 안 보였다)
+      나눔말잡기(r.status === 402 ? "연꽃이 모자랍니다" : "늘리지 못했습니다");
     } finally { setBusy(false); }
   };
 

@@ -2630,6 +2630,15 @@ html[data-theme="light"] {
   }
   /* 문이 열린 동안은 염주를 걷는다 */
   body:has(.hip-gate) .hip-mala { display: none !important; }
+  /* ── 창이 열리면 염주 띠를 내린다 ─────────────────────────
+     z 로는 못 이긴다. 창들은 #scroll-box(z 1) 안에 있고 염주는 그
+     **바깥**이라, 창에 70 을 줘도 쌓임 맥락이 달라 소용이 없다.
+     이 함정은 이 파일 위쪽에 이미 적혀 있는데, 그 뒤에 새로 만든 창
+     둘(인연 신고 · 법당 사연)이 또 걸렸다.
+     새 창을 만들 때마다 여기 한 줄을 보태는 것이 유일하게 도는 길이다. */
+  body:has(.hip-say) .hip-mala,
+  body:has(.hip-yeon-why) .hip-mala,
+  body:has(.hip-deung-form) .hip-mala { display: none !important; }
 }
 
 /* 공덕 알림 알약 — 그림자를 걷는다.

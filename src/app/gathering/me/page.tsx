@@ -60,6 +60,20 @@ export default function 인연내프로필() {
   const 이름잠김 = !!me?.nameChanged;
   useEffect(() => 법명잡기(loadMe()?.name ?? ""), []);
 
+  /** 법명이 인연 프로필에 없으면 한 번 적어 준다.
+      법명은 브라우저 장부(me.ts)에 있고 인연 카드는 프로필의 name 을
+      읽는다. 둘을 이어 주는 코드가 없어서, 법명을 고친 적 없는 사람은
+      남에게 **「이름 없는 이」**로 떴다. */
+  const 법명맞추기 = useCallback(async (p: 인연프로필 | null) => {
+    const 내이름 = loadMe()?.name?.trim();
+    if (!p || !내이름 || p.name === 내이름) return;
+    try {
+      await 프로필저장({ name: 내이름 });
+    } catch {
+      /* 못 적어도 판은 돈다 */
+    }
+  }, []);
+
   const 다시읽기 = useCallback(async () => {
     // **반드시 잡는다.** 규칙이 막거나 그물이 끊기면 여기서 던져지는데,
     // 부르는 쪽이 `void 다시읽기()` 라 아무도 안 받는다 — 삼켜지지 않은
@@ -68,6 +82,7 @@ export default function 인연내프로필() {
       const p = await 내프로필();
       setMe(p);
       if (p?.name) 법명잡기(p.name);
+      else void 법명맞추기(p);
     } catch (e) {
       탈잡기(e instanceof Error ? e.message : "프로필을 읽지 못했습니다");
     }

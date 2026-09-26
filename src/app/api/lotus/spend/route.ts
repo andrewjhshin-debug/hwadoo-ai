@@ -23,6 +23,7 @@
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
+import { 지갑열기 } from "@/lib/wallet";
 import { isAdminAccount } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +40,11 @@ export async function POST(req: Request) {
   try {
     const t = await getAuth(app).verifyIdToken(token);
     uid = t.uid;
-    email = t.email;
+    // **메일이 확인된 것만** 관리자 판별에 쓴다. 안 보면 남이 그 메일을
+    // 제 계정에 달아 놓는 것만으로 값을 안 치르는 문이 열린다.
+    // 규칙(isAdmin)과 형제 라우트 넷은 다 본다 — 한쪽만 느슨하면
+    // 그쪽이 문이 된다.
+    email = t.email_verified ? (t.email ?? undefined) : undefined;
   } catch {
     return Response.json({ error: "bad-token" }, { status: 401 });
   }
@@ -61,13 +66,11 @@ export async function POST(req: Request) {
 
   try {
     const left = await db.runTransaction(async (tx) => {
-      const s = await tx.get(wallet);
-      const d = s.exists ? s.data()! : null;
-      const lotus: number = typeof d?.lotus === "number" ? d.lotus : 0;
-      // 옛 지갑은 나뉘어 있지 않다 — 전부 무상분으로 본다(결제가 열린 적이
-      // 없었으니 사실이다). 이 한 줄이 옛것과 새것을 잇는다.
-      const paid: number = typeof d?.paid === "number" ? d.paid : 0;
-      const free: number = typeof d?.free === "number" ? d.free : lotus - paid;
+      // **지갑이 없으면 첫 선물을 얹어 연다** — 지갑을 만드는 길이 여럿인데
+      // 선물을 얹는 곳은 일부뿐이라, 어느 길로 먼저 들어왔느냐에 따라
+      // 세 송이가 통째로 사라졌다. 여는 자리를 하나로 모은다(lib/wallet)
+      const { 지갑: w0 } = await 지갑열기(tx, wallet);
+      const { lotus, paid, free } = w0;
 
       if (lotus < n) return -1;
 

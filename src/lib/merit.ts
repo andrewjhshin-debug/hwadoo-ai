@@ -547,7 +547,12 @@ export const LOTUS_ROUNDS = LOTUS_PRICE / ROUND;
 
 /** 지금 쓸 수 있는 공덕 — 쌓은 것에서 쓴 것을 뺀다 */
 export function meritBalance(l: MeritLedger = loadMerit()): number {
-  return Math.max(0, l.total);
+  // **쓴 것을 뺀다.** 안 빼고 있었다 —
+  // spendMerit 은 `spent` 를 꼬박꼬박 적는데 이 셈이 그걸 안 봤다.
+  // 그래서 한 번 32,400 을 넘긴 사람은 그 뒤로 수행을 하나도 안 해도
+  // **날마다 연꽃 한 송이가 영구히** 나왔다(서버는 하루 한 송이만 막는다).
+  // 쌓은 것(total)은 자리를 매기는 수라 안 줄고, 쥔 것(balance)만 준다.
+  return Math.max(0, l.total - (l.spent ?? 0));
 }
 
 /** 바꿀 수 있는 연꽃 수 */
@@ -667,7 +672,13 @@ export function giveMerit(to: string, n: number = GIVE_UNIT): MeritLedger | null
   if (giveLeftToday() <= 0) return null;
   const give = Math.max(0, Math.floor(n));
   const l = loadMerit();
+  // **쥔 공덕에서 나간다.** 바로 위 주석이 「balance 에서 108 이 나간다」고
+  // 적어 두고 코드는 given 만 올리고 있었다 — 그래서 회향도 공덕 나누기도
+  // 공짜였다. 선택이 아닌 것은 기능이 아니라던 그 자리가 도로 공짜가 됐다.
+  // 쥔 것이 모자라면 못 돌린다.
+  if (meritBalance(l) < give) return null;
   l.given += give;
+  l.spent = (l.spent ?? 0) + give;
   save(l);
   try {
     const list = loadLamps();

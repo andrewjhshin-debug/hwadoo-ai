@@ -22,6 +22,7 @@
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
+import { 지갑열기 } from "@/lib/wallet";
 import { FREE_PICKS, MAX_PICKS, today, 뽑기 } from "@/lib/yeonPick";
 import { isAdminAccount } from "@/lib/config";
 
@@ -39,7 +40,11 @@ export async function POST(req: Request) {
   try {
     const t = await getAuth(app).verifyIdToken(token);
     uid = t.uid;
-    email = t.email;
+    // **메일이 확인된 것만** 관리자 판별에 쓴다. 안 보면 남이 그 메일을
+    // 제 계정에 달아 놓는 것만으로 값을 안 치르는 문이 열린다.
+    // 규칙(isAdmin)과 형제 라우트 넷은 다 본다 — 한쪽만 느슨하면
+    // 그쪽이 문이 된다.
+    email = t.email_verified ? (t.email ?? undefined) : undefined;
   } catch {
     return Response.json({ error: "bad-token" }, { status: 401 });
   }
@@ -66,12 +71,11 @@ export async function POST(req: Request) {
   if (!공짜) {
     const wallet = db.doc(`wallets/${uid}`);
     const 남음 = await db.runTransaction(async (tx) => {
-      const w = await tx.get(wallet);
-      const d = w.exists ? w.data()! : null;
-      const lotus: number = typeof d?.lotus === "number" ? d.lotus : 0;
-      const paid: number = typeof d?.paid === "number" ? d.paid : 0;
-      // 옛 지갑({lotus}만 있는 것)은 전부 무상분으로 본다
-      const free: number = typeof d?.free === "number" ? d.free : lotus - paid;
+      // **지갑이 없으면 첫 선물을 얹어 연다.** 없다고 곧장 「모자랍니다」로
+      // 돌려보내고 있었다 — 아직 한 송이도 안 쓴 사람에게. 쪽지 청하기와
+      // 초 켜기는 같은 자리에서 세 송이를 쥐여 준다. 문이 다르게 답하면 안 된다.
+      const { 지갑: w0 } = await 지갑열기(tx, wallet);
+      const { lotus, paid, free } = w0;
       if (lotus < 1) return -1;
       // **무상분 먼저** — 남은 유상분이 곧 환불 대상이 된다
       const 무상차감 = Math.min(free, 1);
