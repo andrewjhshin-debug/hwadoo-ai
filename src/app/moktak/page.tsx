@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 8;
+const 그림판 = 10;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -751,134 +751,89 @@ export default function MoktakPage() {
 
         {beadWide && (
           <div aria-hidden className="pointer-events-none absolute inset-0">
-            {Array.from({ length: RING_BEADS }, (_, i) => {
-              const t = ((i / RING_BEADS) * 360 + angle) * (Math.PI / 180);
-              const front = (1 - Math.cos(t)) / 2;
-              const sc = 0.62 + 0.52 * front;
-              const degrees = ((t * 180) / Math.PI + 360) % 360;
-              // 형: 「빨간 줄로 세로로 그은 데가 기준점이고, 그 앞부터
-              //      황금색이 채워지게」 — 기준은 **아래 가운데**(180도)다.
-              // 손이 굴리는 알이 거기 있는데 금은 저 위에서 시작하고 있었다.
-              // ── 금이 차는 셈 ────────────────────────────────
-              // 형: 「금 고리가 알보다 먼저 가는 것도 문제고, 자연스럽지가
-              //      않아」 — 까닭이 있었다. 고리에 세운 알은 스물일곱인데
-              //      셈은 백여덟이다. **알 하나가 네 타를 맡는다.** 고리는
-              //      한 타마다 움직이고 알은 네 타에 한 번 툭 켜지니, 세 타
-              //      동안 고리가 앞서 달리다 알이 뒤늦게 따라붙었다.
-              //
-              // 알도 **조금씩** 차게 한다. 물결이 그 알을 지나간 만큼만
-              // 금이 든다. 그러면 한 타마다 어딘가는 반드시 움직이고,
-              // 고리와 알이 같은 것을 말하게 된다.
-              const 칸 = 360 / RING_BEADS;
-              const fromMarker = (180 - degrees + 360) % 360;
-              const 물결 = f * 360;
-              // 물결은 **母珠 다음 알**에서 시작한다.
-              // 기준 자리(0도)는 박아 둔 母珠가 덮고 있어서, 거기서
-              // 시작하면 첫 네 타 동안 금이 하나도 안 보인다 —
-              // 치는데 아무 일도 안 일어나는 것처럼 느껴진다.
-              // 한 칸 밀어 두면 첫 타부터 母珠 옆이 물든다.
-              const 채움 = pos === 0
-                ? 0
-                : Math.max(0, Math.min(1, (물결 - (fromMarker - 칸)) / 칸));
-              // 맨 앞자리는 **박아 둔 알**이 맡는다(아래 참고).
-              // 예전엔 180도에 가까운 알을 골라 1.07배로 키우고 맨 앞으로
-              // 끌어올렸는데, 알은 늘 그 자리를 **지나가는 중**이라 켜졌다
-              // 꺼졌다 했다 — 형: 「막 앞뒤앞뒤가 되잖아 멀미나」.
-              // 튀기는 걷고, 도는 알은 그냥 흐르게 둔다.
-              // 형: 「싸구려 레몬색도 문제」
-              // sepia 도 hue-rotate 도 답이 아니었다. sepia 는 결을 뭉개
-              // 레몬색을 만들고, hue-rotate 는 진짜 색상 회전이 아니라
-              // 행렬 근사라 채도가 주저앉아 겨자색이 된다.
-              // 금빛 알을 **따로 구워 뒀다**(bead-paw-one-gold.png) —
-              // 화소마다 HSL 로 풀어 색만 옮기고 그늘을 진한 호박빛으로
-              // 깔았다. 결이 살아 있으니 금붙이로 보인다.
-              const 분홍결 = `saturate(1.45) brightness(${(1.05 + 0.08 * front).toFixed(2)})`;
-              const 금결 = `brightness(${(1.0 + 0.09 * front).toFixed(2)})`;
-              return (
-                <span
-                  key={i}
-                  className="absolute block"
-                  style={{
-                    left: `${50 + 40 * Math.sin(t)}%`,
-                    top: `${50 - 23 * Math.cos(t)}%`,
-                    // 형: 「동그라미 울타리 튀어나와도 되니까 알 더 크게」
-                    // 알이 고리 밖으로 조금 나가도 좋다 — 염주는 울타리
-                    // 안에 든 물건이 아니라 손에 잡히는 물건이다
-                    width: `${20 * sc + (1 - front) * 4}%`,
-                    transform: "translate(-50%, -50%)",
-                    zIndex: Math.round(front * 100),
-                    // 자리도 색도 **같은 박자**로. 하나만 미끄러지면 어긋난다
-                    transition:
-                      "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
-                  }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={그림("/obj/bead-paw-one.png")}
-                    alt=""
-                    draggable={false}
-                    className="block w-full"
-                    style={{ filter: 분홍결 }}
-                  />
-                  {/* 금은 **덮는다** — 색을 갈아 끼우는 게 아니라 위에 얹어
-                      스며들게. 그래야 차오르는 것이 보인다 */}
-                  {채움 > 0 && (
-                    // eslint-disable-next-line @next/next/no-img-element
+            {/* ── 고리에 알 놓기 ────────────────────────────────
+                형: 「가운데 염주를 고정하는 게 아니고 자연스럽게 돌면서,
+                     가운데 앞에는 가운데.. 좀 자연스럽게 다시」
+
+                앞서 두 번 어긋났다 —
+                 ① 앞자리에 가까운 알을 골라 키우고 맨 앞으로 올렸다.
+                    알은 늘 그 자리를 **지나가는 중**이라 켜졌다 꺼졌다 했다
+                 ② 그래서 아예 알 하나를 못 박았다. 이번엔 고리가 도는데
+                    앞의 한 알만 안 돌아서 따로 놀았다
+
+                까닭은 하나다 — **고리는 백여덟으로 돌고 알은 스물일곱이다.**
+                한 알이 네 타를 맡는데 고리를 한 타마다 돌리니, 알이 앞자리
+                한가운데 서는 순간이 네 타에 한 번뿐이었다.
+
+                고리를 **알 단위로** 돌린다. 네 타에 한 칸씩 툭 돌고, 그
+                사이에는 앞자리 알에 금이 차오른다. 그러면 앞 한가운데에는
+                늘 알 하나가 **정확히** 서 있고, 고리는 제 박자로 돈다.
+                못 박은 알은 없다 — 다 같이 돈다. */}
+            {(() => {
+              const 칸 = 360 / RING_BEADS;          // 한 알이 차지하는 각
+              const 타당 = BEADS / RING_BEADS;      // 알 하나가 맡는 타수 = 4
+              const 다찬알 = Math.floor(pos / 타당); // 다 물든 알 수
+              const 안 = (pos % 타당) / 타당;        // 지금 알이 얼마나 찼나
+
+              return Array.from({ length: RING_BEADS }, (_, i) => {
+                // 지금 알(i = 다찬알)이 아래 한가운데(180도)에 선다.
+                // 다찬알이 하나 늘면 모든 알의 각이 한 칸씩 줄어 —
+                // 고리가 반시계로 한 칸 돈다
+                const deg = 180 + (i - 다찬알) * 칸;
+                const t = deg * (Math.PI / 180);
+                const front = (1 - Math.cos(t)) / 2;
+                const sc = 0.62 + 0.52 * front;
+                // 금은 **지나온 알**에 든다. 지금 알은 차는 중이고,
+                // 아직 안 온 알은 분홍 그대로다
+                const 채움 = i < 다찬알 ? 1 : i === 다찬알 ? 안 : 0;
+                const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})`;
+                const 금결 = `brightness(${(1.0 + 0.07 * front).toFixed(2)})`;
+                return (
+                  <span
+                    key={i}
+                    className="absolute block"
+                    style={{
+                      left: `${50 + 40 * Math.sin(t)}%`,
+                      top: `${50 - 23 * Math.cos(t)}%`,
+                      // 형: 「동그라미 울타리 튀어나와도 되니까 알 더 크게」
+                      width: `${20 * sc + (1 - front) * 4}%`,
+                      transform: "translate(-50%, -50%)",
+                      zIndex: Math.round(front * 100),
+                      // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
+                      transition:
+                        "left .26s cubic-bezier(.32,.72,.3,1), top .26s cubic-bezier(.32,.72,.3,1), width .26s cubic-bezier(.32,.72,.3,1)",
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={그림("/obj/bead-paw-one-gold.png")}
+                      src={그림("/obj/bead-paw-one.png")}
                       alt=""
-                      aria-hidden
                       draggable={false}
-                      className="absolute inset-0 block w-full"
-                      style={{
-                        filter: 금결,
-                        opacity: 채움,
-                        transition: "opacity .14s ease-out",
-                      }}
+                      className="block w-full"
+                      /* 빛깔은 그림에 구워 넣었다(연분홍·금 두 벌). 여기서
+                         saturate 를 더 걸면 형광 젤리가 된다 — 앞뒤 느낌만
+                         밝기로 준다 */
+                      style={{ filter: 분홍결 }}
                     />
-                  )}
-                </span>
-              );
-            })}
-
-            {/* ── 맨 앞 한 알 — 박아 둔다 ──────────────────────
-                형: 「가로 염주 딱 가운데 알은 하나 박아둬. 지금 막
-                     앞뒤앞뒤가 되잖아 멀미나, 맨 앞 거」
-
-                도는 알들은 앞자리를 **지나갈** 뿐이라 누가 「지금 알」인지
-                가만 있질 않았다. 손가락이 짚고 있는 자리가 흔들리면
-                굴리는 맛이 안 난다.
-                아래 한가운데(180도)에 제일 큰 알 하나를 못 박고, 도는
-                알들은 그 뒤로 흘려보낸다. 이 알에만 **이번 알이 얼마나
-                찼나**(네 타에 한 알)가 든다 — 손끝이 보는 자리와 셈이
-                말하는 자리가 같아진다. */}
-            <span
-              className="absolute block"
-              style={{
-                left: "50%",
-                top: "73%",
-                // 뒤로 지나가는 알(앞에서 22.8%)을 덮을 만큼은 커야 한다.
-                // 덜 크면 둘이 겹쳐 보여 오히려 어지럽다
-                width: "25.1%",
-                transform: "translate(-50%, -50%)",
-                zIndex: 120,
-              }}
-            >
-              {/* 母珠 — **금이 안 든다.**
-                  한 알이 네 타를 맡으니, 여기에 「이번 알이 얼마나 찼나」를
-                  들리면 네 타마다 금이 찼다 꺼졌다 한다. 박아 두는 뜻이
-                  없어진다. 이 알은 한 바퀴가 시작하고 끝나는 자리다 —
-                  늘 같은 낯으로 거기 있어야 그게 기준이 된다.
-                  금은 그 옆을 지나가는 알들이 받는다. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={그림("/obj/bead-paw-one.png")}
-                alt=""
-                draggable={false}
-                className="block w-full"
-                style={{ filter: "saturate(1.45) brightness(1.13)" }}
-              />
-            </span>
+                    {채움 > 0 && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={그림("/obj/bead-paw-one-gold.png")}
+                        alt=""
+                        aria-hidden
+                        draggable={false}
+                        className="absolute inset-0 block w-full"
+                        style={{
+                          filter: 금결,
+                          opacity: 채움,
+                          transition: "opacity .16s ease-out",
+                        }}
+                      />
+                    )}
+                  </span>
+                );
+              });
+            })()}
           </div>
         )}
 
@@ -908,7 +863,9 @@ export default function MoktakPage() {
               // 채도를 1.6배 올리고 색상까지 돌렸더니 나무 염주가 빨개졌다.
               // 그림은 이미 밝혀 두었으니(lift) 여기서는 손대지 않는다 —
               // 그늘 한 겹만.
-              filter: "drop-shadow(0 6px 12px rgba(222,126,161,0.2))",
+              // 그늘은 그림에서 걷어 냈다(형: 「고양이 염주 그림자 없애」).
+              // 여기 한 겹만 아주 옅게 — 판에서 뜨는 느낌만 남긴다
+              filter: "drop-shadow(0 4px 10px rgba(240,160,190,0.14))",
             }}
           />
         </div>

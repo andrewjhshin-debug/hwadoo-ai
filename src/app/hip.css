@@ -4029,7 +4029,9 @@ html[data-theme="light"] {
     display: block;
     width: 100%;
     height: 100%;
-    aspect-ratio: 595 / 875;
+    /* 셋(동자·포대·미륵)의 그림판을 한 비율로 구워 두었다 —
+       갈아 끼워도 물건이 들썩이지 않는다 */
+    aspect-ratio: 1.15;
   }
   .hip-keycap-stack img {
     position: absolute;
@@ -4066,15 +4068,18 @@ html[data-theme="light"] {
     transform-origin: 50% 100%;
     transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
   }
-  .hip-keycap.on .hip-keycap-buddha { transform: translateY(2.4%) scaleY(0.985); }
+  /* 연꽃이 커졌으니 더 깊이 내려간다 — 형: 「확실히 아래로 눌려지는
+     느낌으로」. 2.4% 는 큰 그릇 안에서 티도 안 났다 */
+  .hip-keycap.on .hip-keycap-buddha { transform: translateY(6.2%) scaleY(0.972); }
   .hip-keycap.on .hip-keycap-cup {
-    transform: scaleY(1.018);
+    transform: scaleY(1.03);
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
   }
-  /* 통(stack)이 높이를 쥐므로 그림 자체는 폭·높이를 안 잡는다 */
+  /* 통(stack)이 높이를 쥐므로 그림 자체는 폭·높이를 안 잡는다.
+     판이 세로보다 가로로 넓어서(1.15) 높이만 잡으면 폭이 화면을
+     넘는다 — 폭 쪽 한도도 같이 건다 */
   .hip-keycap {
-    height: var(--hip-obj-w);
-    max-height: 46vh;
+    height: min(var(--hip-obj-w), calc((100vw - 22px) / 1.15), 46vh);
   }
   .hip-keycap img { width: 100%; height: 100%; max-width: none; max-height: none; }
 }

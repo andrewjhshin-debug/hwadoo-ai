@@ -54,8 +54,26 @@ const BOARD_W = "max(240px, min(100vw - 16px, 100dvh - 390px, 480px))";
 // 조각 테두리 — 밤엔 옅은 금선, 낮엔 짙은 먹선(#3a2c20 계열)이어야 흐리지 않다.
 // globals.css 는 다른 손이 만지므로, 여기서 인라인 CSS 변수로만 해결한다.
 const THEME_CSS = `
-.mandala-board { --m-line: rgba(217,180,91,0.32); --m-frame: rgba(217,180,91,0.16); --m-guide: rgba(217,180,91,0.12); }
-html[data-theme="light"] .mandala-board { --m-line: rgba(58,44,32,0.62); --m-frame: rgba(58,44,32,0.4); --m-guide: rgba(58,44,32,0.3); }
+/* ── 먹은 **동그라미 안에만** ────────────────────────────────
+   형: 「만다라는 동그라미 부분만 먹으로 하라고. 다시 되돌리고 배경은」
+
+   앞서 「원래 버전처럼 먹색으로」를 방 전체로 읽고 판을 통째로 어둡게
+   깔았다. 그러면 만다라만 흰 접시처럼 떠서 거꾸로였다.
+   방은 낮 팔레트 그대로 두고, **판 한 장만** 먹이다. 원래가 그랬다 —
+   먹지 위에 금선으로 그은 만다라.
+
+   그래서 선 빛깔은 낮·밤을 안 가린다. 판이 늘 먹이니 늘 금선이다. */
+.mandala-board {
+  background: #17140f;
+  --m-line: rgba(224,190,108,0.42);
+  --m-frame: rgba(224,190,108,0.24);
+  --m-guide: rgba(224,190,108,0.16);
+}
+html[data-theme="light"] .mandala-board {
+  --m-line: rgba(224,190,108,0.42);
+  --m-frame: rgba(224,190,108,0.24);
+  --m-guide: rgba(224,190,108,0.16);
+}
 .mandala-draw-size { width: max(240px, min(100vw - 16px, 100dvh - 390px, 480px)); }
 /* 그리기 모바일 — 화면이 충분히 길 때만(여유가 남을 때만) 컨트롤을 키워
    아래 빈 공간을 쓴다. 판 예약폭(-432px)도 함께 늘려 세로 넘침 0 을 지킨다. */
@@ -356,7 +374,7 @@ export default function MandalaPage() {
   };
 
   return (
-    <HipRoom here="/mandala" dark>
+    <HipRoom here="/mandala">
       {/* 옛 껍데기가 쥐던 여백·폭(mx-auto max-w-2xl flex-1 px-2 py-3 sm:px-4 sm:py-6)은
           버렸다 — .hip-screen 이 제 여백과 아래 염주 자리를 이미 쥐고 있다.
           다만 위에서 아래로 쌓아 가운데로 모으던 flex-col items-center 는
@@ -880,7 +898,7 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
       <div className="relative mt-3 w-full max-w-[480px] sm:mt-5" style={{ width: BOARD_W }}>
         <div
           ref={wrapRef}
-          className="mandala-board relative aspect-square w-full touch-none select-none overflow-hidden rounded-full border border-ink-3 bg-ink-2/40"
+          className="mandala-board relative aspect-square w-full touch-none select-none overflow-hidden rounded-full border border-gold/25"
           // 꾹 누르기 동안 iOS 말풍선·선택이 끼어들지 않게 — contextmenu 는 아래서 막는다
           style={{ touchAction: "none", WebkitTouchCallout: "none", WebkitUserSelect: "none" }}
           onPointerDown={onPointerDown}
