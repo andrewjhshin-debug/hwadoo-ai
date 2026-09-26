@@ -265,7 +265,9 @@ export default function HipMoktak({
                     가른 데가 없으니 이격도 빈 데도 없다. */}
                 <span
                   className="hip-keycap-stack"
-                  style={{ "--keycap-ar": keySrc.ar } as React.CSSProperties}
+                  /* 숫자 그대로 넘기면 리액트가 px 를 붙인다 —
+                     aspect-ratio: 0.57px 는 무효라 판이 풀린다 */
+                  style={{ "--keycap-ar": String(keySrc.ar) } as React.CSSProperties}
                 >
                   {/* 몸이 뒤, 받침이 앞. 누르면 몸만 그릇 속으로 내려간다 */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -58,7 +58,13 @@ export default function Yeondeung({
       type="button"
       onClick={onClick}
       className="hip-deung"
-      style={{ "--deung-len": `${drop}px`, "--깊이": 깊이 } as React.CSSProperties}
+      /* 숫자를 그대로 넘기면 안 된다 — 리액트가 CSS 변수에 **px 를
+         붙인다.** `--깊이: 0px` 이 되면 calc(22% − 0px × 5%) 가 깨지고,
+         폭이 통째로 풀려 등 하나가 화면을 다 먹는다(형: 「하나 달았는데
+         왤케 크게 나오냐」). 글자로 넘긴다. */
+      style={
+        { "--deung-len": `${drop}px`, "--깊이": String(깊이) } as React.CSSProperties
+      }
       aria-label={`${name} 연등`}
     >
       {/* 실 — 천장에서 등까지 */}
