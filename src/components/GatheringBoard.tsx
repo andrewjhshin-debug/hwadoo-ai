@@ -340,6 +340,33 @@ export default function GatheringBoard({
   // 화면의 닫기 단추들 — 직접 닫지 않고 뒤로가기를 부른다 (층을 함께 걷어내려고)
   const goBack = () => window.history.back();
 
+  // ── 아래 띠에서 같은 알을 다시 누르면 **목록으로** ──────────
+  // 형: 「인연이면 뒤로 말고, 그냥 아래 탭에서 인연 눌리면 다시 게시판으로」
+  // 쌓아 둔 층 수만큼 한 번에 걷는다 — 뒤로가기를 여러 번 누르는 것과
+  // 같지만, 손은 한 번만 움직인다.
+  useEffect(() => {
+    const 첫화면으로 = () => {
+      const l = layersRef.current;
+      const 층 = (l.dm ? 1 : 0) + (l.form ? 1 : 0) + (l.detail ? 1 : 0);
+      if (!층) return;
+      setDmTarget(null);
+      setOpen(false);
+      setFormError("");
+      setSelectedId(null);
+      setMenuOpen(false);
+      // 쌓아 둔 층을 히스토리에서도 걷는다. 안 걷으면 다음 뒤로가기가
+      // 허공을 짚는다(눌러도 아무 일이 없다)
+      try {
+        window.history.go(-층);
+      } catch {
+        /* 못 걷어도 화면은 목록이다 */
+      }
+    };
+    window.addEventListener("hwadu-tab-again", 첫화면으로);
+    return () => window.removeEventListener("hwadu-tab-again", 첫화면으로);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const count = () =>
       setReturnedCount(loadStore().history.filter((h) => h.journal).length);

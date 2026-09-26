@@ -81,7 +81,26 @@ export default function HipMala() {
             // 我 알은 연꽃·하심·법당… 여덟 방을 **품는다** — 그 방에
             // 있으면 알은 켜져 있지만 아직 내 도량에 온 것은 아니다.
             // 막을 것은 **알이 같을 때**가 아니라 **길이 같을 때**다.
-            if (path === b.href) return;
+            // ── 같은 알을 다시 누르면 **그 갈래의 첫 화면으로** ──
+            // 형: 「아래 탭 눌리면 다시 그 메인 화면으로. 인연이면 뒤로
+            //      말고, 그냥 아래 탭에서 인연 눌리면 다시 게시판으로」
+            //
+            // 여태는 길이 같으면 아무것도 안 했다. 그런데 인연 판은
+            // 글 읽기·글쓰기를 **같은 길 위에 층으로** 연다(history 층).
+            // 그러니 글을 읽는 중에 緣 을 눌러도 길이 같아서 아무 일이
+            // 안 일어났고, 뒤로가기로만 나올 수 있었다.
+            // 길이 같으면 「첫 화면으로 돌아가라」고 알린다 — 층을 쥔
+            // 쪽(게시판)이 제 층을 걷는다.
+            if (path === b.href) {
+              try {
+                window.dispatchEvent(
+                  new CustomEvent("hwadu-tab-again", { detail: b.href })
+                );
+              } catch {
+                /* 지나간다 */
+              }
+              return;
+            }
             try {
               window.sessionStorage.setItem(
                 "hwadu.hip.swipe",
