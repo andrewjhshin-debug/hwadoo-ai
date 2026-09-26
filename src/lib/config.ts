@@ -51,10 +51,10 @@ export const BANK_INFO: { bank: string; account: string; holder: string } | null
 export const ADMIN_UID = "HvYY1QPhLiMLc5NezM1jt0QdUiM2";
 
 // 뒷방 부계정 — 이메일로 가른다 (규칙에도 같은 이메일이 올라 있어야 한다)
-export const ADMIN_EMAILS = [
-  "iphonecharging1@gmail.com",
-  "andrewjhshin@gmail.com",
-];
+// 형: 「이건 관리자가 아니야, 제외하고 iphonecharging1@gmail.com」 —
+// 그 계정으로 **보통 사람처럼** 시험하려는데 뒷방으로 들어가 버렸다.
+// 뒷방 주인은 값을 안 치르고 막히지도 않으니, 그 눈으로는 아무것도 안 보인다.
+export const ADMIN_EMAILS = ["andrewjhshin@gmail.com"];
 
 // 이 계정이 뒷방 주인인가 — 본계정(UID) 또는 부계정(이메일)
 export function isAdminAccount(

@@ -149,6 +149,11 @@ export default function 인연내프로필() {
     }
   };
 
+  const [크게, 크게잡기] = useState(false);
+  const 장수 = me?.photos?.length ?? 0;
+  /** 가운데 한 장 — 내려간 것(no)은 얼굴로 안 세운다 */
+  const 첫장 = (me?.photos ?? []).find((f) => f.state !== "no") ?? me?.photos?.[0];
+
   const 사진고르기 = async (fs: FileList | null) => {
     if (!fs?.length) return;
     탈잡기("");
@@ -200,34 +205,46 @@ export default function 인연내프로필() {
           </div>
         )}
 
-        {/* ── 사진 ── */}
-        <div className="hip-yeon-shots">
-          {(me?.photos ?? []).map((f) => (
-            <span key={f.path} data-state={f.state}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={f.url} alt="" />
-              <button
-                onClick={() => void 사진빼기(f.path).then(() => 다시읽기())}
-                aria-label="사진 빼기"
-              >
-                ✕
-              </button>
-              {/* 「보는 중」은 걷었다 — 형: 「보는 중 이런 말 지우고」.
-                  기다리는 동안 사진 위에 딱지가 붙어 있으면 제 얼굴이
-                  아니라 심사 서류로 보인다. 내려간 것만 말한다. */}
-              {f.state === "no" && <i data-no="1">다시</i>}
-            </span>
-          ))}
-          {(me?.photos?.length ?? 0) < 사진칸 && (
+        {/* ── 사진 ── **가운데 한 장.**
+            형: 「사진은 가운데 하나만 두고 ＋랑 돋보기 넣어서
+                 사진 추가랑 최종본 보기」
+
+            석 장을 나란히 깔았더니 판의 첫 화면이 빈 네모 셋이었다 —
+            아직 아무것도 안 올린 사람에게 「셋을 채워야 한다」는 숙제를
+            먼저 보여 준 셈이다. 얼굴은 하나면 된다. 나머지는 돋보기
+            안에 있다. */}
+        <div className="hip-yeon-face">
+          <span className="hip-yeon-face-one" data-state={첫장?.state}>
+            {첫장 ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={첫장.url} alt="" />
+            ) : (
+              <i aria-hidden>얼굴</i>
+            )}
+            {장수 > 1 && <b>{장수}</b>}
+            {첫장?.state === "no" && <u>다시</u>}
+          </span>
+
+          <div className="hip-yeon-face-acts">
             <button
-              className="hip-yeon-add"
               onClick={() => 파일.current?.click()}
-              disabled={올리는중}
-              aria-label="사진 넣기"
+              disabled={올리는중 || 장수 >= 사진칸}
+              aria-label="사진 추가"
             >
               {올리는중 ? "…" : "＋"}
             </button>
-          )}
+            <button
+              onClick={() => 크게잡기(true)}
+              disabled={장수 === 0}
+              aria-label="최종본 보기"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="M15.4 15.4 21 21" />
+              </svg>
+            </button>
+          </div>
+
           <input
             ref={파일}
             type="file"
@@ -237,6 +254,38 @@ export default function 인연내프로필() {
             onChange={(e) => 사진고르기(e.target.files)}
           />
         </div>
+
+        {/* 돋보기 — 올린 것을 **큰 판**으로 죽 본다. 여기서 빼기도 한다 */}
+        {크게 && (
+          <div
+            className="hip-yeon-big"
+            role="dialog"
+            aria-label="올린 사진"
+            onClick={() => 크게잡기(false)}
+          >
+            <div onClick={(e) => e.stopPropagation()}>
+              <p>
+                올린 사진 {장수}장
+                <button onClick={() => 크게잡기(false)} aria-label="닫기">닫기</button>
+              </p>
+              <div>
+                {(me?.photos ?? []).map((f) => (
+                  <span key={f.path} data-state={f.state}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={f.url} alt="" />
+                    <button
+                      onClick={() => void 사진빼기(f.path).then(() => 다시읽기())}
+                      aria-label="사진 빼기"
+                    >
+                      ✕
+                    </button>
+                    {f.state === "no" && <u>다시</u>}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {탈 && <p className="hip-yeon-bad">{탈}</p>}
 
@@ -380,11 +429,12 @@ export default function 인연내프로필() {
         <하나 이름="음주" 목록={음주들} 값={me?.drink} 고치기={(v) => 고치기({ drink: v })} />
 
         {/* ── 여럿 고르는 것들 — 없는 것은 ＋ 로 ── */}
-        {/* 형: 「성격 선택 5개까지」 — 스물을 다 고르면 그건 성격이 아니라 목록이다 */}
+        {/* 형: 「이거 선택은 각각 총 5개까지」 — 스물을 다 고르면 그건
+            성격이 아니라 목록이다. 넷 다 다섯까지. */}
         <여럿 이름="성격" 목록={성격들} 값={me?.vibe} 최대={5} 고치기={(v) => 고치기({ vibe: v })} />
-        <여럿 이름="취향" 목록={취향들} 값={me?.like} 고치기={(v) => 고치기({ like: v })} />
-        <여럿 이름="관심" 목록={관심들} 값={me?.care} 고치기={(v) => 고치기({ care: v })} />
-        <여럿 이름="데이트" 목록={데이트들} 값={me?.date} 고치기={(v) => 고치기({ date: v })} />
+        <여럿 이름="취향" 목록={취향들} 값={me?.like} 최대={5} 고치기={(v) => 고치기({ like: v })} />
+        <여럿 이름="관심" 목록={관심들} 값={me?.care} 최대={5} 고치기={(v) => 고치기({ care: v })} />
+        <여럿 이름="데이트" 목록={데이트들} 값={me?.date} 최대={5} 고치기={(v) => 고치기({ date: v })} />
 
         {/* ── 절 ── 여기부터는 **따로 동의**를 받는다.
             개인정보보호법 23조가 종교를 민감정보로 묶고, 다른 동의와
@@ -527,10 +577,18 @@ function 여럿({
   고치기: (v: string[]) => void;
 }) {
   const [적는중, 적는중잡기] = useState(false);
+  const 글칸 = useRef<HTMLInputElement | null>(null);
   const 고른것 = 값 ?? [];
   const 밖의것 = 고른것.filter((x) => !목록.includes(x));
 
   const 찼나 = !!최대 && 고른것.length >= 최대;
+  /** 팝업에서 적은 것을 담는다 */
+  const 담기 = (raw: string) => {
+    const v = raw.trim().slice(0, 12);
+    적는중잡기(false);
+    if (!v || 고른것.includes(v) || 찼나) return;
+    고치기([...고른것, v]);
+  };
   const 뒤집기 = (x: string) => {
     if (고른것.includes(x)) return 고치기(고른것.filter((y) => y !== x));
     // 차면 **더 안 담는다.** 막는 말을 띄우지 않는다 — 안 눌리는 것이
@@ -558,32 +616,49 @@ function 여럿({
             {x}
           </button>
         ))}
-        {적는중 ? (
-          <input
-            className="hip-chip-write"
-            autoFocus
-            maxLength={12}
-            placeholder="직접"
-            onBlur={(e) => {
-              const v = e.target.value.trim().slice(0, 12);
-              if (v && !고른것.includes(v)) 고치기([...고른것, v]);
-              적는중잡기(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-              if (e.key === "Escape") 적는중잡기(false);
-            }}
-          />
-        ) : (
-          <button
-            className="hip-chip-more"
-            onClick={() => 적는중잡기(true)}
-            aria-label={`${이름} 직접 적기`}
-          >
-            ＋
-          </button>
-        )}
+        <button
+          className="hip-chip-more"
+          onClick={() => 적는중잡기(true)}
+          disabled={찼나}
+          aria-label={`${이름} 직접 적기`}
+        >
+          ＋
+        </button>
       </span>
+
+      {/* ── 직접 적기는 **팝업으로** ──────────────────────────
+          형: 「직접 눌리면 팝업으로 쓰도록」
+          알약 사이에 글칸을 끼워 넣었더니 줄이 흐트러지고, 폰에서는
+          자판이 올라오면서 그 칸이 화면 밖으로 밀렸다. 적는 일은
+          적는 자리에서 한다. */}
+      {적는중 && (
+        <div
+          className="hip-write-pop"
+          role="dialog"
+          aria-label={`${이름} 직접 적기`}
+          onClick={() => 적는중잡기(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <p>{이름}</p>
+            <input
+              autoFocus
+              maxLength={12}
+              placeholder="직접 적기"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") 담기((e.target as HTMLInputElement).value);
+                if (e.key === "Escape") 적는중잡기(false);
+              }}
+              ref={글칸}
+            />
+            <div>
+              <button onClick={() => 적는중잡기(false)}>그만</button>
+              <button data-go="1" onClick={() => 담기(글칸.current?.value ?? "")}>
+                담기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

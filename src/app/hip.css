@@ -2171,10 +2171,12 @@ html[data-theme="light"] {
   }
 
   /* 결 — 세로로 눕힌 話頭. 크고, 거의 안 보이게 */
+  /* 형: 「화두 한자는 왼쪽 위로」 — 74px 에 두었더니 머리줄(연꽃 알약)과
+     같은 높이라 둘이 겹쳐 읽혔다. 결은 결답게 **모서리로** 물린다. */
   .hip-mark {
     position: absolute;
-    top: 74px;
-    left: -6px;
+    top: 4px;
+    left: -20px;
     z-index: 0;
     writing-mode: vertical-rl;
     font-family: var(--font-serif);
@@ -2840,10 +2842,16 @@ html[data-theme="light"] {
     align-items: center;
     gap: 9px;
   }
+  /* 형: 「연꽃이랑 공양은 좀 작게 만들어서 오른쪽 위로」 —
+     알약이 머리줄의 반을 먹어서 나머지 셋이 구석으로 밀렸다.
+     테두리·여백·글씨를 한 치수씩 줄인다. */
   .hip-top-count {
-    font-size: 11px;
+    font-size: 10px;
     color: #8b8175;
+    padding: 2px 6px 2px 4px;
+    gap: 3px;
   }
+  .hip-top-count svg { width: 12px; height: 12px; }
   .hip-top-ico {
     display: grid;
     place-items: center;
@@ -4495,6 +4503,194 @@ html[data-theme="light"] {
   }
 
   /* 사진 — 넉넉한 네모, 상태가 그림 위에 얹힌다 */
+  /* ── 얼굴 한 장 ─────────────────────────────────────────
+     형: 「사진은 가운데 하나만 두고 ＋랑 돋보기 넣어서
+          사진 추가랑 최종본 보기」 */
+  .hip-write-pop {
+    position: fixed;
+    inset: 0;
+    z-index: 92;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(24, 20, 18, 0.45);
+    backdrop-filter: blur(3px);
+  }
+  .hip-write-pop > div {
+    width: 100%;
+    max-width: 320px;
+    padding: 18px;
+    border-radius: 20px;
+    background: #fff;
+  }
+  .hip-write-pop p {
+    margin: 0 0 10px;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: #a39a8f;
+  }
+  .hip-write-pop input {
+    width: 100%;
+    padding: 11px 13px;
+    border-radius: 13px;
+    border: 1px solid rgba(26, 23, 20, 0.14);
+    background: #fdfcfb;
+    font-size: 15px;
+    color: #17140f;
+  }
+  .hip-write-pop input:focus { outline: none; border-color: rgba(226, 122, 158, 0.55); }
+  .hip-write-pop > div > div { display: flex; gap: 8px; margin-top: 12px; }
+  .hip-write-pop > div > div button {
+    flex: 1;
+    height: 42px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    font-size: 13.5px;
+    color: #6e6455;
+  }
+  .hip-write-pop > div > div button[data-go="1"] {
+    border: 0;
+    background: #ef7ba4;
+    color: #fff;
+    font-weight: 600;
+  }
+  body:has(.hip-write-pop) .hip-mala { display: none !important; }
+
+  .hip-yeon-face {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .hip-yeon-face-one {
+    position: relative;
+    width: 148px;
+    aspect-ratio: 3 / 4;
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(26, 23, 20, 0.05);
+    border: 1px solid rgba(26, 23, 20, 0.07);
+  }
+  .hip-yeon-face-one img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hip-yeon-face-one[data-state="pending"] img { filter: saturate(0.5) brightness(1.06); }
+  /* 아직 한 장도 없을 때 — 빈 네모에 점선 한 겹 */
+  .hip-yeon-face-one i {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    border: 1px dashed rgba(226, 122, 158, 0.45);
+    font-style: normal;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: #d9a9bd;
+  }
+  /* 몇 장인가 — 한 장뿐이면 안 적는다 */
+  .hip-yeon-face-one b {
+    position: absolute;
+    right: 7px;
+    top: 7px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: rgba(26, 23, 20, 0.55);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .hip-yeon-face-one u,
+  .hip-yeon-big span u {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    font-size: 10px;
+    text-decoration: none;
+    color: #d2578c;
+  }
+  .hip-yeon-face-acts { display: flex; gap: 10px; }
+  .hip-yeon-face-acts button {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(226, 122, 158, 0.4);
+    background: rgba(242, 160, 189, 0.09);
+    font-size: 19px;
+    color: #d2578c;
+    transition: all 0.16s;
+  }
+  .hip-yeon-face-acts button:active { transform: translateY(1px); background: rgba(242, 160, 189, 0.2); }
+  .hip-yeon-face-acts button:disabled { opacity: 0.32; }
+  .hip-yeon-face-acts svg {
+    width: 20px; height: 20px;
+    fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round;
+  }
+
+  /* 돋보기 판 — 올린 것을 죽 늘어놓고 여기서 뺀다 */
+  .hip-yeon-big {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(24, 20, 18, 0.5);
+    backdrop-filter: blur(3px);
+  }
+  .hip-yeon-big > div {
+    width: 100%;
+    max-width: 420px;
+    max-height: 82dvh;
+    overflow-y: auto;
+    padding: 16px;
+    border-radius: 22px;
+    background: #fff;
+  }
+  .hip-yeon-big p {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 12px;
+    font-size: 12.5px;
+    letter-spacing: 0.06em;
+    color: #8b8175;
+  }
+  .hip-yeon-big p button { font-size: 12.5px; color: #a39a8f; }
+  .hip-yeon-big > div > div {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .hip-yeon-big span {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(26, 23, 20, 0.05);
+  }
+  .hip-yeon-big img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hip-yeon-big span[data-state="pending"] img { filter: saturate(0.5) brightness(1.06); }
+  .hip-yeon-big span > button {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    font-size: 11px;
+    color: #6f665c;
+  }
+  body:has(.hip-yeon-big) .hip-mala { display: none !important; }
+
   .hip-yeon-shots {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -4740,12 +4936,22 @@ html[data-theme="light"] {
     font-size: 12.5px;
     color: #a39a8f;
   }
-  /* 올리는 단추 — 천장 위에 떠 있다. 아래 염주 자리는 안 밟는다 */
+  /* ── 단추 두 개는 **바닥 한 줄**로 ────────────────────────
+     형: 「법당 웹 이거 너무 깨지는데 버튼 위치가 바꿔봐」
+     떠 있게(absolute) 두었는데 `.hip-hall` 에 position 이 없어서
+     기댈 데를 못 찾고 **화면 모서리**로 갔다 — 넓은 판에서는 통이
+     가운데 640px 인데 단추만 왼쪽 끝에 붙었다.
+     띄우지 않는다. 통 안 마지막 줄에 나란히 세운다 — 기댈 데가
+     없으면 어긋날 일도 없다. */
+  .hip-hall-acts {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 0 calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) - 28px);
+  }
   .hip-hall-go {
-    position: absolute;
-    right: 14px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) + 8px);
-    z-index: 5;
     height: 52px;
     padding: 0 22px;
     border-radius: 999px;
@@ -4782,22 +4988,27 @@ html[data-theme="light"] {
     background: #ef7ba4;
     color: #fff;
   }
-  .hip-mark { display: contents; }
+  /* ── 등 하나를 감싸는 껍데기 ──────────────────────────
+     여기 이름이 `.hip-mark` 였다. **그게 話頭 워터마크의 이름이다** —
+     position:absolute · font-size 124px · writing-mode: vertical-rl 이
+     등마다 얹혔다. 그래서 등 하나가 판을 다 먹었다(형: 「왜 아직도
+     크게 보이냐」). 겹치는 이름을 끊는다. */
+  .hip-hang { display: contents; }
   .hip-hall-sky[data-mine-only="1"] .hip-deung,
   .hip-hall-sky[data-mine-only="1"] .hip-gong {
     opacity: 0.22;
     filter: saturate(0.3);
     transition: opacity 0.24s, filter 0.24s;
   }
-  .hip-hall-sky[data-mine-only="1"] .hip-mark[data-mine="1"] .hip-deung,
-  .hip-hall-sky[data-mine-only="1"] .hip-mark[data-mine="1"] .hip-gong {
+  .hip-hall-sky[data-mine-only="1"] .hip-hang[data-mine="1"] .hip-deung,
+  .hip-hall-sky[data-mine-only="1"] .hip-hang[data-mine="1"] .hip-gong {
     opacity: 1;
     filter: none;
     /* 밝아진다 — 뒤에 옅은 무리를 하나 두어 「내 것」이 켜진 것처럼 */
     drop-shadow: none;
   }
-  .hip-hall-sky[data-mine-only="1"] .hip-mark[data-mine="1"] .hip-deung-img,
-  .hip-hall-sky[data-mine-only="1"] .hip-mark[data-mine="1"] .hip-gong-svg {
+  .hip-hall-sky[data-mine-only="1"] .hip-hang[data-mine="1"] .hip-deung-img,
+  .hip-hall-sky[data-mine-only="1"] .hip-hang[data-mine="1"] .hip-gong-svg {
     filter: drop-shadow(0 0 14px rgba(255, 196, 120, 0.85))
             drop-shadow(0 0 4px rgba(255, 228, 176, 0.9))
             brightness(1.06);
@@ -4806,9 +5017,7 @@ html[data-theme="light"] {
   /* 불단 — 칸의 **아래쪽**에 붙는다. 등이 적어도 공양물은 늘 바닥에 */
   .hip-hall-altar {
     position: sticky;
-    /* 두 단추(사연 보러가기 · 공양)가 그 위에 떠 있다 — 그만큼 띄운다.
-       형: 「모바일로 밑에 초쌀 이런 거랑 사연보러가기랑 공양 겹친다」 */
-    bottom: 62px;
+    bottom: 0;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
@@ -4824,8 +5033,7 @@ html[data-theme="light"] {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* 단추 두 개가 뜨는 자리를 통 안에서 비운다 */
-    padding-bottom: 66px;
+    padding-bottom: 8px;
   }
   .hip-gong {
     position: relative;
@@ -4874,10 +5082,6 @@ html[data-theme="light"] {
 
   /* 사연 보러가기 — 왼쪽 아래. 올리는 단추와 짝을 이룬다 */
   .hip-hall-read {
-    position: absolute;
-    left: 14px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) + 8px);
-    z-index: 5;
     height: 52px;
     padding: 0 20px;
     border-radius: 999px;

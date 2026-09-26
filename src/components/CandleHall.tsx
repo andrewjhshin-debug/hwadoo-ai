@@ -25,7 +25,7 @@ function CandleMark({ c, onClick, i, mine }: { c: Candle; onClick: () => void; i
   const seed = c.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
   // 옛 문서에는 갈래 칸이 없다 — 없으면 연등이다(여태 다 연등이었다)
   // 내 것인가 — 「내 것만」을 켜면 이 표를 보고 나머지가 희미해진다
-  return <span className="hip-mark" data-mine={mine ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
+  return <span className="hip-hang" data-mine={mine ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
 }
 
 function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
@@ -437,10 +437,12 @@ export default function CandleHall() {
       )}
     </div>
     {/* 아래 두 손 — 왼쪽은 읽으러, 오른쪽은 올리러 */}
+    <div className="hip-hall-acts">
     <button className="hip-hall-read" onClick={() => 사연판잡기(true)}>
       사연 보러가기
     </button>
     <button className="hip-hall-go" onClick={start} aria-label="공양 올리기">공양</button>
+    </div>
     {사연판 && (
       <사연목록
         들={다걸린것}
