@@ -70,7 +70,7 @@ export type HipMoktakProps = {
   /** 지금 고른 목탁 살갗 그림 */
   mokSrc: string;
   /** 지금 고른 키캡 — 통짜 한 장 */
-  keySrc: { src: string; cup: string; ar: number };
+  keySrc: { src: string; cup: string; ar: number; rim: number };
   /** 키캡 갈래에서 무엇을 누르나 — 동자인가 목탁인가 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
@@ -267,11 +267,31 @@ export default function HipMoktak({
                   className="hip-keycap-stack"
                   /* 숫자 그대로 넘기면 리액트가 px 를 붙인다 —
                      aspect-ratio: 0.57px 는 무효라 판이 풀린다 */
-                  style={{ "--keycap-ar": String(keySrc.ar) } as React.CSSProperties}
+                  style={
+                    {
+                      "--keycap-ar": String(keySrc.ar),
+                      "--keycap-rim": String(keySrc.rim),
+                    } as React.CSSProperties
+                  }
                 >
-                  {/* 몸이 뒤, 받침이 앞. 누르면 몸만 그릇 속으로 내려간다 */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-keycap-buddha" src={keySrc.src} alt="" draggable={false} />
+                  {/* ── 몸은 **그릇 안에서만** 보인다 ─────────────
+                      형: 「정말 정면에서 본 키캡 눌리는 거 못 만드나,
+                           안 삐져나오게」
+
+                      여태 몸과 그릇을 그냥 포개 두었다. 그러니 몸이
+                      그릇보다 넓은 자리(포대승의 배, 동자의 어깨)에서
+                      옆으로 삐져나왔고, 누르면 그 삐져나온 살이 같이
+                      내려가 「그릇 옆을 스쳐 지나가는」 것으로 읽혔다.
+
+                      몸을 **창(well)** 안에 넣는다. 창 밑변은 그릇이
+                      몸을 좌우로 완전히 덮기 시작하는 줄(--keycap-rim,
+                      그림에서 한 줄씩 재서 찾았다)이다. 그 아래로는
+                      몸이 한 화소도 안 그려진다 — 삐져나올 수가 없다.
+                      그릇은 창 밖에서 제 모양대로 앞에 선다. */}
+                  <span className="hip-keycap-well">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img className="hip-keycap-buddha" src={keySrc.src} alt="" draggable={false} />
+                  </span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img className="hip-keycap-cup" src={keySrc.cup} alt="" draggable={false} />
                 </span>

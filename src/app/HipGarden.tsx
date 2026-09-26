@@ -25,6 +25,7 @@
 // 쥐고 있고 여기는 받아 그린다 — 통째로 지워도 앱은 예전대로 돈다.
 // ─────────────────────────────────────────────────────────────
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
@@ -40,6 +41,59 @@ function qSize(q: string): "a" | "b" | "c" {
   if (w <= 15 && all <= 34) return "a";
   if (w <= 22 && all <= 60) return "b";
   return "c";
+}
+
+/** 물음 한 덩이 — 크기를 **재서 맞춘다.**
+ *
+ *  형: 「이거 짤린다고 다시」 「글자가 길어지면 그런 듯. 고민해봐,
+ *       폰트를 줄이든 그런 경우」
+ *
+ *  글자 수로 세 등급(a·b·c)만 두고 있었다. 등급은 **글자 수**를 보지
+ *  화면을 안 본다 — 같은 c 라도 좁은 폰에서는 다섯 줄이 되고, 다섯
+ *  줄이면 윗줄이 머리띠 뒤로 잘린다. 그러면 첫 줄을 아예 못 읽는다.
+ *
+ *  등급은 **첫 어림**으로만 두고, 그린 뒤에 **정말 넘치는지 재서**
+ *  넘치는 동안만 한 뼘씩 줄인다. 넘치지 않으면 한 번도 안 줄인다 —
+ *  짧은 물음은 여전히 크다. 글꼴이 늦게 와서 줄 수가 바뀌어도
+ *  (document.fonts.ready) 다시 잰다.
+ */
+function Q({ question, source }: { question: string; source?: string | null }) {
+  const 자 = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = 자.current;
+    const 통 = el?.parentElement;
+    if (!el || !통) return;
+
+    const 맞추기 = () => {
+      // 등급이 준 크기로 되돌린 뒤 다시 잰다 — 안 그러면 한 번 줄어든
+      // 글자가 짧은 물음으로 바뀌어도 그대로 작게 남는다
+      el.style.fontSize = "";
+      let 크기 = parseFloat(getComputedStyle(el).fontSize);
+      let n = 0;
+      // 통이 제 그릇을 넘는 동안만. 서른 번이면 어떤 길이든 든다
+      while (통.scrollHeight > 통.clientHeight + 1 && 크기 > 15 && n++ < 30) {
+        크기 *= 0.93;
+        el.style.fontSize = `${크기.toFixed(1)}px`;
+      }
+    };
+
+    맞추기();
+    // 글꼴이 늦게 오면 줄 수가 바뀐다
+    document.fonts?.ready.then(맞추기).catch(() => {});
+    const ro = new ResizeObserver(맞추기);
+    ro.observe(통);
+    return () => ro.disconnect();
+  }, [question, source]);
+
+  return (
+    <>
+      <p ref={자} className={`hip-q hip-q-${qSize(question)}`}>
+        {question}
+      </p>
+      {source && <p className="hip-q-by">{source}</p>}
+    </>
+  );
 }
 
 /** 며칠째 품고 있나 — 우리말로. 시안의 「사흘째 품는 중」 그 자리다.
@@ -226,12 +280,11 @@ export function HipGardenOnly({
   question: string;
   onBack: () => void;
 }) {
-  const size = qSize(question);
   return (
     <div className="hip-screen hip-hanji hip-only">
       <span aria-hidden className="hip-bloom hip-bloom-a" />
       <div className="hip-screen-mid">
-        <p className={`hip-q hip-q-${size}`}>{question}</p>
+        <Q question={question} />
       </div>
       {/* 형: 「이거도 살짝 어긋난 동그라미 버튼으로」.
           물음만 보기로 들어온 자리와 나가는 자리가 같은 몸짓이라야 한다 */}
@@ -279,7 +332,6 @@ export function HipGardenHolding({
   dayOptions?: number[];
   onDays?: (d: number) => void | Promise<void>;
 }) {
-  const size = qSize(question);
   return (
     <HipShell here="/">
       <div className="hip-screen hip-hanji">
@@ -297,8 +349,7 @@ export function HipGardenHolding({
 
         <div className="hip-screen-mid">
           {/* 큰 것 하나 — 오브제가 아니라 **물음**이다 */}
-          <p className={`hip-q hip-q-${size}`}>{question}</p>
-          {source && <p className="hip-q-by">{source}</p>}
+          <Q question={question} source={source} />
           {/* 형: 「내려」 — ○ 를 머리에서 물음 바로 아래로.
               머리 오른쪽에는 이미 넷(연꽃·음소거·쪽지·我)이 서 있어서
               ○ 가 다섯째로 묻혔다. 「물음만 보기」는 **물음에 딸린 일**이니

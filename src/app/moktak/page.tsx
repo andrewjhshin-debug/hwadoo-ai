@@ -197,13 +197,17 @@ const SKINS = {
   // 여태 한 장을 갈라 쓰느라 애를 먹었다 — 자른 선이 곧 이격이었다.
   // 이제 처음부터 두 물건이라 자를 일이 없다. 받침이 앞(z 2), 몸이 뒤(z 1).
   // 몸은 온몸이 다 있으니 그릇 속으로 내려가도 빈 데가 안 생긴다.
+  // `rim` — 그릇이 몸을 **좌우로 완전히 덮기 시작하는 줄**(판 높이의 %).
+  // 그림에서 한 줄씩 재서 찾았다: 그 줄부터 아래로는 몸의 어느 화소도
+  // 그릇 밖으로 안 나온다. 몸은 그 줄까지만 그린다 — 삐져나올 수가 없다.
+  //   동자 470/677 · 포대 475/745 · 미륵 452/705
   keycap: [
     { id: "dongja", name: "동자", src: "/obj/keycap-dongja.png",
-      cup: "/obj/keycap-dongja-cup.png", ar: 450 / 677, dot: "#ef86b0" },
+      cup: "/obj/keycap-dongja-cup.png", ar: 450 / 677, rim: 69.4, dot: "#ef86b0" },
     { id: "podae", name: "포대", src: "/obj/keycap-podae.png",
-      cup: "/obj/keycap-podae-cup.png", ar: 587 / 745, dot: "#d9a06f" },
+      cup: "/obj/keycap-podae-cup.png", ar: 587 / 745, rim: 63.8, dot: "#e0b354" },
     { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk.png",
-      cup: "/obj/keycap-mireuk-cup.png", ar: 549 / 705, dot: "#cfa03c" },
+      cup: "/obj/keycap-mireuk-cup.png", ar: 549 / 705, rim: 64.1, dot: "#cfa03c" },
   ],
 } as const;
 
@@ -288,7 +292,7 @@ export default function MoktakPage() {
   /** 키캡 한 장 — 통짜 그대로 */
   const keySrc = (() => {
     const k = SKINS.keycap.find((x) => x.id === skin.keycap) ?? SKINS.keycap[0];
-    return { src: 그림(k.src), cup: 그림(k.cup), ar: k.ar };
+    return { src: 그림(k.src), cup: 그림(k.cup), ar: k.ar, rim: k.rim };
   })();
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
   const beadWide = (
