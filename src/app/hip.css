@@ -4090,8 +4090,10 @@ html[data-theme="light"] {
   /* 형: 「키캡 오브제가 안으로 들어가야지」 — 13% 로는 그릇 뒤로 비켜설
      뿐이었다. 쉬는 자리에서 이미 그릇에 담겨 있고(그릇이 몸을 6할쯤
      덮는다), 누르면 거기서 한 뼘 더 가라앉는다 */
+  /* 앞에서 본 그릇이라 속이 안 보인다 — 뒤로 내려가는 만큼이 그대로
+     「들어간다」로 읽힌다. 가릴 걱정이 없으니 넉넉히 보낸다 */
   .hip-keycap.on .hip-keycap-buddha {
-    transform: translateY(18%);
+    transform: translateY(16%);
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
   }
   /* 한 장짜리 시절의 「통째로 찌그러뜨리기」는 걷는다 */
@@ -4455,6 +4457,13 @@ html[data-theme="light"] {
     letter-spacing: 0.34em;
     color: #c08aa0;
   }
+  .hip-yeon-quota {
+    margin: -8px 0 0;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: #a39a8f;
+  }
   .hip-yeon-say {
     margin: 40px 0;
     text-align: center;
@@ -4659,6 +4668,15 @@ html[data-theme="light"] {
   .hip-yeon-go button:disabled { opacity: 0.4; box-shadow: none; }
   .hip-yeon-go small { font-size: 11px; color: #a39a8f; }
   .hip-yeon-bad { margin: 0; font-size: 11.5px; color: #d2578c; }
+  /* 「한 사람 더」 단추 밑에 남은 수 한 줄 */
+  .hip-yeon-hap i {
+    display: block;
+    margin-top: 3px;
+    font-style: normal;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    opacity: 0.75;
+  }
   /* ── 법당 — 칸 하나가 화면을 다 쓴다 ─────────────────────
      형: 「함께 건 연등 / 내 연등 구분 말고, 저 은은한 박스는 유지하고
           다 저기에만 걸리게 한다」
@@ -4779,7 +4797,9 @@ html[data-theme="light"] {
   /* 불단 — 칸의 **아래쪽**에 붙는다. 등이 적어도 공양물은 늘 바닥에 */
   .hip-hall-altar {
     position: sticky;
-    bottom: 0;
+    /* 두 단추(사연 보러가기 · 공양)가 그 위에 떠 있다 — 그만큼 띄운다.
+       형: 「모바일로 밑에 초쌀 이런 거랑 사연보러가기랑 공양 겹친다」 */
+    bottom: 62px;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
@@ -4791,7 +4811,13 @@ html[data-theme="light"] {
     background: linear-gradient(transparent, rgba(226, 122, 158, 0.07) 70%);
     border-top: 1px solid rgba(226, 122, 158, 0.16);
   }
-  .hip-hall-sky { display: flex; flex-direction: column; overflow: hidden; }
+  .hip-hall-sky {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* 단추 두 개가 뜨는 자리를 통 안에서 비운다 */
+    padding-bottom: 66px;
+  }
   .hip-gong {
     position: relative;
     flex: 0 0 auto;
@@ -4857,40 +4883,42 @@ html[data-theme="light"] {
   .hip-hall-read:active { transform: translateY(1px); }
 
   /* ── 사연 ── 게시판 결. 목록도 한 자리도 같은 통을 쓴다 */
+  /* 사연은 **화면을 통째로** 쓴다 — 형: 「전체 새로운 화면, 게시판처럼.
+     다른 화면까진 아니고 팝업 같은데 암튼 전체 다 새 화면」
+     아래에서 반쯤 올라오는 시트는 「곁다리」로 읽힌다. 게시판은 제 판을
+     가져야 읽는 자리가 된다. 주소는 안 바꾼다 — 뒤로가기 한 번에 닫힌다. */
   .hip-say {
     position: fixed;
     inset: 0;
     z-index: 70;
-    display: grid;
-    place-items: end center;
-    background: rgba(26, 23, 20, 0.34);
-    backdrop-filter: blur(3px);
+    background: #fbfaf8;
   }
   .hip-say-box {
     width: 100%;
-    max-width: 560px;
-    max-height: 88dvh;
+    max-width: 620px;
+    height: 100%;
+    margin: 0 auto;
     overflow-y: auto;
-    border-radius: 22px 22px 0 0;
     background: #fbfaf8;
-    padding: 16px 18px calc(env(safe-area-inset-bottom, 0px) + 22px);
+    padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 22px);
   }
   .hip-say-top {
     position: sticky;
-    top: -16px;
+    top: -14px;
     z-index: 2;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin: -16px -18px 12px;
-    padding: 16px 18px 10px;
+    margin: -14px -16px 10px;
+    padding: 14px 16px 9px;
     background: #fbfaf8;
+    border-bottom: 1px solid rgba(26, 23, 20, 0.06);
   }
   .hip-say-top p {
     margin: 0;
     font-family: var(--font-serif);
-    font-size: 18px;
+    font-size: 15.5px;
     color: #2a2520;
   }
   .hip-say-top button {
@@ -4898,30 +4926,35 @@ html[data-theme="light"] {
     letter-spacing: 0.1em;
     color: #a39a8f;
   }
+  /* ── 유튜브 댓글 결 ──────────────────────────────────────
+     형: 「내가 준 유튭 레퍼 정도 크기랑 폰트로 가. 지금 너무 굵직,
+          공간 낭비가 넘 심하다」
+     댓글판은 **많이 읽히는 것**이 값이다. 한 화면에 두 줄 들어가는 판은
+     아무도 안 읽는다. 글자를 줄이고 줄 사이를 좁혀 넉 줄을 들인다. */
   .hip-say-list { list-style: none; margin: 0; padding: 0; }
-  .hip-say-list li + li { border-top: 1px solid rgba(26, 23, 20, 0.07); }
+  .hip-say-list li + li { border-top: 1px solid rgba(26, 23, 20, 0.06); }
   .hip-say-list button {
     display: block;
     width: 100%;
-    padding: 14px 2px;
+    padding: 10px 2px;
     text-align: left;
   }
-  .hip-say-head { display: flex; align-items: center; gap: 7px; }
-  .hip-say-head b { font-size: 15px; font-weight: 600; color: #2a2520; }
+  .hip-say-head { display: flex; align-items: center; gap: 6px; }
+  .hip-say-head b { font-size: 12.5px; font-weight: 600; color: #4a423a; }
   .hip-say-head i {
     font-style: normal;
-    font-size: 10.5px;
-    padding: 2px 7px;
+    font-size: 9.5px;
+    padding: 1px 6px;
     border-radius: 999px;
-    background: rgba(242, 120, 159, 0.14);
+    background: rgba(242, 120, 159, 0.13);
     color: #c2456f;
   }
   .hip-say-head u {
     text-decoration: none;
-    font-size: 10.5px;
-    padding: 2px 7px;
+    font-size: 9.5px;
+    padding: 1px 6px;
     border-radius: 999px;
-    background: rgba(212, 166, 74, 0.16);
+    background: rgba(212, 166, 74, 0.15);
     color: #9a7420;
   }
   .hip-say-body {
@@ -4929,15 +4962,15 @@ html[data-theme="light"] {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    margin-top: 5px;
+    margin-top: 3px;
     font-size: 13.5px;
-    line-height: 1.7;
-    color: #6e6455;
+    line-height: 1.45;
+    color: #2a2520;
   }
   .hip-say-foot {
     display: flex;
-    gap: 10px;
-    margin-top: 6px;
+    gap: 8px;
+    margin-top: 4px;
     font-size: 11px;
     color: #a39a8f;
   }
@@ -4947,14 +4980,14 @@ html[data-theme="light"] {
   }
   .hip-say-foot time { margin-left: auto; }
 
-  /* 남은 날 — 줄자 */
+  /* 남은 날 · 공덕 그릇 — 줄자 둘. 얇게 */
   .hip-say-left, .hip-say-pool {
     position: relative;
-    height: 26px;
+    height: 20px;
     border-radius: 999px;
     background: rgba(26, 23, 20, 0.06);
     overflow: hidden;
-    margin-bottom: 12px;
+    margin-bottom: 9px;
   }
   .hip-say-left i, .hip-say-pool i {
     position: absolute;
@@ -4969,26 +5002,25 @@ html[data-theme="light"] {
     inset: 0;
     display: grid;
     place-items: center;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 500;
-    letter-spacing: 0.04em;
     color: #4a423a;
   }
   .hip-say-wish {
-    margin: 0 0 8px;
-    font-size: 15px;
-    line-height: 1.85;
+    margin: 0 0 5px;
+    font-size: 14px;
+    line-height: 1.55;
     color: #2a2520;
     white-space: pre-wrap;
   }
-  .hip-say-by { margin: 0 0 14px; font-size: 11.5px; color: #a39a8f; }
-  .hip-say-acts { display: flex; gap: 8px; margin-bottom: 10px; }
+  .hip-say-by { margin: 0 0 11px; font-size: 11px; color: #a39a8f; }
+  .hip-say-acts { display: flex; gap: 7px; margin-bottom: 8px; }
   .hip-say-acts button {
     flex: 1;
-    height: 44px;
-    border-radius: 12px;
+    height: 36px;
+    border-radius: 10px;
     border: 1px solid rgba(26, 23, 20, 0.12);
-    font-size: 13px;
+    font-size: 12.5px;
     color: #6e6455;
   }
   .hip-say-acts button[data-on="1"] {
@@ -4997,35 +5029,49 @@ html[data-theme="light"] {
     color: #c2456f;
   }
   .hip-say-acts button:disabled { opacity: 0.38; }
-  .hip-say-note { margin: 0 0 10px; font-size: 12px; color: #c2456f; }
-  .hip-say-cmt { margin-top: 16px; border-top: 1px solid rgba(26, 23, 20, 0.07); padding-top: 12px; }
-  .hip-say-cmt p { margin: 0 0 9px; font-size: 13px; line-height: 1.7; color: #4a423a; }
-  .hip-say-cmt span { margin-right: 7px; color: #c2456f; }
-  .hip-say-write { display: flex; gap: 7px; margin-top: 10px; }
+  .hip-say-note { margin: 0 0 8px; font-size: 11.5px; color: #c2456f; }
+  .hip-say-cmt {
+    margin-top: 12px;
+    border-top: 1px solid rgba(26, 23, 20, 0.06);
+    padding-top: 10px;
+  }
+  .hip-say-cmt p {
+    margin: 0 0 8px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #2a2520;
+  }
+  .hip-say-cmt span {
+    display: block;
+    margin-bottom: 1px;
+    font-size: 11.5px;
+    color: #8b8175;
+  }
+  .hip-say-write { display: flex; gap: 6px; margin-top: 8px; }
   .hip-say-write input {
     flex: 1;
     min-width: 0;
-    height: 42px;
+    height: 38px;
     border-radius: 999px;
     border: 1px solid rgba(26, 23, 20, 0.12);
-    padding: 0 14px;
+    padding: 0 13px;
     font-size: 13px;
     outline: none;
   }
   .hip-say-write button {
-    padding: 0 16px;
+    padding: 0 15px;
     border-radius: 999px;
     background: #ef7ba4;
     color: #fff;
-    font-size: 13px;
+    font-size: 12.5px;
   }
-  .hip-say-mine { display: flex; gap: 8px; margin-top: 18px; }
+  .hip-say-mine { display: flex; gap: 7px; margin-top: 14px; }
   .hip-say-mine button {
     flex: 1;
-    height: 44px;
-    border-radius: 12px;
+    height: 38px;
+    border-radius: 10px;
     border: 1px solid rgba(26, 23, 20, 0.12);
-    font-size: 12.5px;
+    font-size: 11.5px;
     color: #8b8175;
   }
 
@@ -5826,13 +5872,19 @@ html[data-theme="light"] {
     position: relative;
     container-type: inline-size;
     flex: 0 0 auto;
-    width: calc((22% - var(--깊이, 0) * 5%));
-    min-width: 54px;
-    max-width: 96px;
-    margin-inline: -2.4%;
-    margin-top: calc(var(--깊이, 0) * -10px);
+    /* **폭은 상수로 못 박는다.** 깊이를 폭 계산(calc)에 넣었더니, 그 값이
+       한 번이라도 어긋나면(리액트가 숫자에 px 를 붙이는 일 같은 것)
+       calc 가 통째로 무효가 되고 폭이 풀려 등 하나가 화면을 다 먹었다
+       (형: 「ㅅㅂ 아직 크게 뜬다고」).
+       깊이는 transform 으로 준다 — 어긋나도 그 줄만 버려지고 크기는
+       상수로 남는다. 판이 죽지 않는 쪽으로 짠다. */
+    width: 22%;
+    min-width: 52px;
+    max-width: 92px;
+    margin-inline: -2.2%;
+    transform: scale(calc(1 - var(--깊이, 0) * 0.3));
+    transform-origin: 50% 0;
     opacity: calc(1 - var(--깊이, 0) * 0.3);
-    filter: blur(calc(var(--깊이, 0) * 0.7px));
     z-index: calc(40 - var(--깊이, 0) * 30);
     padding-top: var(--deung-len, 24px);
     display: flex;
@@ -5841,9 +5893,7 @@ html[data-theme="light"] {
     background: none;
     border: 0;
   }
-  @media (min-width: 520px) {
-    .hip-deung { width: calc(15% - var(--깊이, 0) * 3.5%); }
-  }
+  @media (min-width: 520px) { .hip-deung { width: 15%; } }
   .hip-deung-line {
     position: absolute;
     top: 0;

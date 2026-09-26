@@ -334,6 +334,9 @@ export default function 오늘의인연() {
           {있나 && 칸.cap < 칸.max && (
             <button className="hip-yeon-hap" disabled={바쁨} onClick={더보기}>
               연꽃 한 송이로 한 사람 더
+              {/* 몇 장이 남았는지가 보여야 누른다 — 끝이 없어 보이면
+                  아무도 첫 장을 안 산다 */}
+              <i>오늘 {칸.max - 칸.cap}번 더</i>
             </button>
           )}
           {탈 && <p className="hip-yeon-bad">{말로(탈)}</p>}
@@ -342,6 +345,8 @@ export default function 오늘의인연() {
     );
 
   const 사진 = 이.photos ?? [];
+  // 오늘 몇 째인가 — 본 사람 수로 센다
+  const 본만큼 = 끝난이.length;
   const 살 = 이.born ? 나이(이.born) : 0;
 
   if (뒤집힘 === null)
@@ -367,8 +372,10 @@ export default function 오늘의인연() {
       </껍데기>
     );
 
+  const 몫말 = `오늘 ${본만큼 + 1} / ${칸.max}${칸.cap < 칸.max ? " · 무료 " + 칸.cap : ""}`;
+
   return (
-    <껍데기>
+    <껍데기 몫={몫말}>
       {/* 붙박이 한 장 — 운영자. 형: 「새 인연찾기에서 관리자인 내 카드를
           키워줘」. 판이 빌 동안 문을 연 사람이 맨 앞에 선다.
           이름표를 따로 달지 않는다(형: 「멘트 넣지 말라고 했다」) —
@@ -486,11 +493,15 @@ export default function 오늘의인연() {
   );
 }
 
-function 껍데기({ children }: { children: React.ReactNode }) {
+function 껍데기({ children, 몫 }: { children: React.ReactNode; 몫?: string }) {
   return (
     <HipRoom here="/gathering/yeon" lanes={false} rail="/gathering" scroll>
       <div className="hip-yeon">
         <p className="hip-yeon-head">因緣 · 오늘의 인연</p>
+        {/* 오늘 몇 사람이 서 있나 — 형: 「하루 6개 카드는 떠 있게」
+            판에 몇이 남았는지가 보여야 「더 볼 수 있다」가 읽힌다.
+            무료 둘, 연꽃으로 넷 — 하루 여섯이 이 방의 몫이다. */}
+        {몫 && <p className="hip-yeon-quota">{몫}</p>}
         {children}
       </div>
     </HipRoom>

@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 26;
+const 그림판 = 27;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -199,11 +199,11 @@ const SKINS = {
   // 몸은 온몸이 다 있으니 그릇 속으로 내려가도 빈 데가 안 생긴다.
   keycap: [
     { id: "dongja", name: "동자", src: "/obj/keycap-dongja.png",
-      cup: "/obj/keycap-dongja-cup.png", ar: 458 / 805, dot: "#ef86b0" },
+      cup: "/obj/keycap-dongja-cup.png", ar: 450 / 677, dot: "#ef86b0" },
     { id: "podae", name: "포대", src: "/obj/keycap-podae.png",
-      cup: "/obj/keycap-podae-cup.png", ar: 598 / 851, dot: "#d9a06f" },
+      cup: "/obj/keycap-podae-cup.png", ar: 587 / 745, dot: "#d9a06f" },
     { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk.png",
-      cup: "/obj/keycap-mireuk-cup.png", ar: 569 / 834, dot: "#cfa03c" },
+      cup: "/obj/keycap-mireuk-cup.png", ar: 549 / 705, dot: "#cfa03c" },
   ],
 } as const;
 
@@ -807,9 +807,39 @@ export default function MoktakPage() {
               const 칸 = 360 / RING_BEADS;
               const 물결 = (pos / BEADS) * 360;
 
-              return Array.from({ length: RING_BEADS }, (_, i) => {
+              // ── 알 크기는 **이웃까지의 거리**에서 나온다 ──────
+              // 형: 「뒤가 벌어진다」 → 원근을 줬더니 「이제 앞이 벌어진다」
+              //
+              // 크기를 따로 셈하고 자리를 따로 셈하니 어느 한쪽은 늘
+              // 어긋났다. 뒤를 맞추면 앞이 벌고, 앞을 맞추면 뒤가 벌었다.
+              // **재서 맞춘다** — 먼저 스물일곱 자리를 다 잡고, 알마다
+              // 옆 알까지의 거리를 재서 그만큼을 폭으로 준다.
+              // 그러면 원근이 어떻든, 알이 몇이든, 틈이 안 생긴다.
+              const 자리 = Array.from({ length: RING_BEADS }, (_, i) => {
                 const deg = (i / RING_BEADS) * 360 + angle;
                 const t = deg * (Math.PI / 180);
+                const 멂 = 3.5;
+                const 가까움 = 멂 / (멂 + Math.cos(t));
+                return {
+                  t,
+                  x: 50 + 42 * Math.sin(t) * 가까움,
+                  y: 50 - 23 * Math.cos(t) * 가까움,
+                };
+              });
+              /** 옆 알까지 — 판이 정사각이라 %끼리 바로 잰다 */
+              const 사이 = (i: number) => {
+                const a = 자리[i];
+                const b = 자리[(i + 1) % RING_BEADS];
+                const c = 자리[(i - 1 + RING_BEADS) % RING_BEADS];
+                return Math.min(
+                  Math.hypot(a.x - b.x, a.y - b.y),
+                  Math.hypot(a.x - c.x, a.y - c.y)
+                );
+              };
+
+              return Array.from({ length: RING_BEADS }, (_, i) => {
+                const { t, x, y } = 자리[i];
+                const deg = (i / RING_BEADS) * 360 + angle;
                 const front = (1 - Math.cos(t)) / 2;
                 // ── 뒤가 벌어지던 까닭 ──────────────────────
                 // 형: 「염주 뒤가 너무 벌어지는 거 이거 고칠 수 있냐」
@@ -820,9 +850,9 @@ export default function MoktakPage() {
                 // 그게 원근이다. 눈에서 고리까지를 반지름의 3.5배로 두고,
                 // 멀기(cos)에 따라 크기와 자리를 **같은 수**로 줄인다.
                 // 하나의 수로 줄이니 크기와 간격이 함께 좁아져 틈이 없다.
-                const 멂 = 3.5;
-                const 가까움 = 멂 / (멂 + Math.cos(t)); // 0.78(뒤) ~ 1.4(앞)
-                const sc = 1.14 * (가까움 / (멂 / (멂 - 1)));
+                // 폭 — 옆 알까지의 거리에 한 뼘(8%)만 더. 살짝 겹쳐야
+                // 어느 자리에서도 틈이 안 보인다
+                const 폭 = 사이(i) * 1.08;
                 const 각 = ((deg % 360) + 360) % 360;
                 const 표시에서 = (180 - 각 + 360) % 360;
                 const 채움 =
@@ -839,13 +869,13 @@ export default function MoktakPage() {
                       // 형: 「알 더 작게, 더 크게. 원 튀어나가도 됨」
                       // 고리를 키운다 — 금 테두리 밖으로 나가도 좋다.
                       // 염주는 울타리 안에 든 물건이 아니라 손에 쥐는 것이다
-                      left: `${50 + 42 * Math.sin(t) * 가까움}%`,
-                      top: `${50 - 23 * Math.cos(t) * 가까움}%`,
+                      left: `${x}%`,
+                      top: `${y}%`,
                       // 형: 「동그라미 울타리 튀어나와도 되니까 알 더 크게」
                       // 형: 「염주 원래 모양대로 해. 알 더 줄이고」
                       // 알이 서로 닿아 도넛처럼 보였다. 염주는 **알과
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
-                      width: `${11 * sc + (1 - front) * 2}%`,
+                      width: `${폭}%`,
                       transform: "translate(-50%, -50%)",
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
