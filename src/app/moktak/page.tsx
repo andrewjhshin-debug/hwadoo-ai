@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 24;
+const 그림판 = 25;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -794,19 +794,30 @@ export default function MoktakPage() {
               // **한 마디**다. 마디 넷이 한 바퀴 — 수가 딱 떨어진다.
               // 알이 스물일곱에서 하나로 돌아가는 것도 고리에서는 그냥
               // 한 칸 더 도는 것이라(27 ≡ -1), 끊기는 자리가 없다.
+              // ── 그냥 돈다 ────────────────────────────────
+              // 형: 「가운데 한 알 왜 박아뒀냐. 없애고 자연스럽게, 원래를
+              //      찾아. 구슬은 좀 더 작게」
+              //
+              // 알을 마디 단위로 돌렸더니 **한 알이 늘 아래 한가운데에
+              // 못 박힌 것처럼** 보였다. 박은 적은 없는데, 언제 봐도 그
+              // 자리에 알이 딱 서 있으니 눈에는 박힌 것이다.
+              // 고리는 원래대로 한 타에 백여덟분의 일씩 **그냥 돈다.**
+              // 금은 아래 한가운데(표시점)에서 물결처럼 번져 나간다 —
+              // 알의 자리와 상관없이 지나간 만큼 든다.
               const 칸 = 360 / RING_BEADS;
-              // 이번 마디에서 몇 알이 물들었나 — 1~27 (한 바퀴 끝은 27)
-              const 번째 = pos === 0 ? 0 : ((pos - 1) % RING_BEADS) + 1;
-              const 앞 = 번째 - 1; // 방금 물든 알이 아래 한가운데 선다
+              const 물결 = (pos / BEADS) * 360;
 
               return Array.from({ length: RING_BEADS }, (_, i) => {
-                const deg = 180 + (i - 앞) * 칸;
+                const deg = (i / RING_BEADS) * 360 + angle;
                 const t = deg * (Math.PI / 180);
                 const front = (1 - Math.cos(t)) / 2;
                 const sc = 0.62 + 0.52 * front;
-                // 금은 지나온 알에 든다. 이번 마디가 끝나면 다 같이 비고
-                // 새 마디가 시작한다
-                const 채움 = i < 번째 ? 1 : 0;
+                const 각 = ((deg % 360) + 360) % 360;
+                const 표시에서 = (180 - 각 + 360) % 360;
+                const 채움 =
+                  pos === 0
+                    ? 0
+                    : Math.max(0, Math.min(1, (물결 - (표시에서 - 칸)) / 칸));
                 const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})`;
                 const 금결 = `brightness(${(1.0 + 0.07 * front).toFixed(2)})`;
                 return (
@@ -823,12 +834,12 @@ export default function MoktakPage() {
                       // 형: 「염주 원래 모양대로 해. 알 더 줄이고」
                       // 알이 서로 닿아 도넛처럼 보였다. 염주는 **알과
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
-                      width: `${13.5 * sc + (1 - front) * 2.5}%`,
+                      width: `${11 * sc + (1 - front) * 2}%`,
                       transform: "translate(-50%, -50%)",
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
                       transition:
-                        "left .26s cubic-bezier(.32,.72,.3,1), top .26s cubic-bezier(.32,.72,.3,1), width .26s cubic-bezier(.32,.72,.3,1)",
+                        "left .16s ease-out, top .16s ease-out, width .16s ease-out",
                     }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}

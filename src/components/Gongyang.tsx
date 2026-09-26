@@ -34,6 +34,7 @@ export default function Gongyang({
   seed = 0,
   drop = 24,
   dim = false,
+  깊이 = 0,
   onClick,
 }: {
   갈래?: 공양갈래;
@@ -41,11 +42,12 @@ export default function Gongyang({
   seed?: number;
   drop?: number;
   dim?: boolean;
+  깊이?: number;
   onClick?: () => void;
 }) {
   // 연등은 제 모양을 안다 — 매달리고 쪽지에 이름이 적힌다
   if (갈래 === "deung")
-    return <Yeondeung name={name} seed={seed} drop={drop} dim={dim} onClick={onClick} />;
+    return <Yeondeung name={name} seed={seed} drop={drop} dim={dim} 깊이={깊이} onClick={onClick} />;
 
   const 것 = 선것[갈래];
   const s = Math.abs(seed);

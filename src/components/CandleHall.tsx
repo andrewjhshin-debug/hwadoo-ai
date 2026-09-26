@@ -15,13 +15,15 @@ import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type
 type Comment = { id: string; by?: string; body?: string };
 
 function CandleMark({ c, onClick, i, mine }: { c: Candle; onClick: () => void; i: number; mine?: boolean }) {
+  // 원근 — 세 켜로 나눈다. 같은 켜가 나란히 서지 않게 3 으로 돌린다
+  const 깊이 = [0, 0.52, 0.86][i % 3];
   // 줄 길이를 세 층으로 — 진짜 법당의 천장이 그렇다. 나란히 걸면 격자가 된다
   const 줄 = [16, 34, 24, 44, 28][i % 5];
   // 씨는 **사람마다 고정** — 같은 이가 오면 늘 같은 빛깔의 등이 걸린다
   const seed = c.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
   // 옛 문서에는 갈래 칸이 없다 — 없으면 연등이다(여태 다 연등이었다)
   // 내 것인가 — 「내 것만」을 켜면 이 표를 보고 나머지가 희미해진다
-  return <span className="hip-mark" data-mine={mine ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} dim={!burning(c)} onClick={onClick} /></span>;
+  return <span className="hip-mark" data-mine={mine ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
 }
 
 function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
@@ -51,8 +53,10 @@ function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => vo
         </div>
 
         {/* 무엇을 올릴까 — 셋. 고른 대로 바로 위에 걸려 보인다 */}
-        <div className="hip-deung-pick" data-four="1">
-          {([["deung", "연등"], ["hyang", "향"], ["ssal", "쌀"], ["cho", "초"]] as const).map(([k, t]) => (
+        <div className="hip-deung-pick">
+          {/* 형: 「초랑 향은 일단 빼고」 — 그림은 두고 고르는 자리에서만
+              내린다. 이미 올린 것은 그대로 불단에 선다 */}
+          {([["deung", "연등"], ["ssal", "쌀"]] as const).map(([k, t]) => (
             <button key={k} data-on={gift === k ? "1" : undefined} onClick={() => setGift(k)}>
               <b>{t}</b>
             </button>

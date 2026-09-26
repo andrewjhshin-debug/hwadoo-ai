@@ -32,12 +32,16 @@ export default function Yeondeung({
   drop = 24,
   /** 꺼진 등 — 다 탄 것은 빛이 죽는다 */
   dim = false,
+  /** 얼마나 뒤에 있나 — 0 앞, 1 뒤. 형: 「원근법 줘서」
+      뒤엣것은 작고, 옅고, 조금 흐리다. 겹쳐 걸린 등이 깊이를 얻는다 */
+  깊이 = 0,
   onClick,
 }: {
   name: string;
   seed?: number;
   drop?: number;
   dim?: boolean;
+  깊이?: number;
   onClick?: () => void;
 }) {
   const s = Math.abs(seed);
@@ -54,7 +58,7 @@ export default function Yeondeung({
       type="button"
       onClick={onClick}
       className="hip-deung"
-      style={{ "--deung-len": `${drop}px` } as React.CSSProperties}
+      style={{ "--deung-len": `${drop}px`, "--깊이": 깊이 } as React.CSSProperties}
       aria-label={`${name} 연등`}
     >
       {/* 실 — 천장에서 등까지 */}

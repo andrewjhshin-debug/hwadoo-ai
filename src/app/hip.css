@@ -5621,13 +5621,25 @@ html[data-theme="light"] {
     /* 천장 — 등이 걸린 가로대 */
     border-top: 1px solid rgba(226, 122, 158, 0.28);
   }
+  /* ── 겹쳐 걸린다 ──────────────────────────────────────
+     형: 「김부따 앱처럼 연등끼리 서로 겹치게 하라고」 「원근법 줘서」
+
+     나란히 띄엄띄엄 걸면 격자다. 진짜 법당은 등이 **서로 가린다** —
+     앞엣것이 뒷것을 반쯤 먹고, 뒤로 갈수록 작고 옅다.
+     겹침은 가로로 음수 여백, 깊이는 크기·옅기·흐림 셋으로.
+     뒤엣것이 뒤에 있으려면 z 도 낮아야 한다. */
   .hip-deung {
     position: relative;
     container-type: inline-size;
     flex: 0 0 auto;
-    width: 19%;
-    min-width: 58px;
-    max-width: 82px;
+    width: calc((22% - var(--깊이, 0) * 5%));
+    min-width: 54px;
+    max-width: 96px;
+    margin-inline: -2.4%;
+    margin-top: calc(var(--깊이, 0) * -10px);
+    opacity: calc(1 - var(--깊이, 0) * 0.3);
+    filter: blur(calc(var(--깊이, 0) * 0.7px));
+    z-index: calc(40 - var(--깊이, 0) * 30);
     padding-top: var(--deung-len, 24px);
     display: flex;
     flex-direction: column;
@@ -5635,7 +5647,9 @@ html[data-theme="light"] {
     background: none;
     border: 0;
   }
-  @media (min-width: 520px) { .hip-deung { width: 12.5%; } }
+  @media (min-width: 520px) {
+    .hip-deung { width: calc(15% - var(--깊이, 0) * 3.5%); }
+  }
   .hip-deung-line {
     position: absolute;
     top: 0;
