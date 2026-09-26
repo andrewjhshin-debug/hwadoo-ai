@@ -329,7 +329,9 @@ export function countDmUnread(threads: DmThread[], uid: string): number {
 
 export type DmReport = {
   id: string;
-  kind?: "dm" | "comment"; // 없으면 옛 쪽지 신고
+  // 없으면 옛 쪽지 신고. "yeon" 은 인연 카드에서 들어온 것 —
+  // 신고함 한 자리에 다 모여야 뒷방이 한 번에 본다(yeonToday.ts 신고)
+  kind?: "dm" | "comment" | "yeon";
   threadId?: string; // 쪽지 신고일 때
   postId?: string; // 댓글 신고일 때
   commentId?: string;

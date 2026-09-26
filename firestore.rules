@@ -528,10 +528,32 @@ service cloud.firestore {
       //    규칙으로 배열 속을 못 보므로, **통과 표시는 서버(API)에서만**
       //    찍는다. 여기서는 올리는 것까지만 허락한다
       allow create: if request.auth != null && request.auth.uid == uid;
+      // 본인이 못 건드리는 칸 —
+      //  · state 를 '정지' 로는 스스로 못 간다(뒷방 몫)
+      //  · verified(본인확인)·merit(계급) 은 **서버가 찍는 표**다.
+      //    열어 두었더니 브라우저에서 제 문서에 그대로 써 넣을 수 있었다 —
+      //    본인확인 문턱과 계급이 둘 다 이름뿐이 된다.
+      //    안 보내면(둘 다 없으면) 그대로 두는 것으로 본다.
+      function 그대로(k) {
+        return !(k in request.resource.data) && !(k in resource.data)
+          || (k in request.resource.data) && (k in resource.data)
+             && request.resource.data[k] == resource.data[k];
+      }
       allow update: if isAdmin()
         || (request.auth != null && request.auth.uid == uid
-            && request.resource.data.state != '정지');
+            && request.resource.data.state != '정지'
+            && 그대로('verified') && 그대로('merit'));
       allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+    }
+
+    // 받을 공덕 — 인연이 닿으면 서버가 여기에 적어 두고, 각자 들어올 때
+    // 챙겨 간다(공덕 장부는 브라우저에 있다).
+    // **쓰는 것은 서버뿐**이다(관리자 SDK 는 규칙을 안 탄다). 브라우저는
+    // 제 것을 읽고, 챙긴 뒤 지우는 것까지만.
+    match /yeon-owed/{uid}/list/{id} {
+      allow read, delete: if isAdmin()
+        || (request.auth != null && request.auth.uid == uid);
+      allow create, update: if isAdmin();
     }
 
     // 합장 — **보낸 것만** 쓴다. 받은 목록은 서버로만 센다.

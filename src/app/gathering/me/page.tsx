@@ -262,12 +262,28 @@ export default function 인연내프로필() {
               고치기(
                 e.target.checked
                   ? { religionOk: true, religionAt: Date.now() }
-                  : { religionOk: false }
+                  // **끄면 적어 둔 것도 지운다.**
+                  // 「안 보낸다」로만 두었더니 절 이름이 문서에 그대로
+                  // 남았다. 동의를 물린 사람의 종교를 계속 갖고 있는 것은
+                  // 안 내보내도 **보관**이다 — 법이 말하는 것은 수집·이용·
+                  // 보관 전부다. 물리면 그 자리에서 비운다.
+                  : { religionOk: false, temple: "", wantTemple: "" }
               )
             }
           />
           <span>절 이름을 프로필에 씁니다</span>
         </label>
+        {/* 고지 — 민감정보라 무엇을·왜·얼마나 갖고 있는지 적어야 한다.
+            평소엔 접어 둔다(형: 「멘트 넣지 말라고 했다」). 법이 요구하는
+            것은 「알 수 있게 하라」지 「늘 펴 두라」가 아니다. */}
+        <details className="hip-yeon-legal">
+          <summary>무엇을 받나</summary>
+          <p>
+            다니는 절 · 가고 싶은 절 — 도반을 찾아 이어 주는 데만 씁니다.
+            동의를 물리면 그 자리에서 지웁니다. 동의하지 않아도 인연은
+            그대로 쓸 수 있습니다.
+          </p>
+        </details>
 
         <div className="hip-yeon-row" data-off={!me?.religionOk ? "1" : undefined}>
           <b>다니는 절</b>

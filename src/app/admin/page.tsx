@@ -21,6 +21,7 @@ import {
 } from "react";
 import type { User } from "firebase/auth";
 import { isAdminAccount } from "@/lib/config";
+import { auth } from "@/lib/firebase";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { useConfirm } from "@/components/Confirm";
 import {
@@ -677,6 +678,30 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAdmin) refresh();
   }, [isAdmin, refresh]);
+
+  /**
+   * 인연 손보기 — 신고 줄에서 그 자리에서.
+   *
+   * 「처리함」은 **신고서에 도장을 찍는 것**이지 그 사람에게는 아무 일도
+   * 안 일어난다. 사진을 내리거나 프로필을 세우는 것은 서버만 할 수 있다
+   * (사진의 통과·거부는 배열 속이라 규칙으로 못 지킨다).
+   */
+  const 인연손보기 = async (uid: string, what: "photos-off" | "stop" | "open") => {
+    const u = auth.currentUser;
+    if (!u) throw new Error("다시 들어와 주세요");
+    const r = await fetch("/api/yeon/moderate", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${await u.getIdToken()}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ uid, act: what }),
+    });
+    if (!r.ok) {
+      const j = await r.json().catch(() => null);
+      throw new Error(j?.error ?? "실패");
+    }
+  };
 
   const act = async (key: string, fn: () => Promise<void>) => {
     setBusy(key);
@@ -1504,12 +1529,47 @@ export default function AdminPage() {
                         {r.reason}
                       </p>
                       <p className="mt-1.5 text-[10px] tracking-wider text-hanji-faint">
-                        {r.kind === "comment" ? "[댓글 신고]" : "[쪽지 신고]"}
+                        {r.kind === "comment"
+                          ? "[댓글 신고]"
+                          : r.kind === "yeon"
+                            ? "[인연 신고]"
+                            : "[쪽지 신고]"}
                         &nbsp;대상 UID: {r.targetUid.slice(0, 8)}…
                         {r.threadId && <> · 스레드 {r.threadId.slice(0, 8)}…</>}
                         {r.postId && <> · 글 {r.postId.slice(0, 8)}…</>}
                       </p>
-                      <div className="mt-3 flex gap-2">
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {/* 인연 신고는 **그 자리에서** 내릴 수 있어야 한다.
+                            「처리함」만 있으면 신고서에 도장만 찍고 그 사람은
+                            그대로 판에 서 있다 */}
+                        {r.kind === "yeon" && (
+                          <>
+                            <button
+                              disabled={busy === r.id}
+                              onClick={() =>
+                                act(r.id, async () => {
+                                  await 인연손보기(r.targetUid, "photos-off");
+                                  await resolveReport(r.id);
+                                })
+                              }
+                              className={`${smallBtn} border-vermilion/50 text-vermilion hover:bg-vermilion/10`}
+                            >
+                              사진 내리기
+                            </button>
+                            <button
+                              disabled={busy === r.id}
+                              onClick={() =>
+                                eraseForever(r.id, async () => {
+                                  await 인연손보기(r.targetUid, "stop");
+                                  await resolveReport(r.id);
+                                })
+                              }
+                              className={`${smallBtn} border-vermilion/50 text-vermilion hover:bg-vermilion/10`}
+                            >
+                              프로필 정지
+                            </button>
+                          </>
+                        )}
                         <button
                           disabled={busy === r.id}
                           onClick={() =>

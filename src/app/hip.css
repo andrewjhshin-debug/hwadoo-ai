@@ -4571,6 +4571,24 @@ html[data-theme="light"] {
   .hip-yeon-go button:disabled { opacity: 0.4; box-shadow: none; }
   .hip-yeon-go small { font-size: 11px; color: #a39a8f; }
   .hip-yeon-bad { margin: 0; font-size: 11.5px; color: #d2578c; }
+  /* 민감정보 고지 — 접어 두고, 펴면 한 문단 */
+  .hip-yeon-legal { margin: -6px 0 0; }
+  .hip-yeon-legal summary {
+    list-style: none;
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: #a39a8f;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .hip-yeon-legal summary::-webkit-details-marker { display: none; }
+  .hip-yeon-legal p {
+    margin: 7px 0 0;
+    font-size: 11.5px;
+    line-height: 1.75;
+    color: #8b8175;
+  }
   .hip-yeon-foot {
     margin: 4px 0 0;
     text-align: center;

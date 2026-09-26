@@ -24,6 +24,8 @@ import { watchAuth } from "@/lib/sync";
 import { 나이, 내프로필, type 인연프로필 } from "@/lib/yeon";
 import {
   오늘뽑기,
+  외상챙기기,
+  한사람더,
   합장,
   막기,
   신고,
@@ -76,6 +78,8 @@ export default function 오늘의인연() {
   const confirm = useConfirm();
   const [있나, 있나잡기] = useState<boolean | null>(null);
   const [사람들, 사람들잡기] = useState<오늘사람[] | null>(null);
+  // 오늘 볼 수 있는 수 / 연꽃을 써도 여기까지
+  const [칸, 칸잡기] = useState({ cap: 1, max: 1 });
   const [끝난이, 끝난이잡기] = useState<string[]>([]);
   const [탈, 탈잡기] = useState<string>("");
   const [바쁨, 바쁨잡기] = useState(false);
@@ -108,6 +112,7 @@ export default function 오늘의인연() {
     }
     사람들잡기(r.picks);
     끝난이잡기(r.done);
+    칸잡기({ cap: r.cap, max: r.max });
   }, []);
 
   useEffect(
@@ -117,6 +122,9 @@ export default function 오늘의인연() {
         if (u) {
           void 읽기();
           void 내프로필().then(나잡기);
+          // 내가 없는 사이에 닿은 인연의 공덕 — 여기서 챙긴다.
+          // 공덕 장부가 브라우저에 있어 서버가 대신 못 쌓는다
+          void 외상챙기기();
         }
       }),
     [읽기]
@@ -164,6 +172,24 @@ export default function 오늘의인연() {
   };
 
   const 치우기 = (uid: string) => 끝난이잡기((v) => [...v, uid]);
+
+  /** 연꽃 한 송이로 한 사람 더 */
+  const 더보기 = async () => {
+    if (바쁨) return;
+    바쁨잡기(true);
+    탈잡기("");
+    try {
+      const r = await 한사람더();
+      if ("탈" in r) {
+        탈잡기(r.탈);
+        return;
+      }
+      칸잡기({ cap: r.cap, max: r.max });
+      await 읽기(); // 서버가 새 사람을 채워서 돌려준다
+    } finally {
+      바쁨잡기(false);
+    }
+  };
 
   const 누름 = async (act: "hap" | "pass") => {
     if (!이 || 바쁨) return;
@@ -292,6 +318,14 @@ export default function 오늘의인연() {
               空 한 글자와 한 줄이면 오늘 몫이 끝났다는 말은 이미 다 했다. */}
           <b aria-hidden>空</b>
           <p>오늘은 여기까지</p>
+          {/* 더 보려면 연꽃 한 송이. 하루 천장에 닿으면 아예 안 그린다 —
+              살 수 없는 것을 내밀어 봐야 서로 피곤하다 */}
+          {있나 && 칸.cap < 칸.max && (
+            <button className="hip-yeon-hap" disabled={바쁨} onClick={더보기}>
+              연꽃 한 송이로 한 사람 더
+            </button>
+          )}
+          {탈 && <p className="hip-yeon-bad">{말로(탈)}</p>}
         </div>
       </껍데기>
     );
@@ -460,6 +494,8 @@ function 말로(탈: string): string {
       "server-not-ready": "잠시 뒤에 다시",
       "bad-token": "다시 들어와 주세요",
       "no-token": "다시 들어와 주세요",
+      "need-lotus": "연꽃이 모자랍니다",
+      "max-today": "오늘은 여기까지",
     }[탈] ?? 탈
   );
 }

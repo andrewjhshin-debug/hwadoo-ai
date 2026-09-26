@@ -12,10 +12,12 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  getDocs,
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { addMerit } from "@/lib/merit";
 
 /** 서버가 추려서 주는 한 사람 — 프로필 통째가 아니다 */
 export type 오늘사람 = {
@@ -62,6 +64,8 @@ export type 인연탈 =
   | "blocked"
   | "bad-target"
   | "server-not-ready"
+  | "need-lotus"
+  | "max-today"
   | "무엇인가";
 
 async function 표() {
@@ -78,6 +82,24 @@ export async function 오늘뽑기(): Promise<오늘 | { 탈: 인연탈 }> {
   const j = await r.json().catch(() => null);
   if (!r.ok) return { 탈: (j?.error as 인연탈) ?? "무엇인가" };
   return j as 오늘;
+}
+
+/**
+ * 한 사람 더 — 연꽃 한 송이.
+ *
+ * 서버가 하루치 칸(cap)을 하나 올리고, 그 다음 뽑기(오늘뽑기)가 새 사람을
+ * 채운다. 뽑는 자리를 한 군데로 두어야 쿨다운·차단·점수 셈이 안 갈린다.
+ */
+export async function 한사람더(): Promise<
+  { cap: number; max: number } | { 탈: 인연탈 }
+> {
+  const r = await fetch("/api/yeon/more", {
+    method: "POST",
+    headers: { authorization: await 표() },
+  });
+  const j = await r.json().catch(() => null);
+  if (!r.ok) return { 탈: (j?.error as 인연탈) ?? "무엇인가" };
+  return { cap: j.cap as number, max: j.max as number };
 }
 
 /** 합장하거나 넘긴다. 둘 다 오늘치에서 빠진다 */
@@ -144,3 +166,38 @@ export const 신고까닭 = [
   "불쾌한 말을 합니다",
   "미성년자로 보입니다",
 ] as const;
+
+/**
+ * 받을 공덕을 챙긴다 — 인연이 닿은 몫.
+ *
+ * 인연은 **두 사람**의 일이라, 닿는 순간 나는 화면 앞에 없을 수도 있다.
+ * (저쪽이 나중에 합장해서 닿는 경우가 그렇다.) 공덕 장부는 브라우저에
+ * 있으니 서버가 대신 쌓아 줄 수가 없다 — 그래서 서버는 `yeon-owed` 에
+ * 「받을 것」만 적어 두고, 이 손이 들어올 때 챙겨 온다.
+ *
+ * 챙긴 것은 그 자리에서 지운다. 지우기가 실패하면 공덕도 안 붙인다 —
+ * 두 번 받는 것보다 한 번 덜 받는 편이 낫다.
+ *
+ * **이 함수는 소리 없이 실패한다.** 공덕 한 몫 때문에 판이 안 뜨면
+ * 그게 더 큰 손해다.
+ */
+export async function 외상챙기기(): Promise<number> {
+  const u = auth.currentUser;
+  if (!u) return 0;
+  try {
+    const s = await getDocs(collection(db, "yeon-owed", u.uid, "list"));
+    let 몇 = 0;
+    for (const d of s.docs) {
+      try {
+        await deleteDoc(d.ref);
+      } catch {
+        continue; // 못 지웠으면 안 챙긴다
+      }
+      addMerit("inyeon", 1);
+      몇 += 1;
+    }
+    return 몇;
+  } catch {
+    return 0;
+  }
+}
