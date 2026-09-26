@@ -156,18 +156,22 @@ export function 들어올수있나(born: number): boolean {
   return 나이(born) >= 19;
 }
 
-/** 프로필이 남에게 보일 채비가 됐는가 */
+/**
+ * 프로필이 남에게 보일 채비가 됐는가 — **아래 `모자란것` 으로 잰다.**
+ *
+ * 한동안 두 잣대가 따로 있었다. 이쪽은 「통과된 사진(ok)이 있는가」를
+ * 보고 아래쪽은 「사진이 있는가」만 봤는데, 화면은 아래쪽만 불렀다.
+ * 그래서 본인은 「인연 받기」를 눌러 활동이 되고 다 됐다고 믿는데,
+ * 남에게는 안 보였다 — 잣대가 둘이면 반드시 한쪽은 거짓말을 한다.
+ * (게다가 사진에 `ok` 를 찍는 코드가 애초에 없었다.)
+ *
+ * 잣대를 하나로 모은다. 여기는 그 하나를 불러 쓰는 얇은 껍데기다.
+ */
 export function 채비됐나(p: 인연프로필 | null): boolean {
-  if (!p) return false;
-  if (!p.sex || !p.born || !p.area) return false;
-  // 형: 「가입할 때 사진이랑 프로필 넣어야 가입되는 걸로」
-  // 사진만으로는 카드가 얼굴 한 장이다. 한 마디가 있어야 사람이 읽힌다.
-  if (!p.line?.trim()) return false;
-  if (본인확인_켬 && !p.verified) return false;
-  return p.photos.some((f) => f.state === "ok");
+  return 모자란것(p).length === 0;
 }
 
-/** 아직 못 채운 것 — 화면이 그대로 물어보면 된다 */
+/** 아직 못 채운 것 — 화면이 그대로 물어보면 된다. **이것이 유일한 잣대다** */
 export function 모자란것(p: 인연프로필 | null): string[] {
   const 빠진: string[] = [];
   if (!p || !p.photos.length) 빠진.push("사진");

@@ -133,6 +133,51 @@ async function sendMilestoneMails(app: App, now: number): Promise<number> {
   return sent;
 }
 
+/**
+ * 조용한 방 걷기 — 아무 말 없이 사흘.
+ *
+ * 인연이 닿으면 쪽지방이 열린다(api/yeon/hap). 그런데 열어 놓고 아무도
+ * 말을 안 거는 방이 쌓이면 쪽지함이 쓸모없어진다 — 열 줄 중 아홉이
+ * 「인사도 안 한 사람」이면 아무도 안 연다.
+ *
+ * 그래서 **한 마디도 오가지 않은 방만** 걷는다. 말이 한 번이라도 오갔으면
+ * 그건 사람 사이의 일이지 판이 치울 것이 아니다.
+ *
+ * 닫는 것은 방을 **지우는 것**이다 — 「닫힘」 표를 남기면 쪽지함이 그걸
+ * 또 그려야 하고, 결국 같은 자리를 먹는다. 말이 없었으니 잃을 것도 없다.
+ * 닿았던 자국(yeon-matches)은 남긴다 — 다시 뽑히지 않게 하는 근거다.
+ */
+async function 조용한방걷기(app: App): Promise<number> {
+  const db = getFirestore(app);
+  const 지금 = Date.now();
+  const s = await db
+    .collection("yeon-matches")
+    .where("closed", "==", false)
+    .where("quietUntil", "<", 지금)
+    .limit(200)
+    .get();
+  let 몇 = 0;
+  for (const d of s.docs) {
+    const thread: string | undefined = d.data().thread;
+    try {
+      if (thread) {
+        const t = await db.doc(`dm-threads/${thread}`).get();
+        // 한 마디라도 오갔으면 두고, 표만 내린다
+        if (t.exists && (t.data()!.msgCount ?? 0) > 0) {
+          await d.ref.set({ closed: true }, { merge: true });
+          continue;
+        }
+        if (t.exists) await t.ref.delete();
+      }
+      await d.ref.set({ closed: true, closedAt: 지금 }, { merge: true });
+      몇 += 1;
+    } catch {
+      // 한 방이 안 닫혀도 나머지는 닫는다
+    }
+  }
+  return 몇;
+}
+
 export async function GET(request: Request) {
   // 인증 — 문이 잠겨 있지 않으면 아예 열지 않는다(fail-closed).
   // CRON_SECRET 이 없으면 아무나 이 문을 두드려 전체 발송을 시킬 수 있으므로,
@@ -156,6 +201,12 @@ export async function GET(request: Request) {
   // 매일 뜨는 푸시와 달리, 메일은 한 번이면 충분하다.
   // (반드시 기다린다 — 서버리스는 응답을 돌려주면 나머지 일을 이어 하지 않는다)
   const mailed = await sendMilestoneMails(app, Date.now()).catch(() => 0);
+
+  // 조용한 방 걷기 — 인연이 닿았는데 사흘 동안 서로 한 마디도 없으면
+  // 그 방은 조용히 닫는다(yeonPick.ts QUIET_HOURS).
+  // 여기 얹는 까닭 — 크론 한 자리를 더 파면 공짜 판의 몫을 쓴다.
+  // 하루 한 번이면 충분한 일이라 아침 문안과 같은 걸음으로 간다.
+  const 닫은방 = await 조용한방걷기(app).catch(() => 0);
 
   // 장부의 토큰 전부 — 문서 ID가 곧 토큰, uid 가 있으면 로그인 구독자다
   const snapshot = await db.collection("push-tokens").get();
@@ -226,5 +277,5 @@ export async function GET(request: Request) {
   // 죽은 토큰 청소 — 실패한 묶음은 다음 아침에 다시
   const cleaned = await cleanDeadTokens(db, dead);
 
-  return Response.json({ sent, failed, cleaned, mailed });
+  return Response.json({ sent, failed, cleaned, mailed, closed: 닫은방 });
 }

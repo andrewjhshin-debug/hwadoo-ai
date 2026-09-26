@@ -21,6 +21,15 @@
       ]
     },
     {
+      "//": "조용한 방 걷기 — api/push/daily 가 하루 한 번 훑는다(yeon-matches, 닫히지 않았고 사흘이 지난 것). 없으면 질의가 죽어 방이 영영 안 닫힌다.",
+      "collectionGroup": "yeon-matches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "closed", "order": "ASCENDING" },
+        { "fieldPath": "quietUntil", "order": "ASCENDING" }
+      ]
+    },
+    {
       "//": "오늘의 인연, 지난 90일에 이미 만난 사람 — api/yeon/today 의 뽑기. 없으면 뽑기가 통째로 죽어 「아직 마주칠 사람이 없습니다」만 뜬다.",
       "collectionGroup": "yeon-daily",
       "queryScope": "COLLECTION",
