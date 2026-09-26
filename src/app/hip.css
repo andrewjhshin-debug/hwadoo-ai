@@ -799,13 +799,22 @@ html[data-theme="light"] {
     position: relative;
     z-index: 1;
     flex: 1;
+    /* **이 한 줄이 없어서 판이 탭을 밟았다.** 플렉스 칸의 기본
+       min-height 는 auto — 속이 크면 칸이 그만큼 불어나고, 그 아래
+       것들(달 · 막대 · 1 3 7 21 108)이 통째로 띠 밑으로 밀린다.
+       형: 「저 화두 화면이랑 탭 겹친다. 이런 초보적인 실수 하지 마라」
+       칸은 제 몫만 먹고, 넘치는 것은 **칸 안에서 굴린다.** */
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* 아래 다섯 점 쪽으로 빈칸이 쏠려 보여, 덩이를 조금 위로 올린다 */
-    padding-bottom: 6vh;
+    padding-bottom: 2vh;
   }
+  .hip-screen-mid::-webkit-scrollbar { display: none; }
   .hip-big {
     font-variant-numeric: tabular-nums;
     font-weight: 300;
@@ -2171,17 +2180,18 @@ html[data-theme="light"] {
   }
 
   /* 결 — 세로로 눕힌 話頭. 크고, 거의 안 보이게 */
-  /* 형: 「화두 한자는 왼쪽 위로」 — 74px 에 두었더니 머리줄(연꽃 알약)과
-     같은 높이라 둘이 겹쳐 읽혔다. 결은 결답게 **모서리로** 물린다. */
+  /* 형: 「화두 한자는 왼쪽 위로」 「화두 글자 크게 더 키우고 더 밑으로」
+     4px 로 올렸더니 폰 상태줄 밑으로 기어들어가 윗글자가 잘렸다.
+     상태줄을 피해서 내리고(safe + 84px), 결은 더 굵게. */
   .hip-mark {
     position: absolute;
-    top: 4px;
-    left: -20px;
+    top: calc(env(safe-area-inset-top, 0px) + 84px);
+    left: -22px;
     z-index: 0;
     writing-mode: vertical-rl;
     font-family: var(--font-serif);
     font-weight: 300;
-    font-size: clamp(84px, 25vw, 124px);
+    font-size: clamp(104px, 33vw, 168px);
     line-height: 0.9;
     letter-spacing: 0.01em;
     color: rgba(28, 26, 23, 0.055);
@@ -4564,7 +4574,8 @@ html[data-theme="light"] {
   }
   .hip-yeon-face-one {
     position: relative;
-    width: 148px;
+    width: 100%;
+    max-width: 268px;
     aspect-ratio: 3 / 4;
     border-radius: 18px;
     overflow: hidden;
@@ -4572,7 +4583,6 @@ html[data-theme="light"] {
     border: 1px solid rgba(26, 23, 20, 0.07);
   }
   .hip-yeon-face-one img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .hip-yeon-face-one[data-state="pending"] img { filter: saturate(0.5) brightness(1.06); }
   /* 아직 한 장도 없을 때 — 빈 네모에 점선 한 겹 */
   .hip-yeon-face-one i {
     position: absolute;
@@ -4614,21 +4624,33 @@ html[data-theme="light"] {
     text-decoration: none;
     color: #d2578c;
   }
-  .hip-yeon-face-acts { display: flex; gap: 10px; }
+  /* 단추 둘은 사진 **안** 바닥에 떠 있다 — 그림 위라 흰 알약으로 */
+  .hip-yeon-face-acts {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    padding: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 14px rgba(26, 23, 20, 0.16);
+  }
   .hip-yeon-face-acts button {
     display: grid;
     place-items: center;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    border: 1px solid rgba(226, 122, 158, 0.4);
-    background: rgba(242, 160, 189, 0.09);
-    font-size: 19px;
+    background: rgba(242, 160, 189, 0.14);
+    font-size: 18px;
     color: #d2578c;
     transition: all 0.16s;
   }
-  .hip-yeon-face-acts button:active { transform: translateY(1px); background: rgba(242, 160, 189, 0.2); }
-  .hip-yeon-face-acts button:disabled { opacity: 0.32; }
+  .hip-yeon-face-acts button:active { transform: translateY(1px); background: rgba(242, 160, 189, 0.3); }
+  .hip-yeon-face-acts button:disabled { opacity: 0.3; }
   .hip-yeon-face-acts svg {
     width: 20px; height: 20px;
     fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round;
@@ -4677,7 +4699,6 @@ html[data-theme="light"] {
     background: rgba(26, 23, 20, 0.05);
   }
   .hip-yeon-big img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .hip-yeon-big span[data-state="pending"] img { filter: saturate(0.5) brightness(1.06); }
   .hip-yeon-big span > button {
     position: absolute;
     right: 5px;
@@ -4709,7 +4730,6 @@ html[data-theme="light"] {
     object-fit: cover;
     display: block;
   }
-  .hip-yeon-shots > span[data-state="pending"] img { filter: saturate(0.5) brightness(1.06); }
   .hip-yeon-shots > span i {
     position: absolute;
     left: 6px;
@@ -4900,7 +4920,9 @@ html[data-theme="light"] {
     margin: 0 auto;
     min-height: 0;
     gap: 10px;
-    padding: 18px 14px 0;
+    /* 형: 「이거 저 밑까지 늘리고」 — 통 밑으로 빈 띠가 한 겹 더
+       있었다. 띠(염주) 자리만 남기고 통이 그 위까지 내려온다 */
+    padding: 18px 14px calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) - 18px);
   }
   .hip-hall-top {
     display: flex;
@@ -4944,13 +4966,18 @@ html[data-theme="light"] {
      띄우지 않는다. 통 안 마지막 줄에 나란히 세운다 — 기댈 데가
      없으면 어긋날 일도 없다. */
   .hip-hall-acts {
-    flex: 0 0 auto;
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 6;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 10px 0 calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) - 28px);
+    pointer-events: none;
   }
+  .hip-hall-acts > button { pointer-events: auto; }
   .hip-hall-go {
     height: 52px;
     padding: 0 22px;
@@ -5018,6 +5045,7 @@ html[data-theme="light"] {
   .hip-hall-altar {
     position: sticky;
     bottom: 0;
+    z-index: 2;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
@@ -5033,7 +5061,11 @@ html[data-theme="light"] {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding-bottom: 8px;
+    /* 단추가 기대는 자리 — 「기댈 데가 없어 화면 모서리로 갔다」를
+       두 번 겪지 않으려면 여기 position 이 있어야 한다 */
+    position: relative;
+    /* 단추 한 줄이 그 위에 떠 있다 — 그만큼만 안에서 비운다 */
+    padding-bottom: 72px;
   }
   .hip-gong {
     position: relative;

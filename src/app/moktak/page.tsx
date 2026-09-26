@@ -826,12 +826,17 @@ export default function MoktakPage() {
                   y: 50 - 23 * Math.cos(t) * 가까움,
                 };
               });
-              /** 옆 알까지 — 판이 정사각이라 %끼리 바로 잰다 */
+              /** 옆 알까지 — 판이 정사각이라 %끼리 바로 잰다.
+                  **가까운 쪽이 아니라 먼 쪽**에 맞춘다. 가까운 쪽에
+                  맞추면 반대편이 그만큼 벌어진다 — 원근 때문에 한 알의
+                  두 이웃은 거리가 늘 다르다. 먼 쪽에 맞추면 가까운
+                  쪽은 겹칠 뿐이고, 겹치는 건 염주가 원래 그렇다
+                  (형: 「알끼리 좀 겹쳐도 되니까 이격 넘 벌어지지 않게」) */
               const 사이 = (i: number) => {
                 const a = 자리[i];
                 const b = 자리[(i + 1) % RING_BEADS];
                 const c = 자리[(i - 1 + RING_BEADS) % RING_BEADS];
-                return Math.min(
+                return Math.max(
                   Math.hypot(a.x - b.x, a.y - b.y),
                   Math.hypot(a.x - c.x, a.y - c.y)
                 );
@@ -856,7 +861,7 @@ export default function MoktakPage() {
                 // 알이다. 그걸 안 세니 폭을 이웃 거리에 맞춰도 눈에는
                 // 13% 가 늘 비었다 — 형: 「간격이 넘 넓어」.
                 // 테두리를 되돌린 뒤(÷0.872) 한 뼘 더 겹친다.
-                const 폭 = (사이(i) / 0.872) * 1.06;
+                const 폭 = (사이(i) / 0.872) * 1.12;
                 const 각 = ((deg % 360) + 360) % 360;
                 const 표시에서 = (180 - 각 + 360) % 360;
                 const 채움 =

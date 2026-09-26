@@ -262,10 +262,15 @@ export async function 프로필저장(
 async function 다시굽기(file: File): Promise<{ 짐: Blob; 종류: string; 끝: string }> {
   const 통째 = { 짐: file as Blob, 종류: file.type, 끝: "jpg" };
 
-  // 긴 변 한도. 카드 사진은 화면에서 390px 남짓이라 두 배(780)면 충분하고,
-  // 1280 이면 넉넉하다. 1600 에서 내린 까닭은 **메모리**다 — 줄인 판도
-  // 화소 수만큼 자리를 먹는다(1600 ≈ 7.7MB, 1280 ≈ 4.9MB).
-  const 한도 = 1280;
+  // 긴 변 한도. 형: 「사진 왜 누리끼리하지? 원본대로 올라가도록」
+  //
+  // 누런 기는 칠(CSS filter)이 범인이라 걷었다. 그래도 **굽는 값**은
+  // 같이 올린다 — 1280·0.86 은 얼굴에서 살결이 뭉개지는 자리다.
+  // 1600 으로 올려도 옛날처럼 메모리가 터지지 않는다: 이제는
+  // createImageBitmap 이 **처음부터 줄여서 푼다**(원본을 통째로 펴지
+  // 않는다). 위험했던 건 크기가 아니라 옛길이었다.
+  const 한도 = 1600;
+  const 결 = 0.92;
 
   const 굽기 = async (그림: ImageBitmap | HTMLImageElement, w: number, h: number) => {
     const 배 = Math.max(w, h) > 한도 ? 한도 / Math.max(w, h) : 1;
@@ -278,7 +283,7 @@ async function 다시굽기(file: File): Promise<{ 짐: Blob; 종류: string; �
       if (!x) return null;
       x.imageSmoothingQuality = "high";
       x.drawImage(그림 as CanvasImageSource, 0, 0, W, H);
-      return await c.convertToBlob({ type: "image/jpeg", quality: 0.86 });
+      return await c.convertToBlob({ type: "image/jpeg", quality: 결 });
     }
     const c = document.createElement("canvas");
     c.width = W; c.height = H;
@@ -286,7 +291,7 @@ async function 다시굽기(file: File): Promise<{ 짐: Blob; 종류: string; �
     if (!x) return null;
     x.imageSmoothingQuality = "high";
     x.drawImage(그림 as CanvasImageSource, 0, 0, W, H);
-    const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/jpeg", 0.86));
+    const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/jpeg", 결));
     // 다 구웠으면 판을 0×0 으로 줄여 자리를 바로 놓아 준다
     c.width = 0; c.height = 0;
     return blob;

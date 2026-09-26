@@ -223,9 +223,11 @@ export default function 인연내프로필() {
             )}
             {장수 > 1 && <b>{장수}</b>}
             {첫장?.state === "no" && <u>다시</u>}
-          </span>
 
-          <div className="hip-yeon-face-acts">
+            {/* 형: 「＋랑 돋보기는 사진 안에 넣어 기능을」 —
+                사진 밖에 두었더니 판이 셋(사진 · 단추 · 빈 통)으로
+                읽혔다. 손은 사진 위에서 움직이는 게 맞다 */}
+            <div className="hip-yeon-face-acts">
             <button
               onClick={() => 파일.current?.click()}
               disabled={올리는중 || 장수 >= 사진칸}
@@ -243,7 +245,8 @@ export default function 인연내프로필() {
                 <path d="M15.4 15.4 21 21" />
               </svg>
             </button>
-          </div>
+            </div>
+          </span>
 
           <input
             ref={파일}

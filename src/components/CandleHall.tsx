@@ -435,13 +435,18 @@ export default function CandleHall() {
       ) : (
         <p className="hip-hall-say">아직 걸린 공양이 없습니다.</p>
       )}
-    </div>
-    {/* 아래 두 손 — 왼쪽은 읽으러, 오른쪽은 올리러 */}
-    <div className="hip-hall-acts">
-    <button className="hip-hall-read" onClick={() => 사연판잡기(true)}>
-      사연 보러가기
-    </button>
-    <button className="hip-hall-go" onClick={start} aria-label="공양 올리기">공양</button>
+
+      {/* ── 두 손은 **통 안에** ────────────────────────────
+          형: 「이거 저 밑까지 늘리고 버튼을 그 안에 위에 올려」
+          통 밖에 한 줄로 세웠더니 통이 그만큼 짧아지고, 그 아래로
+          빈 띠가 하나 더 생겼다. 통은 띠 바로 위까지 내려오고,
+          단추는 그 안에 떠 있는다 — 왼쪽은 읽으러, 오른쪽은 올리러 */}
+      <div className="hip-hall-acts">
+        <button className="hip-hall-read" onClick={() => 사연판잡기(true)}>
+          사연 보러가기
+        </button>
+        <button className="hip-hall-go" onClick={start} aria-label="공양 올리기">공양</button>
+      </div>
     </div>
     {사연판 && (
       <사연목록
