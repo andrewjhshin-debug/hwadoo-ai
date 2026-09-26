@@ -51,8 +51,8 @@ function CandleForm({ onClose, onDone }: { onClose: () => void; onDone: () => vo
         </div>
 
         {/* 무엇을 올릴까 — 셋. 고른 대로 바로 위에 걸려 보인다 */}
-        <div className="hip-deung-pick" data-three="1">
-          {([["deung", "연등"], ["ssal", "쌀"], ["cho", "초"]] as const).map(([k, t]) => (
+        <div className="hip-deung-pick" data-four="1">
+          {([["deung", "연등"], ["hyang", "향"], ["ssal", "쌀"], ["cho", "초"]] as const).map(([k, t]) => (
             <button key={k} data-on={gift === k ? "1" : undefined} onClick={() => setGift(k)}>
               <b>{t}</b>
             </button>

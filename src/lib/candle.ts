@@ -68,7 +68,7 @@ export type Candle = {
    *   deung 연등 · ssal 쌀 · cho 초
    * 옛 문서에는 이 칸이 없다 — 없으면 연등으로 본다(여태 다 연등이었다).
    */
-  gift?: "deung" | "ssal" | "cho";
+  gift?: "deung" | "ssal" | "cho" | "hyang";
   by: string; // 올린 사람 법명
   byHanja?: string | null; // 올린 사람 걸음 한 글자
   forName: string; // 누구를 위해
@@ -110,7 +110,7 @@ export async function lightCandle(
     forName: string;
     wish: string;
     visibility: "private" | "public";
-    gift: "deung" | "ssal" | "cho";
+    gift: "deung" | "ssal" | "cho" | "hyang";
   },
   /**
    * 이 초 한 자루의 표. 같은 표로 두 번 보내면 서버가 두 번째를

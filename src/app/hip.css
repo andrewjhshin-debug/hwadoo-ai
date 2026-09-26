@@ -4803,9 +4803,27 @@ html[data-theme="light"] {
     border: 0;
   }
   @media (min-width: 520px) { .hip-gong { width: 12.5%; } }
-  /* 서 있는 것은 흔들리지 않는다 — 대신 불꽃만 아주 조금 */
-  .hip-gong-body { display: block; width: 100%; }
-  .hip-gong-svg { display: block; width: 100%; height: auto; }
+  /* 서 있는 것은 흔들리지 않는다 — 대신 촛불만 아주 조금 */
+  .hip-gong-body { position: relative; display: block; margin: 0 auto; }
+  .hip-gong-img { display: block; width: 100%; height: auto; user-select: none; }
+  /* 촛불 — 그림의 불꽃 위에 옅은 무리 하나. 살아 있는 티만 낸다 */
+  .hip-gong-flame {
+    position: absolute;
+    left: 50%;
+    top: 2%;
+    width: 42%;
+    aspect-ratio: 1;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 214, 110, 0.55), transparent 68%);
+    animation: hip-gong-flame 2.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes hip-gong-flame {
+    0%, 100% { opacity: 0.55; transform: translateX(-50%) scale(0.94); }
+    50% { opacity: 0.9; transform: translateX(-50%) scale(1.06); }
+  }
+  @media (prefers-reduced-motion: reduce) { .hip-gong-flame { animation: none; } }
   .hip-gong-name {
     margin-top: 2px;
     max-width: 100%;
@@ -4818,8 +4836,8 @@ html[data-theme="light"] {
   }
 
   /* 공양 셋 고르기 — 한 줄에 셋 */
-  .hip-deung-pick[data-three="1"] { grid-template-columns: repeat(3, 1fr); }
-  .hip-deung-pick[data-three="1"] button { padding: 11px 6px; }
+  .hip-deung-pick[data-four="1"] { grid-template-columns: repeat(4, 1fr); }
+  .hip-deung-pick[data-four="1"] button { padding: 11px 4px; }
 
   /* 민감정보 고지 — 접어 두고, 펴면 한 문단 */
   .hip-yeon-legal { margin: -6px 0 0; }

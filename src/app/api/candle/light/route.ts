@@ -103,7 +103,8 @@ export async function POST(req: Request) {
   const kind = str(body.kind) || "peace";
   // 무엇을 올렸나 — 연등 · 쌀 · 초. 모르는 말이 오면 연등으로 본다
   const giftRaw = str(body.gift);
-  const gift = giftRaw === "ssal" || giftRaw === "cho" ? giftRaw : "deung";
+  const gift =
+    giftRaw === "ssal" || giftRaw === "cho" || giftRaw === "hyang" ? giftRaw : "deung";
   const publicCandle = body.visibility === "public";
   const lotusCost = publicCandle ? PUBLIC_CANDLE_PRICE : PRIVATE_CANDLE_PRICE;
   const burnDays = publicCandle ? PUBLIC_BURN_DAYS : PRIVATE_BURN_DAYS;
