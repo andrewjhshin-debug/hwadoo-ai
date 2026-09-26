@@ -4077,7 +4077,11 @@ html[data-theme="light"] {
   /* **쑥** 내려간다 — 형: 「정상적인 크기에서 아래로 쑥 내려가도록」
      물건을 줄여서 깊이를 만드는 게 아니라, 물건은 제 크기로 두고
      **더 멀리** 내려보낸다. 판 밑변에서 잘리니 받침 뒤로 사라진다. */
-  .hip-keycap.on .hip-keycap-buddha { transform: translateY(11%) scaleY(0.965); }
+  /* 형: 「동자승 키캡 너무 내려간다」 — 11% 는 머리까지 잠겼다.
+     연꽃 깊이가 살갗마다 다르니 폭도 따로 준다(--keycap-dip). */
+  .hip-keycap.on .hip-keycap-buddha {
+    transform: translateY(var(--keycap-dip, 7%)) scaleY(0.972);
+  }
   .hip-keycap.on .hip-keycap-cup {
     transform: scaleY(1.035);
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);

@@ -10,6 +10,7 @@ import MeritBar from "@/components/MeritBar";
 import MeritToast from "@/components/MeritToast";
 import DailyLotusReward from "@/components/DailyLotusReward";
 import ConfirmProvider from "@/components/Confirm";
+import FreshChunks from "@/components/FreshChunks";
 import VisitLedger from "@/components/VisitLedger";
 import ScrollTop from "@/components/ScrollTop";
 import InstallBanner from "@/components/InstallBanner";
@@ -108,6 +109,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex h-dvh overflow-hidden">
         <ConfirmProvider>
+        {/* 묵은 조각 되살리기 — 배포가 지나간 뒤 열려 있던 판을 다시 연다.
+            형: 「인연 프로필 채우려면 계속 이렇게 뜸」 */}
+        <FreshChunks />
         {/* 발자국 장부 — 화면에 아무것도 그리지 않고, 다녀간 날만 적는다 */}
         <VisitLedger />
         {/* 방을 옮기면 맨 위부터 — 스크롤 통이 창이 아니라 안쪽 div 라 직접 되돌린다 */}

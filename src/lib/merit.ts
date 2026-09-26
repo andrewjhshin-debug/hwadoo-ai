@@ -86,6 +86,10 @@ export type MeritSource =
   | "mung" // 멍 — 아무것도 안 하고 가만히
   | "hasim" // 하심 — 획을 끝까지 내려감
   | "keycap" // 키캡 — 한 번 누름. 형: 「목탁 염주 싱잉볼 옆에 키캡도 하나」
+  // 인연이 닿음 — 서로 합장해서 쪽지방이 열린 그 한 번.
+  // 위의 `gathering`(인연 판의 글·댓글)과 다른 갈래다. 그쪽은 말이고
+  // 이쪽은 **사람**이다. 서버가 `yeon-owed` 에 적어 두면 들어올 때 챙겨 간다
+  | "inyeon"
   | "daily"; // 오늘의 세 가지를 다 마침
 
 /**
@@ -140,6 +144,9 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   // 키캡 — 한 번 누름(1). 목탁·염주와 같은 값이다. 손가락 하나로 되는
   // 일이니 더 줄 수 없고, 덜 줄 것도 없다. 셋을 나란히 둔다
   keycap: 1,
+  // 인연 한 번 — 양쪽에 같이 붙는다. 하루에 몇 번 일어날 일이 아니라
+  // 값이 커도 저울이 안 기운다(api/yeon/hap 의 MERIT_ON_MATCH 와 같은 수)
+  inyeon: 30,
   candle: 9,
   // 오늘의 운세 — 패 한 장. 오래 「염주」 칸에 적혔다. 한 알(1)짜리 갈래를
   // 스물한 번 곱해 넣는 편법이었는데, 그러면 화면에 「염주 1,012」로 보이고
@@ -182,6 +189,8 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   hwadu: 3240,
   temple: 4320, // 여덟 곳
   gathering: 1620,
+  // 열 번이면 넉넉하다 — 하루에 인연이 열 번 닿을 일은 없다
+  inyeon: 300,
   sutra: 8100, // 반야심경 다섯 편(15분)
   moment: 4320,
   bowl: 2430,
@@ -817,6 +826,7 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   hwadu: "화두 회향",
   temple: "절 다녀오기",
   gathering: "인연",
+  inyeon: "인연이 닿음",
   sutra: "경전 외우기",
   moment: "시절인연",
   bowl: "싱잉볼",
