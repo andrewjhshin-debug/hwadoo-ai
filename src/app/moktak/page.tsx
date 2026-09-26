@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 15;
+const 그림판 = 16;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -185,13 +185,13 @@ const SKINS = {
     // 판은 제 몸에 맞추고, 상자가 살갗마다 그 비율을 쓴다.
     { id: "dongja", name: "동자", src: "/obj/keycap-dongja.png",
       cup: "/obj/keycap-dongja-cup.png", buddha: "/obj/keycap-dongja-buddha.png",
-      ar: 708 / 981, dot: "#ef86b0" },
+      ar: 601 / 860, dip: "8%", dot: "#ef86b0" },
     { id: "podae", name: "포대", src: "/obj/keycap-podae-cup.png",
       cup: "/obj/keycap-podae-cup.png", buddha: "/obj/keycap-podae-buddha.png",
-      ar: 658 / 605, dot: "#d9a06f" },
+      ar: 667 / 643, dip: "10%", dot: "#d9a06f" },
     { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk-cup.png",
       cup: "/obj/keycap-mireuk-cup.png", buddha: "/obj/keycap-mireuk-buddha.png",
-      ar: 593 / 660, dot: "#cfa03c" },
+      ar: 564 / 643, dip: "10%", dot: "#cfa03c" },
   ],
 } as const;
 
@@ -276,7 +276,7 @@ export default function MoktakPage() {
   /** 키캡 두 겹 — 받침(앞) · 몸(뒤) */
   const keySrc = (() => {
     const k = SKINS.keycap.find((x) => x.id === skin.keycap) ?? SKINS.keycap[0];
-    return { cup: 그림(k.cup), buddha: 그림(k.buddha), ar: k.ar };
+    return { cup: 그림(k.cup), buddha: 그림(k.buddha), ar: k.ar, dip: k.dip };
   })();
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
   const beadWide = (
