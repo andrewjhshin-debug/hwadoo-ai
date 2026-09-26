@@ -12,9 +12,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Dudu from "@/components/Dudu";
 import HipRoom from "@/components/HipRoom";
-import { addMerit, loadMerit, stageOf } from "@/lib/merit";
+import { addMerit, loadMerit } from "@/lib/merit";
 import { grantCharm } from "@/lib/charm";
 import { buzz, strikeJukbi, strikeMoktak, warmJukbi } from "@/lib/sound";
 
@@ -184,6 +183,22 @@ export default function BaePage() {
   /** 토글에 보이는 값 — 사람이 켜 두겠다고 한 뜻 */
   const senseOn = senseWanted;
 
+  /**
+   * 눌러서 한 배 — **넓은 화면에서만.**
+   *
+   * 폰은 주머니에 넣고 몸으로 센다(기울기). 거기서 눌러 세게 두면
+   * 백팔을 손가락으로 채우게 되고, 그러면 이 판은 절하는 자리가 아니라
+   * 숫자 올리는 자리가 된다. 형: 「실제로 한 것만 재도록」.
+   */
+  const 손으로 = useCallback(() => {
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
+      setSay("몸으로 절해야 세어집니다");
+      window.setTimeout(() => setSay(""), 2200);
+      return;
+    }
+    bow();
+  }, [bow]);
+
   const reset = () => {
     setCount(0);
     setDone(false);
@@ -205,9 +220,17 @@ export default function BaePage() {
           {senseOn ? "폰을 지니고 절하세요 — 일어설 때마다 한 배" : "일어설 때마다 한 번"}
         </p>
 
-        {/* 셈판 — 큰 원 하나가 전부다 */}
+        {/* 셈판 — 큰 원 하나가 전부다.
+            형: 「백팔배는 실제로 한 것만 재도록 하자. 손으로 클릭하는
+                 기능은 없이. 그럼 웹 버전만 눌러서 카운트.
+                 디폴트는 모바일에서 앉았다 일어서는 거로」
+
+            맞는 말이다. 손가락으로 백팔을 채우는 건 절이 아니다.
+            **폰에서는 몸으로만 센다.** 넓은 화면(웹)에는 기울기를 읽을
+            것이 없으니 거기서만 눌러서 센다 — `hidden md:block` 이 아니라
+            눌림 자체를 막는다(원은 폰에서도 보여야 하니까). */}
         <button
-          onClick={bow}
+          onClick={손으로}
           disabled={done}
           aria-label="한 배 세기"
           className="rise rise-d2 relative mt-8 block select-none outline-none disabled:cursor-default"
@@ -251,13 +274,10 @@ export default function BaePage() {
           <span className="absolute inset-0 flex flex-col items-center justify-center pb-[34%]">
             {done ? (
               <>
-                {/* 웹은 원래대로 — 나무 한 장 */}
-                <Dudu stage={stageOf(merit)} mood="joy" uid="bae" className="h-[150px] w-[150px]" />
-                {/* 폰 — 두두를 뺐더니 삼백 픽셀 금빛 고리가 통째로 비었다.
-                    형: 「동자승 이미지는 좀 짜쳐, 다시 그릴 테니까 빼고」.
-                    빈 원은 그림이 빠진 자리로 읽힌다. 채운 수를 그대로 둔다 —
-                    백팔을 다 돌았다는 말은 「108」 넉 자면 족하다. */}
-                <span aria-hidden className="flex flex-col items-center md:hidden">
+                {/* 동상은 걷었다 — 형: 「동상 지우고」.
+                    방석 위에 금빛 동자가 서 있으니 절하는 자리가 아니라
+                    진열장이 됐다. 다 돌았다는 말은 「108」 넉 자면 족하다. */}
+                <span aria-hidden className="flex flex-col items-center">
                   <span className="font-serif text-[68px] font-light leading-none text-gold">
                     {FULL}
                   </span>

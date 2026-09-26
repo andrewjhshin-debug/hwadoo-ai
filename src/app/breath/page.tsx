@@ -406,7 +406,6 @@ export default function BreathPage() {
           息 · 호흡
         </p>
         <h1 className="rise rise-d1 mt-2 break-keep font-serif text-lg font-light text-hanji">
-          숨이 돌아오는 자리
         </h1>
 
         {/* 원은 transform 으로만 커지므로 자리는 흔들리지 않는다 */}
