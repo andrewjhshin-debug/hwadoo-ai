@@ -27,6 +27,23 @@ export default function MeritToast() {
   const [up, setUp] = useState<Rank | null>(null); // 방금 오른 자리
   const prev = useRef<number | null>(null);
   const clear = useRef<number | null>(null);
+  /** 이 판이 뜬 때 — 갓 뜬 동안 붙는 몫은 **번 게 아니라 읽은 것**이다 */
+  const 뜬때 = useRef(0);
+
+  // ── 새로고침할 때마다 「+7,626 공덕」이 뜨던 까닭 ─────────────
+  // 형: 「새로고침했을 때 오른쪽에 저 수천 공덕 이런 거 안 뜨게」
+  //
+  // 첫 읽기는 이미 안 알리고 있었다(was === null). 그런데 브라우저
+  // 장부는 **서버에서 한 박자 늦게** 내려온다 — 판이 뜬 뒤에 하루치가
+  // 통째로 들어오니, 이 쪽지는 그걸 「방금 7,626 을 벌었다」로 읽었다.
+  //
+  // 번 것과 읽은 것을 가르는 잣대 둘 —
+  //   ① 판이 뜬 지 3초 안쪽이면 그건 아직 **불러오는 중**이다
+  //   ② 한 번에 붙을 수 있는 가장 큰 몫은 만다라 540 이다. 그 곱절이
+  //      넘게 들어오면 한 타가 아니라 장부가 통째로 바뀐 것이다
+  // 둘 다 조용히 받아 적기만 하고(prev 는 이미 갱신했다) 안 띄운다.
+  const 갓떴나 = () => Date.now() - 뜬때.current < 3000;
+  const 한타한도 = 1200;
 
   const read = useCallback(() => {
     const now = loadMerit().total;
@@ -35,6 +52,7 @@ export default function MeritToast() {
     if (was === null) return; // 첫 읽기는 알리지 않는다
     const d = now - was;
     if (d <= 0) return;
+    if (갓떴나() || d > 한타한도) return; // 번 게 아니라 읽은 것
 
     // 잇달아 붙으면 한 줄로 합친다
     setGain((g) => g + d);
@@ -58,6 +76,7 @@ export default function MeritToast() {
   }, []);
 
   useEffect(() => {
+    뜬때.current = Date.now();
     prev.current = loadMerit().total;
     window.addEventListener(MERIT_EVENT, read);
     return () => {

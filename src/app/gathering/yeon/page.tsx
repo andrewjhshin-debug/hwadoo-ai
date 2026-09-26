@@ -353,6 +353,29 @@ export default function 오늘의인연() {
           )}
           {탈 && <p className="hip-yeon-bad">{말로(탈)}</p>}
         </div>
+
+        {/* ── 하루 여섯 자리 ─────────────────────────────────
+            형: 「지금은 돌릴 게 없는 거 알아. 그래도 시스템 와꾸만
+                 보게 하루 6개 카드 깔아줘. 당연히 눌려도 반응은
+                 안 하게」
+
+            판이 비면 空 한 글자뿐이라, 이 자리가 무엇을 하는 곳인지
+            모른다. 오늘 설 수 있는 여섯 자리를 그대로 깔아 둔다 —
+            **본 자리는 채워지고, 남은 자리는 비어 있고, 연꽃을 써야
+            열리는 자리에는 蓮 이 붙는다.** 그림이 곧 설명이다.
+            누르는 물건이 아니다(ul · pointer-events 없음 · aria-hidden). */}
+        <ul className="hip-yeon-slots" aria-hidden>
+          {Array.from({ length: 칸.max }, (_, i) => (
+            <li
+              key={i}
+              data-done={i < 끝난이.length ? "1" : undefined}
+              data-pay={i >= 칸.cap ? "1" : undefined}
+            >
+              <b>{i + 1}</b>
+              {i >= 칸.cap && <i>蓮</i>}
+            </li>
+          ))}
+        </ul>
       </껍데기>
     );
 
