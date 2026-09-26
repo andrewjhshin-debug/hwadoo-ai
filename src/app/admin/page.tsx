@@ -96,6 +96,7 @@ type Tab =
   | "feedback"
   | "donors"
   | "reports"
+  | "photos"
   | "orders";
 
 // 구획마다 한 줄 설명 — 무엇이 모이는 자리인지
@@ -115,6 +116,8 @@ const TAB_NOTE: Record<Tab, string> = {
     "죽비 — 수행자들이 도량에 건넨 소리. 여기서만 읽을 수 있고, 들었으면 지웁니다.",
   donors:
     "차 한 잔 보태주신 분 — 한 줄에 이름 하나. 찻자리에는 가운데를 ○로 가려 나갑니다.",
+  photos:
+    "인연에 올라온 사진 중 아직 안 본 것 — 통과시키면 판에 서고, 반려하면 내려갑니다.",
   reports:
     "쪽지 대화에서 들어온 신고 — 살펴서 처리하고, 하단에서 시험용 연꽃도 채웁니다.",
   orders:
@@ -679,6 +682,36 @@ export default function AdminPage() {
     if (isAdmin) refresh();
   }, [isAdmin, refresh]);
 
+  // ── 사진 심사 줄 ─────────────────────────────────────────
+  // 형: 「사진도 승인제가 필요한데, 내 도량에서 승인제로 할 서버
+  //      만들고 어쩌고 해 줄 수 있나?」
+  // 올라온 사진은 pending 으로 앉는데 **그걸 보는 자리가 없었다.**
+  const [사진줄, 사진줄잡기] = useState<
+    { uid: string; name: string; state?: string; photos: { path: string; url: string }[] }[]
+  >([]);
+  const 사진줄읽기 = useCallback(async () => {
+    const u = auth.currentUser;
+    if (!u) return;
+    const r = await fetch("/api/yeon/photos", {
+      headers: { authorization: `Bearer ${await u.getIdToken()}` },
+    }).then((x) => x.json()).catch(() => null);
+    사진줄잡기(Array.isArray(r?.rows) ? r.rows : []);
+  }, []);
+  useEffect(() => { if (isAdmin) void 사진줄읽기(); }, [isAdmin, 사진줄읽기]);
+
+  /** 한 장 통과·반려 — 서버만 할 수 있다(배열 속은 규칙이 못 본다) */
+  const 사진보기 = async (uid: string, path: string, ok: boolean) => {
+    const u = auth.currentUser;
+    if (!u) throw new Error("다시 들어와 주세요");
+    const r = await fetch("/api/yeon/moderate", {
+      method: "POST",
+      headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+      body: JSON.stringify({ uid, path, act: ok ? "photo-ok" : "photo-no" }),
+    });
+    if (!r.ok) throw new Error("실패");
+    await 사진줄읽기();
+  };
+
   /**
    * 인연 손보기 — 신고 줄에서 그 자리에서.
    *
@@ -865,6 +898,7 @@ export default function AdminPage() {
     { key: "feedback", label: "죽비", count: feedback.length },
     { key: "donors", label: "차 한 잔", count: content.donors.length },
     { key: "reports", label: "신고함", count: reports.filter((r) => r.status === "open").length },
+    { key: "photos", label: "사진 승인", count: 사진줄.reduce((a, r) => a + r.photos.length, 0) },
   ];
 
   // 은행 화두 손질 — 저장·숨김·(덮어쓴 것) 원래대로
@@ -1671,6 +1705,61 @@ export default function AdminPage() {
                 </p>
               )}
             </div>
+          </section>
+        )}
+
+        {/* ── 사진 승인 — 인연에 올라온 아직 안 본 사진 ── */}
+        {tab === "photos" && (
+          <section>
+            <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
+              심사 대기 · {사진줄.reduce((a, r) => a + r.photos.length, 0)}
+            </h3>
+            {사진줄.length === 0 ? (
+              <p className="mt-3 text-sm text-hanji-faint">
+                기다리는 사진이 없습니다.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-5">
+                {사진줄.map((row) => (
+                  <li key={row.uid} className="border border-ink-3 bg-ink-2/60 p-4">
+                    <p className="text-[12px] text-hanji-dim">
+                      {row.name}
+                      <span className="ml-2 text-[10px] tracking-wider text-hanji-faint">
+                        {row.uid.slice(0, 8)}…{row.state ? ` · ${row.state}` : ""}
+                      </span>
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      {row.photos.map((p) => (
+                        <div key={p.path} className="w-[112px]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={p.url}
+                            alt=""
+                            className="block aspect-[3/4] w-full rounded-[10px] object-cover"
+                          />
+                          <div className="mt-1.5 flex gap-1.5">
+                            <button
+                              disabled={busy === p.path}
+                              onClick={() => act(p.path, () => 사진보기(row.uid, p.path, true))}
+                              className={`${smallBtn} flex-1 border-gold/50 text-gold hover:bg-gold/10`}
+                            >
+                              통과
+                            </button>
+                            <button
+                              disabled={busy === p.path}
+                              onClick={() => act(p.path, () => 사진보기(row.uid, p.path, false))}
+                              className={`${smallBtn} flex-1 border-vermilion/50 text-vermilion hover:bg-vermilion/10`}
+                            >
+                              반려
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
 

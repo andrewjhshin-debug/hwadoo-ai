@@ -14,7 +14,7 @@ import { EXTEND_DAYS, POUR_PER_DAY, POUR_UNIT, PRIVATE_BURN_DAYS, PRIVATE_CANDLE
 import { giveMerit } from "@/lib/merit";
 import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
 
-type Comment = { id: string; by?: string; body?: string };
+type Comment = { id: string; by?: string; body?: string; to?: string | null; likes?: number };
 
 /** 게시판의 작은 그림 둘 — 글자와 같은 키로 선다 */
 const 하트 = () => (
@@ -200,11 +200,50 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
   const [사연글, 사연글잡기] = useState(c.wish ?? "");
   const [이름글, 이름글잡기] = useState(c.forName ?? "");
 
+  /** 내가 좋아요 누른 댓글 — 로그인했을 때만 온다 */
+  const [좋아요한, 좋아요한잡기] = useState<string[]>([]);
+  /** 어느 댓글에 답글을 쓰는 중인가 */
+  const [답할것, 답할것잡기] = useState<string | null>(null);
+  const [답글, 답글잡기] = useState("");
+
   const read = useCallback(() => {
-    void fetch(`/api/candle/comment?id=${encodeURIComponent(c.id)}`)
-      .then((r) => r.json())
-      .then((x) => setComments(Array.isArray(x.comments) ? x.comments : []));
-  }, [c.id]);
+    void (async () => {
+      const h: HeadersInit = me ? { authorization: `Bearer ${await me.getIdToken()}` } : {};
+      const x = await fetch(`/api/candle/comment?id=${encodeURIComponent(c.id)}`, { headers: h })
+        .then((r) => r.json())
+        .catch(() => null);
+      setComments(Array.isArray(x?.comments) ? x.comments : []);
+      좋아요한잡기(Array.isArray(x?.liked) ? x.liked : []);
+    })();
+  }, [c.id, me]);
+
+  /** 댓글 좋아요 — 눌린 티는 그 자리에서, 수는 서버 말대로 */
+  const 댓글좋아요 = async (cid: string) => {
+    if (!me) return;
+    const 켬 = !좋아요한.includes(cid);
+    좋아요한잡기((v) => (켬 ? [...v, cid] : v.filter((x) => x !== cid)));
+    setComments((v) => v.map((x) => (x.id === cid ? { ...x, likes: Math.max(0, (x.likes ?? 0) + (켬 ? 1 : -1)) } : x)));
+    const r = await fetch("/api/candle/comment", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${await me.getIdToken()}` },
+      body: JSON.stringify({ id: c.id, act: "like", cid }),
+    }).then((x) => x.json()).catch(() => null);
+    if (!r?.ok) read(); // 어긋났으면 서버 말로 되돌린다
+  };
+
+  /** 답글 — 어미 댓글 밑에 한 겹으로만 붙는다 */
+  const 답하기 = async (to: string) => {
+    if (!me || !답글.trim() || busy) return;
+    setBusy(true);
+    try {
+      await fetch("/api/candle/comment", {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${await me.getIdToken()}` },
+        body: JSON.stringify({ id: c.id, body: 답글, to, by: loadMe()?.name ?? "이름 없는 이" }),
+      });
+      답글잡기(""); 답할것잡기(null); read();
+    } finally { setBusy(false); }
+  };
   useEffect(() => { if (c.visibility === "public") read(); }, [c.visibility, read]);
   // **이미 공감했나**를 읽어 온다. 안 읽어 오면 다시 열었을 때 눌림이
   // 꺼져 있고, 누르는 순간 서버는 「두 번째」로 보아 **조용히 거둔다** —
@@ -439,10 +478,64 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
                 <button onClick={post} disabled={!body.trim() || busy}>남기기</button>
               </div>
             )}
+            {/* ── 댓글 — 어미 하나에 답글 한 겹 ───────────────
+                형: 「연등 댓글 좋아요·답글」
+                겹을 깊이 파지 않는다. 두 겹이면 폰에서 글이 벽에
+                붙는다 — 답글의 답글도 같은 겹에 붙인다(서버가 그렇게
+                접어 준다). */}
             <div className="hip-say-cmt">
-              {comments.map((x) => (
-                <p key={x.id}><span>{x.by ?? "이름 없는 이"}</span>{x.body}</p>
-              ))}
+              {comments
+                .filter((x) => !x.to)
+                .map((x) => {
+                  const 답들 = comments.filter((y) => y.to === x.id);
+                  return (
+                    <div key={x.id} className="hip-cmt">
+                      <p><span>{x.by ?? "이름 없는 이"}</span>{x.body}</p>
+                      <div className="hip-cmt-bar">
+                        <button
+                          onClick={() => void 댓글좋아요(x.id)}
+                          disabled={!me}
+                          data-on={좋아요한.includes(x.id) ? "1" : undefined}
+                        >
+                          <하트 /> {x.likes ? x.likes : ""}
+                        </button>
+                        {me && (
+                          <button onClick={() => { 답할것잡기(답할것 === x.id ? null : x.id); 답글잡기(""); }}>
+                            답글{답들.length ? ` ${답들.length}` : ""}
+                          </button>
+                        )}
+                      </div>
+
+                      {답들.map((y) => (
+                        <div key={y.id} className="hip-cmt hip-cmt-re">
+                          <p><span>{y.by ?? "이름 없는 이"}</span>{y.body}</p>
+                          <div className="hip-cmt-bar">
+                            <button
+                              onClick={() => void 댓글좋아요(y.id)}
+                              disabled={!me}
+                              data-on={좋아요한.includes(y.id) ? "1" : undefined}
+                            >
+                              <하트 /> {y.likes ? y.likes : ""}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                      {답할것 === x.id && me && (
+                        <div className="hip-say-write hip-cmt-re">
+                          <input
+                            autoFocus
+                            value={답글}
+                            onChange={(e) => 답글잡기(e.target.value.slice(0, 240))}
+                            placeholder={`${x.by ?? "이름 없는 이"}에게 답글`}
+                            onKeyDown={(e) => { if (e.key === "Enter") void 답하기(x.id); }}
+                          />
+                          <button onClick={() => void 답하기(x.id)} disabled={!답글.trim() || busy}>남기기</button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           </>
         ) : (

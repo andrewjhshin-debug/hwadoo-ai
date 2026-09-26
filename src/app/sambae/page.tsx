@@ -123,7 +123,7 @@ export default function SambaePage() {
         onClick={bow}
         disabled={done}
         aria-label="한 배"
-        className="rise rise-d2 relative mt-2 block select-none outline-none disabled:cursor-default"
+        className="sb-buddha rise rise-d2 relative mt-2 block select-none outline-none disabled:cursor-default"
         style={{ WebkitTapHighlightColor: "transparent" }}
       >
         {/* 광배 — 절마다 한 겹씩 밝아진다. 그림이 아니라 SVG 라야 살아난다 */}

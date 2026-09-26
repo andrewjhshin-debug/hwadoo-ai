@@ -6727,3 +6727,80 @@ html[data-theme="light"] {
     color: #b5aca1;
   }
 }
+
+/* ── 삼귀의를 마친 판이 한 화면에 든다 ────────────────────────
+   형: 「저거 밑에 짤린다, 한 화면에」 「모바일에서 밑에 안 짤리도록」
+
+   까닭이 둘이었다 —
+   ① **띠 자리를 두 번 비우고 있었다.** 바깥 통(.hip-screen)이 이미
+      염주 띠 몫을 비우는데, 마침 판(.hip-write-foot)이 제 안에서 또
+      96px 을 비웠다. 판이 그만큼 길어져 통 밖으로 밀렸다.
+   ② 절이 끝나도 불상과 큰 숫자가 그대로 자리를 먹었다. 수행이 끝난
+      판에서 제일 급한 것은 「한 번 더」이지 불상이 아니다 —
+      마쳤을 때만 한 뼘 접는다. */
+@media (min-width: 0px) {
+  .hip-screen-mid .hip-write-foot { padding-bottom: 14px; }
+  /* 마쳤을 때 — 불상이 자리를 **내준다.**
+     transform 으로 줄이면 그림만 작아지고 **자리는 그대로**라, 줄인
+     만큼 빈 칸이 남고 음수 여백으로 당기면 마침 판이 불상 밑에 깔린다
+     (그게 방금 그 꼴이었다). 그림 크기를 직접 줄여 판이 다시 흐르게 한다. */
+  .hip-screen-mid:has(.hip-write-foot) .sb-buddha img {
+    height: 112px !important;
+    width: 112px !important;
+    transition: height 0.45s cubic-bezier(0.2, 0.9, 0.3, 1), width 0.45s;
+  }
+  .hip-screen-mid:has(.hip-write-foot) .hip-big { font-size: clamp(44px, 14vw, 68px); }
+  /* 마친 판에서는 「三歸依」 머리와 빈 줄도 한 뼘씩 줄인다 */
+  .hip-screen-mid:has(.hip-write-foot) > p:first-child { margin-top: 12px; }
+  .hip-screen-mid:has(.hip-write-foot) .hip-write-foot { padding-top: 10px; }
+  /* 「+9 공덕」은 한 줄로 — 두 줄을 먹을 말이 아니다 */
+  .hip-screen-mid .hip-write-foot > p:nth-child(2) { margin-top: 0; }
+  .hip-screen-mid .hip-write-foot > p:nth-child(3) { margin-top: 8px; }
+  .hip-screen-mid .hip-write-foot > div { margin-top: 12px; }
+  @media (prefers-reduced-motion: reduce) {
+    .hip-screen-mid:has(.hip-write-foot) .sb-buddha img { transition: none; }
+  }
+}
+
+/* ── 댓글 — 어미 하나에 답글 한 겹 ────────────────────────────
+   형: 「연등 댓글 좋아요·답글」
+   겹은 하나까지. 두 겹이면 폰에서 글이 벽에 붙는다. */
+@media (min-width: 0px) {
+  .hip-cmt { padding: 8px 0 2px; }
+  .hip-cmt + .hip-cmt { border-top: 1px solid rgba(26, 23, 20, 0.05); }
+  .hip-cmt p { margin: 0; font-size: 13.5px; line-height: 1.65; color: #3a342c; }
+  .hip-cmt p span {
+    display: block;
+    margin-bottom: 1px;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: #a39a8f;
+  }
+  .hip-cmt-bar { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+  .hip-cmt-bar button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 26px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    font-size: 11.5px;
+    color: #a39a8f;
+  }
+  .hip-cmt-bar button:active { background: rgba(26, 23, 20, 0.05); }
+  .hip-cmt-bar button:disabled { opacity: 0.4; }
+  .hip-cmt-bar button[data-on="1"] { color: #d2578c; }
+  .hip-cmt-bar button[data-on="1"] svg { fill: #d2578c; stroke: #d2578c; }
+  .hip-cmt-bar svg { width: 12px; height: 12px; }
+
+  /* 답글 — 한 겹 안으로. 왼쪽에 실선 한 올이 어미를 가리킨다 */
+  .hip-cmt-re {
+    margin-left: 14px;
+    padding-left: 12px;
+    border-left: 1px solid rgba(26, 23, 20, 0.08);
+  }
+  .hip-cmt .hip-cmt-re + .hip-cmt-re { border-top: 0; }
+  .hip-say-write.hip-cmt-re { margin-top: 6px; }
+}

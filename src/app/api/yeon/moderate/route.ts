@@ -48,19 +48,44 @@ export async function POST(req: Request) {
   if (!뒷방) return Response.json({ error: "not-admin" }, { status: 403 });
 
   const body = (await req.json().catch(() => null)) as
-    | { uid?: unknown; act?: unknown }
+    | { uid?: unknown; act?: unknown; path?: unknown }
     | null;
   const uid = typeof body?.uid === "string" ? body.uid : "";
   const act = body?.act;
+  const path = typeof body?.path === "string" ? body.path : "";
   if (!/^[A-Za-z0-9]{6,64}$/.test(uid))
     return Response.json({ error: "bad-target" }, { status: 400 });
-  if (act !== "photos-off" && act !== "stop" && act !== "open")
+  const 할것 = ["photos-off", "stop", "open", "photo-ok", "photo-no"];
+  if (typeof act !== "string" || !할것.includes(act))
     return Response.json({ error: "bad-act" }, { status: 400 });
 
   const db = getFirestore(app);
   const 칸 = db.doc(`yeon-profiles/${uid}`);
   const s = await 칸.get();
   if (!s.exists) return Response.json({ error: "no-profile" }, { status: 404 });
+
+  // ── 한 장씩 통과·반려 ──────────────────────────────────
+  // 형: 「사진도 승인제가 필요한데, 내 도량에서 승인제로 할 서버
+  //      만들고 어쩌고 해 줄 수 있나?」
+  //
+  // 배열 속(photos[].state)은 규칙 언어로 못 들여다본다 — 그래서
+  // 「제 사진을 제가 통과시키기」를 규칙으로 막을 길이 없다.
+  // 사진의 통과·거부는 **서버만** 한다. 그게 이 길이다.
+  if (act === "photo-ok" || act === "photo-no") {
+    if (!path) return Response.json({ error: "bad-path" }, { status: 400 });
+    const photos = (s.data()!.photos ?? []) as { path?: string; state?: string }[];
+    if (!photos.some((f) => f.path === path))
+      return Response.json({ error: "no-photo" }, { status: 404 });
+    await 칸.set(
+      {
+        photos: photos.map((f) =>
+          f.path === path ? { ...f, state: act === "photo-ok" ? "ok" : "no" } : f
+        ),
+      },
+      { merge: true }
+    );
+    return Response.json({ ok: true, state: act === "photo-ok" ? "ok" : "no" });
+  }
 
   if (act === "photos-off") {
     const photos = (s.data()!.photos ?? []) as { state?: string }[];
