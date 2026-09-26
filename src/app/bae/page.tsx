@@ -229,7 +229,26 @@ export default function BaePage() {
               style={{ transition: "stroke-dashoffset 0.35s ease-out" }}
             />
           </svg>
-          <span className="absolute inset-0 flex flex-col items-center justify-center">
+          {/* ── 방석 ──
+              형: 「백팔배에 저 회색 방석 넣고, 동그라미 가운데 넣고 글자도
+                   유지… 좀 자연스럽게」
+
+              세워 보려고 투영 변환까지 해 봤는데 형이 「아예 정방향도
+              아니고 뭐도 아니다, 원래 받은 거로 해」 했다. 맞다 — 받은
+              그림이 제일 멀쩡했다.
+              절하는 자리에 방석이 깔려 있는 것이니, 동그라미 **아래쪽**에
+              깔고 숫자는 그 위에 선다. 글자를 가리지 않게 옅게. */}
+          <img
+            src="/obj/cushion.png"
+            alt=""
+            aria-hidden
+            draggable={false}
+            className="pointer-events-none absolute left-1/2 w-[86%] -translate-x-1/2 select-none"
+            style={{ bottom: "-4%", opacity: 0.95 }}
+          />
+          {/* 글자는 방석 **위**에 선다 — 가운데 정렬 그대로 두면 숫자가
+              방석 위에 얹혀 둘 다 안 읽힌다. 아래를 비워 위로 민다 */}
+          <span className="absolute inset-0 flex flex-col items-center justify-center pb-[34%]">
             {done ? (
               <>
                 {/* 웹은 원래대로 — 나무 한 장 */}

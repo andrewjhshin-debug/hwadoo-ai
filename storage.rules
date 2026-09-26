@@ -27,8 +27,12 @@ service firebase.storage {
     function signedIn() {
       return request.auth != null;
     }
+    // 올리는 쪽에서 이미 JPEG 로 다시 구워 보낸다(yeon.ts 다시굽기).
+    // 그래도 규칙은 규칙대로 본다 — 코드를 못 믿어서가 아니라, 규칙이
+    // 마지막 문이기 때문이다. 아이폰 HEIC 가 다시 굽기를 못 타고 그대로
+    // 올 수 있으니 갈래는 image/* 로 넓히고, 크기로 조인다.
     function isPhoto() {
-      return request.resource.contentType.matches('image/(jpeg|png|webp)')
+      return request.resource.contentType.matches('image/.*')
         && request.resource.size < 8 * 1024 * 1024;
     }
 

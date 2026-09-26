@@ -150,7 +150,7 @@ export default function 인연내프로필() {
           <input
             ref={파일}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/*,.heic,.heif"
             multiple
             hidden
             onChange={(e) => 사진고르기(e.target.files)}

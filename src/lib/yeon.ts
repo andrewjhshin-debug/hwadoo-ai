@@ -199,19 +199,73 @@ export async function 프로필저장(
   );
 }
 
+/**
+ * 사진을 **다시 구워서** 올린다.
+ *
+ * 형: 「사진 한 장 올려 봤는데 안 된다」 — 저장소가 아니라 내 코드가
+ * 먼저 막고 있었다. jpg·png·webp 만 받았는데 아이폰이 찍는 것은 HEIC 다.
+ *
+ * 그래서 **받은 그대로 올리지 않는다.** 브라우저가 열 수 있는 그림이면
+ * 무엇이든 받아서 한 번 다시 굽는다. 얻는 것이 셋이다 —
+ *  ① HEIC 가 통과한다(사파리는 HEIC 를 그릴 줄 안다. 그려서 JPEG 로 굽는다)
+ *  ② **박힌 위치가 떨어져 나간다.** 사진의 EXIF 에는 찍은 자리의 위도·경도가
+ *     들어 있다. 얼굴 사진이 오가는 판에서 그건 집 주소다. 다시 구우면
+ *     화소만 남고 그 칸은 통째로 사라진다
+ *  ③ 긴 변 1600 으로 줄이니 저장소 값도 사람 수만큼 곱해지지 않는다
+ * 못 굽는 것(정말 그림이 아닌 것)만 원래대로 올려 보고, 그것도 안 되면
+ * 그때 막는다.
+ */
+async function 다시굽기(file: File): Promise<{ 짐: Blob; 종류: string; 끝: string }> {
+  const 통째 = { 짐: file as Blob, 종류: file.type, 끝: "jpg" };
+  try {
+    const url = URL.createObjectURL(file);
+    try {
+      const img = new Image();
+      img.decoding = "async";
+      await new Promise<void>((ok, no) => {
+        img.onload = () => ok();
+        img.onerror = () => no(new Error("못 연다"));
+        img.src = url;
+      });
+      const 긴 = Math.max(img.naturalWidth, img.naturalHeight);
+      const 배 = 긴 > 1600 ? 1600 / 긴 : 1;
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.naturalWidth * 배);
+      c.height = Math.round(img.naturalHeight * 배);
+      const x = c.getContext("2d");
+      if (!x) return 통째;
+      x.imageSmoothingQuality = "high";
+      x.drawImage(img, 0, 0, c.width, c.height);
+      const blob = await new Promise<Blob | null>((r) =>
+        c.toBlob(r, "image/jpeg", 0.86)
+      );
+      if (!blob) return 통째;
+      return { 짐: blob, 종류: "image/jpeg", 끝: "jpg" };
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  } catch {
+    return 통째;
+  }
+}
+
 /** 사진을 올린다 — 저장소에 두고, 프로필에는 pending 으로 적는다 */
 export async function 사진올리기(file: File): Promise<사진> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
-  if (!/^image\/(jpeg|png|webp)$/.test(file.type))
-    throw new Error("사진은 jpg · png · webp 만 됩니다");
-  if (file.size > 8 * 1024 * 1024) throw new Error("사진은 8MB 까지입니다");
+  // 사진이 아닌 것만 막는다. 갈래는 다시 구우면서 맞춘다
+  if (!/^image\//.test(file.type) && !/\.(hei[cf]|jpe?g|png|webp)$/i.test(file.name))
+    throw new Error("사진 파일만 올릴 수 있습니다");
+  if (file.size > 40 * 1024 * 1024) throw new Error("사진이 너무 큽니다 (40MB 까지)");
 
-  // 이름에 시각을 박아 겹치지 않게. 확장자는 형식에서 뽑는다
-  const ext = file.type.split("/")[1].replace("jpeg", "jpg");
-  const path = `yeon/${u.uid}/${Date.now()}.${ext}`;
+  const { 짐, 종류, 끝 } = await 다시굽기(file);
+  if (!/^image\/(jpeg|png|webp)$/.test(종류))
+    throw new Error(`이 사진은 다루지 못합니다 (${종류 || "갈래 모름"})`);
+  if (짐.size > 8 * 1024 * 1024) throw new Error("사진이 너무 큽니다");
+
+  const path = `yeon/${u.uid}/${Date.now()}.${끝}`;
   try {
-    await uploadBytes(sref(storage, path), file, { contentType: file.type });
+    await uploadBytes(sref(storage, path), 짐, { contentType: 종류 });
     const url = await getDownloadURL(sref(storage, path));
     return { path, url, state: "pending", at: Date.now() };
   } catch (e) {

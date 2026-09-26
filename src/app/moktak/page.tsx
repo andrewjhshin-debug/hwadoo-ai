@@ -137,14 +137,15 @@ const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
   moktak: [
-    // 형: 「밑에 색상 눌렀을 때 안 바뀐다」 — 분홍이 목록에 아예 없었고,
-    // 그림도 분홍으로 **박혀** 있었다. 넷을 다 세우고 분홍을 기본으로
-    { id: "pink", name: "분홍", src: "/obj/moktak-pink.png", dot: "#f1a6c0" },
-    // 흙(나무)은 걷었다 — 형: 「일단 목탁은 나무 재질 빼고 지우고」.
-    // 그림(moktak.png)은 그대로 둔다. 금·옥이 거기서 뽑혀 나오고,
-    // 되살리려면 이 한 줄만 다시 세우면 된다.
-    { id: "gold", name: "금", src: "/obj/moktak-gold.png", dot: "#d7ae55" },
-    { id: "jade", name: "옥", src: "/obj/moktak-jade.png", dot: "#a8d8c0" },
+    // 형: 「목탁은 나무 재질만 남기라고」
+    //
+    // 앞서 「나무 재질 빼고 지우고」를 **나무를 빼라**로 읽고 나무만
+    // 지웠다. 거꾸로였다 — 「나무 말고 다 지워라」였다.
+    // 목탁은 나무로 파는 물건이다. 분홍도 금도 옥도 그 그림 하나에서
+    // 색만 갈아 끼운 것이었으니, 원래 것 하나만 남기면 된다.
+    // 세 그림(분홍·금·옥)은 public/obj 에 그대로 둔다. 되살릴 때
+    // 세 줄만 다시 세우면 된다.
+    { id: "wood", name: "나무", src: "/obj/moktak.png", dot: "#c98f5e" },
   ],
   bead: [
     // 앞의 둘은 **세로**(고리를 정면에서 본 그림), 뒤의 셋은 **가로**
@@ -216,7 +217,6 @@ type Pop = { id: number; ch: string; dx: number; rot: number };
 export default function MoktakPage() {
   const [tab, setTab] = useState<PracticeTab>("moktak");
   /** 키캡 갈래에서 무엇을 누르나 — 동자(기본)인가 목탁인가 */
-  const [keySkin, setKeySkin] = useState<"dongja" | "moktak">("dongja");
   // 방(백팔배·멍·호흡…)에서 물건 알약을 누르면 ?lane=… 을 달고 돌아온다.
   // useSearchParams 는 이 판을 통째로 동적으로 만들어 버리니 쓰지 않는다 —
   // 들어온 뒤 한 번 읽으면 족한 일이다.
@@ -609,10 +609,24 @@ export default function MoktakPage() {
   // 그림이 통의 83% 로 앉으므로 통 기준으로는 52%~72%.
   const 알띠 =
     "radial-gradient(closest-side circle at 50% 50%, #0000 0 46%, #000 53% 79%, #0000 86%)";
+  //
+  // **금을 母珠에 붙박는다.**
+  // 형: 「애초에 황금 차는 거 저거 염주 정중앙에 고정시키고 돌려라」
+  //     (큰 알에 빨간 줄을 그어 보내 왔다)
+  //
+  // 줄곧 어긋나던 까닭이 이것이었다 — 알은 `rotate(angle)` 로 **돌고**
+  // 금 부채꼴은 통에 붙어 **안 돌았다.** 그러니 셀 때마다 금의 시작점이
+  // 딴 알로 옮겨 다녔다. 표(▼)는 12시에 박혀 있는데 母珠는 저만치 가 있고.
+  //
+  // conic-gradient 에 `from` 을 주면 부채꼴이 통째로 돈다. 알과 **같은 각**
+  // 으로 돌리면 금의 시작점이 母珠에 붙박이고, 둘이 한 몸으로 돈다.
+  // 띠(알 띠)는 동그라미라 돌아도 그대로다.
+  // 13도를 더 주는 까닭 — 자르는 선이 母珠 한가운데를 지나 반만 물들었다.
+  // 알 한 톨 너비의 절반만큼 밀면 선이 알과 알 **사이**로 떨어진다.
   const goldMask =
     f <= 0
       ? "linear-gradient(#0000, #0000)"
-      : `conic-gradient(at 50% 50%, #0000 0turn ${Math.max(0, 1 - f - 0.008)}turn, #000 ${1 - f}turn 1turn), ${알띠}`;
+      : `conic-gradient(from ${angle + 13}deg at 50% 50%, #0000 0turn ${Math.max(0, 1 - f - 0.008)}turn, #000 ${1 - f}turn 1turn), ${알띠}`;
   const phrases = Math.floor(hits / geun.ch.length); // 몇 편 왔나
   const shareText =
     tab === "moktak"
@@ -826,20 +840,23 @@ export default function MoktakPage() {
           />
         </div>
 
-        {/* 지금 넘기는 자리 */}
-        <span
-          aria-hidden
-          className="absolute left-1/2 -translate-x-1/2"
-          /* 표는 금이 시작하는 자리에 — 가로형은 아래, 세로형은 위 */
-          style={{
-            ...(beadWide ? { bottom: 6 } : { top: 4 }),
-            fontSize: 11,
-            letterSpacing: "0.2em",
-            color: "#e0819f",
-          }}
-        >
-          {beadWide ? "▲" : "▼"}
-        </span>
+        {/* 지금 넘기는 자리 — **가로형에만.**
+            세로형은 금이 母珠에 붙박여 같이 도니, 12시에 박힌 표가
+            오히려 거짓말이 된다. 母珠가 곧 표다. */}
+        {beadWide && (
+          <span
+            aria-hidden
+            className="absolute left-1/2 -translate-x-1/2"
+            style={{
+              bottom: 6,
+              fontSize: 11,
+              letterSpacing: "0.2em",
+              color: "#e0819f",
+            }}
+          >
+            ▲
+          </span>
+        )}
       </div>
 
       <div className="hip-obj-foot">
@@ -1008,8 +1025,6 @@ export default function MoktakPage() {
           beadHits={total}
           bowlHits={bowlHits}
           mokSrc={skinSrc("moktak")}
-          keySkin={keySkin}
-          onKeySkin={setKeySkin}
           combo={tab === "keycap" ? keyCombo : combo}
           pos={pos}
           ringing={ringing}
