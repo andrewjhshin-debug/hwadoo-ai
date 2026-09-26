@@ -341,7 +341,7 @@ export default function 오늘의인연() {
       </껍데기>
     );
 
-  const 사진 = 이.photos.length ? 이.photos : [];
+  const 사진 = 이.photos ?? [];
   const 살 = 이.born ? 나이(이.born) : 0;
 
   if (뒤집힘 === null)

@@ -4589,6 +4589,125 @@ html[data-theme="light"] {
   .hip-yeon-go button:disabled { opacity: 0.4; box-shadow: none; }
   .hip-yeon-go small { font-size: 11px; color: #a39a8f; }
   .hip-yeon-bad { margin: 0; font-size: 11.5px; color: #d2578c; }
+  /* ── 법당 — 칸 하나가 화면을 다 쓴다 ─────────────────────
+     형: 「함께 건 연등 / 내 연등 구분 말고, 저 은은한 박스는 유지하고
+          다 저기에만 걸리게 한다」
+         「공양 버튼 오른쪽 아래 두기만 하고, 위까지 올려서 최대한 많이
+          공간 쓰도록」
+     나눠 두었더니 판이 셋이 됐고 셋 다 반쯤 비었다. 칸은 하나다. */
+  .hip-hall {
+    /* 이 방은 HipRoom 껍데기를 안 쓴다(제 머리줄을 따로 그린다).
+       그러니 100% 로 재면 기댈 데가 없다 — 바깥 칸(min-h-full flex-col)
+       에서 **남는 키를 먹는다**. */
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    min-height: 0;
+    gap: 10px;
+    padding: 18px 14px 0;
+  }
+  .hip-hall-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hip-hall-top > span { width: 0; }
+  .hip-hall-top h1 {
+    flex: 1;
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.4em;
+    color: #c08aa0;
+  }
+  /* 천장 — 남는 키를 통째로 먹는다 */
+  .hip-hall-sky {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    border-radius: 18px;
+    border: 1px solid rgba(26, 23, 20, 0.07);
+    padding: 0 8px 18px;
+    background:
+      radial-gradient(90% 60% at 50% 0%, rgba(242, 120, 159, 0.13), transparent 74%),
+      rgba(255, 255, 255, 0.45);
+  }
+  .hip-hall-say {
+    margin: 0;
+    padding: 56px 0;
+    text-align: center;
+    font-size: 12.5px;
+    color: #a39a8f;
+  }
+  /* 올리는 단추 — 천장 위에 떠 있다. 아래 염주 자리는 안 밟는다 */
+  .hip-hall-go {
+    position: absolute;
+    right: 14px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) + 8px);
+    z-index: 5;
+    height: 52px;
+    padding: 0 22px;
+    border-radius: 999px;
+    background: linear-gradient(160deg, #f2789f, #e0518a);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    box-shadow: 0 10px 26px rgba(226, 110, 155, 0.36);
+  }
+  .hip-hall-go:active { transform: translateY(1px); }
+
+  /* 불단 — 칸의 **아래쪽**에 붙는다. 등이 적어도 공양물은 늘 바닥에 */
+  .hip-hall-altar {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px 0;
+    margin-top: auto;
+    padding: 14px 4px 6px;
+    /* 불단 한 줄 — 물건이 허공에 뜨지 않게 바닥선을 한 가닥 */
+    background: linear-gradient(transparent, rgba(226, 122, 158, 0.07) 70%);
+    border-top: 1px solid rgba(226, 122, 158, 0.16);
+  }
+  .hip-hall-sky { display: flex; flex-direction: column; }
+  .hip-gong {
+    position: relative;
+    flex: 0 0 auto;
+    width: 19%;
+    min-width: 54px;
+    max-width: 78px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: none;
+    border: 0;
+  }
+  @media (min-width: 520px) { .hip-gong { width: 12.5%; } }
+  /* 서 있는 것은 흔들리지 않는다 — 대신 불꽃만 아주 조금 */
+  .hip-gong-body { display: block; width: 100%; }
+  .hip-gong-svg { display: block; width: 100%; height: auto; }
+  .hip-gong-name {
+    margin-top: 2px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    color: #8b8175;
+  }
+
+  /* 공양 셋 고르기 — 한 줄에 셋 */
+  .hip-deung-pick[data-three="1"] { grid-template-columns: repeat(3, 1fr); }
+  .hip-deung-pick[data-three="1"] button { padding: 11px 6px; }
+
   /* 민감정보 고지 — 접어 두고, 펴면 한 문단 */
   .hip-yeon-legal { margin: -6px 0 0; }
   .hip-yeon-legal summary {
@@ -5373,6 +5492,7 @@ html[data-theme="light"] {
   }
   .hip-deung {
     position: relative;
+    container-type: inline-size;
     flex: 0 0 auto;
     width: 19%;
     min-width: 58px;
@@ -5406,6 +5526,40 @@ html[data-theme="light"] {
   }
   @media (prefers-reduced-motion: reduce) {
     .hip-deung-sway { animation: none; }
+  }
+  /* 형이 구운 연등 그림. 쪽지까지 한 장에 들어 있다 */
+  .hip-deung-sway { position: relative; }
+  .hip-deung-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  /* 이름 — 쪽지 칸 위에 **세로로**. 자리는 그림에서 재 두었다
+     (Yeondeung.tsx 의 쪽지자리). 긴 이름은 글자를 줄여 담는다 */
+  .hip-deung-tag {
+    position: absolute;
+    left: 39.4%;
+    top: 76.2%;
+    width: 21%;
+    height: 23.7%;
+    display: flex;
+    /* 위에서부터 읽는다 — 가운데 맞춤이면 긴 이름이 **양끝**에서 잘려
+       「우리 가족」이 「리 가」가 된다. 위를 맞추면 앞에서부터 읽힌다 */
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12%;
+    writing-mode: vertical-rl;
+    font-family: var(--font-serif);
+    font-size: clamp(6px, 1.75cqw, 9.5px);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    color: #6b4a2e;
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
   }
   .hip-deung-svg {
     display: block;

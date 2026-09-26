@@ -174,7 +174,8 @@ export function 채비됐나(p: 인연프로필 | null): boolean {
 /** 아직 못 채운 것 — 화면이 그대로 물어보면 된다. **이것이 유일한 잣대다** */
 export function 모자란것(p: 인연프로필 | null): string[] {
   const 빠진: string[] = [];
-  if (!p || !p.photos.length) 빠진.push("사진");
+  // 여기서도 한 번 더 버틴다 — 갖추기를 안 거친 문서가 올 수도 있다
+  if (!p || !(p.photos ?? []).length) 빠진.push("사진");
   if (!p?.sex) 빠진.push("성별");
   if (!p?.born) 빠진.push("나이");
   if (!p?.area) 빠진.push("지역");
@@ -184,11 +185,43 @@ export function 모자란것(p: 인연프로필 | null): string[] {
   return 빠진;
 }
 
+/**
+ * 내 프로필 — **읽는 자리에서 모양을 갖춰 준다.**
+ *
+ * 형: 「내 프로필 등록이 왜 자꾸 page couldn't load 라고 뜰까」
+ * 자가진단(/dev/yeon)이 짚었다:
+ *   프로필 읽기 ❌ Cannot read properties of undefined (reading 'length')
+ *   시험 사진 치우기 ❌ … (reading 'filter')
+ *
+ * 까닭 — 프로필저장()은 **고친 칸만** 적는다(merge). 그러니 사진을 한 번도
+ * 안 올린 사람의 문서에는 `photos` 칸이 **아예 없다.** 그런데 화면은
+ * 그릴 때마다 모자란것(me)을 부르고, 그 안에서 `p.photos.length` 를 읽는다.
+ * 없는 것의 길이를 읽으면 그 자리에서 던져지고, 그리는 중에 던져지면
+ * **판이 통째로 사라진다.** 브라우저는 그걸 「이 페이지를 불러올 수
+ * 없습니다」로 적는다.
+ *
+ * 부르는 쪽마다 `?? []` 를 붙이는 건 한 군데만 빠뜨려도 도로 터진다.
+ * **들어오는 문에서 한 번** 갖춰 보낸다 — 그 뒤로는 늘 배열이다.
+ */
 export async function 내프로필(): Promise<인연프로필 | null> {
   const u = auth.currentUser;
   if (!u) return null;
   const s = await getDoc(doc(db, YEON, u.uid));
-  return s.exists() ? ({ uid: u.uid, ...s.data() } as 인연프로필) : null;
+  if (!s.exists()) return null;
+  return 갖추기({ uid: u.uid, ...s.data() });
+}
+
+/** 없는 칸을 빈 것으로 채운다 — 목록 칸은 반드시 배열이어야 한다 */
+export function 갖추기(raw: Record<string, unknown>): 인연프로필 {
+  const 줄 = (v: unknown) => (Array.isArray(v) ? (v as string[]) : []);
+  return {
+    ...(raw as 인연프로필),
+    photos: Array.isArray(raw.photos) ? (raw.photos as 사진[]) : [],
+    vibe: 줄(raw.vibe),
+    like: 줄(raw.like),
+    care: 줄(raw.care),
+    date: 줄(raw.date),
+  };
 }
 
 export async function 프로필저장(
@@ -349,7 +382,7 @@ export async function 사진빼기(path: string): Promise<void> {
   const p = await 내프로필();
   if (!p) return;
   await updateDoc(doc(db, YEON, p.uid), {
-    photos: p.photos.filter((f) => f.path !== path),
+    photos: (p.photos ?? []).filter((f) => f.path !== path),
   });
 }
 
