@@ -4070,10 +4070,7 @@ html[data-theme="light"] {
      방석은 받으면 부푼다 — 밑동은 붙박이로 두고 위턱만 한 뼘 들어
      올리면, 꽃잎이 먼저 가서 그 틈을 덮는다. 누른 느낌은 그대로고
      틈만 사라진다. 내려가는 폭도 조금 줄여 둘이 같이 만난다. */
-  .hip-keycap-cup {
-    transform-origin: 50% 100%;
-    transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
-  }
+  /* 받침은 움직이지 않으므로 돌아오는 결도 없다 */
   /* **쑥** 내려간다 — 형: 「정상적인 크기에서 아래로 쑥 내려가도록」
      물건을 줄여서 깊이를 만드는 게 아니라, 물건은 제 크기로 두고
      **더 멀리** 내려보낸다. 판 밑변에서 잘리니 받침 뒤로 사라진다. */
@@ -4082,10 +4079,11 @@ html[data-theme="light"] {
   .hip-keycap.on .hip-keycap-buddha {
     transform: translateY(var(--keycap-dip, 7%)) scaleY(0.972);
   }
-  .hip-keycap.on .hip-keycap-cup {
-    transform: scaleY(1.035);
-    transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
-  }
+  /* 받침은 **가만히 있는다** — 형: 「키캡은 받침은 고정」
+     한동안 눌릴 때 받침도 살짝 부풀렸다. 몸이 빠진 자리에 틈이 열리던
+     시절의 땜질이었는데, 이제 몸이 그릇 **속으로** 들어가니 틈이 안
+     생긴다. 받침까지 움직이면 키가 아니라 말랑한 덩어리다.
+     진짜 키는 통이 고정이고 키캡만 내려간다. */
   /* 통(stack)이 높이를 쥐므로 그림 자체는 폭·높이를 안 잡는다.
      살갗에 따라 판이 가로로 넓을 수 있으니 폭 쪽 한도도 같이 건다 */
   .hip-keycap {
