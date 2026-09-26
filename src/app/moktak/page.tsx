@@ -622,19 +622,24 @@ export default function MoktakPage() {
   // 으로 돌리면 금의 시작점이 母珠에 붙박이고, 둘이 한 몸으로 돈다.
   // 띠(알 띠)는 동그라미라 돌아도 그대로다.
   //
-  // **고쳐 읽었다.** 형: 「원래 정중앙 위에 고정은 두고, 왼쪽으로 커지면서
-  // 갈 때 가장 큰 염주 가운데 딱 고정시키란 말이었다」
-  // (12시에 눈금 하나, 母珠에 줄 하나를 그어 보내 왔다)
+  // 형: 「정중앙 가운데도 황금 범위 하나 축 고정하고, 가장 큰 염주가
+  //      왼쪽으로 돈다, 그 정가운데 딱 고정시키고 돌리란 말」
   //
-  // 부채꼴을 알과 같이 돌렸더니 이번엔 母珠가 12시를 떠났다. 형이 원한
-  // 것은 그 반대다 — **母珠가 12시에 못박혀 있고**, 금이 거기서 왼쪽으로
-  // 자란다. 그러니 돌릴 것이 아무것도 없다.
-  // 세로형 그림의 회전을 걷고(母珠가 그림에서 원래 맨 위에 있다),
-  // 부채꼴도 12시에서 시작하게 되돌린다. 도는 것은 **금의 끝**뿐이다.
+  // 부채꼴에는 축이 둘이다 —
+  //   · **한 축은 12시에 못박는다**(금이 시작하는 자리)
+  //   · **다른 축은 母珠 한가운데**에 붙어 같이 왼쪽으로 돈다
+  //
+  // 셋을 다 맞출 수 있는 까닭은 **둘이 같은 수로 움직이기** 때문이다 —
+  //   母珠의 각도  = angle = -total × (360/108)
+  //   금의 끝 각도 = -f × 360 = -(total % 108) × (360/108)
+  // 한 바퀴 안에서 이 둘은 **같은 값**이다. 그러니 부채꼴을 12시에 두고
+  // 그림만 angle 로 돌리면, 금의 끝이 저절로 母珠 한가운데에 선다.
+  // (앞서 `from ${angle}` 을 주어 부채꼴째 돌린 것이 잘못이었다 —
+  //  그러면 12시 축이 母珠를 따라가 버린다)
   const goldMask =
     f <= 0
       ? "linear-gradient(#0000, #0000)"
-      : `conic-gradient(at 50% 50%, #0000 0turn ${Math.max(0, 1 - f - 0.008)}turn, #000 ${1 - f}turn 1turn), ${알띠}`;
+      : `conic-gradient(at 50% 50%, #0000 0turn ${1 - f}turn, #000 ${1 - f}turn 1turn), ${알띠}`;
   const phrases = Math.floor(hits / geun.ch.length); // 몇 편 왔나
   const shareText =
     tab === "moktak"
@@ -802,7 +807,9 @@ export default function MoktakPage() {
             draggable={false}
             className="block h-[83%] w-[83%] object-contain"
             style={{
-              // 안 돈다 — 母珠가 12시에 못박혀 있어야 한다(위 goldMask 참조)
+              // 母珠가 왼쪽으로 돈다 — 금의 끝이 그 한가운데에 붙어 온다
+              transform: `rotate(${angle}deg)`,
+              transition: "transform 0.16s ease-out",
               // 형: 「이거 원래대로 돌려라, 색상 너무 밝다」.
               // 채도를 1.6배 올리고 색상까지 돌렸더니 나무 염주가 빨개졌다.
               // 그림은 이미 밝혀 두었으니(lift) 여기서는 손대지 않는다 —
@@ -839,6 +846,8 @@ export default function MoktakPage() {
             draggable={false}
             className="block h-[83%] w-[83%] object-contain"
             style={{
+              transform: `rotate(${angle}deg)`,
+              transition: "transform 0.16s ease-out",
               filter:
                 "sepia(1) saturate(2.4) hue-rotate(-8deg) brightness(1.24) drop-shadow(0 0 12px rgba(217,180,91,0.35))",
             }}
