@@ -213,8 +213,8 @@ export default function 인연내프로필() {
             아직 아무것도 안 올린 사람에게 「셋을 채워야 한다」는 숙제를
             먼저 보여 준 셈이다. 얼굴은 하나면 된다. 나머지는 돋보기
             안에 있다. */}
-        <div className="hip-me-face">
-          <span className="hip-me-face-one" data-state={첫장?.state}>
+        <div className="hip-mepic">
+          <span className="hip-mepic-one" data-state={첫장?.state}>
             {첫장 ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={첫장.url} alt="" />
@@ -227,7 +227,7 @@ export default function 인연내프로필() {
             {/* 형: 「＋랑 돋보기는 사진 안에 넣어 기능을」 —
                 사진 밖에 두었더니 판이 셋(사진 · 단추 · 빈 통)으로
                 읽혔다. 손은 사진 위에서 움직이는 게 맞다 */}
-            <div className="hip-me-face-acts">
+            <div className="hip-mepic-acts">
             <button
               onClick={() => 파일.current?.click()}
               disabled={올리는중 || 장수 >= 사진칸}

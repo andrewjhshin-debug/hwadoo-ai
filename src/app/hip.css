@@ -4549,7 +4549,11 @@ html[data-theme="light"] {
   }
 
   /* 사진 — 넉넉한 네모, 상태가 그림 위에 얹힌다 */
-  /* ── 얼굴 한 장 ─────────────────────────────────────────
+  /* ── 얼굴 한 장 ─── (`.hip-me-face` 는 **내 도량 아바타**의 이름이다.
+     그 규칙이 img 에 border-radius:999px 를 걸어 이 네모 사진이 달걀로
+     보였다 — 형: 「사각형으로 사진 뜨게 하라니까 동그라미 말고」.
+     `.hip-mark`·`.hip-yeon-face`·`.hip-yeon-more` 에 이어 **네 번째**
+     이름 충돌이다. 앞으로 새 이름은 짓기 전에 grep 한다.) ─────────────────────────────────────────
      형: 「사진은 가운데 하나만 두고 ＋랑 돋보기 넣어서
           사진 추가랑 최종본 보기」 */
   .hip-write-pop {
@@ -4602,7 +4606,7 @@ html[data-theme="light"] {
   }
   body:has(.hip-write-pop) .hip-mala { display: none !important; }
 
-  .hip-me-face {
+  .hip-mepic {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -4610,7 +4614,7 @@ html[data-theme="light"] {
   }
   /* 형: 「동그라미 말고 그냥 직사각형으로」 — 모서리를 깎다 보니
      달걀이 됐다. 네모는 네모로 둔다(살짝만 물린다). */
-  .hip-me-face-one {
+  .hip-mepic-one {
     position: relative;
     width: 100%;
     max-width: 268px;
@@ -4620,7 +4624,7 @@ html[data-theme="light"] {
     background: rgba(26, 23, 20, 0.05);
     border: 1px solid rgba(26, 23, 20, 0.07);
   }
-  .hip-me-face-one img {
+  .hip-mepic-one img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -4628,7 +4632,7 @@ html[data-theme="light"] {
     border-radius: 0;
   }
   /* 아직 한 장도 없을 때 — 빈 네모에 점선 한 겹 */
-  .hip-me-face-one i {
+  .hip-mepic-one i {
     position: absolute;
     inset: 0;
     display: grid;
@@ -4641,7 +4645,7 @@ html[data-theme="light"] {
     color: #d9a9bd;
   }
   /* 몇 장인가 — 한 장뿐이면 안 적는다 */
-  .hip-me-face-one b {
+  .hip-mepic-one b {
     position: absolute;
     right: 7px;
     top: 7px;
@@ -4656,7 +4660,7 @@ html[data-theme="light"] {
     font-size: 11px;
     font-weight: 500;
   }
-  .hip-me-face-one u,
+  .hip-mepic-one u,
   .hip-yeon-big span u {
     position: absolute;
     left: 6px;
@@ -4672,14 +4676,14 @@ html[data-theme="light"] {
      흰 알약을 깔았더니 사진 한가운데 딱지가 하나 붙은 꼴이었다.
      맨 아이콘 둘만 귀퉁이에 둔다 — 어두운 사진에서도 보이게
      글자에 그늘 한 겹만 준다 */
-  .hip-me-face-acts {
+  .hip-mepic-acts {
     position: absolute;
     right: 8px;
     bottom: 6px;
     display: flex;
     gap: 2px;
   }
-  .hip-me-face-acts button {
+  .hip-mepic-acts button {
     display: grid;
     place-items: center;
     width: 34px;
@@ -4690,9 +4694,9 @@ html[data-theme="light"] {
     filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
     transition: transform 0.16s, opacity 0.16s;
   }
-  .hip-me-face-acts button:active { transform: translateY(1px) scale(0.94); }
-  .hip-me-face-acts button:disabled { opacity: 0.35; }
-  .hip-me-face-acts svg {
+  .hip-mepic-acts button:active { transform: translateY(1px) scale(0.94); }
+  .hip-mepic-acts button:disabled { opacity: 0.35; }
+  .hip-mepic-acts svg {
     width: 19px; height: 19px;
     fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
   }
@@ -4964,9 +4968,13 @@ html[data-theme="light"] {
     /* 형: 「아예 밑 공간까지 다 쓰고」
        `flex: 1 1 auto` 만으로는 안 늘어난다 — 바깥에 기댈 플렉스 칸이
        없으면 「남는 키」라는 게 없기 때문이다. 화면 키를 **직접** 쥔다.
-       띠(염주) 자리만 남기고 나머지는 전부 통이 먹는다. */
+
+       ※ 한때 여기서 `- 24px` 을 빼 통을 띠 자리로 24px 밀어 넣었다.
+       그러면 통 안 오른쪽 아래에 선 **「공양」이 띠 밑에 깔려 안 눌린다**
+       (형: 「공양 빨리 적용해, 왜 안 해, 안 돼」 — 적용은 돼 있었고
+       손가락이 안 닿았던 것이다). 띠 자리는 성역이다. 한 치도 안 밟는다. */
     height: 100dvh;
-    padding: 18px 14px calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px) - 24px);
+    padding: 18px 14px calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail, 96px));
   }
   .hip-hall-top {
     display: flex;
