@@ -810,9 +810,15 @@ export default function MoktakPage() {
             draggable={false}
             className="block h-[83%] w-[83%] object-contain"
             style={{
-              // 母珠가 왼쪽으로 돈다 — 금의 끝이 그 한가운데에 붙어 온다
+              // 母珠가 왼쪽으로 돈다 — 금의 끝이 그 한가운데에 붙어 온다.
+              //
+              // **미끄러지게 하면 안 된다.** 형: 「염주 도는 속도랑 황금색
+              // 범위 채워지는 속도가 달라서 생긴 문제 같은데, 속도를
+              // 맞추면 딱딱 떨어질 듯」 — 맞다.
+              // 부채꼴(conic-gradient)은 중간값이 없어 **그 자리에서 튄다.**
+              // 그림만 0.16초 미끄러지니 그 0.16초 동안 둘이 어긋난다.
+              // 둘 다 튀게 두면 한 타마다 딱 떨어진다.
               transform: `rotate(${angle}deg)`,
-              transition: "transform 0.16s ease-out",
               // 형: 「이거 원래대로 돌려라, 색상 너무 밝다」.
               // 채도를 1.6배 올리고 색상까지 돌렸더니 나무 염주가 빨개졌다.
               // 그림은 이미 밝혀 두었으니(lift) 여기서는 손대지 않는다 —
@@ -850,7 +856,6 @@ export default function MoktakPage() {
             className="block h-[83%] w-[83%] object-contain"
             style={{
               transform: `rotate(${angle}deg)`,
-              transition: "transform 0.16s ease-out",
               filter:
                 "sepia(1) saturate(2.4) hue-rotate(-8deg) brightness(1.24) drop-shadow(0 0 12px rgba(217,180,91,0.35))",
             }}
