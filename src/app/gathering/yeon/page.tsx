@@ -80,7 +80,7 @@ export default function 오늘의인연() {
   const [있나, 있나잡기] = useState<boolean | null>(null);
   const [사람들, 사람들잡기] = useState<오늘사람[] | null>(null);
   // 오늘 볼 수 있는 수 / 연꽃을 써도 여기까지
-  const [칸, 칸잡기] = useState({ cap: 1, max: 1 });
+  const [칸, 칸잡기] = useState({ cap: 1, max: 6 });
   const [끝난이, 끝난이잡기] = useState<string[]>([]);
   const [탈, 탈잡기] = useState<string>("");
   const [바쁨, 바쁨잡기] = useState(false);
@@ -336,17 +336,13 @@ export default function 오늘의인연() {
   if (있나 === null)
     return (
       <껍데기>
-        <p className="hip-yeon-say">…</p>
+        <오늘카드판 본만큼={0} 무료칸={1} 최대칸={6} 기다림 />
       </껍데기>
     );
   if (있나 === true && 사람들 === null)
     return (
       <껍데기>
-        <button className="hip-yeon-flip" data-wait="1" disabled aria-label="오늘의 인연 여는 중">
-          <span>
-            <b>緣</b>
-          </span>
-        </button>
+        <오늘카드판 본만큼={끝난이.length} 무료칸={칸.cap} 최대칸={6} 기다림 />
       </껍데기>
     );
 
@@ -365,30 +361,11 @@ export default function 오늘의인연() {
   // 지운다. 판이 이미 그 말을 하고 있다.
   if (!이) {
     const 본만큼 = 끝난이.length;
-    // 오늘의 인연은 여섯 장까지만 보인다. 더 많은 빈칸을 두면 카드의
-    // 밀도가 무너지고, 한 번에 만나는 사람의 수도 흐려진다.
     const 보일칸 = Math.min(칸.max, 6);
-    const 무료칸 = Math.min(칸.cap, 보일칸);
-    const 더열수 = 보일칸 - 무료칸; // 연꽃으로 열 수 있는 자리
+    const 더열수 = 보일칸 - Math.min(칸.cap, 보일칸); // 연꽃으로 열 수 있는 자리
     return (
       <껍데기>
-        <ul className="hip-yeon-deck" aria-hidden>
-          {Array.from({ length: 보일칸 }, (_, i) => {
-            const 봤나 = i < 본만큼;
-            const 값 = i >= 무료칸;
-            return (
-              <li
-                key={i}
-                data-done={봤나 ? "1" : undefined}
-                data-pay={!봤나 && 값 ? "1" : undefined}
-                data-next={!봤나 && i === 본만큼 ? "1" : undefined}
-              >
-                <em>{i + 1}</em>
-                <span>{봤나 ? "緣" : 값 ? "蓮" : "·"}</span>
-              </li>
-            );
-          })}
-        </ul>
+        <오늘카드판 본만큼={본만큼} 무료칸={칸.cap} 최대칸={보일칸} />
 
         {/* 남은 자리를 여는 한 손 — 하루 천장에 닿으면 아예 안 그린다.
             살 수 없는 것을 내밀어 봐야 서로 피곤하다 */}
@@ -413,27 +390,20 @@ export default function 오늘의인연() {
   if (뒤집힘 === null)
     return (
       <껍데기>
-        <button className="hip-yeon-flip" disabled aria-label="오늘의 인연">
-          <span>
-            <b>緣</b>
-          </span>
-        </button>
+        <오늘카드판 본만큼={본만큼} 무료칸={칸.cap} 최대칸={6} 기다림 />
       </껍데기>
     );
 
   if (!뒤집힘)
     return (
       <껍데기>
-        <button
-          className="hip-yeon-flip"
-          data-go={도는중 ? "1" : undefined}
-          onClick={뒤집기}
-          aria-label="오늘의 인연 열기"
-        >
-          <span>
-            <b>緣</b>
-          </span>
-        </button>
+        <오늘카드판
+          본만큼={본만큼}
+          무료칸={칸.cap}
+          최대칸={6}
+          열기={뒤집기}
+          여는중={도는중}
+        />
       </껍데기>
     );
 
@@ -570,6 +540,53 @@ function 껍데기({ children, 몫 }: { children: React.ReactNode; 몫?: string 
         {children}
       </div>
     </HipRoom>
+  );
+}
+
+function 오늘카드판({
+  본만큼,
+  무료칸,
+  최대칸,
+  열기,
+  기다림 = false,
+  여는중 = false,
+}: {
+  본만큼: number;
+  무료칸: number;
+  최대칸: number;
+  열기?: () => void;
+  기다림?: boolean;
+  여는중?: boolean;
+}) {
+  const 여섯칸 = Math.min(최대칸, 6);
+  const 무료 = Math.min(무료칸, 여섯칸);
+  return (
+    <ul className="hip-yeon-deck" aria-busy={기다림 || undefined}>
+      {Array.from({ length: 여섯칸 }, (_, i) => {
+        const 봤나 = i < 본만큼;
+        const 값 = i >= 무료;
+        const 열칸 = !!열기 && !봤나 && i === 본만큼;
+        return (
+          <li
+            key={i}
+            data-done={봤나 ? "1" : undefined}
+            data-pay={!봤나 && 값 ? "1" : undefined}
+            data-next={!봤나 && i === 본만큼 ? "1" : undefined}
+          >
+            <em>{i + 1}</em>
+            <span>{봤나 ? "緣" : 값 ? "蓮" : "·"}</span>
+            {열칸 && (
+              <button
+                className="hip-deck-open"
+                onClick={열기}
+                disabled={여는중}
+                aria-label="오늘의 인연 열기"
+              />
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

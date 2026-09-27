@@ -6417,22 +6417,22 @@ html[data-theme="light"] {
     pointer-events: none;
     user-select: none;
   }
-  /* 핑크 정사각 타일과 동심원은 걷는다. 다크한 판 위에 금빛 표식 하나만
-     남겨 카드의 역할을 먼저 보이게 한다. */
+  /* 핑크와 민트가 섞인 카드. 큰 한 장이 아니라 여섯 장이 함께 떠도
+     가볍게 읽히도록 색만 남기고 안쪽 장식은 두 겹으로 절제한다. */
   .hip-yeon-deck li {
     position: relative;
     aspect-ratio: 2 / 3;
     display: grid;
     place-items: center;
-    border: 1px solid rgba(216, 177, 91, 0.36);
+    border: 0;
     border-radius: 16px;
     overflow: hidden;
     background:
-      radial-gradient(80% 48% at 50% 100%, rgba(179, 127, 46, 0.14), transparent 72%),
-      linear-gradient(150deg, #2d211d, #120e0d 72%);
-    box-shadow: 0 10px 22px rgba(31, 19, 15, 0.16);
+      radial-gradient(70% 55% at 26% 18%, rgba(255, 255, 255, 0.5), transparent 70%),
+      linear-gradient(152deg, #fbc7da, #ef7ba4 58%, #5cc2ac);
+    box-shadow: 0 8px 22px rgba(226, 110, 155, 0.22);
   }
-  /* 카드 안쪽 테만 남긴다. 장식이 아니라 손이 가는 면의 깊이다. */
+  /* 카드 안쪽 결만 남긴다. */
   .hip-yeon-deck li::before,
   .hip-yeon-deck li::after {
     content: "";
@@ -6440,48 +6440,61 @@ html[data-theme="light"] {
     pointer-events: none;
   }
   .hip-yeon-deck li::before {
-    inset: 8px;
-    border: 1px solid rgba(242, 218, 158, 0.18);
-    border-radius: 10px;
+    inset: 14%;
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    border-radius: 999px;
   }
   .hip-yeon-deck li::after {
-    inset: auto 18% 25px;
-    height: 1px;
-    background: rgba(221, 183, 93, 0.3);
+    inset: 27%;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
   }
 
   .hip-yeon-deck em {
     position: absolute;
-    left: 13px;
-    top: 12px;
+    left: 12px;
+    top: 10px;
     z-index: 2;
     font-family: var(--font-serif);
     font-style: normal;
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    color: rgba(241, 221, 172, 0.7);
+    font-size: 12px;
+    letter-spacing: 0;
+    color: rgba(255, 255, 255, 0.72);
   }
   .hip-yeon-deck span {
     position: relative;
     z-index: 1;
     font-family: var(--font-serif);
     font-weight: 400;
-    font-size: 34px;
+    font-size: 38px;
     line-height: 1;
-    color: #efd18b;
-    text-shadow: 0 2px 14px rgba(171, 116, 28, 0.2);
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(190, 80, 120, 0.3);
   }
 
   /* 이미 본 자리 — 다 쓴 카드는 숨을 죽인다 */
-  .hip-yeon-deck li[data-done="1"] { opacity: 0.46; box-shadow: none; }
+  .hip-yeon-deck li[data-done="1"] { opacity: 0.42; box-shadow: none; }
 
-  /* 바로 다음 자리만 테를 한 겹 더 밝힌다. 움직여서 재촉하지 않는다. */
-  .hip-yeon-deck li[data-next="1"] { border-color: rgba(239, 202, 111, 0.76); }
+  /* 바로 다음 자리만 조금 더 선명하게 둔다. */
+  .hip-yeon-deck li[data-next="1"] { box-shadow: 0 10px 28px rgba(226, 110, 155, 0.38); }
 
   /* 연꽃을 써야 열리는 자리 — 금빛 테 한 줄 */
   .hip-yeon-deck li[data-pay="1"] {
-    box-shadow: inset 0 0 0 1px rgba(231, 194, 104, 0.42);
+    box-shadow: 0 8px 22px rgba(226, 110, 155, 0.18), inset 0 0 0 1.5px rgba(255, 233, 170, 0.75);
   }
+  .hip-deck-open {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
+    cursor: pointer;
+  }
+  .hip-deck-open:disabled { cursor: default; }
+  .hip-deck-open:active { transform: scale(0.98); }
 
   /* 남은 자리를 여는 한 손 */
   /* 단추는 **카드 밑에.** 판이 길어지면 굴려서 닿는다.
