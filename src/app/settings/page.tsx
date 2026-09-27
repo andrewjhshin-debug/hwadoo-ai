@@ -127,6 +127,7 @@ const PRACTICE_HITS: { source: MeritSource; label: string }[] = [
   { source: "fortune", label: "운세" },
   { source: "mung", label: "멍" },
   { source: "hasim", label: "하심" },
+  { source: "walking", label: "포행" },
   { source: "daily", label: "오늘" },
 ];
 

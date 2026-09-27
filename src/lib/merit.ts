@@ -86,6 +86,7 @@ export type MeritSource =
   | "mung" // 멍 — 아무것도 안 하고 가만히
   | "hasim" // 하심 — 획을 끝까지 내려감
   | "keycap" // 키캡 — 한 번 누름. 형: 「목탁 염주 싱잉볼 옆에 키캡도 하나」
+  | "walking" // 포행 — 실제로 걸은 100m
   // 인연이 닿음 — 서로 합장해서 쪽지방이 열린 그 한 번.
   // 위의 `gathering`(인연 판의 글·댓글)과 다른 갈래다. 그쪽은 말이고
   // 이쪽은 **사람**이다. 서버가 `yeon-owed` 에 적어 두면 들어올 때 챙겨 간다
@@ -148,6 +149,9 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   // 키캡 — 한 번 누름(1). 목탁·염주와 같은 값이다. 손가락 하나로 되는
   // 일이니 더 줄 수 없고, 덜 줄 것도 없다. 셋을 나란히 둔다
   keycap: 6,
+  // 포행 — 100m마다 한 획. 보통 걸음(시속 5km)으로 두 시간, 약 10km면
+  // 하루 한 송이에 닿는다. 위치가 실제로 움직일 때만 붙는다.
+  walking: 432,
   // 인연 한 번 — 양쪽에 같이 붙는다. 하루에 몇 번 일어날 일이 아니라
   // 값이 커도 저울이 안 기운다(api/yeon/hap 의 MERIT_ON_MATCH 와 같은 수)
   inyeon: 60,
@@ -190,6 +194,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   moktak: 43200,
   bead: 43200,
   keycap: 43200,
+  walking: 43200,
   breath: 9720, // 마흔여섯 식(8분)
   hwadu: 6480,
   temple: 8640, // 여덟 곳
@@ -854,6 +859,7 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   mung: "멍",
   hasim: "하심",
   keycap: "키캡",
+  walking: "포행",
   daily: "오늘의 세 가지",
   mandala: "만다라",
 };

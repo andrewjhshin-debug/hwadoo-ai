@@ -20,6 +20,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DAILY_TOTAL_CAP, MERIT_EVENT, todayRoom } from "@/lib/merit";
+import WalkingMerit from "@/components/WalkingMerit";
 
 export default function MeritBar() {
   const [bal, setBal] = useState<number | null>(null);
@@ -78,6 +79,7 @@ export default function MeritBar() {
       <span className="merit-left md:hidden">
         {left === null ? "" : left === 0 ? "蓮 한 송이" : `蓮 −${left.toLocaleString("ko-KR")}`}
       </span>
+      <WalkingMerit />
     </div>
   );
 }

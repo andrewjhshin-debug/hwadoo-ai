@@ -60,6 +60,33 @@ html[data-theme="light"] body {
   background: var(--color-ink);
 }
 
+/* 포행 — 공덕 줄 바로 아래의 작은 시작점. 어느 방에서도 한 자리에 남는다. */
+.walking-merit {
+  pointer-events: auto;
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  z-index: 1;
+}
+.walking-merit-toggle {
+  display: inline-flex;
+  min-height: 29px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 38%, transparent);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: color-mix(in srgb, var(--color-ink) 88%, transparent);
+  color: var(--color-hanji-dim);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  box-shadow: 0 3px 12px rgba(0,0,0,.14);
+}
+.walking-merit-toggle[aria-pressed="true"] { color: var(--color-gold); border-color: var(--color-gold); }
+.walking-merit-dot { width: 5px; height: 5px; border-radius: 999px; background: var(--color-hanji-faint); }
+.walking-merit-dot[data-on="1"] { background: var(--color-gold); box-shadow: 0 0 7px var(--color-gold); }
+.walking-merit > p { position: absolute; right: 0; top: 34px; width: max-content; max-width: 190px; margin: 0; border-radius: 8px; background: var(--color-ink-2); padding: 6px 8px; color: var(--color-hanji-dim); font-size: 10px; letter-spacing: 0; }
+
 html[data-theme="light"] .question-glow {
   text-shadow: none;
 }
