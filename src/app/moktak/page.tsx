@@ -215,13 +215,13 @@ const SKINS = {
   keycap: [
     { id: "dongja", name: "동자", cup: "/obj/kc-dongja-front.png",
       back: "/obj/kc-dongja-back.png", body: "/obj/kc-dongja-body.png",
-      ar: 930 / 1232, dip: "11%", dot: "#ef86b0" },
+      ar: 928 / 1156, dip: "12%", dot: "#ef86b0" },
     { id: "podae", name: "포대", cup: "/obj/kc-podae-front.png",
       back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
-      ar: 930 / 1102, dip: "12%", dot: "#e0b354" },
+      ar: 928 / 1026, dip: "13%", dot: "#e0b354" },
     { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front.png",
       back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
-      ar: 930 / 1050, dip: "12%", dot: "#cfa03c" },
+      ar: 928 / 974, dip: "13%", dot: "#cfa03c" },
   ],
 } as const;
 

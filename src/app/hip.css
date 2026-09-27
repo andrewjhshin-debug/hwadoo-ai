@@ -3592,15 +3592,16 @@ html[data-theme="light"] {
     width: 100%;
     height: auto;
     transform-origin: 50% 100%;
-    filter: drop-shadow(0 8px 12px rgba(190, 120, 145, 0.2));
+    /* 그늘 없음 — 형: 「배경 지우고 뒷 배경과 어우러지도록」
+       세 겹에 저마다 drop-shadow 가 걸려 분홍 안개가 끼었고, 그게
+       통(overflow:hidden)에 잘려 **네모 자국**으로 남았다 */
     transition:
       transform 0.36s cubic-bezier(0.2, 1.6, 0.35, 1),
       filter 0.36s ease;
   }
   .hip-keycap.on img {
     transform: translateY(6px) scale(1.04, 0.93);
-    filter: drop-shadow(0 2px 5px rgba(190, 120, 145, 0.26));
-    transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1), filter 0.07s ease;
+    transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
   }
 }
 
@@ -4084,9 +4085,9 @@ html[data-theme="light"] {
     /* 살갗마다 제 비율(--keycap-ar). 한 비율로 맞추려고 여백을 덧댔더니
        상자 안에서 물건이 작아졌다 — 형: 「윗부분이 너무 짧뚱이잖아」 */
     aspect-ratio: var(--keycap-ar, 0.72);
-    /* 몸이 **쑥** 내려가도 밖으로 안 새게. 받침 밑동이 곧 판 밑변이라,
-       여기서 자르면 물건 바닥에서 딱 잘린다 */
-    overflow: hidden;
+    /* 자르지 않는다 — 몸은 이미 앞꽃잎 뒤로 숨고, 자르면 그 네모가
+       바탕 위에 자국으로 남는다(형: 「사각형 안이 아니라 배경 지우고」) */
+    overflow: visible;
   }
   .hip-keycap-stack > img {
     position: absolute;
@@ -4197,9 +4198,10 @@ html[data-theme="light"] {
      가르지 않으니 틈이 애초에 안 생긴다. 위의 한 규칙이 전부다. */
   /* 통(stack)이 높이를 쥐므로 그림 자체는 폭·높이를 안 잡는다.
      살갗에 따라 판이 가로로 넓을 수 있으니 폭 쪽 한도도 같이 건다 */
+  /* 형: 「키캡 오브제 크기 자체 크게, 셋 다」 */
   .hip-keycap {
-    height: min(var(--hip-obj-w), 46vh);
-    max-width: calc(100vw - 22px);
+    height: min(calc(var(--hip-obj-w) * 1.28), 56vh);
+    max-width: calc(100vw - 12px);
     display: flex;
     justify-content: center;
   }
