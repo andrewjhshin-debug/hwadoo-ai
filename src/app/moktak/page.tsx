@@ -197,32 +197,31 @@ const SKINS = {
   // 여태 한 장을 갈라 쓰느라 애를 먹었다 — 자른 선이 곧 이격이었다.
   // 이제 처음부터 두 물건이라 자를 일이 없다. 받침이 앞(z 2), 몸이 뒤(z 1).
   // 몸은 온몸이 다 있으니 그릇 속으로 내려가도 빈 데가 안 생긴다.
-  // ── 최초로 되돌린다 ──────────────────────────────────────
-  // 형: 「시발 야 키캡 너 최초엔 어떻게 했는데!!! 최초에 한 거처럼이라도
-  //      해. 다운로드 폴더에 있잖아 레퍼」 — 맞다. 되돌아가 보니 답이
-  //      거기 있었다.
+  // ── 세 겹 ───────────────────────────────────────────────
+  // 형: 「이게 있으면 자연스럽게 더 만들 수 있나?」 — 아가리가 뚫려
+  //      **안쪽 벽이 보이는** 그릇. 그게 그동안 없던 한 조각이었다.
   //
-  // 최초(9ef3211)는 **깊은 연꽃 그릇 하나를 셋이 나눠 쓰고**, 몸을 그
-  // 속에 앉혔다. 그릇이 몸보다 넓고 속이 깊으니 **자를 일이 아예 없다** —
-  // 몸(z1)이 내려가면 그릇(z2) 뒤로 그냥 숨는다.
+  // 앞에서만 본 그릇에는 뒤쪽이 아예 안 그려져 있어서, 자르고 오리고
+  // 합성해도 매번 지저분했다. 이 그릇은 아가리가 보이니 **한 번만
+  // 가르면** 된다 — 아가리 아래턱 곡선(타원의 하반부)을 따라.
+  //   뒤(back)  = 그릇 통째 — 뒤 테두리와 안벽
+  //   몸(body)  = 상 — 이것만 내려간다
+  //   앞(front) = 아래턱 밑 — 앞 테두리와 앞꽃잎
+  // 몸이 그 사이에 앉으니 **진짜로 그릇 안**이고, 내려가면 안벽 속으로
+  // 들어간다. 자를 일도 오릴 일도 없다.
   //
-  // 그 뒤에 형이 새로 구워 준 「앞에서 본 그릇」으로 갈아 끼웠는데,
-  // 그 그릇은 몸보다 **좁았다.** 그래서 자르고(rim) 오리고(mask) 속을
-  // 만들고(back) — 전부 좁은 그릇을 억지로 쓰려던 땜질이었고, 그때마다
-  // 팔이 삐져나왔다. 그릇을 바꾸는 게 맞았다.
-  //
-  // `buddha` = 그릇 아가리 곡선대로 밑을 잘라 둔 몸. `dip` = 눌렸을 때
-  // 내려가는 깊이(그릇 키 대비).
+  // 그릇은 **한 장을 셋이 나눠 쓴다**(모양·카메라가 같아야 하니까).
+  // 포대·미륵은 그 한 장을 금 사다리로 다시 구웠다.
   keycap: [
-    { id: "dongja", name: "동자", src: "/obj/keycap-dongja.png",
-      cup: "/obj/keycap-dongja-cup.png", buddha: "/obj/keycap-dongja-buddha.png",
-      ar: 601 / 860, dip: "8%", dot: "#ef86b0" },
-    { id: "podae", name: "포대", src: "/obj/keycap-podae-cup.png",
-      cup: "/obj/keycap-podae-cup.png", buddha: "/obj/keycap-podae-buddha.png",
-      ar: 667 / 643, dip: "10%", dot: "#e0b354" },
-    { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk-cup.png",
-      cup: "/obj/keycap-mireuk-cup.png", buddha: "/obj/keycap-mireuk-buddha.png",
-      ar: 564 / 643, dip: "10%", dot: "#cfa03c" },
+    { id: "dongja", name: "동자", cup: "/obj/kc-dongja-front.png",
+      back: "/obj/kc-dongja-back.png", body: "/obj/kc-dongja-body.png",
+      ar: 930 / 1232, dip: "11%", dot: "#ef86b0" },
+    { id: "podae", name: "포대", cup: "/obj/kc-podae-front.png",
+      back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
+      ar: 930 / 1102, dip: "12%", dot: "#e0b354" },
+    { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front.png",
+      back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
+      ar: 930 / 1050, dip: "12%", dot: "#cfa03c" },
   ],
 } as const;
 
@@ -300,14 +299,20 @@ export default function MoktakPage() {
   });
   const skinSrc = (kind: SkinKind) =>
     그림(
-      (SKINS[kind] as readonly { id: string; src: string }[]).find(
+      (SKINS[kind] as readonly { id: string; src?: string }[]).find(
         (k) => k.id === skin[kind]
-      )?.src ?? SKINS[kind][0].src
+      )?.src ?? (SKINS[kind][0] as { src?: string }).src ?? ""
     );
   /** 키캡 한 장 — 통짜 그대로 */
   const keySrc = (() => {
     const k = SKINS.keycap.find((x) => x.id === skin.keycap) ?? SKINS.keycap[0];
-    return { cup: 그림(k.cup), buddha: 그림(k.buddha), ar: k.ar, dip: k.dip };
+    return {
+      cup: 그림(k.cup),
+      back: 그림(k.back),
+      body: 그림(k.body),
+      ar: k.ar,
+      dip: k.dip,
+    };
   })();
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
   const beadWide = (
@@ -519,14 +524,14 @@ export default function MoktakPage() {
     // 자리가 비어 깜빡였다. 아홉 장 다 합쳐 5MB 남짓이니 방에 들어설 때
     // 한꺼번에 받아 둔다. 그 뒤로는 점을 눌러도 곧바로 바뀐다.
     for (const kind of ["moktak", "bead", "bowl", "keycap"] as const) {
-      for (const k of SKINS[kind]) {
-        const im = new window.Image();
-        im.src = k.src;
-        // 받침도 미리 받아 둔다 — 점을 눌렀을 때 몸만 먼저 오면 한 판
-        // 동안 받침 없이 떠 있다
-        if ("cup" in k) {
-          const im2 = new window.Image();
-          im2.src = k.cup;
+      // 키캡은 세 겹이라 갈래가 여럿이다 — 있는 것만 다 받아 둔다.
+      // 점을 눌렀을 때 몸만 먼저 오면 한 판 동안 그릇 없이 떠 있다
+      for (const k of SKINS[kind] as readonly Record<string, unknown>[]) {
+        for (const 칸 of ["src", "cup", "back", "body"]) {
+          const u = k[칸];
+          if (typeof u !== "string") continue;
+          const im = new window.Image();
+          im.src = u;
         }
       }
     }

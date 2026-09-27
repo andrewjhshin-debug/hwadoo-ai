@@ -4160,8 +4160,8 @@ html[data-theme="light"] {
      자르고(rim) 오리고(mask) 속을 만들던(back) 것은 전부 **몸보다 좁은
      그릇**을 억지로 쓰려던 땜질이었다. 그릇을 바꾸면 그 일이 다 없어진다.
      깊은 그릇에서는 몸이 그냥 뒤로 숨는다 — 두 장이면 끝난다. */
-  .hip-keycap-well,
-  .hip-keycap-back { display: contents; }
+  .hip-keycap-well { display: contents; }
+  .hip-keycap-back,
   .hip-keycap-buddha,
   .hip-keycap-cup {
     position: absolute;
@@ -4171,7 +4171,8 @@ html[data-theme="light"] {
     object-fit: contain;
     display: block;
   }
-  /* 몸이 뒤, 그릇이 앞 — 몸이 내려가면 그릇 뒤로 숨는다 */
+  /* 뒤(안벽) 0 · 몸 1 · 앞(앞꽃잎) 2 */
+  .hip-keycap-back { z-index: 0; }
   .hip-keycap-buddha {
     z-index: 1;
     transform-origin: 50% 100%;
