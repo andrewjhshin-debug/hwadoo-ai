@@ -53,16 +53,14 @@ export default function MeritBar() {
   const left = bal === null ? null : Math.max(0, DAILY_TOTAL_CAP - bal);
 
   return (
-    <div
-      aria-hidden
-      title="연꽃 한 송이까지"
-      className="pointer-events-none sticky top-0 z-30 h-[2px] w-full bg-ink-3/60"
-    >
+    <div className="sticky top-0 z-30 h-[2px] w-full">
       <style>{`
         @keyframes mb-flash { 0%{opacity:.35} 35%{opacity:1} 100%{opacity:.35} }
       `}</style>
       <div
-        className="h-full bg-gold transition-[width] duration-500 ease-out"
+        aria-hidden
+        title="연꽃 한 송이까지"
+        className="pointer-events-none h-full bg-gold transition-[width] duration-500 ease-out"
         style={{
           width: `${pct}%`,
           boxShadow: flash
@@ -76,7 +74,7 @@ export default function MeritBar() {
           줄만 있으면 「얼마나 남았나」를 눈대중으로 재야 한다. 줄 끝에
           숫자 한 덩이를 얹는다. 다 차면 숫자 대신 연꽃이 뜬다.
           폰에서만 — 웹은 옛 판 그대로 줄만 둔다. */}
-      <span className="merit-left md:hidden">
+      <span aria-hidden className="pointer-events-none merit-left md:hidden">
         {left === null ? "" : left === 0 ? "蓮 한 송이" : `蓮 −${left.toLocaleString("ko-KR")}`}
       </span>
       <WalkingMerit />
