@@ -6403,7 +6403,7 @@ html[data-theme="light"] {
    본 자리는 연꽃빛으로 차고(緣), 다음 자리는 옅게 숨 쉬고,
    연꽃을 써야 열리는 자리에는 蓮 이 앉는다. 누르는 물건이 아니다. */
 @media (min-width: 0px) {
-  /* 두 칸씩, 여섯 장. 카드 자체를 세로로 길게 잡아 인연 하나가
+  /* 두 칸씩, 네 장. 카드 자체를 세로로 길게 잡아 인연 하나가
      작은 포스터처럼 읽히게 한다. */
   .hip-yeon-deck {
     display: grid;
@@ -6417,8 +6417,7 @@ html[data-theme="light"] {
     pointer-events: none;
     user-select: none;
   }
-  /* 핑크와 민트가 섞인 카드. 큰 한 장이 아니라 여섯 장이 함께 떠도
-     가볍게 읽히도록 색만 남기고 안쪽 장식은 두 겹으로 절제한다. */
+  /* 핑크와 민트만 남긴 카드. 숫자나 무늬 없이 카드의 색과 크기만 읽힌다. */
   .hip-yeon-deck li {
     position: relative;
     aspect-ratio: 2 / 3;
@@ -6432,46 +6431,6 @@ html[data-theme="light"] {
       linear-gradient(152deg, #fbc7da, #ef7ba4 58%, #5cc2ac);
     box-shadow: 0 8px 22px rgba(226, 110, 155, 0.22);
   }
-  /* 카드 안쪽 결만 남긴다. */
-  .hip-yeon-deck li::before,
-  .hip-yeon-deck li::after {
-    content: "";
-    position: absolute;
-    pointer-events: none;
-  }
-  .hip-yeon-deck li::before {
-    inset: 14%;
-    border: 1px solid rgba(255, 255, 255, 0.34);
-    border-radius: 999px;
-  }
-  .hip-yeon-deck li::after {
-    inset: 27%;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 999px;
-  }
-
-  .hip-yeon-deck em {
-    position: absolute;
-    left: 12px;
-    top: 10px;
-    z-index: 2;
-    font-family: var(--font-serif);
-    font-style: normal;
-    font-size: 12px;
-    letter-spacing: 0;
-    color: rgba(255, 255, 255, 0.72);
-  }
-  .hip-yeon-deck span {
-    position: relative;
-    z-index: 1;
-    font-family: var(--font-serif);
-    font-weight: 400;
-    font-size: 38px;
-    line-height: 1;
-    color: #fff;
-    text-shadow: 0 2px 12px rgba(190, 80, 120, 0.3);
-  }
-
   /* 이미 본 자리 — 다 쓴 카드는 숨을 죽인다 */
   .hip-yeon-deck li[data-done="1"] { opacity: 0.42; box-shadow: none; }
 
@@ -6495,6 +6454,18 @@ html[data-theme="light"] {
   }
   .hip-deck-open:disabled { cursor: default; }
   .hip-deck-open:active { transform: scale(0.98); }
+  .hip-deck-limit {
+    margin: 12px 0 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #bd5d8b;
+  }
+  .hip-deck-limit span {
+    margin-left: 7px;
+    font-weight: 400;
+    color: #a88c98;
+  }
 
   /* 남은 자리를 여는 한 손 */
   /* 단추는 **카드 밑에.** 판이 길어지면 굴려서 닿는다.

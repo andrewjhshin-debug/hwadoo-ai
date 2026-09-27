@@ -24,8 +24,8 @@ import { ADMIN_UID } from "@/lib/config";
  * 만든다. 여기는 절에 같이 갈 사람을 찾는 자리다.
  */
 export const FREE_PICKS = 2;
-/** 연꽃을 써도 하루 이만큼까지 — 무료 둘 + 연꽃 넷 */
-export const MAX_PICKS = 6;
+/** 연꽃을 써도 하루 이만큼까지 — 무료 둘 + 연꽃 둘 */
+export const MAX_PICKS = 4;
 /** 한 번 뽑힌 사람은 이만큼 지나야 다시 온다 */
 export const COOLDOWN_DAYS = 90;
 /** 인연이 닿으면 양쪽에 붙는 공덕 — 만남도 수행이다 */

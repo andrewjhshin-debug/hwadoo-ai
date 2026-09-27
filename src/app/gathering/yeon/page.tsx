@@ -80,7 +80,7 @@ export default function 오늘의인연() {
   const [있나, 있나잡기] = useState<boolean | null>(null);
   const [사람들, 사람들잡기] = useState<오늘사람[] | null>(null);
   // 오늘 볼 수 있는 수 / 연꽃을 써도 여기까지
-  const [칸, 칸잡기] = useState({ cap: 1, max: 6 });
+  const [칸, 칸잡기] = useState({ cap: 1, max: 4 });
   const [끝난이, 끝난이잡기] = useState<string[]>([]);
   const [탈, 탈잡기] = useState<string>("");
   const [바쁨, 바쁨잡기] = useState(false);
@@ -336,13 +336,13 @@ export default function 오늘의인연() {
   if (있나 === null)
     return (
       <껍데기>
-        <오늘카드판 본만큼={0} 무료칸={1} 최대칸={6} 기다림 />
+        <오늘카드판 본만큼={0} 무료칸={1} 최대칸={4} 기다림 />
       </껍데기>
     );
   if (있나 === true && 사람들 === null)
     return (
       <껍데기>
-        <오늘카드판 본만큼={끝난이.length} 무료칸={칸.cap} 최대칸={6} 기다림 />
+        <오늘카드판 본만큼={끝난이.length} 무료칸={칸.cap} 최대칸={4} 기다림 />
       </껍데기>
     );
 
@@ -355,24 +355,23 @@ export default function 오늘의인연() {
   // 무엇을 하는 곳인지는 한 마디도 안 했다 — 하루에 몇을 볼 수 있는지,
   // 지금 몇을 봤는지, 무엇을 더 열 수 있는지가 전부 글 밖에 있었다.
   //
-  // 여섯 자리를 그대로 깐다. 본 자리는 채워지고, 다음 자리는 옅게
+  // 네 자리를 그대로 깐다. 본 자리는 채워지고, 다음 자리는 옅게
   // 빛나고, 연꽃을 써야 열리는 자리에는 蓮 이 앉는다. 그 밑에 단추
   // 하나 — **연꽃으로 남은 몇을 연다.** 空 도 「오늘은 여기까지」도
   // 지운다. 판이 이미 그 말을 하고 있다.
   if (!이) {
     const 본만큼 = 끝난이.length;
-    const 보일칸 = Math.min(칸.max, 6);
-    const 더열수 = 보일칸 - Math.min(칸.cap, 보일칸); // 연꽃으로 열 수 있는 자리
+    const 보일칸 = Math.min(칸.max, 4);
     return (
       <껍데기>
         <오늘카드판 본만큼={본만큼} 무료칸={칸.cap} 최대칸={보일칸} />
 
         {/* 남은 자리를 여는 한 손 — 하루 천장에 닿으면 아예 안 그린다.
             살 수 없는 것을 내밀어 봐야 서로 피곤하다 */}
-        {있나 && 칸.cap < 칸.max && (
+        {있나 && 칸.cap < 보일칸 && (
           <button className="hip-deck-go" disabled={바쁨} onClick={더보기}>
             <Yeonkkot className="h-[17px] w-[17px]" />
-            카드 {더열수}개 더 열기
+            카드 한 장 더 열기
           </button>
         )}
         {탈 && <p className="hip-yeon-bad">{말로(탈)}</p>}
@@ -390,7 +389,7 @@ export default function 오늘의인연() {
   if (뒤집힘 === null)
     return (
       <껍데기>
-        <오늘카드판 본만큼={본만큼} 무료칸={칸.cap} 최대칸={6} 기다림 />
+        <오늘카드판 본만큼={본만큼} 무료칸={칸.cap} 최대칸={4} 기다림 />
       </껍데기>
     );
 
@@ -400,14 +399,14 @@ export default function 오늘의인연() {
         <오늘카드판
           본만큼={본만큼}
           무료칸={칸.cap}
-          최대칸={6}
+          최대칸={4}
           열기={뒤집기}
           여는중={도는중}
         />
       </껍데기>
     );
 
-  const 몫말 = `오늘 ${본만큼 + 1} / ${칸.max}${칸.cap < 칸.max ? " · 무료 " + 칸.cap : ""}`;
+  const 몫말 = `${Math.min(본만큼 + 1, 4)} / 4 · 하루 4개까지`;
 
   return (
     <껍데기 몫={몫말}>
@@ -558,11 +557,12 @@ function 오늘카드판({
   기다림?: boolean;
   여는중?: boolean;
 }) {
-  const 여섯칸 = Math.min(최대칸, 6);
-  const 무료 = Math.min(무료칸, 여섯칸);
+  const 네칸 = Math.min(최대칸, 4);
+  const 무료 = Math.min(무료칸, 네칸);
   return (
-    <ul className="hip-yeon-deck" aria-busy={기다림 || undefined}>
-      {Array.from({ length: 여섯칸 }, (_, i) => {
+    <div className="hip-deck-wrap">
+      <ul className="hip-yeon-deck" aria-busy={기다림 || undefined}>
+      {Array.from({ length: 네칸 }, (_, i) => {
         const 봤나 = i < 본만큼;
         const 값 = i >= 무료;
         const 열칸 = !!열기 && !봤나 && i === 본만큼;
@@ -573,8 +573,6 @@ function 오늘카드판({
             data-pay={!봤나 && 값 ? "1" : undefined}
             data-next={!봤나 && i === 본만큼 ? "1" : undefined}
           >
-            <em>{i + 1}</em>
-            <span>{봤나 ? "緣" : 값 ? "蓮" : "·"}</span>
             {열칸 && (
               <button
                 className="hip-deck-open"
@@ -586,7 +584,9 @@ function 오늘카드판({
           </li>
         );
       })}
-    </ul>
+      </ul>
+      <p className="hip-deck-limit">{Math.min(본만큼, 4)} / 4 <span>하루 4개까지</span></p>
+    </div>
   );
 }
 
