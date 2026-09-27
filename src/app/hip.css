@@ -4176,6 +4176,9 @@ html[data-theme="light"] {
   .hip-keycap-back { z-index: 0; }
   .hip-keycap-buddha {
     z-index: 1;
+    /* 본체를 꽃받침의 안쪽 창 안에서만 보이게 한다. 원본마다 팔과
+       옷자락 폭이 달라, 그대로 포개면 꽃잎 양옆으로 색 덩어리가 샌다. */
+    clip-path: inset(0 var(--keycap-body-inset, 16%) 0);
     transform-origin: 50% 100%;
     transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
   }

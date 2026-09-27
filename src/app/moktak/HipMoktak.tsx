@@ -70,7 +70,7 @@ export type HipMoktakProps = {
   /** 지금 고른 목탁 살갗 그림 */
   mokSrc: string;
   /** 지금 고른 키캡 — 통짜 한 장 */
-  keySrc: { cup: string; back: string; body: string; ar: number; dip: string };
+  keySrc: { cup: string; back: string; body: string; ar: number; dip: string; bodyInset: string };
   /** 키캡 갈래에서 무엇을 누르나 — 동자인가 목탁인가 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
@@ -271,6 +271,7 @@ export default function HipMoktak({
                     {
                       "--keycap-ar": String(keySrc.ar),
                       "--keycap-dip": keySrc.dip,
+                      "--keycap-body-inset": keySrc.bodyInset,
                     } as React.CSSProperties
                   }
                 >
