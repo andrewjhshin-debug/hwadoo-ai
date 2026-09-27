@@ -6415,7 +6415,7 @@ html[data-theme="light"] {
    본 자리는 연꽃빛으로 차고(緣), 다음 자리는 옅게 숨 쉬고,
    연꽃을 써야 열리는 자리에는 蓮 이 앉는다. 누르는 물건이 아니다. */
 @media (min-width: 0px) {
-  /* 두 칸씩, 네 장. 카드 자체를 세로로 길게 잡아 인연 하나가
+  /* 두 칸씩, 여섯 장. 카드 자체를 세로로 길게 잡아 인연 하나가
      작은 포스터처럼 읽히게 한다. */
   .hip-yeon-deck {
     display: grid;
@@ -6432,7 +6432,7 @@ html[data-theme="light"] {
   /* 핑크와 민트만 남긴 카드. 숫자나 무늬 없이 카드의 색과 크기만 읽힌다. */
   .hip-yeon-deck li {
     position: relative;
-    aspect-ratio: 2 / 3;
+    aspect-ratio: 3 / 5;
     display: grid;
     place-items: center;
     border: 0;
@@ -6443,8 +6443,7 @@ html[data-theme="light"] {
       linear-gradient(152deg, #fbc7da, #ef7ba4 58%, #5cc2ac);
     box-shadow: 0 8px 22px rgba(226, 110, 155, 0.22);
   }
-  /* 네 장은 모두 같은 카드다. 한자는 카드가 무엇을 여는지 알려 주고,
-     하루 진행은 카드 밖의 0 / 4 줄에서만 읽는다. */
+  /* 모든 카드는 같은 緣 한자다. 하루 진행은 카드 밖의 수로만 읽는다. */
   .hip-yeon-deck li > span {
     position: relative;
     z-index: 1;

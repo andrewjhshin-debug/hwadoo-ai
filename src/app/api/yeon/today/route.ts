@@ -51,7 +51,8 @@ export async function GET(req: Request) {
   const 칸 = db.doc(`yeon-daily/${uid}_${day}`);
   const s = await 칸.get();
   const 지금 = s.exists ? s.data()! : null;
-  const cap: number = 지금?.cap ?? FREE_PICKS;
+  // 예전에 하루치가 만들어진 사람도 오늘부터는 무료 여섯 장을 받는다.
+  const cap: number = Math.max(지금?.cap ?? FREE_PICKS, FREE_PICKS);
   let picks: string[] = 지금?.picks ?? [];
 
   // 아직 덜 뽑았으면 채운다(연꽃으로 cap 을 올린 경우)

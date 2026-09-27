@@ -53,7 +53,7 @@ export async function POST(req: Request) {
   const day = today();
   const 칸 = db.doc(`yeon-daily/${uid}_${day}`);
   const s = await 칸.get();
-  const cap: number = s.exists ? (s.data()!.cap ?? FREE_PICKS) : FREE_PICKS;
+  const cap: number = Math.max(s.exists ? (s.data()!.cap ?? FREE_PICKS) : FREE_PICKS, FREE_PICKS);
   if (cap >= MAX_PICKS)
     return Response.json({ error: "max-today" }, { status: 409 });
 
