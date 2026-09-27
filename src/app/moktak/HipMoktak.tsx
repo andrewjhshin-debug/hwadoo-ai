@@ -70,7 +70,7 @@ export type HipMoktakProps = {
   /** 지금 고른 목탁 살갗 그림 */
   mokSrc: string;
   /** 지금 고른 키캡 — 통짜 한 장 */
-  keySrc: { src: string; cup: string; back: string; mask: string; ar: number; rim: number };
+  keySrc: { cup: string; buddha: string; ar: number; dip: string };
   /** 키캡 갈래에서 무엇을 누르나 — 동자인가 목탁인가 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
@@ -265,45 +265,21 @@ export default function HipMoktak({
                     가른 데가 없으니 이격도 빈 데도 없다. */}
                 <span
                   className="hip-keycap-stack"
-                  /* 숫자 그대로 넘기면 리액트가 px 를 붙인다 —
-                     aspect-ratio: 0.57px 는 무효라 판이 풀린다 */
+                  /* 숫자를 그대로 넘기면 리액트가 CSS 변수에 px 를 붙인다 —
+                     `aspect-ratio: 0.7px` 는 무효라 판이 통째로 풀린다 */
                   style={
                     {
                       "--keycap-ar": String(keySrc.ar),
-                      "--keycap-rim": String(keySrc.rim),
+                      "--keycap-dip": keySrc.dip,
                     } as React.CSSProperties
                   }
                 >
-                  {/* ── 몸은 **그릇 안에서만** 보인다 ─────────────
-                      형: 「정말 정면에서 본 키캡 눌리는 거 못 만드나,
-                           안 삐져나오게」
-
-                      여태 몸과 그릇을 그냥 포개 두었다. 그러니 몸이
-                      그릇보다 넓은 자리(포대승의 배, 동자의 어깨)에서
-                      옆으로 삐져나왔고, 누르면 그 삐져나온 살이 같이
-                      내려가 「그릇 옆을 스쳐 지나가는」 것으로 읽혔다.
-
-                      몸을 **창(well)** 안에 넣는다. 창 밑변은 그릇이
-                      몸을 좌우로 완전히 덮기 시작하는 줄(--keycap-rim,
-                      그림에서 한 줄씩 재서 찾았다)이다. 그 아래로는
-                      몸이 한 화소도 안 그려진다 — 삐져나올 수가 없다.
-                      그릇은 창 밖에서 제 모양대로 앞에 선다. */}
-                  {/* ── 속(back) — 그릇 안쪽 그늘 ────────────────
-                      제미나이 없이 **가진 그림에서** 판다:
-                      그릇 윤곽 안을 아래로 갈수록 짙은 그늘로 채운 한 장.
-                      몸이 내려가면 흰 바탕이 아니라 **그늘 속으로** 든다.
-                      그게 「들어간다」와 「가려진다」를 가른다. */}
+                  {/* 몸이 뒤(z1), 그릇이 앞(z2). 누르면 몸만 그릇 속으로
+                      내려가고 그릇은 한 화소도 안 움직인다.
+                      자르지도 오리지도 않는다 — **그릇이 몸보다 넓고
+                      속이 깊어서** 애초에 샐 데가 없다. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-keycap-back" src={keySrc.back} alt="" draggable={false} />
-
-                  {/* 몸 — 네모로 자르지 않고 **그릇 윤곽으로** 오린다.
-                      그릇이 시작되기 전은 다 살고, 시작된 뒤로는 그릇
-                      안에서만 산다. 그 사이는 어깨가 뚝 끊기지 않게
-                      부드럽게 좁아든다(mask 그림에 그렇게 구워 두었다). */}
-                  <span className="hip-keycap-well">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className="hip-keycap-buddha" src={keySrc.src} alt="" draggable={false} />
-                  </span>
+                  <img className="hip-keycap-buddha" src={keySrc.buddha} alt="" draggable={false} />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img className="hip-keycap-cup" src={keySrc.cup} alt="" draggable={false} />
                 </span>

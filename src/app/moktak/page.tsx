@@ -197,17 +197,32 @@ const SKINS = {
   // 여태 한 장을 갈라 쓰느라 애를 먹었다 — 자른 선이 곧 이격이었다.
   // 이제 처음부터 두 물건이라 자를 일이 없다. 받침이 앞(z 2), 몸이 뒤(z 1).
   // 몸은 온몸이 다 있으니 그릇 속으로 내려가도 빈 데가 안 생긴다.
-  // `rim` — 그릇이 몸을 **좌우로 완전히 덮기 시작하는 줄**(판 높이의 %).
-  // 그림에서 한 줄씩 재서 찾았다: 그 줄부터 아래로는 몸의 어느 화소도
-  // 그릇 밖으로 안 나온다. 몸은 그 줄까지만 그린다 — 삐져나올 수가 없다.
-  //   동자 470/677 · 포대 475/745 · 미륵 452/705
+  // ── 최초로 되돌린다 ──────────────────────────────────────
+  // 형: 「시발 야 키캡 너 최초엔 어떻게 했는데!!! 최초에 한 거처럼이라도
+  //      해. 다운로드 폴더에 있잖아 레퍼」 — 맞다. 되돌아가 보니 답이
+  //      거기 있었다.
+  //
+  // 최초(9ef3211)는 **깊은 연꽃 그릇 하나를 셋이 나눠 쓰고**, 몸을 그
+  // 속에 앉혔다. 그릇이 몸보다 넓고 속이 깊으니 **자를 일이 아예 없다** —
+  // 몸(z1)이 내려가면 그릇(z2) 뒤로 그냥 숨는다.
+  //
+  // 그 뒤에 형이 새로 구워 준 「앞에서 본 그릇」으로 갈아 끼웠는데,
+  // 그 그릇은 몸보다 **좁았다.** 그래서 자르고(rim) 오리고(mask) 속을
+  // 만들고(back) — 전부 좁은 그릇을 억지로 쓰려던 땜질이었고, 그때마다
+  // 팔이 삐져나왔다. 그릇을 바꾸는 게 맞았다.
+  //
+  // `buddha` = 그릇 아가리 곡선대로 밑을 잘라 둔 몸. `dip` = 눌렸을 때
+  // 내려가는 깊이(그릇 키 대비).
   keycap: [
     { id: "dongja", name: "동자", src: "/obj/keycap-dongja.png",
-      cup: "/obj/keycap-dongja-cup.png", ar: 450 / 677, rim: 69.4, dot: "#ef86b0" },
-    { id: "podae", name: "포대", src: "/obj/keycap-podae.png",
-      cup: "/obj/keycap-podae-cup.png", ar: 587 / 745, rim: 63.8, dot: "#e0b354" },
-    { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk.png",
-      cup: "/obj/keycap-mireuk-cup.png", ar: 549 / 705, rim: 64.1, dot: "#cfa03c" },
+      cup: "/obj/keycap-dongja-cup.png", buddha: "/obj/keycap-dongja-buddha.png",
+      ar: 601 / 860, dip: "8%", dot: "#ef86b0" },
+    { id: "podae", name: "포대", src: "/obj/keycap-podae-cup.png",
+      cup: "/obj/keycap-podae-cup.png", buddha: "/obj/keycap-podae-buddha.png",
+      ar: 667 / 643, dip: "10%", dot: "#e0b354" },
+    { id: "mireuk", name: "미륵", src: "/obj/keycap-mireuk-cup.png",
+      cup: "/obj/keycap-mireuk-cup.png", buddha: "/obj/keycap-mireuk-buddha.png",
+      ar: 564 / 643, dip: "10%", dot: "#cfa03c" },
   ],
 } as const;
 
@@ -292,15 +307,7 @@ export default function MoktakPage() {
   /** 키캡 한 장 — 통짜 그대로 */
   const keySrc = (() => {
     const k = SKINS.keycap.find((x) => x.id === skin.keycap) ?? SKINS.keycap[0];
-    return {
-      src: 그림(k.src),
-      cup: 그림(k.cup),
-      // 속과 본 — 그릇 그림에서 판 두 장(_kc 파이프라인)
-      back: 그림(k.cup.replace("-cup.png", "-back.png")),
-      mask: 그림(k.cup.replace("-cup.png", "-mask.png")),
-      ar: k.ar,
-      rim: k.rim,
-    };
+    return { cup: 그림(k.cup), buddha: 그림(k.buddha), ar: k.ar, dip: k.dip };
   })();
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
   const beadWide = (

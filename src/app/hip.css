@@ -4154,33 +4154,34 @@ html[data-theme="light"] {
     height: calc(10000% / var(--keycap-rim, 66));
     object-fit: contain;
   }
-  /* ── 뒷꽃잎은 **만들어낼 수 없다** ──────────────────────
-     두 번 해 봤다.
-     ① 몸을 그릇 윤곽으로 오리기(mask) — 그릇이 시작되는 줄에서 어깨가
-        뚝 끊기지 않게 부드럽게 좁혔더니, 그 「부드러운」 구간이 곧
-        **그릇보다 넓은 구간**이라 팔이 꽃잎 밖으로 샜다.
-     ② 그릇 그림을 줄여 위로 올리고 짙게 눌러 뒷꽃잎처럼 쓰기 —
-        포대승은 몸이 넓어 통째로 가려져 안 보이고, 동자는 머리 옆에
-        검붉은 얼룩으로 앉았다.
-     까닭은 하나다: **이 그림에는 뒷꽃잎이 아예 없다.** 앞에서 본 한 장
-     이라 뒤쪽 꽃잎은 애초에 안 그려져 있고, 없는 것을 늘리거나 눌러서
-     만들 수는 없다. 앞꽃잎·뒷꽃잎이 갈린 그림이 와야 한다.
-     그때까지는 **그릇이 몸을 완전히 덮는 줄에서 네모로 자른다** —
-     자른 선은 늘 그릇 화소 뒤라 안 보이고, 밖으로 샐 길이 없다. */
-  .hip-keycap-back { display: none; }
+  /* ── 최초로 되돌린다 ──────────────────────────────────
+     형: 「최초엔 어떻게 했는데!!! 최초에 한 거처럼이라도 해」
+
+     자르고(rim) 오리고(mask) 속을 만들던(back) 것은 전부 **몸보다 좁은
+     그릇**을 억지로 쓰려던 땜질이었다. 그릇을 바꾸면 그 일이 다 없어진다.
+     깊은 그릇에서는 몸이 그냥 뒤로 숨는다 — 두 장이면 끝난다. */
+  .hip-keycap-well,
+  .hip-keycap-back { display: contents; }
+  .hip-keycap-buddha,
+  .hip-keycap-cup {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  /* 몸이 뒤, 그릇이 앞 — 몸이 내려가면 그릇 뒤로 숨는다 */
   .hip-keycap-buddha {
     z-index: 1;
     transform-origin: 50% 100%;
     transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
   }
   .hip-keycap-cup { z-index: 2; }
-  /* 형: 「키캡 오브제가 안으로 들어가야지」 — 13% 로는 그릇 뒤로 비켜설
-     뿐이었다. 쉬는 자리에서 이미 그릇에 담겨 있고(그릇이 몸을 6할쯤
-     덮는다), 누르면 거기서 한 뼘 더 가라앉는다 */
-  /* 앞에서 본 그릇이라 속이 안 보인다 — 뒤로 내려가는 만큼이 그대로
-     「들어간다」로 읽힌다. 가릴 걱정이 없으니 넉넉히 보낸다 */
+  /* 눌리면 몸만 **쑥** 내려간다 — 깊이는 살갗마다(--keycap-dip).
+     그릇은 한 화소도 안 움직인다(형: 「받침은 그대로 있도록」) */
   .hip-keycap.on .hip-keycap-buddha {
-    transform: translateY(19%);
+    transform: translateY(var(--keycap-dip, 9%));
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
   }
   /* 한 장짜리 시절의 「통째로 찌그러뜨리기」는 걷는다 */
