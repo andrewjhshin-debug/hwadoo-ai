@@ -213,17 +213,14 @@ const SKINS = {
   // 그릇은 **한 장을 셋이 나눠 쓴다**(모양·카메라가 같아야 하니까).
   // 포대·미륵은 그 한 장을 금 사다리로 다시 구웠다.
   keycap: [
-    { id: "dongja", name: "동자", cup: "/obj/kc-dongja-front.png",
-      back: "/obj/kc-dongja-back.png", body: "/obj/kc-dongja-body.png",
-      ar: 928 / 1420, dip: "12%", dot: "#ef86b0" },
-    { id: "podae", name: "포대", cup: "/obj/kc-podae-front.png",
-      back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
-      ar: 928 / 1205, dip: "13%", dot: "#e0b354" },
-    // 앞꽃잎·몸·뒤판은 반드시 같은 928×1160 판을 쓴다. v2 앞꽃잎은
-    // 별도 비율(1122×1402)이라 세 장을 포갤 때 밑 그림자가 튀어나왔다.
-    { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front.png",
-      back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
-      ar: 928 / 1160, dip: "13%", dot: "#cfa03c" },
+    // 새 연꽃받침과 본체를 한 번에 구운 완성판. 층을 억지로 포개지 않으니
+    // 팔·옷자락이 꽃잎 옆에서 갈라지거나 잘릴 일이 없다.
+    { id: "dongja", name: "동자", src: "/obj/kc-dongja-complete.png",
+      ar: 632 / 830, dip: "4%", dot: "#ef86b0" },
+    { id: "podae", name: "포대", src: "/obj/kc-podae-complete.png",
+      ar: 632 / 830, dip: "4%", dot: "#e0b354" },
+    { id: "mireuk", name: "미륵", src: "/obj/kc-mireuk-complete.png",
+      ar: 632 / 830, dip: "4%", dot: "#cfa03c" },
   ],
 } as const;
 
@@ -309,9 +306,7 @@ export default function MoktakPage() {
   const keySrc = (() => {
     const k = SKINS.keycap.find((x) => x.id === skin.keycap) ?? SKINS.keycap[0];
     return {
-      cup: 그림(k.cup),
-      back: 그림(k.back),
-      body: 그림(k.body),
+      src: 그림(k.src),
       ar: k.ar,
       dip: k.dip,
     };

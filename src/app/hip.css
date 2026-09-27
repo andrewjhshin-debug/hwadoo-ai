@@ -4188,6 +4188,20 @@ html[data-theme="light"] {
   }
   /* 한 장짜리 시절의 「통째로 찌그러뜨리기」는 걷는다 */
   .hip-keycap.on img { transform: none; }
+  .hip-keycap-complete {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform-origin: 50% 100%;
+    transition: transform 0.28s cubic-bezier(0.2, 1.5, 0.35, 1);
+  }
+  .hip-keycap.on .hip-keycap-complete {
+    transform: translateY(var(--keycap-dip, 4%));
+    transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
+  }
   /* ── 눌리면 꽃받침이 **받는다** ──────────────────────────
      형: 「키캡 눌렸을 때 이격 뜨는 것도 자연스럽게 다시」
 

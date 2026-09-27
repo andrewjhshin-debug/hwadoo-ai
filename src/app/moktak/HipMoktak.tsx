@@ -70,7 +70,7 @@ export type HipMoktakProps = {
   /** 지금 고른 목탁 살갗 그림 */
   mokSrc: string;
   /** 지금 고른 키캡 — 통짜 한 장 */
-  keySrc: { cup: string; back: string; body: string; ar: number; dip: string };
+  keySrc: { src: string; ar: number; dip: string };
   /** 키캡 갈래에서 무엇을 누르나 — 동자인가 목탁인가 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
@@ -274,14 +274,9 @@ export default function HipMoktak({
                     } as React.CSSProperties
                   }
                 >
-                  {/* 세 겹 — 뒤(안벽) · 몸 · 앞(앞테두리·앞꽃잎).
-                      몸만 내려간다. 그릇은 한 화소도 안 움직인다. */}
+                  {/* 새 연꽃받침과 본체가 이미 한 장으로 맞물린 완성 키캡. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-keycap-back" src={keySrc.back} alt="" draggable={false} />
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-keycap-buddha" src={keySrc.body} alt="" draggable={false} />
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="hip-keycap-cup" src={keySrc.cup} alt="" draggable={false} />
+                  <img className="hip-keycap-complete" src={keySrc.src} alt="" draggable={false} />
                 </span>
             </button>
           )}
