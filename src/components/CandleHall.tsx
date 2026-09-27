@@ -86,9 +86,22 @@ const 공양들: { k: 공양갈래; 이름: string; 그림: string; 말: string 
 ];
 
 function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => void; onClose: () => void }) {
+  // 형: 「쓸어서 올리는 기능이 있으면 쓸어서 내리는 것도 둬야지」
+  // 맞다 — 손짓은 짝이 있어야 손에 붙는다. 올려서 열었으면 내려서 닫는다.
+  const 내림 = useRef<number | null>(null);
   return (
     <div className="hip-gift" role="dialog" aria-label="공양 고르기" onClick={onClose}>
-      <div className="hip-gift-box" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="hip-gift-box"
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => { 내림.current = e.clientY; }}
+        onPointerMove={(e) => {
+          if (내림.current === null) return;
+          if (e.clientY - 내림.current > 56) { 내림.current = null; onClose(); }
+        }}
+        onPointerUp={() => { 내림.current = null; }}
+        onPointerCancel={() => { 내림.current = null; }}
+      >
         {/* 손잡이 — 밑에서 올라온 판이라는 표 */}
         <i className="hip-gift-grip" aria-hidden />
         <div className="hip-gift-top">

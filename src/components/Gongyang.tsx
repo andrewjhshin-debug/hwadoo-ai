@@ -60,6 +60,7 @@ export default function Gongyang({
       type="button"
       onClick={onClick}
       className="hip-gong"
+      data-kind={갈래}
       aria-label={`${name} ${것.말}`}
     >
       <span className="hip-gong-body" style={{ width: `${키 * 100}%` }}>
