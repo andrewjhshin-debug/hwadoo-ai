@@ -79,22 +79,20 @@ html[data-theme="light"] body {
 .walking-merit-toggle[aria-pressed="true"] { color: var(--color-gold); border-color: var(--color-gold); }
 .walking-merit-dot { width: 5px; height: 5px; border-radius: 999px; background: var(--color-hanji-faint); }
 .walking-merit-dot[data-on="1"] { background: var(--color-gold); box-shadow: 0 0 7px var(--color-gold); }
-.walking-merit-notice { position: absolute; right: 0; top: 34px; z-index: 5; width: max-content; max-width: 190px; margin: 0; border-radius: 8px; background: var(--color-ink-2); padding: 6px 8px; color: var(--color-hanji-dim); font-size: 10px; letter-spacing: 0; }
-/* 포행도 목탁·호흡과 같은 수행 갈래. 떠 있는 단추가 아니라 그 띠 안에 선다. */
-.walking-merit-lane { flex: 0 0 auto; }
-.walking-merit-lane .walking-merit-toggle {
-  min-height: 0;
-  border: 0;
-  border-radius: 999px;
-  padding: 7px 15px;
-  background: transparent;
-  box-shadow: none;
-  color: #9a9287;
-  font-size: 12.5px;
-  letter-spacing: 0.06em;
-}
-.walking-merit-lane .walking-merit-toggle[aria-pressed="true"] { background: #f2789f; border-color: #f2789f; color: #fff; }
-.walking-merit-lane .walking-merit-dot { display: none; }
+.walking-merit-notice { margin: 12px 0 0; color: #c2537e; font-size: 11px; letter-spacing: 0; }
+.walking-merit-page { width: min(100%, 330px); margin: auto; text-align: center; }
+.walking-merit-kicker { margin: 0; color: #c2537e; font-size: 11px; letter-spacing: .28em; }
+.walking-merit-steps { display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-top: 16px; }
+.walking-merit-steps strong { font-family: var(--font-serif); font-size: clamp(62px, 18vw, 82px); font-weight: 400; line-height: .9; color: #17140f; }
+.walking-merit-steps span { font-size: 12px; color: #8b8175; }
+.walking-merit-distance { margin: 10px 0 0; font-size: 13px; color: #8b8175; }
+.walking-merit-track { display: flex; justify-content: center; gap: 16px; margin: 30px 0; }
+.walking-merit-track i { display: block; width: 8px; height: 13px; border-radius: 70% 40% 65% 45%; background: #ef7ba4; opacity: .28; transform: rotate(-20deg); }
+.walking-merit-track i:nth-child(even) { margin-top: 11px; background: #5cc2ac; transform: rotate(20deg); }
+.walking-merit-page .walking-merit-toggle { min-width: 178px; min-height: 46px; justify-content: center; border-color: rgba(217, 180, 91, .64); background: #1c1a17; color: #f7efe1; font-size: 13px; }
+.walking-merit-page .walking-merit-toggle[aria-pressed="true"] { border-color: #ef7ba4; background: #ef7ba4; color: #fff; }
+.walking-merit-page .walking-merit-dot { background: #e8c666; }
+.walking-merit-guide { margin: 16px auto 0; max-width: 250px; font-size: 11.5px; line-height: 1.7; color: #9a9287; }
 
 html[data-theme="light"] .question-glow {
   text-shadow: none;

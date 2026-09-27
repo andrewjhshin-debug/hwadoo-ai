@@ -20,7 +20,6 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import WalkingMerit from "@/components/WalkingMerit";
 
 /** 판 안에서 갈리는 물건 넷 */
 export const OBJ_LANES = [
@@ -40,6 +39,7 @@ export const ROOM_LANES = [
   { href: "/mandala", label: "만다라" },
   { href: "/sambae", label: "삼귀의" },
   { href: "/hasim", label: "하심" },
+  { href: "/walking", label: "포행" },
 ] as const;
 
 export default function HipLanes({
@@ -155,9 +155,6 @@ export default function HipLanes({
           </Link>
         )
       )}
-      {/* 포행은 새 방이 아니라 켜 두는 수행이다. 같은 갈래 띠에 놓고
-          누르면 위치를 읽어 실제 걸음만 센다. */}
-      <WalkingMerit lane />
     </div>
     </div>
   );
