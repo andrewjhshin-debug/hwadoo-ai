@@ -22,7 +22,7 @@ function distance(a: Point, b: Point) {
   return 2 * r * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
 }
 
-export default function WalkingMerit() {
+export default function WalkingMerit({ lane = false }: { lane?: boolean }) {
   const [on, setOn] = useState(false);
   const [meters, setMeters] = useState(0);
   const [notice, setNotice] = useState("");
@@ -84,12 +84,12 @@ export default function WalkingMerit() {
   }, []);
 
   return (
-    <div className="walking-merit">
+    <div className={`walking-merit${lane ? " walking-merit-lane" : ""}`}>
       <button type="button" onClick={on ? stop : begin} aria-pressed={on} className="walking-merit-toggle">
         <span className="walking-merit-dot" data-on={on ? "1" : undefined} />
         {on ? `포행 ${meters ? `${(meters / 1000).toFixed(1)}km` : "중"}` : "포행"}
       </button>
-      {notice && <p role="status">{notice}</p>}
+      {notice && <p className="walking-merit-notice" role="status">{notice}</p>}
     </div>
   );
 }
