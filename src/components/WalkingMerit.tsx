@@ -45,6 +45,7 @@ export default function WalkingMerit() {
   const motionOn = useRef(false);
   const gravity = useRef(9.8);
   const lastStepAt = useRef(0);
+  const pulseArmed = useRef(true);
   const meritSteps = useRef(0);
   const motionListener = useRef<((event: DeviceMotionEvent) => void) | null>(null);
 
@@ -70,19 +71,26 @@ export default function WalkingMerit() {
   const onMotion = (event: DeviceMotionEvent) => {
     if (!motionOn.current) return;
     const acceleration = event.accelerationIncludingGravity;
-    if (!acceleration) return;
-    const x = acceleration.x ?? 0;
-    const y = acceleration.y ?? 0;
-    const z = acceleration.z ?? 0;
+    if (!acceleration && !event.acceleration) return;
+    const x = acceleration?.x ?? 0;
+    const y = acceleration?.y ?? 0;
+    const z = acceleration?.z ?? 0;
     const magnitude = Math.hypot(x, y, z);
-    // 주머니에서 기울어진 상태도 포함해 중력값을 따라가고, 걸을 때 생기는
-    // 짧은 충격만 남긴다. 손으로 한 번 흔드는 동작은 보폭 리듬이 맞지 않아 제외된다.
-    gravity.current = gravity.current * 0.92 + magnitude * 0.08;
-    const impact = magnitude - gravity.current;
+    const raw = event.acceleration;
+    const rawImpact = Math.hypot(raw?.x ?? 0, raw?.y ?? 0, raw?.z ?? 0);
+    // 기울어진 주머니에서는 중력값이 보폭보다 크게 바뀐다. 중력은 아주 천천히
+    // 따라가게 두고, 중력 차이와 기기 원시 가속도 중 더 선명한 쪽을 쓴다.
+    gravity.current = gravity.current * 0.975 + magnitude * 0.025;
+    const impact = Math.abs(magnitude - gravity.current);
+    const pulse = Math.max(impact, rawImpact);
     const now = Date.now();
     const interval = now - lastStepAt.current;
-    if (impact > 1.15 && (lastStepAt.current === 0 || (interval >= 280 && interval <= 1_300))) {
+    // 느리게 걷는 경우도 한 걸음으로 잡는다. 충격이 충분히 가라앉아야 다음
+    // 걸음을 받을 수 있어 단순히 폰을 계속 흔드는 것으로 누적되지는 않는다.
+    if (pulse < 0.16) pulseArmed.current = true;
+    if (pulse >= 0.38 && pulseArmed.current && (lastStepAt.current === 0 || (interval >= 250 && interval <= 2_600))) {
       lastStepAt.current = now;
+      pulseArmed.current = false;
       countStep();
     }
   };
@@ -102,6 +110,8 @@ export default function WalkingMerit() {
       }
     }
     motionOn.current = true;
+    lastStepAt.current = 0;
+    pulseArmed.current = true;
     motionListener.current = onMotion;
     window.addEventListener("devicemotion", onMotion, { passive: true });
   };
@@ -111,6 +121,8 @@ export default function WalkingMerit() {
     watch.current = null;
     last.current = null;
     carry.current = 0;
+    lastStepAt.current = 0;
+    pulseArmed.current = true;
     motionOn.current = false;
     if (motionListener.current) window.removeEventListener("devicemotion", motionListener.current);
     motionListener.current = null;
