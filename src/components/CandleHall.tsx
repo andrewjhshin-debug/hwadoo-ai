@@ -843,6 +843,14 @@ export default function CandleHall() {
                     <span className="hip-gong-body">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img className="hip-gong-img" src="/obj/gong-hyang.png" alt="" draggable={false} />
+                      {/* 형: 「향이랑 초는 타는 듯한 이펙트 줄 수 있나」
+                          향은 **연기**다. 세 올이 서로 다른 박자로 올라가
+                          흩어진다 — 박자가 같으면 그림이지 연기가 아니다 */}
+                      <i className="hip-smoke" aria-hidden>
+                        <s style={{ animationDelay: "0s" }} />
+                        <s style={{ animationDelay: "-1.6s" }} />
+                        <s style={{ animationDelay: "-3.1s" }} />
+                      </i>
                       {향들.length > 1 && <b>{Math.min(향들.length, 999)}</b>}
                     </span>
                   </button>
