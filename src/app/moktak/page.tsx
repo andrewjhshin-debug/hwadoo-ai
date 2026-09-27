@@ -215,15 +215,15 @@ const SKINS = {
   keycap: [
     { id: "dongja", name: "동자", cup: "/obj/kc-dongja-front.png",
       back: "/obj/kc-dongja-back.png", body: "/obj/kc-dongja-body.png",
-      ar: 928 / 1420, dip: "12%", bodyInset: "15%", dot: "#ef86b0" },
+      ar: 928 / 1420, dip: "12%", dot: "#ef86b0" },
     { id: "podae", name: "포대", cup: "/obj/kc-podae-front.png",
       back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
-      ar: 928 / 1205, dip: "13%", bodyInset: "18%", dot: "#e0b354" },
+      ar: 928 / 1205, dip: "13%", dot: "#e0b354" },
     // 앞꽃잎·몸·뒤판은 반드시 같은 928×1160 판을 쓴다. v2 앞꽃잎은
     // 별도 비율(1122×1402)이라 세 장을 포갤 때 밑 그림자가 튀어나왔다.
     { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front.png",
       back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
-      ar: 928 / 1160, dip: "13%", bodyInset: "16%", dot: "#cfa03c" },
+      ar: 928 / 1160, dip: "13%", dot: "#cfa03c" },
   ],
 } as const;
 
@@ -314,7 +314,6 @@ export default function MoktakPage() {
       body: 그림(k.body),
       ar: k.ar,
       dip: k.dip,
-      bodyInset: k.bodyInset,
     };
   })();
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
