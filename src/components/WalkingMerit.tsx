@@ -45,7 +45,8 @@ export default function WalkingMerit() {
   const motionOn = useRef(false);
   const gravity = useRef(9.8);
   const lastStepAt = useRef(0);
-  const pulseArmed = useRef(true);
+  const previousPulse = useRef(0);
+  const peakPulse = useRef(0);
   const meritSteps = useRef(0);
   const motionListener = useRef<((event: DeviceMotionEvent) => void) | null>(null);
 
@@ -85,14 +86,19 @@ export default function WalkingMerit() {
     const pulse = Math.max(impact, rawImpact);
     const now = Date.now();
     const interval = now - lastStepAt.current;
-    // 느리게 걷는 경우도 한 걸음으로 잡는다. 충격이 충분히 가라앉아야 다음
-    // 걸음을 받을 수 있어 단순히 폰을 계속 흔드는 것으로 누적되지는 않는다.
-    if (pulse < 0.16) pulseArmed.current = true;
-    if (pulse >= 0.38 && pulseArmed.current && (lastStepAt.current === 0 || (interval >= 250 && interval <= 2_600))) {
-      lastStepAt.current = now;
-      pulseArmed.current = false;
-      countStep();
+    // 주머니 속 센서는 기울기에 따라 "바닥값"이 계속 높을 수 있다. 따라서
+    // 일정 값 아래로 떨어지길 기다리지 않고, 보폭에서 생기는 봉우리(상승 뒤
+    // 하강)를 한 걸음으로 센다. 이 방식은 천천히 걸어도 다음 걸음이 막히지 않는다.
+    if (pulse > previousPulse.current) {
+      peakPulse.current = Math.max(peakPulse.current, pulse);
+    } else if (pulse < previousPulse.current && peakPulse.current >= 0.22) {
+      if (lastStepAt.current === 0 || (interval >= 260 && interval <= 3_000)) {
+        lastStepAt.current = now;
+        countStep();
+      }
+      peakPulse.current = 0;
     }
+    previousPulse.current = pulse;
   };
 
   const startMotion = async () => {
@@ -111,7 +117,8 @@ export default function WalkingMerit() {
     }
     motionOn.current = true;
     lastStepAt.current = 0;
-    pulseArmed.current = true;
+    previousPulse.current = 0;
+    peakPulse.current = 0;
     motionListener.current = onMotion;
     window.addEventListener("devicemotion", onMotion, { passive: true });
   };
@@ -122,7 +129,8 @@ export default function WalkingMerit() {
     last.current = null;
     carry.current = 0;
     lastStepAt.current = 0;
-    pulseArmed.current = true;
+    previousPulse.current = 0;
+    peakPulse.current = 0;
     motionOn.current = false;
     if (motionListener.current) window.removeEventListener("devicemotion", motionListener.current);
     motionListener.current = null;
