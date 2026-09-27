@@ -630,6 +630,42 @@ function 사연목록({
   onPick: (c: Candle) => void;
 }) {
   const 갈래말 = { deung: "연등", ssal: "쌀", cho: "초", hyang: "향" } as const;
+  // 월요일 0시부터 지금까지. 사연은 공감과 함께 보태진 횟수로만 가린다.
+  // 글을 오래 올려 둔 사람이 계속 앞서는 것을 막기 위해 지난 주 것은
+  // 다음 주가 되면 저절로 빠진다.
+  const 이번주첫날 = (() => {
+    const d = new Date();
+    const 지난 = (d.getDay() + 6) % 7;
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - 지난);
+    return d.getTime();
+  })();
+  const 주간베스트 = 들
+    .filter((c) => c.visibility === "public" && (c.createdAt?.seconds ?? 0) * 1000 >= 이번주첫날)
+    .sort((a, b) => {
+      const a점 = a.cheers ?? 0;
+      const b점 = b.cheers ?? 0;
+      return b점 - a점 || (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0);
+    })
+    .slice(0, 3);
+  const 베스트id = new Set(주간베스트.map((c) => c.id));
+  const 나머지 = 들.filter((c) => !베스트id.has(c.id));
+  const 사연줄 = (c: Candle) => (
+    <li key={c.id}>
+      <button onClick={() => onPick(c)}>
+        <span className="hip-say-head">
+          <b>{c.forName || "이름 없는 기원"}</b>
+          <i>{갈래말[c.gift ?? "deung"]}</i>
+          {c.uid === me?.uid && <u>내 공양</u>}
+        </span>
+        <span className="hip-say-body">{c.wish}</span>
+        <span className="hip-say-foot">
+          {(c.cheers ?? 0) > 0 && <s>공감 {c.cheers}</s>}
+          <time>{daysLeft(c)}일 남음</time>
+        </span>
+      </button>
+    </li>
+  );
   return (
     <div className="hip-say" role="dialog" aria-label="사연">
       <div className="hip-say-box">
@@ -640,30 +676,15 @@ function 사연목록({
         {들.length === 0 ? (
           <p className="hip-hall-say">아직 걸린 공양이 없습니다.</p>
         ) : (
-          <ul className="hip-say-list">
-            {들.map((c) => (
-              <li key={c.id}>
-                <button onClick={() => onPick(c)}>
-                  <span className="hip-say-head">
-                    <b>{c.forName || "이름 없는 기원"}</b>
-                    <i>{갈래말[c.gift ?? "deung"]}</i>
-                    {c.uid === me?.uid && <u>내 공양</u>}
-                  </span>
-                  <span className="hip-say-body">{c.wish}</span>
-                  {/* 형: 「쓴 이름은 나오지 않게, 제목이랑 내용만 살짝.
-                           그래야 댓 다니까」
-                      이름이 붙으면 「누가 썼나」가 먼저 읽힌다 — 아는
-                      사람이면 눈치가 보이고, 모르는 사람이면 남의 일이
-                      된다. 사연만 남기면 사연에 대고 말하게 된다.
-                      쓴 이는 한 자리 안(사연 판)에서만 보인다. */}
-                  <span className="hip-say-foot">
-                    {(c.cheers ?? 0) > 0 && <s>공감 {c.cheers}</s>}
-                    <time>{daysLeft(c)}일 남음</time>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <>
+            {주간베스트.length > 0 && (
+              <section className="hip-weekly-best" aria-label="주간 베스트">
+                <p>주간 베스트</p>
+                <ul className="hip-say-list">{주간베스트.map(사연줄)}</ul>
+              </section>
+            )}
+            {나머지.length > 0 && <ul className="hip-say-list">{나머지.map(사연줄)}</ul>}
+          </>
         )}
       </div>
     </div>

@@ -573,6 +573,7 @@ function 오늘카드판({
             data-pay={!봤나 && 값 ? "1" : undefined}
             data-next={!봤나 && i === 본만큼 ? "1" : undefined}
           >
+            <span>緣</span>
             {열칸 && (
               <button
                 className="hip-deck-open"

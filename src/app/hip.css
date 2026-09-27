@@ -5218,6 +5218,18 @@ html[data-theme="light"] {
     text-decoration: none;
   }
   .hip-say-foot time { margin-left: auto; }
+  .hip-weekly-best {
+    margin: 2px 0 12px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(242, 120, 159, 0.08);
+  }
+  .hip-weekly-best > p {
+    margin: 0 0 3px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #bc547c;
+  }
 
   /* 남은 날 · 공덕 그릇 — 줄자 둘. 얇게 */
   .hip-say-left, .hip-say-pool {
@@ -6431,15 +6443,17 @@ html[data-theme="light"] {
       linear-gradient(152deg, #fbc7da, #ef7ba4 58%, #5cc2ac);
     box-shadow: 0 8px 22px rgba(226, 110, 155, 0.22);
   }
-  /* 이미 본 자리 — 다 쓴 카드는 숨을 죽인다 */
-  .hip-yeon-deck li[data-done="1"] { opacity: 0.42; box-shadow: none; }
-
-  /* 바로 다음 자리만 조금 더 선명하게 둔다. */
-  .hip-yeon-deck li[data-next="1"] { box-shadow: 0 10px 28px rgba(226, 110, 155, 0.38); }
-
-  /* 연꽃을 써야 열리는 자리 — 금빛 테 한 줄 */
-  .hip-yeon-deck li[data-pay="1"] {
-    box-shadow: 0 8px 22px rgba(226, 110, 155, 0.18), inset 0 0 0 1.5px rgba(255, 233, 170, 0.75);
+  /* 네 장은 모두 같은 카드다. 한자는 카드가 무엇을 여는지 알려 주고,
+     하루 진행은 카드 밖의 0 / 4 줄에서만 읽는다. */
+  .hip-yeon-deck li > span {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-serif, serif);
+    font-size: 42px;
+    font-weight: 400;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.94);
+    text-shadow: 0 2px 12px rgba(190, 80, 120, 0.28);
   }
   .hip-deck-open {
     position: absolute;
