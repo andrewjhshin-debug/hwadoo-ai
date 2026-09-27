@@ -219,7 +219,7 @@ const SKINS = {
     { id: "podae", name: "포대", cup: "/obj/kc-podae-front.png",
       back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
       ar: 928 / 1205, dip: "13%", dot: "#e0b354" },
-    { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front.png",
+    { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front-v2.png",
       back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
       ar: 928 / 1160, dip: "13%", dot: "#cfa03c" },
   ],
