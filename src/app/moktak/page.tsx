@@ -219,7 +219,9 @@ const SKINS = {
     { id: "podae", name: "포대", cup: "/obj/kc-podae-front.png",
       back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
       ar: 928 / 1205, dip: "13%", dot: "#e0b354" },
-    { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front-v2.png",
+    // 앞꽃잎·몸·뒤판은 반드시 같은 928×1160 판을 쓴다. v2 앞꽃잎은
+    // 별도 비율(1122×1402)이라 세 장을 포갤 때 밑 그림자가 튀어나왔다.
+    { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front.png",
       back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
       ar: 928 / 1160, dip: "13%", dot: "#cfa03c" },
   ],
