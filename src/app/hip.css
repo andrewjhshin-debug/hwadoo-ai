@@ -4125,23 +4125,36 @@ html[data-theme="light"] {
      아예 없다. 눌러 내려가면 몸이 그 줄에서 **먹히듯 사라지고**,
      그릇이 그 위를 제 모양대로 덮는다. 앞에서 본 그릇이라 속이 안
      보이니, 사라지는 것이 곧 「들어간다」로 읽힌다. */
+  /* ── 창을 **네모에서 윤곽으로** ─────────────────────────
+     처음엔 rim 줄에서 네모로 잘랐다. 삐져나오지는 않았지만, 자른 선이
+     늘 가로 한 줄이라 「그릇에 담겼다」가 아니라 「거기서 사라진다」로
+     읽혔다. 이제 **그릇 윤곽 그대로** 오린다(mask 그림).
+     그릇이 시작되기 전은 다 살고, 시작된 뒤로는 그릇 안에서만 산다. */
   .hip-keycap-well {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: calc(var(--keycap-rim, 66) * 1%);
-    overflow: hidden;
+    inset: 0;
     z-index: 1;
+    -webkit-mask-image: var(--keycap-mask);
+    mask-image: var(--keycap-mask);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
   }
   .hip-keycap-well .hip-keycap-buddha {
     position: absolute;
-    left: 0;
-    top: 0;
+    inset: 0;
     width: 100%;
-    /* 창은 판의 rim% 만 하다. 그림은 **판 높이 그대로** 그려야 그릇과
-       화소가 맞으므로, 창 기준으로 되돌려 잡는다(100/rim 배) */
-    height: calc(10000% / var(--keycap-rim, 66));
+    height: 100%;
+    object-fit: contain;
+  }
+  /* 속 — 그릇 안쪽 그늘. 몸보다 뒤(z 0) */
+  .hip-keycap-back {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
   }
   .hip-keycap-buddha {
@@ -4932,10 +4945,8 @@ html[data-theme="light"] {
     align-items: flex-end;
     gap: 9px;
   }
-  /* 형: 「버튼이 너무 커. 작게 하고 로고로 대체해」 — 두 자짜리
-     알약 둘이 불단 오른쪽을 다 먹었다. 동그란 손가락 자리 하나씩만 */
-  .hip-hall-go,
-  .hip-hall-read {
+  .hip-hall-go, .hip-hall-read { display: none; }
+  .hip-hall-go-off {
     display: grid;
     place-items: center;
     width: 46px;
@@ -6966,4 +6977,84 @@ html[data-theme="light"] {
     text-decoration: none;
     color: #d2578c;
   }
+}
+
+/* ── 쇼츠의 그 줄 ─────────────────────────────────────────────
+   형: 「가장 선진화된 건 유튜브랑 인스타야. 고민 말고 걍 얘네 따라가자」
+   오른쪽 세로줄에 동그라미, 그 밑에 수. 읽을 것이 아니라 아는 자리다. */
+@media (min-width: 0px) {
+  .hip-hall-acts {
+    position: absolute;
+    right: 10px;
+    bottom: 58px;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .hip-rail-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    border: 0;
+    background: none;
+    padding: 0;
+  }
+  .hip-rail-btn i {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(26, 23, 20, 0.34);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    transition: transform 0.16s, background 0.16s;
+  }
+  .hip-rail-btn i svg { width: 23px; height: 23px; }
+  .hip-rail-btn:active i { transform: scale(0.92); background: rgba(26, 23, 20, 0.5); }
+  .hip-rail-btn b {
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #6e6455;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+  }
+
+  /* ── 쓸어 올리기가 **안 먹던 까닭** ────────────────────
+     형: 「이거 밑에서 위로 안 쓸어져, 고쳐지냐?」
+     `touch-action: pan-y` 를 걸어 두었다 — 그건 **세로 손짓은
+     브라우저가 가져간다**는 뜻이다. 그러니 위로 쓸어도 pointermove 가
+     나에게 안 온다. 이 띠에서는 손짓을 내가 다 받는다(none).
+     자리도 34px 은 엄지에 얕다 — 56px 로 넓힌다. */
+  .hip-hall-pull {
+    height: 56px;
+    touch-action: none;
+    padding-bottom: 10px;
+  }
+  .hip-hall-pull i { width: 52px; height: 5px; }
+
+  /* ── 사연 판은 **반투명** ──────────────────────────────
+     형: 「사연 유튭처럼 반투명」
+     흰 판이 화면을 통째로 덮으면 법당이 사라진다. 쇼츠의 댓글판처럼
+     뒤가 비쳐야 「그 위에 얹힌 판」으로 읽힌다. */
+  .hip-say-box {
+    background: rgba(253, 252, 251, 0.82) !important;
+    backdrop-filter: blur(22px) saturate(1.25);
+    -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  }
+  .hip-say { background: rgba(24, 20, 18, 0.28); }
+}
+
+/* ── 불단에 선 것은 **키로** 맞춘다 ───────────────────────────
+   폭으로 맞추면 초(338×910)는 탑이 되고 쌀(624×482)은 콩알이 된다.
+   한 상에 놓인 것들은 키가 비슷해야 한 상으로 보인다. */
+@media (min-width: 0px) {
+  .hip-hall-altar .hip-gong { width: auto; min-width: 0; max-width: none; }
+  .hip-hall-altar .hip-gong-body { width: auto !important; height: 92px; }
+  .hip-hall-altar .hip-gong-img { width: auto; height: 100%; }
+  .hip-hall-altar .hip-censer .hip-gong-body { height: 104px; }
+  .hip-hall-altar { gap: 6px 10px; }
 }

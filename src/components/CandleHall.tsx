@@ -668,6 +668,22 @@ export default function CandleHall() {
   const [고른것, 고른것잡기] = useState<공양갈래>("deung");
   /** 아래에서 위로 쓸기 — 손가락이 내려앉은 자리 */
   const 쓸기 = useRef<number | null>(null);
+  /** 공유 — 폰은 제 나눔 판을, 넓은 판은 주소 복사 */
+  const [나눔됨, 나눔됨잡기] = useState(false);
+  const 나누기 = async () => {
+    const url = typeof location !== "undefined" ? `${location.origin}/candle` : "";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "화두 · 법당", text: "법당에 등 하나 걸어 두었습니다", url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      나눔됨잡기(true);
+      window.setTimeout(() => 나눔됨잡기(false), 1800);
+    } catch {
+      /* 그만두면 그만이다 */
+    }
+  };
   const load = useCallback(() => { void fetchCandles().then(setPublicCandles).catch(() => setPublicCandles([])); void fetchMyCandles().then(setMine).catch(() => setMine([])); }, []);
   useEffect(() => watchAuth((u) => { setMe(u); load(); }), [load]);
   // ── 뒤로가기는 **한 층만** 걷는다 ─────────────────────────
@@ -837,18 +853,37 @@ export default function CandleHall() {
       {/* 형: 「그 버튼 명은 공양이랑 사연으로 해서 오른쪽 아래 위아래로」
           가로로 나란히 두니 통 바닥 한 줄을 통째로 먹었다. 오른쪽
           아래 귀퉁이에 위아래로 세우면 한 손가락 자리만 쓴다 */}
-      {/* 형: 「버튼이 너무 커. 작게 하고 로고로 대체해, 한글 말고」
-          두 자짜리 알약 둘이 불단 오른쪽을 다 먹었다. 손가락 자리
-          (46px) 하나만 남기고 글자는 그림에 맡긴다 */}
+      {/* ── 오른쪽 세로 줄 — 쇼츠의 그 줄 ────────────────────
+          형: 「내가 볼 때 가장 선진화된 건 유튜브랑 인스타야. 우리가
+               고민 말고 걍 얘네 따라가자」 「유튜브랑 같이 사연(말풍선)
+               이랑 공유 만들어」
+
+          두 자짜리 알약을 놓고 씨름할 일이 아니었다 — 이미 수억 명이
+          손에 익힌 자리가 있다. 오른쪽 세로줄에 동그라미, 그 밑에 수.
+          읽을 것이 아니라 아는 자리다. */}
       <div className="hip-hall-acts">
         <button
-          className="hip-hall-read"
+          className="hip-rail-btn"
           onClick={() => { 층쌓기(); 사연판잡기(true); }}
           aria-label="사연 보러가기"
         >
-          <svg viewBox="0 0 24 24" aria-hidden width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20.5 12.2c0 3.8-3.8 6.9-8.5 6.9-1 0-2-.15-2.9-.4L4 20.5l1.5-3.3A6.6 6.6 0 0 1 3.5 12.2c0-3.8 3.8-6.9 8.5-6.9s8.5 3.1 8.5 6.9Z" />
-          </svg>
+          <i>
+            <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.5 12.2c0 3.8-3.8 6.9-8.5 6.9-1 0-2-.15-2.9-.4L4 20.5l1.5-3.3A6.6 6.6 0 0 1 3.5 12.2c0-3.8 3.8-6.9 8.5-6.9s8.5 3.1 8.5 6.9Z" />
+            </svg>
+          </i>
+          <b>{다걸린것.length || "사연"}</b>
+        </button>
+
+        <button className="hip-rail-btn" onClick={나누기} aria-label="공유">
+          <i>
+            <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 12v7a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-7" />
+              <path d="M12 15.5V3.8" />
+              <path d="m7.8 8 4.2-4.2L16.2 8" />
+            </svg>
+          </i>
+          <b>{나눔됨 ? "됐다" : "공유"}</b>
         </button>
       </div>
 

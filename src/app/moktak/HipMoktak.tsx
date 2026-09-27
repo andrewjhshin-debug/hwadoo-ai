@@ -70,7 +70,7 @@ export type HipMoktakProps = {
   /** 지금 고른 목탁 살갗 그림 */
   mokSrc: string;
   /** 지금 고른 키캡 — 통짜 한 장 */
-  keySrc: { src: string; cup: string; ar: number; rim: number };
+  keySrc: { src: string; cup: string; back: string; mask: string; ar: number; rim: number };
   /** 키캡 갈래에서 무엇을 누르나 — 동자인가 목탁인가 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
@@ -288,7 +288,22 @@ export default function HipMoktak({
                       그림에서 한 줄씩 재서 찾았다)이다. 그 아래로는
                       몸이 한 화소도 안 그려진다 — 삐져나올 수가 없다.
                       그릇은 창 밖에서 제 모양대로 앞에 선다. */}
-                  <span className="hip-keycap-well">
+                  {/* ── 속(back) — 그릇 안쪽 그늘 ────────────────
+                      제미나이 없이 **가진 그림에서** 판다:
+                      그릇 윤곽 안을 아래로 갈수록 짙은 그늘로 채운 한 장.
+                      몸이 내려가면 흰 바탕이 아니라 **그늘 속으로** 든다.
+                      그게 「들어간다」와 「가려진다」를 가른다. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="hip-keycap-back" src={keySrc.back} alt="" draggable={false} />
+
+                  {/* 몸 — 네모로 자르지 않고 **그릇 윤곽으로** 오린다.
+                      그릇이 시작되기 전은 다 살고, 시작된 뒤로는 그릇
+                      안에서만 산다. 그 사이는 어깨가 뚝 끊기지 않게
+                      부드럽게 좁아든다(mask 그림에 그렇게 구워 두었다). */}
+                  <span
+                    className="hip-keycap-well"
+                    style={{ "--keycap-mask": `url(${keySrc.mask})` } as React.CSSProperties}
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img className="hip-keycap-buddha" src={keySrc.src} alt="" draggable={false} />
                   </span>

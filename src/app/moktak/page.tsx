@@ -292,7 +292,15 @@ export default function MoktakPage() {
   /** 키캡 한 장 — 통짜 그대로 */
   const keySrc = (() => {
     const k = SKINS.keycap.find((x) => x.id === skin.keycap) ?? SKINS.keycap[0];
-    return { src: 그림(k.src), cup: 그림(k.cup), ar: k.ar, rim: k.rim };
+    return {
+      src: 그림(k.src),
+      cup: 그림(k.cup),
+      // 속과 본 — 그릇 그림에서 판 두 장(_kc 파이프라인)
+      back: 그림(k.cup.replace("-cup.png", "-back.png")),
+      mask: 그림(k.cup.replace("-cup.png", "-mask.png")),
+      ar: k.ar,
+      rim: k.rim,
+    };
   })();
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */
   const beadWide = (
