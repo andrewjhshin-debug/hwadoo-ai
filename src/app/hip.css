@@ -7083,7 +7083,7 @@ html[data-theme="light"] {
   /* 갈래마다 키가 다르다 — 형: 「초 크기 더 키우고, 쌀·향초는 줄이고.
      쌀 크게 확 줄여」. 실제로도 초는 길고 쌀그릇은 납작하다 */
   .hip-hall-altar .hip-gong[data-kind="cho"] .hip-gong-body { height: 124px; }
-  .hip-hall-altar .hip-gong[data-kind="ssal"] .hip-gong-body { height: 54px; }
+  .hip-hall-altar .hip-gong[data-kind="ssal"] .hip-gong-body { height: 42px; }
   .hip-hall-altar .hip-censer .hip-gong-body { height: 86px; }
   .hip-hall-altar { gap: 6px 10px; }
 }
