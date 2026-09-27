@@ -49,10 +49,12 @@ type Opts = {
     형: 「조금 더 민감하게. 주머니에 있다고 생각하고 바닥까지 내려갔다가
          올라오는 움직임 캐치. 지금 너무 범위가 넓어서 카운터가 잘 안 된다」
     마흔둘은 **손에 쥔 폰** 기준이었다. 주머니에 든 폰은 허벅지를 따라
-    도는데, 무릎을 꿇는 동안 도는 각이 그만큼 안 나온다. 스물여덟로 내린다. */
-const DOWN_AT = 28;
+    도는데, 무릎을 꿇는 동안 도는 각이 그만큼 안 나온다. 이번에는 절대
+    기울기가 아니라 **처음 주머니 각도에서의 회전량**으로 재므로, 스물로
+    내린다. 대각선으로 넣어도 같은 몸짓이면 같은 값이 나온다. */
+const DOWN_AT = 20;
 /** 일어섰다고 보는 각 — 엎드림보다 낮게 둬야 덜덜 떨리지 않는다(히스테리시스) */
-const UP_AT = 11;
+const UP_AT = 7;
 /** 한 배와 한 배 사이 최소 시간 — 이보다 빠르면 흔든 것이다.
     백팔배를 빨리 하면 한 배에 두 숨(2.2초)이라, 0.8초면 넉넉히 가른다 */
 const MIN_GAP = 780;
@@ -71,12 +73,23 @@ const MIN_GAP = 780;
  * 두 각을 합쳐 기울기 하나로 만들면 0~180 안에 갇히니 튈 일이 없고,
  * 어느 쪽으로 돌든 눕기만 하면 커진다. 주머니든 손이든 같은 셈이 된다.
  */
-function 기울기(beta: number, gamma: number | null): number {
+function 중력방향(beta: number, gamma: number | null): [number, number, number] {
   const b = (beta * Math.PI) / 180;
   const g = ((gamma ?? 0) * Math.PI) / 180;
-  // 화면 법선과 중력 사이의 각 — cosθ = cos(beta)·cos(gamma)
-  const c = Math.max(-1, Math.min(1, Math.cos(b) * Math.cos(g)));
-  return (Math.acos(c) * 180) / Math.PI;
+  // 기기 축에서 본 중력 방향. beta 하나나 기울기 크기 하나만 쓰면
+  // 주머니 속 대각선 폰이 앞뒤가 아닌 옆으로 돌 때 변화가 사라진다.
+  // 세 축을 함께 남겨 두면 어느 방향으로 꽂아도 처음 자세와의 각을 잴 수 있다.
+  return [Math.sin(g), -Math.sin(b) * Math.cos(g), Math.cos(b) * Math.cos(g)];
+}
+
+function normalize([x, y, z]: [number, number, number]): [number, number, number] {
+  const n = Math.hypot(x, y, z) || 1;
+  return [x / n, y / n, z / n];
+}
+
+function between(a: [number, number, number], b: [number, number, number]) {
+  const dot = Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+  return (Math.acos(dot) * 180) / Math.PI;
 }
 
 type IOSOrientation = {
@@ -85,8 +98,8 @@ type IOSOrientation = {
 
 export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
   let live = false;
-  let rest: number | null = null; // 선 자세
-  let smooth = 0;
+  let rest: [number, number, number] | null = null; // 주머니에 넣은 선 자세
+  let smooth: [number, number, number] | null = null;
   let down = false;
   let seen = 0; // 보정에 쓴 표본 수
   let lastAt = 0;
@@ -95,12 +108,18 @@ export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
     if (!live) return;
     const beta = e.beta;
     if (beta === null || beta === undefined || Number.isNaN(beta)) return;
-    const tilt = 기울기(beta, e.gamma);
+    const gravity = 중력방향(beta, e.gamma);
 
     // 흔들림을 눌러 준다 — 손이 떨려도 셈이 흔들리면 안 된다.
     // 다만 너무 누르면 **빠른 절을 놓친다.** 0.7 에서 0.58 로 — 조금 더
     // 빨리 따라간다(형: 「조금 더 민감하게」)
-    smooth = seen === 0 ? tilt : smooth * 0.58 + tilt * 0.42;
+    smooth = smooth === null
+      ? gravity
+      : normalize([
+          smooth[0] * 0.5 + gravity[0] * 0.5,
+          smooth[1] * 0.5 + gravity[1] * 0.5,
+          smooth[2] * 0.5 + gravity[2] * 0.5,
+        ]);
     seen++;
 
     // 첫 한 숨(열여섯 표본)은 선 자세를 재는 시간 — 스물이면 한 박자 늦다
@@ -114,7 +133,10 @@ export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
       return;
     }
 
-    const off = Math.abs(smooth - rest);
+    // 절대 기울기 차이가 아니라 「처음 선 자세에서 얼마나 돌았나」.
+    // 이러면 주머니에 세로·대각선으로 넣은 폰도 바닥까지 함께 숙일 때
+    // 같은 회전각을 만든다.
+    const off = between(smooth, rest);
     onDepth?.(Math.max(0, Math.min(1, off / DOWN_AT)));
 
     if (!down && off >= DOWN_AT) {
@@ -133,7 +155,13 @@ export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
       return;
     }
     // 서 있는 동안에만 선 자세를 아주 천천히 따라간다
-    if (!down && off < UP_AT) rest = rest * 0.98 + smooth * 0.02;
+    if (!down && off < UP_AT) {
+      rest = normalize([
+        rest[0] * 0.98 + smooth[0] * 0.02,
+        rest[1] * 0.98 + smooth[1] * 0.02,
+        rest[2] * 0.98 + smooth[2] * 0.02,
+      ]);
+    }
   };
 
   return {
@@ -157,6 +185,7 @@ export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
       }
       live = true;
       rest = null;
+      smooth = null;
       seen = 0;
       down = false;
       onState("calibrating");
