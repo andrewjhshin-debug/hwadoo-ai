@@ -179,7 +179,6 @@ export default function WalkingMerit() {
         <span className="walking-merit-dot" data-on={on ? "1" : undefined} />
         {on ? "포행 멈추기" : "포행 시작"}
       </button>
-      <p className="walking-merit-guide">휴대폰을 주머니에 넣고 걸으면 걸음 수가 바로 세어지고, 약 {MERIT_STEPS}걸음마다 공덕이 쌓입니다.</p>
       {notice && <p className="walking-merit-notice" role="status">{notice}</p>}
     </section>
   );
