@@ -408,18 +408,16 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
   return (
     <div className="hip-say" role="dialog" aria-label="사연" onClick={onClose}>
       <div className="hip-say-box" onClick={(e) => e.stopPropagation()}>
-        {/* 형: 「저거 하나는 지우고 맨 위가 0일 남음이 나오면 될 듯」
-            이름이 머리에 한 번, 쪽지 이름으로 또 한 번 — 같은 말이 두
-            줄이었다. 머리에는 이 판에서 제일 급한 것 하나만 둔다:
-            **며칠 남았나.** 그 밑 줄자가 줄어드는 것을 보여 준다. */}
+        {/* 남은 기간은 머리에서 한 번, 막대 위에서 또 한 번 말하지 않는다.
+            줄자 안에만 얹어야 사연을 열자마자 기간과 진행을 같이 읽는다. */}
         <div className="hip-say-top">
-          <p data-day={남은 <= 1 ? "1" : undefined}>{남은}일 남음</p>
           <button onClick={onClose}>닫기</button>
         </div>
 
-        {/* 남은 날 — 줄자로. 글자는 위에 있으니 여기는 띠만 */}
-        <div className="hip-say-left" data-bare="1">
+        {/* 남은 날 — 줄자 안에서 함께 읽는다. */}
+        <div className="hip-say-left">
           <i style={{ width: `${Math.max(2, Math.min(100, (남은 / 처음) * 100))}%` }} />
+          <b data-day={남은 <= 1 ? "1" : undefined}>{남은}일 남음</b>
         </div>
 
         {/* ── 사연 — 제 것이면 그 자리에서 고친다 ─────────────
