@@ -300,10 +300,7 @@ export default function HipMoktak({
                       그릇이 시작되기 전은 다 살고, 시작된 뒤로는 그릇
                       안에서만 산다. 그 사이는 어깨가 뚝 끊기지 않게
                       부드럽게 좁아든다(mask 그림에 그렇게 구워 두었다). */}
-                  <span
-                    className="hip-keycap-well"
-                    style={{ "--keycap-mask": `url(${keySrc.mask})` } as React.CSSProperties}
-                  >
+                  <span className="hip-keycap-well">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img className="hip-keycap-buddha" src={keySrc.src} alt="" draggable={false} />
                   </span>
