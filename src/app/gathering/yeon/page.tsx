@@ -365,13 +365,17 @@ export default function 오늘의인연() {
   // 지운다. 판이 이미 그 말을 하고 있다.
   if (!이) {
     const 본만큼 = 끝난이.length;
-    const 더열수 = 칸.max - 칸.cap; // 연꽃으로 열 수 있는 자리
+    // 오늘의 인연은 여섯 장까지만 보인다. 더 많은 빈칸을 두면 카드의
+    // 밀도가 무너지고, 한 번에 만나는 사람의 수도 흐려진다.
+    const 보일칸 = Math.min(칸.max, 6);
+    const 무료칸 = Math.min(칸.cap, 보일칸);
+    const 더열수 = 보일칸 - 무료칸; // 연꽃으로 열 수 있는 자리
     return (
       <껍데기>
         <ul className="hip-yeon-deck" aria-hidden>
-          {Array.from({ length: 칸.max }, (_, i) => {
+          {Array.from({ length: 보일칸 }, (_, i) => {
             const 봤나 = i < 본만큼;
-            const 값 = i >= 칸.cap;
+            const 값 = i >= 무료칸;
             return (
               <li
                 key={i}
