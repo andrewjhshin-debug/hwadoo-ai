@@ -4176,6 +4176,8 @@ html[data-theme="light"] {
   .hip-keycap-back { z-index: 0; }
   .hip-keycap-buddha {
     z-index: 1;
+    /* 받침을 과하게 키우지 않고 본체를 안쪽에 한 뼘 앉힌다. */
+    transform: scale(0.94);
     transform-origin: 50% 100%;
     transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
   }
@@ -4184,16 +4186,16 @@ html[data-theme="light"] {
     /* 앞 꽃잎을 본체보다 한 뼘 크게, 바닥 기준으로만 위로 올린다.
        본체를 자르지 않고도 팔·옷자락이 꽃잎 바깥으로 새는 것을 막는다. */
     transform-origin: 50% 100%;
-    transform: translateY(-1%) scale(1.1);
+    transform: translateY(-0.3%) scale(1.04);
   }
   .hip-keycap.on .hip-keycap-cup {
     /* 눌리는 동안에도 받침은 제자리에 고정 — 본체만 안쪽으로 내려간다. */
-    transform: translateY(-1%) scale(1.1);
+    transform: translateY(-0.3%) scale(1.04);
   }
   /* 눌리면 몸만 **쑥** 내려간다 — 깊이는 살갗마다(--keycap-dip).
      그릇은 한 화소도 안 움직인다(형: 「받침은 그대로 있도록」) */
   .hip-keycap.on .hip-keycap-buddha {
-    transform: translateY(var(--keycap-dip, 9%));
+    transform: translateY(var(--keycap-dip, 9%)) scale(0.94);
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
   }
   /* 한 장짜리 시절의 「통째로 찌그러뜨리기」는 걷는다 */
