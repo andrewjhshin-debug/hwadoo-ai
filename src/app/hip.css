@@ -4176,29 +4176,27 @@ html[data-theme="light"] {
   .hip-keycap-back { z-index: 0; }
   .hip-keycap-buddha {
     z-index: 1;
-    /* 받침을 과하게 키우지 않고 본체를 안쪽에 한 뼘 앉힌다. */
-    transform: scale(0.94);
-    /* 수직으로 싹둑 자르지 않는다. 꽃받침 입구의 양쪽 곡선을 따라
-       본체 아래쪽만 안으로 좁혀, 팔·무릎이 꽃잎 바깥으로 새지 않게 한다. */
-    clip-path: polygon(0 0, 100% 0, 100% 54%, 86% 60%, 70% 72%, 66% 100%, 34% 100%, 30% 72%, 14% 60%, 0 54%);
+    /* 불상은 원본 전체를 쓴다. 잘라 숨기지 말고, 앞꽃잎이 자연스럽게
+       앞을 감싸게 한다. 본체만 조금 안쪽에 앉혀 팔과 무릎이 화분 밖으로
+       새지 않도록 한다. */
+    transform: scale(0.88);
     transform-origin: 50% 100%;
     transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
   }
   .hip-keycap-cup {
     z-index: 2;
-    /* 앞 꽃잎을 본체보다 한 뼘 크게, 바닥 기준으로만 위로 올린다.
-       본체를 자르지 않고도 팔·옷자락이 꽃잎 바깥으로 새는 것을 막는다. */
+    /* 앞 꽃잎은 몸 위로 한 겹 올라와 무릎·옷자락을 덮는다. */
     transform-origin: 50% 100%;
-    transform: translateY(-0.3%) scale(1.04);
+    transform: translateY(-1.8%) scale(1.05);
   }
   .hip-keycap.on .hip-keycap-cup {
     /* 눌리는 동안에도 받침은 제자리에 고정 — 본체만 안쪽으로 내려간다. */
-    transform: translateY(-0.3%) scale(1.04);
+    transform: translateY(-1.8%) scale(1.05);
   }
   /* 눌리면 몸만 **쑥** 내려간다 — 깊이는 살갗마다(--keycap-dip).
      그릇은 한 화소도 안 움직인다(형: 「받침은 그대로 있도록」) */
   .hip-keycap.on .hip-keycap-buddha {
-    transform: translateY(var(--keycap-dip, 9%)) scale(0.94);
+    transform: translateY(var(--keycap-dip, 9%)) scale(0.88);
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
   }
   /* 한 장짜리 시절의 「통째로 찌그러뜨리기」는 걷는다 */
