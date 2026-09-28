@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 27;
+const 그림판 = 28;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -213,15 +213,15 @@ const SKINS = {
   // 그릇은 **한 장을 셋이 나눠 쓴다**(모양·카메라가 같아야 하니까).
   // 포대·미륵은 그 한 장을 금 사다리로 다시 구웠다.
   keycap: [
-    { id: "dongja", name: "동자", cup: "/obj/kc-dongja-front.png",
+    { id: "dongja", name: "동자", cup: "/obj/kc-dongja-front-soft.png",
       back: "/obj/kc-dongja-back.png", body: "/obj/kc-dongja-body.png",
       ar: 928 / 1420, dip: "12%", dot: "#ef86b0" },
-    { id: "podae", name: "포대", cup: "/obj/kc-podae-front.png",
+    { id: "podae", name: "포대", cup: "/obj/kc-podae-front-soft.png",
       back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
       ar: 928 / 1205, dip: "13%", dot: "#e0b354" },
     // 앞꽃잎·몸·뒤판은 반드시 같은 928×1160 판을 쓴다. v2 앞꽃잎은
     // 별도 비율(1122×1402)이라 세 장을 포갤 때 밑 그림자가 튀어나왔다.
-    { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front.png",
+    { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front-soft.png",
       back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
       ar: 928 / 1160, dip: "13%", dot: "#cfa03c" },
   ],
