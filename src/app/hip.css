@@ -4179,7 +4179,7 @@ html[data-theme="light"] {
     /* 불상은 원본 전체를 쓴다. 잘라 숨기지 말고, 앞꽃잎이 자연스럽게
        앞을 감싸게 한다. 본체만 조금 안쪽에 앉혀 팔과 무릎이 화분 밖으로
        새지 않도록 한다. */
-    transform: scale(0.88);
+    transform: scale(var(--keycap-body-scale, 0.88));
     transform-origin: 50% 100%;
     transition: transform 0.34s cubic-bezier(0.2, 1.7, 0.35, 1);
   }
@@ -4196,7 +4196,7 @@ html[data-theme="light"] {
   /* 눌리면 몸만 **쑥** 내려간다 — 깊이는 살갗마다(--keycap-dip).
      그릇은 한 화소도 안 움직인다(형: 「받침은 그대로 있도록」) */
   .hip-keycap.on .hip-keycap-buddha {
-    transform: translateY(var(--keycap-dip, 9%)) scale(0.88);
+    transform: translateY(var(--keycap-dip, 9%)) scale(var(--keycap-body-scale, 0.88));
     transition: transform 0.07s cubic-bezier(0.3, 0, 0.2, 1);
   }
   /* 한 장짜리 시절의 「통째로 찌그러뜨리기」는 걷는다 */
