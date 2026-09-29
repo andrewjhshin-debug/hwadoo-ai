@@ -223,7 +223,7 @@ const SKINS = {
     // 별도 비율(1122×1402)이라 세 장을 포갤 때 밑 그림자가 튀어나왔다.
     { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front-soft.png",
       back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
-      ar: 928 / 1160, dip: "13%", bodyScale: 0.78, dot: "#cfa03c" },
+      ar: 928 / 1160, dip: "13%", bodyScale: 1.1, dot: "#cfa03c" },
   ],
 } as const;
 
