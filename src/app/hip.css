@@ -1113,11 +1113,54 @@ html[data-theme="light"] {
     background: #fff;
   }
   .hip-sheet-range input {
-    /* accent-color 는 **찬 쪽만** 칠한다. 안 찬 쪽(트랙)은 브라우저
-       기본값이라 안드로이드 크롬에서 **새까맣게** 나왔다
-       (형: 「저거 검은색 말고 옅은색으로」). 트랙을 따로 칠한다. */
-    accent-color: #ef7ba4;
+    /* 브라우저 기본 슬라이더는 안드로이드에서 검은 막대로 렌더된다.
+       채운 쪽과 남은 쪽을 한 레일로 직접 그린다. */
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    height: 22px;
+    margin-top: 7px;
+    cursor: pointer;
+    border: 0;
+    border-radius: 999px;
+    background:
+      linear-gradient(90deg, #ef77a8 0 var(--range-fill, 0%), rgba(128, 102, 113, 0.16) var(--range-fill, 0%) 100%) center / 100% 6px no-repeat;
+    box-shadow: none;
+  }
+  .hip-sheet-range input::-webkit-slider-runnable-track {
+    height: 6px;
+    border: 0;
+    border-radius: 999px;
     background: transparent;
+  }
+  .hip-sheet-range input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -6px;
+    border: 2px solid rgba(255, 255, 255, 0.88);
+    border-radius: 50%;
+    background: #ef77a8;
+    box-shadow: 0 2px 8px rgba(211, 79, 132, 0.28);
+  }
+  .hip-sheet-range input::-moz-range-track {
+    height: 6px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(128, 102, 113, 0.16);
+  }
+  .hip-sheet-range input::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: #ef77a8;
+  }
+  .hip-sheet-range input::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.88);
+    border-radius: 50%;
+    background: #ef77a8;
+    box-shadow: 0 2px 8px rgba(211, 79, 132, 0.28);
   }
 }
 
@@ -3198,17 +3241,6 @@ html[data-theme="light"] {
   /* 이름표를 걷었으니 알약 사이만 띄운다 */
   .hip-opts .hip-chips { margin-bottom: 18px; }
   .hip-sheet-range span b { color: #17140f; font-weight: 500; }
-  /* 안 찬 쪽 — 옅은 잿분홍 한 줄. 웹킷과 파이어폭스가 이름을 달리 쓴다 */
-  .hip-sheet-range input::-webkit-slider-runnable-track {
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(26, 23, 20, 0.12);
-  }
-  .hip-sheet-range input::-moz-range-track {
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(26, 23, 20, 0.12);
-  }
 }
 
 

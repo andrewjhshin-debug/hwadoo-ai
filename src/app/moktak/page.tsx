@@ -1163,6 +1163,7 @@ export default function MoktakPage() {
             step={6}
             value={bpm}
             onChange={(e) => setBpm(Number(e.target.value))}
+            style={{ "--range-fill": `${((bpm - 60) / 240) * 100}%` } as React.CSSProperties}
           />
         </label>
       )}
@@ -1177,6 +1178,7 @@ export default function MoktakPage() {
           step={0.05}
           value={vol}
           onChange={(e) => setVol(Number(e.target.value))}
+            style={{ "--range-fill": `${vol * 100}%` } as React.CSSProperties}
         />
       </label>
     </div>
