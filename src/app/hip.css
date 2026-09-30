@@ -3321,14 +3321,8 @@ html[data-theme="light"] {
    형: 「내려」. 머리 오른쪽에 넷이 서 있어 ○ 가 다섯째로 묻혔다.
    물음에 딸린 일이니 물음 밑에 둔다. */
 @media (min-width: 0px) {
-  /* 물음만 보기 — 동그라미 안에 동그라미.
-     형: 「동그라미를 정중앙에 두지 말고 살짝 왼쪽 아래로, 안 동그라미는
-          크기 좀만 더 키우고」
-
-     가로로 늘어나 타원이 됐던 까닭: 이 단추가 세로 flex 의 자식이라
-     너비가 통째로 늘어났다. `flex: 0 0 auto` 로 제 크기만 쓰게 못박는다.
-     안쪽 동그라미는 살짝 어긋나 있어야 산다 — 정중앙에 두면 과녁이 되고,
-     비껴 두면 **차오르는 달**처럼 보인다. */
+  /* 물음만 보기 — 선종의 엔소. 가로가 늘어나던 까닭은 세로 flex의
+     자식이라서였다. `flex: 0 0 auto`로 터치 자리만 고정한다. */
   .hip-only-go {
     position: relative;
     flex: 0 0 auto;
@@ -3337,21 +3331,22 @@ html[data-theme="light"] {
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    border: 1px solid rgba(26, 23, 20, 0.14);
+    border: 0;
+    background: transparent;
+    color: rgba(30, 27, 24, 0.68);
   }
-  .hip-only-go i {
-    position: absolute;
-    /* 정중앙(50%/50%)에서 왼쪽 아래로 한 뼘 */
-    left: 42%;
-    top: 58%;
-    width: 15px;
-    height: 15px;
-    margin: -7.5px 0 0 -7.5px;
-    border-radius: 50%;
-    border: 1px solid rgba(26, 23, 20, 0.28);
-    transition: transform 0.18s ease;
+  .hip-only-enso {
+    width: 34px;
+    height: 34px;
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    transition: transform 0.18s ease, color 0.18s ease;
   }
-  .hip-only-go:active i { transform: scale(0.86); }
+  .hip-only-enso path:first-child { stroke-width: 2.2; }
+  .hip-only-enso path:last-child { stroke-width: 1.1; opacity: 0.42; }
+  .hip-only-go:active .hip-only-enso { transform: scale(0.86); color: #e36f9e; }
 }
 
 /* 닫힌 서랍은 아예 안 보이게 — 넓은 화면에서 오른쪽 끝에 금빛 테가
@@ -3763,7 +3758,6 @@ html[data-theme="light"] {
     border: 1px solid rgba(26, 23, 20, 0.14);
     font-size: 0;
   }
-  .hip-only-go i,
   .hip-back i {
     position: absolute;
     left: 42%;
