@@ -2366,8 +2366,8 @@ html[data-theme="light"] {
   .hip-hanji .hip-seg { background: rgba(28, 26, 23, 0.05); }
   .hip-hanji .hip-strike { background: #1c1a17; }
   .hip-hanji .hip-back {
-    border-color: var(--hanji-rule);
-    color: var(--hanji-mute);
+    border-color: rgba(234, 126, 164, 0.58);
+    color: rgba(30, 27, 24, 0.68);
   }
 }
 
@@ -3331,21 +3331,23 @@ html[data-theme="light"] {
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    border: 0;
-    background: transparent;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid rgba(234, 126, 164, 0.58);
+    background: rgba(255, 255, 255, 0.54);
     color: rgba(30, 27, 24, 0.68);
   }
   .hip-only-enso {
-    width: 34px;
-    height: 34px;
+    width: 31px;
+    height: 31px;
     overflow: visible;
     fill: none;
     stroke: currentColor;
     stroke-linecap: round;
     transition: transform 0.18s ease, color 0.18s ease;
   }
-  .hip-only-enso path:first-child { stroke-width: 2.2; }
-  .hip-only-enso path:last-child { stroke-width: 1.1; opacity: 0.42; }
+  .hip-only-enso path:first-child { stroke-width: 3.7; }
+  .hip-only-enso path:last-child { stroke-width: 1.35; opacity: 0.46; }
   .hip-only-go:active .hip-only-enso { transform: scale(0.86); color: #e36f9e; }
 }
 
@@ -3748,28 +3750,20 @@ html[data-theme="light"] {
   }
 }
 
-/* 어긋난 동그라미 — 들어가는 자리와 나오는 자리를 같은 몸짓으로.
-   형: 「이거도 살짝 어긋난 동그라미 버튼으로. 그리고 기존 어긋난
-        동그라미 버튼도 내부 원을 좀만 더 크게」 */
+/* 화두만 보기에서 돌아올 때도 같은 엔소를 쓴다. 들어가는 단추와
+   나오는 단추가 한 문법이어야 어디에서 왔는지 끊기지 않는다. */
 @media (min-width: 0px) {
   .hip-back {
+    display: grid;
     position: relative;
+    place-items: center;
     border-radius: 50%;
-    border: 1px solid rgba(26, 23, 20, 0.14);
+    border: 1.5px solid rgba(234, 126, 164, 0.58);
+    background: rgba(255, 255, 255, 0.54);
+    color: rgba(30, 27, 24, 0.68);
     font-size: 0;
   }
-  .hip-back i {
-    position: absolute;
-    left: 42%;
-    top: 58%;
-    width: 19px;
-    height: 19px;
-    margin: -9.5px 0 0 -9.5px;
-    border-radius: 50%;
-    border: 1px solid rgba(26, 23, 20, 0.28);
-    transition: transform 0.18s ease;
-  }
-  .hip-back:active i { transform: scale(0.86); }
+  .hip-back:active .hip-only-enso { transform: scale(0.86); color: #e36f9e; }
 }
 
 /* ── 공양 오브제는 한 자를 쓴다 ────────────────────────────────

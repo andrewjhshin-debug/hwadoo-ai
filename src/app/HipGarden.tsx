@@ -289,7 +289,10 @@ export function HipGardenOnly({
       {/* 형: 「이거도 살짝 어긋난 동그라미 버튼으로」.
           물음만 보기로 들어온 자리와 나가는 자리가 같은 몸짓이라야 한다 */}
       <button onClick={onBack} className="hip-back" aria-label="되돌아가기">
-        <i aria-hidden />
+        <svg className="hip-only-enso" viewBox="0 0 48 48" aria-hidden>
+          <path d="M34.6 8.7C42 17.2 41.5 30.5 33.6 38.3 24.8 46.6 10.4 42.8 6.8 31.3 3.1 19.6 10.7 7.5 22.7 6.2" />
+          <path d="M35.8 10.1C37.1 12 38 14.3 38.5 16.4" />
+        </svg>
       </button>
     </div>
   );
@@ -359,8 +362,8 @@ export function HipGardenHolding({
               남긴다는 뜻이다. */}
           <button onClick={onFocus} aria-label="물음만 보기" className="hip-only-go">
             <svg className="hip-only-enso" viewBox="0 0 48 48" aria-hidden>
-              <path d="M35.2 10.3A16.7 16.7 0 1 0 38.1 27" />
-              <path d="M34.1 9.3A17.7 17.7 0 0 0 28.7 7" />
+              <path d="M34.6 8.7C42 17.2 41.5 30.5 33.6 38.3 24.8 46.6 10.4 42.8 6.8 31.3 3.1 19.6 10.7 7.5 22.7 6.2" />
+              <path d="M35.8 10.1C37.1 12 38 14.3 38.5 16.4" />
             </svg>
           </button>
         </div>
