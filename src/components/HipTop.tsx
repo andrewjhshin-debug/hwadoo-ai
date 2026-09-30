@@ -22,6 +22,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LotusCount from "@/components/LotusCount";
 import SoundMuteToggle from "@/components/SoundMuteToggle";
+import TodayPracticePopover from "@/components/TodayPracticePopover";
 
 export default function HipTop({
   /** 이 판이 더 얹고 싶은 것 — 예: 뜰의 ○(물음만 보기) */
@@ -42,6 +43,7 @@ export default function HipTop({
     <div className="hip-top-right">
       <LotusCount look="line" className="hip-top-count" />
       <SoundMuteToggle compact />
+      <TodayPracticePopover />
       <Link href="/letters" aria-label="쪽지함" className="hip-top-ico">
         <svg viewBox="0 0 24 24" aria-hidden>
           <rect x="3" y="5.5" width="18" height="13" rx="2.5" />

@@ -2935,6 +2935,59 @@ html[data-theme="light"] {
   }
   .hip-top-ico:active { color: var(--hip-pink, #ef7ba4); }
 
+  /* 오늘의 수행은 메인 카드가 아니다. 쪽지함 옆 꽃을 눌렀을 때만, 손바닥만 한
+     장부로 열린다. */
+  .hip-today-wrap { position: relative; }
+  .hip-today-trigger {
+    position: relative;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .hip-today-trigger > span { transform: translateY(1px); }
+  .hip-today-badge {
+    position: absolute;
+    top: 4px;
+    right: 3px;
+    width: 6px;
+    height: 6px;
+    border: 1.5px solid #fff;
+    border-radius: 99px;
+    background: #ee6d9c;
+  }
+  .hip-today-popover {
+    position: absolute;
+    z-index: 80;
+    top: calc(100% + 11px);
+    right: -44px;
+    width: min(312px, calc(100vw - 24px));
+    padding: 17px;
+    border: 1px solid rgba(218, 133, 166, 0.28);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 14px 38px rgba(122, 83, 103, 0.16);
+    backdrop-filter: blur(16px);
+    color: #312a2b;
+  }
+  .hip-today-head { display: flex; align-items: flex-start; gap: 10px; }
+  .hip-today-head > div:first-child { min-width: 0; flex: 1; }
+  .hip-today-head p { margin: 0; font-family: var(--font-serif); font-size: 17px; letter-spacing: 0.02em; }
+  .hip-today-head span { display: block; margin-top: 3px; font-size: 10px; letter-spacing: 0.04em; color: #9c8e93; }
+  .hip-today-count { padding-top: 4px; font-size: 11px; color: #dd6391; white-space: nowrap; }
+  .hip-today-head button { width: 21px; height: 21px; padding: 0; border: 0; background: transparent; color: #a79ba0; font-size: 20px; line-height: 18px; cursor: pointer; }
+  .hip-today-popover ul { display: flex; flex-direction: column; gap: 2px; margin: 13px 0 0; padding: 10px 0; border-top: 1px solid rgba(100, 79, 88, 0.09); border-bottom: 1px solid rgba(100, 79, 88, 0.09); list-style: none; }
+  .hip-today-popover li a { display: flex; align-items: center; gap: 9px; min-height: 37px; border-radius: 10px; padding: 4px 5px; color: inherit; text-decoration: none; }
+  .hip-today-popover li a:active { background: rgba(239, 123, 164, 0.1); }
+  .hip-today-check { display: grid; place-items: center; width: 17px; height: 17px; flex: 0 0 17px; border: 1px solid #c7b9bd; border-radius: 50%; color: #fff; font-size: 11px; }
+  .hip-today-check[data-done="1"] { border-color: #ee79a2; background: #ee79a2; }
+  .hip-today-label { min-width: 0; flex: 1; overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+  .hip-today-progress { flex: 0 0 auto; font-size: 10px; color: #ab9ca0; }
+  .hip-today-go { display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 12px; min-height: 38px; border-radius: 999px; background: linear-gradient(110deg, #ed7ca7, #ef6198); color: #fff; font-size: 12px; font-weight: 600; text-decoration: none; box-shadow: 0 5px 12px rgba(225, 93, 148, 0.2); }
+  .hip-today-go span { font-size: 15px; }
+  .hip-today-finished { margin: 12px 0 1px; text-align: center; font-size: 10.5px; color: #9c8e93; }
+
   /* 연꽃 한가운데 — 형: 「가운데 샛노란색」 →
      「완전 샛노랑으로 덮으라는 게 아니라 기존 유지하면서 겹치듯,
       그러나 더 노랗게」.
