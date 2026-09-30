@@ -2958,10 +2958,11 @@ html[data-theme="light"] {
     background: #ee6d9c;
   }
   .hip-today-popover {
-    position: absolute;
-    z-index: 80;
-    top: calc(100% + 11px);
-    right: -44px;
+    position: fixed;
+    z-index: 101;
+    top: clamp(240px, 48svh, 460px);
+    left: 50%;
+    right: auto;
     width: min(312px, calc(100vw - 24px));
     padding: 17px;
     border: 1px solid rgba(218, 133, 166, 0.28);
@@ -2970,6 +2971,23 @@ html[data-theme="light"] {
     box-shadow: 0 14px 38px rgba(122, 83, 103, 0.16);
     backdrop-filter: blur(16px);
     color: #312a2b;
+    transform: translate(-50%, -50%);
+    animation: hip-today-in 180ms ease-out;
+  }
+  .hip-today-scrim {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    width: 100vw;
+    height: 100svh;
+    border: 0;
+    background: rgba(255, 253, 253, 0.78);
+    backdrop-filter: blur(4px);
+    cursor: default;
+  }
+  @keyframes hip-today-in {
+    from { opacity: 0; transform: translate(-50%, -48%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
   }
   .hip-today-head { display: flex; align-items: flex-start; gap: 10px; }
   .hip-today-head > div:first-child { min-width: 0; flex: 1; }
