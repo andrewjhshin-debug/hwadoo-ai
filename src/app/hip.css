@@ -3340,15 +3340,10 @@ html[data-theme="light"] {
   .hip-only-enso {
     width: 31px;
     height: 31px;
-    overflow: visible;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    transition: transform 0.18s ease, color 0.18s ease;
+    object-fit: contain;
+    transition: transform 0.18s ease;
   }
-  .hip-only-enso path:first-child { stroke-width: 3.7; }
-  .hip-only-enso path:last-child { stroke-width: 1.35; opacity: 0.46; }
-  .hip-only-go:active .hip-only-enso { transform: scale(0.86); color: #e36f9e; }
+  .hip-only-go:active .hip-only-enso { transform: scale(0.86); }
 }
 
 /* 닫힌 서랍은 아예 안 보이게 — 넓은 화면에서 오른쪽 끝에 금빛 테가
@@ -3763,7 +3758,7 @@ html[data-theme="light"] {
     color: rgba(30, 27, 24, 0.68);
     font-size: 0;
   }
-  .hip-back:active .hip-only-enso { transform: scale(0.86); color: #e36f9e; }
+  .hip-back:active .hip-only-enso { transform: scale(0.86); }
 }
 
 /* ── 공양 오브제는 한 자를 쓴다 ────────────────────────────────
