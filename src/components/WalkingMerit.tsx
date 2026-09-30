@@ -43,11 +43,17 @@ export default function WalkingMerit() {
   const last = useRef<Point | null>(null);
   const carry = useRef(0);
   const motionOn = useRef(false);
-  const gravity = useRef(9.8);
+  // 주머니에 비스듬히 든 폰은 중력의 `크기`가 거의 바뀌지 않는다.
+  // 그래서 크기 하나만 보던 예전 방식은 발걸음을 놓쳤다. 세 축 각각의
+  // 느린 기준점을 빼서, 어느 방향으로 꽂혀 있어도 발걸음의 충격만 남긴다.
+  const gravity = useRef({ x: 0, y: 0, z: 0, ready: false });
+  const noise = useRef(0.04);
   const lastStepAt = useRef(0);
   const lastSensorStepAt = useRef(0);
   const previousPulse = useRef(0);
   const peakPulse = useRef(0);
+  const motionSeenAt = useRef(0);
+  const motionStatusTimer = useRef<number | null>(null);
   const meritSteps = useRef(0);
   const motionListener = useRef<((event: DeviceMotionEvent) => void) | null>(null);
 
@@ -78,23 +84,43 @@ export default function WalkingMerit() {
     const x = acceleration?.x ?? 0;
     const y = acceleration?.y ?? 0;
     const z = acceleration?.z ?? 0;
-    const magnitude = Math.hypot(x, y, z);
     const raw = event.acceleration;
     const rawImpact = Math.hypot(raw?.x ?? 0, raw?.y ?? 0, raw?.z ?? 0);
-    // 기울어진 주머니에서는 중력값이 보폭보다 크게 바뀐다. 중력은 아주 천천히
-    // 따라가게 두고, 중력 차이와 기기 원시 가속도 중 더 선명한 쪽을 쓴다.
-    gravity.current = gravity.current * 0.975 + magnitude * 0.025;
-    const impact = Math.abs(magnitude - gravity.current);
-    const pulse = Math.max(impact, rawImpact);
+    motionSeenAt.current = Date.now();
+    if (motionStatusTimer.current !== null) {
+      window.clearTimeout(motionStatusTimer.current);
+      motionStatusTimer.current = null;
+    }
+
+    if (!gravity.current.ready) {
+      gravity.current = { x, y, z, ready: true };
+      previousPulse.current = 0;
+      return;
+    }
+
+    // 0.92는 천천히 바뀌는 주머니 기울기는 따라가되, 한 걸음 충격은 남긴다.
+    gravity.current.x = gravity.current.x * 0.92 + x * 0.08;
+    gravity.current.y = gravity.current.y * 0.92 + y * 0.08;
+    gravity.current.z = gravity.current.z * 0.92 + z * 0.08;
+    const tiltedImpact = Math.hypot(
+      x - gravity.current.x,
+      y - gravity.current.y,
+      z - gravity.current.z,
+    );
+    const pulse = Math.max(tiltedImpact, rawImpact);
+    // 기기마다 센서 단위가 달라 고정 문턱만 쓰면 조용한 기기에서 안 센다.
+    // 가만히 있을 때의 흔들림을 기준으로 문턱을 낮게 따라가되, 걸음 중에는
+    // 기준이 지나치게 올라가지 않도록 0.28에서 막는다.
+    noise.current = noise.current * 0.96 + Math.min(pulse, 0.16) * 0.04;
+    const threshold = Math.min(0.28, Math.max(0.07, noise.current * 1.65 + 0.045));
     const now = Date.now();
     const interval = now - lastStepAt.current;
-    // 주머니 속 센서는 기울기에 따라 "바닥값"이 계속 높을 수 있다. 따라서
-    // 일정 값 아래로 떨어지길 기다리지 않고, 보폭에서 생기는 봉우리(상승 뒤
-    // 하강)를 한 걸음으로 센다. 이 방식은 천천히 걸어도 다음 걸음이 막히지 않는다.
+    // 꼭대기를 지난 뒤 한 번만 센다. 240ms보다 빠른 흔들림과 2.4초 이상
+    // 떨어진 독립적인 흔들림은 걸음으로 합치지 않아 주머니 속 오작동을 막는다.
     if (pulse > previousPulse.current) {
       peakPulse.current = Math.max(peakPulse.current, pulse);
-    } else if (pulse < previousPulse.current && peakPulse.current >= 0.22) {
-      if (lastStepAt.current === 0 || (interval >= 260 && interval <= 3_000)) {
+    } else if (pulse < previousPulse.current && peakPulse.current >= threshold) {
+      if (lastStepAt.current === 0 || (interval >= 240 && interval <= 2_400)) {
         lastStepAt.current = now;
         lastSensorStepAt.current = now;
         countSteps();
@@ -123,8 +149,18 @@ export default function WalkingMerit() {
     lastSensorStepAt.current = 0;
     previousPulse.current = 0;
     peakPulse.current = 0;
+    gravity.current = { x: 0, y: 0, z: 0, ready: false };
+    noise.current = 0.04;
+    motionSeenAt.current = 0;
     motionListener.current = onMotion;
     window.addEventListener("devicemotion", onMotion, { passive: true });
+    // 허용 버튼은 눌렀는데 센서 이벤트 자체가 끊긴 경우를 "민감도 문제"로
+    // 착각하지 않게, 원인을 화면에서 바로 알려 준다.
+    motionStatusTimer.current = window.setTimeout(() => {
+      if (!motionSeenAt.current) {
+        setNotice("걸음 센서 신호가 들어오지 않아요. 휴대폰 설정에서 '신체 활동' 권한을 허용해 주세요.");
+      }
+    }, 7_000);
   };
 
   const stop = () => {
@@ -136,6 +172,9 @@ export default function WalkingMerit() {
     lastSensorStepAt.current = 0;
     previousPulse.current = 0;
     peakPulse.current = 0;
+    gravity.current = { x: 0, y: 0, z: 0, ready: false };
+    if (motionStatusTimer.current !== null) window.clearTimeout(motionStatusTimer.current);
+    motionStatusTimer.current = null;
     motionOn.current = false;
     if (motionListener.current) window.removeEventListener("devicemotion", motionListener.current);
     motionListener.current = null;
@@ -193,6 +232,7 @@ export default function WalkingMerit() {
     return () => {
       if (watch.current !== null) navigator.geolocation.clearWatch(watch.current);
       if (motionListener.current) window.removeEventListener("devicemotion", motionListener.current);
+      if (motionStatusTimer.current !== null) window.clearTimeout(motionStatusTimer.current);
     };
     // 시작은 한 번만. watchPosition 콜백이 바뀔 때 다시 물으면 안 된다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
