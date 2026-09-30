@@ -2959,7 +2959,9 @@ html[data-theme="light"] {
   }
   .hip-today-popover {
     position: fixed;
-    z-index: 101;
+    /* 헤더 안의 쌓임 맥락을 벗어나 body 바로 아래에 뜬다. 본문·배경 한자·
+       하단 탭 어느 것도 이 카드 위로 올라올 수 없다. */
+    z-index: 2147483001;
     top: clamp(240px, 48svh, 460px);
     left: 50%;
     right: auto;
@@ -2967,7 +2969,7 @@ html[data-theme="light"] {
     padding: 17px;
     border: 1px solid rgba(218, 133, 166, 0.28);
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.94);
+    background: #fff;
     box-shadow: 0 14px 38px rgba(122, 83, 103, 0.16);
     backdrop-filter: blur(16px);
     color: #312a2b;
@@ -2976,12 +2978,12 @@ html[data-theme="light"] {
   }
   .hip-today-scrim {
     position: fixed;
-    z-index: 100;
+    z-index: 2147483000;
     inset: 0;
     width: 100vw;
     height: 100svh;
     border: 0;
-    background: rgba(255, 253, 253, 0.78);
+    background: rgba(255, 253, 253, 0.88);
     backdrop-filter: blur(4px);
     cursor: default;
   }

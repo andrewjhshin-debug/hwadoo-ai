@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   allDone,
   DAILY_EVENT,
@@ -55,7 +56,7 @@ export default function TodayPracticePopover() {
         {!finished && <i className="hip-today-badge" aria-hidden />}
       </button>
 
-      {open && (
+      {open && typeof document !== "undefined" && createPortal(
         <>
           <button
             type="button"
@@ -101,7 +102,8 @@ export default function TodayPracticePopover() {
               </Link>
             ) : null}
           </section>
-        </>
+        </>,
+        document.body,
       )}
     </div>
   );
