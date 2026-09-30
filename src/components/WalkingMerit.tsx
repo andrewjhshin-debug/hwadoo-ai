@@ -45,23 +45,25 @@ export default function WalkingMerit() {
   const motionOn = useRef(false);
   const gravity = useRef(9.8);
   const lastStepAt = useRef(0);
+  const lastSensorStepAt = useRef(0);
   const previousPulse = useRef(0);
   const peakPulse = useRef(0);
   const meritSteps = useRef(0);
   const motionListener = useRef<((event: DeviceMotionEvent) => void) | null>(null);
 
-  const countStep = () => {
+  const countSteps = (amount = 1) => {
+    if (amount < 1) return;
     setSteps((value) => {
-      const next = value + 1;
+      const next = value + amount;
       localStorage.setItem(todayStepKey(), String(next));
       return next;
     });
     setMeters((value) => {
-      const next = value + WALKING_STEP_METERS;
+      const next = value + WALKING_STEP_METERS * amount;
       localStorage.setItem(todayMeterKey(), String(next));
       return next;
     });
-    meritSteps.current += 1;
+    meritSteps.current += amount;
     if (meritSteps.current >= MERIT_STEPS) {
       const units = Math.floor(meritSteps.current / MERIT_STEPS);
       meritSteps.current -= units * MERIT_STEPS;
@@ -94,7 +96,8 @@ export default function WalkingMerit() {
     } else if (pulse < previousPulse.current && peakPulse.current >= 0.22) {
       if (lastStepAt.current === 0 || (interval >= 260 && interval <= 3_000)) {
         lastStepAt.current = now;
-        countStep();
+        lastSensorStepAt.current = now;
+        countSteps();
       }
       peakPulse.current = 0;
     }
@@ -117,6 +120,7 @@ export default function WalkingMerit() {
     }
     motionOn.current = true;
     lastStepAt.current = 0;
+    lastSensorStepAt.current = 0;
     previousPulse.current = 0;
     peakPulse.current = 0;
     motionListener.current = onMotion;
@@ -129,6 +133,7 @@ export default function WalkingMerit() {
     last.current = null;
     carry.current = 0;
     lastStepAt.current = 0;
+    lastSensorStepAt.current = 0;
     previousPulse.current = 0;
     peakPulse.current = 0;
     motionOn.current = false;
@@ -156,9 +161,16 @@ export default function WalkingMerit() {
         const moved = distance(prev, next);
         const speed = position.coords.speed ?? moved / elapsed;
         if (moved < 3 || speed < WALK_MIN || speed > WALK_MAX) return;
-        // 위치는 센서 걸음 수가 과하게 튀는 상황을 확인하는 보조 신호로만 쓴다.
-        // 공덕과 실시간 표시의 기준은 주머니 속 가속도 센서의 실제 발걸음이다.
+        // 센서가 멈추거나 절전으로 걸음을 놓칠 때 GPS 거리로 이어 센다.
+        // 두 신호가 동시에 세지 않도록 센서가 최근 5초 안에 한 번이라도
+        // 걸음을 잡았다면 GPS는 검증만 하고, 아니면 보폭 단위로 보충한다.
+        if (lastSensorStepAt.current && Date.now() - lastSensorStepAt.current < 5_000) return;
         carry.current += moved;
+        const gpsSteps = Math.floor(carry.current / WALKING_STEP_METERS);
+        if (gpsSteps > 0) {
+          carry.current -= gpsSteps * WALKING_STEP_METERS;
+          countSteps(gpsSteps);
+        }
       },
       () => {
         setNotice("위치를 허용하면 거리 정확도가 더 좋아집니다. 걸음 센서는 계속 셉니다.");

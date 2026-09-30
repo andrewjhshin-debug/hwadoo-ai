@@ -52,12 +52,14 @@ type Opts = {
     도는데, 무릎을 꿇는 동안 도는 각이 그만큼 안 나온다. 이번에는 절대
     기울기가 아니라 **처음 주머니 각도에서의 회전량**으로 재므로, 스물로
     내린다. 대각선으로 넣어도 같은 몸짓이면 같은 값이 나온다. */
-const DOWN_AT = 20;
+const DOWN_AT = 14;
 /** 일어섰다고 보는 각 — 엎드림보다 낮게 둬야 덜덜 떨리지 않는다(히스테리시스) */
-const UP_AT = 7;
+const UP_AT = 6;
 /** 한 배와 한 배 사이 최소 시간 — 이보다 빠르면 흔든 것이다.
     백팔배를 빨리 하면 한 배에 두 숨(2.2초)이라, 0.8초면 넉넉히 가른다 */
-const MIN_GAP = 780;
+const MIN_GAP = 700;
+/** 숙였다가 바로 되돌리는 흔들림은 세지 않는다. 실제 절은 이 시간보다 길다. */
+const DOWN_HOLD = 180;
 
 /**
  * 폰이 얼마나 누웠는가 — **한 숫자로.**
@@ -103,6 +105,8 @@ export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
   let down = false;
   let seen = 0; // 보정에 쓴 표본 수
   let lastAt = 0;
+  let calibratedAt = 0;
+  let downAt = 0;
 
   const handle = (e: DeviceOrientationEvent) => {
     if (!live) return;
@@ -122,9 +126,11 @@ export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
         ]);
     seen++;
 
-    // 첫 한 숨(열여섯 표본)은 선 자세를 재는 시간 — 스물이면 한 박자 늦다
+    // 주머니에 넣은 다음의 선 자세를 재야 한다. 표본 수만 보면 기기에 따라
+    // 0.2초 만에 끝나므로, 최소 0.9초 동안의 방향을 함께 본다.
     if (rest === null) {
-      if (seen < 16) {
+      if (!calibratedAt) calibratedAt = Date.now();
+      if (seen < 12 || Date.now() - calibratedAt < 900) {
         onState("calibrating");
         return;
       }
@@ -141,6 +147,7 @@ export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
 
     if (!down && off >= DOWN_AT) {
       down = true;
+      downAt = Date.now();
       onState("down");
       return;
     }
@@ -148,7 +155,7 @@ export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
       down = false;
       onState("ready");
       const now = Date.now();
-      if (now - lastAt >= MIN_GAP) {
+      if (now - downAt >= DOWN_HOLD && now - lastAt >= MIN_GAP) {
         lastAt = now;
         onBow();
       }
@@ -187,15 +194,21 @@ export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
       rest = null;
       smooth = null;
       seen = 0;
+      calibratedAt = 0;
       down = false;
+      downAt = 0;
       onState("calibrating");
       window.addEventListener("deviceorientation", handle);
+      // 삼성·안드로이드 기기 일부는 절대 방향 이벤트만 안정적으로 준다.
+      // 같은 감지기로 함께 받아 어느 쪽이 오든 주머니 방향을 잰다.
+      window.addEventListener("deviceorientationabsolute", handle);
 
       // 석 초가 지나도 한 표본도 안 들어오면 못 읽는 기기다
       window.setTimeout(() => {
         if (live && seen === 0) {
           live = false;
           window.removeEventListener("deviceorientation", handle);
+          window.removeEventListener("deviceorientationabsolute", handle);
           onState("unsupported");
         }
       }, 3000);
@@ -204,6 +217,7 @@ export function makeBowSense({ onBow, onState, onDepth }: Opts): BowSense {
     stop() {
       live = false;
       window.removeEventListener("deviceorientation", handle);
+      window.removeEventListener("deviceorientationabsolute", handle);
       onState("idle");
       onDepth?.(0);
     },
