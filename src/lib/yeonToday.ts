@@ -9,7 +9,6 @@
 // 여기는 그 문을 두드리는 손잡이 하나뿐이다. 화면은 이것만 부른다.
 import {
   collection,
-  addDoc,
   deleteDoc,
   doc,
   getDocs,
@@ -150,14 +149,16 @@ export async function 신고(
 ): Promise<void> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
-  await addDoc(collection(db, "reports"), {
-    kind: "yeon",
-    targetUid: target.uid,
-    byUid: u.uid,
-    reason: `[인연 ${target.name ?? ""}] ${까닭}`.trim().slice(0, 300),
-    status: "open",
-    createdAt: serverTimestamp(),
+  const r = await fetch("/api/report", {
+    method: "POST",
+    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      kind: "yeon",
+      targetUid: target.uid,
+      reason: `[인연 ${target.name ?? ""}] ${까닭}`.trim().slice(0, 300),
+    }),
   });
+  if (!r.ok) throw new Error("신고를 접수하지 못했습니다");
 }
 
 /** 신고 까닭 — 적게 둔다. 고르는 일이 일이 되면 아무도 안 누른다 */

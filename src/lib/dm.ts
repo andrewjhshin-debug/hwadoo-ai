@@ -373,15 +373,12 @@ export async function reportThread(
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   const target = thread.members.find((m) => m !== u.uid) ?? "";
-  await addDoc(collection(db, "reports"), {
-    kind: "dm",
-    threadId: thread.id,
-    targetUid: target,
-    byUid: u.uid,
-    reason: reason.trim().slice(0, 300),
-    status: "open",
-    createdAt: serverTimestamp(),
+  const r = await fetch("/api/report", {
+    method: "POST",
+    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+    body: JSON.stringify({ kind: "dm", threadId: thread.id, targetUid: target, reason: reason.trim().slice(0, 300) }),
   });
+  if (!r.ok) throw new Error("신고를 접수하지 못했습니다");
 }
 
 // 게시판 댓글 신고 — 신고함(뒷방)으로 모인다
@@ -391,16 +388,15 @@ export async function reportComment(
 ): Promise<void> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
-  await addDoc(collection(db, "reports"), {
-    kind: "comment",
-    postId,
-    commentId: comment.id,
-    targetUid: comment.authorUid,
-    byUid: u.uid,
-    reason: `[댓글] ${comment.body.slice(0, 200)}`,
-    status: "open",
-    createdAt: serverTimestamp(),
+  const r = await fetch("/api/report", {
+    method: "POST",
+    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      kind: "comment", postId, commentId: comment.id, targetUid: comment.authorUid,
+      reason: `[댓글] ${comment.body.slice(0, 200)}`,
+    }),
   });
+  if (!r.ok) throw new Error("신고를 접수하지 못했습니다");
 }
 
 // 뒷방 전용 — 신고함

@@ -348,10 +348,9 @@ service cloud.firestore {
 
     // ── 신고함 — 쪽지·댓글 신고가 함께 모인다 ──
     match /reports/{reportId} {
-      // 신고 넣기 — 로그인한 본인 이름으로만 · 읽기·처리·삭제는 뒷방만
-      allow create: if request.auth != null
-        && request.auth.uid == request.resource.data.byUid
-        && request.resource.data.status == "open";
+      // 신고는 서버가 대상·중복·자동 숨김을 함께 확인해 넣는다.
+      // 브라우저가 바로 쓰면 같은 계정으로 신고함을 무한히 채울 수 있다.
+      allow create: if false;
       allow read, update, delete: if isAdmin();
     }
 
@@ -568,7 +567,8 @@ service cloud.firestore {
       // 규칙 언어는 한글 이름을 못 쓴다 — 뜻은 「활동 중이고 사진이 있다」
       function isOpen() {
         return resource.data.state == '활동'
-          && resource.data.approvedPhotoCount > 0;
+          && resource.data.approvedPhotoCount > 0
+          && resource.data.get('reportHold', false) != true;
       }
       allow read: if isAdmin()
         || (request.auth != null && request.auth.uid == uid)
@@ -580,7 +580,9 @@ service cloud.firestore {
       //    요청도 서버가 pending 으로 기록한다.
       allow create: if request.auth != null && request.auth.uid == uid
         && !('approvedPhotoCount' in request.resource.data)
-        && !('photos' in request.resource.data);
+        && !('photos' in request.resource.data)
+        && !('reportHold' in request.resource.data)
+        && !('reportHoldAt' in request.resource.data);
       // 본인이 못 건드리는 칸 —
       //  · state 를 '정지' 로는 스스로 못 간다(뒷방 몫)
       //  · verified(본인확인)·merit(계급) 은 **서버가 찍는 표**다.
@@ -612,7 +614,8 @@ service cloud.firestore {
             && (!('state' in resource.data)
                 || resource.data.state != '정지')
             && same('verified') && same('merit')
-            && same('approvedPhotoCount') && same('photos'));
+            && same('approvedPhotoCount') && same('photos')
+            && same('reportHold') && same('reportHoldAt'));
       allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
     }
 

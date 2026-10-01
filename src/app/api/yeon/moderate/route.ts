@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   // 메일이 확인된 것까지 봐야 한다. 한쪽만 느슨하면 그쪽이 문이 된다.
   const 뒷방 =
     me.uid === ADMIN_UID ||
-    (me.verified && isAdminAccount({ uid: me.uid, email: me.email }));
+    (me.verified && isAdminAccount({ uid: me.uid, email: me.email, emailVerified: me.verified }));
   if (!뒷방) return Response.json({ error: "not-admin" }, { status: 403 });
 
   const body = (await req.json().catch(() => null)) as
@@ -113,6 +113,12 @@ export async function POST(req: Request) {
     return Response.json({ ok: true, photos: photos.length });
   }
 
-  await 칸.set({ state: act === "stop" ? "정지" : "활동" }, { merge: true });
+  await 칸.set(
+    act === "stop"
+      ? { state: "정지" }
+      // 신고 누적으로 자동 숨김된 사람을 검토해 다시 열 때만 이 표를 푼다.
+      : { state: "활동", reportHold: false, reportHoldAt: null },
+    { merge: true }
+  );
   return Response.json({ ok: true, state: act === "stop" ? "정지" : "활동" });
 }
