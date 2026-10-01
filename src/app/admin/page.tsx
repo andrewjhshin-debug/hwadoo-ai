@@ -913,6 +913,7 @@ export default function AdminPage() {
     (s) => hiddenSayingIds.has(s.id) && !removedSayingIds.has(s.id)
   );
 
+  const 사진심사수 = 사진줄.reduce((sum, row) => sum + row.photos.length + (row.proof ? 1 : 0), 0);
   const TABS: { key: Tab; label: string; count: number }[] = [
     { key: "adult", label: "성인 화두", count: adultTotal },
     { key: "student", label: "학생·어린이 화두", count: studentTotal },
@@ -923,7 +924,7 @@ export default function AdminPage() {
     { key: "feedback", label: "죽비", count: feedback.length },
     { key: "donors", label: "차 한 잔", count: content.donors.length },
     { key: "reports", label: "신고함", count: reports.filter((r) => r.status === "open").length },
-    { key: "photos", label: "사진 승인", count: 사진줄.reduce((a, r) => a + r.photos.length, 0) },
+    { key: "photos", label: "사진 승인", count: 사진심사수 },
   ];
 
   // 은행 화두 손질 — 저장·숨김·(덮어쓴 것) 원래대로
@@ -1738,7 +1739,7 @@ export default function AdminPage() {
           <section>
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
-                심사 대기 · {사진줄.reduce((a, r) => a + r.photos.length, 0)}
+                심사 대기 · {사진심사수}
               </h3>
               <button
                 disabled={busy === "photo-lockdown"}
