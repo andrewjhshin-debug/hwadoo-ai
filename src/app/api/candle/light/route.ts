@@ -129,7 +129,7 @@ export async function POST(req: Request) {
   const candle = db.doc(`candles/${uid}_${stamp}`);
 
   // 주인의 지갑은 줄지 않는다 — dm.ts 의 spendLotus 와 같은 셈
-  const free = isAdminAccount({ uid, email });
+  const free = isAdminAccount({ uid, email, emailVerified: !!email });
 
   try {
     const out = await db.runTransaction(async (tx) => {

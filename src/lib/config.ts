@@ -58,11 +58,15 @@ export const ADMIN_EMAILS = ["andrewjhshin@gmail.com"];
 
 // 이 계정이 뒷방 주인인가 — 본계정(UID) 또는 부계정(이메일)
 export function isAdminAccount(
-  u?: { uid?: string | null; email?: string | null } | null
+  u?: { uid?: string | null; email?: string | null; emailVerified?: boolean | null } | null
 ): boolean {
   if (!u) return false;
   if (u.uid === ADMIN_UID) return true;
-  return !!u.email && ADMIN_EMAILS.includes(u.email.toLowerCase());
+  // 이메일은 Firebase가 확인했다는 표까지 함께 있어야 한다. 화면에서
+  // 뒷방 단추만 숨기고 서버의 무료 혜택이 열리면 그쪽이 새 문이 된다.
+  return u.emailVerified === true
+    && !!u.email
+    && ADMIN_EMAILS.includes(u.email.toLowerCase());
 }
 
 // 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 초기엔 후하게.

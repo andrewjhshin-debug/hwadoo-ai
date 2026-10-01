@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   // 이렇게 하고 있었는데 **연장만 빠져 있었다.** 화면에는 「蓮 999」라고
   // 떠 있는데 단추를 눌러도 402 로 조용히 되돌아왔다. 셈이 다르면
   // 화면이 거짓말을 한다.
-  const free = isAdminAccount({ uid, email });
+  const free = isAdminAccount({ uid, email, emailVerified: !!email });
 
   const body = (await req.json().catch(() => null)) as { id?: unknown } | null;
   const id = typeof body?.id === "string" ? body.id : "";

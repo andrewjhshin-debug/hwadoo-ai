@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "bad-count" }, { status: 400 });
 
   // 뒷방 주인의 지갑은 줄지 않는다 — 초 켜기와 같은 셈
-  if (isAdminAccount({ uid, email }))
+  if (isAdminAccount({ uid, email, emailVerified: !!email }))
     return Response.json({ ok: true, free: true, left: 999 });
 
   const db = getFirestore(app);

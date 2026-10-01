@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "no-one" }, { status: 409 });
 
   // ② 값 — 뒷방 주인은 안 치른다(초 켜기·연꽃 쓰기와 같은 셈)
-  const 공짜 = isAdminAccount({ uid, email });
+  const 공짜 = isAdminAccount({ uid, email, emailVerified: !!email });
 
   if (!공짜) {
     const wallet = db.doc(`wallets/${uid}`);
