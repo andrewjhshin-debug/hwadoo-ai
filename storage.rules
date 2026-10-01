@@ -48,6 +48,14 @@ service firebase.storage {
       allow update, delete: if false;
     }
 
+    // 실시간 인증 사진 — 공개 사진과 완전히 분리한다. 본인과 관리자도
+    // 저장소에서 직접 읽지 않고 서버 심사 화면의 짧은 주소만 쓴다.
+    match /yeon-proof/{uid}/{shot} {
+      allow read: if false;
+      allow create: if signedIn() && request.auth.uid == uid && isPhoto();
+      allow update, delete: if false;
+    }
+
     // ── 그 밖은 전부 잠근다 ─────────────────────────────────
     // 새 쓰임이 생기면 여기 위에 칸을 하나 더 판다. 열어 두고 잊는 것보다
     // 막아 두고 막혔다고 듣는 편이 언제나 싸다.

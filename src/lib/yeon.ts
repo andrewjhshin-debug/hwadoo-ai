@@ -119,6 +119,8 @@ export type 인연프로필 = {
   approvedPhotoCount?: number;
   /** 서로 다른 신고가 누적되면 서버가 켜는 임시 숨김 표 */
   reportHold?: boolean;
+  /** 즉석 카메라 인증 — 공개 카드에는 절대 쓰이지 않는 관리자 전용 사진 */
+  photoProof?: { path: string; gesture: string; state: "pending" | "ok" | "no"; at: number; expiresAt: number };
   /** 심사중 → 활동. 쉼은 본인이 끈 것, 정지는 뒷방이 끈 것 */
   state: "심사중" | "활동" | "쉼" | "정지";
   /** 법명을 스스로 한 번 고쳤나 — 그 뒤로는 뒷방을 거친다.
