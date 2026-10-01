@@ -47,6 +47,11 @@ const NOTICE: Record<string, { title: string; body: string; path: string }> = {
     body: "인연 게시판에서 확인해 보세요.",
     path: "/gathering",
   },
+  proof: {
+    title: "새 즉석 사진 인증",
+    body: "뒷방 사진 승인에서 확인해 주세요.",
+    path: "/admin",
+  },
 };
 
 export async function POST(request: Request) {
@@ -103,7 +108,8 @@ export async function POST(request: Request) {
     kind !== "answer" &&
     kind !== "dm" &&
     kind !== "dm-request" &&
-    kind !== "comment"
+    kind !== "comment" &&
+    kind !== "proof"
   ) {
     return Response.json({ error: "bad request" }, { status: 400 });
   }
@@ -113,7 +119,7 @@ export async function POST(request: Request) {
 
   // 4.5) 잦은 두드림 억제 — 같은 사람이 같은 갈래로 60초 안에 또 부르면
   // 조용히 무시한다 (푸시·메일 폭탄 방지 — 관리자 갈래는 제외)
-  if (kind === "dm" || kind === "dm-request" || kind === "comment") {
+  if (kind === "dm" || kind === "dm-request" || kind === "comment" || kind === "proof") {
     const limitRef = db.collection("notify-limits").doc(`${kind}:${callerUid}`);
     const now = Date.now();
     try {
@@ -140,6 +146,11 @@ export async function POST(request: Request) {
       return Response.json({ error: "bad request" }, { status: 400 });
     }
     uid = payload.uid;
+  } else if (kind === "proof") {
+    // 본인이 실제로 심사 대기 인증을 올린 직후에만 뒷방을 깨운다.
+    const proof = (await db.doc(`yeon-profiles/${callerUid}`).get()).data()?.photoProof;
+    if (proof?.state !== "pending") return Response.json({ error: "no-pending-proof" }, { status: 403 });
+    uid = ADMIN_UID;
   } else if (kind === "dm" || kind === "dm-request") {
     // 쪽지 — 스레드를 읽어, 부른 이가 멤버인지 확인하고 상대에게 보낸다
     if (typeof payload.threadId !== "string" || !payload.threadId) {

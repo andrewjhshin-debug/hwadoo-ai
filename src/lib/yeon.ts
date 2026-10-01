@@ -458,6 +458,7 @@ export async function 인증사진올리기(file: File, challenge: 인증도전)
     body: JSON.stringify({ path, code: challenge.code }),
   });
   if (!r.ok) throw new Error("인증 사진을 심사 줄에 올리지 못했습니다");
+  void pingPush({ kind: "proof" });
 }
 
 /** 지역 — 절이 있는 곳 위주로. 리스트가 길면 고르기가 일이 된다 */
