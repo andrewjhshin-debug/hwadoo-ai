@@ -34,6 +34,7 @@ import {
   나이,
   들어올수있나,
   모자란것,
+  채비됐나,
   본인확인_켬,
   사진빼기,
   사진올리기,
@@ -113,9 +114,10 @@ export default function 인연내프로필() {
       // 없다. 안 누르면 아무에게도 안 보이는데, 안 보인다는 것도 안
       // 알려 준다 — 문턱이 아니라 **함정**이었다.
       // 채워지는 그 순간 판에 선다. 쉬고 싶으면 아래에서 내리면 된다.
-      const 설수있나 = 모자란것(다음).length === 0;
+      const 설수있나 = 채비됐나(다음);
+      const 심사중 = 모자란것(다음).length === 0 && !설수있나 && 다음.state !== "쉼";
       const 처음서나 = 설수있나 && 다음.state !== "활동" && 다음.state !== "쉼";
-      await 프로필저장(처음서나 ? { ...part, state: "활동" } : part);
+      await 프로필저장(처음서나 ? { ...part, state: "활동" } : 심사중 ? { ...part, state: "심사중" } : part);
       if (처음서나) {
         setMe({ ...다음, state: "활동" });
         // 방금 섰다는 것은 말해 준다 — 조용히 서면 선 줄을 모른다
@@ -148,8 +150,7 @@ export default function 인연내프로필() {
     저장중잡기(true);
     저장됨잡기(false);
     try {
-      const 설수있나 = 모자란것(me).length === 0;
-      await 고치기(설수있나 && me?.state !== "쉼" ? { state: "활동" } : {});
+      await 고치기({});
       저장됨잡기(true);
       window.setTimeout(() => 저장됨잡기(false), 2200);
     } finally {
@@ -180,7 +181,9 @@ export default function 인연내프로필() {
         // 한 박자 비워 주면 브라우저가 그 사이에 치운다.
         await new Promise((r) => setTimeout(r, 120));
       }
-      await 고치기({ photos: [...이미, ...새것] });
+      // 심사 줄에는 사진올리기()가 서버를 통해 직접 적는다. 여기서 배열을
+      // 다시 쓰면 브라우저가 승인 상태를 바꿀 수 있는 문이 도로 열린다.
+      if (새것.length) await 다시읽기();
     } catch (e) {
       탈잡기(e instanceof Error ? e.message : "사진을 올리지 못했습니다");
     } finally {

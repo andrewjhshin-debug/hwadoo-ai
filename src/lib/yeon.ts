@@ -19,7 +19,6 @@ import {
   getDoc,
   serverTimestamp,
   setDoc,
-  updateDoc,
 } from "firebase/firestore";
 import { auth, db, storage } from "@/lib/firebase";
 import { getDownloadURL, ref as sref, uploadBytes } from "firebase/storage";
@@ -116,6 +115,8 @@ export type 인연프로필 = {
   line?: string;
   about?: string;
   photos: 사진[];
+  /** 서버가 승인한 사진 수. 브라우저는 이 숫자를 만들거나 고칠 수 없다. */
+  approvedPhotoCount?: number;
   /** 심사중 → 활동. 쉼은 본인이 끈 것, 정지는 뒷방이 끈 것 */
   state: "심사중" | "활동" | "쉼" | "정지";
   /** 법명을 스스로 한 번 고쳤나 — 그 뒤로는 뒷방을 거친다.
@@ -172,7 +173,7 @@ export function 들어올수있나(born: number): boolean {
  * 잣대를 하나로 모은다. 여기는 그 하나를 불러 쓰는 얇은 껍데기다.
  */
 export function 채비됐나(p: 인연프로필 | null): boolean {
-  return 모자란것(p).length === 0;
+  return 모자란것(p).length === 0 && (p?.approvedPhotoCount ?? 0) > 0;
 }
 
 /** 아직 못 채운 것 — 화면이 그대로 물어보면 된다. **이것이 유일한 잣대다** */
@@ -372,7 +373,17 @@ export async function 사진올리기(file: File): Promise<사진> {
   try {
     await uploadBytes(sref(storage, path), 짐, { contentType: 종류 });
     const url = await getDownloadURL(sref(storage, path));
-    return { path, url, state: "pending", at: Date.now() };
+    // 사진 배열은 Firestore에서 브라우저가 직접 고치지 않는다. 그 길을
+    // 열어 두면 콘솔에서 pending을 ok로 바꿔 승인제를 통째로 건널 수 있다.
+    const at = Date.now();
+    const token = await u.getIdToken();
+    const registered = await fetch("/api/yeon/photo", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      body: JSON.stringify({ path, url, at }),
+    });
+    if (!registered.ok) throw new Error("사진 심사 줄에 올리지 못했습니다");
+    return { path, url, state: "pending", at };
   } catch (e) {
     // 「사진을 올리지 못했습니다」 한 줄로 삼키면 다음 사람이 또 처음부터
     // 파야 한다. 저장소가 아예 안 열려 있던 것을 찾는 데 한나절을 썼다.
@@ -391,11 +402,14 @@ export async function 사진올리기(file: File): Promise<사진> {
 
 /** 사진 한 장을 지운다(목록에서만 — 저장소 청소는 뒷방이 한다) */
 export async function 사진빼기(path: string): Promise<void> {
-  const p = await 내프로필();
-  if (!p) return;
-  await updateDoc(doc(db, YEON, p.uid), {
-    photos: (p.photos ?? []).filter((f) => f.path !== path),
+  const u = auth.currentUser;
+  if (!u) return;
+  const r = await fetch("/api/yeon/photo", {
+    method: "DELETE",
+    headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` },
+    body: JSON.stringify({ path }),
   });
+  if (!r.ok) throw new Error("사진을 지우지 못했습니다");
 }
 
 /** 지역 — 절이 있는 곳 위주로. 리스트가 길면 고르기가 일이 된다 */

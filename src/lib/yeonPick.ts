@@ -64,6 +64,7 @@ export type 프로필 = {
   verified?: boolean;
   line?: string;
   photos?: { url: string; state: string }[];
+  approvedPhotoCount?: number;
   merit?: { rank?: string; total?: number };
   state?: string;
   seen?: number;
@@ -94,15 +95,8 @@ export function 추려서(p: 프로필, 붙박이 = false) {
     date: p.date ?? [],
     line: p.line ?? "",
     rank: p.merit?.rank ?? "",
-    // **거부된 것만** 뺀다.
-    //
-    // 예전에는 `state === "ok"` 만 내보냈다. 그런데 "ok" 를 찍는 코드가
-    // 이 저장소 어디에도 없었다 — 사진올리기(yeon.ts)는 늘 "pending" 을
-    // 적고, 뒷방에도 심사 칸이 없다. 그래서 프로필을 다 채운 사람도
-    // 영원히 아무에게도 안 보였고, 후보가 늘 0이라 화면은 가안 석 장으로
-    // 떨어졌다. **인연이 통째로 안 돌고 있었다.**
-    // 베타에서는 올라온 것을 일단 세우고, 신고가 들어오면 "no" 로 내린다.
-    photos: (p.photos ?? []).filter((f) => f.state !== "no").map((f) => f.url),
+    // 승인된 사진만. pending은 관리자 심사 줄 밖으로 절대 나가지 않는다.
+    photos: (p.photos ?? []).filter((f) => f.state === "ok").map((f) => f.url),
   };
   // 흡연·음주는 **안 보낸다.** 카드에서 먼저 물을 것이 아니다 —
   // 알약이 열두 개면 사람이 안 읽힌다(형: 「심플리시티가 핵심」).
@@ -199,7 +193,7 @@ export async function 뽑기(
   }
   // 사진이 있는 사람만 — 얼굴 없는 계정은 판에 안 선다.
   // 「통과(ok)된 것만」이었는데 통과를 찍는 코드가 없어 늘 0명이었다.
-  후보 = 후보.filter((p) => (p.photos ?? []).some((f) => f.state !== "no"));
+  후보 = 후보.filter((p) => (p.approvedPhotoCount ?? 0) > 0 && (p.photos ?? []).some((f) => f.state === "ok"));
   if (본인확인_켬) 후보 = 후보.filter((p) => p.verified);
   if (!후보.length) return { picks: [] as string[] };
 

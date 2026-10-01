@@ -568,7 +568,7 @@ service cloud.firestore {
       // 규칙 언어는 한글 이름을 못 쓴다 — 뜻은 「활동 중이고 사진이 있다」
       function isOpen() {
         return resource.data.state == '활동'
-          && resource.data.photos.size() > 0;
+          && resource.data.approvedPhotoCount > 0;
       }
       allow read: if isAdmin()
         || (request.auth != null && request.auth.uid == uid)
@@ -576,10 +576,11 @@ service cloud.firestore {
 
       // 제 것만 쓴다. 바꿀 수 없는 것 둘 —
       //  · state 를 '정지' 로는 스스로 못 간다(뒷방 몫)
-      //  · 사진의 통과 여부(photos[].state)는 손댈 수 없어야 하지만
-      //    규칙으로 배열 속을 못 보므로, **통과 표시는 서버(API)에서만**
-      //    찍는다. 여기서는 올리는 것까지만 허락한다
-      allow create: if request.auth != null && request.auth.uid == uid;
+      //  · 사진과 통과 여부는 서버(API)만 만진다. 사진을 올리고 지우는
+      //    요청도 서버가 pending 으로 기록한다.
+      allow create: if request.auth != null && request.auth.uid == uid
+        && !('approvedPhotoCount' in request.resource.data)
+        && !('photos' in request.resource.data);
       // 본인이 못 건드리는 칸 —
       //  · state 를 '정지' 로는 스스로 못 간다(뒷방 몫)
       //  · verified(본인확인)·merit(계급) 은 **서버가 찍는 표**다.
@@ -610,7 +611,8 @@ service cloud.firestore {
                 || request.resource.data.state != '정지')
             && (!('state' in resource.data)
                 || resource.data.state != '정지')
-            && same('verified') && same('merit'));
+            && same('verified') && same('merit')
+            && same('approvedPhotoCount') && same('photos'));
       allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
     }
 

@@ -76,21 +76,35 @@ export async function POST(req: Request) {
     const photos = (s.data()!.photos ?? []) as { path?: string; state?: string }[];
     if (!photos.some((f) => f.path === path))
       return Response.json({ error: "no-photo" }, { status: 404 });
-    await 칸.set(
-      {
-        photos: photos.map((f) =>
+    const nextPhotos = photos.map((f) =>
           f.path === path ? { ...f, state: act === "photo-ok" ? "ok" : "no" } : f
-        ),
-      },
-      { merge: true }
-    );
-    return Response.json({ ok: true, state: act === "photo-ok" ? "ok" : "no" });
+        );
+    const approved = nextPhotos.filter((f) => f.state === "ok").length;
+    const profile = s.data()!;
+    const basics =
+      typeof profile.sex === "string" && typeof profile.born === "number" &&
+      new Date().getFullYear() - profile.born >= 19 &&
+      typeof profile.area === "string" && profile.area.trim().length > 0 &&
+      typeof profile.line === "string" && profile.line.trim().length > 0;
+    const currentState = typeof profile.state === "string" ? profile.state : "심사중";
+    const state = approved === 0 && currentState === "활동"
+      ? "심사중"
+      : act === "photo-ok" && currentState === "심사중" && basics
+        ? "활동"
+        : currentState;
+    await 칸.set({ photos: nextPhotos, approvedPhotoCount: approved, state }, { merge: true });
+    return Response.json({ ok: true, state: act === "photo-ok" ? "ok" : "no", profileState: state });
   }
 
   if (act === "photos-off") {
     const photos = (s.data()!.photos ?? []) as { state?: string }[];
     await 칸.set(
-      { photos: photos.map((f) => ({ ...f, state: "no" })) },
+      {
+        photos: photos.map((f) => ({ ...f, state: "no" })),
+        approvedPhotoCount: 0,
+        // 신고로 사진을 내리면 활동 상태만 남아도 남에게 읽히면 안 된다.
+        state: "심사중",
+      },
       { merge: true }
     );
     return Response.json({ ok: true, photos: photos.length });
