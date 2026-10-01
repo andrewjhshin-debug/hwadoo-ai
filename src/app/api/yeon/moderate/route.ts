@@ -24,6 +24,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { revokeLegacyPhotoUrl } from "@/lib/yeonPhotoServer";
 import { ADMIN_UID, isAdminAccount } from "@/lib/config";
+import { adminAudit } from "@/lib/adminAudit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -96,6 +97,7 @@ export async function POST(req: Request) {
         : currentState;
     await 칸.set({ photos: nextPhotos, approvedPhotoCount: approved, state }, { merge: true });
     await revokeLegacyPhotoUrl(app, path).catch(() => {});
+    await adminAudit(db, { by: me.uid, action: act, target: uid, detail: { path, approved } }).catch(() => {});
     return Response.json({ ok: true, state: act === "photo-ok" ? "ok" : "no", profileState: state });
   }
 
@@ -110,6 +112,7 @@ export async function POST(req: Request) {
       },
       { merge: true }
     );
+    await adminAudit(db, { by: me.uid, action: act, target: uid, detail: { photos: photos.length } }).catch(() => {});
     return Response.json({ ok: true, photos: photos.length });
   }
 
@@ -120,5 +123,6 @@ export async function POST(req: Request) {
       : { state: "활동", reportHold: false, reportHoldAt: null },
     { merge: true }
   );
+  await adminAudit(db, { by: me.uid, action: act, target: uid }).catch(() => {});
   return Response.json({ ok: true, state: act === "stop" ? "정지" : "활동" });
 }

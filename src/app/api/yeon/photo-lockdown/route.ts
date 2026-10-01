@@ -7,6 +7,7 @@ import { getAuth } from "firebase-admin/auth";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { ADMIN_UID, isAdminAccount } from "@/lib/config";
 import { isYeonPhotoPath, revokeLegacyPhotoUrl } from "@/lib/yeonPhotoServer";
+import { adminAudit } from "@/lib/adminAudit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -59,5 +60,6 @@ export async function POST(req: Request) {
     cleaned += paths.length;
   }
   const last = snapshot.docs.at(-1)?.id ?? null;
+  await adminAudit(db, { by: me.uid, action: "photo-lockdown", detail: { cleaned, profiles: snapshot.size } }).catch(() => {});
   return Response.json({ ok: true, cleaned, next: snapshot.size === BATCH ? last : null });
 }
