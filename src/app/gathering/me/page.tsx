@@ -38,6 +38,9 @@ import {
   본인확인_켬,
   사진빼기,
   사진올리기,
+  인증도전받기,
+  인증사진올리기,
+  type 인증도전,
   프로필저장,
   내프로필,
 } from "@/lib/yeon";
@@ -52,6 +55,8 @@ export default function 인연내프로필() {
   const [올리는중, 올리는중잡기] = useState(false);
   const [탈, 탈잡기] = useState("");
   const 파일 = useRef<HTMLInputElement | null>(null);
+  const 인증파일 = useRef<HTMLInputElement | null>(null);
+  const [인증, 인증잡기] = useState<인증도전 | null>(null);
   const [법명, 법명잡기] = useState("");
   const [이름말, 이름말잡기] = useState(false);
   const [이름탈, 이름탈잡기] = useState("");
@@ -192,6 +197,18 @@ export default function 인연내프로필() {
     }
   };
 
+  const 인증시작 = async () => {
+    try { 인증잡기(await 인증도전받기()); } catch (e) { 탈잡기(e instanceof Error ? e.message : "인증을 시작하지 못했습니다"); }
+  };
+  const 인증사진고르기 = async (fs: FileList | null) => {
+    const file = fs?.[0];
+    if (!file || !인증) return;
+    올리는중잡기(true);
+    try { await 인증사진올리기(file, 인증); 인증잡기(null); await 다시읽기(); }
+    catch (e) { 탈잡기(e instanceof Error ? e.message : "인증 사진을 올리지 못했습니다"); }
+    finally { 올리는중잡기(false); if (인증파일.current) 인증파일.current.value = ""; }
+  };
+
   if (있나 === false)
     return (
       <HipRoom here="/gathering/me" lanes={false} rail="/gathering">
@@ -309,6 +326,20 @@ export default function 인연내프로필() {
             hidden
             onChange={(e) => 사진고르기(e.target.files)}
           />
+          <div className="mt-5 text-center">
+            {!인증 ? (
+              <button type="button" onClick={인증시작} className="text-[11px] tracking-[0.16em] text-hanji-faint underline underline-offset-4">
+                즉석 사진 인증
+              </button>
+            ) : (
+              <div className="space-y-2 rounded-2xl border border-gold/25 bg-white/45 px-4 py-3 text-[12px] text-hanji-dim">
+                <p>지금 카메라에서 <b>{인증.gesture}</b></p>
+                <p className="text-[10px] text-hanji-faint">인증 사진은 관리자만 확인하고 30일 뒤 지웁니다.</p>
+                <button type="button" onClick={() => 인증파일.current?.click()} className="text-gold underline underline-offset-4">카메라로 찍기</button>
+              </div>
+            )}
+            <input ref={인증파일} type="file" accept="image/*" capture="user" hidden onChange={(e) => void 인증사진고르기(e.target.files)} />
+          </div>
         </div>
 
         {/* ── 돋보기 — **남이 보는 내 카드** ─────────────────

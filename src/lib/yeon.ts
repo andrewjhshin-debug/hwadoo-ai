@@ -431,6 +431,31 @@ export async function 사진빼기(path: string): Promise<void> {
   if (!r.ok) throw new Error("사진을 지우지 못했습니다");
 }
 
+export type 인증도전 = { gesture: string; code: string; until: number };
+
+/** 즉석 인증은 갤러리가 아닌 카메라 입력을 쓰고, 공개 사진 칸과 분리한다. */
+export async function 인증도전받기(): Promise<인증도전> {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요합니다");
+  const r = await fetch("/api/yeon/proof", { headers: { authorization: `Bearer ${await u.getIdToken()}` } });
+  if (!r.ok) throw new Error("인증 동작을 불러오지 못했습니다");
+  return r.json() as Promise<인증도전>;
+}
+
+export async function 인증사진올리기(file: File, challenge: 인증도전): Promise<void> {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요합니다");
+  const { 짐, 종류, 끝 } = await 다시굽기(file);
+  const path = `yeon-proof/${u.uid}/${Date.now()}.${끝}`;
+  await uploadBytes(sref(storage, path), 짐, { contentType: 종류 });
+  const r = await fetch("/api/yeon/proof", {
+    method: "POST",
+    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+    body: JSON.stringify({ path, code: challenge.code }),
+  });
+  if (!r.ok) throw new Error("인증 사진을 심사 줄에 올리지 못했습니다");
+}
+
 /** 지역 — 절이 있는 곳 위주로. 리스트가 길면 고르기가 일이 된다 */
 export const 지역들 = [
   "서울",
