@@ -95,12 +95,12 @@ export async function GET(req: Request) {
   const 사람 = await Promise.all(
     picks.map(async (id) => {
       const d = await db.doc(`yeon-profiles/${id}`).get();
-      return d.exists ? 추려서({ uid: id, ...d.data() }) : null;
+      return d.exists ? 추려서(app, { uid: id, ...d.data() }) : null;
     })
   );
   const 운카드 = 붙박이
     ? await db.doc(`yeon-profiles/${붙박이}`).get().then((d) =>
-        d.exists ? 추려서({ uid: 붙박이, ...d.data() }, true) : null
+        d.exists ? 추려서(app, { uid: 붙박이, ...d.data() }, true) : null
       )
     : null;
 

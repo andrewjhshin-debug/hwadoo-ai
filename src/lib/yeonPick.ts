@@ -1,7 +1,9 @@
+import type { App } from "firebase-admin/app";
 import type { Firestore } from "firebase-admin/firestore";
 // 문턱 스위치 하나 — 켜면 확인 안 된 사람은 판에도 못 서고 뽑히지도 않는다
 import { 본인확인_켬 } from "@/lib/yeon";
 import { ADMIN_UID } from "@/lib/config";
+import { isYeonPhotoPath, shortPhotoUrl } from "@/lib/yeonPhotoServer";
 
 // 인연 — 서버끼리 나눠 쓰는 값과 셈.
 //
@@ -63,7 +65,7 @@ export type 프로필 = {
   religionOk?: boolean;
   verified?: boolean;
   line?: string;
-  photos?: { url: string; state: string }[];
+  photos?: { path?: string; state: string }[];
   approvedPhotoCount?: number;
   merit?: { rank?: string; total?: number };
   state?: string;
@@ -71,7 +73,11 @@ export type 프로필 = {
 };
 
 /** 남에게 내보낼 만큼만 — 프로필을 통째로 넘기지 않는다 */
-export function 추려서(p: 프로필, 붙박이 = false) {
+export async function 추려서(app: App, p: 프로필, 붙박이 = false) {
+  const approved = (p.photos ?? []).filter((f): f is { path: string; state: string } =>
+    f.state === "ok" && isYeonPhotoPath(p.uid, f.path)
+  );
+  const photos = (await Promise.all(approved.map((f) => shortPhotoUrl(app, f.path)))).filter((url): url is string => !!url);
   return {
     uid: p.uid,
     // 붙박이 — 운영자 한 장. 화면이 이걸 보고 카드를 키운다
@@ -96,7 +102,7 @@ export function 추려서(p: 프로필, 붙박이 = false) {
     line: p.line ?? "",
     rank: p.merit?.rank ?? "",
     // 승인된 사진만. pending은 관리자 심사 줄 밖으로 절대 나가지 않는다.
-    photos: (p.photos ?? []).filter((f) => f.state === "ok").map((f) => f.url),
+    photos,
   };
   // 흡연·음주는 **안 보낸다.** 카드에서 먼저 물을 것이 아니다 —
   // 알약이 열두 개면 사람이 안 읽힌다(형: 「심플리시티가 핵심」).

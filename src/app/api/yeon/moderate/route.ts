@@ -22,6 +22,7 @@
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
+import { revokeLegacyPhotoUrl } from "@/lib/yeonPhotoServer";
 import { ADMIN_UID, isAdminAccount } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -76,9 +77,10 @@ export async function POST(req: Request) {
     const photos = (s.data()!.photos ?? []) as { path?: string; state?: string }[];
     if (!photos.some((f) => f.path === path))
       return Response.json({ error: "no-photo" }, { status: 404 });
-    const nextPhotos = photos.map((f) =>
-          f.path === path ? { ...f, state: act === "photo-ok" ? "ok" : "no" } : f
-        );
+    const nextPhotos = photos.map((f) => {
+      const { url: _legacyUrl, ...safe } = f as typeof f & { url?: string };
+      return f.path === path ? { ...safe, state: act === "photo-ok" ? "ok" : "no" } : safe;
+    });
     const approved = nextPhotos.filter((f) => f.state === "ok").length;
     const profile = s.data()!;
     const basics =
@@ -93,6 +95,7 @@ export async function POST(req: Request) {
         ? "활동"
         : currentState;
     await 칸.set({ photos: nextPhotos, approvedPhotoCount: approved, state }, { merge: true });
+    await revokeLegacyPhotoUrl(app, path).catch(() => {});
     return Response.json({ ok: true, state: act === "photo-ok" ? "ok" : "no", profileState: state });
   }
 

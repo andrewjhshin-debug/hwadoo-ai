@@ -6,15 +6,10 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { adminApp } from "@/lib/firebaseAdmin";
+import { isYeonPhotoPath, revokeLegacyPhotoUrl, shortPhotoUrl } from "@/lib/yeonPhotoServer";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-function photoPath(uid: string, value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const prefix = `yeon/${uid}/`;
-  return value.startsWith(prefix) && /^[A-Za-z0-9._/-]{1,220}$/.test(value) ? value : null;
-}
 
 async function userOf(req: Request) {
   const app = adminApp();
@@ -31,10 +26,9 @@ async function userOf(req: Request) {
 export async function POST(req: Request) {
   const who = await userOf(req);
   if ("error" in who) return who.error;
-  const body = (await req.json().catch(() => null)) as { path?: unknown; url?: unknown; at?: unknown } | null;
-  const path = photoPath(who.uid, body?.path);
-  const url = typeof body?.url === "string" ? body.url : "";
-  if (!path || url.length > 2_500 || !url.includes(encodeURIComponent(path)))
+  const body = (await req.json().catch(() => null)) as { path?: unknown; at?: unknown } | null;
+  const path = isYeonPhotoPath(who.uid, body?.path) ? body!.path : null;
+  if (!path)
     return Response.json({ error: "bad-photo" }, { status: 400 });
 
   // 실제로 방금 자기 칸에 올라온 파일인지 확인한다. URL 문자열만 만들어
@@ -54,7 +48,7 @@ export async function POST(req: Request) {
   await ref.set(
     {
       uid: who.uid,
-      photos: [...photos, { path, url, state: "pending", at: typeof body?.at === "number" ? body.at : Date.now() }],
+      photos: [...photos, { path, state: "pending", at: typeof body?.at === "number" ? body.at : Date.now() }],
       // 사진을 처음 올린 사람이 활동으로 잘못 서지 않게, 승인 전에는 심사중.
       state: data.state === "활동" || data.state === "쉼" || data.state === "정지" ? data.state : "심사중",
     },
@@ -63,11 +57,25 @@ export async function POST(req: Request) {
   return Response.json({ ok: true });
 }
 
+/** 내 사진 미리보기 — 본인 인증 뒤에만 짧은 주소를 발급한다. */
+export async function GET(req: Request) {
+  const who = await userOf(req);
+  if ("error" in who) return who.error;
+  const snapshot = await getFirestore(who.app).doc(`yeon-profiles/${who.uid}`).get();
+  const photos = Array.isArray(snapshot.data()?.photos) ? snapshot.data()!.photos : [];
+  const visible = await Promise.all(photos.map(async (photo: { path?: unknown; state?: unknown; at?: unknown }) => {
+    if (!isYeonPhotoPath(who.uid, photo.path)) return null;
+    const url = await shortPhotoUrl(who.app, photo.path);
+    return url ? { path: photo.path, url, state: photo.state ?? "pending", at: photo.at } : null;
+  }));
+  return Response.json({ photos: visible.filter(Boolean) });
+}
+
 export async function DELETE(req: Request) {
   const who = await userOf(req);
   if ("error" in who) return who.error;
   const body = (await req.json().catch(() => null)) as { path?: unknown } | null;
-  const path = photoPath(who.uid, body?.path);
+  const path = isYeonPhotoPath(who.uid, body?.path) ? body!.path : null;
   if (!path) return Response.json({ error: "bad-photo" }, { status: 400 });
   const db = getFirestore(who.app);
   const ref = db.doc(`yeon-profiles/${who.uid}`);
@@ -84,5 +92,6 @@ export async function DELETE(req: Request) {
     },
     { merge: true },
   );
+  await getStorage(who.app).bucket().file(path).delete().catch(() => {});
   return Response.json({ ok: true });
 }

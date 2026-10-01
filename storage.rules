@@ -16,9 +16,9 @@ rules_version = '2';
 //   ② 그림이어야 한다 (jpeg · png · webp)
 //   ③ 8MB 까지 (yeon.ts 가 클라이언트에서 거르는 것과 같은 수)
 //
-// 읽기는 열어 둔다. 사진의 url 은 다운로드 토큰이 박힌 긴 주소라
-// 주소를 아는 사람만 볼 수 있고, 그 주소는 서버(api/yeon/today)가
-// **통과된 사진만** 골라서 내보낸다.
+// 읽기는 열지 않는다. 카드·내 프로필·심사 화면은 서버가 발급하는
+// 몇 분짜리 주소로만 그림을 읽는다. 저장소 주소 하나가 떠돌아도
+// 대기 사진이 열리지 않는 것이 이 문을 닫는 이유다.
 // ─────────────────────────────────────────────────────────────
 
 service firebase.storage {
@@ -38,13 +38,14 @@ service firebase.storage {
 
     // ── 인연 프로필 사진 ────────────────────────────────────
     match /yeon/{uid}/{shot} {
-      allow read: if true;
-      allow create, update: if signedIn()
+      allow read: if false;
+      // 파일 이름은 매번 새로 만든다. 한 번 올라간 파일을 브라우저가
+      // 덮어쓰면 심사받은 얼굴을 다른 그림으로 바꿀 수 있으므로 create만.
+      allow create: if signedIn()
         && request.auth.uid == uid
         && isPhoto();
-      // 본인이 지울 수 있다. 목록에서 빼는 것(yeon.ts 사진빼기)과 달리
-      // 실물까지 지우는 길 — 탈퇴·교체 때 쓴다
-      allow delete: if signedIn() && request.auth.uid == uid;
+      // 지우기는 서버가 프로필 목록과 실물을 함께 걷는다.
+      allow update, delete: if false;
     }
 
     // ── 그 밖은 전부 잠근다 ─────────────────────────────────

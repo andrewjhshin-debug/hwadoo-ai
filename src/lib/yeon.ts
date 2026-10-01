@@ -21,7 +21,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { auth, db, storage } from "@/lib/firebase";
-import { getDownloadURL, ref as sref, uploadBytes } from "firebase/storage";
+import { ref as sref, uploadBytes } from "firebase/storage";
 
 /** 사진 한 장 */
 export type 사진 = {
@@ -216,7 +216,23 @@ export async function 내프로필(): Promise<인연프로필 | null> {
   if (!u) return null;
   const s = await getDoc(doc(db, YEON, u.uid));
   if (!s.exists()) return null;
-  return 갖추기({ uid: u.uid, ...s.data() });
+  const profile = 갖추기({ uid: u.uid, ...s.data() });
+  // 저장된 긴 다운로드 주소는 쓰지 않는다. 내 사진도 서버가 준 짧은
+  // 주소로만 미리 본다. 실패해도 프로필 편집 자체는 멈추지 않는다.
+  const signed = await fetch("/api/yeon/photo", {
+    headers: { authorization: `Bearer ${await u.getIdToken()}` },
+  })
+    .then((r) => r.ok ? r.json() : null)
+    .catch(() => null);
+  const byPath = new Map<string, string>(
+    Array.isArray(signed?.photos)
+      ? signed.photos.filter((x: unknown): x is { path: string; url: string } =>
+          !!x && typeof (x as { path?: unknown }).path === "string" && typeof (x as { url?: unknown }).url === "string")
+          .map((x: { path: string; url: string }) => [x.path, x.url])
+      : [],
+  );
+  profile.photos = profile.photos.map((photo) => ({ ...photo, url: byPath.get(photo.path) ?? "" }));
+  return profile;
 }
 
 /** 없는 칸을 빈 것으로 채운다 — 목록 칸은 반드시 배열이어야 한다 */
@@ -372,7 +388,6 @@ export async function 사진올리기(file: File): Promise<사진> {
   const path = `yeon/${u.uid}/${Date.now()}.${끝}`;
   try {
     await uploadBytes(sref(storage, path), 짐, { contentType: 종류 });
-    const url = await getDownloadURL(sref(storage, path));
     // 사진 배열은 Firestore에서 브라우저가 직접 고치지 않는다. 그 길을
     // 열어 두면 콘솔에서 pending을 ok로 바꿔 승인제를 통째로 건널 수 있다.
     const at = Date.now();
@@ -380,10 +395,10 @@ export async function 사진올리기(file: File): Promise<사진> {
     const registered = await fetch("/api/yeon/photo", {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-      body: JSON.stringify({ path, url, at }),
+      body: JSON.stringify({ path, at }),
     });
     if (!registered.ok) throw new Error("사진 심사 줄에 올리지 못했습니다");
-    return { path, url, state: "pending", at };
+    return { path, url: "", state: "pending", at };
   } catch (e) {
     // 「사진을 올리지 못했습니다」 한 줄로 삼키면 다음 사람이 또 처음부터
     // 파야 한다. 저장소가 아예 안 열려 있던 것을 찾는 데 한나절을 썼다.

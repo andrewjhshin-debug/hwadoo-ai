@@ -16,6 +16,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { ADMIN_UID, isAdminAccount } from "@/lib/config";
+import { isYeonPhotoPath, shortPhotoUrl } from "@/lib/yeonPhotoServer";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -57,13 +58,19 @@ export async function GET(req: Request) {
     const ps = (Array.isArray(x.photos) ? x.photos : []) as {
       path?: string; url?: string; state?: string;
     }[];
-    const 기다리는 = ps.filter((p) => p.state === "pending" && p.path && p.url);
+    const 기다리는 = ps.filter((p) => p.state === "pending" && isYeonPhotoPath(d.id, p.path));
     if (!기다리는.length) continue;
+    const photos = await Promise.all(기다리는.map(async (p) => {
+      const url = await shortPhotoUrl(app, p.path!);
+      return url ? { path: p.path!, url } : null;
+    }));
+    const ready = photos.filter((p): p is { path: string; url: string } => !!p);
+    if (!ready.length) continue;
     줄.push({
       uid: d.id,
       name: typeof x.name === "string" ? x.name : "이름 없는 이",
       state: typeof x.state === "string" ? x.state : undefined,
-      photos: 기다리는.map((p) => ({ path: p.path!, url: p.url! })),
+      photos: ready,
     });
   }
   return Response.json({ rows: 줄, total: 줄.reduce((a, r) => a + r.photos.length, 0) });
