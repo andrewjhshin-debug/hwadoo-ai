@@ -215,7 +215,9 @@ const SKINS = {
   keycap: [
     { id: "dongja", name: "동자", cup: "/obj/kc-dongja-front-soft.png",
       back: "/obj/kc-dongja-back.png", body: "/obj/kc-dongja-body.png",
-      ar: 928 / 1420, dip: "12%", bodyScale: 0.88, dot: "#ef86b0" },
+      // 형: 「오브제만 좀 크게」 — 몸만 키운다(그릇은 그대로).
+      // 1.0 이 한계선이다. 1.12 로 가면 어깨·팔이 꽃잎 밖으로 나온다.
+      ar: 928 / 1420, dip: "12%", bodyScale: 1.0, dot: "#ef86b0" },
     { id: "podae", name: "포대", cup: "/obj/kc-podae-front-soft.png",
       back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
       ar: 928 / 1205, dip: "13%", bodyScale: 0.88, dot: "#e0b354" },
