@@ -22,6 +22,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, storage } from "@/lib/firebase";
 import { ref as sref, uploadBytes } from "firebase/storage";
+import { pingPush } from "@/lib/dm";
 
 /** 사진 한 장 */
 export type 사진 = {
