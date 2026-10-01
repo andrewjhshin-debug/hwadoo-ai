@@ -13,6 +13,7 @@ import type { App } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getMessaging, type TokenMessage } from "firebase-admin/messaging";
+import { getStorage } from "firebase-admin/storage";
 import { adminApp, BATCH, cleanDeadTokens } from "@/lib/firebaseAdmin";
 import { SITE_URL } from "@/lib/config";
 import { milestoneMail, sendMail } from "@/lib/mail";
@@ -22,6 +23,23 @@ export const runtime = "nodejs";
 export const maxDuration = 60; // 계정이 늘면 메일 발송에 시간이 걸린다 — 여유를 둔다
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** 즉석 인증 사진은 매일 한 번, 30일이 지난 것은 원본까지 함께 걷는다. */
+async function clearExpiredYeonProofs(app: App, db: ReturnType<typeof getFirestore>, now: number) {
+  const expired = await db.collection("yeon-profiles")
+    .where("photoProof.expiresAt", "<=", now)
+    .limit(100)
+    .get();
+  let cleared = 0;
+  for (const row of expired.docs) {
+    const proof = row.get("photoProof") as { path?: unknown; expiresAt?: unknown } | undefined;
+    if (typeof proof?.path !== "string" || typeof proof?.expiresAt !== "number" || proof.expiresAt > now) continue;
+    await getStorage(app).bucket().file(proof.path).delete().catch(() => {});
+    await row.ref.set({ photoProof: FieldValue.delete() }, { merge: true });
+    cleared += 1;
+  }
+  return cleared;
+}
 
 // ── 문안 고르기 — 순수 함수들 (서버에서 store 를 방어적으로 읽는다) ──
 
@@ -202,6 +220,7 @@ export async function GET(request: Request) {
 
   const db = getFirestore(app);
   const messaging = getMessaging(app);
+  const proofCleared = await clearExpiredYeonProofs(app, db, Date.now()).catch(() => 0);
 
   // 화두 하루·사흘·이레 익음 메일 — 푸시 구독 여부와 무관하게 계정 전체를 살핀다.
   // 딱 익은 그날 하루만 보낸다(매일 재전송하지 않는다) — 답을 쓸 때까지
@@ -222,7 +241,7 @@ export async function GET(request: Request) {
     return { token: d.id, uid: typeof uid === "string" && uid ? uid : null };
   });
   if (entries.length === 0) {
-    return Response.json({ sent: 0, failed: 0, cleaned: 0, mailed });
+    return Response.json({ sent: 0, failed: 0, cleaned: 0, mailed, proofCleared });
   }
 
   // uid 별 users 문서는 한 번만 읽는다 — 한 사람이 여러 기기로 구독해도
@@ -288,5 +307,5 @@ export async function GET(request: Request) {
   // 앞에 세우면 60초 한도를 이 일이 먼저 먹어, 사람이 늘수록 아침 문안이
   // 못 나갈 수 있다. 이건 급하지 않은 청소다.
   const 닫은방 = await 조용한방걷기(app).catch(() => 0);
-  return Response.json({ sent, failed, cleaned, mailed, closed: 닫은방 });
+  return Response.json({ sent, failed, cleaned, mailed, closed: 닫은방, proofCleared });
 }

@@ -328,9 +328,15 @@ export default function 인연내프로필() {
           />
           <div className="mt-5 text-center">
             {!인증 ? (
-              <button type="button" onClick={인증시작} className="text-[11px] tracking-[0.16em] text-hanji-faint underline underline-offset-4">
-                즉석 사진 인증
-              </button>
+              me?.photoProof?.state === "pending" ? (
+                <p className="text-[11px] tracking-[0.08em] text-hanji-faint">인증 사진을 심사 중입니다</p>
+              ) : me?.photoProof?.state === "ok" ? (
+                <p className="text-[11px] tracking-[0.08em] text-gold">즉석 사진 인증 완료</p>
+              ) : (
+                <button type="button" onClick={인증시작} className="text-[11px] tracking-[0.16em] text-hanji-faint underline underline-offset-4">
+                  즉석 사진 인증
+                </button>
+              )
             ) : (
               <div className="space-y-2 rounded-2xl border border-gold/25 bg-white/45 px-4 py-3 text-[12px] text-hanji-dim">
                 <p>지금 카메라에서 <b>{인증.gesture}</b></p>

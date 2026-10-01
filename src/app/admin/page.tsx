@@ -687,7 +687,7 @@ export default function AdminPage() {
   //      만들고 어쩌고 해 줄 수 있나?」
   // 올라온 사진은 pending 으로 앉는데 **그걸 보는 자리가 없었다.**
   const [사진줄, 사진줄잡기] = useState<
-    { uid: string; name: string; state?: string; photos: { path: string; url: string }[] }[]
+    { uid: string; name: string; state?: string; photos: { path: string; url: string }[]; proof?: { path: string; url: string; gesture: string } }[]
   >([]);
   const [사진잠금말, 사진잠금말잡기] = useState("");
   const 사진줄읽기 = useCallback(async () => {
@@ -701,13 +701,13 @@ export default function AdminPage() {
   useEffect(() => { if (isAdmin) void 사진줄읽기(); }, [isAdmin, 사진줄읽기]);
 
   /** 한 장 통과·반려 — 서버만 할 수 있다(배열 속은 규칙이 못 본다) */
-  const 사진보기 = async (uid: string, path: string, ok: boolean) => {
+  const 사진보기 = async (uid: string, path: string, ok: boolean, proof = false) => {
     const u = auth.currentUser;
     if (!u) throw new Error("다시 들어와 주세요");
     const r = await fetch("/api/yeon/moderate", {
       method: "POST",
       headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
-      body: JSON.stringify({ uid, path, act: ok ? "photo-ok" : "photo-no" }),
+      body: JSON.stringify({ uid, path, act: proof ? (ok ? "proof-ok" : "proof-no") : (ok ? "photo-ok" : "photo-no") }),
     });
     if (!r.ok) throw new Error("실패");
     await 사진줄읽기();
@@ -1764,6 +1764,17 @@ export default function AdminPage() {
                       </span>
                     </p>
                     <div className="mt-3 flex flex-wrap gap-3">
+                      {row.proof && (
+                        <div className="w-[112px] rounded-[10px] border border-gold/35 p-1.5">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={row.proof.url} alt="즉석 인증 사진" className="block aspect-[3/4] w-full rounded-[7px] object-cover" />
+                          <p className="mt-1 text-center text-[9px] text-gold">인증 · {row.proof.gesture}</p>
+                          <div className="mt-1.5 flex gap-1.5">
+                            <button disabled={busy === row.proof.path} onClick={() => act(row.proof!.path, () => 사진보기(row.uid, row.proof!.path, true, true))} className={`${smallBtn} flex-1 border-gold/50 text-gold`}>통과</button>
+                            <button disabled={busy === row.proof.path} onClick={() => act(row.proof!.path, () => 사진보기(row.uid, row.proof!.path, false, true))} className={`${smallBtn} flex-1 border-vermilion/50 text-vermilion`}>반려</button>
+                          </div>
+                        </div>
+                      )}
                       {row.photos.map((p) => (
                         <div key={p.path} className="w-[112px]">
                           {/* eslint-disable-next-line @next/next/no-img-element */}

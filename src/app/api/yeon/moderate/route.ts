@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   const path = typeof body?.path === "string" ? body.path : "";
   if (!/^[A-Za-z0-9]{6,64}$/.test(uid))
     return Response.json({ error: "bad-target" }, { status: 400 });
-  const 할것 = ["photos-off", "stop", "open", "photo-ok", "photo-no"];
+  const 할것 = ["photos-off", "stop", "open", "photo-ok", "photo-no", "proof-ok", "proof-no"];
   if (typeof act !== "string" || !할것.includes(act))
     return Response.json({ error: "bad-act" }, { status: 400 });
 
@@ -84,6 +84,7 @@ export async function POST(req: Request) {
     });
     const approved = nextPhotos.filter((f) => f.state === "ok").length;
     const profile = s.data()!;
+    const proofOk = !profile.photoProofRequired || profile.photoProof?.state === "ok";
     const basics =
       typeof profile.sex === "string" && typeof profile.born === "number" &&
       new Date().getFullYear() - profile.born >= 19 &&
@@ -92,13 +93,30 @@ export async function POST(req: Request) {
     const currentState = typeof profile.state === "string" ? profile.state : "심사중";
     const state = approved === 0 && currentState === "활동"
       ? "심사중"
-      : act === "photo-ok" && currentState === "심사중" && basics
+      : act === "photo-ok" && currentState === "심사중" && basics && proofOk
         ? "활동"
         : currentState;
     await 칸.set({ photos: nextPhotos, approvedPhotoCount: approved, state }, { merge: true });
     await revokeLegacyPhotoUrl(app, path).catch(() => {});
     await adminAudit(db, { by: me.uid, action: act, target: uid, detail: { path, approved } }).catch(() => {});
     return Response.json({ ok: true, state: act === "photo-ok" ? "ok" : "no", profileState: state });
+  }
+
+  if (act === "proof-ok" || act === "proof-no") {
+    const proof = s.data()!.photoProof as { path?: string; state?: string } | undefined;
+    if (!proof?.path || proof.state !== "pending") return Response.json({ error: "no-proof" }, { status: 404 });
+    const profile = s.data()!;
+    const approved = Array.isArray(profile.photos)
+      ? profile.photos.filter((photo: { state?: string }) => photo.state === "ok").length : 0;
+    const basics = typeof profile.sex === "string" && typeof profile.born === "number"
+      && new Date().getFullYear() - profile.born >= 19
+      && typeof profile.area === "string" && profile.area.trim().length > 0
+      && typeof profile.line === "string" && profile.line.trim().length > 0;
+    const state = act === "proof-ok" && profile.state === "심사중" && basics && approved > 0 && !profile.reportHold
+      ? "활동" : profile.state;
+    await 칸.set({ photoProof: { ...proof, state: act === "proof-ok" ? "ok" : "no" }, state }, { merge: true });
+    await adminAudit(db, { by: me.uid, action: act, target: uid }).catch(() => {});
+    return Response.json({ ok: true, state: act === "proof-ok" ? "ok" : "no", profileState: state });
   }
 
   if (act === "photos-off") {

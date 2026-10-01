@@ -121,6 +121,8 @@ export type 인연프로필 = {
   reportHold?: boolean;
   /** 즉석 카메라 인증 — 공개 카드에는 절대 쓰이지 않는 관리자 전용 사진 */
   photoProof?: { path: string; gesture: string; state: "pending" | "ok" | "no"; at: number; expiresAt: number };
+  /** 새 사진을 올린 뒤 즉석 인증이 통과되어야 공개 카드에 설 수 있다. */
+  photoProofRequired?: boolean;
   /** 심사중 → 활동. 쉼은 본인이 끈 것, 정지는 뒷방이 끈 것 */
   state: "심사중" | "활동" | "쉼" | "정지";
   /** 법명을 스스로 한 번 고쳤나 — 그 뒤로는 뒷방을 거친다.
@@ -177,7 +179,9 @@ export function 들어올수있나(born: number): boolean {
  * 잣대를 하나로 모은다. 여기는 그 하나를 불러 쓰는 얇은 껍데기다.
  */
 export function 채비됐나(p: 인연프로필 | null): boolean {
-  return 모자란것(p).length === 0 && (p?.approvedPhotoCount ?? 0) > 0;
+  return 모자란것(p).length === 0
+    && (p?.approvedPhotoCount ?? 0) > 0
+    && (!p?.photoProofRequired || p.photoProof?.state === "ok");
 }
 
 /** 아직 못 채운 것 — 화면이 그대로 물어보면 된다. **이것이 유일한 잣대다** */

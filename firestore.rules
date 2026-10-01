@@ -574,6 +574,10 @@ service cloud.firestore {
       function isOpen() {
         return resource.data.state == '활동'
           && resource.data.approvedPhotoCount > 0
+          // 새 사진을 올린 뒤에는 즉석 인증이 통과돼야만 공개한다.
+          && (!('photoProofRequired' in resource.data)
+              || resource.data.photoProofRequired != true
+              || (('photoProof' in resource.data) && resource.data.photoProof.state == 'ok'))
           && resource.data.get('reportHold', false) != true;
       }
       allow read: if isAdmin()
@@ -587,6 +591,8 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == uid
         && !('approvedPhotoCount' in request.resource.data)
         && !('photos' in request.resource.data)
+        && !('photoProof' in request.resource.data)
+        && !('photoProofRequired' in request.resource.data)
         && !('reportHold' in request.resource.data)
         && !('reportHoldAt' in request.resource.data);
       // 본인이 못 건드리는 칸 —
@@ -621,6 +627,7 @@ service cloud.firestore {
                 || resource.data.state != '정지')
             && same('verified') && same('merit')
             && same('approvedPhotoCount') && same('photos')
+            && same('photoProof') && same('photoProofRequired')
             && same('reportHold') && same('reportHoldAt'));
       allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
     }

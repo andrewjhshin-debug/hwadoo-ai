@@ -67,6 +67,8 @@ export type 프로필 = {
   line?: string;
   photos?: { path?: string; state: string }[];
   approvedPhotoCount?: number;
+  photoProofRequired?: boolean;
+  photoProof?: { state?: string };
   merit?: { rank?: string; total?: number };
   state?: string;
   seen?: number;
@@ -199,7 +201,11 @@ export async function 뽑기(
   }
   // 사진이 있는 사람만 — 얼굴 없는 계정은 판에 안 선다.
   // 「통과(ok)된 것만」이었는데 통과를 찍는 코드가 없어 늘 0명이었다.
-  후보 = 후보.filter((p) => (p.approvedPhotoCount ?? 0) > 0 && (p.photos ?? []).some((f) => f.state === "ok"));
+  후보 = 후보.filter((p) =>
+    (p.approvedPhotoCount ?? 0) > 0
+    && (p.photos ?? []).some((f) => f.state === "ok")
+    && (!p.photoProofRequired || p.photoProof?.state === "ok")
+  );
   if (본인확인_켬) 후보 = 후보.filter((p) => p.verified);
   if (!후보.length) return { picks: [] as string[] };
 

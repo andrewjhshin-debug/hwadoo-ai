@@ -13,6 +13,13 @@ export function isYeonPhotoPath(uid: string, value: unknown): value is string {
     && /^[A-Za-z0-9._/-]{1,220}$/.test(value);
 }
 
+/** 즉석 인증 사진은 공개 프로필 사진과 다른, 비공개 칸에만 둔다. */
+export function isYeonProofPath(uid: string, value: unknown): value is string {
+  return typeof value === "string"
+    && value.startsWith(`yeon-proof/${uid}/`)
+    && /^[A-Za-z0-9._/-]{1,220}$/.test(value);
+}
+
 export async function shortPhotoUrl(app: App, path: string): Promise<string | null> {
   try {
     const [url] = await getStorage(app).bucket().file(path).getSignedUrl({

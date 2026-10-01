@@ -82,7 +82,9 @@ export async function GET(req: Request) {
       db.doc(`yeon-blocks/${ADMIN_UID}/list/${uid}`).get(),
     ]);
     const p = 운.exists ? ({ uid: ADMIN_UID, ...운.data() } as 프로필) : null;
-    const 섰나 = !!p && p.state === "활동" && (p.approvedPhotoCount ?? 0) > 0 && (p.photos ?? []).some((f) => f.state === "ok");
+    const 섰나 = !!p && p.state === "활동" && (p.approvedPhotoCount ?? 0) > 0
+      && (p.photos ?? []).some((f) => f.state === "ok")
+      && (!p.photoProofRequired || p.photoProof?.state === "ok");
     const 이미: string[] = 본적.exists ? (본적.data()!.done ?? []) : [];
     if (섰나 && !이미.includes(ADMIN_UID) && !내가막음.exists && !쟤가막음.exists)
       붙박이 = ADMIN_UID;

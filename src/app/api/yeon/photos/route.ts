@@ -16,7 +16,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { ADMIN_UID, isAdminAccount } from "@/lib/config";
-import { isYeonPhotoPath, shortPhotoUrl } from "@/lib/yeonPhotoServer";
+import { isYeonPhotoPath, isYeonProofPath, shortPhotoUrl } from "@/lib/yeonPhotoServer";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -52,6 +52,7 @@ export async function GET(req: Request) {
     name: string;
     state?: string;
     photos: { path: string; url: string }[];
+    proof?: { path: string; url: string; gesture: string };
   }[] = [];
   for (const d of snap?.docs ?? []) {
     const x = d.data();
@@ -59,18 +60,22 @@ export async function GET(req: Request) {
       path?: string; url?: string; state?: string;
     }[];
     const 기다리는 = ps.filter((p) => p.state === "pending" && isYeonPhotoPath(d.id, p.path));
-    if (!기다리는.length) continue;
+    const proof = x.photoProof as { path?: string; state?: string; gesture?: string } | undefined;
+    const proofReady = proof?.state === "pending" && isYeonProofPath(d.id, proof.path);
+    if (!기다리는.length && !proofReady) continue;
     const photos = await Promise.all(기다리는.map(async (p) => {
       const url = await shortPhotoUrl(app, p.path!);
       return url ? { path: p.path!, url } : null;
     }));
     const ready = photos.filter((p): p is { path: string; url: string } => !!p);
-    if (!ready.length) continue;
+    const proofUrl = proofReady && proof?.path ? await shortPhotoUrl(app, proof.path) : null;
+    if (!ready.length && !proofUrl) continue;
     줄.push({
       uid: d.id,
       name: typeof x.name === "string" ? x.name : "이름 없는 이",
       state: typeof x.state === "string" ? x.state : undefined,
       photos: ready,
+      proof: proofUrl && proof?.path ? { path: proof.path, url: proofUrl, gesture: proof.gesture ?? "" } : undefined,
     });
   }
   return Response.json({ rows: 줄, total: 줄.reduce((a, r) => a + r.photos.length, 0) });

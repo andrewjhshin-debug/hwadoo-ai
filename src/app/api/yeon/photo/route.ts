@@ -49,6 +49,9 @@ export async function POST(req: Request) {
     {
       uid: who.uid,
       photos: [...photos, { path, state: "pending", at: typeof body?.at === "number" ? body.at : Date.now() }],
+      // 새 사진은 즉석 인증까지 통과해야 공개 카드에 설 수 있다. 기존
+      // 이용자는 갑자기 감추지 않되, 이 시점 이후 새로 올린 사진부터 적용한다.
+      photoProofRequired: true,
       // 사진을 처음 올린 사람이 활동으로 잘못 서지 않게, 승인 전에는 심사중.
       state: data.state === "활동" || data.state === "쉼" || data.state === "정지" ? data.state : "심사중",
     },
