@@ -11,7 +11,7 @@ import { getDatabase } from "firebase/database";
 import { getStorage } from "firebase/storage";
 
 /** 구글 콘솔에 우리 주소를 등록했으면 true — 위 주석 참고 */
-const 손잡이를_우리집으로 = false;
+const 손잡이를_우리집으로 = true;
 function 우리손잡이(): boolean {
   return (
     손잡이를_우리집으로 &&
@@ -35,7 +35,7 @@ const firebaseConfig = {
   //   · 승인된 리디렉션 URI:       https://www.hwa-du.com/__/auth/handler
   //                               https://hwa-du.com/__/auth/handler
   // 넣고 저장한 뒤 아래 한 줄을 true 로 바꾸면 끝이다.
-  // 지금은 false — 등록 전에 켜 두면 **아무도 로그인을 못 한다.**
+  // 콘솔 등록까지 마쳤으므로 이제 로그인도 우리 주소에서 끝낸다.
   authDomain: 우리손잡이()
     ? window.location.hostname
     : "hwadu-9dc7b.firebaseapp.com",
