@@ -10,7 +10,8 @@
 import { useEffect, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import type { User } from "firebase/auth";
+import { GoogleAuthProvider, reauthenticateWithPopup, type User } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
 import {
   BIZ_ADDRESS,
@@ -650,6 +651,23 @@ export default function SettingsPage() {
     } finally {
       setLoginBusy(false);
     }
+  };
+
+  const eraseAccount = async () => {
+    const u = auth.currentUser;
+    if (!u || !window.confirm("계정을 삭제하면 프로필·사진·수행 기록을 되돌릴 수 없습니다. 계속할까요?")) return;
+    const send = async (fresh = false) => fetch("/api/account/erase", {
+      method: "POST",
+      headers: { authorization: `Bearer ${await u.getIdToken(fresh)}` },
+    });
+    let result = await send();
+    if (result.status === 403) {
+      await reauthenticateWithPopup(u, new GoogleAuthProvider());
+      result = await send(true);
+    }
+    if (!result.ok) throw new Error("계정을 삭제하지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
+    await logout();
+    window.location.assign("/");
   };
 
   // 문안 받기 — 허락을 구하고 구독한다.
@@ -1748,6 +1766,12 @@ export default function SettingsPage() {
                 className="rounded-[10px] border border-ink-3 px-6 py-2.5 text-[12px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-vermilion/50 hover:text-vermilion"
               >
                 로그아웃
+              </button>
+              <button
+                onClick={() => void eraseAccount().catch((e) => setLoginError(e instanceof Error ? e.message : "계정을 삭제하지 못했습니다."))}
+                className="text-[11px] text-hanji-faint underline underline-offset-4 hover:text-vermilion"
+              >
+                계정 삭제
               </button>
             </div>
           </>
