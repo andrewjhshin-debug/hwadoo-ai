@@ -18,10 +18,16 @@ async function caller(req: Request) {
 export async function GET(req: Request) {
   const who = await caller(req);
   if (!who) return Response.json({ error: "unauthorized" }, { status: 401 });
+  const db = getFirestore(who.app);
+  const now = Date.now();
+  const prior = (await db.doc(`yeon-proof-challenges/${who.uid}`).get()).data();
+  // 카메라 인증은 다시 찍을 수 있지만, 자동 호출로 심사 대기열을 쌓지는 못한다.
+  if (typeof prior?.issuedAt === "number" && now - prior.issuedAt < 60_000)
+    return Response.json({ error: "proof-wait", wait: Math.ceil((60_000 - (now - prior.issuedAt)) / 1000) }, { status: 429 });
   const gesture = gestures[Math.floor(Math.random() * gestures.length)];
   const code = Math.random().toString(36).slice(2, 6).toUpperCase();
-  const until = Date.now() + 10 * 60_000;
-  await getFirestore(who.app).doc(`yeon-proof-challenges/${who.uid}`).set({ gesture, code, until });
+  const until = now + 10 * 60_000;
+  await db.doc(`yeon-proof-challenges/${who.uid}`).set({ gesture, code, until, issuedAt: now });
   return Response.json({ gesture, code, until });
 }
 
@@ -34,6 +40,8 @@ export async function POST(req: Request) {
   if (!path.startsWith(`yeon-proof/${who.uid}/`) || !/^[A-Za-z0-9._/-]{1,220}$/.test(path))
     return Response.json({ error: "bad-proof" }, { status: 400 });
   const db = getFirestore(who.app);
+  const existing = (await db.doc(`yeon-profiles/${who.uid}`).get()).data()?.photoProof;
+  if (existing?.state === "pending") return Response.json({ error: "proof-pending" }, { status: 409 });
   const challenge = (await db.doc(`yeon-proof-challenges/${who.uid}`).get()).data();
   if (!challenge || challenge.code !== code || Date.now() > challenge.until)
     return Response.json({ error: "expired-challenge" }, { status: 409 });

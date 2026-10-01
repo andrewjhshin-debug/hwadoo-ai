@@ -39,10 +39,14 @@ export async function POST(req: Request) {
   const id = createHash("sha256").update(`${uid}|${targetUid}|${postId}`).digest("hex").slice(0, 40);
   const thread = db.doc(`dm-threads/${id}`);
   const wallet = db.doc(`wallets/${uid}`);
+  const day = new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
+  const limit = db.doc(`dm-request-limits/${uid}_${day}`);
   const free = isAdminAccount({ uid, email, emailVerified: !!email });
   const result = await db.runTransaction(async (tx) => {
     const existing = await tx.get(thread);
     if (existing.exists) return { exists: true, thread: { id, ...existing.data() } };
+    const used = (await tx.get(limit)).data()?.count;
+    if (typeof used === "number" && used >= 5) return { limited: true };
     if (!free) {
       const { 지갑 } = await 지갑열기(tx, wallet);
       if (지갑.lotus < 1) return { needLotus: true };
@@ -58,8 +62,10 @@ export async function POST(req: Request) {
       status: "pending" as const, createdAt: FieldValue.serverTimestamp(), lastAt: FieldValue.serverTimestamp(),
     };
     tx.create(thread, data);
+    tx.set(limit, { uid, day, count: (typeof used === "number" ? used : 0) + 1, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     return { exists: false, thread: { id, ...data } };
   });
   if ("needLotus" in result) return Response.json({ error: "need-lotus" }, { status: 402 });
+  if ("limited" in result) return Response.json({ error: "daily-limit" }, { status: 429 });
   return Response.json({ ok: true, already: result.exists, thread: result.thread });
 }
