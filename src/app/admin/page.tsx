@@ -689,6 +689,7 @@ export default function AdminPage() {
   const [사진줄, 사진줄잡기] = useState<
     { uid: string; name: string; state?: string; photos: { path: string; url: string }[] }[]
   >([]);
+  const [사진잠금말, 사진잠금말잡기] = useState("");
   const 사진줄읽기 = useCallback(async () => {
     const u = auth.currentUser;
     if (!u) return;
@@ -709,6 +710,30 @@ export default function AdminPage() {
       body: JSON.stringify({ uid, path, act: ok ? "photo-ok" : "photo-no" }),
     });
     if (!r.ok) throw new Error("실패");
+    await 사진줄읽기();
+  };
+
+  /** 예전 다운로드 토큰은 사진 승인 한 장씩으로는 다 걷기 어렵다.
+      이 한 번은 기존 사진 전체를 훑어 영구 주소를 폐기한다. */
+  const 기존사진주소잠그기 = async () => {
+    const u = auth.currentUser;
+    if (!u) throw new Error("다시 들어와 주세요");
+    let after: string | null = null;
+    let cleaned = 0;
+    사진잠금말잡기("기존 사진 주소를 잠그는 중…");
+    do {
+      const r: Response = await fetch("/api/yeon/photo-lockdown", {
+        method: "POST",
+        headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+        body: JSON.stringify({ after }),
+      });
+      const j: { error?: string; cleaned?: number; next?: string | null } | null = await r.json().catch(() => null);
+      if (!r.ok) throw new Error(j?.error ?? "사진 주소를 잠그지 못했습니다");
+      cleaned += Number(j?.cleaned ?? 0);
+      after = typeof j?.next === "string" ? j.next : null;
+      사진잠금말잡기(`기존 사진 ${cleaned}장을 잠그는 중…`);
+    } while (after);
+    사진잠금말잡기(`기존 사진 ${cleaned}장의 옛 주소를 잠갔습니다.`);
     await 사진줄읽기();
   };
 
@@ -1711,9 +1736,19 @@ export default function AdminPage() {
         {/* ── 사진 승인 — 인연에 올라온 아직 안 본 사진 ── */}
         {tab === "photos" && (
           <section>
-            <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
-              심사 대기 · {사진줄.reduce((a, r) => a + r.photos.length, 0)}
-            </h3>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
+                심사 대기 · {사진줄.reduce((a, r) => a + r.photos.length, 0)}
+              </h3>
+              <button
+                disabled={busy === "photo-lockdown"}
+                onClick={() => act("photo-lockdown", 기존사진주소잠그기)}
+                className={`${smallBtn} border-gold/40 text-gold hover:bg-gold/10`}
+              >
+                기존 주소 잠그기
+              </button>
+            </div>
+            {사진잠금말 && <p className="mt-2 text-[11px] text-hanji-faint">{사진잠금말}</p>}
             {사진줄.length === 0 ? (
               <p className="mt-3 text-sm text-hanji-faint">
                 기다리는 사진이 없습니다.
