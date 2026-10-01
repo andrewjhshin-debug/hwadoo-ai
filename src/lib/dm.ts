@@ -123,52 +123,19 @@ export async function requestThread(
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   if (u.uid === target.uid) throw new Error("나에게는 청할 수 없습니다");
-  const existing = await findMyRequestTo(post.id, target.uid);
-  if (existing) return existing;
-  const body = {
-    postId: post.id,
-    postTitle: post.templeName ?? post.title,
-    meetDate: post.meetDate ?? null,
-    requesterUid: u.uid,
-    requesterName: anonName(),
-    ownerUid: target.uid,
-    ownerName: target.name,
-    members: [u.uid, target.uid],
-    intro: intro.trim().slice(0, 200),
-    status: "pending" as const,
-    createdAt: serverTimestamp(),
-    lastAt: serverTimestamp(),
-  };
-  const threadRef = doc(collection(db, "dm-threads"));
-  // 뒷방 주인(본·부계정)은 연꽃 없이 무제한 — 도량을 살피는 손길이라
-  if (isAdminAccount(u)) {
-    await setDoc(threadRef, body);
-  } else {
-    // 연꽃 차감과 청 생성을 한 묶음(batch)으로 — 규칙이 '지갑에서 정확히
-    // 한 송이가 같이 빠졌는가'를 getAfter 로 검사하므로, 차감 없는 청은
-    // 서버 차원에서 거부된다 (클라이언트를 우회해도 못 뚫는다)
-    const walletRef = doc(db, "wallets", u.uid);
-    const snap = await getDoc(walletRef);
-    if (!snap.exists()) {
-      // 첫 손길 — 규칙이 '정확히 FIRST_GRANT 송이 생성'만 허용한다
-      await setDoc(walletRef, { lotus: FIRST_GRANT });
-    } else {
-      const n = snap.data().lotus;
-      if (typeof n !== "number" || n <= 0) return "need-lotus";
-    }
-    const batch = writeBatch(db);
-    batch.update(walletRef, { lotus: increment(-1) });
-    batch.set(threadRef, body);
-    try {
-      await batch.commit();
-    } catch {
-      // 규칙이 막았다 — 대개 잔고 없음 (다른 기기에서 방금 썼다거나)
-      return "need-lotus";
-    }
-  }
-  // 새 청 — 대화 중 메시지(kind: "dm")와 갈래를 나눠, 이때만 메일도 함께 간다
-  void pingPush({ kind: "dm-request", threadId: threadRef.id });
-  return { id: threadRef.id, ...body } as unknown as DmThread;
+  const r = await fetch("/api/dm/request", {
+    method: "POST",
+    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      postId: post.id, postTitle: post.templeName ?? post.title, meetDate: post.meetDate ?? null,
+      targetUid: target.uid, targetName: target.name, requesterName: anonName(), intro,
+    }),
+  });
+  if (r.status === 402) return "need-lotus";
+  const data = await r.json().catch(() => null);
+  if (!r.ok || !data?.thread) throw new Error("쪽지를 청하지 못했습니다");
+  if (!data.already) void pingPush({ kind: "dm-request", threadId: data.thread.id });
+  return data.thread as DmThread;
 }
 
 // ── 내 서신함 ────────────────────────────────────────────
