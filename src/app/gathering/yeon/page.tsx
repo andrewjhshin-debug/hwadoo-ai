@@ -435,6 +435,9 @@ export default function 오늘의인연() {
           )}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {사진[장] ? <img src={사진[장]} alt="" draggable={false} /> : <em />}
+          {사진[장] && 이.photoMark && (
+            <span className="hip-yeon-watermark" aria-hidden>{이.photoMark}</span>
+          )}
 
           {/* 이름은 사진 위에 얹는다 — 카드가 한 덩이로 읽힌다 */}
           <span className="hip-yeon-who">

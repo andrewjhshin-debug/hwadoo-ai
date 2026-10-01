@@ -5550,6 +5550,21 @@ html[data-theme="light"] {
   .hip-yeon-face em {
     background: linear-gradient(150deg, rgba(251, 199, 218, 0.5), rgba(196, 234, 223, 0.5));
   }
+  /* 원본 저장은 막고, 화면 캡처에는 보는 사람별 흔적을 남긴다. 웹은
+     스크린샷 자체를 완전히 막을 수 없으므로 억제·추적 표식을 겹친다. */
+  .hip-yeon-watermark {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-shadow: 0 1px 5px rgba(37, 24, 30, 0.4);
+    transform: rotate(-24deg) scale(1.35);
+  }
   /* 여러 장이면 위에 눈금 — 몇 장인지가 먼저 보여야 누른다 */
   .hip-yeon-ticks {
     position: absolute;

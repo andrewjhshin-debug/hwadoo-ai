@@ -107,8 +107,11 @@ export async function GET(req: Request) {
   // 내가 오늘 이미 합장했거나 넘긴 사람
   const 한것: string[] = 지금?.done ?? [];
 
+  // 화면을 찍어도 카드가 누구에게 열렸던 것인지 남는다. UID 전체를
+  // 내보내지 않고 끝 네 글자와 날짜만 얹어, 유출 억제와 개인정보를 같이 챙긴다.
+  const photoMark = `화두 · ${day.replaceAll("-", ".")} · ${uid.slice(-4)}`;
   return Response.json({
-    picks: [운카드, ...사람].filter(Boolean),
+    picks: [운카드, ...사람].filter(Boolean).map((person) => ({ ...person!, photoMark })),
     done: 한것,
     cap,
     max: MAX_PICKS,
