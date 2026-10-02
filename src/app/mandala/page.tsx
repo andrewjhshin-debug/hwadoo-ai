@@ -54,8 +54,9 @@ const DKEY = "hwadu.mandala.draw.v1";
 // 100vw 는 **화면** 폭이다. 이 판은 .hip-screen 안에 있고 그 통은
 // 좌우 여백을 갖고 있으니, 화면 폭에서 16px 만 뺀 값은 통보다 넓다 —
 // 그만큼 동그라미가 양옆으로 삐져나가 잘렸다.
-// 통의 폭(100%)으로 잰다. 세로 한도와 480px 천장은 그대로.
-const BOARD_W = "max(240px, min(100%, 100dvh - 390px, 480px))";
+// 화면 양옆 24px을 반드시 남기는 **같은 값**으로 두 모드의 원판을 잰다.
+// 부모의 100%는 모드별 flex 계산이 달라져 그리기 쪽만 넓어질 수 있다.
+const BOARD_W = "max(240px, min(calc(100vw - 48px), calc(100dvh - 390px), 480px))";
 
 // 조각 테두리 — 밤엔 옅은 금선, 낮엔 짙은 먹선(#3a2c20 계열)이어야 흐리지 않다.
 // globals.css 는 다른 손이 만지므로, 여기서 인라인 CSS 변수로만 해결한다.
@@ -1546,8 +1547,8 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
         />
       </div>
 
-      {/* 만다라 판 — 판 위에는 아무 버튼도 없다. 색칠 모드와 같은 결.
-          폭은 클래스(mandala-draw-size)로 — 긴 화면에서 컨트롤이 커지면 예약폭도 같이 는다 */}
+      {/* 만다라 판 — 색칠 모드와 동일한 BOARD_W를 쓴다.
+          같은 탭 자리에서 두 원이 한 점에 겹쳐야 한다. */}
       <div className="relative mt-3 max-w-[480px] sm:mt-5" style={{ width: BOARD_W }}>
         <div
           ref={boardRef}
