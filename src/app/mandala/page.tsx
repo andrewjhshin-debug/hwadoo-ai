@@ -61,24 +61,18 @@ const BOARD_W = "max(240px, min(100%, 100dvh - 390px, 480px))";
 // globals.css 는 다른 손이 만지므로, 여기서 인라인 CSS 변수로만 해결한다.
 const THEME_CSS = `
 /* ── 먹은 **동그라미 안에만** ────────────────────────────────
-   형: 「만다라는 동그라미 부분만 먹으로 하라고. 다시 되돌리고 배경은」
-
-   앞서 「원래 버전처럼 먹색으로」를 방 전체로 읽고 판을 통째로 어둡게
-   깔았다. 그러면 만다라만 흰 접시처럼 떠서 거꾸로였다.
-   방은 낮 팔레트 그대로 두고, **판 한 장만** 먹이다. 원래가 그랬다 —
-   먹지 위에 금선으로 그은 만다라.
-
-   그래서 선 빛깔은 낮·밤을 안 가린다. 판이 늘 먹이니 늘 금선이다. */
+   방은 낮 팔레트를 지키고, 그리기 판만 먹지로 둔다.
+   가이드 원도 금색이 아닌 중성 먹회색으로 맞춰 그림 색과 섞이지 않는다. */
 .mandala-board {
-  background: #17140f;
+  background: #171513;
   --m-line: rgba(224,190,108,0.42);
   --m-frame: rgba(224,190,108,0.24);
-  --m-guide: rgba(224,190,108,0.16);
+  --m-guide: rgba(205,198,186,0.20);
 }
 html[data-theme="light"] .mandala-board {
   --m-line: rgba(224,190,108,0.42);
   --m-frame: rgba(224,190,108,0.24);
-  --m-guide: rgba(224,190,108,0.16);
+  --m-guide: rgba(205,198,186,0.20);
 }
 .mandala-draw-size { width: max(240px, min(100vw - 16px, 100dvh - 390px, 480px)); }
 /* 그리기 모바일 — 화면이 충분히 길 때만(여유가 남을 때만) 컨트롤을 키워
@@ -121,8 +115,8 @@ const TOOL_ICON =
 const SIDE =
   "inline-flex items-center gap-1.5 rounded-full border bg-ink-2/70 px-2.5 py-1 text-[10px] tracking-[0.1em] backdrop-blur-sm transition-colors";
 
-// 가이드 선 폴백 — CSS 변수(--m-guide)를 아직 못 읽었을 때 쓰는 밤 금선 값
-const GUIDE_FALLBACK = "rgba(217,180,91,0.12)";
+// 가이드 선 폴백 — CSS 변수(--m-guide)를 아직 못 읽었을 때 쓰는 먹회색 값
+const GUIDE_FALLBACK = "rgba(205,198,186,0.20)";
 
 // 가이드 선(동심원·방사선) — 그리기 모드의 배경 캔버스가 쓴다
 function paintGuides(
