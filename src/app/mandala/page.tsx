@@ -64,7 +64,7 @@ const THEME_CSS = `
    방은 낮 팔레트를 지키고, 그리기 판만 먹지로 둔다.
    가이드 원도 금색이 아닌 중성 먹회색으로 맞춰 그림 색과 섞이지 않는다. */
 .mandala-board {
-  background: #171513;
+  background: #171513 !important;
   --m-line: rgba(224,190,108,0.42);
   --m-frame: rgba(224,190,108,0.24);
   --m-guide: rgba(205,198,186,0.20);
@@ -308,7 +308,7 @@ function PaletteBar({
   return (
     <div className={`mt-3 w-full max-w-[480px] ${roomy ? "m-roomy" : ""}`}>
       <div
-        className="grid grid-flow-col grid-rows-2 justify-start gap-1.5 overflow-x-auto px-1 pb-1 sm:flex sm:flex-wrap sm:justify-center sm:overflow-visible"
+        className="grid min-h-[68px] grid-flow-col grid-rows-2 content-center justify-start gap-1.5 overflow-x-auto px-1 py-1.5 sm:flex sm:min-h-0 sm:flex-wrap sm:justify-center sm:overflow-visible"
         style={{ scrollbarWidth: "none" }}
       >
         <button
@@ -1551,7 +1551,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
       <div className="mandala-draw-size relative mt-3 max-w-[480px]">
         <div
           ref={boardRef}
-          className="mandala-board relative aspect-square w-full overflow-hidden rounded-full border border-ink-3 bg-ink-2/40"
+          className="mandala-board relative aspect-square w-full overflow-hidden rounded-full border border-ink-3"
         >
           <div ref={wrapRef} className="relative h-full w-full origin-center will-change-transform">
             <canvas ref={bgRef} className="pointer-events-none absolute inset-0 h-full w-full" />
