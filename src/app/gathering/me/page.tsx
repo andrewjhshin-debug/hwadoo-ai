@@ -190,7 +190,11 @@ export default function 인연내프로필() {
       // 다시 쓰면 브라우저가 승인 상태를 바꿀 수 있는 문이 도로 열린다.
       if (새것.length) await 다시읽기();
     } catch (e) {
-      탈잡기(e instanceof Error ? e.message : "사진을 올리지 못했습니다");
+      // 사진 실패 사유(저장소 코드 등)는 프로필 화면에 내보이지 않는다.
+      // 재시도는 할 수 있게 두되, 사용자가 "까닭 모름" 같은 내부 문구를
+      // 보게 하지 않는다.
+      console.warn("인연 사진 업로드 실패", e);
+      탈잡기("");
     } finally {
       올리는중잡기(false);
       if (파일.current) 파일.current.value = "";
