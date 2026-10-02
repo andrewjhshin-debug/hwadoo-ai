@@ -6822,20 +6822,28 @@ html[data-theme="light"] {
      만큼 빈 칸이 남고 음수 여백으로 당기면 마침 판이 불상 밑에 깔린다
      (그게 방금 그 꼴이었다). 그림 크기를 직접 줄여 판이 다시 흐르게 한다. */
   .hip-screen-mid:has(.hip-write-foot) .sb-buddha img {
-    /* 완료 화면도 수행 중의 존재감을 잃지 않게 — 112px은 보상판에
-       밀려 불상이 아이콘처럼 보였다. 카드가 들어와도 불상은 한가운데 선다. */
-    height: 178px !important;
-    width: 178px !important;
+    /* 완료 화면도 수행 중과 **같은 크기**로 — 불상을 줄이는 대신
+       아래 보상 안내를 압축한다. */
+    height: 232px !important;
+    width: 232px !important;
     transition: height 0.45s cubic-bezier(0.2, 0.9, 0.3, 1), width 0.45s;
   }
   .hip-screen-mid:has(.hip-write-foot) .hip-big { font-size: clamp(44px, 14vw, 68px); }
   /* 마친 판에서는 「三歸依」 머리와 빈 줄도 한 뼘씩 줄인다 */
   .hip-screen-mid:has(.hip-write-foot) > p:first-child { margin-top: 12px; }
-  .hip-screen-mid:has(.hip-write-foot) .hip-write-foot { padding-top: 10px; }
+  .hip-screen-mid:has(.hip-write-foot) .hip-write-foot {
+    margin-top: 4px !important;
+    padding: 10px 18px 9px !important;
+  }
   /* 「+9 공덕」은 한 줄로 — 두 줄을 먹을 말이 아니다 */
   .hip-screen-mid .hip-write-foot > p:nth-child(2) { margin-top: 0; }
-  .hip-screen-mid .hip-write-foot > p:nth-child(3) { margin-top: 8px; }
-  .hip-screen-mid .hip-write-foot > div { margin-top: 12px; }
+  .hip-screen-mid .hip-write-foot > p:nth-child(3) {
+    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .hip-screen-mid .hip-write-foot > div { margin-top: 8px; }
+  .hip-screen-mid .hip-write-foot button { padding-top: 6px; padding-bottom: 6px; }
   @media (prefers-reduced-motion: reduce) {
     .hip-screen-mid:has(.hip-write-foot) .sb-buddha img { transition: none; }
   }
