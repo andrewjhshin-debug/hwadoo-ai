@@ -81,7 +81,7 @@ html[data-theme="light"] .mandala-board {
   .mandala-draw-size { width: max(240px, min(100vw - 16px, 100dvh - 432px, 480px)); }
   .m-tool { min-height: 42px; padding-top: 8px; padding-bottom: 8px; }
   .m-chip { min-height: 42px; }
-  .m-roomy .m-dot { height: 28px; width: 28px; }
+  .m-roomy .m-dot { height: 24px; width: 24px; }
   /* 형: 「이거 동그라미가 살짝 찌그러지는 거 수정」
      알이 격자 칸(grid)에 들어 있다. 격자는 칸이 모자라면 칸에 든 것을
      **눌러 맞춘다** — shrink-0 은 플렉스 말이라 여기서는 아무 일도 안
@@ -92,7 +92,7 @@ html[data-theme="light"] .mandala-board {
     min-width: 24px;
     min-height: 24px;
   }
-  .m-roomy .m-dot { min-width: 28px; min-height: 28px; }
+  .m-roomy .m-dot { min-width: 24px; min-height: 24px; }
   @media (min-width: 640px) { .m-dot { min-width: 28px; min-height: 28px; } }
 }
 `;
@@ -308,7 +308,7 @@ function PaletteBar({
   return (
     <div className={`mt-3 w-full max-w-[480px] ${roomy ? "m-roomy" : ""}`}>
       <div
-        className="grid min-h-[68px] grid-flow-col grid-rows-2 content-center justify-start gap-1.5 overflow-x-auto px-1 py-1.5 sm:flex sm:min-h-0 sm:flex-wrap sm:justify-center sm:overflow-visible"
+        className="grid min-h-[60px] grid-flow-col grid-rows-2 content-center justify-start gap-1 overflow-x-auto px-3 py-1.5 sm:flex sm:min-h-0 sm:flex-wrap sm:justify-center sm:gap-1.5 sm:overflow-visible"
         style={{ scrollbarWidth: "none" }}
       >
         <button
@@ -865,7 +865,7 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
     <>
       {/* 도구줄 — 토글 바로 아래, 모바일 전용. 판 위에는 아무것도 얹지 않는다 —
           캡처하면 만다라만. 데스크톱(sm+)은 세 버튼 모두 판 바깥에 있으니 통째로 접는다 */}
-      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-1.5 sm:hidden">
+      <div className="mt-2 flex min-h-[42px] w-full max-w-[480px] flex-wrap items-center justify-center gap-1.5 sm:hidden">
         <button
           onClick={resetView}
           aria-label="원위치(더블탭)"
@@ -1484,7 +1484,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
       {/* 도구줄 — 토글 바로 아래. 판 위에는 아무것도 얹지 않는다 — 캡처하면 만다라만.
           원위치·되돌리기·옮기기·비우기는 모바일 전용, 데스크톱(sm+)에선 판 바깥에 있다.
           붓 굵기는 여기 — 거울 옆이 아니라 토글 곁에서 고른다 */}
-      <div className="mt-2 flex w-full max-w-[480px] flex-wrap items-center justify-center gap-1.5">
+      <div className="mt-2 flex min-h-[42px] w-full max-w-[480px] flex-wrap items-center justify-center gap-1.5">
         <button
           onClick={resetView}
           aria-label="원위치(더블탭)"
@@ -1548,7 +1548,7 @@ function DrawMode({ color, onPick }: { color: string; onPick: (c: string) => voi
 
       {/* 만다라 판 — 판 위에는 아무 버튼도 없다. 색칠 모드와 같은 결.
           폭은 클래스(mandala-draw-size)로 — 긴 화면에서 컨트롤이 커지면 예약폭도 같이 는다 */}
-      <div className="mandala-draw-size relative mt-3 max-w-[480px]">
+      <div className="relative mt-3 max-w-[480px] sm:mt-5" style={{ width: BOARD_W }}>
         <div
           ref={boardRef}
           className="mandala-board relative aspect-square w-full overflow-hidden rounded-full border border-ink-3"
