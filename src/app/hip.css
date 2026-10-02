@@ -6817,13 +6817,15 @@ html[data-theme="light"] {
       마쳤을 때만 한 뼘 접는다. */
 @media (min-width: 0px) {
   .hip-screen-mid .hip-write-foot { padding-bottom: 14px; }
-  /* 마쳤을 때 — 불상이 자리를 **내준다.**
+  /* 마쳤을 때 — 불상이 자리를 조금만 **내준다.**
      transform 으로 줄이면 그림만 작아지고 **자리는 그대로**라, 줄인
      만큼 빈 칸이 남고 음수 여백으로 당기면 마침 판이 불상 밑에 깔린다
      (그게 방금 그 꼴이었다). 그림 크기를 직접 줄여 판이 다시 흐르게 한다. */
   .hip-screen-mid:has(.hip-write-foot) .sb-buddha img {
-    height: 112px !important;
-    width: 112px !important;
+    /* 완료 화면도 수행 중의 존재감을 잃지 않게 — 112px은 보상판에
+       밀려 불상이 아이콘처럼 보였다. 카드가 들어와도 불상은 한가운데 선다. */
+    height: 178px !important;
+    width: 178px !important;
     transition: height 0.45s cubic-bezier(0.2, 0.9, 0.3, 1), width 0.45s;
   }
   .hip-screen-mid:has(.hip-write-foot) .hip-big { font-size: clamp(44px, 14vw, 68px); }
