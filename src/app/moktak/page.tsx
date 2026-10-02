@@ -220,11 +220,14 @@ const SKINS = {
       ar: 928 / 1420, dip: "12%", bodyScale: 1.0, dot: "#ef86b0" },
     { id: "podae", name: "포대", cup: "/obj/kc-podae-front-soft.png",
       back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
-      ar: 928 / 1205, dip: "13%", bodyScale: 0.88, dot: "#e0b354" },
+      // 미륵과 같은 키캡 기준 크기. 노란 연꽃 받침은 그대로 고정하고
+      // 포대승 몸만 같은 중심·높이에서 조금 크게 보이게 한다.
+      ar: 928 / 1205, dip: "13%", bodyScale: 1.1, dot: "#e0b354" },
     // 앞꽃잎·몸·뒤판은 반드시 같은 928×1160 판을 쓴다. v2 앞꽃잎은
     // 별도 비율(1122×1402)이라 세 장을 포갤 때 밑 그림자가 튀어나왔다.
     { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front-soft.png",
       back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
+      // 포대승과 같은 1.1 배율. 탭을 바꿔도 몸의 기준 크기·받침 위치가 흔들리지 않는다.
       ar: 928 / 1160, dip: "13%", bodyScale: 1.1, dot: "#cfa03c" },
   ],
 } as const;
