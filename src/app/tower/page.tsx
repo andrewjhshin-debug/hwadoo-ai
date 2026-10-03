@@ -1,19 +1,22 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 돌탑 — 떨어지는 돌을 제자리에서 받아 다섯을 쌓는다.
+// 돌탑 — 바둑 두듯 **놓는 자리를 고른다.**
 //
-// 형: 「돌탑 지금 더 선명하게 게임처럼 흥미 유발로 다시 고쳐봐」
+// 형: 「돌탑 바둑처럼 둘 때마다 쌓아 올리는 거. 대신 중심 무너지면
+//      무너지고. 대신 또 너무 어렵지 않게」
 //
-// 받는 짜임(떨어지는 돌을 눌러 받는다)은 그대로 둔다. 바꾼 것은 **긴장**이다 —
-//  · 바닥이 생겼다. 받침돌 위에 쌓이니 비로소 탑으로 보인다
-//  · 받을 자리가 **띠 두 줄**로 또렷하다. 바깥 띠는 良, 안쪽 띠는 中
-//  · 빗나가면 글이 아니라 **글자 한 자**가 터진다(中·良·失)
-//  · 어긋난 만큼 탑이 **기운다.** 기울기 자가 차면 **무너진다** —
-//    이 판에서 처음으로 「실패할 수 있는 수행」이다
-//  · 층이 오를수록 빨라지고 띠가 좁아진다
+// 앞의 두 판은 **때**를 겨뤘다 — 떨어지는 돌을 띠 안에서 받거나,
+// 좌우로 오가는 돌을 멈춰 세우거나. 둘 다 돌탑이 아니라 리듬 놀이다.
+// 절 마당에서 돌을 올릴 때 겨루는 것은 때가 아니라 **자리**다.
 //
-// 글로 설명하지 않는다. 한 번 놓아 보면 안다.
+// 그래서 바둑처럼 둔다 —
+//  · 누른 **그 자리에** 돌이 놓인다. 흔들리지도, 기다리지도 않는다
+//  · 손가락이 가 있는 자리에 **다음 돌이 미리 비쳐** 보인다
+//  · 어긋난 돌이 **같은 쪽으로 쏠리면** 무게중심이 받침을 벗어나 무너진다
+//
+// 너그럽다 — 한 알이 끝까지 빗나가도 안 쓰러진다. 여럿이 한쪽으로
+// 쏠려야 넘어간다. 가운데 어림만 맞춰도 다섯이 선다.
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -33,139 +36,109 @@ const 층키 = 34;
 const 바닥 = 26;
 /** 무대 키 */
 const 무대 = 330;
+/** 가운데에서 최대 이만큼까지 비켜 놓을 수 있다(px) */
+const 비킬수 = 46;
+/**
+ * 무너지는 금 — 무게중심이 이만큼 쏠리면 쓰러진다.
+ * 형: 「너무 어렵지 않게」. 한 알이 끝까지(1.0) 빗나가도 안 넘어간다.
+ * 여럿이 **같은 쪽으로** 쏠려야 금에 닿는다.
+ */
+const 한계 = 1.6;
 
-/** 층마다 받는 자리(0=맨 위에서 떨어짐, 1=바닥) */
-const 자리 = [0.78, 0.8, 0.78, 0.81, 0.79];
-
-type 판정 = "中" | "良" | "失";
+type 판정 = "中" | "良" | "危";
 
 export default function TowerPage() {
-  const [놓인, 놓인잡기] = useState(0);
-  /** 쌓인 돌 — 저마다 중심에서 얼마나 어긋났나(-1~1) */
+  /** 쌓인 돌 — 저마다 가운데서 얼마나 어긋났나(-1~1) */
   const [돌들, 돌들잡기] = useState<number[]>([]);
-  const [내림, 내림잡기] = useState(0);
-  const [기운, 기운잡기] = useState(0);
+  /** 손가락이 가 있는 자리 — 다음 돌이 여기 비친다 */
+  const [겨눈, 겨눈잡기] = useState<number | null>(null);
   const [무너짐, 무너짐잡기] = useState(false);
   const [끝, 끝잡기] = useState(false);
   const [점수, 점수잡기] = useState(0);
   const [연속, 연속잡기] = useState(0);
-  /** 방금 판정 — 글자 한 자가 터졌다 사라진다 */
   const [튄것, 튄것잡기] = useState<{ v: 판정; n: number } | null>(null);
-  const 멈춤 = useRef(false);
+  const 판 = useRef<HTMLButtonElement | null>(null);
 
-  멈춤.current = 끝 || 무너짐;
+  const 놓인 = 돌들.length;
+  const 멈춤 = 끝 || 무너짐;
 
-  // ── 돌이 내려온다 ──────────────────────────────────────
-  // 층이 오를수록 빠르다. 화면을 떠나면 rAF 가 같이 쉬므로 밀리지 않는다.
-  useEffect(() => {
-    if (끝 || 무너짐) return;
-    let 틀 = 0;
-    let 앞 = performance.now();
-    const 떨어뜨리기 = (지금: number) => {
-      const 참 = Math.min(36, 지금 - 앞);
-      앞 = 지금;
-      내림잡기((v) => {
-        const 빠르기 = 0.00034 + 놓인 * 0.00007;
-        const 다음 = v + 참 * 빠르기;
-        return 다음 >= 1 ? 0 : 다음; // 바닥까지 가면 조용히 다시 올라간다
-      });
-      틀 = requestAnimationFrame(떨어뜨리기);
-    };
-    틀 = requestAnimationFrame(떨어뜨리기);
-    return () => cancelAnimationFrame(틀);
-  }, [끝, 무너짐, 놓인]);
+  /** 누른 가로 자리를 -1~1 로 — 판 가운데가 0 */
+  const 어디 = (e: React.PointerEvent | React.MouseEvent) => {
+    const el = 판.current;
+    if (!el) return 0;
+    const r = el.getBoundingClientRect();
+    const 몫 = ((e.clientX - r.left) / r.width - 0.5) * 2;
+    // 판 끝까지 끌어도 비킬 수 있는 만큼만 — 탑이 판 밖으로 안 나간다
+    return Math.max(-1, Math.min(1, 몫 * 1.35));
+  };
 
   const 터뜨리기 = useCallback((v: 판정) => {
     튄것잡기({ v, n: Date.now() });
     window.setTimeout(() => 튄것잡기((x) => (x && x.v === v ? null : x)), 520);
   }, []);
 
-  const 놓기 = useCallback(() => {
-    if (멈춤.current) return;
-    const 과녁 = 자리[놓인];
-    // 良 띠. 위층일수록 좁다
-    const 띠 = 0.17 - 놓인 * 0.016;
-    const 떨어진 = Math.abs(내림 - 과녁);
-
-    if (떨어진 > 띠) {
-      // 빗나감 — 돌은 안 쌓이고 탑만 한 뼘 기운다
-      const 더기움 = 0.3;
-      const 새기운 = 기운 + 더기움;
-      터뜨리기("失");
-      연속잡기(0);
-      buzz(18);
-      기운잡기(새기운);
-      if (새기운 >= 1) 쓰러뜨리기();
-      내림잡기(0);
-      return;
-    }
-
-    const 정확 = 1 - 떨어진 / 띠; // 1 이면 한가운데
-    const 중앙 = 정확 > 0.62;
-    // 어긋난 쪽으로 돌이 비켜 앉는다. 층마다 방향을 번갈아 둔다
-    const 비킴 = ((내림 - 과녁) / 띠) * (놓인 % 2 ? 1 : -1);
-    const 새기운 = 기운 + Math.abs(비킴) * 0.42;
-
-    터뜨리기(중앙 ? "中" : "良");
-    buzz(중앙 ? 9 : 6);
-    돌들잡기((v) => [...v, 비킴]);
-    점수잡기((v) => v + Math.round(12 + 정확 * 24 + 연속 * 3));
-    연속잡기((v) => v + 1);
-    기운잡기(새기운);
-    내림잡기(0);
-
-    if (새기운 >= 1) {
-      쓰러뜨리기();
-      return;
-    }
-    놓인잡기((n) => {
-      const 다음 = n + 1;
-      if (다음 === TOTAL) {
-        끝잡기(true);
-        addMerit("tower");
-        buzz(26);
-      }
-      return 다음;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [내림, 놓인, 기운, 연속, 터뜨리기]);
-
-  function 쓰러뜨리기() {
+  const 쓰러뜨리기 = useCallback(() => {
     무너짐잡기(true);
     연속잡기(0);
     buzz(30);
     window.setTimeout(() => {
       무너짐잡기(false);
-      놓인잡기(0);
       돌들잡기([]);
-      기운잡기(0);
-      내림잡기(0);
       점수잡기(0);
-    }, 1100);
-  }
+      겨눈잡기(null);
+    }, 1150);
+  }, []);
+
+  const 놓기 = useCallback(
+    (비킴: number) => {
+      if (멈춤) return;
+      const 벗어남 = Math.abs(비킴);
+      const 다음돌들 = [...돌들, 비킴];
+      // 무게중심 — 쌓인 돌이 **같은 쪽으로** 쏠린 만큼.
+      // 평균에 돌 수의 제곱근을 곱한다. 한 알은 가벼워도 셋이 같은 쪽이면 무겁다.
+      const 쏠림 =
+        Math.abs(다음돌들.reduce((s, x) => s + x, 0) / 다음돌들.length) *
+        Math.sqrt(다음돌들.length);
+
+      const 한가운데 = 벗어남 < 0.24;
+      터뜨리기(쏠림 > 한계 * 0.78 ? "危" : 한가운데 ? "中" : "良");
+      buzz(한가운데 ? 9 : 6);
+      돌들잡기(다음돌들);
+      점수잡기((v) => v + Math.round(10 + (1 - 벗어남) * 26 + 연속 * 3));
+      연속잡기((v) => (한가운데 ? v + 1 : 0));
+      겨눈잡기(null);
+
+      if (쏠림 > 한계) { 쓰러뜨리기(); return; }
+      if (다음돌들.length === TOTAL) {
+        끝잡기(true);
+        addMerit("tower");
+        buzz(26);
+      }
+    },
+    [멈춤, 돌들, 연속, 터뜨리기, 쓰러뜨리기],
+  );
 
   const 다시 = () => {
-    놓인잡기(0); 돌들잡기([]); 내림잡기(0); 기운잡기(0);
-    무너짐잡기(false); 끝잡기(false); 점수잡기(0); 연속잡기(0);
+    돌들잡기([]); 겨눈잡기(null); 무너짐잡기(false); 끝잡기(false);
+    점수잡기(0); 연속잡기(0);
   };
 
-  // 손가락이 어디를 눌러도 받는다 — 단추를 찾아 눈을 옮길 틈이 없다
+  // 자판으로도 — 노트북에서 한가운데에 둔다
   useEffect(() => {
     const 자판 = (e: KeyboardEvent) => {
-      if (e.code === "Space" || e.code === "Enter") { e.preventDefault(); 놓기(); }
+      if (e.code === "Space" || e.code === "Enter") { e.preventDefault(); 놓기(겨눈 ?? 0); }
     };
     window.addEventListener("keydown", 자판);
     return () => window.removeEventListener("keydown", 자판);
-  }, [놓기]);
+  }, [놓기, 겨눈]);
 
-  const 받는줄 = 바닥 + 놓인 * 층키;
-  const 띠폭 = 0.17 - 놓인 * 0.016;
-  const 높이 = (몫: number) => 받는줄 + (1 - 몫) * (무대 - 받는줄 - 40);
-  const 기운각 = 돌들.reduce((s, x) => s + x * 5.5, 0);
-  // 지금 받으면 쌓이는가 — 이걸 **보여 준다.** 띠가 켜지고 돌에 빛이 돈다.
-  // 형: 「어느 범위에 들어오면 딱 쌓인다, 이걸 더 직관적으로」
-  const 떨어진지금 = Math.abs(내림 - 자리[놓인]);
-  const 받이 = 끝 || 무너짐 ? 0 : 떨어진지금 <= 띠폭 * 0.38 ? 2 : 떨어진지금 <= 띠폭 ? 1 : 0;
+  const 중심 = 돌들.length ? 돌들.reduce((s, x) => s + x, 0) / 돌들.length : 0;
+  const 쏠림 = Math.abs(중심) * Math.sqrt(Math.max(1, 돌들.length));
+  const 기운각 = 중심 * 7;
+  /** 겨눈 자리가 얼마나 가운데인가 — 2 면 한가운데, 1 이면 걸친다 */
+  const 겨냥 =
+    멈춤 || 겨눈 === null ? 0 : Math.abs(겨눈) < 0.24 ? 2 : Math.abs(겨눈) < 0.66 ? 1 : 0;
+  const 비칠 = 겨눈 ?? 0;
 
   return (
     <HipRoom here="/tower" scroll={false}>
@@ -176,47 +149,28 @@ export default function TowerPage() {
           {연속 > 1 && <em className="hip-tower-combo">{연속}</em>}
         </p>
 
-        {/* 무대 전체가 단추다 — 돌에서 눈을 뗄 일이 없게 */}
+        {/* 바둑판처럼 — 누른 그 자리에 돌이 놓인다 */}
         <button
+          ref={판}
           type="button"
           className={`hip-tower-stage${무너짐 ? " fall" : ""}`}
-          data-hot={받이 || undefined}
+          data-hot={겨냥 || undefined}
           style={{ height: 무대 }}
-          onPointerDown={(e) => { e.preventDefault(); 놓기(); }}
+          onPointerDown={(e) => { e.preventDefault(); 겨눈잡기(어디(e)); }}
+          onPointerMove={(e) => { if (e.buttons || e.pointerType === "touch") 겨눈잡기(어디(e)); }}
+          onPointerUp={(e) => { e.preventDefault(); 놓기(어디(e)); }}
+          onPointerCancel={() => 겨눈잡기(null)}
+          onPointerLeave={() => 겨눈잡기(null)}
           disabled={끝}
-          aria-label="돌 놓기"
+          aria-label="누른 자리에 돌 놓기"
         >
-          {/* 받는 자리 — 바깥 띠 良, 안쪽 띠 中 */}
-          {!끝 && !무너짐 && (
-            <>
-              <span className="hip-tower-band" aria-hidden
-                style={{ bottom: 높이(자리[놓인] + 띠폭), height: Math.max(8, (띠폭 * 2) * (무대 - 받는줄 - 40)) }} />
-              <span className="hip-tower-band in" aria-hidden
-                style={{ bottom: 높이(자리[놓인] + 띠폭 * 0.38), height: Math.max(5, (띠폭 * 0.76) * (무대 - 받는줄 - 40)) }} />
-            </>
-          )}
+          {/* 가운데 — 이 선에 맞추면 안 무너진다 */}
+          <span className="hip-tower-plumb" aria-hidden />
+          {/* 안전한 폭 — 이 안이면 한가운데(中) */}
+          <span className="hip-tower-safe" aria-hidden />
 
           {/* 받침돌 — 바닥이 있어야 탑이다 */}
           <span className="hip-tower-base" aria-hidden />
-
-          {/* 놓일 자리 — 그 돌 그대로의 그림자. 「여기에 앉는다」 */}
-          {!끝 && !무너짐 && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              className="hip-tower-ghost"
-              src="/obj/stone-cairn-stable.png"
-              alt=""
-              aria-hidden
-              draggable={false}
-              style={
-                {
-                  width: 너비[놓인],
-                  bottom: 받는줄,
-                  "--tilt": `${기울[놓인]}deg`,
-                } as React.CSSProperties
-              }
-            />
-          )}
 
           <span className="hip-tower-stack" style={{ transform: `rotate(${기운각}deg)` }}>
             {돌들.map((비킴, i) => (
@@ -227,36 +181,44 @@ export default function TowerPage() {
                 src="/obj/stone-cairn-stable.png"
                 alt=""
                 draggable={false}
-                style={{
-                  width: 너비[i],
-                  bottom: 바닥 + i * 층키,
-                  left: `calc(50% + ${비킴 * 24}px)`,
-                  transform: `translateX(-50%) rotate(${기울[i]}deg)`,
-                }}
+                style={
+                  {
+                    width: 너비[i],
+                    bottom: 바닥 + i * 층키,
+                    left: `calc(50% + ${비킴 * 비킬수}px)`,
+                    "--tilt": `${기울[i]}deg`,
+                  } as React.CSSProperties
+                }
               />
             ))}
           </span>
 
-          {/* 내려오는 돌 */}
-          {!끝 && !무너짐 && (
+          {/* 놓일 자리 — 손가락을 따라 다음 돌이 미리 앉는다 */}
+          {!멈춤 && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              className="hip-tower-stone hip-tower-moving"
+              className="hip-tower-ghost"
               src="/obj/stone-cairn-stable.png"
               alt=""
+              aria-hidden
               draggable={false}
-              style={{
-                width: 너비[놓인],
-                bottom: 높이(내림),
-                left: "50%",
-                transform: `translateX(-50%) rotate(${기울[놓인]}deg)`,
-              }}
+              style={
+                {
+                  width: 너비[놓인],
+                  bottom: 바닥 + 놓인 * 층키,
+                  left: `calc(50% + ${비칠 * 비킬수}px)`,
+                  "--tilt": `${기울[놓인]}deg`,
+                } as React.CSSProperties
+              }
             />
           )}
 
-          {/* 판정 한 자 */}
           {튄것 && (
-            <b key={튄것.n} className={`hip-tower-judge j-${튄것.v === "中" ? "mid" : 튄것.v === "良" ? "ok" : "no"}`} aria-hidden>
+            <b
+              key={튄것.n}
+              className={`hip-tower-judge j-${튄것.v === "中" ? "mid" : 튄것.v === "良" ? "ok" : "no"}`}
+              aria-hidden
+            >
               {튄것.v}
             </b>
           )}
@@ -264,7 +226,7 @@ export default function TowerPage() {
 
         {/* 기울기 — 차면 무너진다 */}
         <span className="hip-tower-lean" aria-hidden>
-          <i style={{ width: `${Math.min(100, 기운 * 100)}%` }} />
+          <i style={{ width: `${Math.min(100, (쏠림 / 한계) * 100)}%` }} />
         </span>
 
         {끝 && (

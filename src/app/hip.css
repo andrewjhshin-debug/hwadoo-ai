@@ -5653,23 +5653,35 @@ html[data-theme="light"] {
     background: linear-gradient(170deg, #c2bab0 8%, #a09890 52%, #837c74);
     box-shadow: 0 5px 12px rgba(65, 54, 46, .18), inset 0 2px 4px rgba(255,255,255,.34);
   }
-  /* 받는 자리 — 바깥 띠 良, 안쪽 띠 中. 두 줄이라 **겨냥**이 된다 */
-  .hip-tower-band {
+  /* 바둑판의 천원 — 가운데 한 줄. 여기 맞추면 안 무너진다 */
+  .hip-tower-plumb {
     position: absolute;
     z-index: 1;
     left: 50%;
-    width: 232px;
+    top: 16px;
+    bottom: 22px;
+    width: 1px;
     transform: translateX(-50%);
-    border-radius: 14px;
-    border: 1px solid rgba(211, 91, 141, .34);
-    background: linear-gradient(90deg, transparent, rgba(243, 154, 187, .17), transparent);
+    background: repeating-linear-gradient(180deg, rgba(26,23,20,.16) 0 5px, transparent 5px 12px);
     pointer-events: none;
   }
-  .hip-tower-band.in {
-    width: 168px;
-    border-color: rgba(201, 141, 51, .62);
-    background: linear-gradient(90deg, transparent, rgba(246, 200, 90, .3), transparent);
-    box-shadow: 0 0 14px rgba(224, 154, 34, .24);
+  /* 한가운데로 치는 폭 — 이 안이면 中 */
+  .hip-tower-safe {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: 14px;
+    width: 46px;
+    height: 4px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: rgba(224, 160, 34, .3);
+    pointer-events: none;
+    transition: background .18s, box-shadow .18s;
+  }
+  .hip-tower-stage[data-hot="2"] .hip-tower-safe {
+    background: #e0a022;
+    box-shadow: 0 0 16px rgba(224, 160, 34, .7);
   }
   /* 놓일 자리 — 그 돌 그대로를 아주 옅게. 글로 「여기」라 할 일이 없다 */
   .hip-tower-ghost {
@@ -5685,27 +5697,22 @@ html[data-theme="light"] {
     pointer-events: none;
     transition: opacity .2s;
   }
-  .hip-tower-stage[data-hot] .hip-tower-ghost { opacity: .3; }
-  .hip-tower-stage[data-hot="2"] .hip-tower-ghost { opacity: .42; }
-  /* 지금 받으면 쌓인다 — 띠가 **켜진다.** 눈이 때를 읽는다 */
-  .hip-tower-stage[data-hot] .hip-tower-band {
-    border-color: rgba(211, 91, 141, .62);
-    background: linear-gradient(90deg, transparent, rgba(243, 154, 187, .3), transparent);
+  /* 손가락이 가 있는 자리에 다음 돌이 비친다 — 가운데면 금빛이 돈다 */
+  .hip-tower-stage[data-hot] .hip-tower-ghost {
+    opacity: .4;
+    filter: grayscale(.45) drop-shadow(0 0 10px rgba(243, 154, 187, .6));
   }
-  .hip-tower-stage[data-hot="2"] .hip-tower-band.in {
-    border-color: #e0a022;
-    background: linear-gradient(90deg, transparent, rgba(246, 200, 90, .55), transparent);
-    box-shadow: 0 0 22px rgba(224, 160, 34, .55);
-  }
-  .hip-tower-stage[data-hot] .hip-tower-moving {
-    filter: drop-shadow(0 13px 15px rgba(216, 115, 155, .3)) drop-shadow(0 0 10px rgba(243, 154, 187, .6));
-  }
-  .hip-tower-stage[data-hot="2"] .hip-tower-moving {
-    filter: drop-shadow(0 13px 15px rgba(216, 115, 155, .3)) drop-shadow(0 0 16px rgba(246, 200, 90, .95));
+  .hip-tower-stage[data-hot="2"] .hip-tower-ghost {
+    opacity: .58;
+    filter: grayscale(0) drop-shadow(0 0 16px rgba(246, 200, 90, .95));
   }
   .hip-tower-stone {
     position: absolute;
     z-index: 2;
+    /* 가운데 맞춤은 **여기서** 쥔다. 인라인에 두었더니 각(--tilt)만 넘기도록
+       바꾼 뒤 translateX 가 같이 사라져, 돌이 제 폭의 절반만큼 오른쪽으로
+       밀렸다(판 가운데를 눌러도 돌은 오른쪽에 놓였다). */
+    transform: translateX(-50%) rotate(var(--tilt, 0deg));
     display: block;
     height: auto;
     max-width: none;
