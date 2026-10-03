@@ -5124,12 +5124,9 @@ html[data-theme="light"] {
     z-index: 2;
     flex: 0 0 auto;
     /* 처마만 남긴다. 아래 단청 띠는 연등과 이질적으로 이어져 잘라 낸다.
-       형: 「처마 생기면서 넘 밑으로 밀렸다 — 한 화면에 나오도록」
-       17vw 는 작은 폰(667)에서 통의 열에 하나를 먹었다. 기와 사진이
-       무거워서 눈에는 그보다 더 크게 들어온다. 처마는 **선**이지
-       판이 아니다 — 기와 끝만 한 줄 보이면 처마로 읽힌다. */
-    height: clamp(34px, 9.5vw, 48px);
-    margin: -2px -8px -10px;
+       한 번 절반으로 줄였다가 형이 되돌리라고 했다 — 원래 키로 둔다. */
+    height: clamp(58px, 17vw, 76px);
+    margin: -2px -8px -12px;
     overflow: hidden;
     pointer-events: none;
   }
