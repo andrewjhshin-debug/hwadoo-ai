@@ -5559,6 +5559,62 @@ html[data-theme="light"] {
 /* 목탁 키캡은 걷었다 — 형: 「목탁 키캡도 지우고」.
    그림 두 장(mokcap-lid · mokcap-body)도 같이 지웠다. 키캡은 동자 하나다. */
 
+/* ── 돌탑 — 다섯 번만 고르게 놓는다 ────────────────────────── */
+@media (min-width: 0px) {
+  .hip-tower { width: min(100%, 420px); margin: 46px auto 0; text-align: center; }
+  .hip-tower-kicker { margin: 0; color: #bd7993; font-size: 12px; letter-spacing: .22em; }
+  .hip-tower-count { margin: 8px 0 0; font-family: var(--font-serif); color: #17140f; }
+  .hip-tower-count b { font-size: 68px; font-weight: 400; line-height: 1; }
+  .hip-tower-count span { margin-left: 4px; color: #9c9388; font-size: 19px; }
+  .hip-tower-stage {
+    position: relative;
+    width: min(100%, 330px);
+    height: 286px;
+    margin: 8px auto 0;
+    overflow: hidden;
+  }
+  .hip-tower-ground {
+    position: absolute;
+    left: 50%;
+    bottom: 13px;
+    width: 246px;
+    height: 18px;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse, rgba(137, 118, 105, .28), rgba(226, 122, 158, .08) 52%, transparent 72%);
+  }
+  .hip-tower-stone {
+    position: absolute;
+    z-index: 2;
+    display: block;
+    height: auto;
+    max-width: none;
+    filter: drop-shadow(0 8px 8px rgba(65, 54, 46, .18));
+    transition: left .32s cubic-bezier(.2,.8,.3,1), bottom .32s cubic-bezier(.2,.8,.3,1), transform .32s cubic-bezier(.2,.8,.3,1);
+    user-select: none;
+  }
+  .hip-tower-moving { z-index: 3; transition: none; filter: drop-shadow(0 10px 12px rgba(216, 115, 155, .22)); }
+  .hip-tower-moving.miss { animation: hip-tower-miss .5s ease both; }
+  @keyframes hip-tower-miss { 30% { transform: translateX(-50%) translateY(16px) rotate(13deg) !important; opacity: .5; } 100% { opacity: .1; } }
+  .hip-tower-place, .hip-tower-done button {
+    min-width: 160px;
+    margin-top: 4px;
+    padding: 14px 24px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #f180ad, #e75e96);
+    box-shadow: 0 10px 24px rgba(222, 94, 143, .24);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .04em;
+  }
+  .hip-tower-place:active { transform: translateY(1px) scale(.985); }
+  .hip-tower-done { display: grid; justify-items: center; gap: 5px; margin-top: 4px; }
+  .hip-tower-done b { font-size: 14px; font-weight: 500; color: #493f38; }
+  .hip-tower-done span { color: #d35b8d; font-family: var(--font-serif); font-size: 22px; }
+  .hip-tower-done button { margin-top: 2px; background: rgba(255,255,255,.78); border: 1px solid rgba(220, 116, 158, .38); box-shadow: none; color: #bd5d89; }
+}
+
 /* ── 오늘의 인연 — 한 장 ───────────────────────────────────────
    형: 「뽑기 → 오늘의 인연 한 장 → 합장 → 쪽지함 열기 → 차단·신고」
 

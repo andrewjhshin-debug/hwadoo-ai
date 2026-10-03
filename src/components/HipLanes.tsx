@@ -33,6 +33,7 @@ export type LaneTab = (typeof OBJ_LANES)[number][0];
 
 /** 문이 열리는 방 여섯 */
 export const ROOM_LANES = [
+  { href: "/tower", label: "돌탑" },
   { href: "/bae", label: "백팔배" },
   { href: "/mung", label: "멍" },
   { href: "/breath", label: "호흡" },
