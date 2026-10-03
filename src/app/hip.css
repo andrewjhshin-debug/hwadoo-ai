@@ -4328,7 +4328,7 @@ html[data-theme="light"] {
     height: min(calc(var(--hip-obj-w) * 1.12), 50vh);
     /* 위의 height 는 **안 쥔다** — 판이 세로로 좁아 flex 가 먼저 줄인다.
        실제로 보이는 키를 줄이려면 천장을 직접 걸어야 한다. */
-    max-height: min(30vh, 268px);
+    max-height: min(32.5vh, 292px);
     max-width: calc(100vw - 12px);
     display: flex;
     justify-content: center;
@@ -5123,10 +5123,12 @@ html[data-theme="light"] {
     position: relative;
     z-index: 2;
     flex: 0 0 auto;
-    /* 처마만 남긴다. 아래 단청 띠는 연등과 이질적으로 이어져 잘라 낸다.
-       한 번 절반으로 줄였다가 형이 되돌리라고 했다 — 원래 키로 둔다. */
-    height: clamp(58px, 17vw, 76px);
-    margin: -2px -8px -12px;
+    /* 형: 「처마 밑부분까지 나오도록」 — 잘라 내던 것을 그만둔다.
+       여태 그림 윗부분만 꺼내 쓰고(object-position: top) 아래 단청 띠는
+       통 밖으로 밀어 두었다. 이제 **한 장을 통째로** 쓴다 —
+       폭에 맞춰 제 비율(2170×725)대로 선다. */
+    aspect-ratio: 2170 / 725;
+    margin: -2px -8px -10px;
     overflow: hidden;
     pointer-events: none;
   }
@@ -5149,8 +5151,8 @@ html[data-theme="light"] {
     height: 100%;
     margin: 0;
     transform: none;
-    object-fit: cover;
-    /* 이미지의 윗부분만 꺼내 기와가 처마선을 이룬다. */
+    /* 한 장을 통째로 — 잘리는 데가 없다 */
+    object-fit: contain;
     object-position: center top;
     filter: saturate(.78) contrast(.98) brightness(.88);
     opacity: .92;

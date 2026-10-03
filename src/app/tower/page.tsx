@@ -156,10 +156,12 @@ export default function TowerPage() {
           className={`hip-tower-stage${무너짐 ? " fall" : ""}`}
           data-hot={겨냥 || undefined}
           style={{ height: 무대 }}
-          onPointerDown={(e) => { e.preventDefault(); 겨눈잡기(어디(e)); }}
-          onPointerMove={(e) => { if (e.buttons || e.pointerType === "touch") 겨눈잡기(어디(e)); }}
-          onPointerUp={(e) => { e.preventDefault(); 놓기(어디(e)); }}
-          onPointerCancel={() => 겨눈잡기(null)}
+          /* 바둑이다 — 누르는 **그 순간** 돌이 놓인다.
+             떼기를 기다리면 「눌렀는데 아직 안 놓였다」가 된다. */
+          onPointerDown={(e) => { e.preventDefault(); 놓기(어디(e)); }}
+          /* 마우스로 훑을 때만 미리 비친다. 손가락은 누르는 즉시 놓이니
+             비칠 틈이 없다 — 그래서 손가락에는 미리보기가 없다 */
+          onPointerMove={(e) => { if (e.pointerType === "mouse") 겨눈잡기(어디(e)); }}
           onPointerLeave={() => 겨눈잡기(null)}
           disabled={끝}
           aria-label="누른 자리에 돌 놓기"
