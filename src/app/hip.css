@@ -5096,10 +5096,9 @@ html[data-theme="light"] {
     position: relative;
     z-index: 2;
     flex: 0 0 auto;
-    /* 처마 전체를 축소하면 기와 하나하나가 장식 무늬가 된다.
-       가운데 일부만 크게 꺼내 실제로 지붕 아래에 선 듯 보이게 한다. */
-    height: clamp(82px, 23vw, 112px);
-    margin: -8px -8px -2px;
+    /* 꽉 찬 처마 근접 컷. 기와의 골과 단청이 실제 천장처럼 보인다. */
+    height: clamp(84px, 24vw, 116px);
+    margin: -2px -8px -18px;
     overflow: hidden;
     pointer-events: none;
   }
@@ -5116,21 +5115,20 @@ html[data-theme="light"] {
   .hip-hall-roof button:disabled { cursor: default; }
   .hip-hall-roof img {
     position: absolute;
-    top: -9%;
-    left: 50%;
+    inset: 0;
     display: block;
-    width: 190%;
-    max-width: none;
-    height: auto;
+    width: 100%;
+    height: 100%;
     margin: 0;
-    transform: translateX(-50%);
-    object-fit: initial;
-    filter: saturate(.72) brightness(1.04);
-    opacity: .44;
+    transform: none;
+    object-fit: cover;
+    object-position: center;
+    filter: saturate(.96) contrast(1.1) brightness(.82);
+    opacity: .96;
     transition: opacity .18s, filter .18s, transform .18s;
   }
-  .hip-hall-roof[data-on="1"] img { opacity: .82; filter: saturate(.88) brightness(1.04); }
-  .hip-hall-roof[data-on="1"] button:active img { transform: translateX(-50%) translateY(1px) scale(.992); }
+  .hip-hall-roof[data-on="1"] img { opacity: 1; filter: saturate(1.02) contrast(1.12) brightness(.8); }
+  .hip-hall-roof[data-on="1"] button:active img { transform: scale(.992); }
   .hip-hall-roof b {
     position: absolute;
     right: 12%;
@@ -6343,9 +6341,9 @@ html[data-theme="light"] {
     /* 줄 사이도 당긴다 — 뒤 켜의 밑자락을 앞 켜가 덮어야 천장이
        꽉 찬다. 아래에서 위로 쌓이게 뒤집어 그린다 */
     gap: 0;
-    padding: 0 2px 18px;
-    /* 천장 — 등이 걸린 가로대 */
-    border-top: 1px solid rgba(226, 122, 158, 0.28);
+    padding: 2px 2px 18px;
+    /* 처마 하단에 연등 고리가 바로 이어진다. */
+    border-top: 0;
   }
   /* ── 겹쳐 걸린다 ──────────────────────────────────────
      형: 「김부따 앱처럼 연등끼리 서로 겹치게 하라고」 「원근법 줘서」

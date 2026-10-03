@@ -817,7 +817,7 @@ export default function CandleHall() {
           aria-label={기와들.length ? `기와 불사 ${기와들.length}장 보기` : "기와 불사"}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/obj/gong-giwa-roof.png" alt="" draggable={false} />
+          <img src="/obj/gong-giwa-eave-v2.png" alt="" draggable={false} />
           {기와들.length > 0 && <b>{Math.min(기와들.length, 999)}</b>}
         </button>
       </div>
