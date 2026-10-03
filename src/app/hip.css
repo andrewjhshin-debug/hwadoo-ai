@@ -5569,6 +5569,27 @@ html[data-theme="light"] {
   .hip-tower-count { margin: 8px 0 0; font-family: var(--font-serif); color: #17140f; }
   .hip-tower-count b { font-size: 68px; font-weight: 400; line-height: 1; }
   .hip-tower-count span { margin-left: 4px; color: #9c9388; font-size: 19px; }
+  .hip-tower-gamebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 27px;
+    margin: 5px auto 0;
+    color: #897d72;
+    font-size: 11px;
+    letter-spacing: .02em;
+  }
+  .hip-tower-gamebar b {
+    padding: 3px 8px;
+    border-radius: 999px;
+    color: #bf5d88;
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-weight: 500;
+    background: rgba(247, 163, 193, .14);
+  }
+  .hip-tower-gamebar em { color: #c98d33; font-style: normal; font-size: 11px; }
   .hip-tower-stage {
     position: relative;
     width: min(100%, 330px);
@@ -5586,6 +5607,21 @@ html[data-theme="light"] {
     border-radius: 50%;
     transform: translateX(-50%);
     background: radial-gradient(ellipse, rgba(137, 118, 105, .28), rgba(226, 122, 158, .08) 52%, transparent 72%);
+  }
+  /* 현재 층의 착지 창. 돌이 이 띠와 겹치는 순간 놓으면 점수가 높다. */
+  .hip-tower-window {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    width: 106px;
+    height: 18px;
+    border-top: 1px solid rgba(211, 91, 141, .55);
+    border-bottom: 1px solid rgba(211, 91, 141, .18);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, transparent, rgba(243, 154, 187, .16), transparent);
+    box-shadow: 0 0 12px rgba(230, 113, 158, .16);
+    pointer-events: none;
   }
   .hip-tower-stone {
     position: absolute;
