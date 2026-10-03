@@ -3081,14 +3081,37 @@ html[data-theme="light"] {
    형: 「오리지날처럼 맨 위 옅은 줄로 해서 연꽃까지 얻기 위한 공덕량
         나오게 하도록」. 줄만 있으면 눈대중으로 재야 한다. */
 @media (min-width: 0px) {
+  /* ── 줄은 하나뿐이다 ────────────────────────────────────
+     맨 위에 줄이 **둘** 겹쳐 있었다 — MeritBar(금, layout) 와
+     HipDayBar(분홍, 통 안). 둘이 같은 것을 재는데 분홍이 z 64 로 위라,
+     금 줄은 깔린 채 한 번도 보인 적이 없다.
+     보이는 줄 하나만 남긴다(.hip-daybar — 형이 「핑크색으로」 고른 그것).
+     MeritBar 는 **남은 수만** 맡는다. */
+  html .merit-bar {
+    height: 0;
+    background: none;
+    /* 숫자가 통(.hip-screen, 60) 위에 서야 한다. 62(염주) 와 70(창들)
+       사이 63 — 창은 여전히 이 숫자를 덮는다. */
+    z-index: 63;
+  }
+  html .merit-bar-fill { display: none; }
+  /* 남은 공덕 — 형: 「연꽃까지 얻기 위한 공덕량 나오게」.
+     z 30 이라 통이 덮고 있었다. 지금껏 한 번도 뜬 적이 없다.
+     머리띠가 분홍이라 글씨만으로는 안 읽혀, 한지 한 겹을 깔아 준다. */
   .merit-left {
     position: absolute;
-    right: 12px;
-    top: 6px;
+    right: 10px;
+    top: 9px;
     font-family: var(--font-serif);
-    font-size: 10.5px;
-    letter-spacing: 0.04em;
-    color: rgba(139, 129, 117, 0.75);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #b0477a;
+    background: rgba(255, 255, 255, 0.86);
+    border-radius: 999px;
+    padding: 1px 8px 2px;
+    box-shadow: 0 1px 3px rgba(26, 23, 20, 0.08);
+    backdrop-filter: blur(6px);
     white-space: nowrap;
   }
 }
@@ -4299,9 +4322,13 @@ html[data-theme="light"] {
      가르지 않으니 틈이 애초에 안 생긴다. 위의 한 규칙이 전부다. */
   /* 통(stack)이 높이를 쥐므로 그림 자체는 폭·높이를 안 잡는다.
      살갗에 따라 판이 가로로 넓을 수 있으니 폭 쪽 한도도 같이 건다 */
-  /* 형: 「키캡 오브제 크기 자체 크게, 셋 다」 */
+  /* 형: 「키캡 오브제 크기 자체 크게, 셋 다」
+     그 뒤 — 「3개 다 키캡 사이즈 좀만 더 작게」. 한 뼘 줄인다. */
   .hip-keycap {
-    height: min(calc(var(--hip-obj-w) * 1.28), 56vh);
+    height: min(calc(var(--hip-obj-w) * 1.12), 50vh);
+    /* 위의 height 는 **안 쥔다** — 판이 세로로 좁아 flex 가 먼저 줄인다.
+       실제로 보이는 키를 줄이려면 천장을 직접 걸어야 한다. */
+    max-height: min(30vh, 268px);
     max-width: calc(100vw - 12px);
     display: flex;
     justify-content: center;
@@ -5096,9 +5123,13 @@ html[data-theme="light"] {
     position: relative;
     z-index: 2;
     flex: 0 0 auto;
-    /* 꽉 찬 처마 근접 컷. 기와의 골과 단청이 실제 천장처럼 보인다. */
-    height: clamp(84px, 24vw, 116px);
-    margin: -2px -8px -18px;
+    /* 처마만 남긴다. 아래 단청 띠는 연등과 이질적으로 이어져 잘라 낸다.
+       형: 「처마 생기면서 넘 밑으로 밀렸다 — 한 화면에 나오도록」
+       17vw 는 작은 폰(667)에서 통의 열에 하나를 먹었다. 기와 사진이
+       무거워서 눈에는 그보다 더 크게 들어온다. 처마는 **선**이지
+       판이 아니다 — 기와 끝만 한 줄 보이면 처마로 읽힌다. */
+    height: clamp(34px, 9.5vw, 48px);
+    margin: -2px -8px -10px;
     overflow: hidden;
     pointer-events: none;
   }
@@ -5122,12 +5153,13 @@ html[data-theme="light"] {
     margin: 0;
     transform: none;
     object-fit: cover;
-    object-position: center;
-    filter: saturate(.96) contrast(1.1) brightness(.82);
-    opacity: .96;
+    /* 이미지의 윗부분만 꺼내 기와가 처마선을 이룬다. */
+    object-position: center top;
+    filter: saturate(.78) contrast(.98) brightness(.88);
+    opacity: .92;
     transition: opacity .18s, filter .18s, transform .18s;
   }
-  .hip-hall-roof[data-on="1"] img { opacity: 1; filter: saturate(1.02) contrast(1.12) brightness(.8); }
+  .hip-hall-roof[data-on="1"] img { opacity: .96; filter: saturate(.84) contrast(1.02) brightness(.86); }
   .hip-hall-roof[data-on="1"] button:active img { transform: scale(.992); }
   .hip-hall-roof b {
     position: absolute;
@@ -5569,59 +5601,110 @@ html[data-theme="light"] {
   .hip-tower-count { margin: 8px 0 0; font-family: var(--font-serif); color: #17140f; }
   .hip-tower-count b { font-size: 68px; font-weight: 400; line-height: 1; }
   .hip-tower-count span { margin-left: 4px; color: #9c9388; font-size: 19px; }
-  .hip-tower-gamebar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 27px;
-    margin: 5px auto 0;
-    color: #897d72;
-    font-size: 11px;
-    letter-spacing: .02em;
-  }
-  .hip-tower-gamebar b {
-    padding: 3px 8px;
+  /* ── 돌탑 — 게임답게 ───────────────────────────────────────
+     형: 「더 선명하게 게임처럼 흥미 유발로」
+
+     고친 것은 **긴장**이다. 글로 일러 주던 한 줄(「안정 구간에서 돌을
+     받으세요」)을 걷고, 그 자리에 보이는 것을 둔다 —
+     받침돌 · 받는 띠 두 줄 · 터지는 판정 한 자 · 기울기 자.
+     설명을 읽을 틈에 돌이 지나간다. 보면 알아야 한다. */
+  .hip-tower-combo {
+    margin-left: 8px;
+    padding: 2px 8px 3px;
     border-radius: 999px;
-    color: #bf5d88;
-    font-family: var(--font-serif);
-    font-size: 13px;
-    font-weight: 500;
-    background: rgba(247, 163, 193, .14);
+    background: linear-gradient(135deg, #f6c85a, #e09a22);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-style: normal;
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: 14px;
+    box-shadow: 0 3px 10px rgba(224, 154, 34, .35);
   }
-  .hip-tower-gamebar em { color: #c98d33; font-style: normal; font-size: 11px; }
   .hip-tower-stage {
     position: relative;
+    display: block;
     width: min(100%, 330px);
-    height: 286px;
-    margin: 8px auto 0;
+    margin: 10px auto 0;
+    padding: 0;
+    border: 0;
     overflow: hidden;
+    background:
+      radial-gradient(120% 70% at 50% 100%, rgba(226, 122, 158, .10), transparent 70%),
+      linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.5));
+    border-radius: 20px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    cursor: pointer;
   }
-  .hip-tower-stack { position: absolute; inset: 0; transform-origin: 50% 100%; transition: transform .42s cubic-bezier(.2,.8,.3,1); }
-  .hip-tower-ground {
+  /* 무너진다 — 이 판에서 처음으로 실패가 보인다 */
+  .hip-tower-stage.fall .hip-tower-stack { animation: hip-tower-fall .95s cubic-bezier(.4,0,.7,1) both; }
+  @keyframes hip-tower-fall {
+    0%   { transform: rotate(var(--lean, 0deg)); }
+    22%  { transform: rotate(-9deg); }
+    100% { transform: rotate(74deg) translateY(120px); opacity: .18; }
+  }
+  /* 받침돌 — 바닥이 있어야 탑으로 읽힌다 */
+  .hip-tower-base {
     position: absolute;
     left: 50%;
-    bottom: 13px;
-    width: 246px;
-    height: 18px;
-    border-radius: 50%;
+    bottom: 14px;
+    width: 166px;
+    height: 20px;
     transform: translateX(-50%);
-    background: radial-gradient(ellipse, rgba(137, 118, 105, .28), rgba(226, 122, 158, .08) 52%, transparent 72%);
+    border-radius: 50%;
+    background: linear-gradient(170deg, #c2bab0 8%, #a09890 52%, #837c74);
+    box-shadow: 0 5px 12px rgba(65, 54, 46, .18), inset 0 2px 4px rgba(255,255,255,.34);
   }
-  /* 현재 층의 착지 창. 돌이 이 띠와 겹치는 순간 놓으면 점수가 높다. */
-  .hip-tower-window {
+  /* 받는 자리 — 바깥 띠 良, 안쪽 띠 中. 두 줄이라 **겨냥**이 된다 */
+  .hip-tower-band {
     position: absolute;
     z-index: 1;
     left: 50%;
-    width: 106px;
-    height: 18px;
-    border-top: 1px solid rgba(211, 91, 141, .55);
-    border-bottom: 1px solid rgba(211, 91, 141, .18);
-    border-radius: 50%;
+    width: 232px;
     transform: translateX(-50%);
-    background: linear-gradient(90deg, transparent, rgba(243, 154, 187, .16), transparent);
-    box-shadow: 0 0 12px rgba(230, 113, 158, .16);
+    border-radius: 14px;
+    border: 1px solid rgba(211, 91, 141, .34);
+    background: linear-gradient(90deg, transparent, rgba(243, 154, 187, .17), transparent);
     pointer-events: none;
+  }
+  .hip-tower-band.in {
+    width: 168px;
+    border-color: rgba(201, 141, 51, .62);
+    background: linear-gradient(90deg, transparent, rgba(246, 200, 90, .3), transparent);
+    box-shadow: 0 0 14px rgba(224, 154, 34, .24);
+  }
+  /* 놓일 자리 — 그 돌 그대로를 아주 옅게. 글로 「여기」라 할 일이 없다 */
+  .hip-tower-ghost {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    transform: translateX(-50%) rotate(var(--tilt, 0deg));
+    display: block;
+    height: auto;
+    max-width: none;
+    opacity: .16;
+    filter: grayscale(1) brightness(1.25);
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+  .hip-tower-stage[data-hot] .hip-tower-ghost { opacity: .3; }
+  .hip-tower-stage[data-hot="2"] .hip-tower-ghost { opacity: .42; }
+  /* 지금 받으면 쌓인다 — 띠가 **켜진다.** 눈이 때를 읽는다 */
+  .hip-tower-stage[data-hot] .hip-tower-band {
+    border-color: rgba(211, 91, 141, .62);
+    background: linear-gradient(90deg, transparent, rgba(243, 154, 187, .3), transparent);
+  }
+  .hip-tower-stage[data-hot="2"] .hip-tower-band.in {
+    border-color: #e0a022;
+    background: linear-gradient(90deg, transparent, rgba(246, 200, 90, .55), transparent);
+    box-shadow: 0 0 22px rgba(224, 160, 34, .55);
+  }
+  .hip-tower-stage[data-hot] .hip-tower-moving {
+    filter: drop-shadow(0 13px 15px rgba(216, 115, 155, .3)) drop-shadow(0 0 10px rgba(243, 154, 187, .6));
+  }
+  .hip-tower-stage[data-hot="2"] .hip-tower-moving {
+    filter: drop-shadow(0 13px 15px rgba(216, 115, 155, .3)) drop-shadow(0 0 16px rgba(246, 200, 90, .95));
   }
   .hip-tower-stone {
     position: absolute;
@@ -5630,29 +5713,62 @@ html[data-theme="light"] {
     height: auto;
     max-width: none;
     filter: drop-shadow(0 8px 8px rgba(65, 54, 46, .18));
-    transition: left .32s cubic-bezier(.2,.8,.3,1), bottom .32s cubic-bezier(.2,.8,.3,1), transform .32s cubic-bezier(.2,.8,.3,1);
+    transition: left .3s cubic-bezier(.2,.8,.3,1), bottom .3s cubic-bezier(.2,.8,.3,1);
     user-select: none;
   }
-  .hip-tower-moving { z-index: 3; transition: none; filter: drop-shadow(0 12px 14px rgba(216, 115, 155, .26)); }
-  .hip-tower-moving.miss { animation: hip-tower-miss .5s ease both; }
-  @keyframes hip-tower-miss { 30% { transform: translateX(-50%) translateY(16px) rotate(13deg) !important; opacity: .5; } 100% { opacity: .1; } }
-  .hip-tower-place, .hip-tower-done button {
-    min-width: 160px;
-    margin-top: 4px;
-    padding: 14px 24px;
+  .hip-tower-stack { position: absolute; inset: 0; transform-origin: 50% 100%; transition: transform .4s cubic-bezier(.2,.8,.3,1); }
+  .hip-tower-moving { z-index: 3; transition: none; filter: drop-shadow(0 13px 15px rgba(216, 115, 155, .3)); }
+  /* 판정 한 자 — 글이 아니라 글자가 터진다 */
+  .hip-tower-judge {
+    position: absolute;
+    z-index: 4;
+    left: 50%;
+    top: 34%;
+    font-family: var(--font-serif);
+    font-size: 58px;
+    font-weight: 400;
+    pointer-events: none;
+    animation: hip-tower-pop .52s cubic-bezier(.2,1.5,.4,1) both;
+  }
+  .hip-tower-judge.j-mid { color: #e0a022; text-shadow: 0 0 22px rgba(224, 160, 34, .5); }
+  .hip-tower-judge.j-ok  { color: #cf6d9b; text-shadow: 0 0 18px rgba(207, 109, 155, .35); }
+  .hip-tower-judge.j-no  { color: #9aa0a6; text-shadow: none; }
+  @keyframes hip-tower-pop {
+    0%   { transform: translate(-50%, 6px) scale(.6); opacity: 0; }
+    35%  { transform: translate(-50%, 0) scale(1.12); opacity: 1; }
+    100% { transform: translate(-50%, -22px) scale(1); opacity: 0; }
+  }
+  /* 기울기 자 — 차면 무너진다. 초록에서 금으로, 금에서 빨강으로 */
+  .hip-tower-lean {
+    display: block;
+    width: min(100%, 330px);
+    height: 5px;
+    margin: 12px auto 0;
     border-radius: 999px;
-    background: linear-gradient(135deg, #f180ad, #e75e96);
-    box-shadow: 0 10px 24px rgba(222, 94, 143, .24);
-    color: #fff;
+    background: rgba(26, 23, 20, .09);
+    overflow: hidden;
+  }
+  .hip-tower-lean i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #5cc2ac, #e0a022 62%, #d94a63);
+    transition: width .3s ease-out;
+  }
+  .hip-tower-done { display: grid; justify-items: center; gap: 5px; margin-top: 12px; }
+  .hip-tower-done b { font-size: 14px; font-weight: 500; color: #493f38; }
+  .hip-tower-done span { color: #d35b8d; font-family: var(--font-serif); font-size: 26px; }
+  .hip-tower-done button {
+    min-width: 150px;
+    margin-top: 4px;
+    padding: 13px 24px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.82);
+    border: 1px solid rgba(220, 116, 158, .38);
+    color: #bd5d89;
     font-size: 14px;
     font-weight: 600;
-    letter-spacing: .04em;
   }
-  .hip-tower-place:active { transform: translateY(1px) scale(.985); }
-  .hip-tower-done { display: grid; justify-items: center; gap: 5px; margin-top: 4px; }
-  .hip-tower-done b { font-size: 14px; font-weight: 500; color: #493f38; }
-  .hip-tower-done span { color: #d35b8d; font-family: var(--font-serif); font-size: 22px; }
-  .hip-tower-done button { margin-top: 2px; background: rgba(255,255,255,.78); border: 1px solid rgba(220, 116, 158, .38); box-shadow: none; color: #bd5d89; }
 }
 
 /* ── 오늘의 인연 — 한 장 ───────────────────────────────────────
@@ -6113,21 +6229,34 @@ html[data-theme="light"] {
    숫자로 적지 않는다. 실 한 오라기가 왼쪽에서 오른쪽으로 차고, 다 차면
    연꽃 한 송이다. 3px 이라 어느 판도 밀지 않는다. */
 @media (min-width: 0px) {
+  /* ── 선명하게 ──────────────────────────────────────────────
+     형: 「하루 공덕 차는 그거 좀만 더 선명하게 보강해줘」
+
+     셋이 겹쳐 안 보였다 —
+     ① 안 찬 자리가 **분홍 0.14** 였다. 바로 아래 머리띠가 분홍이라
+        분홍 위의 옅은 분홍 — 어디까지가 전체인지 눈이 못 잡았다.
+        자가 안 보이면 찬 것도 안 보인다. 먹빛으로 깐다.
+     ② 찬 쪽이 #fbc7da(거의 흰 분홍)에서 시작했다. 왼쪽 절반이
+        머리띠에 묻혔다. 진한 쪽에서 시작해 더 진한 쪽으로 끝낸다.
+     ③ 4px 이 머리띠에 붙어 한 덩이로 읽혔다. 한 뼘 두껍게 하고
+        아래에 실금 하나를 둬 띠에서 떼어 놓는다.
+     색은 그대로 분홍이다 — 형이 고른 색이다. */
   .hip-daybar {
     position: fixed;
     top: env(safe-area-inset-top, 0px);
     left: 0;
     right: 0;
-    height: 4px;
+    height: 5px;
     z-index: 64;
     pointer-events: none;
-    background: rgba(239, 123, 164, 0.14);
+    background: rgba(26, 23, 20, 0.11);
+    box-shadow: 0 1px 0 rgba(26, 23, 20, 0.07);
   }
   .hip-daybar i {
     display: block;
     height: 100%;
     transform-origin: left center;
-    background: linear-gradient(90deg, #fbc7da, #ef7ba4);
+    background: linear-gradient(90deg, #f291b6, #e4578b 70%, #c94a7d);
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.3, 1);
   }
   /* 쌓인 순간 잠깐 밝아진다 — 한 타가 0.003% 라 색만으로는 안 보인다 */

@@ -52,19 +52,19 @@ export default function MeritBar() {
   const left = bal === null ? null : Math.max(0, DAILY_TOTAL_CAP - bal);
 
   return (
-    <div className="sticky top-0 z-30 h-[2px] w-full">
+    <div className="merit-bar pointer-events-none sticky top-0 z-30 h-[2px] w-full">
       <style>{`
         @keyframes mb-flash { 0%{opacity:.35} 35%{opacity:1} 100%{opacity:.35} }
       `}</style>
       <div
         aria-hidden
         title="연꽃 한 송이까지"
-        className="pointer-events-none h-full bg-gold transition-[width] duration-500 ease-out"
+        className="merit-bar-fill pointer-events-none h-full bg-gold transition-[width] duration-500 ease-out"
         style={{
           width: `${pct}%`,
-          boxShadow: flash
-            ? "0 0 14px 2px rgba(217,180,91,0.85)"
-            : "0 0 6px rgba(217,180,91,0.35)",
+          // 번쩍일 때만 여기서 빛을 준다 — 평소 빛은 hip.css 가 쥔다
+          // (인라인이 늘 이기므로, 안 쓸 때는 아예 안 적는다)
+          boxShadow: flash ? "0 0 14px 2px rgba(184,131,14,0.85)" : undefined,
           animation: flash ? "mb-flash 1.2s ease-out" : "none",
         }}
       />
