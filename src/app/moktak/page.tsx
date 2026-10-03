@@ -217,18 +217,18 @@ const SKINS = {
       back: "/obj/kc-dongja-back.png", body: "/obj/kc-dongja-body.png",
       // 형이 눈으로 고른 값(0.88 → 1.0). 「사알짝만 더 크게」.
       // 1.12 로 가면 어깨와 팔이 꽃잎 밖으로 나온다 — 여기가 한계선이다.
-      ar: 928 / 1420, dip: "12%", bodyScale: 1.0, dot: "#ef86b0" },
+      ar: 928 / 1420, dip: "12%", bodyScale: 1.0, bowlFit: 1.117, dot: "#ef86b0" },
     { id: "podae", name: "포대", cup: "/obj/kc-podae-front-soft.png",
       back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
       // 1.55 는 몸만 재서 맞춘 값이었다 — 화면에서는 배만 남고 머리가
       // 판 밖으로 나갔다. 셋을 **같은 수로 맞추지 않는다.**
       // 그릇이 저마다 다른 높이에 그려져 있어, 눈으로 본 것이 자다.
-      ar: 928 / 1205, dip: "13%", bodyScale: 0.88, dot: "#e0b354" },
+      ar: 928 / 1205, dip: "13%", bodyScale: 0.88, bowlFit: 0.948, dot: "#e0b354" },
     // 앞꽃잎·몸·뒤판은 반드시 같은 928×1160 판을 쓴다. v2 앞꽃잎은
     // 별도 비율(1122×1402)이라 세 장을 포갤 때 밑 그림자가 튀어나왔다.
     { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front-soft.png",
       back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
-      ar: 928 / 1160, dip: "13%", bodyScale: 1.0, dot: "#cfa03c" },
+      ar: 928 / 1160, dip: "13%", bodyScale: 1.0, bowlFit: 0.913, dot: "#cfa03c" },
   ],
 } as const;
 
@@ -320,6 +320,7 @@ export default function MoktakPage() {
       ar: k.ar,
       dip: k.dip,
       bodyScale: k.bodyScale,
+      bowlFit: k.bowlFit,
     };
   })();
   /** 지금 고른 염주 살갗이 **가로형**(3D 로 구운 누운 고리)인가 */

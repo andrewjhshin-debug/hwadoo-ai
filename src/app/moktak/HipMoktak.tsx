@@ -70,7 +70,7 @@ export type HipMoktakProps = {
   /** 지금 고른 목탁 살갗 그림 */
   mokSrc: string;
   /** 지금 고른 키캡 — 통짜 한 장 */
-  keySrc: { cup: string; back: string; body: string; ar: number; dip: string; bodyScale: number };
+  keySrc: { cup: string; back: string; body: string; ar: number; dip: string; bodyScale: number; bowlFit: number };
   /** 키캡 갈래에서 무엇을 누르나 — 동자인가 목탁인가 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
@@ -272,6 +272,9 @@ export default function HipMoktak({
                       "--keycap-ar": String(keySrc.ar),
                       "--keycap-dip": keySrc.dip,
                       "--keycap-body-scale": String(keySrc.bodyScale),
+                      // 연꽃 받침 크기를 셋이 같게 — 살갗마다 판 비율이 달라
+                      // 그대로 두면 받침이 179·211·219 로 제각각이었다
+                      "--keycap-fit": String(keySrc.bowlFit ?? 1),
                     } as React.CSSProperties
                   }
                 >

@@ -39,11 +39,25 @@ const 무대 = 330;
 /** 가운데에서 최대 이만큼까지 비켜 놓을 수 있다(px) */
 const 비킬수 = 46;
 /**
- * 무너지는 금 — 무게중심이 이만큼 쏠리면 쓰러진다.
- * 형: 「너무 어렵지 않게」. 한 알이 끝까지(1.0) 빗나가도 안 넘어간다.
- * 여럿이 **같은 쪽으로** 쏠려야 금에 닿는다.
+ * 무너지는 금 — 둘이다.
+ *
+ * 형: 「돌 무더기 그거 이렇게 안 맞으면 무너지게 하라니까」
+ * 무게중심만 보던 때는 **아무 데나 찍어도 다섯이 섰다.** 흩뿌려 놓아도
+ * 왼쪽 오른쪽이 서로 상쇄돼 평균이 0 에 가까웠기 때문이다.
+ * 돌은 평균 위에 앉지 않는다 — **바로 아래 돌** 위에 앉는다.
+ *
+ *  ① 미끄러짐 — 아래 돌에서 이만큼 넘게 비키면 걸칠 데가 없다
+ *  ② 쏠림 — 그래도 한쪽으로 기울어 모이면 받침을 벗어난다
  */
-const 한계 = 1.6;
+const 미끄럼 = 0.52;
+const 쏠림금 = 0.46;
+
+/** 다 쌓고 나서 — 얼마나 정갈한가. 셋으로만 가른다 */
+const 등급표 = [
+  { id: "上", 말: "한 치도 안 흔들립니다", 배: 1.35, 금: 0.07 },
+  { id: "中", 말: "고르게 쌓았습니다", 배: 1, 금: 0.22 },
+  { id: "下", 말: "겨우 섰습니다", 배: 0.75, 금: Infinity },
+] as const;
 
 type 판정 = "中" | "良" | "危";
 
@@ -53,7 +67,8 @@ export default function TowerPage() {
   /** 손가락이 가 있는 자리 — 다음 돌이 여기 비친다 */
   const [겨눈, 겨눈잡기] = useState<number | null>(null);
   const [무너짐, 무너짐잡기] = useState(false);
-  const [끝, 끝잡기] = useState(false);
+  /** 다 쌓았나 — 쌓았으면 등급(上·中·下) */
+  const [끝, 끝잡기] = useState<"上" | "中" | "下" | null>(null);
   const [점수, 점수잡기] = useState(0);
   const [연속, 연속잡기] = useState(0);
   const [튄것, 튄것잡기] = useState<{ v: 판정; n: number } | null>(null);
@@ -94,24 +109,30 @@ export default function TowerPage() {
       if (멈춤) return;
       const 벗어남 = Math.abs(비킴);
       const 다음돌들 = [...돌들, 비킴];
-      // 무게중심 — 쌓인 돌이 **같은 쪽으로** 쏠린 만큼.
-      // 평균에 돌 수의 제곱근을 곱한다. 한 알은 가벼워도 셋이 같은 쪽이면 무겁다.
-      const 쏠림 =
-        Math.abs(다음돌들.reduce((s, x) => s + x, 0) / 다음돌들.length) *
-        Math.sqrt(다음돌들.length);
+      // ① 바로 아래 돌에서 얼마나 비켰나 — 걸칠 데가 있는가
+      const 아래 = 돌들.length ? 돌들[돌들.length - 1] : 0;
+      const 미끄러짐 = Math.abs(비킴 - 아래);
+      // ② 쌓인 것이 한쪽으로 쏠린 만큼
+      const 쏠림 = Math.abs(다음돌들.reduce((s, x) => s + x, 0) / 다음돌들.length);
+      const 넘어간다 = 미끄러짐 > 미끄럼 || 쏠림 > 쏠림금;
 
-      const 한가운데 = 벗어남 < 0.24;
-      터뜨리기(쏠림 > 한계 * 0.78 ? "危" : 한가운데 ? "中" : "良");
+      const 한가운데 = 벗어남 < 0.2 && 미끄러짐 < 0.26;
+      터뜨리기(넘어간다 ? "危" : 한가운데 ? "中" : "良");
       buzz(한가운데 ? 9 : 6);
       돌들잡기(다음돌들);
       점수잡기((v) => v + Math.round(10 + (1 - 벗어남) * 26 + 연속 * 3));
       연속잡기((v) => (한가운데 ? v + 1 : 0));
       겨눈잡기(null);
 
-      if (쏠림 > 한계) { 쓰러뜨리기(); return; }
+      if (넘어간다) { 쓰러뜨리기(); return; }
       if (다음돌들.length === TOTAL) {
-        끝잡기(true);
-        addMerit("tower");
+        // 등급은 **한 알 한 알이 얼마나 가운데였나**로 매긴다.
+        // 부호 있는 평균으로 재면 왼쪽 오른쪽이 서로 상쇄돼, 흔들흔들
+        // 쌓아 놓고도 上 이 나온다. 절대값으로 센다.
+        const 고름 = 다음돌들.reduce((s, x) => s + Math.abs(x), 0) / TOTAL;
+        const 매김 = 등급표.find((g) => 고름 <= g.금) ?? 등급표[2];
+        끝잡기(매김.id);
+        addMerit("tower", 매김.배, 1);
         buzz(26);
       }
     },
@@ -119,7 +140,7 @@ export default function TowerPage() {
   );
 
   const 다시 = () => {
-    돌들잡기([]); 겨눈잡기(null); 무너짐잡기(false); 끝잡기(false);
+    돌들잡기([]); 겨눈잡기(null); 무너짐잡기(false); 끝잡기(null);
     점수잡기(0); 연속잡기(0);
   };
 
@@ -133,7 +154,7 @@ export default function TowerPage() {
   }, [놓기, 겨눈]);
 
   const 중심 = 돌들.length ? 돌들.reduce((s, x) => s + x, 0) / 돌들.length : 0;
-  const 쏠림 = Math.abs(중심) * Math.sqrt(Math.max(1, 돌들.length));
+  const 쏠림 = Math.abs(중심);
   const 기운각 = 중심 * 7;
   /** 겨눈 자리가 얼마나 가운데인가 — 2 면 한가운데, 1 이면 걸친다 */
   const 겨냥 =
@@ -144,11 +165,6 @@ export default function TowerPage() {
     <HipRoom here="/tower" scroll={false}>
       <section className="hip-tower" aria-label="돌탑 쌓기">
         <p className="hip-tower-kicker">石塔 · 돌탑</p>
-        <p className="hip-tower-count">
-          <b>{놓인}</b><span> / {TOTAL}</span>
-          {연속 > 1 && <em className="hip-tower-combo">{연속}</em>}
-        </p>
-
         {/* 바둑판처럼 — 누른 그 자리에 돌이 놓인다 */}
         <button
           ref={판}
@@ -163,11 +179,9 @@ export default function TowerPage() {
              비칠 틈이 없다 — 그래서 손가락에는 미리보기가 없다 */
           onPointerMove={(e) => { if (e.pointerType === "mouse") 겨눈잡기(어디(e)); }}
           onPointerLeave={() => 겨눈잡기(null)}
-          disabled={끝}
+          disabled={!!끝}
           aria-label="누른 자리에 돌 놓기"
         >
-          {/* 가운데 — 이 선에 맞추면 안 무너진다 */}
-          <span className="hip-tower-plumb" aria-hidden />
           {/* 안전한 폭 — 이 안이면 한가운데(中) */}
           <span className="hip-tower-safe" aria-hidden />
 
@@ -228,12 +242,13 @@ export default function TowerPage() {
 
         {/* 기울기 — 차면 무너진다 */}
         <span className="hip-tower-lean" aria-hidden>
-          <i style={{ width: `${Math.min(100, (쏠림 / 한계) * 100)}%` }} />
+          <i style={{ width: `${Math.min(100, (쏠림 / 쏠림금) * 100)}%` }} />
         </span>
 
         {끝 && (
           <div className="hip-tower-done" role="status">
-            <b>다섯을 고르게 쌓았습니다</b>
+            <em className={`hip-tower-grade g-${끝 === "上" ? "a" : 끝 === "中" ? "b" : "c"}`}>{끝}</em>
+            <b>{등급표.find((g) => g.id === 끝)?.말}</b>
             <span>{점수}</span>
             <button onClick={다시}>한 번 더</button>
           </div>
