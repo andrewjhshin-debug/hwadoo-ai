@@ -5096,8 +5096,10 @@ html[data-theme="light"] {
     position: relative;
     z-index: 2;
     flex: 0 0 auto;
-    height: clamp(54px, 15vw, 76px);
-    margin: -4px -8px 0;
+    /* 처마 전체를 축소하면 기와 하나하나가 장식 무늬가 된다.
+       가운데 일부만 크게 꺼내 실제로 지붕 아래에 선 듯 보이게 한다. */
+    height: clamp(82px, 23vw, 112px);
+    margin: -8px -8px -2px;
     overflow: hidden;
     pointer-events: none;
   }
@@ -5113,19 +5115,22 @@ html[data-theme="light"] {
   }
   .hip-hall-roof button:disabled { cursor: default; }
   .hip-hall-roof img {
+    position: absolute;
+    top: -9%;
+    left: 50%;
     display: block;
-    width: 112%;
+    width: 190%;
     max-width: none;
-    height: 100%;
-    margin-left: -6%;
-    object-fit: contain;
-    object-position: center top;
+    height: auto;
+    margin: 0;
+    transform: translateX(-50%);
+    object-fit: initial;
     filter: saturate(.72) brightness(1.04);
     opacity: .44;
     transition: opacity .18s, filter .18s, transform .18s;
   }
   .hip-hall-roof[data-on="1"] img { opacity: .82; filter: saturate(.88) brightness(1.04); }
-  .hip-hall-roof[data-on="1"] button:active img { transform: translateY(1px) scale(.992); }
+  .hip-hall-roof[data-on="1"] button:active img { transform: translateX(-50%) translateY(1px) scale(.992); }
   .hip-hall-roof b {
     position: absolute;
     right: 12%;
@@ -7108,31 +7113,26 @@ html[data-theme="light"] {
     color: #d2578c;
   }
   .hip-gift-grid em svg { fill: #e87ba4; }
-  /* 기와는 세로로 선 공양물이 아니다. 마지막 한 칸을 가로로 써야
-     넓고 낮은 물성이 보이고, 2×2 카드의 결도 깨지지 않는다. */
-  .hip-gift-grid li[data-kind="giwa"] { grid-column: 1 / -1; }
+  /* 기와도 다른 네 공양과 같은 카드 한 장이다. 마지막 한 줄을 통째로
+     쓰면 상품 배너처럼 보이므로, 두 칸 가운데에 정규 카드 크기로 세운다. */
+  .hip-gift-grid li[data-kind="giwa"] {
+    grid-column: 1 / -1;
+    width: calc(50% - 5px);
+    justify-self: center;
+  }
   .hip-gift-grid li[data-kind="giwa"] button {
-    display: grid;
-    grid-template-columns: 104px 1fr auto;
-    grid-template-rows: auto auto;
-    column-gap: 10px;
-    min-height: 96px;
-    padding: 8px 16px 8px 8px;
-    text-align: left;
+    display: flex;
+    min-height: 0;
+    padding: 14px 10px 12px;
+    text-align: center;
   }
   .hip-gift-grid li[data-kind="giwa"] img {
-    grid-row: 1 / span 2;
-    width: 104px;
-    height: 72px;
-    margin: 0;
+    width: auto;
+    height: 84px;
+    margin: 0 0 6px;
   }
-  .hip-gift-grid li[data-kind="giwa"] b { align-self: end; }
-  .hip-gift-grid li[data-kind="giwa"] i { align-self: start; }
   .hip-gift-grid li[data-kind="giwa"] em {
-    grid-column: 3;
-    grid-row: 1 / span 2;
-    align-self: center;
-    margin: 0;
+    margin-top: 6px;
   }
   .hip-gift-foot {
     margin: 12px 0 0;
