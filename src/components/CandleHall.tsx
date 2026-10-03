@@ -83,6 +83,7 @@ const 공양들: { k: 공양갈래; 이름: string; 그림: string; 말: string 
   { k: "ssal", 이름: "쌀", 그림: "/obj/gong-ssal.png", 말: "불단에 올린다" },
   { k: "cho", 이름: "초", 그림: "/obj/gong-cho.png", 말: "불단에 밝힌다" },
   { k: "hyang", 이름: "향", 그림: "/obj/gong-hyang.png", 말: "향로에 꽂는다" },
+  { k: "giwa", 이름: "기와 불사", 그림: "/obj/gong-giwa.png", 말: "법당 지붕에 올린다" },
 ];
 
 function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => void; onClose: () => void }) {
@@ -110,7 +111,7 @@ function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => voi
         </div>
         <ul className="hip-gift-grid">
           {공양들.map((g) => (
-            <li key={g.k}>
+            <li key={g.k} data-kind={g.k}>
               <button type="button" onClick={() => onPick(g.k)}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={g.그림} alt="" draggable={false} />
@@ -141,7 +142,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
   const submit = async () => {
     if (!wish.trim() || busy) return; if (!key.current) key.current = crypto.randomUUID().replaceAll("-", ""); setBusy(true); setError("");
     try { const r = await lightCandle({ forName, wish, visibility, gift }, key.current); if (!r) { setError("연꽃이 모자랍니다"); return; } pingLotus(); onDone(); }
-    catch { setError("연등을 달지 못했습니다. 잠시 뒤 다시 해 주세요."); } finally { setBusy(false); }
+    catch { setError(갈래 === "giwa" ? "기와를 올리지 못했습니다. 잠시 뒤 다시 해 주세요." : "공양을 올리지 못했습니다. 잠시 뒤 다시 해 주세요."); } finally { setBusy(false); }
   };
   // 달기 전에 **내 등이 어떻게 걸리는지** 보여 준다.
   // 형이 참고로 준 판은 빈 칸에 글만 쓰게 한다. 우리는 쓰는 동안 등이
@@ -166,7 +167,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
           <Gongyang 갈래={gift} name={미리} seed={씨} drop={18} />
         </div>
 
-        <label className="hip-deung-lab">쪽지에 적을 이름</label>
+        <label className="hip-deung-lab">{갈래 === "giwa" ? "기와에 새길 이름" : "쪽지에 적을 이름"}</label>
         <input
           value={forName}
           onChange={(e) => setForName(e.target.value.slice(0, 20))}
@@ -182,7 +183,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
           value={wish}
           onChange={(e) => setWish(e.target.value.slice(0, 120))}
           rows={4}
-          placeholder="사연이나 기원하는 내용을 적어 보세요"
+          placeholder={갈래 === "giwa" ? "기와에 함께 새길 마음을 적어 보세요" : "사연이나 기원하는 내용을 적어 보세요"}
           className="hip-deung-in hip-deung-area"
         />
 
@@ -627,7 +628,7 @@ function 사연목록({
   onClose: () => void;
   onPick: (c: Candle) => void;
 }) {
-  const 갈래말 = { deung: "연등", ssal: "쌀", cho: "초", hyang: "향" } as const;
+  const 갈래말 = { deung: "연등", ssal: "쌀", cho: "초", hyang: "향", giwa: "기와 불사" } as const;
   // 월요일 0시부터 지금까지. 사연은 공감과 함께 보태진 횟수로만 가린다.
   // 글을 오래 올려 둔 사람이 계속 앞서는 것을 막기 위해 지난 주 것은
   // 다음 주가 되면 저절로 빠진다.
@@ -774,6 +775,7 @@ export default function CandleHall() {
   const 초들 = 갈래로("cho").slice(0, 자리.cho);
   const 쌀들 = 갈래로("ssal").slice(0, 자리.ssal);
   const 향들 = 갈래로("hyang");
+  const 기와들 = 갈래로("giwa");
   // 향로는 하나 — 올린 수는 꽂힌 향으로 센다
   const 향로 = 향들[0] ?? null;
   const 물들 = [...쌀들, ...초들];
@@ -782,7 +784,8 @@ export default function CandleHall() {
     Math.max(0, 갈래로("deung").length - 자리.deung) +
     Math.max(0, 갈래로("cho").length - 자리.cho) +
     Math.max(0, 갈래로("ssal").length - 자리.ssal) +
-    Math.max(0, 향들.length - 1);
+    Math.max(0, 향들.length - 1) +
+    Math.max(0, 기와들.length - 자리.giwa);
 
   return <div className="hip-hall">
     <div className="hip-hall-top">
@@ -804,6 +807,20 @@ export default function CandleHall() {
         절이 그렇다 — 등은 천장에 매달리고 공양물은 불단 위에 놓인다.
         한 칸 안에서 위아래로만 가른다(칸을 또 쪼개지 않는다). */}
     <div className="hip-hall-sky" data-mine-only={내것만 ? "1" : undefined}>
+      {/* 기와 불사는 불단에 놓지 않는다. 지붕 한 장으로 남는다.
+          완성된 처마를 누르면 가장 최근에 올린 기와의 이름과 마음을 읽는다. */}
+      <div className="hip-hall-roof" data-on={기와들.length ? "1" : undefined}>
+        <button
+          type="button"
+          disabled={!기와들.length}
+          onClick={() => { if (기와들[0]) 열기(기와들[0]); }}
+          aria-label={기와들.length ? `기와 불사 ${기와들.length}장 보기` : "기와 불사"}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/obj/gong-giwa-roof.png" alt="" draggable={false} />
+          {기와들.length > 0 && <b>{Math.min(기와들.length, 999)}</b>}
+        </button>
+      </div>
       {publicCandles === null ? (
         <p className="hip-hall-say">등을 살피는 중</p>
       ) : 다걸린것.length ? (

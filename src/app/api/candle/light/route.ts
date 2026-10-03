@@ -101,10 +101,10 @@ export async function POST(req: Request) {
   const forName = str(body.forName).slice(0, NAME_MAX);
   const wish = str(body.wish).slice(0, WISH_MAX);
   const kind = str(body.kind) || "peace";
-  // 무엇을 올렸나 — 연등 · 쌀 · 초. 모르는 말이 오면 연등으로 본다
+  // 무엇을 올렸나 — 연등 · 쌀 · 초 · 향 · 기와. 모르는 말은 연등으로 본다
   const giftRaw = str(body.gift);
   const gift =
-    giftRaw === "ssal" || giftRaw === "cho" || giftRaw === "hyang" ? giftRaw : "deung";
+    giftRaw === "ssal" || giftRaw === "cho" || giftRaw === "hyang" || giftRaw === "giwa" ? giftRaw : "deung";
   const publicCandle = body.visibility === "public";
   const lotusCost = publicCandle ? PUBLIC_CANDLE_PRICE : PRIVATE_CANDLE_PRICE;
   const burnDays = publicCandle ? PUBLIC_BURN_DAYS : PRIVATE_BURN_DAYS;
