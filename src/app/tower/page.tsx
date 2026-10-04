@@ -49,8 +49,8 @@ const 비킬수 = 46;
  *  ① 미끄러짐 — 아래 돌에서 이만큼 넘게 비키면 걸칠 데가 없다
  *  ② 쏠림 — 그래도 한쪽으로 기울어 모이면 받침을 벗어난다
  */
-const 미끄럼 = 0.52;
-const 쏠림금 = 0.46;
+const 미끄럼 = 0.82;
+const 쏠림금 = 0.66;
 
 /** 다 쌓고 나서 — 얼마나 정갈한가. 셋으로만 가른다 */
 const 등급표 = [
@@ -84,7 +84,7 @@ export default function TowerPage() {
     const r = el.getBoundingClientRect();
     const 몫 = ((e.clientX - r.left) / r.width - 0.5) * 2;
     // 판 끝까지 끌어도 비킬 수 있는 만큼만 — 탑이 판 밖으로 안 나간다
-    return Math.max(-1, Math.min(1, 몫 * 1.35));
+    return Math.max(-1, Math.min(1, 몫 * 0.82));
   };
 
   const 터뜨리기 = useCallback((v: 판정) => {
@@ -107,11 +107,14 @@ export default function TowerPage() {
   const 놓기 = useCallback(
     (비킴: number) => {
       if (멈춤) return;
-      const 벗어남 = Math.abs(비킴);
-      const 다음돌들 = [...돌들, 비킴];
+      // 손가락 끝의 오차는 가운데로 조금 보정한다. 바둑처럼 고르는 맛은
+      // 남기되, 화면 가장자리를 스쳤다고 바로 탑이 무너지지 않게 한다.
+      const 놓을곳 = 비킴 * 0.72;
+      const 벗어남 = Math.abs(놓을곳);
+      const 다음돌들 = [...돌들, 놓을곳];
       // ① 바로 아래 돌에서 얼마나 비켰나 — 걸칠 데가 있는가
       const 아래 = 돌들.length ? 돌들[돌들.length - 1] : 0;
-      const 미끄러짐 = Math.abs(비킴 - 아래);
+      const 미끄러짐 = Math.abs(놓을곳 - 아래);
       // ② 쌓인 것이 한쪽으로 쏠린 만큼
       const 쏠림 = Math.abs(다음돌들.reduce((s, x) => s + x, 0) / 다음돌들.length);
       const 넘어간다 = 미끄러짐 > 미끄럼 || 쏠림 > 쏠림금;

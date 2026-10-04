@@ -78,12 +78,12 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onCli
  *  「쓰는 일」로 읽혔다. 고르는 일과 쓰는 일은 다른 일이다 —
  *  먼저 고르고, 고른 다음에 쓴다.
  */
-const 공양들: { k: 공양갈래; 이름: string; 그림: string; 말: string }[] = [
-  { k: "deung", 이름: "연등", 그림: "/obj/deung.png", 말: "천장에 걸린다" },
-  { k: "ssal", 이름: "쌀", 그림: "/obj/gong-ssal.png", 말: "불단에 올린다" },
-  { k: "cho", 이름: "초", 그림: "/obj/gong-cho.png", 말: "불단에 밝힌다" },
-  { k: "hyang", 이름: "향", 그림: "/obj/gong-hyang.png", 말: "향로에 꽂는다" },
-  { k: "giwa", 이름: "기와 불사", 그림: "/obj/gong-giwa.png", 말: "법당 지붕에 올린다" },
+const 공양들: { k: 공양갈래; 이름: string; 그림: string }[] = [
+  { k: "deung", 이름: "연등", 그림: "/obj/deung.png" },
+  { k: "ssal", 이름: "쌀", 그림: "/obj/gong-ssal.png" },
+  { k: "cho", 이름: "초", 그림: "/obj/gong-cho.png" },
+  { k: "hyang", 이름: "향", 그림: "/obj/gong-hyang.png" },
+  { k: "giwa", 이름: "기와 불사", 그림: "/obj/gong-giwa.png" },
 ];
 
 function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => void; onClose: () => void }) {
@@ -116,7 +116,6 @@ function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => voi
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={g.그림} alt="" draggable={false} />
                 <b>{g.이름}</b>
-                <i>{g.말}</i>
                 <em>
                   <Yeonkkot className="h-[12px] w-[12px]" />
                   {PRIVATE_CANDLE_PRICE}
