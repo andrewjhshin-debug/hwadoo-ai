@@ -7558,3 +7558,125 @@ html[data-theme="light"] {
     .hip-smoke s { opacity: 0.4; }
   }
 }
+
+/* ── 법당의 한 상 ─────────────────────────────────────────────
+   연등, 동자, 공양을 각각 따로 떠 있게 두지 않는다. 얕은 처마 아래에서
+   연등은 위로 모이고 동자는 상에 앉고 공양은 같은 낮은 단 위에 선다. */
+@media (min-width: 0px) {
+  .hip-hall-sky {
+    isolation: isolate;
+    background:
+      radial-gradient(78% 36% at 50% 2%, rgba(240, 156, 184, .15), transparent 72%),
+      linear-gradient(135deg, rgba(255, 250, 252, .74), rgba(246, 255, 253, .66));
+  }
+  .hip-hall-roof {
+    height: clamp(48px, 13vw, 62px);
+    margin-bottom: -7px;
+  }
+  .hip-hall-roof img {
+    filter: saturate(.74) contrast(1.04) brightness(.78);
+  }
+  .hip-hall-ceil {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 2px 4px;
+  }
+  .hip-deung-sky {
+    flex: 0 0 auto;
+    max-height: clamp(142px, 37vw, 190px);
+    overflow: hidden;
+    padding: 0 5px 2px;
+    mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+  }
+  .hip-deung {
+    max-width: 72px;
+    min-width: 27px;
+    margin-inline: -2.15%;
+    margin-block-end: calc(var(--deung-lap, -9) * 1.16%);
+  }
+  .hip-hall-shrine {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 178px;
+    margin: auto 7px 2px;
+    padding: 50px 12px 6px;
+    border: 1px solid rgba(99, 72, 58, .12);
+    border-radius: 28px 28px 18px 18px;
+    background:
+      radial-gradient(42% 78% at 50% 6%, rgba(255, 231, 168, .48), transparent 71%),
+      linear-gradient(180deg, rgba(255, 255, 255, .48), rgba(237, 221, 210, .28));
+    box-shadow: inset 0 1px rgba(255, 255, 255, .78), 0 10px 22px rgba(130, 92, 105, .08);
+  }
+  .hip-hall-shrine::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    bottom: 0;
+    left: 10px;
+    height: 46px;
+    z-index: 0;
+    border-radius: 19px 19px 13px 13px;
+    border: 1px solid rgba(88, 57, 45, .16);
+    background:
+      linear-gradient(180deg, rgba(135, 87, 64, .88), rgba(92, 58, 49, .94)),
+      #845849;
+    box-shadow: inset 0 2px rgba(255, 232, 211, .24), 0 6px 10px rgba(83, 53, 46, .2);
+  }
+  .hip-hall-dongja {
+    position: absolute;
+    z-index: 2;
+    bottom: 31px;
+    left: 50%;
+    width: min(38vw, 160px);
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .hip-hall-dongja::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    right: 12%;
+    bottom: -4px;
+    left: 12%;
+    height: 20%;
+    border-radius: 50%;
+    background: rgba(94, 62, 47, .28);
+    filter: blur(7px);
+  }
+  .hip-hall-dongja img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 6px 7px rgba(88, 54, 43, .15));
+  }
+  .hip-hall-altar {
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    min-height: 38px;
+    margin: 0;
+    padding: 2px 58px 2px 3px;
+    gap: 2px 8px;
+    border: 0;
+    background: transparent;
+  }
+  .hip-hall-altar .hip-gong-body { height: 62px; }
+  .hip-hall-altar .hip-gong[data-kind="cho"] .hip-gong-body { height: 78px; }
+  .hip-hall-altar .hip-gong[data-kind="ssal"] .hip-gong-body { height: 34px; }
+  .hip-hall-altar .hip-censer .hip-gong-body { height: 59px; }
+  .hip-hall-altar .hip-gong-name { display: none; }
+  .hip-gift-grid button {
+    border-color: rgba(126, 95, 82, .12);
+    background:
+      radial-gradient(70% 42% at 50% 76%, rgba(235, 189, 166, .18), transparent 74%),
+      linear-gradient(180deg, #fff, #fcf8f8);
+    box-shadow: inset 0 1px rgba(255, 255, 255, .85);
+  }
+  .hip-gift-grid img { margin-bottom: 4px; }
+}

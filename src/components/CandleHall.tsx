@@ -770,7 +770,10 @@ export default function CandleHall() {
   // 넘치는 것은 **버리지 않는다** — 장부에도 사연 게시판에도 그대로
   // 있고, 여기 천장과 불단에만 안 선다. 서는 것은 늘 최근 것부터.
   const 갈래로 = (k: string) => 다걸린것.filter((c) => (c.gift ?? "deung") === k);
-  const 등들 = 갈래로("deung").slice(0, 자리.deung);
+  // 법당 천장에는 가장 최근 스물넷만 직접 보인다. 그 뒤의 등은 사연판에
+  // 그대로 남고, 이곳에서는 빛의 밀도로만 느껴져야 목록처럼 길어지지 않는다.
+  const 등보이는자리 = 24;
+  const 등들 = 갈래로("deung").slice(0, 등보이는자리);
   const 초들 = 갈래로("cho").slice(0, 자리.cho);
   const 쌀들 = 갈래로("ssal").slice(0, 자리.ssal);
   const 향들 = 갈래로("hyang");
@@ -780,7 +783,7 @@ export default function CandleHall() {
   const 물들 = [...쌀들, ...초들];
   /** 못 선 것 — 「자리가 다 찼다」를 말해 주는 수 */
   const 못선것 =
-    Math.max(0, 갈래로("deung").length - 자리.deung) +
+    Math.max(0, 갈래로("deung").length - 등보이는자리) +
     Math.max(0, 갈래로("cho").length - 자리.cho) +
     Math.max(0, 갈래로("ssal").length - 자리.ssal) +
     Math.max(0, 향들.length - 1) +
@@ -859,40 +862,46 @@ export default function CandleHall() {
                 />
               ))}
             </div>
-          </div>
-          {(물들.length > 0 || 향로) && (
-            <div className="hip-hall-altar">
-              {물들.map((c, i) => <CandleMark key={c.id} c={c} i={i} 열={99} mine={c.uid === me?.uid} onClick={() => 열기(c)}/>)}
-              {/* 향로는 한 채뿐 — 올린 수만큼 향이 꽂힌다(아홉까지) */}
-              {향로 && (
-                <span
-                  className="hip-hang"
-                  data-mine={향들.some((x) => x.uid === me?.uid) ? "1" : undefined}
-                >
-                  <button
-                    type="button"
-                    className="hip-gong hip-censer"
-                    onClick={() => 열기(향로)}
-                    aria-label={`향 공양 ${향들.length}`}
-                  >
-                    <span className="hip-gong-body">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img className="hip-gong-img" src="/obj/gong-hyang.png" alt="" draggable={false} />
-                      {/* 형: 「향이랑 초는 타는 듯한 이펙트 줄 수 있나」
-                          향은 **연기**다. 세 올이 서로 다른 박자로 올라가
-                          흩어진다 — 박자가 같으면 그림이지 연기가 아니다 */}
-                      <i className="hip-smoke" aria-hidden>
-                        <s style={{ animationDelay: "0s" }} />
-                        <s style={{ animationDelay: "-1.6s" }} />
-                        <s style={{ animationDelay: "-3.1s" }} />
-                      </i>
-                      {향들.length > 1 && <b>{Math.min(향들.length, 999)}</b>}
+            <div className="hip-hall-shrine">
+              <div className="hip-hall-dongja" aria-hidden>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/obj/keycap-dongja.png" alt="" draggable={false} />
+              </div>
+              {(물들.length > 0 || 향로) && (
+                <div className="hip-hall-altar">
+                  {물들.map((c, i) => <CandleMark key={c.id} c={c} i={i} 열={99} mine={c.uid === me?.uid} onClick={() => 열기(c)}/>)}
+                  {/* 향로는 한 채뿐 — 올린 수만큼 향이 꽂힌다(아홉까지) */}
+                  {향로 && (
+                    <span
+                      className="hip-hang"
+                      data-mine={향들.some((x) => x.uid === me?.uid) ? "1" : undefined}
+                    >
+                      <button
+                        type="button"
+                        className="hip-gong hip-censer"
+                        onClick={() => 열기(향로)}
+                        aria-label={`향 공양 ${향들.length}`}
+                      >
+                        <span className="hip-gong-body">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img className="hip-gong-img" src="/obj/gong-hyang.png" alt="" draggable={false} />
+                          {/* 형: 「향이랑 초는 타는 듯한 이펙트 줄 수 있나」
+                              향은 **연기**다. 세 올이 서로 다른 박자로 올라가
+                              흩어진다 — 박자가 같으면 그림이지 연기가 아니다 */}
+                          <i className="hip-smoke" aria-hidden>
+                            <s style={{ animationDelay: "0s" }} />
+                            <s style={{ animationDelay: "-1.6s" }} />
+                            <s style={{ animationDelay: "-3.1s" }} />
+                          </i>
+                          {향들.length > 1 && <b>{Math.min(향들.length, 999)}</b>}
+                        </span>
+                      </button>
                     </span>
-                  </button>
-                </span>
+                  )}
+                </div>
               )}
             </div>
-          )}
+          </div>
         </>
       ) : (
         <p className="hip-hall-say">아직 걸린 공양이 없습니다.</p>
