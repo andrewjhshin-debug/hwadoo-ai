@@ -84,6 +84,16 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
   </div>;
 }
 
+/** 빈 법당도 창고처럼 비어 보이지 않게, 실제 공양과 구별되는 은은한 등만 둔다. */
+function 법당빈연등() {
+  return <div className="hip-hall-empty-deung" aria-hidden>
+    {Array.from({ length: 8 }, (_, i) => (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img key={i} src="/obj/deung.png" alt="" draggable={false} />
+    ))}
+  </div>;
+}
+
 /** 무엇을 올릴까 — **밑에서 올라오는 판**.
  *
  *  형: 「이거 팝업 스타일로 가자. 공양 끌어 올리면 여러 공양 아이템
@@ -917,7 +927,7 @@ export default function CandleHall() {
         </>
       ) : (
         <div className="hip-hall-ceil">
-          <p className="hip-hall-say">아직 걸린 공양이 없습니다.</p>
+          <법당빈연등 />
           <법당중앙 />
         </div>
       )}

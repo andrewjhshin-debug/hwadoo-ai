@@ -7589,6 +7589,29 @@ html[data-theme="light"] {
     padding: 18px 0 8px;
     font-size: 12px;
   }
+  .hip-hall-empty-deung {
+    position: relative;
+    flex: 0 0 182px;
+    overflow: hidden;
+    margin: 0 4px -24px;
+    pointer-events: none;
+  }
+  .hip-hall-empty-deung img {
+    position: absolute;
+    display: block;
+    width: clamp(60px, 18vw, 92px);
+    height: auto;
+    opacity: .42;
+    filter: saturate(.78) blur(.1px);
+  }
+  .hip-hall-empty-deung img:nth-child(1) { top: -16px; left: -1%; transform: scale(.72); opacity: .25; }
+  .hip-hall-empty-deung img:nth-child(2) { top: 4px; left: 14%; transform: scale(.92); }
+  .hip-hall-empty-deung img:nth-child(3) { top: -12px; left: 37%; transform: scale(.68); opacity: .28; }
+  .hip-hall-empty-deung img:nth-child(4) { top: 2px; right: 13%; transform: scale(.9); }
+  .hip-hall-empty-deung img:nth-child(5) { top: -14px; right: -2%; transform: scale(.72); opacity: .25; }
+  .hip-hall-empty-deung img:nth-child(6) { top: 68px; left: 2%; transform: scale(.65); opacity: .2; }
+  .hip-hall-empty-deung img:nth-child(7) { top: 70px; left: 29%; transform: scale(.5); opacity: .18; }
+  .hip-hall-empty-deung img:nth-child(8) { top: 66px; right: 2%; transform: scale(.64); opacity: .2; }
   .hip-deung-sky {
     flex: 0 0 auto;
     max-height: clamp(142px, 37vw, 190px);
@@ -7609,8 +7632,8 @@ html[data-theme="light"] {
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    min-height: clamp(278px, 48vh, 390px);
-    margin: auto 7px 3px;
+    min-height: clamp(282px, 43vh, 350px);
+    margin: 0 7px 3px;
     padding: 80px 12px 10px;
     border: 0;
     border-radius: 30px 30px 18px 18px;
@@ -7689,6 +7712,10 @@ html[data-theme="light"] {
   .hip-hall-altar .hip-gong[data-kind="ssal"] .hip-gong-body { height: 40px; }
   .hip-hall-altar .hip-censer .hip-gong-body { height: 68px; }
   .hip-hall-altar .hip-gong-name { display: none; }
+  .hip-hall-acts {
+    top: clamp(214px, 35vh, 330px);
+    bottom: auto;
+  }
   .hip-gift-grid button {
     border-color: rgba(126, 95, 82, .12);
     background:
