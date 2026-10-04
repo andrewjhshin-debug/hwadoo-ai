@@ -7708,6 +7708,54 @@ html[data-theme="light"] {
     top: clamp(214px, 35vh, 330px);
     bottom: auto;
   }
+  /* 완성 장면은 한 장으로 고정하고, 실제 연등만 이 위에 차오른다. */
+  .hip-hall-sky { padding: 0; overflow: hidden; }
+  .hip-hall-roof {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 14;
+    height: 82px;
+    margin: 0;
+    opacity: 0;
+  }
+  .hip-hall-ceil { position: relative; flex: 1 1 auto; overflow: hidden; padding: 0; }
+  .hip-hall-shrine {
+    position: absolute;
+    inset: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .hip-hall-scene {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+  }
+  .hip-deung-sky {
+    position: absolute;
+    top: 7%;
+    right: 1%;
+    left: 1%;
+    z-index: 10;
+    max-height: 38%;
+    padding: 0;
+    pointer-events: auto;
+    mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+  }
+  .hip-hall-altar { display: none; }
+  .hip-hall-acts {
+    top: 48%;
+    right: 10px;
+    z-index: 15;
+    transform: translateY(-50%);
+  }
   .hip-gift-grid button {
     border-color: rgba(126, 95, 82, .12);
     background:
