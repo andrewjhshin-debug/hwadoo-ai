@@ -5724,26 +5724,6 @@ html[data-theme="light"] {
   }
   .hip-tower-stack { position: absolute; inset: 0; transform-origin: 50% 100%; transition: transform .4s cubic-bezier(.2,.8,.3,1); }
   .hip-tower-moving { z-index: 3; transition: none; filter: drop-shadow(0 13px 15px rgba(216, 115, 155, .3)); }
-  /* 판정 한 자 — 글이 아니라 글자가 터진다 */
-  .hip-tower-judge {
-    position: absolute;
-    z-index: 4;
-    left: 50%;
-    top: 34%;
-    font-family: var(--font-serif);
-    font-size: 58px;
-    font-weight: 400;
-    pointer-events: none;
-    animation: hip-tower-pop .52s cubic-bezier(.2,1.5,.4,1) both;
-  }
-  .hip-tower-judge.j-mid { color: #e0a022; text-shadow: 0 0 22px rgba(224, 160, 34, .5); }
-  .hip-tower-judge.j-ok  { color: #cf6d9b; text-shadow: 0 0 18px rgba(207, 109, 155, .35); }
-  .hip-tower-judge.j-no  { color: #9aa0a6; text-shadow: none; }
-  @keyframes hip-tower-pop {
-    0%   { transform: translate(-50%, 6px) scale(.6); opacity: 0; }
-    35%  { transform: translate(-50%, 0) scale(1.12); opacity: 1; }
-    100% { transform: translate(-50%, -22px) scale(1); opacity: 0; }
-  }
   /* 기울기 자 — 차면 무너진다. 초록에서 금으로, 금에서 빨강으로 */
   .hip-tower-lean {
     display: block;
@@ -5761,19 +5741,9 @@ html[data-theme="light"] {
     background: linear-gradient(90deg, #5cc2ac, #e0a022 62%, #d94a63);
     transition: width .3s ease-out;
   }
-  /* 등급 한 자 — 上·中·下. 셋뿐이라 눈이 바로 잡는다 */
-  .hip-tower-grade {
-    font-family: var(--font-serif);
-    font-size: 40px;
-    font-style: normal;
-    line-height: 1;
-  }
-  .hip-tower-grade.g-a { color: #e0a022; text-shadow: 0 0 20px rgba(224,160,34,.45); }
-  .hip-tower-grade.g-b { color: #cf6d9b; }
-  .hip-tower-grade.g-c { color: #9aa0a6; }
   .hip-tower-done { display: grid; justify-items: center; gap: 5px; margin-top: 12px; }
   .hip-tower-done b { font-size: 14px; font-weight: 500; color: #493f38; }
-  .hip-tower-done span { color: #d35b8d; font-family: var(--font-serif); font-size: 26px; }
+  .hip-tower-done b em { margin-right: 5px; color: #b87f21; font-family: var(--font-serif); font-size: 22px; font-style: normal; font-weight: 400; vertical-align: -1px; }
   .hip-tower-done button {
     min-width: 150px;
     margin-top: 4px;

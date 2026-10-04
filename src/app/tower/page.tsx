@@ -23,7 +23,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type React from "react";
 import HipRoom from "@/components/HipRoom";
 import { addMerit } from "@/lib/merit";
-import { buzz } from "@/lib/sound";
+import { buzz, strikeStone } from "@/lib/sound";
 
 const TOTAL = 5;
 /** 층마다 돌 너비 — 위로 갈수록 좁아진다 */
@@ -59,8 +59,6 @@ const 등급표 = [
   { id: "下", 말: "겨우 섰습니다", 배: 0.75, 금: Infinity },
 ] as const;
 
-type 판정 = "中" | "良" | "危";
-
 export default function TowerPage() {
   /** 쌓인 돌 — 저마다 가운데서 얼마나 어긋났나(-1~1) */
   const [돌들, 돌들잡기] = useState<number[]>([]);
@@ -69,9 +67,6 @@ export default function TowerPage() {
   const [무너짐, 무너짐잡기] = useState(false);
   /** 다 쌓았나 — 쌓았으면 등급(上·中·下) */
   const [끝, 끝잡기] = useState<"上" | "中" | "下" | null>(null);
-  const [점수, 점수잡기] = useState(0);
-  const [연속, 연속잡기] = useState(0);
-  const [튄것, 튄것잡기] = useState<{ v: 판정; n: number } | null>(null);
   const 판 = useRef<HTMLButtonElement | null>(null);
 
   const 놓인 = 돌들.length;
@@ -87,19 +82,12 @@ export default function TowerPage() {
     return Math.max(-1, Math.min(1, 몫 * 0.82));
   };
 
-  const 터뜨리기 = useCallback((v: 판정) => {
-    튄것잡기({ v, n: Date.now() });
-    window.setTimeout(() => 튄것잡기((x) => (x && x.v === v ? null : x)), 520);
-  }, []);
-
   const 쓰러뜨리기 = useCallback(() => {
     무너짐잡기(true);
-    연속잡기(0);
     buzz(30);
     window.setTimeout(() => {
       무너짐잡기(false);
       돌들잡기([]);
-      점수잡기(0);
       겨눈잡기(null);
     }, 1150);
   }, []);
@@ -120,11 +108,9 @@ export default function TowerPage() {
       const 넘어간다 = 미끄러짐 > 미끄럼 || 쏠림 > 쏠림금;
 
       const 한가운데 = 벗어남 < 0.2 && 미끄러짐 < 0.26;
-      터뜨리기(넘어간다 ? "危" : 한가운데 ? "中" : "良");
-      buzz(한가운데 ? 9 : 6);
+      strikeStone(0.24 + 놓인 * 0.025, 놓인);
+      buzz(한가운데 ? 8 : 5);
       돌들잡기(다음돌들);
-      점수잡기((v) => v + Math.round(10 + (1 - 벗어남) * 26 + 연속 * 3));
-      연속잡기((v) => (한가운데 ? v + 1 : 0));
       겨눈잡기(null);
 
       if (넘어간다) { 쓰러뜨리기(); return; }
@@ -139,12 +125,11 @@ export default function TowerPage() {
         buzz(26);
       }
     },
-    [멈춤, 돌들, 연속, 터뜨리기, 쓰러뜨리기],
+    [멈춤, 돌들, 놓인, 쓰러뜨리기],
   );
 
   const 다시 = () => {
     돌들잡기([]); 겨눈잡기(null); 무너짐잡기(false); 끝잡기(null);
-    점수잡기(0); 연속잡기(0);
   };
 
   // 자판으로도 — 노트북에서 한가운데에 둔다
@@ -232,15 +217,6 @@ export default function TowerPage() {
             />
           )}
 
-          {튄것 && (
-            <b
-              key={튄것.n}
-              className={`hip-tower-judge j-${튄것.v === "中" ? "mid" : 튄것.v === "良" ? "ok" : "no"}`}
-              aria-hidden
-            >
-              {튄것.v}
-            </b>
-          )}
         </button>
 
         {/* 기울기 — 차면 무너진다 */}
@@ -250,9 +226,7 @@ export default function TowerPage() {
 
         {끝 && (
           <div className="hip-tower-done" role="status">
-            <em className={`hip-tower-grade g-${끝 === "上" ? "a" : 끝 === "中" ? "b" : "c"}`}>{끝}</em>
-            <b>{등급표.find((g) => g.id === 끝)?.말}</b>
-            <span>{점수}</span>
+            <b><em>{끝}</em> {등급표.find((g) => g.id === 끝)?.말}</b>
             <button onClick={다시}>한 번 더</button>
           </div>
         )}

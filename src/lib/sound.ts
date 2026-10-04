@@ -706,6 +706,40 @@ export function buzz(ms: number) {
   }
 }
 
+/** 돌을 얹을 때의 낮은 둔탁한 울림. 층이 오를수록 아주 조금 맑아진다. */
+export function strikeStone(vol = 0.3, layer = 0) {
+  const ac = audio();
+  if (!ac) return;
+  const t = ac.currentTime;
+  const out = ac.createGain();
+  out.gain.setValueAtTime(0.0001, t);
+  out.gain.exponentialRampToValueAtTime(Math.min(0.46, vol), t + 0.006);
+  out.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  out.connect(master(ac));
+
+  const body = ac.createOscillator();
+  body.type = "sine";
+  body.frequency.setValueAtTime(118 + layer * 7, t);
+  body.frequency.exponentialRampToValueAtTime(72 + layer * 4, t + 0.16);
+  body.connect(out);
+  body.start(t);
+  body.stop(t + 0.2);
+
+  const grit = ac.createBufferSource();
+  grit.buffer = noise(ac);
+  const low = ac.createBiquadFilter();
+  low.type = "lowpass";
+  low.frequency.value = 520;
+  const hit = ac.createGain();
+  hit.gain.setValueAtTime(0.16, t);
+  hit.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+  grit.connect(low);
+  low.connect(hit);
+  hit.connect(out);
+  grit.start(t);
+  grit.stop(t + 0.06);
+}
+
 
 // ── 숨소리 — 들숨·날숨 ─────────────────────────────────────────
 // 목탁은 한 방이라 0.06초 버퍼로 족했지만, 숨은 몇 초를 이어 간다.
