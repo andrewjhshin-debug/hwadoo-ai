@@ -904,7 +904,15 @@ export default function CandleHall() {
           </div>
         </>
       ) : (
-        <p className="hip-hall-say">아직 걸린 공양이 없습니다.</p>
+        <div className="hip-hall-ceil">
+          <p className="hip-hall-say">아직 걸린 공양이 없습니다.</p>
+          <div className="hip-hall-shrine">
+            <div className="hip-hall-dongja" aria-hidden>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/obj/keycap-dongja.png" alt="" draggable={false} />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* 자리가 다 찼을 때 — 못 선 것이 몇인지만. 사연에서는 다 읽힌다 */}
