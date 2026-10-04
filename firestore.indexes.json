@@ -2,6 +2,15 @@
   "//": "복합 색인. 없으면 해당 질의가 FAILED_PRECONDITION 으로 죽고 화면은 조용히 빈 목록이 된다 — 인연 글이 안 올라가 보이던 원인이 이것이었다. 고쳤으면 npm run rules:deploy 로 규칙과 함께 올린다.",
   "indexes": [
     {
+      "//": "법당 공개 공양 — 비공개 사연을 질의 단계에서 제외하고 최신순으로 건다.",
+      "collectionGroup": "candles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "visibility", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "//": "인연·연지원 목록 — fetchPosts(board). 이게 없어서 매번 대체 경로(전체 200개 훑기)로 떨어졌다.",
       "collectionGroup": "posts",
       "queryScope": "COLLECTION",

@@ -168,7 +168,9 @@ export async function lightCandle(
  */
 export async function fetchCandles(): Promise<Candle[]> {
   const snap = await getDocs(
-    query(collection(db, "candles"), orderBy("createdAt", "desc"), limit(PAGE * 2))
+    // 비공개 사연을 읽을 수 없는 사람의 질의도 함께 막히지 않게, 공개분만
+    // 서버에 먼저 고른다. 브라우저에서 뒤늦게 거르는 방식은 규칙상 실패한다.
+    query(collection(db, "candles"), where("visibility", "==", "public"), orderBy("createdAt", "desc"), limit(PAGE * 2))
   );
   const all = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Candle, "id">) }));
   return all.filter((c) => burning(c) && c.visibility === "public").slice(0, PAGE);

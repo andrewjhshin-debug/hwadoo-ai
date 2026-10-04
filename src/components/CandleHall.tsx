@@ -142,15 +142,33 @@ function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => voi
   );
 }
 
-function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose: () => void; onDone: () => void }) {
+function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose: () => void; onDone: (c: Candle) => void }) {
   // 형: 「연등 공양, 쌀 공양, 초 공양 이렇게 달 수 있게 하자」
   const gift = 갈래;
-  const [visibility, setVisibility] = useState<"private" | "public">("private");
+  // 법당에서 여는 공양은 기본이 공개다. 나만 보기는 의식적으로 고른다.
+  const [visibility, setVisibility] = useState<"private" | "public">("public");
   const [forName, setForName] = useState(""); const [wish, setWish] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const key = useRef("");
   const publicCandle = visibility === "public"; const cost = publicCandle ? PUBLIC_CANDLE_PRICE : PRIVATE_CANDLE_PRICE;
   const submit = async () => {
     if (!wish.trim() || busy) return; if (!key.current) key.current = crypto.randomUUID().replaceAll("-", ""); setBusy(true); setError("");
-    try { const r = await lightCandle({ forName, wish, visibility, gift }, key.current); if (!r) { setError("연꽃이 모자랍니다"); return; } pingLotus(); onDone(); }
+    try {
+      const r = await lightCandle({ forName, wish, visibility, gift }, key.current);
+      if (!r) { setError("연꽃이 모자랍니다"); return; }
+      // Firestore 목록 재조회가 늦거나 일시적으로 실패해도, 방금 올린 공양은
+      // 성공 응답과 동시에 법당에 선다. 다음 재조회가 서버 값으로 맞춘다.
+      const u = auth.currentUser;
+      if (u) {
+        const me = loadMe();
+        onDone({
+          id: r.id, uid: u.uid, tier: "candle", gift,
+          by: me?.name || "이름 없는 이", byHanja: null,
+          forName: forName.trim().slice(0, 20) || "이름 없는 기원",
+          born: "", kind: "peace", wish: wish.trim().slice(0, 120), visibility,
+          lotusCost: cost, until: Date.now() + (publicCandle ? PUBLIC_BURN_DAYS : PRIVATE_BURN_DAYS) * 86_400_000,
+        });
+      }
+      pingLotus();
+    }
     catch { setError(갈래 === "giwa" ? "기와를 올리지 못했습니다. 잠시 뒤 다시 해 주세요." : "공양을 올리지 못했습니다. 잠시 뒤 다시 해 주세요."); } finally { setBusy(false); }
   };
   // 달기 전에 **내 등이 어떻게 걸리는지** 보여 준다.
@@ -1002,5 +1020,10 @@ export default function CandleHall() {
         onPick={(k) => { 고른것잡기(k); 고르기잡기(false); setForm(true); }}
       />
     )}
-    {form && <CandleForm 갈래={고른것} onClose={닫기} onDone={() => { setForm(false); load(); 닫기(); }}/>} {open && <Story c={open} me={me} onClose={닫기} onChanged={load}/>}</div>;
+    {form && <CandleForm 갈래={고른것} onClose={닫기} onDone={(c) => {
+      setMine((before) => [c, ...before.filter((x) => x.id !== c.id)]);
+      if (c.visibility === "public") setPublicCandles((before) => [c, ...(before ?? []).filter((x) => x.id !== c.id)]);
+      setForm(false);
+      닫기();
+    }}/>} {open && <Story c={open} me={me} onClose={닫기} onChanged={load}/>}</div>;
 }
