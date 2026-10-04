@@ -72,6 +72,8 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onCli
  *  동자는 연꽃 받침에 앉고, 공양은 같은 불단 위에서만 달라진다. */
 function 법당중앙({ children }: { children?: React.ReactNode }) {
   return <div className="hip-hall-shrine">
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img className="hip-hall-altar-base" src="/obj/hall-altar-v1.png" alt="" draggable={false} />
     <div className="hip-hall-lotus" aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/obj/lotus.png" alt="" draggable={false} />
@@ -80,17 +82,15 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/obj/keycap-dongja.png" alt="" draggable={false} />
     </div>
+    <div className="hip-hall-altar-default" aria-hidden>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img data-kind="cho" src="/obj/gong-cho.png" alt="" draggable={false} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img data-kind="ssal" src="/obj/gong-ssal.png" alt="" draggable={false} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img data-kind="hyang" src="/obj/gong-hyang.png" alt="" draggable={false} />
+    </div>
     {children}
-  </div>;
-}
-
-/** 빈 법당도 창고처럼 비어 보이지 않게, 실제 공양과 구별되는 은은한 등만 둔다. */
-function 법당빈연등() {
-  return <div className="hip-hall-empty-deung" aria-hidden>
-    {Array.from({ length: 8 }, (_, i) => (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img key={i} src="/obj/deung.png" alt="" draggable={false} />
-    ))}
   </div>;
 }
 
@@ -927,7 +927,6 @@ export default function CandleHall() {
         </>
       ) : (
         <div className="hip-hall-ceil">
-          <법당빈연등 />
           <법당중앙 />
         </div>
       )}
