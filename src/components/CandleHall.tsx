@@ -708,8 +708,6 @@ export default function CandleHall() {
   /** 무엇을 올릴지 고르는 판(밑에서 올라온다) */
   const [고르기, 고르기잡기] = useState(false);
   const [고른것, 고른것잡기] = useState<공양갈래>("deung");
-  /** 아래에서 위로 쓸기 — 손가락이 내려앉은 자리 */
-  const 쓸기 = useRef<number | null>(null);
   /** 공유 — 폰은 제 나눔 판을, 넓은 판은 주소 복사 */
   const [나눔됨, 나눔됨잡기] = useState(false);
   const 나누기 = async () => {
@@ -791,6 +789,29 @@ export default function CandleHall() {
   // 향로는 하나 — 올린 수는 꽂힌 향으로 센다
   const 향로 = 향들[0] ?? null;
   const 물들 = [...쌀들, ...초들];
+  /* 그림 속 불단도 실제 공양의 입구다. 아이템을 누르면 가장 최근에
+     올린 그 갈래의 사연을 연다. 아직 아무도 올리지 않은 기본 공양은
+     장면으로만 남기고 눌리지 않는다. */
+  const 불단사연자리 = (
+    <div className="hip-hall-item-links" aria-label="공양 사연 보기">
+      {([
+        ["cho", 초들[0], "초 공양 사연"],
+        ["ssal", 쌀들[0], "쌀 공양 사연"],
+        ["hyang", 향로, "향 공양 사연"],
+        ["plate", 기와들[0], "기와 불사 사연"],
+      ] as const).map(([kind, c, label]) => (
+        <button
+          key={kind}
+          type="button"
+          className="hip-hall-item-link"
+          data-kind={kind}
+          disabled={!c}
+          onClick={() => { if (c) 열기(c); }}
+          aria-label={c ? label : `${label} 없음`}
+        />
+      ))}
+    </div>
+  );
   /** 못 선 것 — 「자리가 다 찼다」를 말해 주는 수 */
   const 못선것 =
     Math.max(0, 갈래로("deung").length - 등보이는자리) +
@@ -873,6 +894,7 @@ export default function CandleHall() {
               ))}
             </div>
             <법당중앙>
+              {불단사연자리}
               {(물들.length > 0 || 향로) && (
                 <div className="hip-hall-altar">
                   {물들.map((c, i) => <CandleMark key={c.id} c={c} i={i} 열={99} mine={c.uid === me?.uid} onClick={() => 열기(c)}/>)}
@@ -911,7 +933,7 @@ export default function CandleHall() {
         </>
       ) : (
         <div className="hip-hall-ceil">
-          <법당중앙 />
+          <법당중앙>{불단사연자리}</법당중앙>
         </div>
       )}
 
@@ -958,33 +980,13 @@ export default function CandleHall() {
           </i>
           <b>{나눔됨 ? "됐다" : "공유"}</b>
         </button>
+        <button className="hip-rail-btn hip-rail-offer" onClick={start} aria-label="공양 올리기">
+          <i>
+            <Yeonkkot />
+          </i>
+          <b>공양</b>
+        </button>
       </div>
-
-      {/* ── 공양은 **아래에서 위로 쓸면** 나온다 ─────────────
-          형: 「공양은 지워. 공양은 아래에서 위로 쓸면 나오게 해,
-               레퍼런스 준 거처럼」
-
-          단추를 지우면 길도 같이 지워진다 — 손짓만 남기면 아무도
-          못 찾는다(형이 여러 번 겪은 일이다: 「보이지 않는 손짓을
-          지우면 보이는 자리가 살아난다」).
-          그래서 **손잡이는 남긴다.** 밑변에 짧은 금 하나.
-          위로 쓸어도 열리고, 톡 눌러도 열린다 — 손짓은 빠른 길이지
-          유일한 길이 아니다. */}
-      <button
-        type="button"
-        className="hip-hall-pull"
-        aria-label="공양 올리기"
-        onClick={start}
-        onPointerDown={(e) => { 쓸기.current = e.clientY; }}
-        onPointerMove={(e) => {
-          if (쓸기.current === null) return;
-          if (쓸기.current - e.clientY > 40) { 쓸기.current = null; void start(); }
-        }}
-        onPointerUp={() => { 쓸기.current = null; }}
-        onPointerCancel={() => { 쓸기.current = null; }}
-      >
-        <i aria-hidden />
-      </button>
     </div>
     {사연판 && (
       <사연목록

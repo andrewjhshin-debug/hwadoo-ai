@@ -7750,12 +7750,45 @@ html[data-theme="light"] {
     mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
   }
   .hip-hall-altar { display: none; }
+  /* 장면 속 공양물은 장식이 아니라 사연의 입구다. 보이는 물건만
+     정확히 누르도록 투명한 손가락 자리를 얹는다. */
+  .hip-hall-item-links {
+    position: absolute;
+    inset: 0;
+    z-index: 12;
+    pointer-events: none;
+  }
+  .hip-hall-item-link {
+    position: absolute;
+    display: block;
+    border: 0;
+    background: transparent;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hip-hall-item-link:disabled { cursor: default; }
+  .hip-hall-item-link:not(:disabled):active { transform: scale(.94); }
+  .hip-hall-item-link:not(:disabled):focus-visible {
+    outline: 2px solid rgba(222, 86, 139, .7);
+    outline-offset: 3px;
+    border-radius: 50%;
+  }
+  .hip-hall-item-link[data-kind="cho"] { left: 4%; bottom: 8%; width: 20%; height: 27%; }
+  .hip-hall-item-link[data-kind="ssal"] { left: 23%; bottom: 9%; width: 21%; height: 18%; }
+  .hip-hall-item-link[data-kind="hyang"] { right: 23%; bottom: 8%; width: 19%; height: 25%; }
+  .hip-hall-item-link[data-kind="plate"] { right: 5%; bottom: 10%; width: 18%; height: 17%; }
   .hip-hall-acts {
     top: 48%;
     right: 10px;
     z-index: 15;
     transform: translateY(-50%);
   }
+  .hip-rail-offer i {
+    background: linear-gradient(145deg, rgba(239, 105, 155, .94), rgba(211, 68, 125, .94));
+    box-shadow: 0 7px 16px rgba(202, 65, 120, .25);
+  }
+  .hip-rail-offer i svg { width: 24px; height: 24px; color: #fff; }
+  .hip-rail-offer b { color: #c4487d; font-weight: 650; }
   .hip-gift-grid button {
     border-color: rgba(126, 95, 82, .12);
     background:
