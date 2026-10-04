@@ -7789,6 +7789,15 @@ html[data-theme="light"] {
   }
   .hip-rail-offer i svg { width: 24px; height: 24px; color: #fff; }
   .hip-rail-offer b { color: #c4487d; font-weight: 650; }
+
+  /* 법당 장면이 하단 띠 바로 위까지 닿게 한다. 이전 여백은 옛
+     쓸어올리기 손잡이 자리였고, 손잡이를 지운 뒤에는 빈 띠만 남았다. */
+  .hip-hall {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 62px);
+  }
+  .hip-hall-acts {
+    top: 57%;
+  }
   .hip-gift-grid button {
     border-color: rgba(126, 95, 82, .12);
     background:
