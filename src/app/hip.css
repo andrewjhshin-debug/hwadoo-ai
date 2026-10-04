@@ -5741,9 +5741,7 @@ html[data-theme="light"] {
     background: linear-gradient(90deg, #5cc2ac, #e0a022 62%, #d94a63);
     transition: width .3s ease-out;
   }
-  .hip-tower-done { display: grid; justify-items: center; gap: 5px; margin-top: 12px; }
-  .hip-tower-done b { font-size: 14px; font-weight: 500; color: #493f38; }
-  .hip-tower-done b em { margin-right: 5px; color: #b87f21; font-family: var(--font-serif); font-size: 22px; font-style: normal; font-weight: 400; vertical-align: -1px; }
+  .hip-tower-done { display: grid; justify-items: center; margin-top: 12px; }
   .hip-tower-done button {
     min-width: 150px;
     margin-top: 4px;

@@ -719,8 +719,8 @@ export function strikeStone(vol = 0.3, layer = 0) {
 
   const body = ac.createOscillator();
   body.type = "sine";
-  body.frequency.setValueAtTime(118 + layer * 7, t);
-  body.frequency.exponentialRampToValueAtTime(72 + layer * 4, t + 0.16);
+  body.frequency.setValueAtTime(142 + layer * 9, t);
+  body.frequency.exponentialRampToValueAtTime(88 + layer * 5, t + 0.16);
   body.connect(out);
   body.start(t);
   body.stop(t + 0.2);
@@ -729,10 +729,10 @@ export function strikeStone(vol = 0.3, layer = 0) {
   grit.buffer = noise(ac);
   const low = ac.createBiquadFilter();
   low.type = "lowpass";
-  low.frequency.value = 520;
+  low.frequency.value = 980;
   const hit = ac.createGain();
-  hit.gain.setValueAtTime(0.16, t);
-  hit.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+  hit.gain.setValueAtTime(0.22, t);
+  hit.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
   grit.connect(low);
   low.connect(hit);
   hit.connect(out);

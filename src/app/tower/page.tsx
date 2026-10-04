@@ -225,8 +225,7 @@ export default function TowerPage() {
         </span>
 
         {끝 && (
-          <div className="hip-tower-done" role="status">
-            <b><em>{끝}</em> {등급표.find((g) => g.id === 끝)?.말}</b>
+          <div className="hip-tower-done" role="status" aria-label="돌탑 완성">
             <button onClick={다시}>한 번 더</button>
           </div>
         )}
