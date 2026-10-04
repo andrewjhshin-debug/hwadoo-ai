@@ -68,6 +68,22 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onCli
   return <span className="hip-hang" data-mine={mine ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
 }
 
+/** 법당의 가운데는 공양 유무와 관계없이 한 장면이다.
+ *  동자는 연꽃 받침에 앉고, 공양은 같은 불단 위에서만 달라진다. */
+function 법당중앙({ children }: { children?: React.ReactNode }) {
+  return <div className="hip-hall-shrine">
+    <div className="hip-hall-lotus" aria-hidden>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/obj/lotus.png" alt="" draggable={false} />
+    </div>
+    <div className="hip-hall-dongja" aria-hidden>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/obj/keycap-dongja.png" alt="" draggable={false} />
+    </div>
+    {children}
+  </div>;
+}
+
 /** 무엇을 올릴까 — **밑에서 올라오는 판**.
  *
  *  형: 「이거 팝업 스타일로 가자. 공양 끌어 올리면 여러 공양 아이템
@@ -862,11 +878,7 @@ export default function CandleHall() {
                 />
               ))}
             </div>
-            <div className="hip-hall-shrine">
-              <div className="hip-hall-dongja" aria-hidden>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/obj/keycap-dongja.png" alt="" draggable={false} />
-              </div>
+            <법당중앙>
               {(물들.length > 0 || 향로) && (
                 <div className="hip-hall-altar">
                   {물들.map((c, i) => <CandleMark key={c.id} c={c} i={i} 열={99} mine={c.uid === me?.uid} onClick={() => 열기(c)}/>)}
@@ -900,18 +912,13 @@ export default function CandleHall() {
                   )}
                 </div>
               )}
-            </div>
+            </법당중앙>
           </div>
         </>
       ) : (
         <div className="hip-hall-ceil">
           <p className="hip-hall-say">아직 걸린 공양이 없습니다.</p>
-          <div className="hip-hall-shrine">
-            <div className="hip-hall-dongja" aria-hidden>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/obj/keycap-dongja.png" alt="" draggable={false} />
-            </div>
-          </div>
+          <법당중앙 />
         </div>
       )}
 

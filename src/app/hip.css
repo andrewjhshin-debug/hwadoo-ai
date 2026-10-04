@@ -7583,6 +7583,12 @@ html[data-theme="light"] {
     overflow: hidden;
     padding: 0 2px 4px;
   }
+  .hip-hall-ceil .hip-hall-say {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 18px 0 8px;
+    font-size: 12px;
+  }
   .hip-deung-sky {
     flex: 0 0 auto;
     max-height: clamp(142px, 37vw, 190px);
@@ -7603,15 +7609,17 @@ html[data-theme="light"] {
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    min-height: 178px;
-    margin: auto 7px 2px;
-    padding: 50px 12px 6px;
-    border: 1px solid rgba(99, 72, 58, .12);
-    border-radius: 28px 28px 18px 18px;
+    min-height: clamp(278px, 48vh, 390px);
+    margin: auto 7px 3px;
+    padding: 80px 12px 10px;
+    border: 0;
+    border-radius: 30px 30px 18px 18px;
     background:
-      radial-gradient(42% 78% at 50% 6%, rgba(255, 231, 168, .48), transparent 71%),
-      linear-gradient(180deg, rgba(255, 255, 255, .48), rgba(237, 221, 210, .28));
-    box-shadow: inset 0 1px rgba(255, 255, 255, .78), 0 10px 22px rgba(130, 92, 105, .08);
+      radial-gradient(55% 58% at 50% 34%, rgba(255, 232, 172, .52), transparent 72%),
+      radial-gradient(38% 44% at 11% 71%, rgba(178, 207, 192, .26), transparent 74%),
+      radial-gradient(38% 44% at 89% 71%, rgba(234, 174, 193, .19), transparent 74%),
+      linear-gradient(180deg, rgba(255, 255, 255, .28), rgba(246, 238, 233, .5));
+    box-shadow: inset 0 1px rgba(255, 255, 255, .82), 0 10px 22px rgba(130, 92, 105, .08);
   }
   .hip-hall-shrine::after {
     content: "";
@@ -7619,21 +7627,31 @@ html[data-theme="light"] {
     right: 10px;
     bottom: 0;
     left: 10px;
-    height: 46px;
+    height: 76px;
     z-index: 0;
-    border-radius: 19px 19px 13px 13px;
+    border-radius: 24px 24px 15px 15px;
     border: 1px solid rgba(88, 57, 45, .16);
     background:
       linear-gradient(180deg, rgba(135, 87, 64, .88), rgba(92, 58, 49, .94)),
       #845849;
     box-shadow: inset 0 2px rgba(255, 232, 211, .24), 0 6px 10px rgba(83, 53, 46, .2);
   }
+  .hip-hall-lotus {
+    position: absolute;
+    z-index: 1;
+    bottom: 46px;
+    left: 50%;
+    width: min(51vw, 214px);
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .hip-hall-lotus img { display: block; width: 100%; height: auto; }
   .hip-hall-dongja {
     position: absolute;
     z-index: 2;
-    bottom: 31px;
+    bottom: 53px;
     left: 50%;
-    width: min(38vw, 160px);
+    width: min(42vw, 178px);
     transform: translateX(-50%);
     pointer-events: none;
   }
@@ -7659,17 +7677,17 @@ html[data-theme="light"] {
     position: relative;
     z-index: 4;
     width: 100%;
-    min-height: 38px;
+    min-height: 56px;
     margin: 0;
-    padding: 2px 58px 2px 3px;
+    padding: 4px 58px 4px 3px;
     gap: 2px 8px;
     border: 0;
     background: transparent;
   }
-  .hip-hall-altar .hip-gong-body { height: 62px; }
-  .hip-hall-altar .hip-gong[data-kind="cho"] .hip-gong-body { height: 78px; }
-  .hip-hall-altar .hip-gong[data-kind="ssal"] .hip-gong-body { height: 34px; }
-  .hip-hall-altar .hip-censer .hip-gong-body { height: 59px; }
+  .hip-hall-altar .hip-gong-body { height: 70px; }
+  .hip-hall-altar .hip-gong[data-kind="cho"] .hip-gong-body { height: 88px; }
+  .hip-hall-altar .hip-gong[data-kind="ssal"] .hip-gong-body { height: 40px; }
+  .hip-hall-altar .hip-censer .hip-gong-body { height: 68px; }
   .hip-hall-altar .hip-gong-name { display: none; }
   .hip-gift-grid button {
     border-color: rgba(126, 95, 82, .12);
