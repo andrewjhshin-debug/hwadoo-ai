@@ -34,6 +34,7 @@ import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { BANK_INFO, CONTACT_EMAIL } from "@/lib/config";
 import { FIRST_GRANT, getLotus, 내지갑 } from "@/lib/dm";
+import { 내자취, 쓰임말, type 자취 } from "@/lib/walletLog";
 import { Yeonkkot } from "@/components/icons";
 import { createOrder } from "@/lib/orders";
 import { LotusMark } from "@/components/icons";
@@ -161,6 +162,60 @@ function MyLotus() {
           ? "쪽지 · 등 · 인연 한 손길에 한 송이. 받은 것부터 나갑니다"
           : "공덕을 모아 바꾸거나, 아래에서 구매할 수 있습니다"}
       </p>
+      <자취판 />
+    </div>
+  );
+}
+
+/**
+ * 쓴 자취 — 접어 둔다.
+ *
+ * 서버는 쓸 때마다 wallet-log 에 적어 왔다. 주석에도 「환불·분쟁 때
+ * 근거가 된다」고 써 두었는데 **보여 주는 화면이 없었다.**
+ * 적어 두는 것과 볼 수 있는 것은 다르다 — 전자상거래법이 말하는
+ * 거래기록 열람은 뒤쪽이다.
+ * 평소엔 접혀 있다. 잔고를 보러 온 사람에게 장부부터 들이밀 일은 없다.
+ */
+function 자취판() {
+  const [열림, 열림잡기] = useState(false);
+  const [줄, 줄잡기] = useState<자취[] | null>(null);
+  useEffect(() => {
+    if (!열림 || 줄) return;
+    void 내자취().then(줄잡기).catch(() => 줄잡기([]));
+  }, [열림, 줄]);
+  return (
+    <div className="relative mt-2.5 border-t border-ink-3 pt-2.5">
+      <button
+        onClick={() => 열림잡기((v) => !v)}
+        className="flex w-full items-center justify-between text-[11px] text-hanji-faint transition-colors hover:text-hanji-dim"
+      >
+        <span>쓴 자취</span>
+        <span aria-hidden>{열림 ? "−" : "+"}</span>
+      </button>
+      {열림 && (
+        <div className="mt-2">
+          {줄 === null ? (
+            <p className="py-2 text-[11px] text-hanji-faint">살피는 중</p>
+          ) : 줄.length === 0 ? (
+            <p className="py-2 text-[11px] text-hanji-faint">아직 쓴 적이 없습니다.</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {줄.map((r) => (
+                <li key={r.id} className="flex items-baseline justify-between gap-3 text-[11.5px]">
+                  <span className="min-w-0 truncate text-hanji-dim">{쓰임말(r.why)}</span>
+                  <span className="shrink-0 text-hanji-faint tabular-nums">
+                    {r.at ? new Date(r.at).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }) : "방금"}
+                  </span>
+                  <span className="shrink-0 tabular-nums text-hanji">
+                    {r.n > 0 ? "+" : ""}
+                    {r.n}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -299,6 +354,13 @@ function LotusInner() {
   const [user, setUser] = useState<User | null>(null);
   const [picked, setPicked] = useState<Product>(DEFAULT_PRODUCT);
   const [agree, setAgree] = useState(false);
+  // 태어난 해 — 만 19세 확인. 약관 제1조와 청소년보호정책이 이 판을
+  // 만 19세 이상 전용이라 못 박았는데, 결제 흐름은 생년을 **한 번도**
+  // 묻지 않았다. 민법 제5조상 법정대리인 동의 없는 미성년 결제는 취소
+  // 가능이고, PG 가 심사에서 보는 자리이기도 하다.
+  // 게다가 /youth 에 「본인확인은 결제 개시와 함께 도입 예정」이라고
+  // 우리가 적어 두었다 — 그 말을 지키지 않고 결제를 먼저 여는 꼴이었다.
+  const [born, setBorn] = useState("");
   // 단계 — 고르기(pick) → 입금 안내(pay) → 접수 완료(done)
   const [step, setStep] = useState<"pick" | "pay" | "done">("pick");
   const [error, setError] = useState("");
@@ -320,6 +382,16 @@ function LotusInner() {
     }
     if (!agree) {
       setError("구매조건 확인 및 결제진행에 동의해 주세요.");
+      return;
+    }
+    const 해 = Number(born);
+    const 올해 = new Date().getFullYear();
+    if (!/^\d{4}$/.test(born) || 해 < 1900 || 해 > 올해) {
+      setError("태어난 해를 네 자리로 적어 주세요.");
+      return;
+    }
+    if (올해 - 해 < 19) {
+      setError("만 19세 미만은 결제할 수 없습니다.");
       return;
     }
     setStep("pay");
@@ -496,7 +568,18 @@ function LotusInner() {
                 </button>
               )}
             </div>
-            <label className="mt-4 flex cursor-pointer items-start gap-2.5 border-t border-ink-3/60 pt-4 text-[12px] leading-5 text-hanji-dim">
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-ink-3/60 pt-4">
+              <span className="text-[12px] text-hanji-dim">태어난 해</span>
+              <input
+                inputMode="numeric"
+                maxLength={4}
+                placeholder="1990"
+                value={born}
+                onChange={(e) => setBorn(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                className="w-24 rounded-lg border border-ink-3 bg-transparent px-3 py-2 text-center text-[13px] tabular-nums text-hanji outline-none focus:border-gold/60"
+              />
+            </div>
+            <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-[12px] leading-5 text-hanji-dim">
               <input
                 type="checkbox"
                 checked={agree}
@@ -504,8 +587,8 @@ function LotusInner() {
                 className="mt-0.5 h-4 w-4 accent-[#D9B45B]"
               />
               <span className="break-keep">
-                주문 내용과 위의 제공·환불 안내를 확인했으며 결제 진행에
-                동의합니다.
+                만 19세 이상이며, 주문 내용과 위의 제공·환불 안내를
+                확인했고 결제 진행에 동의합니다.
               </span>
             </label>
             {error && (
