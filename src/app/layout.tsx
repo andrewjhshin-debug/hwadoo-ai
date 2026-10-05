@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import HipMala from "@/components/HipMala";
@@ -215,7 +216,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* 홈 화면에 담기 — 세션마다 한 번, 탭바 위에 낮게 깔려 묻는다 */}
         <InstallBanner />
         </ConfirmProvider>
+        {/* ── 지표 둘 ────────────────────────────────────────
+            베르셀은 「몇 명 왔나」, GA4 는 「어디서 나갔나」.
+            베르셀 무료판은 커스텀 이벤트가 막혀 있고 보관이 한 달이라
+            단계별 이탈을 못 그린다 — 형이 알고 싶은 것이 그것이라 둘을
+            같이 쓴다. 둘 다 돈이 안 든다.
+            GoogleAnalytics 는 next 가 주는 것이라 라우팅이 바뀔 때마다
+            페이지뷰를 알아서 다시 쏜다(App Router 는 새로고침이 없다). */}
         <Analytics />
+        <GoogleAnalytics gaId="G-JY8PY4RDD5" />
       </body>
     </html>
   );
