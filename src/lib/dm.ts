@@ -240,7 +240,12 @@ export async function getLotus(): Promise<number> {
   if (isAdminAccount(u)) return OWNER_LOTUS;
   try {
     const snap = await getDoc(doc(db, "wallets", u.uid));
-    const n = snap.exists() ? snap.data().lotus : 0;
+    // 지갑 문서는 **처음 쓸 때** 비로소 생긴다(지갑열기). 그때까지 0 을
+    // 돌려주고 있었다 — 게시판에는 「처음 오신 분께 3송이를 드립니다」가
+    // 걸려 있는데 머리에는 「연꽃 0」이 떠 있었다. 안 준 게 아니라 아직
+    // 안 적었을 뿐이다. 적히기 전에도 **가진 만큼**을 말한다.
+    if (!snap.exists()) return FIRST_GRANT;
+    const n = snap.data().lotus;
     return typeof n === "number" && n > 0 ? n : 0;
   } catch {
     return 0;

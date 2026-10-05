@@ -493,9 +493,15 @@ export default function Home() {
       <HipGardenEmpty
         audience={(store?.audience ?? "adult") as "adult" | "student"}
         onAudience={(a) => update((base) => ({ ...base, audience: a }))}
-        /* 손님이면 화두 대신 문부터 연다. signedIn 이 아직 null 이면
-           (인증을 읽는 중) 그냥 받게 둔다 — 기다리게 하지 않는다 */
-        onReceive={() => (signedIn === false ? setAskJoin(true) : receive())}
+        /* 손님도 **받아는 본다.**
+           여태 첫 단추가 곧 문지기였다 — 이 앱이 무엇을 주는 곳인지
+           한 번도 못 보고 가입부터 요구받았다. 물음 하나를 받아 읽고
+           나서 들어올지 정하는 편이 맞다.
+           문은 **회향할 때** 연다. 거기서부터는 계정이 실제로 있어야
+           하는 일이다(기록이 남고, 다른 기기로 따라가야 하니까).
+           손님이 받은 화두는 서랍에 주인 없이 쌓였다가, 나중에 들어오면
+           sync.ts 가 그 계정의 것으로 합쳐 준다 — 잃지 않는다. */
+        onReceive={receive}
         join={
           askJoin
             ? { busy: joinBusy, error: joinErr, onJoin: join, onClose: () => setAskJoin(false) }
@@ -833,7 +839,7 @@ export default function Home() {
                 {draft.length}/500
               </span>
               <button
-                onClick={saveJournal}
+                onClick={() => (signedIn === false ? setAskJoin(true) : saveJournal())}
                 disabled={!draft.trim()}
                 className="btn-obang tap shrink-0 rounded-full px-7 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-30"
               >
@@ -842,6 +848,24 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* 손님이 회향을 누른 자리 — 여기서만 문이 열린다.
+            받아 읽는 데까지는 아무것도 안 묻고, 남기려 할 때 묻는다.
+            쓰던 글은 그대로 있다 — 닫으면 이어서 쓰면 된다. */}
+        {askJoin && (
+          <div className="hip-gate" role="dialog" aria-label="시작하기">
+            <button className="hip-gate-veil" onClick={() => setAskJoin(false)} aria-label="닫기" />
+            <div className="hip-gate-card">
+              <button onClick={join} disabled={joinBusy} className="hip-strike">
+                {joinBusy ? "여는 중" : "구글로 시작하기"}
+              </button>
+              {joinErr && <p className="hip-gate-bad">{joinErr}</p>}
+              <button onClick={() => setAskJoin(false)} className="hip-gate-later">
+                다음에
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

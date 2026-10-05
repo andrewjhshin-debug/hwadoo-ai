@@ -15,9 +15,11 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getAuth } from "firebase-admin/auth";
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore, type Firestore } from "firebase-admin/firestore";
+import { getMessaging, type TokenMessage } from "firebase-admin/messaging";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { MERIT_ON_MATCH, QUIET_HOURS, pairId, today } from "@/lib/yeonPick";
+import { SITE_URL } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -162,5 +164,40 @@ export async function POST(req: Request) {
     db.collection(`yeon-owed/${to}/list`).add(몫),
   ]);
 
+  // 닿았다고 **알린다.**
+  // 여태 아무 소리도 안 났다 — 방은 사흘 조용하면 걷히는데(QUIET_HOURS),
+  // 둘 다 모르고 지나가면 그 인연은 아무 일도 없이 사라진다.
+  // 이 앱에서 알림을 보낼 까닭이 있다면 바로 이 순간이다.
+  await 닿았다고알리기(db, [
+    { uid: me, 상대: 저이름 },
+    { uid: to, 상대: 내이름 },
+  ]).catch(() => {
+    /* 알림이 못 가도 인연은 닿았다 — 여기서 실패를 올리지 않는다 */
+  });
+
   return Response.json({ ok: true, matched: true, thread: thread.id });
+}
+
+/** 양쪽에 한 통씩. 토큰이 없으면 조용히 접는다 */
+async function 닿았다고알리기(
+  db: Firestore,
+  받을이들: { uid: string; 상대: string }[]
+) {
+  const 뭉치 = await Promise.all(
+    받을이들.map(async ({ uid, 상대 }) => {
+      const snap = await db.collection("push-tokens").where("uid", "==", uid).get();
+      return snap.docs.map<TokenMessage>((d) => ({
+        token: d.id,
+        data: {
+          title: "因緣 · 인연이 닿았습니다",
+          body: `${상대} 님과 서로 합장했습니다`,
+          url: `${SITE_URL}/letters`,
+        },
+        webpush: { fcmOptions: { link: `${SITE_URL}/letters` } },
+      }));
+    })
+  );
+  const messages = 뭉치.flat();
+  if (!messages.length) return;
+  await getMessaging().sendEach(messages.slice(0, 500));
 }

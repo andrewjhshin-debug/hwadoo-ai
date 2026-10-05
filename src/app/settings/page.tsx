@@ -971,6 +971,135 @@ export default function SettingsPage() {
         <DailyPractice />
       </div>
 
+      {/* 알림을 여기로 올린다 — 여태 이 화면 1,398번째 줄에 있었다.
+          다시 올 이유를 만드는 스위치가 아무도 안 내려가는 깊이에
+          묻혀 있었다. 「오늘 하루」 바로 밑이 제자리다 — 매일 오라는
+          말과 매일 부르는 종은 한자리에 있어야 한다. */}
+      {/* ── 알림 — 아침 문안: 제목 한 줄 + 온/오프 토글.
+          차단이면 토글을 눌렀을 때 푸는 법 안내가 접혀 나온다 ── */}
+      <section className={`rise rise-d1 ${sectionGap}`}>
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+            알림 — 문안 켜기
+          </p>
+          {/* 토글 스위치 — 켜짐: 금색 채움 · 꺼짐: 테두리만 */}
+          <button
+            role="switch"
+            aria-checked={pushUi === "on"}
+            aria-label="아침 문안 알림"
+            onClick={handlePushToggle}
+            disabled={
+              pushBusy ||
+              pushUi === "loading" ||
+              pushUi === "unsupported" ||
+              pushUi === "preparing"
+            }
+            className={`relative h-[26px] w-[46px] shrink-0 rounded-full border transition-colors disabled:opacity-40 ${
+              pushUi === "on"
+                ? "border-gold bg-gold"
+                : "border-hanji-faint bg-transparent hover:border-hanji-dim"
+            }`}
+          >
+            <span
+              aria-hidden
+              className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full transition-transform duration-200 ${
+                pushUi === "on" ? "translate-x-5 bg-ink" : "bg-hanji-faint"
+              }`}
+            />
+          </button>
+        </div>
+        {/* 예불 종 — 하루 네 번, 정해진 시각의 알림. 문안(푸시)이 켜져 있어야 온다 */}
+        <div className="mt-5 rounded-[12px] border border-ink-3 px-4 py-4">
+          <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
+            예불 종 — 시각을 골라 두드립니다
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {BELLS.map((b) => {
+              const on = bells.includes(b.id);
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => toggleBell(b.id)}
+                  className={`flex items-center justify-between rounded-[10px] border px-3 py-2.5 text-left transition-colors ${
+                    on
+                      ? "border-gold/60 bg-gold/10 text-hanji"
+                      : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
+                  }`}
+                >
+                  <span className="text-[12.5px] leading-5">{b.label}</span>
+                  <span
+                    className={`text-[11px] tracking-wide ${on ? "text-gold-soft" : ""}`}
+                  >
+                    {b.time}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {pushUi !== "on" && bells.length > 0 && (
+            <p className="mt-3 break-keep text-[11.5px] leading-5 text-hanji-faint">
+              위의 문안 알림을 켜야 예불 종이 실제로 울립니다.
+            </p>
+          )}
+        </div>
+        <div className="mt-4 border-t border-ink-3 pt-5">
+          {/* 새 소식 — 아직 보지 않은 것만, 금색 점 한 줄씩.
+              나열되고 잠시 뒤 장부에 적혀, 사이드바·탭의 점이 꺼진다 */}
+          {notices.length > 0 && (
+            <ul className="mb-5 space-y-2 rounded-[12px] border border-gold/25 bg-gold/5 px-4 py-3.5">
+              {notices.map((n) => (
+                <li
+                  key={n.id}
+                  className="flex items-start gap-2.5 break-keep text-[13px] leading-6 text-hanji"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-gold shadow-[0_0_6px_var(--color-gold)]"
+                  />
+                  {n.text}
+                </li>
+              ))}
+            </ul>
+          )}
+          {/* 미지원·준비 중일 때만 한 줄 안내 */}
+          {(pushUi === "unsupported" || pushUi === "preparing") && (
+            <p className="break-keep text-[12px] leading-6 text-hanji-faint">
+              {pushUi === "unsupported"
+                ? "이 브라우저는 알림을 받을 수 없습니다. (아이폰은 홈 화면에 추가한 뒤 가능)"
+                : "알림을 준비하고 있습니다."}
+            </p>
+          )}
+          {/* 차단 상태에서 토글을 누르면 접혀 나오는 푸는 법 */}
+          {pushGuide && (
+            <div className="mt-4 break-keep rounded-[10px] border border-ink-3 bg-ink-2/40 px-4 py-3 text-[12px] leading-6 text-hanji-dim">
+              <p className="text-hanji">
+                브라우저가 알림을 막아 두었습니다.
+              </p>
+              <p className="mt-1.5">
+                · 컴퓨터: 주소창 왼쪽 자물쇠 → 알림 → 허용 → 새로고침
+              </p>
+              <p>
+                · 안드로이드: 주소창 자물쇠 → 권한 → 알림 허용 (없으면 ⋮ →
+                설정 → 사이트 설정 → 알림)
+              </p>
+              <p>
+                · 아이폰: 사파리 공유 단추 → 홈 화면에 추가 → 홈 화면의
+                화두로 열어 다시 시도
+              </p>
+              <p className="mt-1.5 text-hanji-faint">
+                허용한 뒤 다시 토글을 눌러 주세요.
+              </p>
+            </div>
+          )}
+          {pushError && (
+            <p className="mt-3 text-[12px] leading-6 text-vermilion">
+              {pushError}
+            </p>
+          )}
+        </div>
+      </section>
+
+
       {/* ── 자리(位) — 동자에서 시작해 공덕과 화두로 오른다.
            여섯을 다 깔아 두어야 지금 어디쯤인지, 다음이 어딘지 한눈에 든다.
            프로필 바로 아래 — 계급은 위에 있어야 계급이다.
@@ -1394,130 +1523,6 @@ export default function SettingsPage() {
       </section>
 
       </Fold>
-
-      {/* ── 알림 — 아침 문안: 제목 한 줄 + 온/오프 토글.
-          차단이면 토글을 눌렀을 때 푸는 법 안내가 접혀 나온다 ── */}
-      <section className={`rise rise-d1 ${sectionGap}`}>
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-            알림 — 문안 켜기
-          </p>
-          {/* 토글 스위치 — 켜짐: 금색 채움 · 꺼짐: 테두리만 */}
-          <button
-            role="switch"
-            aria-checked={pushUi === "on"}
-            aria-label="아침 문안 알림"
-            onClick={handlePushToggle}
-            disabled={
-              pushBusy ||
-              pushUi === "loading" ||
-              pushUi === "unsupported" ||
-              pushUi === "preparing"
-            }
-            className={`relative h-[26px] w-[46px] shrink-0 rounded-full border transition-colors disabled:opacity-40 ${
-              pushUi === "on"
-                ? "border-gold bg-gold"
-                : "border-hanji-faint bg-transparent hover:border-hanji-dim"
-            }`}
-          >
-            <span
-              aria-hidden
-              className={`absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full transition-transform duration-200 ${
-                pushUi === "on" ? "translate-x-5 bg-ink" : "bg-hanji-faint"
-              }`}
-            />
-          </button>
-        </div>
-        {/* 예불 종 — 하루 네 번, 정해진 시각의 알림. 문안(푸시)이 켜져 있어야 온다 */}
-        <div className="mt-5 rounded-[12px] border border-ink-3 px-4 py-4">
-          <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-            예불 종 — 시각을 골라 두드립니다
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {BELLS.map((b) => {
-              const on = bells.includes(b.id);
-              return (
-                <button
-                  key={b.id}
-                  onClick={() => toggleBell(b.id)}
-                  className={`flex items-center justify-between rounded-[10px] border px-3 py-2.5 text-left transition-colors ${
-                    on
-                      ? "border-gold/60 bg-gold/10 text-hanji"
-                      : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
-                  }`}
-                >
-                  <span className="text-[12.5px] leading-5">{b.label}</span>
-                  <span
-                    className={`text-[11px] tracking-wide ${on ? "text-gold-soft" : ""}`}
-                  >
-                    {b.time}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          {pushUi !== "on" && bells.length > 0 && (
-            <p className="mt-3 break-keep text-[11.5px] leading-5 text-hanji-faint">
-              위의 문안 알림을 켜야 예불 종이 실제로 울립니다.
-            </p>
-          )}
-        </div>
-        <div className="mt-4 border-t border-ink-3 pt-5">
-          {/* 새 소식 — 아직 보지 않은 것만, 금색 점 한 줄씩.
-              나열되고 잠시 뒤 장부에 적혀, 사이드바·탭의 점이 꺼진다 */}
-          {notices.length > 0 && (
-            <ul className="mb-5 space-y-2 rounded-[12px] border border-gold/25 bg-gold/5 px-4 py-3.5">
-              {notices.map((n) => (
-                <li
-                  key={n.id}
-                  className="flex items-start gap-2.5 break-keep text-[13px] leading-6 text-hanji"
-                >
-                  <span
-                    aria-hidden
-                    className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-gold shadow-[0_0_6px_var(--color-gold)]"
-                  />
-                  {n.text}
-                </li>
-              ))}
-            </ul>
-          )}
-          {/* 미지원·준비 중일 때만 한 줄 안내 */}
-          {(pushUi === "unsupported" || pushUi === "preparing") && (
-            <p className="break-keep text-[12px] leading-6 text-hanji-faint">
-              {pushUi === "unsupported"
-                ? "이 브라우저는 알림을 받을 수 없습니다. (아이폰은 홈 화면에 추가한 뒤 가능)"
-                : "알림을 준비하고 있습니다."}
-            </p>
-          )}
-          {/* 차단 상태에서 토글을 누르면 접혀 나오는 푸는 법 */}
-          {pushGuide && (
-            <div className="mt-4 break-keep rounded-[10px] border border-ink-3 bg-ink-2/40 px-4 py-3 text-[12px] leading-6 text-hanji-dim">
-              <p className="text-hanji">
-                브라우저가 알림을 막아 두었습니다.
-              </p>
-              <p className="mt-1.5">
-                · 컴퓨터: 주소창 왼쪽 자물쇠 → 알림 → 허용 → 새로고침
-              </p>
-              <p>
-                · 안드로이드: 주소창 자물쇠 → 권한 → 알림 허용 (없으면 ⋮ →
-                설정 → 사이트 설정 → 알림)
-              </p>
-              <p>
-                · 아이폰: 사파리 공유 단추 → 홈 화면에 추가 → 홈 화면의
-                화두로 열어 다시 시도
-              </p>
-              <p className="mt-1.5 text-hanji-faint">
-                허용한 뒤 다시 토글을 눌러 주세요.
-              </p>
-            </div>
-          )}
-          {pushError && (
-            <p className="mt-3 text-[12px] leading-6 text-vermilion">
-              {pushError}
-            </p>
-          )}
-        </div>
-      </section>
 
       {/* ── 홈 화면에 앱처럼 담기 — standalone이면 숨김 ── */}
       {installUi !== "standalone" && !installDone && (
