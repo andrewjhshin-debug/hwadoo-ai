@@ -138,6 +138,31 @@ export async function POST(req: Request) {
     if (p.exists) to = typeof p.data()?.to === "string" ? String(p.data()!.to) : body.to;
   }
 
+  // ── 도배 막기 ───────────────────────────────────────────
+  // 길이만 깎고 있었다(MAX). 한 사람이 1초에 한 줄씩 백 줄을 밀어 넣으면
+  // 사연 하나가 통째로 묻힌다 — 지우는 쪽이 늘 느리다.
+  // 서랍 하나로 센다: 다섯 자 사이 **열 줄**, 그리고 줄과 줄 사이 **세 초**.
+  const 창 = 5 * 60_000;
+  const 한창에 = 10;
+  const 사이 = 3_000;
+  const 지금 = Date.now();
+  const 속도 = db.doc(`comment-rate/${uid}`);
+  const 막힘 = await db.runTransaction(async (tx) => {
+    const d = (await tx.get(속도)).data() ?? {};
+    const from = typeof d.from === "number" ? d.from : 0;
+    const last = typeof d.last === "number" ? d.last : 0;
+    const n = 지금 - from < 창 && typeof d.n === "number" ? d.n : 0;
+    if (지금 - last < 사이) return "빠름";
+    if (n >= 한창에) return "많음";
+    tx.set(속도, { from: 지금 - from < 창 ? from : 지금, n: n + 1, last: 지금 }, { merge: true });
+    return "";
+  });
+  if (막힘)
+    return Response.json(
+      { error: 막힘 === "빠름" ? "too-fast" : "too-many" },
+      { status: 429 }
+    );
+
   const ref = await db.collection(`candles/${id}/comments`).add({
     uid, by, body: text, to, likes: 0, createdAt: FieldValue.serverTimestamp(),
   });
