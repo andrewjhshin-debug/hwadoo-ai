@@ -164,6 +164,20 @@ function save(b: DailyBook) {
   }
 }
 
+// ── 계정으로 오르내린다 ────────────────────────────────────
+/** 지금 적힌 그대로 */
+export function peekDaily(): DailyBook {
+  return loadDaily();
+}
+
+/** 다른 기기에서 온 하루 장부를 받아들인다 */
+export function applyRemoteDaily(b: DailyBook) {
+  save(b);
+}
+
+export { mergeDaily } from "./ledgerMerge";
+
+
 /** 하루치에 한 획 — addMerit 이 부른다. 여기 말고 따로 부를 일은 없다 */
 export function noteDaily(key: DailyKey, times = 1, gained = 0) {
   if (typeof window === "undefined") return;

@@ -471,6 +471,27 @@ export function resetMerit() {
   }
 }
 
+// ── 계정으로 오르내린다 ────────────────────────────────────
+// 여태 공덕 장부는 **브라우저에만** 있었다. 폰을 바꾸면 0 부터였고,
+// 사파리는 이레 안 들어오면 서랍째 지운다. 이 앱이 쌓는 것은 공덕인데
+// 그 장부가 제일 잘 사라지는 자리에 있었다.
+// sync.ts 가 store·me 와 같은 길로 이것도 실어 나른다.
+
+/** 지금 적힌 그대로 — 퇴전 셈을 돌리지 않는다(올릴 때 쓴다) */
+export function peekMerit(): MeritLedger {
+  return readRaw();
+}
+
+/** 다른 기기에서 온 장부를 받아들인다 */
+export function applyRemoteMerit(l: MeritLedger) {
+  save(l, true);
+}
+
+// 합치는 셈은 ledgerMerge.ts 에 있다 — 아무것도 import 하지 않아서
+// 따로 돌려 볼 수 있다(ledgerMerge.check.mjs).
+export { mergeMerit } from "./ledgerMerge";
+
+
 /** 마지막 갈무리 뒤로 흐려진 공덕 — 화면이 한 줄로 알린다 */
 export function fadedSoFar(l: MeritLedger = loadMerit()): number {
   return l.faded ?? 0;

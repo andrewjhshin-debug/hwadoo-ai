@@ -9,6 +9,8 @@
 // 오르내리는 것은 둘이다 —
 //   store : 화두 서랍(참구 중인 것 · 회향한 것)
 //   me    : 법명과 얼굴
+//   장부  : 공덕과 하루치 — 이 앱이 **쌓는다고 말하는 바로 그것**.
+//           여태 브라우저에만 있어서 폰을 바꾸면 0 부터였다.
 // 법명은 장부와 따로 흐른다. 한 줄에 태웠더니 글 한 자 고칠 때마다
 // 이름까지 오갔고, 반대로 이름만 고친 날은 장부 잠금에 걸려 영영
 // 안 올라갔다. 폰에서 법명을 고쳤는데 노트북은 옛 이름이던 까닭이다.
@@ -45,8 +47,23 @@ import { decrementHolding } from "./holding";
 import { resetVisits } from "@/components/VisitLedger";
 import { resetMeditations } from "./meditation";
 import { isAdminAccount } from "./config";
-import { setMeritAccount, setOwner } from "./merit";
-import { setDailyAccount } from "./daily";
+import {
+  applyRemoteMerit,
+  mergeMerit,
+  peekMerit,
+  setMeritAccount,
+  setOwner,
+  MERIT_EVENT,
+  type MeritLedger,
+} from "./merit";
+import {
+  applyRemoteDaily,
+  mergeDaily,
+  peekDaily,
+  setDailyAccount,
+  DAILY_EVENT,
+  type DailyBook,
+} from "./daily";
 import {
   applyRemoteMe,
   ME_EVENT,
@@ -198,6 +215,16 @@ async function startSync(uid: string) {
   // (화면이 옛 기록을 쥔 채로 있으면 다음 저장 때 합친 것이 되돌아간다)
   applyRemoteStore(merged);
 
+  // 1-1) 공덕·하루 장부 — 계정 칸으로 옮긴 **뒤에** 구름과 합친다.
+  // 순서가 거꾸로면 앞 계정 칸을 읽어 남의 공덕을 물려받는다.
+  const 구름장부 = snap.exists()
+    ? ((snap.data().ledger ?? null) as { merit?: MeritLedger; daily?: DailyBook } | null)
+    : null;
+  const 합친공덕 = mergeMerit(peekMerit(), 구름장부?.merit ?? null);
+  const 합친하루 = mergeDaily(peekDaily(), 구름장부?.daily ?? null);
+  applyRemoteMerit(합친공덕);
+  applyRemoteDaily(합친하루);
+
   // 1-2) 법명과 얼굴 — 앞사람의 브라우저면 이 기기의 이름은 물려받지 않는다
   if (!mine) resetMe();
   const mergedMe: Me =
@@ -297,6 +324,50 @@ async function startSync(uid: string) {
     return meInFlight;
   };
 
+  // 2-3) 장부도 제 발로 오간다 — 공덕은 자주 움직이니 길을 따로 낸다
+  let ledTimer: ReturnType<typeof setTimeout> | null = null;
+  let ledRetry: ReturnType<typeof setTimeout> | null = null;
+  let pendingLed = false;
+  let ledInFlight: Promise<void> | null = null;
+  let ledSeq = 0;
+
+  const pushLedger = (): Promise<void> => {
+    if (ledTimer) { clearTimeout(ledTimer); ledTimer = null; }
+    if (ledRetry) { clearTimeout(ledRetry); ledRetry = null; }
+    pendingLed = true;
+    const seq = ++ledSeq;
+    const 몸 = { merit: peekMerit(), daily: peekDaily() };
+    ledInFlight = (async () => {
+      let ok = false;
+      try {
+        await setDoc(ref, { ledger: clean(몸), updatedAt: serverTimestamp() }, { merge: true });
+        ok = true;
+      } catch {
+        /* 실패 — 아래에서 5초 뒤 다시 */
+      }
+      if (seq !== ledSeq) return;
+      ledInFlight = null;
+      if (ok) pendingLed = false;
+      else if (gen === generation) {
+        ledRetry = setTimeout(() => {
+          ledRetry = null;
+          if (seq === ledSeq && gen === generation) void pushLedger();
+        }, 5000);
+      }
+    })();
+    return ledInFlight;
+  };
+
+  // 목탁 한 번에 한 번씩 올리면 안 된다 — 2.5초 모았다 한 번에 보낸다
+  const ledHandler = (e: Event) => {
+    if ((e as CustomEvent).detail?.source === "remote") return;
+    pendingLed = true;
+    if (ledTimer) clearTimeout(ledTimer);
+    ledTimer = setTimeout(() => { ledTimer = null; void pushLedger(); }, 2500);
+  };
+  window.addEventListener(MERIT_EVENT, ledHandler);
+  window.addEventListener(DAILY_EVENT, ledHandler);
+
   const meHandler = (e: Event) => {
     if ((e as CustomEvent).detail?.source === "remote") return;
     pendingMe = true;
@@ -314,6 +385,7 @@ async function startSync(uid: string) {
   // (연결이 없으면 Firestore 가 쥐고 있다가 이어질 때 올린다)
   void push(merged);
   void pushMe(mergedMe);
+  void pushLedger();
 
   const handler = (e: Event) => {
     const source = (e as CustomEvent).detail?.source;
@@ -348,6 +420,29 @@ async function startSync(uid: string) {
       }
     }
 
+    // 장부 — 큰 쪽을 남기는 합치기라 덮어쓸 위험이 없다. 그래서
+    // store 의 잠금과 상관없이 늘 받는다(폰에서 친 목탁이 노트북에 바로 뜬다)
+    if (!pendingLed) {
+      const 원격장부 = (data?.ledger ?? null) as
+        | { merit?: MeritLedger; daily?: DailyBook }
+        | null;
+      if (원격장부) {
+        const 이곳공덕 = peekMerit();
+        const 이곳하루 = peekDaily();
+        const 새공덕 = mergeMerit(이곳공덕, 원격장부.merit ?? null);
+        const 새하루 = mergeDaily(이곳하루, 원격장부.daily ?? null);
+        if (canon(새공덕) !== canon(이곳공덕)) applyRemoteMerit(새공덕);
+        if (canon(새하루) !== canon(이곳하루)) applyRemoteDaily(새하루);
+        // 이 기기에만 있던 몫이 이겼으면 계정에도 올려 둔다
+        if (
+          canon(clean(새공덕)) !== canon(원격장부.merit ?? null) ||
+          canon(clean(새하루)) !== canon(원격장부.daily ?? null)
+        ) {
+          void pushLedger();
+        }
+      }
+    }
+
     if (pendingLocal) return; // 내 변화가 아직 안 올라감 — 덮어쓰지 않는다
     const remote = normalize(data ? (data.store as Store) : null);
     if (!remote) return;
@@ -366,8 +461,12 @@ async function startSync(uid: string) {
     if (retryTimer) clearTimeout(retryTimer);
     if (meTimer) clearTimeout(meTimer);
     if (meRetry) clearTimeout(meRetry);
+    if (ledTimer) clearTimeout(ledTimer);
+    if (ledRetry) clearTimeout(ledRetry);
     window.removeEventListener("hwadoo-store-updated", handler);
     window.removeEventListener(ME_EVENT, meHandler);
+    window.removeEventListener(MERIT_EVENT, ledHandler);
+    window.removeEventListener(DAILY_EVENT, ledHandler);
     unsubscribeSnapshot();
   };
   flushPush = async () => {
@@ -377,8 +476,10 @@ async function startSync(uid: string) {
       const now = peekMe();
       if (now) pushMe(now);
     }
+    if (pendingLed) pushLedger();
     if (inFlight) await inFlight;
     if (meInFlight) await meInFlight;
+    if (ledInFlight) await ledInFlight;
   };
 }
 
