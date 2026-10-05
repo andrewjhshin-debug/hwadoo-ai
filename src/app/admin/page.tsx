@@ -1784,7 +1784,7 @@ export default function AdminPage() {
                     act("lotus", async () => {
                       const n = parseInt(lotusN, 10);
                       if (isNaN(n) || n <= 0) return;
-                      await grantLotus(lotusUid.trim(), n);
+                      await grantLotus(lotusUid.trim(), n, "free");
                       setLotusMsg(
                         `${lotusUid.trim().slice(0, 8)}…에게 연꽃 ${n}송이를 채웠습니다.`
                       );

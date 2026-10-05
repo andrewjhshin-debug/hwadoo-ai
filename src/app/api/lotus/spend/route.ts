@@ -82,7 +82,10 @@ export async function POST(req: Request) {
         {
           lotus: lotus - n,
           free: free - 무상차감,
-          paid: paid - 유상차감,
+          // 하한이 없었다. 무상분을 다 쓴 뒤부터 paid 가 -1, -2 … 로
+          // 내려가, 열 송이 사서 다섯 쓴 사람의 **환불 기준 수량이 음수**로
+          // 적혔다. 유상분은 가진 것보다 더 깎일 수 없다
+          paid: Math.max(0, paid - 유상차감),
         },
         { merge: true }
       );

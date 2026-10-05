@@ -29,11 +29,13 @@ import {
   updateDoc,
   where,
   writeBatch,
+  runTransaction,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { anonName } from "./anonName";
 import { ADMIN_UID, DM_ENABLED, FIRST_GRANT, isAdminAccount } from "./config";
 import { 막은이들 } from "./yeonToday";
+import { 무상기한 } from "./wallet";
 import type { Post } from "./community";
 
 // 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 셈은 config.ts 에 있다.
@@ -281,9 +283,57 @@ export async function spendLotus(): Promise<boolean> {
   return true;
 }
 
-// 뒷방 전용 — 시험 삼아 연꽃을 채워 넣는다 (결제가 열리기 전까지의 손길)
-export async function grantLotus(uid: string, n: number) {
-  await setDoc(doc(db, "wallets", uid), { lotus: increment(n) }, { merge: true });
+/**
+ * 지갑에 연꽃을 넣는다 — **산 것인지 받은 것인지 적으면서.**
+ *
+ * 여태 `{ lotus: +n }` 한 칸만 썼다. 그래서 9,000원을 낸 사람의 지갑이
+ * `{ lotus: 10, paid: 0 }` 이 되고, /lotus 는 그 사람에게 「산 것 0」이라
+ * 적었다. 약관 제7조가 약속한 「환불은 남은 유상분 기준」의 **유상분이
+ * 영원히 0** 이니 환불 산식 자체가 성립하지 않았다.
+ * 더 나쁜 것은 갖춘지갑()의 메움값(free = lotus − paid)이다 — 산 10송이가
+ * 통째로 **무상분**으로 분류되고, 같은 화면이 무상분을 「환불·양도 안 됨」
+ * 이라 선언하며, 이레 뒤 시드는 쪽에 묶인다. 돈 받은 재화를 코드가
+ * 환불 불가 재화로 라벨링하고 있었다.
+ *
+ * 갈래를 받는다 —
+ *   "paid" : 돈을 낸 것. paid 에 더한다. 안 시든다
+ *   "free" : 뒷방이 시험 삼아 넣는 것. free 에 더하고 기한을 새로 민다
+ *
+ * orderId 를 주면 **그 주문으로 이미 넣었는지** 보고 두 번 넣지 않는다.
+ */
+export async function grantLotus(
+  uid: string,
+  n: number,
+  갈래: "paid" | "free" = "free",
+  orderId?: string
+): Promise<"넣음" | "이미"> {
+  const ref = doc(db, "wallets", uid);
+  return runTransaction(db, async (tx) => {
+    const s = await tx.get(ref);
+    const d = s.data() ?? {};
+    // 같은 주문으로 두 번 들어오면 — 앞서 적어 둔 자취를 보고 그냥 돌아간다
+    const 자취: string[] = Array.isArray(d.orderIds) ? d.orderIds : [];
+    if (orderId && 자취.includes(orderId)) return "이미";
+
+    const lotus = typeof d.lotus === "number" ? d.lotus : 0;
+    const paid = typeof d.paid === "number" ? d.paid : 0;
+    const free = typeof d.free === "number" ? d.free : Math.max(0, lotus - paid);
+    // 지갑이 없던 사람에게는 첫 선물도 같이 얹는다 — 돈 낸 길로 처음
+    // 들어왔다고 세 송이를 떼일 까닭이 없다
+    const 첫선물 = s.exists() ? 0 : FIRST_GRANT; // 웹 SDK 는 exists 가 함수다
+
+    const 몸: Record<string, unknown> = {
+      lotus: lotus + n + 첫선물,
+      paid: 갈래 === "paid" ? paid + n : paid,
+      free: free + 첫선물 + (갈래 === "free" ? n : 0),
+    };
+    // 무상분은 받을 때마다 기한이 새로 민다. 유상분만 받은 경우엔 안 건드린다
+    if (갈래 === "free" || 첫선물) 몸.freeUntil = 무상기한();
+    if (orderId) 몸.orderIds = [...자취, orderId].slice(-50);
+
+    tx.set(ref, 몸, { merge: true });
+    return "넣음";
+  });
 }
 
 // ── 안 읽음 셈 — 위 봉투 아이콘의 붉은 점 ─────────────────────

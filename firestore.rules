@@ -232,6 +232,15 @@ service cloud.firestore {
     }
 
     // 계정 동기화 — 제 것만
+    // 지갑 자취 — spend·dm/request·yeon/more 가 성실히 적고 주석에도
+    // 「환불·분쟁 때 근거가 된다」고 써 두었는데, **규칙에 칸이 없어
+    // 기본 거부**였다. 적는 사람(서버)은 관리자 권한이라 통과했지만
+    // 정작 본인이 제 사용내역을 못 읽었다. 쓰기는 여전히 서버만.
+    match /wallet-log/{uid}/list/{entry} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow write: if false;
+    }
+
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
@@ -332,8 +341,13 @@ service cloud.firestore {
       }
       allow update: if dmIsAdmin()
         || (dmOn() && request.auth != null && request.auth.uid == uid
-            && request.resource.data.keys().hasOnly(['lotus', 'paid', 'free', 'freeUntil'])
-            && sameLotusCell('paid') && sameLotusCell('free') && sameLotusCell('freeUntil')
+            // orderIds 도 **반드시 여기 있어야 한다.** 유료 지급이 그 칸을
+            // 남기는데 목록에 없으면, 한 번이라도 산 사람은 그 뒤로
+            // hasOnly 가 거짓이 되어 **연꽃을 영영 못 쓴다** — 바로 위
+            // 주석이 적어 둔 그 사고를 한 번 더 밟는 길이다.
+            && request.resource.data.keys().hasOnly(['lotus', 'paid', 'free', 'freeUntil', 'orderIds'])
+            && sameLotusCell('paid') && sameLotusCell('free')
+            && sameLotusCell('freeUntil') && sameLotusCell('orderIds')
             && request.resource.data.lotus is int
             && request.resource.data.lotus >= 0
             && request.resource.data.lotus == resource.data.lotus - 1);

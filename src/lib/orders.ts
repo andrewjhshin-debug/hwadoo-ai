@@ -88,15 +88,22 @@ const VALID_ORDERS: Record<string, { n: number; price: number }> = {
 };
 
 // 입금 확인 — 지갑에 채우고 주문을 paid 로
-export async function fulfillOrder(o: LotusOrder) {
+export async function fulfillOrder(o: LotusOrder): Promise<"넣음" | "이미"> {
   const spec = VALID_ORDERS[o.productId];
   if (!spec || spec.n !== o.n || spec.price !== o.price) {
     throw new Error(
       `상품표와 다른 주문입니다 — ${o.productId} / ${o.n}송이 / ${o.price}원. 지우고 다시 받으십시오.`
     );
   }
-  await grantLotus(o.uid, o.n);
+  // 여태 **두 번에 나눠** 썼다 — 지갑에 넣고(grantLotus), 그다음 주문을
+  // paid 로. 앞이 되고 뒤가 네트워크로 실패하면 주문은 pending 으로 남고,
+  // 뒷방에서 [지급]을 다시 누르면 9,000원에 스무 송이가 나갔다.
+  // 지갑에 주문 번호를 남겨 **같은 주문으로는 두 번 안 들어가게** 한다.
+  const 결과 = await grantLotus(o.uid, o.n, "paid", o.id);
+  // 지급이 끝난 뒤에만 도장을 찍는다. 여기서 실패해도 다시 누르면
+  // grantLotus 가 「이미」를 돌려주고 도장만 다시 찍힌다 — 두 번 안 나간다
   await updateDoc(doc(db, "orders", o.id), { status: "paid" });
+  return 결과;
 }
 
 // 잘못 들어온 주문 지우기 — 뒷방만
