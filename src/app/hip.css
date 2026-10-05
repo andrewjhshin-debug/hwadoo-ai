@@ -7751,7 +7751,11 @@ html[data-theme="light"] {
     max-height: none;
     padding: 0;
     pointer-events: auto;
-    mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+    /* 아래 정렬 + 하단 마스크 조합이 실제 등 그림을 통째로 지웠다.
+       처마 바로 아래부터 쌓고, 그림 자체를 자르지 않는다. */
+    align-items: flex-start;
+    align-content: flex-start;
+    mask-image: none;
   }
   .hip-hall-altar { display: none; }
   /* 장면 속 공양물은 장식이 아니라 사연의 입구다. 보이는 물건만
