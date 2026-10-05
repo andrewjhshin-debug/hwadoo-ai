@@ -656,6 +656,10 @@ function 사연목록({
   onPick: (c: Candle) => void;
 }) {
   const 갈래말 = { deung: "연등", ssal: "쌀", cho: "초", hyang: "향", giwa: "기와 불사" } as const;
+  const [내공양만, 내공양만잡기] = useState(false);
+  // 법당 화면의 '내 공양'은 밝기만 가르는 보기다. 게시판에서는 실제로
+  // 내 글만 남겨 읽을 수 있게 별도 필터를 둔다.
+  const 보여줄 = 내공양만 && me ? 들.filter((c) => c.uid === me.uid) : 들;
   // 월요일 0시부터 지금까지. 사연은 공감과 함께 보태진 횟수로만 가린다.
   // 글을 오래 올려 둔 사람이 계속 앞서는 것을 막기 위해 지난 주 것은
   // 다음 주가 되면 저절로 빠진다.
@@ -666,7 +670,7 @@ function 사연목록({
     d.setDate(d.getDate() - 지난);
     return d.getTime();
   })();
-  const 주간베스트 = 들
+  const 주간베스트 = 보여줄
     .filter((c) => c.visibility === "public" && (c.createdAt?.seconds ?? 0) * 1000 >= 이번주첫날)
     .sort((a, b) => {
       const a점 = a.cheers ?? 0;
@@ -675,7 +679,7 @@ function 사연목록({
     })
     .slice(0, 3);
   const 베스트id = new Set(주간베스트.map((c) => c.id));
-  const 나머지 = 들.filter((c) => !베스트id.has(c.id));
+  const 나머지 = 보여줄.filter((c) => !베스트id.has(c.id));
   const 사연줄 = (c: Candle) => (
     <li key={c.id}>
       <button onClick={() => onPick(c)}>
@@ -697,10 +701,20 @@ function 사연목록({
       <div className="hip-say-box">
         <div className="hip-say-top">
           <p>사연</p>
+          <button
+            type="button"
+            className="hip-say-mine-toggle"
+            data-on={내공양만 ? "1" : undefined}
+            aria-pressed={내공양만}
+            onClick={() => 내공양만잡기((v) => !v)}
+            disabled={!me}
+          >
+            내 공양만
+          </button>
           <button onClick={onClose}>닫기</button>
         </div>
-        {들.length === 0 ? (
-          <p className="hip-hall-say">아직 걸린 공양이 없습니다.</p>
+        {보여줄.length === 0 ? (
+          <p className="hip-hall-say">{내공양만 ? "내가 올린 공양이 없습니다." : "아직 걸린 공양이 없습니다."}</p>
         ) : (
           <>
             {주간베스트.length > 0 && (

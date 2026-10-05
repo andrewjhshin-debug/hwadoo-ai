@@ -5350,7 +5350,7 @@ html[data-theme="light"] {
     border-bottom: 1px solid rgba(26, 23, 20, 0.06);
   }
   .hip-say-top p {
-    margin: 0;
+    margin: 0 auto 0 0;
     font-family: var(--font-serif);
     font-size: 15.5px;
     color: #2a2520;
@@ -5360,6 +5360,20 @@ html[data-theme="light"] {
     letter-spacing: 0.1em;
     color: #a39a8f;
   }
+  .hip-say-top .hip-say-mine-toggle {
+    padding: 6px 10px;
+    border: 1px solid rgba(190, 130, 151, .2);
+    border-radius: 999px;
+    color: #9c7887;
+    letter-spacing: 0;
+  }
+  .hip-say-top .hip-say-mine-toggle[data-on="1"] {
+    border-color: transparent;
+    background: rgba(237, 116, 160, .14);
+    color: #c44e7d;
+    font-weight: 650;
+  }
+  .hip-say-top .hip-say-mine-toggle:disabled { opacity: .45; }
   /* ── 유튜브 댓글 결 ──────────────────────────────────────
      형: 「내가 준 유튭 레퍼 정도 크기랑 폰트로 가. 지금 너무 굵직,
           공간 낭비가 넘 심하다」
