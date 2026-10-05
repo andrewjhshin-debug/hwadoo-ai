@@ -604,7 +604,14 @@ service cloud.firestore {
       //  · state 를 '정지' 로는 스스로 못 간다(뒷방 몫)
       //  · 사진과 통과 여부는 서버(API)만 만진다. 사진을 올리고 지우는
       //    요청도 서버가 pending 으로 기록한다.
+      // 만 19세 — **규칙이 직접 본다.**
+      // 여태 나이는 브라우저의 들어올수있나(yeon.ts) 한 줄뿐이었다.
+      // 그건 화면을 막는 것이지 데이터를 막는 것이 아니다 — 콘솔에서
+      // 문서를 그대로 쓰면 그만이었다. 약관이 만 19세 전용이라 적어 둔
+      // 이상, 적어도 태어난 해는 여기서 걸러야 한다.
       allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.get('born', 0) is int
+        && request.time.year() - request.resource.data.get('born', 0) >= 19
         && !('approvedPhotoCount' in request.resource.data)
         && !('photos' in request.resource.data)
         && !('photoProof' in request.resource.data)
@@ -635,8 +642,15 @@ service cloud.firestore {
       // 「'정지' 로는 못 간다」만 막고 있었다 — 이미 정지인 사람이
       // '활동' 으로 쓰는 것은 막지 않았으니, 저장 한 번이면 도로 판에
       // 섰다. 뒷방이 내린 것을 본인이 무를 수 있으면 내린 것이 아니다.
+      // 태어난 해는 **한 번 적으면 못 바꾼다.** 열어 두면 미성년으로
+      // 들어왔다가 고쳐 쓰거나, 승인 뒤에 바꿔 치울 수 있다.
       allow update: if isAdmin()
         || (request.auth != null && request.auth.uid == uid
+            // same() 을 쓰면 **안 보낸 경우까지 막힌다.** 프로필저장() 이
+            // born 을 안 실어 보내는 길이 있으면 그 저장이 통째로 거절된다 —
+            // 바로 위 주석이 적어 둔 그 사고다. 보냈을 때만 견준다.
+            && (!('born' in request.resource.data)
+                || request.resource.data.born == resource.data.get('born', 0))
             && (!('state' in request.resource.data)
                 || request.resource.data.state != '정지')
             && (!('state' in resource.data)
