@@ -45,17 +45,30 @@ export async function GET(req: Request) {
     .limit(200)
     .get()
     .catch(() => null);
+  // 내가 막은 사람의 댓글은 안 보인다. 막는다는 말이 「인연 판에 안 뜬다」
+  // 한 가지 뜻일 수는 없다 — 읽는 자리마다 한 번씩 거른다.
+  // 신고로 가려진 댓글(held)도 함께 뺀다.
+  let 막힌 = new Set<string>();
+  if (uid) {
+    const b = await db.collection(`yeon-blocks/${uid}/list`).get().catch(() => null);
+    막힌 = new Set(b?.docs.map((d) => d.id) ?? []);
+  }
   const comments =
-    snap?.docs.map((d) => {
-      const x = d.data();
-      return {
-        id: d.id,
-        by: x.by ?? "이름 없는 이",
-        body: x.body ?? "",
-        to: typeof x.to === "string" ? x.to : null,
-        likes: typeof x.likes === "number" ? x.likes : 0,
-      };
-    }) ?? [];
+    snap?.docs
+      .filter((d) => {
+        const x = d.data();
+        return x.held !== true && !(typeof x.uid === "string" && 막힌.has(x.uid));
+      })
+      .map((d) => {
+        const x = d.data();
+        return {
+          id: d.id,
+          by: x.by ?? "이름 없는 이",
+          body: x.body ?? "",
+          to: typeof x.to === "string" ? x.to : null,
+          likes: typeof x.likes === "number" ? x.likes : 0,
+        };
+      }) ?? [];
 
   // 내가 누른 것 — 로그인했을 때만 묻는다
   let liked: string[] = [];

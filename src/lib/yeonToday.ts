@@ -131,12 +131,43 @@ export async function 막기(uid: string): Promise<void> {
   await setDoc(doc(db, "yeon-blocks", u.uid, "list", uid), {
     at: serverTimestamp(),
   });
+  캐시버리기();
+}
+
+/**
+ * 내가 막은 사람들 — 한 번 읽어 쥐고 있는다.
+ *
+ * 여태 이 목록은 **인연 판에서만** 쓰였다. 막아 놓고도 그 사람의 법당
+ * 사연과 댓글은 그대로 보였고, 쪽지함에도 줄이 남아 있었다.
+ * 막는다는 말이 「오늘의 인연에 안 뜬다」 한 가지 뜻일 수는 없다.
+ * 읽는 자리마다 이 목록을 한 번씩 거른다.
+ */
+let 막은이캐시: { uid: string; 들: Set<string> } | null = null;
+
+export async function 막은이들(): Promise<Set<string>> {
+  const u = auth.currentUser;
+  if (!u) return new Set();
+  if (막은이캐시 && 막은이캐시.uid === u.uid) return 막은이캐시.들;
+  try {
+    const snap = await getDocs(collection(db, "yeon-blocks", u.uid, "list"));
+    const 들 = new Set(snap.docs.map((d) => d.id));
+    막은이캐시 = { uid: u.uid, 들 };
+    return 들;
+  } catch {
+    return new Set();
+  }
+}
+
+/** 막거나 푼 뒤 — 쥐고 있던 목록을 버린다 */
+function 캐시버리기() {
+  막은이캐시 = null;
 }
 
 export async function 막은것풀기(uid: string): Promise<void> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   await deleteDoc(doc(db, "yeon-blocks", u.uid, "list", uid));
+  캐시버리기();
 }
 
 /**

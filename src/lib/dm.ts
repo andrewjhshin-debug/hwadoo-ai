@@ -33,6 +33,7 @@ import {
 import { auth, db } from "./firebase";
 import { anonName } from "./anonName";
 import { ADMIN_UID, DM_ENABLED, FIRST_GRANT, isAdminAccount } from "./config";
+import { 막은이들 } from "./yeonToday";
 import type { Post } from "./community";
 
 // 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 셈은 config.ts 에 있다.
@@ -151,9 +152,16 @@ export async function fetchMyThreads(): Promise<DmThread[]> {
     )
   );
   const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as DmThread);
+  // 막은 사람과의 방은 쪽지함에서 사라진다.
+  // 여태 인연 판에서 막아도 쪽지함에는 줄이 그대로 남아 있었다 —
+  // 막았는데 말이 계속 오는 꼴이었다.
+  const 막힌 = await 막은이들();
+  const 보일것 = 막힌.size
+    ? list.filter((t) => !(t.members ?? []).some((m) => m !== u.uid && 막힌.has(m)))
+    : list;
   // 최근 숨결 순 — 색인 없이 클라이언트에서 정렬한다
-  list.sort((a, b) => (b.lastAt?.seconds ?? 0) - (a.lastAt?.seconds ?? 0));
-  return list;
+  보일것.sort((a, b) => (b.lastAt?.seconds ?? 0) - (a.lastAt?.seconds ?? 0));
+  return 보일것;
 }
 
 export async function acceptThread(id: string) {

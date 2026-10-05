@@ -24,6 +24,7 @@
 // 지우는 것은 올린 사람과 뒷방만 할 수 있다(firestore.rules).
 // ─────────────────────────────────────────────────────────────
 
+import { 막은이들 } from "./yeonToday";
 import { collection, deleteDoc, doc, getDocs, limit, orderBy, query, where } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { loadMe } from "./me";
@@ -176,8 +177,17 @@ export async function fetchCandles(): Promise<Candle[]> {
   );
   const all = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Candle, "id">) }));
   // 신고로 가려 둔 글은 안 보인다(지운 것이 아니라 가린 것 — 뒷방이 푼다)
+  // 내가 막은 사람의 글도 안 보인다 — 막는다는 말이 「인연 판에 안 뜬다」
+  // 한 가지 뜻일 수는 없다
+  const 막힌 = await 막은이들();
   return all
-    .filter((c) => burning(c) && c.visibility === "public" && c.held !== true)
+    .filter(
+      (c) =>
+        burning(c) &&
+        c.visibility === "public" &&
+        c.held !== true &&
+        !(c.uid && 막힌.has(c.uid))
+    )
     .slice(0, PAGE);
 }
 
