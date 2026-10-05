@@ -29,13 +29,24 @@ export async function POST(req: Request) {
   const kind = body?.kind;
   const targetUid = body?.targetUid;
   const reason = typeof body?.reason === "string" ? body.reason.trim().slice(0, 300) : "";
-  if ((kind !== "dm" && kind !== "comment" && kind !== "yeon") || !uidOk(targetUid) || targetUid === uid || !reason)
+  // 법당 사연(공개 초)과 그 댓글에도 신고 길을 낸다.
+  // 여태 쪽지·사연판 댓글·인연 셋뿐이라, **사람이 제일 많이 읽는 글**인
+  // 법당 사연에는 신고할 데가 없었다.
+  const 갈래들 = ["dm", "comment", "yeon", "candle", "candle-comment"] as const;
+  if (
+    typeof kind !== "string" ||
+    !(갈래들 as readonly string[]).includes(kind) ||
+    !uidOk(targetUid) ||
+    targetUid === uid ||
+    !reason
+  )
     return Response.json({ error: "bad-report" }, { status: 400 });
 
   const db = getFirestore(app);
   const threadId = body?.threadId;
   const postId = body?.postId;
   const commentId = body?.commentId;
+  const candleId = body?.candleId;
 
   // 신고자가 실제로 이 대상을 만난 적 있는지를 먼저 본다. 아무 uid를
   // 찍어 신고함을 오염시키는 길은 이 단계에서 막힌다.
@@ -50,6 +61,32 @@ export async function POST(req: Request) {
     const comment = await db.doc(`posts/${postId}/comments/${commentId}`).get();
     if (!comment.exists || comment.data()?.authorUid !== targetUid)
       return Response.json({ error: "not-comment" }, { status: 404 });
+  } else if (kind === "candle") {
+    // 공개 초만 신고할 수 있다 — 남의 비공개 초는 애초에 안 보인다
+    if (!idOk(candleId)) return Response.json({ error: "bad-candle" }, { status: 400 });
+    const c = await db.doc(`candles/${candleId}`).get();
+    const d = c.data();
+    if (!c.exists || d?.uid !== targetUid || d?.visibility !== "public")
+      return Response.json({ error: "not-candle" }, { status: 404 });
+  } else if (kind === "candle-comment") {
+    if (!idOk(candleId) || !idOk(commentId))
+      return Response.json({ error: "bad-candle-comment" }, { status: 400 });
+    const c = await db.doc(`candles/${candleId}/comments/${commentId}`).get();
+    if (!c.exists || c.data()?.uid !== targetUid)
+      return Response.json({ error: "not-candle-comment" }, { status: 404 });
+  } else if (kind === "candle") {
+    // 공개 초만 신고할 수 있다 — 남의 비공개 초는 애초에 안 보인다
+    if (!idOk(candleId)) return Response.json({ error: "bad-candle" }, { status: 400 });
+    const c = await db.doc(`candles/${candleId}`).get();
+    const d = c.data();
+    if (!c.exists || d?.uid !== targetUid || d?.pub !== true)
+      return Response.json({ error: "not-candle" }, { status: 404 });
+  } else if (kind === "candle-comment") {
+    if (!idOk(candleId) || !idOk(commentId))
+      return Response.json({ error: "bad-candle-comment" }, { status: 400 });
+    const c = await db.doc(`candles/${candleId}/comments/${commentId}`).get();
+    if (!c.exists || c.data()?.uid !== targetUid)
+      return Response.json({ error: "not-candle-comment" }, { status: 404 });
   } else {
     const day = new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
     const picks = await db.doc(`yeon-daily/${uid}_${day}`).get();
@@ -60,7 +97,16 @@ export async function POST(req: Request) {
   const now = Date.now();
   // 같은 사람은 같은 대상에 7일에 한 번만. guard는 kind까지 나눠야
   // 댓글 하나의 신고가 인연 카드에 영향을 주지 않는다.
-  const subject = kind === "comment" ? `${postId}_${commentId}` : kind === "dm" ? String(threadId) : String(targetUid);
+  const subject =
+    kind === "comment"
+      ? `${postId}_${commentId}`
+      : kind === "candle"
+        ? String(candleId)
+        : kind === "candle-comment"
+          ? `${candleId}_${commentId}`
+          : kind === "dm"
+            ? String(threadId)
+            : String(targetUid);
   const guard = db.doc(`report-guards/${kind}_${subject}`);
   const report = db.collection("reports").doc();
   const outcome = await db.runTransaction(async (tx) => {
@@ -77,12 +123,36 @@ export async function POST(req: Request) {
       kind, targetUid, byUid: uid, reason, status: "open", createdAt: FieldValue.serverTimestamp(),
       ...(kind === "dm" ? { threadId } : {}),
       ...(kind === "comment" ? { postId, commentId } : {}),
+      ...(kind === "candle" ? { candleId } : {}),
+      ...(kind === "candle-comment" ? { candleId, commentId } : {}),
     });
     if (next.length >= HOLD_AT && kind === "yeon") {
       tx.set(db.doc(`yeon-profiles/${targetUid}`), {
         reportHold: true,
         state: "심사중",
         reportHoldAt: now,
+      }, { merge: true });
+    }
+    // 셋이 신고하면 먼저 가린다 — 사람이 보기 전에 글이 내려간다.
+    // 지우지는 않는다. 뒷방이 풀 수 있어야 오신고가 되돌려진다.
+    if (next.length >= HOLD_AT && kind === "candle") {
+      tx.set(db.doc(`candles/${candleId}`), { held: true, heldAt: now }, { merge: true });
+    }
+    if (next.length >= HOLD_AT && kind === "candle-comment") {
+      tx.set(db.doc(`candles/${candleId}/comments/${commentId}`), {
+        held: true,
+        body: "검토 중인 댓글입니다.",
+      }, { merge: true });
+    }
+    // 셋이 신고하면 먼저 가린다 — 사람이 더 보기 전에 글이 내려간다.
+    // **지우지는 않는다.** 뒷방이 풀 수 있어야 오신고가 되돌려진다.
+    if (next.length >= HOLD_AT && kind === "candle") {
+      tx.set(db.doc(`candles/${candleId}`), { held: true, heldAt: now }, { merge: true });
+    }
+    if (next.length >= HOLD_AT && kind === "candle-comment") {
+      tx.set(db.doc(`candles/${candleId}/comments/${commentId}`), {
+        held: true,
+        body: "검토 중인 댓글입니다.",
       }, { merge: true });
     }
     if (next.length >= HOLD_AT && kind === "comment") {

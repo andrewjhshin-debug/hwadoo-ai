@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import Gongyang, { type 공양갈래 } from "@/components/Gongyang";
+import { 신고보내기 } from "@/lib/dm";
 import LotusCount, { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
 import { loadMe } from "@/lib/me";
@@ -275,6 +276,8 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
   const mine = me?.uid === c.uid;
   /** 제 것 손보는 서랍(⋯) — 늘리기·고치기·내리기는 여기 들어간다 */
   const [서랍, 서랍잡기] = useState(false);
+  /** 남의 것에도 ⋯ 가 있어야 한다 — 신고할 데가 없으면 신고가 없다 */
+  const [신고함, 신고함잡기] = useState<"" | "보냄" | "이미" | "탈">("");
   /** 고치는 중인가 — 형: 「사연도 작성자가 편집할 수 있도록 두자」 */
   const [고침, 고침잡기] = useState(false);
   const [사연글, 사연글잡기] = useState(c.wish ?? "");
@@ -516,12 +519,43 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
 
           <i aria-hidden />
 
-          {mine && (
-            <button data-more="1" onClick={() => 서랍잡기((v) => !v)} aria-label="내 공양 손보기">⋯</button>
-          )}
+          <button
+            data-more="1"
+            onClick={() => 서랍잡기((v) => !v)}
+            aria-label={mine ? "내 공양 손보기" : "이 사연 신고하기"}
+          >
+            ⋯
+          </button>
         </div>
 
-        {/* ⋯ 서랍 — 늘리기 · 고치기 · 내리기 */}
+        {/* ⋯ 서랍 — 내 것이면 늘리기·고치기·내리기, 남의 것이면 신고.
+            여태 남의 사연에는 ⋯ 자체가 없었다 — 법당 사연은 이 앱에서
+            사람이 제일 많이 읽는 글인데 **신고할 데가 한 곳도 없었다.** */}
+        {!mine && 서랍 && (
+          <div className="hip-say-drawer">
+            <button
+              data-danger="1"
+              disabled={!me || busy || 신고함 === "보냄"}
+              onClick={async () => {
+                서랍잡기(false);
+                const 까닭 = window.prompt("무엇이 문제인가요? (한 줄)");
+                if (!까닭 || !까닭.trim()) return;
+                신고함잡기(await 신고보내기({ kind: "candle", targetUid: c.uid, candleId: c.id, reason: 까닭 }));
+              }}
+            >
+              신고하기
+            </button>
+            {신고함 && (
+              <p className="hip-say-note">
+                {신고함 === "보냄"
+                  ? "접수했습니다. 여럿이 신고하면 먼저 가려집니다."
+                  : 신고함 === "이미"
+                    ? "이미 신고하셨습니다."
+                    : "지금은 보내지 못했습니다."}
+              </p>
+            )}
+          </div>
+        )}
         {mine && 서랍 && (
           <div className="hip-say-drawer">
             {c.visibility === "public" && (

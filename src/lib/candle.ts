@@ -78,6 +78,8 @@ export type Candle = {
   kind: WishId;
   wish: string; // 사연
   visibility?: "private" | "public";
+  /** 여럿이 신고해 가려 둔 글 — 지운 것이 아니라 가린 것이다 */
+  held?: boolean;
   lotusCost?: number;
   /** 이전 초 문서 호환용 — 새 흐름에서는 쓰지 않는다. */
   hapjang?: number;
@@ -173,7 +175,10 @@ export async function fetchCandles(): Promise<Candle[]> {
     query(collection(db, "candles"), where("visibility", "==", "public"), orderBy("createdAt", "desc"), limit(PAGE * 2))
   );
   const all = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Candle, "id">) }));
-  return all.filter((c) => burning(c) && c.visibility === "public").slice(0, PAGE);
+  // 신고로 가려 둔 글은 안 보인다(지운 것이 아니라 가린 것 — 뒷방이 푼다)
+  return all
+    .filter((c) => burning(c) && c.visibility === "public" && c.held !== true)
+    .slice(0, PAGE);
 }
 
 /** 내가 올린 초 — 꺼진 것까지 다 보여 준다. 내 기록이니까. */

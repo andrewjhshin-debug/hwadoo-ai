@@ -371,6 +371,39 @@ export async function reportComment(
   if (!r.ok) throw new Error("신고를 접수하지 못했습니다");
 }
 
+/**
+ * 법당 사연·그 댓글 신고 — 한 곳으로 모은다.
+ *
+ * 쪽지·사연판 댓글은 각자 함수가 있었는데 **법당 사연에는 길이 없었다.**
+ * 사람이 제일 많이 읽는 글인데 신고할 데가 없으면 신고가 없는 것이다.
+ * 던지지 않고 말로 돌려준다 — 부르는 쪽이 한 줄로 알릴 수 있게.
+ */
+export async function 신고보내기(입력: {
+  kind: "candle" | "candle-comment";
+  targetUid: string;
+  candleId: string;
+  commentId?: string;
+  reason: string;
+}): Promise<"보냄" | "이미" | "탈"> {
+  const u = auth.currentUser;
+  if (!u) return "탈";
+  try {
+    const r = await fetch("/api/report", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${await u.getIdToken()}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ ...입력, reason: 입력.reason.trim().slice(0, 300) }),
+    });
+    if (!r.ok) return "탈";
+    const d = (await r.json()) as { again?: boolean };
+    return d.again ? "이미" : "보냄";
+  } catch {
+    return "탈";
+  }
+}
+
 // 뒷방 전용 — 신고함
 export async function fetchAllReports(): Promise<DmReport[]> {
   const snap = await getDocs(
