@@ -335,9 +335,10 @@ export type DmReport = {
   id: string;
   // 없으면 옛 쪽지 신고. "yeon" 은 인연 카드에서 들어온 것 —
   // 신고함 한 자리에 다 모여야 뒷방이 한 번에 본다(yeonToday.ts 신고)
-  kind?: "dm" | "comment" | "yeon";
+  kind?: "dm" | "comment" | "yeon" | "candle" | "candle-comment";
   threadId?: string; // 쪽지 신고일 때
   postId?: string; // 댓글 신고일 때
+  candleId?: string; // 법당 사연·그 댓글 신고일 때
   commentId?: string;
   targetUid: string;
   byUid: string;
@@ -410,6 +411,27 @@ export async function 신고보내기(입력: {
   } catch {
     return "탈";
   }
+}
+
+/** 뒷방 — 신고된 글을 가리거나 되돌리거나 지운다 */
+export async function 글손보기(입력: {
+  kind: "candle" | "candle-comment" | "comment";
+  act: "hide" | "show" | "drop";
+  candleId?: string;
+  commentId?: string;
+  postId?: string;
+}): Promise<void> {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요합니다");
+  const r = await fetch("/api/admin/content", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${await u.getIdToken()}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(입력),
+  });
+  if (!r.ok) throw new Error("손보지 못했습니다");
 }
 
 // 뒷방 전용 — 신고함

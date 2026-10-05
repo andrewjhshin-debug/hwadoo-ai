@@ -78,6 +78,7 @@ import {
   grantLotus,
   resolveReport,
   type DmReport,
+  글손보기,
 } from "@/lib/dm";
 import {
   deleteOrder,
@@ -1593,10 +1594,15 @@ export default function AdminPage() {
                           ? "[댓글 신고]"
                           : r.kind === "yeon"
                             ? "[인연 신고]"
-                            : "[쪽지 신고]"}
+                            : r.kind === "candle"
+                              ? "[법당 사연 신고]"
+                              : r.kind === "candle-comment"
+                                ? "[법당 댓글 신고]"
+                                : "[쪽지 신고]"}
                         &nbsp;대상 UID: {r.targetUid.slice(0, 8)}…
                         {r.threadId && <> · 스레드 {r.threadId.slice(0, 8)}…</>}
                         {r.postId && <> · 글 {r.postId.slice(0, 8)}…</>}
+                        {r.candleId && <> · 사연 {r.candleId.slice(0, 8)}…</>}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {/* 인연 신고는 **그 자리에서** 내릴 수 있어야 한다.
@@ -1627,6 +1633,70 @@ export default function AdminPage() {
                               className={`${smallBtn} border-vermilion/50 text-vermilion hover:bg-vermilion/10`}
                             >
                               프로필 정지
+                            </button>
+                          </>
+                        )}
+                        {/* 글 신고도 **그 자리에서** 손봐야 한다.
+                            여태 「처리함」뿐이라 도장만 찍히고 글은 그대로
+                            읽히고 있었다. 가리기는 되돌릴 수 있고,
+                            지우기는 못 되돌린다 — 그래서 한 번 더 묻는다 */}
+                        {(r.kind === "candle" ||
+                          r.kind === "candle-comment" ||
+                          r.kind === "comment") && (
+                          <>
+                            <button
+                              disabled={busy === r.id}
+                              onClick={() =>
+                                act(r.id, async () => {
+                                  await 글손보기({
+                                    kind: r.kind as "candle" | "candle-comment" | "comment",
+                                    act: "hide",
+                                    candleId: r.candleId,
+                                    commentId: r.commentId,
+                                    postId: r.postId,
+                                  });
+                                  await resolveReport(r.id);
+                                })
+                              }
+                              className={`${smallBtn} border-vermilion/50 text-vermilion hover:bg-vermilion/10`}
+                            >
+                              가리기
+                            </button>
+                            <button
+                              disabled={busy === r.id}
+                              onClick={() =>
+                                act(r.id, async () => {
+                                  await 글손보기({
+                                    kind: r.kind as "candle" | "candle-comment" | "comment",
+                                    act: "show",
+                                    candleId: r.candleId,
+                                    commentId: r.commentId,
+                                    postId: r.postId,
+                                  });
+                                  await resolveReport(r.id);
+                                })
+                              }
+                              className={smallBtn}
+                            >
+                              오신고 — 되돌리기
+                            </button>
+                            <button
+                              disabled={busy === r.id}
+                              onClick={() =>
+                                eraseForever(r.id, async () => {
+                                  await 글손보기({
+                                    kind: r.kind as "candle" | "candle-comment" | "comment",
+                                    act: "drop",
+                                    candleId: r.candleId,
+                                    commentId: r.commentId,
+                                    postId: r.postId,
+                                  });
+                                  await resolveReport(r.id);
+                                })
+                              }
+                              className={`${smallBtn} border-vermilion/50 text-vermilion hover:bg-vermilion/10`}
+                            >
+                              지우기
                             </button>
                           </>
                         )}
