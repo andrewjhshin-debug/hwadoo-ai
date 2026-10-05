@@ -20,6 +20,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  limit,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
@@ -158,13 +159,41 @@ function toPublicHwadu(
   };
 }
 
-// 승인된 화두 모두 — 홈의 랜덤 풀에 섞인다. 뒷방에서 숨긴 것은 뺀다.
+/**
+ * 승인된 화두 — 홈의 랜덤 풀에 섞인다. 뒷방에서 숨긴 것은 뺀다.
+ *
+ * 여태 **컬렉션을 통째로** 읽었다. 한도도 캐시도 없이, 홈에 들어올
+ * 때마다 전부. 파이어스토어 값은 읽은 **문서 수**로 매겨지므로,
+ * 화두가 천 개가 되면 홈 한 번에 천 번이고 사람이 천 명이면 백만 번이다.
+ * 사람이 늘수록 값이 제곱으로 오르는 꼴이라 손님이 올수록 손해였다.
+ *
+ * 한 번에 300 개까지만 읽고, 이 탭에서는 십 분 동안 쥐고 쓴다.
+ * 랜덤 풀이라 전부일 필요가 없다 — 섞을 것이 300 이면 충분하다.
+ */
+const 풀한도 = 300;
+const 풀캐시키 = "hwadu.pool.v1";
+const 풀수명 = 10 * 60_000;
+
 export async function fetchPublicHwadu(): Promise<PublicHwadu[]> {
-  const snap = await getDocs(collection(db, "public-hwadu"));
+  try {
+    const raw = sessionStorage.getItem(풀캐시키);
+    if (raw) {
+      const c = JSON.parse(raw) as { at: number; list: PublicHwadu[] };
+      if (Date.now() - c.at < 풀수명 && Array.isArray(c.list)) return c.list;
+    }
+  } catch {
+    /* 서랍이 막혀도 아래에서 읽어 온다 */
+  }
+  const snap = await getDocs(query(collection(db, "public-hwadu"), limit(풀한도)));
   const list: PublicHwadu[] = [];
   for (const d of snap.docs) {
     const p = toPublicHwadu(d.id, d.data());
     if (p && !p.hidden) list.push(p);
+  }
+  try {
+    sessionStorage.setItem(풀캐시키, JSON.stringify({ at: Date.now(), list }));
+  } catch {
+    /* 못 적어도 이번 판은 돈다 */
   }
   return list;
 }
