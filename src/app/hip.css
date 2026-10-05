@@ -7850,7 +7850,11 @@ html[data-theme="light"] {
    불상만 비정상적으로 커지고, 연등이 놓일 천장이 사라진다. */
 @media (min-width: 700px) {
   .hip-hall { max-width: 430px; }
-  /* 세로 법당 장면을 가로 화면에 cover 하면 위·아래가 잘린다.
-     법당의 기준은 처마다 — 웹에서는 먼저 처마를 지키고 아래를 맞춘다. */
-  .hip-hall-scene { object-position: center top; }
+  /* 웹 칸과 원화 비율이 달라도 처마나 불단 중 하나를 버리지 않는다.
+     양쪽의 남는 결은 같은 안개색으로 메워 장면 전체를 보인다. */
+  .hip-hall-scene {
+    object-fit: contain;
+    object-position: center center;
+    background: linear-gradient(180deg, #fce6df 0%, #fff6ed 48%, #edf4ef 100%);
+  }
 }
