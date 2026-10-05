@@ -98,7 +98,21 @@ type Tab =
   | "donors"
   | "reports"
   | "photos"
-  | "orders";
+  | "orders"
+  | "offerings";
+
+type AdminOffering = {
+  id: string;
+  uid: string;
+  gift: string;
+  by: string;
+  forName: string;
+  wish: string;
+  visibility: "private" | "public";
+  held: boolean;
+  until: number;
+  createdAt: number | null;
+};
 
 // 구획마다 한 줄 설명 — 무엇이 모이는 자리인지
 const TAB_NOTE: Record<Tab, string> = {
@@ -123,6 +137,8 @@ const TAB_NOTE: Record<Tab, string> = {
     "쪽지 대화에서 들어온 신고 — 살펴서 처리하고, 하단에서 시험용 연꽃도 채웁니다.",
   orders:
     "연꽃 주문 — 계좌이체 입금을 통장에서 확인한 뒤 [지급]을 누르면 지갑에 채워집니다.",
+  offerings:
+    "법당 공양 — 신고를 기다리지 않고 최근 공양을 살펴봅니다. 가리기는 법당에서만 내리고, 필요하면 다시 올릴 수 있습니다.",
 };
 
 const smallBtn =
@@ -616,6 +632,7 @@ export default function AdminPage() {
   const [content, setContent] = useState<AdminContent>(emptyAdminContent());
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [reports, setReports] = useState<DmReport[]>([]);
+  const [offerings, setOfferings] = useState<AdminOffering[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -652,6 +669,21 @@ export default function AdminPage() {
 
   useEffect(() => watchAuth(setUser), []);
   const isAdmin = isAdminAccount(user);
+
+  const refreshOfferings = useCallback(async () => {
+    const me = auth.currentUser;
+    if (!me) return;
+    const res = await fetch("/api/admin/candles", {
+      headers: { authorization: `Bearer ${await me.getIdToken()}` },
+    });
+    if (!res.ok) throw new Error("offerings-read-failed");
+    const data = (await res.json()) as { candles?: AdminOffering[] };
+    setOfferings(Array.isArray(data.candles) ? data.candles : []);
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) void refreshOfferings().catch(() => setOfferings([]));
+  }, [isAdmin, refreshOfferings]);
 
   const refresh = useCallback(async () => {
     try {
@@ -781,6 +813,23 @@ export default function AdminPage() {
       cancel: "두다",
     });
     if (ok) await act(key, fn);
+  };
+
+  const offeringAct = async (offering: AdminOffering, action: "hide" | "show" | "drop") => {
+    await act(`offering-${offering.id}`, async () => {
+      const me = auth.currentUser;
+      if (!me) throw new Error("not-signed-in");
+      const res = await fetch("/api/admin/content", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${await me.getIdToken()}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ kind: "candle", act: action, candleId: offering.id }),
+      });
+      if (!res.ok) throw new Error("offering-update-failed");
+      await refreshOfferings();
+    });
   };
 
   // 승인 알림 — 던진 이(uid)에게 웹푸시를 쏜다.
@@ -915,6 +964,7 @@ export default function AdminPage() {
   );
 
   const 사진심사수 = 사진줄.reduce((sum, row) => sum + row.photos.length + (row.proof ? 1 : 0), 0);
+  const 공양걸린수 = offerings.filter((o) => !o.held && o.until > Date.now()).length;
   const TABS: { key: Tab; label: string; count: number }[] = [
     { key: "adult", label: "성인 화두", count: adultTotal },
     { key: "student", label: "학생·어린이 화두", count: studentTotal },
@@ -926,6 +976,8 @@ export default function AdminPage() {
     { key: "donors", label: "차 한 잔", count: content.donors.length },
     { key: "reports", label: "신고함", count: reports.filter((r) => r.status === "open").length },
     { key: "photos", label: "사진 승인", count: 사진심사수 },
+    { key: "offerings", label: "법당 공양", count: 공양걸린수 },
+    { key: "orders", label: "연꽃 주문", count: orders.filter((o) => o.status === "pending").length },
   ];
 
   // 은행 화두 손질 — 저장·숨김·(덮어쓴 것) 원래대로
@@ -1875,6 +1927,100 @@ export default function AdminPage() {
                     </div>
                   </li>
                 ))}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {/* ── 법당 공양 — 신고가 오기 전에도 살피는 운영 줄 ── */}
+        {tab === "offerings" && (
+          <section>
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <div>
+                <h3 className="text-[11px] tracking-[0.3em] text-hanji-faint">
+                  지금 법당에 걸린 공양 · {공양걸린수}
+                </h3>
+                <p className="mt-1.5 text-[11px] leading-5 text-hanji-faint">
+                  최근 100건입니다. 가리면 공개 법당에서 즉시 빠지고, 되돌리면 다시 보입니다.
+                </p>
+              </div>
+              <button
+                disabled={busy === "offerings-refresh"}
+                onClick={() => act("offerings-refresh", refreshOfferings)}
+                className={`${smallBtn} border-ink-3 text-hanji-dim hover:border-gold/40 hover:text-hanji`}
+              >
+                새로고침
+              </button>
+            </div>
+
+            {offerings.length === 0 ? (
+              <p className="mt-4 text-sm text-hanji-faint">아직 올린 공양이 없습니다.</p>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {offerings.map((o) => {
+                  const giftName: Record<string, string> = {
+                    deung: "연등",
+                    ssal: "쌀",
+                    cho: "초",
+                    hyang: "향",
+                    giwa: "기와 불사",
+                  };
+                  const isBurning = !o.held && o.until > Date.now();
+                  return (
+                    <li
+                      key={o.id}
+                      className={`border p-4 ${
+                        o.held ? "border-vermilion/30 bg-vermilion/[0.03] opacity-70" : "border-ink-3 bg-ink-2/60"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] tracking-wide text-hanji-faint">
+                        <span className="rounded-full border border-gold/25 px-2 py-0.5 text-gold-soft">
+                          {giftName[o.gift] ?? "연등"}
+                        </span>
+                        <span>{o.visibility === "public" ? "공개 법당" : "나만 보기"}</span>
+                        <span>{o.held ? "가림" : isBurning ? "걸림" : "기간 끝"}</span>
+                        <span>{o.createdAt ? new Date(o.createdAt).toLocaleString("ko-KR") : "방금"}</span>
+                      </div>
+                      <p className="mt-2 text-[13px] text-hanji">
+                        {o.forName} <span className="text-hanji-faint">· {o.by}</span>
+                      </p>
+                      <p className="mt-1 whitespace-pre-line break-keep text-[12.5px] leading-6 text-hanji-dim">
+                        {o.wish || "사연 없음"}
+                      </p>
+                      <p className="mt-1.5 text-[10px] tracking-wide text-hanji-faint">
+                        UID {o.uid ? `${o.uid.slice(0, 10)}…` : "기록 없음"} · {o.until > Date.now() ? `${Math.ceil((o.until - Date.now()) / 86_400_000)}일 남음` : "기간 끝"}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {o.held ? (
+                          <button
+                            disabled={busy === `offering-${o.id}`}
+                            onClick={() => offeringAct(o, "show")}
+                            className={`${smallBtn} border-gold/50 text-gold hover:bg-gold/10`}
+                          >
+                            다시 걸기
+                          </button>
+                        ) : (
+                          <button
+                            disabled={busy === `offering-${o.id}`}
+                            onClick={() => offeringAct(o, "hide")}
+                            className={`${smallBtn} border-vermilion/50 text-vermilion hover:bg-vermilion/10`}
+                          >
+                            법당에서 가리기
+                          </button>
+                        )}
+                        <button
+                          disabled={busy === `offering-${o.id}`}
+                          onClick={() =>
+                            eraseForever(`offering-${o.id}`, () => offeringAct(o, "drop"))
+                          }
+                          className={`${smallBtn} border-ink-3 text-hanji-faint hover:border-vermilion/50 hover:text-hanji`}
+                        >
+                          영구 삭제
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>
