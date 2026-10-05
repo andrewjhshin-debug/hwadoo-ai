@@ -44,7 +44,11 @@ const sansKR = Noto_Sans_KR({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: `${SITE_NAME} 話頭 — ${SLOGAN}`,
+  // 형: 「위에 뜨는 거 빨간 줄 친 건 지우자, 길다」
+  // 탭에 「화두 — 당신에게 묻는다 - 화두 話頭 — 모두가 AI에게…」가 떴다.
+  // 앞머리는 설치한 앱의 manifest name 이 얹힌 것이고, 話頭 는 바로 옆
+  // 「화두」와 같은 말을 한자로 한 번 더 적은 것이다. 둘 다 걷는다.
+  title: `${SITE_NAME} — ${SLOGAN}`,
   description: `${SLOGAN} 물음은 혼자, 절은 둘이 — 손잡고 절로. 같은 물음을 품은 사람과 절에 가는 인연, 여기서 만납니다.`,
   keywords: ["화두", "명상", "선", "불교", "간화선", "참선", "koan", "사유"],
   // 홈 화면에 앱처럼 담기 (PWA)

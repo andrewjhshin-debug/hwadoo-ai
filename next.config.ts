@@ -1,4 +1,6 @@
 import type { NextConfig } from "next";
+// v11 에서 설정 감싸개는 하위 경로로 옮겨졌다
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const nextConfig: NextConfig = {
   // firebase-admin(정확히는 jwks-rsa가 물어오는 jose)이 Turbopack의 서버 번들링을
@@ -31,4 +33,14 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// ── 감시탑 ──────────────────────────────────────────────
+// 터지면 알려 주는 자리. 여태 서버 에러가 어디에도 안 남았다.
+// 소스맵 올리기는 SENTRY_AUTH_TOKEN 이 있을 때만 돈다 — 없으면 조용히
+// 건너뛰므로 지금처럼 토큰 없이도 빌드가 지나간다.
+export default withSentryConfig(nextConfig, {
+  org: "hwadu",
+  project: "hwadoo-ai",
+  silent: !process.env.CI,
+  // 광고 차단기가 센트리로 가는 길을 막는다 — 우리 집을 거쳐 보낸다
+  tunnelRoute: "/monitoring",
+});

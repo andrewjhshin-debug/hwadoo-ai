@@ -8,6 +8,7 @@
 // 해 볼 수 있다** — reset() 이 그 판만 새로 그린다.
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
 import Enso from "@/components/Enso";
 
@@ -19,9 +20,10 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // 콘솔에는 남긴다 — 형이 열어 봤을 때 아무 자취도 없으면 안 된다.
-    // (바깥 추적기는 아직 없다 — Sentry DSN 이 오면 이 자리에 붙인다)
+    // 콘솔에도 남기고, 감시탑에도 올린다
     console.error("[화두]", error);
+    // 감시탑에도 알린다 — DSN 이 없으면 init 이 안 돌았으므로 조용히 지나간다
+    Sentry.captureException(error);
   }, [error]);
 
   return (

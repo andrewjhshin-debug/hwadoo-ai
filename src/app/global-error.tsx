@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
+
 // 바탕 틀(layout)까지 무너졌을 때 — error.tsx 도 못 뜨는 자리다.
 // 그래서 여기서는 <html>·<body> 를 제 손으로 그린다. 바깥 css 도
 // 못 믿으므로 글씨와 빛깔을 그 자리에 적는다.
@@ -11,6 +14,10 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <html lang="ko">
       <body
