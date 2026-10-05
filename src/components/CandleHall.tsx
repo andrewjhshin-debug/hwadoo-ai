@@ -837,6 +837,9 @@ export default function CandleHall() {
     Math.max(0, 갈래로("ssal").length - 자리.ssal) +
     Math.max(0, 향들.length - 1) +
     Math.max(0, 기와들.length - 자리.giwa);
+  // 오른쪽 공양 단추도 막연한 분홍 하나로 두지 않는다. 마지막으로 올린
+  // 공양의 결을 바로 보여 준다 — 연등은 연꽃빛, 초는 불빛, 쌀은 사기빛.
+  const 공양대표색 = 다걸린것[0]?.gift ?? "deung";
 
   return <div className="hip-hall">
     <div className="hip-hall-top">
@@ -998,7 +1001,7 @@ export default function CandleHall() {
           </i>
           <b>{나눔됨 ? "됐다" : "공유"}</b>
         </button>
-        <button className="hip-rail-btn hip-rail-offer" onClick={start} aria-label="공양 올리기">
+        <button className="hip-rail-btn hip-rail-offer" data-kind={공양대표색} onClick={start} aria-label="공양 올리기">
           <i>
             <Yeonkkot />
           </i>

@@ -7740,11 +7740,15 @@ html[data-theme="light"] {
   }
   .hip-deung-sky {
     position: absolute;
-    top: 7%;
-    right: 1%;
-    left: 1%;
+    top: 4%;
+    right: 4%;
+    left: 4%;
     z-index: 10;
-    max-height: 38%;
+    /* absolute 천장은 아이들만으로 높이를 못 잡아 0px 이 됐다.
+       그래서 등은 저장돼도 지붕 속 점처럼 잘렸다. 자리 높이를 직접
+       쥐어 주고 그 안에 최대 스물넷이 차게 한다. */
+    height: clamp(148px, 31vh, 250px);
+    max-height: none;
     padding: 0;
     pointer-events: auto;
     mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
@@ -7787,6 +7791,22 @@ html[data-theme="light"] {
     background: linear-gradient(145deg, rgba(239, 105, 155, .94), rgba(211, 68, 125, .94));
     box-shadow: 0 7px 16px rgba(202, 65, 120, .25);
   }
+  .hip-rail-offer[data-kind="cho"] i {
+    background: linear-gradient(145deg, #f0cf83, #c88f3e);
+    box-shadow: 0 7px 16px rgba(182, 124, 43, .25);
+  }
+  .hip-rail-offer[data-kind="ssal"] i {
+    background: linear-gradient(145deg, #e9e3d6, #b9a992);
+    box-shadow: 0 7px 16px rgba(132, 112, 83, .2);
+  }
+  .hip-rail-offer[data-kind="hyang"] i {
+    background: linear-gradient(145deg, #a8875f, #694b32);
+    box-shadow: 0 7px 16px rgba(97, 65, 40, .25);
+  }
+  .hip-rail-offer[data-kind="giwa"] i {
+    background: linear-gradient(145deg, #7a7472, #423d3b);
+    box-shadow: 0 7px 16px rgba(54, 47, 43, .25);
+  }
   .hip-rail-offer i svg { width: 24px; height: 24px; color: #fff; }
   .hip-rail-offer b { color: #c4487d; font-weight: 650; }
 
@@ -7806,4 +7826,10 @@ html[data-theme="light"] {
     box-shadow: inset 0 1px rgba(255, 255, 255, .85);
   }
   .hip-gift-grid img { margin-bottom: 4px; }
+}
+
+/* 웹도 모바일 법당의 세로 비율을 지킨다. 가로로 넓혀 그림을 cover 하면
+   불상만 비정상적으로 커지고, 연등이 놓일 천장이 사라진다. */
+@media (min-width: 700px) {
+  .hip-hall { max-width: 430px; }
 }
