@@ -4346,6 +4346,10 @@ html[data-theme="light"] {
   .hip-keycap-stack {
     transform: scale(var(--keycap-fit, 1));
     transform-origin: 50% 100%;
+    /* 법당 동자는 밝은 햇살 아래에 있는데, 키캡은 흰 바탕 위에서 같은
+       원본의 짙은 그늘만 도드라졌다. 셋을 한 장면의 살갗처럼 읽도록
+       금빛을 한 톤 열고 분홍·주황도 죽지 않게 한다. */
+    filter: brightness(1.18) saturate(1.1) contrast(0.96);
   }
 }
 
