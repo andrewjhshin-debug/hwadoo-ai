@@ -7888,10 +7888,14 @@ html[data-theme="light"] {
     top: 50%;
     transform: translate(-50%, -50%);
     max-width: 86%;
-    padding: 9px 16px 10px;
+    padding: 10px 18px 11px;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.93);
-    box-shadow: 0 2px 10px rgba(26, 23, 20, 0.12);
+    /* 실 위에 바로 얹으면 글자가 땋임에 묻힌다 — 한지 한 겹을 깔고
+       바깥으로 한 번 더 번지게 해 실에서 띄운다 */
+    background: #fffdf9;
+    box-shadow:
+      0 0 0 6px rgba(255, 253, 249, 0.72),
+      0 3px 14px rgba(26, 23, 20, 0.18);
     font-family: var(--font-serif);
     font-size: 16.5px;
     line-height: 1.4;
