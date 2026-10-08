@@ -7875,7 +7875,9 @@ html[data-theme="light"] {
        실 사진 아래쪽 투명 여백이 얇아 글자가 실에 붙어 보였다.
        이어서 — 「소원이 오색줄 아래 좀만 더 크게 적히게」.
        이 판에서 사람이 쓴 글은 이 한 줄뿐이다. 라벨보다 커야 맞다. */
-    margin: 16px 0 2px;
+    /* 형: 「쫌 띄우라고, 사이 공간을 왤케 쳐 붙여」 — 실 그림의
+       아래 여백이 거의 없어 글자와 입력칸이 실에 붙었다 */
+    margin: 30px 0 2px;
     font-family: var(--font-serif);
     font-size: 18.5px;
     letter-spacing: 0.01em;
@@ -7908,7 +7910,7 @@ html[data-theme="light"] {
   }
   /* 풀이 — 세 줄. 형: 「설명 잠깐하고」 */
   .hip-sil-why {
-    margin: 10px 0 0;
+    margin: 12px 0 0;
     font-size: 11.5px;
     line-height: 1.95;
     color: #a39a8f;
@@ -7928,7 +7930,7 @@ html[data-theme="light"] {
     letter-spacing: 0.12em;
     color: #8a8279;
   }
-  .hip-sil-ask { display: flex; gap: 8px; width: 100%; margin-top: 14px; }
+  .hip-sil-ask { display: flex; gap: 8px; width: 100%; margin-top: 30px; }
   .hip-sil-ask input {
     flex: 1;
     min-width: 0;

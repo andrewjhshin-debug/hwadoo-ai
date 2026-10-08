@@ -51,13 +51,7 @@ export function SilCord({ wear, className = "" }: { wear: number; className?: st
  * 지고 있다 — 여기서는 **셈만** 말한다.
  */
 function 실풀이() {
-  return (
-    <p className="hip-sil-why">
-      수행할수록 바랩니다. 쉬면 그대로입니다.
-      <br />
-      끊어지면 새로 맵니다 — 빨라도 삼칠일.
-    </p>
-  );
+  return <p className="hip-sil-why">21일 출석하면 끊어집니다. 끊어지면 소원성취!</p>;
 }
 
 export default function Osaeksil() {
@@ -137,7 +131,7 @@ export default function Osaeksil() {
     );
   }
 
-  const d = 닳음(s, 총);
+  const d = 닳음(s);
   return (
     <div className="hip-sil" data-cut={결(d) >= 5 ? "1" : undefined}>
       <p className="hip-sil-lab">

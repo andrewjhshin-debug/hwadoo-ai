@@ -18,10 +18,10 @@
 // 다르다. 형: 「한 달 출석 기준인데 21일도 됨, 너무 타이트하지 말고」.
 // ─────────────────────────────────────────────────────────────
 
-/** 실 한 가닥이 닳는 데 드는 공덕 — 하루치(43,200)의 여섯 날 몫보다 조금 더 */
-export const 실공덕 = 270_000;
-/** 아무리 빨라도 이 날수 전에는 안 끊어진다 — 삼칠일 */
+/** 스물한 번 들르면 끊어진다 — 삼칠일 */
 export const 실날수 = 21;
+
+import { loadVisits, visitDayKey } from "@/components/VisitLedger";
 
 export const SIL_KEY = "hwadu.sil.v1";
 export const SIL_EVENT = "hwadu-sil-updated";
@@ -109,16 +109,29 @@ export function 소원고치기(wish: string): 실 | null {
 }
 
 /**
- * 얼마나 닳았나 — 0~1.
- * 공덕으로 재되, 삼칠일이 안 지났으면 거기서 멈춘다(끊어지지 않는다).
+ * 얼마나 닳았나 — 0~1. **들른 날수로 센다.**
+ *
+ * 형: 「21일 출석하면 오색실이 끊어집니다. 끊어지면 소원성취」
+ *
+ * 처음엔 공덕으로 쟀다. 그러면 화면에 적을 말이 「270,000 공덕」이 되는데
+ * 그건 사람이 가늠하는 수가 아니다(형이 오늘 그런 큰 수를 지우라 했다).
+ * **스물한 번 들르면 끊어진다** — 이 한 줄이면 설명이 끝난다.
+ * 글이 참이 되게 셈을 글에 맞춘다.
+ *
+ * 하루에 열 번 와도 하루다(발자국 장부가 날짜로 적는다). 안 오면
+ * 안 닳는다 — 벌이 아니다.
  */
-export function 닳음(s: 실, 지금공덕: number, 이제 = Date.now()): number {
-  const 쌓인 = Math.max(0, 지금공덕 - s.from);
-  const 공 = Math.min(1, 쌓인 / 실공덕);
-  const 날 = Math.min(1, (이제 - s.at) / (실날수 * 86_400_000));
-  // 공덕이 다 찼어도 날수가 안 차면 0.99 에서 기다린다 —
-  // 「곧 끊어진다」가 며칠 이어지는 것이 급히 끊기는 것보다 낫다
-  return 공 >= 1 && 날 < 1 ? 0.99 : 공;
+export function 닳음(s: 실): number {
+  const 맨날 = visitDayKey(s.at);
+  // 맨 날을 포함해 그 뒤로 들른 날만 센다
+  const 온날 = loadVisits().filter((d) => d >= 맨날).length;
+  return Math.min(1, 온날 / 실날수);
+}
+
+/** 끊어지기까지 남은 날 — 화면이 한 줄로 알릴 수 있게 */
+export function 남은날(s: 실): number {
+  const 맨날 = visitDayKey(s.at);
+  return Math.max(0, 실날수 - loadVisits().filter((d) => d >= 맨날).length);
 }
 
 /** 다섯 결 중 어디인가 — 0 새 실 … 4 벼랑, 5 끊어짐 */

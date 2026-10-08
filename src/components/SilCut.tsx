@@ -19,7 +19,7 @@ export default function SilCut() {
   const 살피기 = useCallback(() => {
     const s = 실읽기();
     if (!s || s.cut) return;
-    if (결(닳음(s, loadMerit().total)) < 5) return;
+    if (결(닳음(s)) < 5) return;
     // 끊어진 것을 장부에 먼저 적는다 — 다시 그려도 두 번 안 터지게
     실쓰기({ ...s, cut: true });
     소원잡기(s.wish);
