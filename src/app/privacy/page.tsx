@@ -109,6 +109,7 @@ export default function PrivacyPage() {
             </li>
             <li>Vercel — 웹사이트 호스팅, 방문 통계(익명)</li>
             <li>Google Analytics — 방문 통계(익명). 개인을 식별하지 않습니다</li>
+            <li>네이버 애널리틱스 — 방문 통계(익명)</li>
             <li>Sentry — 오류 기록. 사용자가 쓴 글은 보내지 않습니다</li>
             <li>Resend — 알림 이메일 발송</li>
           </ul>
@@ -119,7 +120,7 @@ export default function PrivacyPage() {
           <p className="mt-3">
             서비스는 광고·추적 쿠키를 사용하지 않습니다. 로그인 유지를 위한
             필수 저장소와, 개인을 식별하지 않는 방문 통계(Vercel Analytics ·
-            Google Analytics), 그리고 오류를 고치기 위한 기록(Sentry)만
+            Google Analytics · 네이버 애널리틱스), 그리고 오류를 고치기 위한 기록(Sentry)만
             사용합니다. 오류 기록에는 이용자가 쓴 글을 담지 않습니다.
           </p>
         </section>

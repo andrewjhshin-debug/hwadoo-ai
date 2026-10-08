@@ -3,6 +3,7 @@ import { Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import HipMala from "@/components/HipMala";
@@ -228,6 +229,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             페이지뷰를 알아서 다시 쏜다(App Router 는 새로고침이 없다). */}
         <Analytics />
         <GoogleAnalytics gaId="G-JY8PY4RDD5" />
+        {/* ── 네이버 애널리틱스 ──
+            형이 받아 온 wcs 조각(wa 키)을 여기 둔다. 이건 **우리 집
+            (hwa-du.com)** 에 다는 것이다 — 네이버 블로그는 HTML 을 못
+            고치니 거기엔 애초에 못 붙인다(블로그는 제 통계가 따로 있다).
+            한국에서는 이게 있어야 **네이버 검색으로 들어온 길**이 보인다 —
+            GA4 는 구글 쪽만 소상히 알려 준다. */}
+        <Script src="//wcs.pstatic.net/wcslog.js" strategy="afterInteractive" />
+        <Script id="naver-wcs" strategy="afterInteractive">
+          {`if(!window.wcs_add) window.wcs_add={};
+            window.wcs_add["wa"]="1d48eb56b21d9f";
+            if(window.wcs) window.wcs_do();`}
+        </Script>
       </body>
     </html>
   );
