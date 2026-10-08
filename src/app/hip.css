@@ -7845,3 +7845,135 @@ html[data-theme="light"] {
     background: linear-gradient(180deg, #fce6df 0%, #fff6ed 48%, #edf4ef 100%);
   }
 }
+
+/* ── 오색실 ────────────────────────────────────────────────
+   형: 「오색실에 텍스트 너무 많이 하지 마라, 최대한 줄이고」
+   카드에 글자는 둘뿐이다 — 五色絲 와 소원 한 줄. 몇 퍼센트 닳았는지도
+   안 적는다. 색이 말한다. */
+@media (min-width: 0px) {
+  .hip-sil {
+    position: relative;
+    margin-top: 10px;
+    padding: 14px 16px 12px;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(26, 23, 20, 0.04), 0 10px 28px rgba(26, 23, 20, 0.06);
+  }
+  .hip-sil-lab {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 10.5px;
+    letter-spacing: 0.3em;
+    color: #b9b0a4;
+  }
+  .hip-sil-cord { display: block; width: 100%; height: 58px; }
+  .hip-sil-wish {
+    margin: 2px 0 0;
+    font-family: var(--font-serif);
+    font-size: 14.5px;
+    color: #17140f;
+    text-align: center;
+  }
+  /* 끊어진 채로 들어왔으면 한 번 떨린다 */
+  .hip-sil[data-cut="1"] .hip-sil-cord { animation: hip-sil-drop 0.9s ease-out; }
+  @keyframes hip-sil-drop {
+    0% { transform: translateY(-3px); }
+    60% { transform: translateY(2px); }
+    100% { transform: none; }
+  }
+  .hip-sil-new { display: grid; justify-items: center; gap: 2px; }
+  .hip-sil-go {
+    margin-top: 2px;
+    padding: 9px 20px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    background: #fdfcfa;
+    font-family: var(--font-serif);
+    font-size: 12.5px;
+    letter-spacing: 0.12em;
+    color: #8a8279;
+  }
+  .hip-sil-ask { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
+  .hip-sil-ask input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 13px;
+    border-radius: 12px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    background: #fdfcfa;
+    font-size: 13.5px;
+    color: #17140f;
+  }
+  .hip-sil-ask input::placeholder { color: #b5ada2; }
+  .hip-sil-ask button {
+    flex: 0 0 auto;
+    padding: 10px 18px;
+    border-radius: 12px;
+    background: #17140f;
+    color: #fff;
+    font-size: 13px;
+  }
+  .hip-sil-ask button:disabled { opacity: 0.3; }
+
+  /* ── 끊어진 순간 ── */
+  .hip-silcut {
+    position: fixed;
+    inset: 0;
+    z-index: 72;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(26, 23, 20, 0.46);
+    backdrop-filter: blur(3px);
+  }
+  .hip-silcut-box {
+    width: 100%;
+    max-width: 320px;
+    padding: 24px 20px 18px;
+    border-radius: 26px;
+    background: #fff;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  }
+  .hip-silcut-k {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 11px;
+    letter-spacing: 0.42em;
+    color: #c9a24a;
+  }
+  .hip-silcut-cord { display: block; width: 100%; height: 56px; margin-top: 8px; }
+  .hip-silcut-wish {
+    margin: 2px 0 14px;
+    font-family: var(--font-serif);
+    font-size: 17px;
+    color: #17140f;
+  }
+  .hip-silcut-ask { display: flex; gap: 8px; }
+  .hip-silcut-ask input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 13px;
+    border-radius: 12px;
+    border: 1px solid rgba(26, 23, 20, 0.12);
+    background: #fdfcfa;
+    font-size: 13.5px;
+    color: #17140f;
+  }
+  .hip-silcut-ask input::placeholder { color: #b5ada2; }
+  .hip-silcut-ask button {
+    flex: 0 0 auto;
+    padding: 11px 18px;
+    border-radius: 12px;
+    background: #17140f;
+    color: #fff;
+    font-size: 13px;
+  }
+  .hip-silcut-ask button:disabled { opacity: 0.3; }
+  .hip-silcut-later {
+    margin-top: 10px;
+    width: 100%;
+    font-size: 12px;
+    color: #b5ada2;
+  }
+}

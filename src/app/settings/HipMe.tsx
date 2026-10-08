@@ -20,6 +20,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from "react";
+import Osaeksil from "@/components/Osaeksil";
 import Link from "next/link";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
@@ -329,6 +330,12 @@ export default function HipMe({
             **접었을 때는 한 번이라도 한 것**만 — 그게 내 살림이다.
             나머지는 「+12」 알 하나 뒤에 접어 둔다. 눌러 보면 무엇을
             더 하면 공덕이 붙는지 그 자리에서 펼쳐진다. 설명은 없다. */}
+        {/* ── 오색실 ──
+            이 판의 다른 자는 전부 차오른다(공덕 · 자리 · 연꽃).
+            실만 닳는다. 공덕 숫자 바로 아래 둔다 — 쌓이는 것과 닳는
+            것이 한눈에 같이 보이게. */}
+        <Osaeksil />
+
         <div className="hip-me-hits" data-open={openHits ? "1" : undefined}>
           {(openHits ? hits : foldedHits).map((h) => (
             <span key={h.label}>
