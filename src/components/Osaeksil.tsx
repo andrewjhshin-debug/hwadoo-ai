@@ -62,6 +62,8 @@ export default function Osaeksil() {
   const [풀이, 풀이잡기] = useState(false);
   /** 소원 고치는 중인가 — 고쳐도 닳음은 안 되감긴다 */
   const [고침, 고침잡기] = useState(false);
+  /** 소원이 떠 있나 — 실을 눌러야 나온다 */
+  const [보임, 보임잡기] = useState(false);
 
   const 읽기 = useCallback(() => {
     setS(실읽기());
@@ -147,8 +149,30 @@ export default function Osaeksil() {
         </button>
       </p>
       {풀이 && <실풀이 />}
-      <SilCord wear={d} className="hip-sil-cord" />
-      {고침 ? (
+
+      {/* 형: 「실 소원 눌리면 뜨도록 하자, 문장을 실 밖 아래 두지 말고」
+          소원을 실 아래 늘 깔아 두니 실에 딸린 설명처럼 읽혔다.
+          소원은 **실 안에 들어 있는 것**이다 — 실을 눌러야 나온다.
+          연등에 매단 쪽지와 같은 결이다. */}
+      <button
+        type="button"
+        className="hip-sil-tap"
+        onClick={() => 보임잡기((v) => !v)}
+        aria-label={보임 ? "소원 감추기" : "소원 보기"}
+        aria-expanded={보임}
+      >
+        <SilCord wear={d} className="hip-sil-cord" />
+        {보임 && !고침 && (
+          <span
+            className="hip-sil-tag"
+            onClick={(e) => { e.stopPropagation(); 소원잡기(s.wish); 고침잡기(true); }}
+          >
+            {s.wish || "소원 적기"}
+          </span>
+        )}
+      </button>
+
+      {고침 && (
         <div className="hip-sil-ask">
           <input
             autoFocus
@@ -162,16 +186,6 @@ export default function Osaeksil() {
           />
           <button onClick={() => { 소원고치기(소원 || s.wish); 고침잡기(false); }}>고침</button>
         </div>
-      ) : (
-        /* 소원을 누르면 고친다. 연필 아이콘을 따로 달지 않는다 —
-           고칠 것이 글자 하나뿐이면 그 글자가 곧 단추다 */
-        <button
-          type="button"
-          className="hip-sil-wish"
-          onClick={() => { 소원잡기(s.wish); 고침잡기(true); }}
-        >
-          {s.wish || "소원 적기"}
-        </button>
       )}
     </div>
   );

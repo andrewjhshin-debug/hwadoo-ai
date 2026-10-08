@@ -7870,28 +7870,40 @@ html[data-theme="light"] {
     color: #b9b0a4;
   }
   .hip-sil-cord { display: block; width: 100%; height: 58px; }
-  .hip-sil-wish {
-    /* 형: 「오색실이랑 소원 한 줄 쓰는 거 좀만 더 띄워」
-       실 사진 아래쪽 투명 여백이 얇아 글자가 실에 붙어 보였다.
-       이어서 — 「소원이 오색줄 아래 좀만 더 크게 적히게」.
-       이 판에서 사람이 쓴 글은 이 한 줄뿐이다. 라벨보다 커야 맞다. */
-    /* 형: 「쫌 띄우라고, 사이 공간을 왤케 쳐 붙여」 — 실 그림의
-       아래 여백이 거의 없어 글자와 입력칸이 실에 붙었다 */
-    margin: 30px 0 2px;
-    font-family: var(--font-serif);
-    font-size: 18.5px;
-    letter-spacing: 0.01em;
-    color: #17140f;
-    text-align: center;
-    /* 소원 자체가 단추다 — 누르면 고친다. 단추 꼴은 안 낸다 */
+  /* 소원 줄은 걷었다 — 실 밖 아래에 늘 깔아 두니 실에 딸린 설명처럼
+     읽혔다. 이제 실을 눌러야 나온다(.hip-sil-tag). */
+  .hip-sil-tap {
+    position: relative;
     display: block;
     width: 100%;
-    background: none;
-    border: 0;
     padding: 0;
-    cursor: text;
+    border: 0;
+    background: none;
+    -webkit-tap-highlight-color: transparent;
   }
-  .hip-sil-wish:active { opacity: 0.6; }
+  /* 실에 매달린 쪽지 — 연등 쪽지와 같은 결 */
+  .hip-sil-tag {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 86%;
+    padding: 9px 16px 10px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.93);
+    box-shadow: 0 2px 10px rgba(26, 23, 20, 0.12);
+    font-family: var(--font-serif);
+    font-size: 16.5px;
+    line-height: 1.4;
+    color: #17140f;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: hip-sil-tag 0.22s ease-out;
+  }
+  @keyframes hip-sil-tag {
+    from { opacity: 0; transform: translate(-50%, calc(-50% + 5px)); }
+  }
   /* 끊어진 채로 들어왔으면 한 번 떨린다 */
   .hip-sil[data-cut="1"] .hip-sil-cord { animation: hip-sil-drop 0.9s ease-out; }
   @keyframes hip-sil-drop {
