@@ -12,75 +12,34 @@ import { useCallback, useEffect, useState } from "react";
 import { MERIT_EVENT, loadMerit } from "@/lib/merit";
 import { SIL_EVENT, 결, 닳음, 실매기, 실읽기, type 실 } from "@/lib/sil";
 
-/** 꼬인 끈 한 가닥. 가닥마다 같은 물결에 위상만 달리 태워 서로 꼬이게 한다 */
-export function SilCord({ wear, className = "" }: { wear: number; className?: string }) {
-  const W = 330, H = 62, cy = 31;
-  const 색 = ["#d7342f", "#1b3a7a", "#e8c33a", "#ffffff", "#2f8f4e"]; // 적·청·황·백·녹
-  const g = 결(wear);
-  const 바램 = [0, 0.2, 0.4, 0.6, 0.76, 0.82][g];
-  const 풀림 = [0, 0.6, 1.4, 2.4, 3.6, 4][g];
-  const 끊김 = g >= 5;
-  const 꼬임 = 7;
-  const 남은색 = Math.round((1 - 바램) * 100);
-  const 점 = (i: number, t: number) =>
-    cy + Math.sin(t * Math.PI * 2 * 꼬임 + (i / 색.length) * Math.PI * 2) * (3.4 + 풀림 * 1.9);
-  const 줄 = (i: number, a: number, b: number, 벌림 = 0) => {
-    let d = "";
-    for (let k = 0; k <= 44; k++) {
-      const t = a + ((b - a) * k) / 44;
-      const x = 8 + (W - 16) * t;
-      const y = 점(i, t) + 벌림 * (i - 2) * 1.6;
-      d += `${k ? " L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
-    }
-    return d;
-  };
+/**
+ * 꼬인 끈 한 가닥 — 네 장을 겹쳐 두고 **닳은 만큼 갈아 낀다.**
+ *
+ * 처음엔 SVG 로 그렸다. 가닥은 꼬였는데 면사로는 안 보였다 — 실은 선이
+ * 아니라 **보풀**이다. 형: 「실 디자인 시안만 다시 제미나이 써도 된다고」.
+ * 제미나이 Pro 로 네 결을 굽고 초록을 뽑았다(_틀/chroma.mjs).
+ *
+ * 결 사이는 **겹쳐 녹인다** — 네 장뿐이라 그냥 갈아 끼우면 뚝뚝 끊긴다.
+ * 아래 장을 깔고 위 장을 서서히 띄우면 색이 천천히 빠지는 것으로 보인다.
+ */
+const 결그림 = ["/obj/sil-sae.png", "/obj/sil-baram.png", "/obj/sil-seong.png", "/obj/sil-cut.png"];
+/** 각 그림이 온전히 보이는 지점(닳음 0~1) */
+const 결점 = [0, 0.4, 0.78, 1];
 
+export function SilCord({ wear, className = "" }: { wear: number; className?: string }) {
+  const w = Math.max(0, Math.min(1, wear));
+  // 지금 어느 두 장 사이인가
+  let k = 0;
+  while (k < 결점.length - 2 && w >= 결점[k + 1]) k++;
+  const 폭 = 결점[k + 1] - 결점[k];
+  const 섞 = 폭 > 0 ? Math.max(0, Math.min(1, (w - 결점[k]) / 폭)) : 1;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className={className} aria-hidden xmlns="http://www.w3.org/2000/svg">
-      {색.map((c, i) => {
-        const col = `color-mix(in srgb, ${c} ${남은색}%, #efeae0)`;
-        const w = c === "#ffffff" ? 3.1 : 2.8;
-        return (
-          <g key={i}>
-            <path d={줄(i, 0, 끊김 ? 0.42 : 1)} fill="none" stroke={col} strokeWidth={w} strokeLinecap="round" />
-            {끊김 && (
-              <path d={줄(i, 0.58, 1, 1)} fill="none" stroke={col} strokeWidth={w} strokeLinecap="round" />
-            )}
-          </g>
-        );
-      })}
-      {/* 삐져나온 올 — 이것이 「낡았다」를 말한다. 글로 안 적는 까닭 */}
-      {!끊김 &&
-        g >= 3 &&
-        [[0.3, -1], [0.55, 1], [0.78, -1]].slice(0, g - 2).map(([f, dir], k) => {
-          const x = 8 + (W - 16) * f;
-          const y = cy + dir * 6;
-          return (
-            <path
-              key={`f${k}`}
-              d={`M${x} ${y} q 7 ${dir * 6}, 15 ${dir * 4}`}
-              fill="none"
-              stroke={`color-mix(in srgb, ${색[(k * 2) % 5]} ${남은색}%, #efeae0)`}
-              strokeWidth="1.7"
-              strokeLinecap="round"
-              opacity=".9"
-            />
-          );
-        })}
-      {(끊김 ? [0.16] : [0.16, 0.44, 0.74]).map((f) => (
-        <rect
-          key={f}
-          x={8 + (W - 16) * f - 5.5}
-          y={cy - 10}
-          width="11"
-          height="20"
-          rx="5"
-          fill="none"
-          stroke={`color-mix(in srgb,#8d8378 ${Math.round((1 - 바램) * 80 + 20)}%, #efeae0)`}
-          strokeWidth="2.3"
-        />
-      ))}
-    </svg>
+    <span className={`hip-sil-stack ${className}`} aria-hidden>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={결그림[k]} alt="" draggable={false} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={결그림[k + 1]} alt="" draggable={false} style={{ opacity: 섞 }} />
+    </span>
   );
 }
 
