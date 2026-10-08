@@ -230,15 +230,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Analytics />
         <GoogleAnalytics gaId="G-JY8PY4RDD5" />
         {/* ── 네이버 애널리틱스 ──
-            형이 받아 온 wcs 조각(wa 키)을 여기 둔다. 이건 **우리 집
-            (hwa-du.com)** 에 다는 것이다 — 네이버 블로그는 HTML 을 못
-            고치니 거기엔 애초에 못 붙인다(블로그는 제 통계가 따로 있다).
+            키는 **hwa-du.com 으로 등록한 것**이어야 한다. 처음 받은
+            1d48eb… 은 블로그로 등록한 자리의 것이라 이 집에서는 아무
+            숫자도 안 쌓였다(네이버 블로그는 HTML 을 못 고치니 거기엔
+            애초에 못 붙인다 — 블로그는 제 통계가 따로 있다).
             한국에서는 이게 있어야 **네이버 검색으로 들어온 길**이 보인다 —
             GA4 는 구글 쪽만 소상히 알려 준다. */}
         <Script src="//wcs.pstatic.net/wcslog.js" strategy="afterInteractive" />
         <Script id="naver-wcs" strategy="afterInteractive">
           {`if(!window.wcs_add) window.wcs_add={};
-            window.wcs_add["wa"]="1d48eb56b21d9f";
+            window.wcs_add["wa"]="1262a351db5ef00";
             if(window.wcs) window.wcs_do();`}
         </Script>
       </body>
