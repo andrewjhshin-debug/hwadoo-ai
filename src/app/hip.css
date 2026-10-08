@@ -7886,6 +7886,8 @@ html[data-theme="light"] {
   .hip-sil-new { display: grid; justify-items: center; gap: 0; }
   .hip-sil-new .hip-sil-stack { opacity: 0.34; }
   .hip-sil-go {
+    position: relative;
+    z-index: 1;
     margin-top: 6px;
     padding: 9px 20px;
     border-radius: 999px;
@@ -7983,7 +7985,12 @@ html[data-theme="light"] {
 
 @media (min-width: 0px) {
   /* 실 두 장 겹치기 — 결과 결 사이를 녹인다 */
-  .hip-sil-stack { position: relative; display: block; width: 100%; }
+  /* 실은 **보는 것**이다. 누르는 것이 아니다.
+     형: 「실 받기 왜 안 눌려지냐」 — 히트테스트를 해 보니 손가락이
+     단추가 아니라 sil-baram.png 에 닿고 있었다. 그림이 제 칸보다
+     아래로 넘쳐 단추 위에 올라탄 것이다.
+     z 로 겨루지 않는다 — 그림에서 **손을 떼어** 버린다. */
+  .hip-sil-stack { position: relative; display: block; width: 100%; pointer-events: none; }
   .hip-sil-stack img {
     display: block;
     width: 100%;
