@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { MERIT_EVENT, loadMerit } from "@/lib/merit";
-import { SIL_EVENT, 결, 닳음, 실매기, 실읽기, type 실 } from "@/lib/sil";
+import { SIL_EVENT, 결, 닳음, 소원고치기, 실매기, 실읽기, type 실 } from "@/lib/sil";
 
 /**
  * 꼬인 끈 한 가닥 — 네 장을 겹쳐 두고 **닳은 만큼 갈아 낀다.**
@@ -43,15 +43,19 @@ export function SilCord({ wear, className = "" }: { wear: number; className?: st
   );
 }
 
-/** 오색실이 무엇인가 — 세 줄. 형: 「설명 잠깐하고」 */
+/**
+ * 오색실이 무엇인가 — **두 줄.**
+ *
+ * 형: 「덜 오글거리게 간략하게」. 앞서 적은 「소원이 건너간다고
+ * 합니다」가 그 오글거림이었다. 뜻은 끊어질 때 뜨는 願成就 가 이미
+ * 지고 있다 — 여기서는 **셈만** 말한다.
+ */
 function 실풀이() {
   return (
     <p className="hip-sil-why">
-      절에서 받은 실은 닳아 끊어질 때 소원이 건너간다고 합니다.
+      수행할수록 바랩니다. 쉬면 그대로입니다.
       <br />
-      수행할수록 빛이 바래고, 삼칠일은 지나야 끊어집니다.
-      <br />
-      쉬는 동안에는 닳지 않습니다.
+      끊어지면 새로 맵니다 — 빨라도 삼칠일.
     </p>
   );
 }
@@ -62,6 +66,8 @@ export default function Osaeksil() {
   const [쓰기, 쓰기잡기] = useState(false);
   const [소원, 소원잡기] = useState("");
   const [풀이, 풀이잡기] = useState(false);
+  /** 소원 고치는 중인가 — 고쳐도 닳음은 안 되감긴다 */
+  const [고침, 고침잡기] = useState(false);
 
   const 읽기 = useCallback(() => {
     setS(실읽기());
@@ -148,7 +154,31 @@ export default function Osaeksil() {
       </p>
       {풀이 && <실풀이 />}
       <SilCord wear={d} className="hip-sil-cord" />
-      <p className="hip-sil-wish">{s.wish || " "}</p>
+      {고침 ? (
+        <div className="hip-sil-ask">
+          <input
+            autoFocus
+            maxLength={20}
+            defaultValue={s.wish}
+            onChange={(e) => 소원잡기(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { 소원고치기(소원 || s.wish); 고침잡기(false); }
+              if (e.key === "Escape") 고침잡기(false);
+            }}
+          />
+          <button onClick={() => { 소원고치기(소원 || s.wish); 고침잡기(false); }}>고침</button>
+        </div>
+      ) : (
+        /* 소원을 누르면 고친다. 연필 아이콘을 따로 달지 않는다 —
+           고칠 것이 글자 하나뿐이면 그 글자가 곧 단추다 */
+        <button
+          type="button"
+          className="hip-sil-wish"
+          onClick={() => { 소원잡기(s.wish); 고침잡기(true); }}
+        >
+          {s.wish || "소원 적기"}
+        </button>
+      )}
     </div>
   );
 }
