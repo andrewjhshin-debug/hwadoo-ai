@@ -7851,13 +7851,13 @@ html[data-theme="light"] {
    카드에 글자는 둘뿐이다 — 五色絲 와 소원 한 줄. 몇 퍼센트 닳았는지도
    안 적는다. 색이 말한다. */
 @media (min-width: 0px) {
+  /* 형: 「배경과 구분해서 흰 배경 할 이유는 없어 보인다」
+     맞다. 실은 **물건**이지 카드가 아니다. 손목에 매는 것을 흰 종이에
+     올려 둘 까닭이 없다. 판에 그냥 놓는다. */
   .hip-sil {
     position: relative;
-    margin-top: 10px;
-    padding: 14px 16px 12px;
-    border-radius: 20px;
-    background: #fff;
-    box-shadow: 0 1px 2px rgba(26, 23, 20, 0.04), 0 10px 28px rgba(26, 23, 20, 0.06);
+    margin-top: 14px;
+    padding: 2px 4px 0;
   }
   .hip-sil-lab {
     margin: 0;
@@ -7881,9 +7881,12 @@ html[data-theme="light"] {
     60% { transform: translateY(2px); }
     100% { transform: none; }
   }
-  .hip-sil-new { display: grid; justify-items: center; gap: 2px; }
+  /* 아직 안 맸을 때 — 실은 옅게 깔고 단추는 **그 아래**.
+     겹쳐 두었더니 글자가 실 위에 올라앉았다 */
+  .hip-sil-new { display: grid; justify-items: center; gap: 0; }
+  .hip-sil-new .hip-sil-stack { opacity: 0.34; }
   .hip-sil-go {
-    margin-top: 2px;
+    margin-top: 6px;
     padding: 9px 20px;
     border-radius: 999px;
     border: 1px solid rgba(26, 23, 20, 0.12);
@@ -7988,4 +7991,65 @@ html[data-theme="light"] {
     max-width: none;
   }
   .hip-sil-stack img + img { position: absolute; inset: 0; transition: opacity 0.6s ease-out; }
+}
+
+/* ── 상황판(/desk) — 형만 보는 자리 ─────────────────────────
+   앱의 낮 팔레트를 안 쓴다. 숫자를 오래 들여다보는 화면이라
+   먹빛 바탕이 눈이 덜 피곤하고, 막대와 금액이 또렷하다. */
+@media (min-width: 0px) {
+  .desk {
+    min-height: 100dvh;
+    padding: 22px 16px 60px;
+    background: #16171a;
+    color: #e8e6e3;
+    font-family: var(--font-sans, system-ui);
+  }
+  .desk-top { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .desk-top h1 { margin: 0; font-family: var(--font-serif); font-size: 21px; font-weight: 400; letter-spacing: 0.04em; }
+  .desk-top span { font-size: 11.5px; color: #7f8085; }
+  .desk-bad { color: #9a9ca1; font-size: 13px; padding: 40px 0; text-align: center; }
+  .desk-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .desk-card {
+    border-radius: 16px;
+    background: #1e2024;
+    border: 1px solid #2a2d33;
+    padding: 15px 16px 14px;
+  }
+  .desk-wide { margin-bottom: 12px; }
+  .desk-k { margin: 0; font-size: 11px; letter-spacing: 0.12em; color: #8a8c92; }
+  .desk-big { margin: 7px 0 0; font-size: 27px; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .desk-mid { margin: 7px 0 0; font-size: 21px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .desk-s { margin: 7px 0 0; font-size: 12px; line-height: 1.7; color: #9a9ca1; }
+  /* 막대 — 금액이 위에, 달이 아래에 */
+  .desk-bars { display: flex; align-items: flex-end; gap: 10px; height: 170px; margin-top: 14px; }
+  .desk-bar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
+  .desk-bar b { font-size: 11.5px; font-weight: 500; color: #cfd2d6; font-variant-numeric: tabular-nums; }
+  .desk-bar i { display: block; width: 100%; max-width: 54px; border-radius: 5px 5px 0 0; background: #6cbf8b; }
+  .desk-bar span { font-size: 11px; color: #8a8c92; }
+  .desk-table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 12.5px; }
+  .desk-table td { padding: 9px 6px; border-top: 1px solid #2a2d33; color: #cfd2d6; }
+  .desk-table td:first-child { color: #8a8c92; white-space: nowrap; }
+  .desk-table .desk-num { text-align: right; font-variant-numeric: tabular-nums; }
+  .desk-table tr[data-pend="1"] td:last-child { color: #e0a022; }
+  .desk-soon { opacity: 0.68; }
+}
+
+@media (min-width: 0px) {
+  .desk-blog-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .desk-posts { list-style: none; margin: 10px 0 0; padding: 0; }
+  .desk-posts li { display: flex; gap: 10px; align-items: baseline; padding: 7px 0; border-top: 1px solid #2a2d33; }
+  .desk-posts li a { flex: 1; min-width: 0; color: #cfd2d6; font-size: 12.5px; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .desk-posts li a:hover { color: #fff; }
+  .desk-posts li span { flex: 0 0 auto; font-size: 11px; color: #7f8085; }
+  .desk-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .desk-links a {
+    padding: 8px 13px;
+    border-radius: 999px;
+    border: 1px solid #2f333a;
+    background: #23262b;
+    color: #b9bcc2;
+    font-size: 12px;
+    text-decoration: none;
+  }
+  .desk-links a:hover { color: #fff; border-color: #3c424b; }
 }
