@@ -49,7 +49,6 @@ export default function MeritBar() {
   // 서버가 그린 첫 그림과 어긋나지 않게 — 읽기 전에는 빈 줄만
   const pct = bal === null ? 0 : (bal / DAILY_TOTAL_CAP) * 100;
 
-  const left = bal === null ? null : Math.max(0, DAILY_TOTAL_CAP - bal);
 
   return (
     <div className="merit-bar pointer-events-none sticky top-0 z-30 h-[2px] w-full">
@@ -68,14 +67,10 @@ export default function MeritBar() {
           animation: flash ? "mb-flash 1.2s ease-out" : "none",
         }}
       />
-      {/* 연꽃까지 남은 공덕 — 형: 「오리지날처럼 맨 위 옅은 줄로 해서
-          연꽃까지 얻기 위한 공덕량 나오게」.
-          줄만 있으면 「얼마나 남았나」를 눈대중으로 재야 한다. 줄 끝에
-          숫자 한 덩이를 얹는다. 다 차면 숫자 대신 연꽃이 뜬다.
-          폰에서만 — 웹은 옛 판 그대로 줄만 둔다. */}
-      <span aria-hidden className="pointer-events-none merit-left md:hidden">
-        {left === null ? "" : left === 0 ? "蓮 한 송이" : `蓮 −${left.toLocaleString("ko-KR")}`}
-      </span>
+      {/* 형: 「이 숫자는 왜 있노. 그냥 지우자. 너무 큰 숫자고 와닿지도 않아」
+          맞는 말이다. 21,600 은 사람이 가늠할 수 있는 수가 아니다 —
+          「얼마 남았나」를 알려 주려던 것이 「뭔지 모를 큰 수」가 됐다.
+          남은 몫은 **줄 자체가 이미 말하고 있다.** 숫자를 걷는다. */}
     </div>
   );
 }
