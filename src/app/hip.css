@@ -7860,6 +7860,9 @@ html[data-theme="light"] {
     padding: 2px 4px 0;
   }
   .hip-sil-lab {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     margin: 0;
     font-family: var(--font-serif);
     font-size: 10.5px;
@@ -7886,6 +7889,20 @@ html[data-theme="light"] {
   /* 아직 안 맸을 때 — 실은 옅게 깔고 단추는 **그 아래**.
      겹쳐 두었더니 글자가 실 위에 올라앉았다 */
   .hip-sil-new { display: grid; justify-items: center; gap: 0; }
+  /* 받기 전에 뭔지 알아야 받는다 — 단추 안에 ⓘ 를 붙인다 */
+  .hip-sil-go i {
+    margin-left: 6px;
+    font-style: normal;
+    color: #bdb5a9;
+  }
+  /* 풀이 — 세 줄. 형: 「설명 잠깐하고」 */
+  .hip-sil-why {
+    margin: 10px 0 0;
+    font-size: 11.5px;
+    line-height: 1.95;
+    color: #a39a8f;
+    text-align: center;
+  }
   .hip-sil-new .hip-sil-stack { opacity: 0.34; }
   .hip-sil-go {
     position: relative;

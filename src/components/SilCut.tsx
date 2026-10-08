@@ -59,7 +59,7 @@ export default function SilCut() {
               빈소원잡기("");
             }}
           >
-            맨다
+            매기
           </button>
         </div>
         <button className="hip-silcut-later" onClick={() => 열림잡기(false)}>

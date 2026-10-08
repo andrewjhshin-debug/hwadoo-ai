@@ -43,11 +43,25 @@ export function SilCord({ wear, className = "" }: { wear: number; className?: st
   );
 }
 
+/** 오색실이 무엇인가 — 세 줄. 형: 「설명 잠깐하고」 */
+function 실풀이() {
+  return (
+    <p className="hip-sil-why">
+      절에서 받은 실은 닳아 끊어질 때 소원이 건너간다고 합니다.
+      <br />
+      수행할수록 빛이 바래고, 삼칠일은 지나야 끊어집니다.
+      <br />
+      쉬는 동안에는 닳지 않습니다.
+    </p>
+  );
+}
+
 export default function Osaeksil() {
   const [s, setS] = useState<실 | null>(null);
   const [총, 총잡기] = useState(0);
   const [쓰기, 쓰기잡기] = useState(false);
   const [소원, 소원잡기] = useState("");
+  const [풀이, 풀이잡기] = useState(false);
 
   const 읽기 = useCallback(() => {
     setS(실읽기());
@@ -93,13 +107,25 @@ export default function Osaeksil() {
                 소원잡기("");
               }}
             >
-              맨다
+              매기
             </button>
           </div>
         ) : (
-          <button className="hip-sil-go" onClick={() => 쓰기잡기(true)}>
-            五色絲 · 실 받기
-          </button>
+          <>
+            <button className="hip-sil-go" onClick={() => 쓰기잡기(true)}>
+              五色絲 · 실 받기
+              <i
+                role="button"
+                tabIndex={0}
+                aria-label="오색실이란"
+                onClick={(e) => { e.stopPropagation(); 풀이잡기((v) => !v); }}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); 풀이잡기((v) => !v); } }}
+              >
+                ⓘ
+              </i>
+            </button>
+            {풀이 && <실풀이 />}
+          </>
         )}
       </div>
     );
@@ -108,7 +134,19 @@ export default function Osaeksil() {
   const d = 닳음(s, 총);
   return (
     <div className="hip-sil" data-cut={결(d) >= 5 ? "1" : undefined}>
-      <p className="hip-sil-lab">五色絲</p>
+      <p className="hip-sil-lab">
+        五色絲
+        <button
+          type="button"
+          className="hip-info-key"
+          onClick={() => 풀이잡기((v) => !v)}
+          aria-expanded={풀이}
+          aria-label="오색실이란"
+        >
+          ⓘ
+        </button>
+      </p>
+      {풀이 && <실풀이 />}
       <SilCord wear={d} className="hip-sil-cord" />
       <p className="hip-sil-wish">{s.wish || " "}</p>
     </div>
