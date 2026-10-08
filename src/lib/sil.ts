@@ -116,3 +116,5 @@ export function 결(d: number): number {
 
 /** 끊어진 실에 얹는 공덕 — 하루치의 한 자락 */
 export const 실공양 = 4_320;
+
+export { mergeSil } from "./ledgerMerge";

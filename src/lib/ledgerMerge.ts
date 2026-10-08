@@ -8,6 +8,7 @@
 
 import type { MeritLedger, MeritSource } from "./merit";
 import type { DailyBook, DailyKey } from "./daily";
+import type { 실 } from "./sil";
 
 /** 칸마다 큰 쪽을 남긴다 */
 function 큰칸<K extends string>(
@@ -72,5 +73,30 @@ export function mergeDaily(a: DailyBook, b: DailyBook | null): DailyBook {
     by: 큰칸<DailyKey>(a.by, b.by),
     got: 큰칸<DailyKey>(a.got, b.got),
     claimed: a.claimed || b.claimed,
+  };
+}
+
+/**
+ * 오색실 — 한 사람에게 한 가닥뿐이다. 둘이 오면 **더 나아간 쪽**을 남긴다.
+ *
+ * 먼저 끊은 수(done)를 본다. 한쪽이 이미 끊고 새 실을 맸으면 그쪽이
+ * 앞선 것이다. 같으면 같은 실이니 **먼저 맨 쪽**을 남긴다 — 늦게 맨
+ * 쪽을 고르면 닳음이 되감긴다.
+ */
+export function mergeSil(a: 실 | null, b: 실 | null): 실 | null {
+  if (!a) return b;
+  if (!b) return a;
+  const da = a.done ?? 0;
+  const db = b.done ?? 0;
+  if (da !== db) return da > db ? a : b;
+  const 이른 = a.at <= b.at ? a : b;
+  const 늦은 = a.at <= b.at ? b : a;
+  return {
+    ...이른,
+    // 소원은 적어 둔 쪽을 살린다(한쪽만 적었을 수 있다)
+    wish: 이른.wish || 늦은.wish,
+    // 한쪽에서 이미 끊어진 것을 보여 줬으면 두 번 안 띄운다
+    cut: 이른.cut === true || 늦은.cut === true,
+    done: da,
   };
 }

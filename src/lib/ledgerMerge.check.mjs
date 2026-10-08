@@ -2,7 +2,7 @@
 //
 // 이 셈이 틀리면 **사람의 공덕이 사라진다.** 틀렸는지 알 길을 남겨 둔다.
 import assert from "node:assert/strict";
-import { mergeMerit, mergeDaily } from "./ledgerMerge.ts";
+import { mergeMerit, mergeDaily, mergeSil } from "./ledgerMerge.ts";
 
 const 빈장부 = { total: 0, by: {}, hits: {}, hitsFrom: "", given: 0, spent: 0, day: "" };
 
@@ -62,4 +62,22 @@ assert.deepEqual(mergeMerit(빈장부, null), 빈장부);
   assert.equal(m.by.bow, 0);
 }
 
-console.log("장부 합치기 — 여섯 가지 다 맞다");
+// ⑦ 오색실 — 더 나아간 쪽을 남긴다
+{
+  const 옛 = { at: 1000, from: 0, wish: "가", done: 0 };
+  const 새 = { at: 9000, from: 50, wish: "나", done: 1 };
+  assert.equal(mergeSil(옛, 새).done, 1, "이미 한 가닥 끊은 쪽이 앞선다");
+  assert.equal(mergeSil(새, 옛).wish, "나");
+  // 같은 실이면 먼저 맨 쪽 — 늦게 맨 쪽을 고르면 닳음이 되감긴다
+  const a = { at: 1000, from: 0, wish: "", done: 0 };
+  const b = { at: 5000, from: 0, wish: "소원", done: 0 };
+  const m = mergeSil(a, b);
+  assert.equal(m.at, 1000, "먼저 맨 실이 남아야 닳음이 안 되감긴다");
+  assert.equal(m.wish, "소원", "한쪽만 적은 소원도 살린다");
+  // 한쪽에서 이미 보여 줬으면 두 번 안 띄운다
+  assert.equal(mergeSil({ ...a, cut: true }, b).cut, true);
+  assert.equal(mergeSil(null, b).at, 5000);
+  assert.equal(mergeSil(a, null).at, 1000);
+}
+
+console.log("장부 합치기 — 일곱 가지 다 맞다");

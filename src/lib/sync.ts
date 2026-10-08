@@ -57,6 +57,14 @@ import {
   type MeritLedger,
 } from "./merit";
 import {
+  mergeSil,
+  set실주인,
+  실읽기,
+  실쓰기,
+  SIL_EVENT,
+  type 실,
+} from "./sil";
+import {
   applyRemoteDaily,
   mergeDaily,
   peekDaily,
@@ -206,6 +214,7 @@ async function startSync(uid: string) {
   // 앞사람 것은 그 사람 칸에 그대로 남아, 다시 들어오면 되찾는다.
   setMeritAccount(uid, mine);
   setDailyAccount(uid, mine);
+  set실주인(uid);
   if (!mine) {
     releaseHolding(local, merged);
     resetVisits(); // 앞사람의 발자국(함께한 날)도 이 계정에 새지 않게
@@ -218,12 +227,19 @@ async function startSync(uid: string) {
   // 1-1) 공덕·하루 장부 — 계정 칸으로 옮긴 **뒤에** 구름과 합친다.
   // 순서가 거꾸로면 앞 계정 칸을 읽어 남의 공덕을 물려받는다.
   const 구름장부 = snap.exists()
-    ? ((snap.data().ledger ?? null) as { merit?: MeritLedger; daily?: DailyBook } | null)
+    ? ((snap.data().ledger ?? null) as {
+        merit?: MeritLedger;
+        daily?: DailyBook;
+        sil?: 실 | null;
+      } | null)
     : null;
   const 합친공덕 = mergeMerit(peekMerit(), 구름장부?.merit ?? null);
   const 합친하루 = mergeDaily(peekDaily(), 구름장부?.daily ?? null);
   applyRemoteMerit(합친공덕);
   applyRemoteDaily(합친하루);
+  // 오색실도 같은 길로 — 한 달 기른 실이 폰을 바꾼다고 날아갈 수는 없다
+  const 합친실 = mergeSil(실읽기(), 구름장부?.sil ?? null);
+  if (합친실) 실쓰기(합친실);
 
   // 1-2) 법명과 얼굴 — 앞사람의 브라우저면 이 기기의 이름은 물려받지 않는다
   if (!mine) resetMe();
@@ -336,7 +352,7 @@ async function startSync(uid: string) {
     if (ledRetry) { clearTimeout(ledRetry); ledRetry = null; }
     pendingLed = true;
     const seq = ++ledSeq;
-    const 몸 = { merit: peekMerit(), daily: peekDaily() };
+    const 몸 = { merit: peekMerit(), daily: peekDaily(), sil: 실읽기() };
     ledInFlight = (async () => {
       let ok = false;
       try {
@@ -367,6 +383,7 @@ async function startSync(uid: string) {
   };
   window.addEventListener(MERIT_EVENT, ledHandler);
   window.addEventListener(DAILY_EVENT, ledHandler);
+  window.addEventListener(SIL_EVENT, ledHandler);
 
   const meHandler = (e: Event) => {
     if ((e as CustomEvent).detail?.source === "remote") return;
@@ -424,7 +441,7 @@ async function startSync(uid: string) {
     // store 의 잠금과 상관없이 늘 받는다(폰에서 친 목탁이 노트북에 바로 뜬다)
     if (!pendingLed) {
       const 원격장부 = (data?.ledger ?? null) as
-        | { merit?: MeritLedger; daily?: DailyBook }
+        | { merit?: MeritLedger; daily?: DailyBook; sil?: 실 | null }
         | null;
       if (원격장부) {
         const 이곳공덕 = peekMerit();
@@ -434,9 +451,13 @@ async function startSync(uid: string) {
         if (canon(새공덕) !== canon(이곳공덕)) applyRemoteMerit(새공덕);
         if (canon(새하루) !== canon(이곳하루)) applyRemoteDaily(새하루);
         // 이 기기에만 있던 몫이 이겼으면 계정에도 올려 둔다
+        const 이곳실 = 실읽기();
+        const 새실 = mergeSil(이곳실, 원격장부.sil ?? null);
+        if (새실 && canon(새실) !== canon(이곳실)) 실쓰기(새실);
         if (
           canon(clean(새공덕)) !== canon(원격장부.merit ?? null) ||
-          canon(clean(새하루)) !== canon(원격장부.daily ?? null)
+          canon(clean(새하루)) !== canon(원격장부.daily ?? null) ||
+          canon(clean(새실)) !== canon(원격장부.sil ?? null)
         ) {
           void pushLedger();
         }
@@ -467,6 +488,7 @@ async function startSync(uid: string) {
     window.removeEventListener(ME_EVENT, meHandler);
     window.removeEventListener(MERIT_EVENT, ledHandler);
     window.removeEventListener(DAILY_EVENT, ledHandler);
+    window.removeEventListener(SIL_EVENT, ledHandler);
     unsubscribeSnapshot();
   };
   flushPush = async () => {
