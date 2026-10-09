@@ -6236,17 +6236,22 @@ html[data-theme="light"] {
     top: env(safe-area-inset-top, 0px);
     left: 0;
     right: 0;
-    height: 5px;
+    /* 형: 「디자인 말고 좀 더 두껍거나 눈에 잘 띄게」
+       5px 는 머리띠 위에 얹힌 실밥처럼 보였다. 7px 로 올리고
+       안 찬 자리를 한 단 더 짙게 깐다 — 자가 보여야 찬 것도 보인다 */
+    height: 7px;
     z-index: 64;
     pointer-events: none;
-    background: rgba(26, 23, 20, 0.11);
-    box-shadow: 0 1px 0 rgba(26, 23, 20, 0.07);
+    background: rgba(26, 23, 20, 0.15);
+    box-shadow: 0 1px 0 rgba(26, 23, 20, 0.09);
   }
   .hip-daybar i {
     display: block;
     height: 100%;
     transform-origin: left center;
-    background: linear-gradient(90deg, #f291b6, #e4578b 70%, #c94a7d);
+    background: linear-gradient(90deg, #ef7ba4, #dd3f7c 62%, #bb2f66);
+    /* 찬 끝을 한 번 밝혀 「여기까지 왔다」가 눈에 걸리게 */
+    box-shadow: 1px 0 0 rgba(255, 255, 255, 0.55), 0 0 8px rgba(221, 63, 124, 0.35);
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.3, 1);
   }
   /* 쌓인 순간 잠깐 밝아진다 — 한 타가 0.003% 라 색만으로는 안 보인다 */
