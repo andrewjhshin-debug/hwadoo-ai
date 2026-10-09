@@ -25,11 +25,19 @@ import HipRoom from "@/components/HipRoom";
 import { addMerit } from "@/lib/merit";
 import { buzz, strikeStone } from "@/lib/sound";
 
-const TOTAL = 5;
-/** 층마다 돌 너비 — 위로 갈수록 좁아진다 */
-const 너비 = [172, 152, 134, 118, 104];
+const TOTAL = 6;
+/** 층마다 돌 너비 — 위로 갈수록 좁아진다. 맨 끝은 꼭대기 돌 */
+const 너비 = [172, 152, 134, 118, 104, 62];
 /** 층마다 눕는 각 — 같은 그림 한 장이라 각으로 다른 돌인 척한다 */
-const 기울 = [-2, 2.5, -3, 2, -1.5];
+const 기울 = [-2, 2.5, -3, 2, -1.5, 0];
+/**
+ * 꼭대기 돌 — 형: 「마지막 여섯 번째 돌, 약간 솟은 작은 삼각형 모양으로」
+ *
+ * 탑은 상륜부가 있어야 탑이다. 납작한 돌만 여섯 장이면 그냥 돌무더기고,
+ * 끝에 뾰족한 것이 하나 얹혀야 「다 쌓았다」가 눈에 보인다.
+ * 그림을 새로 굽지 않는다 — 같은 돌을 세모로 오려 쓴다(결이 이어진다).
+ */
+const 꼭대기 = TOTAL - 1;
 /** 한 층의 키 */
 const 층키 = 34;
 /** 받침돌 윗면 */
@@ -177,44 +185,64 @@ export default function TowerPage() {
           <span className="hip-tower-base" aria-hidden />
 
           <span className="hip-tower-stack" style={{ transform: `rotate(${기운각}deg)` }}>
-            {돌들.map((비킴, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                className="hip-tower-stone"
-                src="/obj/stone-cairn-stable.png"
-                alt=""
-                draggable={false}
-                style={
-                  {
-                    width: 너비[i],
-                    bottom: 바닥 + i * 층키,
-                    left: `calc(50% + ${비킴 * 비킬수}px)`,
-                    "--tilt": `${기울[i]}deg`,
-                  } as React.CSSProperties
-                }
-              />
-            ))}
+            {돌들.map((비킴, i) => {
+              const 자리 = {
+                width: 너비[i],
+                bottom: 바닥 + i * 층키,
+                left: `calc(50% + ${비킴 * 비킬수}px)`,
+                "--tilt": `${기울[i]}deg`,
+              } as React.CSSProperties;
+              // 꼭대기는 돌 사진을 오리지 않는다 — 그림의 투명 여백만
+              // 잘려 세모로 안 읽혔다. 세모는 세모로 그린다
+              return i === 꼭대기 ? (
+                <span key={i} className="hip-tower-cap" style={자리} aria-hidden />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={i}
+                  className="hip-tower-stone"
+                  src="/obj/stone-cairn-stable.png"
+                  alt=""
+                  draggable={false}
+                  style={자리}
+                />
+              );
+            })}
           </span>
 
           {/* 놓일 자리 — 손가락을 따라 다음 돌이 미리 앉는다 */}
           {!멈춤 && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              className="hip-tower-ghost"
-              src="/obj/stone-cairn-stable.png"
-              alt=""
-              aria-hidden
-              draggable={false}
-              style={
-                {
-                  width: 너비[놓인],
-                  bottom: 바닥 + 놓인 * 층키,
-                  left: `calc(50% + ${비칠 * 비킬수}px)`,
-                  "--tilt": `${기울[놓인]}deg`,
-                } as React.CSSProperties
-              }
-            />
+            놓인 === 꼭대기 ? (
+              <span
+                className="hip-tower-cap ghost"
+                aria-hidden
+                style={
+                  {
+                    width: 너비[놓인],
+                    bottom: 바닥 + 놓인 * 층키,
+                    left: `calc(50% + ${비칠 * 비킬수}px)`,
+                  } as React.CSSProperties
+                }
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="hip-tower-ghost"
+                src="/obj/stone-cairn-stable.png"
+                alt=""
+                aria-hidden
+                draggable={false}
+                style={
+                  {
+                    width: 너비[놓인],
+                    bottom: 바닥 + 놓인 * 층키,
+                    left: `calc(50% + ${비칠 * 비킬수}px)`,
+                    "--tilt": `${기울[놓인]}deg`,
+                  } as React.CSSProperties
+                }
+              />
+            )
           )}
 
         </button>
