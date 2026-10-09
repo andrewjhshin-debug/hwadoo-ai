@@ -19,8 +19,10 @@
 // 실 한 올과 「沙 432」. 뜻은 남기고 말은 지운다.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Osaeksil from "@/components/Osaeksil";
+import { isAdminAccount } from "@/lib/config";
+import { watchAuth } from "@/lib/sync";
 import Link from "next/link";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
@@ -92,6 +94,12 @@ export default function HipMe({
   onReroll,
   nameProblem,
 }: HipMeProps) {
+  // 뒷방 계정인가 — 상황판 들머리를 그릴지 가른다.
+  // 부모가 안 넘겨 주므로 여기서 직접 본다(서버 그림과 어긋나지 않게
+  // 첫 그림에서는 false, 인증이 잡힌 뒤에 켠다)
+  const [뒷방, 뒷방잡기] = useState(false);
+  useEffect(() => watchAuth((u) => 뒷방잡기(!!u && isAdminAccount(u))), []);
+
   // 법명 고치기 — 그 자리에서 편다. 화면을 옮기지 않는다
   /** 공덕 ⓘ 서랍 */
   const [openInfo, setOpenInfo] = useState(false);
@@ -395,6 +403,17 @@ export default function HipMe({
             <div>{bells}</div>
           </details>
         </div>
+
+        {/* ── 상황판 ──
+            형: 「앱에서 데스크가 어디지, 내 도량에 빼 둬 봐」
+            /desk 를 주소로만 열게 두었더니 들어갈 길이 없었다.
+            뒷방 계정에만 보인다 — 손님에게는 아예 안 그린다. */}
+        {뒷방 && (
+          <a className="hip-me-desk" href="/desk">
+            <b>狀 況 板</b>
+            <span>매출 · 사람 · 법당 · 블로그</span>
+          </a>
+        )}
 
         {/* ── 도량 안내와 사업자 정보 ──
             리뉴얼이 웹까지 덮으면서 아래 띠(footer)가 통째로 가려졌다 —

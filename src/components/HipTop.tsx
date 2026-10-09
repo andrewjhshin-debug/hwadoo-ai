@@ -41,7 +41,10 @@ export default function HipTop({
   const here = path === "/settings";
   return (
     <div className="hip-top-right">
-      <LotusCount look="line" className="hip-top-count" />
+      {/* 형: 「앱 전반에 이거는 뜨지 않고, 연꽃이 실제 쓰이는 데만」
+          연꽃 알약이 머리띠에 있으니 화두를 보든 목탁을 치든 늘 따라다녔다.
+          연꽃은 **쓰는 자리**에서만 셈하면 된다 — 법당(공양)과
+          손잡고 절로(쪽지 청하기), 그리고 연꽃 판 자체. */}
       <SoundMuteToggle compact />
       <TodayPracticePopover />
       <Link href="/letters" aria-label="쪽지함" className="hip-top-ico">
