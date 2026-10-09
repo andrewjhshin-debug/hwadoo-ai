@@ -246,7 +246,7 @@ function LotusClosed() {
   return (
     <div className="mx-auto w-full max-w-md flex-1 px-6 py-10">
       <div className="text-center">
-        <YeonkkotGold className="mx-auto h-11 w-11 opacity-80" />
+        <Yeonkkot className="mx-auto h-11 w-11" />
         <h1 className="mt-4 font-serif text-[22px] font-light text-hanji">
           연꽃
         </h1>
@@ -477,7 +477,7 @@ function LotusInner() {
 
           {/* ── 고른 값 — 숫자 하나만 크게 ── */}
           <div className="rise rise-d1 mt-9 flex flex-col items-center">
-            <LotusMark className="h-6 w-6 text-gold" stroke="currentColor" />
+            <Yeonkkot className="h-7 w-7" />
             <p className="mt-4 font-serif text-[68px] font-light leading-none text-hanji">
               {picked.n}
               <span className="ml-2 font-sans text-[13px] tracking-[0.25em] text-hanji-faint">

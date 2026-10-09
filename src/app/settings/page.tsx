@@ -107,7 +107,7 @@ import {
   Moment,
   Seogo,
   Yeomju,
-  YeonkkotGold,
+  Yeonkkot,
 } from "@/components/icons";
 
 // 공덕 점수보다 먼저 보여 줄 수행의 흔적. 0번도 숨기지 않는다 —
@@ -235,7 +235,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/breath", label: "호흡 명상", Icon: Breath },
   { href: "/empty", label: "비움", Icon: Baru },
   { href: "/candle", label: "법당", Icon: Chotbul },
-  { href: "/lotus", label: "연꽃", Icon: YeonkkotGold },
+  { href: "/lotus", label: "연꽃", Icon: Yeonkkot },
   { href: "/community", label: "연지원", Icon: LotusPond },
   { href: "/archive", label: "지난 화두", Icon: Seogo },
   { href: "/sutra", label: "외우기", Icon: Book },

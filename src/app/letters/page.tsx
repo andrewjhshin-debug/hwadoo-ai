@@ -15,6 +15,7 @@ import Link from "next/link";
 import type { User } from "firebase/auth";
 import { watchAuth } from "@/lib/sync";
 import { useConfirm } from "@/components/Confirm";
+import { Yeonkkot } from "@/components/icons";
 import { LotusMark } from "@/components/icons";
 import {
   acceptThread,
@@ -317,7 +318,7 @@ export default function LettersPage() {
             href="/lotus"
             className="inline-flex items-center gap-1 rounded-[9px] border border-ink-3 px-2.5 py-1.5 text-[12px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
           >
-            <LotusMark className="h-[14px] w-[14px]" stroke="#D9B45B" />
+            <Yeonkkot className="h-[15px] w-[15px]" />
             {lotus}
           </Link>
           <button
