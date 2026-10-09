@@ -7797,28 +7797,37 @@ html[data-theme="light"] {
     z-index: 15;
     transform: translateY(-50%);
   }
+  /* 형: 「공양은 반투명으로 하고 톤 맞춰서」
+     옆의 사연·공유는 반투명 먹빛인데 공양만 꽉 찬 분홍이라 혼자 튀었다.
+     **같은 바탕에 빛깔만 한 겹 얹는다** — 무엇을 올리는 중인지는
+     알아볼 수 있어야 하니 색은 남기되, 농도는 옆과 같은 줄에 세운다. */
   .hip-rail-offer i {
-    background: linear-gradient(145deg, rgba(239, 105, 155, .94), rgba(211, 68, 125, .94));
-    box-shadow: 0 7px 16px rgba(202, 65, 120, .25);
+    background:
+      linear-gradient(145deg, rgba(239, 105, 155, 0.38), rgba(211, 68, 125, 0.38)),
+      rgba(26, 23, 20, 0.34);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 6px 14px rgba(202, 65, 120, 0.16);
   }
   .hip-rail-offer[data-kind="cho"] i {
-    background: linear-gradient(145deg, #f0cf83, #c88f3e);
-    box-shadow: 0 7px 16px rgba(182, 124, 43, .25);
+    background: linear-gradient(145deg, rgba(240, 207, 131, 0.4), rgba(200, 143, 62, 0.4)), rgba(26, 23, 20, 0.34);
+    box-shadow: 0 6px 14px rgba(182, 124, 43, 0.16);
   }
   .hip-rail-offer[data-kind="ssal"] i {
-    background: linear-gradient(145deg, #e9e3d6, #b9a992);
-    box-shadow: 0 7px 16px rgba(132, 112, 83, .2);
+    background: linear-gradient(145deg, rgba(233, 227, 214, 0.4), rgba(185, 169, 146, 0.4)), rgba(26, 23, 20, 0.34);
+    box-shadow: 0 6px 14px rgba(132, 112, 83, 0.14);
   }
   .hip-rail-offer[data-kind="hyang"] i {
-    background: linear-gradient(145deg, #a8875f, #694b32);
-    box-shadow: 0 7px 16px rgba(97, 65, 40, .25);
+    background: linear-gradient(145deg, rgba(168, 135, 95, 0.42), rgba(105, 75, 50, 0.42)), rgba(26, 23, 20, 0.34);
+    box-shadow: 0 6px 14px rgba(97, 65, 40, 0.16);
   }
   .hip-rail-offer[data-kind="giwa"] i {
-    background: linear-gradient(145deg, #7a7472, #423d3b);
-    box-shadow: 0 7px 16px rgba(54, 47, 43, .25);
+    background: linear-gradient(145deg, rgba(122, 116, 114, 0.42), rgba(66, 61, 59, 0.42)), rgba(26, 23, 20, 0.34);
+    box-shadow: 0 6px 14px rgba(54, 47, 43, 0.16);
   }
   .hip-rail-offer i svg { width: 24px; height: 24px; color: #fff; }
-  .hip-rail-offer b { color: #c4487d; font-weight: 650; }
+  /* 글자도 옆과 같은 줄로 — 분홍 글씨만 남으면 또 혼자 튄다.
+     사연·공유가 #6e6455 이므로 거기 맞춘다 */
+  .hip-rail-offer b { color: #6e6455; font-weight: 500; }
 
   /* 법당 장면이 하단 띠 바로 위까지 닿게 한다. 이전 여백은 옛
      쓸어올리기 손잡이 자리였고, 손잡이를 지운 뒤에는 빈 띠만 남았다. */
