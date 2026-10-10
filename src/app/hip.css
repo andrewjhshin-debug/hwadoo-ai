@@ -6249,9 +6249,10 @@ html[data-theme="light"] {
     display: block;
     height: 100%;
     transform-origin: left center;
-    background: linear-gradient(90deg, #ef7ba4, #dd3f7c 62%, #bb2f66);
-    /* 찬 끝을 한 번 밝혀 「여기까지 왔다」가 눈에 걸리게 */
-    box-shadow: 1px 0 0 rgba(255, 255, 255, 0.55), 0 0 8px rgba(221, 63, 124, 0.35);
+    /* 형: 「그라데이션 말고 다시, 그냥 뭉뚝한 찐한 핑크도 좋다」
+       왼쪽이 연하니 처음 얼마는 찬 티가 안 났다. 한 색으로 꽉 채운다 */
+    background: #e03a78;
+    box-shadow: none;
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.3, 1);
   }
   /* 쌓인 순간 잠깐 밝아진다 — 한 타가 0.003% 라 색만으로는 안 보인다 */
@@ -8174,31 +8175,21 @@ html[data-theme="light"] {
   .hip-me-desk span { font-size: 11.5px; color: #8e867a; }
 }
 
-/* ── 꼭대기 돌 ─────────────────────────────────────────────
-   형: 「마지막 여섯 번째 돌, 약간 솟은 작은 삼각형 모양으로」
-
-   돌 사진을 세모로 오려 봤더니 그림의 **투명 여백만** 잘려 여전히
-   둥글었다. 세모는 세모로 그린다 — 돌빛만 같이 쓴다.
-
-   파일 가운데(.hip-tower-stack 뒤)에 두었더니 브라우저에 **아예 안
-   실렸다** — 그 언저리 어딘가에서 파서가 한 토막을 흘린다. 규칙을
-   옮겨 놓으니 바로 먹는다. 가운데를 파헤치는 대신 끝에 세운다. */
+/* ── 꼭대기 자연석 — 거친 결·둥글게 닳은 삼각 윤곽 ────────── */
 @media (min-width: 0px) {
   .hip-tower-cap {
     position: absolute;
     z-index: 3;
     left: 50%;
     display: block;
-    height: 44px;
-    /* 아래 돌에 **얹혀** 보여야 한다 — 제자리에 두면 한 뼘 떠 보인다 */
-    transform: translate(-50%, 13px);
-    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-    /* 옆의 돌들이 먹빛에 금빛 결이라 세모도 그 빛을 따른다.
-       평면 회색이면 혼자 플라스틱처럼 뜬다 */
-    background:
-      linear-gradient(104deg, rgba(255, 236, 198, 0.22) 0%, transparent 42%),
-      linear-gradient(170deg, #6f675c 4%, #4a443c 46%, #2f2b26 100%);
-    filter: drop-shadow(0 5px 7px rgba(45, 38, 32, 0.34));
+    height: auto;
+    max-width: none;
+    /* 아래 이미지의 투명 여백을 고려해 실제 돌 윗면에 밑변을 맞춘다. */
+    transform: translate(-50%, -11px) rotate(var(--tilt, -7deg));
+    transform-origin: 50% 90%;
+    filter: drop-shadow(0 2px 2px rgba(45, 38, 32, 0.22));
+    pointer-events: none;
+    user-select: none;
   }
   .hip-tower-cap.ghost { z-index: 1; opacity: 0.18; filter: grayscale(1) brightness(1.3); }
   .hip-tower-stage[data-hot] .hip-tower-cap.ghost { opacity: 0.42; }
