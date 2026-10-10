@@ -8185,7 +8185,7 @@ html[data-theme="light"] {
     height: auto;
     max-width: none;
     /* 아래 이미지의 투명 여백을 고려해 실제 돌 윗면에 밑변을 맞춘다. */
-    transform: translate(-50%, -11px) rotate(var(--tilt, -7deg));
+    transform: translate(-50%, -6px) rotate(var(--tilt, -7deg));
     transform-origin: 50% 90%;
     filter: drop-shadow(0 2px 2px rgba(45, 38, 32, 0.22));
     pointer-events: none;
