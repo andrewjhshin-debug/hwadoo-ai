@@ -29,15 +29,13 @@ const TOTAL = 6;
 /** 층마다 돌 너비 — 위로 갈수록 좁아진다. 맨 끝은 꼭대기 돌 */
 const 너비 = [172, 152, 134, 118, 104, 62];
 /** 층마다 눕는 각 — 같은 그림 한 장이라 각으로 다른 돌인 척한다 */
-const 기울 = [-2, 2.5, -3, 2, -1.5, 0];
+const 기울 = [-2, 2.5, -3, 2, -1.5, -7];
 /**
- * 꼭대기 돌 — 형: 「마지막 여섯 번째 돌, 약간 솟은 작은 삼각형 모양으로」
- *
- * 탑은 상륜부가 있어야 탑이다. 납작한 돌만 여섯 장이면 그냥 돌무더기고,
- * 끝에 뾰족한 것이 하나 얹혀야 「다 쌓았다」가 눈에 보인다.
- * 그림을 새로 굽지 않는다 — 같은 돌을 세모로 오려 쓴다(결이 이어진다).
+ * 꼭대기는 비정형 삼각 자연석. 아래 돌과 같은 광물 결을 가진 투명
+ * 이미지라, 정삼각형 색면 없이 비스듬히 균형 잡힌 마지막 돌로 보인다.
  */
 const 꼭대기 = TOTAL - 1;
+const 꼭대기그림 = "/obj/stone-cairn-cap-v2.png";
 /** 한 층의 키 */
 const 층키 = 34;
 /** 받침돌 윗면 */
@@ -192,16 +190,12 @@ export default function TowerPage() {
                 left: `calc(50% + ${비킴 * 비킬수}px)`,
                 "--tilt": `${기울[i]}deg`,
               } as React.CSSProperties;
-              // 꼭대기는 돌 사진을 오리지 않는다 — 그림의 투명 여백만
-              // 잘려 세모로 안 읽혔다. 세모는 세모로 그린다
-              return i === 꼭대기 ? (
-                <span key={i} className="hip-tower-cap" style={자리} aria-hidden />
-              ) : (
+              return (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={i}
-                  className="hip-tower-stone"
-                  src="/obj/stone-cairn-stable.png"
+                  className={i === 꼭대기 ? "hip-tower-cap" : "hip-tower-stone"}
+                  src={i === 꼭대기 ? 꼭대기그림 : "/obj/stone-cairn-stable.png"}
                   alt=""
                   draggable={false}
                   style={자리}
@@ -213,36 +207,21 @@ export default function TowerPage() {
           {/* 놓일 자리 — 손가락을 따라 다음 돌이 미리 앉는다 */}
           {!멈춤 && (
             // eslint-disable-next-line @next/next/no-img-element
-            놓인 === 꼭대기 ? (
-              <span
-                className="hip-tower-cap ghost"
-                aria-hidden
-                style={
-                  {
-                    width: 너비[놓인],
-                    bottom: 바닥 + 놓인 * 층키,
-                    left: `calc(50% + ${비칠 * 비킬수}px)`,
-                  } as React.CSSProperties
-                }
-              />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                className="hip-tower-ghost"
-                src="/obj/stone-cairn-stable.png"
-                alt=""
-                aria-hidden
-                draggable={false}
-                style={
-                  {
-                    width: 너비[놓인],
-                    bottom: 바닥 + 놓인 * 층키,
-                    left: `calc(50% + ${비칠 * 비킬수}px)`,
-                    "--tilt": `${기울[놓인]}deg`,
-                  } as React.CSSProperties
-                }
-              />
-            )
+            <img
+              className={놓인 === 꼭대기 ? "hip-tower-cap ghost" : "hip-tower-ghost"}
+              src={놓인 === 꼭대기 ? 꼭대기그림 : "/obj/stone-cairn-stable.png"}
+              alt=""
+              aria-hidden
+              draggable={false}
+              style={
+                {
+                  width: 너비[놓인],
+                  bottom: 바닥 + 놓인 * 층키,
+                  left: `calc(50% + ${비칠 * 비킬수}px)`,
+                  "--tilt": `${기울[놓인]}deg`,
+                } as React.CSSProperties
+              }
+            />
           )}
 
         </button>
