@@ -29,7 +29,9 @@ const TOTAL = 6;
 /** 층마다 돌 너비 — 위로 갈수록 좁아진다. 맨 끝은 꼭대기 돌 */
 const 너비 = [172, 152, 134, 118, 104, 62];
 /** 층마다 눕는 각 — 같은 그림 한 장이라 각으로 다른 돌인 척한다 */
-const 기울 = [-2, 2.5, -3, 2, -1.5, -7];
+const 기울 = [-3, 5, -5, 4, -4, -9];
+/** 놓는 순간부터 작은 비대칭을 유지한다. 완성 후에는 다시 정렬하지 않는다. */
+const 자연비킴 = [0, -2, 3, -3, 2, -2];
 /**
  * 꼭대기는 비정형 삼각 자연석. 아래 돌과 같은 광물 결을 가진 투명
  * 이미지라, 정삼각형 색면 없이 비스듬히 균형 잡힌 마지막 돌로 보인다.
@@ -149,7 +151,6 @@ export default function TowerPage() {
 
   const 중심 = 돌들.length ? 돌들.reduce((s, x) => s + x, 0) / 돌들.length : 0;
   const 쏠림 = Math.abs(중심);
-  const 기운각 = 중심 * 7;
   /** 겨눈 자리가 얼마나 가운데인가 — 2 면 한가운데, 1 이면 걸친다 */
   const 겨냥 =
     멈춤 || 겨눈 === null ? 0 : Math.abs(겨눈) < 0.24 ? 2 : Math.abs(겨눈) < 0.66 ? 1 : 0;
@@ -182,12 +183,12 @@ export default function TowerPage() {
           {/* 받침돌 — 바닥이 있어야 탑이다 */}
           <span className="hip-tower-base" aria-hidden />
 
-          <span className="hip-tower-stack" style={{ transform: `rotate(${기운각}deg)` }}>
+          <span className="hip-tower-stack">
             {돌들.map((비킴, i) => {
               const 자리 = {
                 width: 너비[i],
                 bottom: 바닥 + i * 층키,
-                left: `calc(50% + ${비킴 * 비킬수}px)`,
+                left: `calc(50% + ${비킴 * 비킬수 + 자연비킴[i]}px)`,
                 "--tilt": `${기울[i]}deg`,
               } as React.CSSProperties;
               return (
@@ -217,7 +218,7 @@ export default function TowerPage() {
                 {
                   width: 너비[놓인],
                   bottom: 바닥 + 놓인 * 층키,
-                  left: `calc(50% + ${비칠 * 비킬수}px)`,
+                  left: `calc(50% + ${비칠 * 0.72 * 비킬수 + 자연비킴[놓인]}px)`,
                   "--tilt": `${기울[놓인]}deg`,
                 } as React.CSSProperties
               }
@@ -231,11 +232,16 @@ export default function TowerPage() {
           <i style={{ width: `${Math.min(100, (쏠림 / 쏠림금) * 100)}%` }} />
         </span>
 
-        {끝 && (
-          <div className="hip-tower-done" role="status" aria-label="돌탑 완성">
-            <button onClick={다시}>한 번 더</button>
-          </div>
-        )}
+        {/* 완료 버튼 공간을 처음부터 확보해 마지막 돌을 놓아도 무대가 이동하지 않는다. */}
+        <div
+          className="hip-tower-done"
+          role={끝 ? "status" : undefined}
+          aria-label={끝 ? "돌탑 완성" : undefined}
+          aria-hidden={!끝}
+          style={{ visibility: 끝 ? "visible" : "hidden" }}
+        >
+          <button onClick={다시} disabled={!끝}>한 번 더</button>
+        </div>
       </section>
     </HipRoom>
   );
