@@ -87,9 +87,9 @@ export default function TamjinchiPage() {
       <p className="rise text-[11px] tracking-[0.5em] text-gold-soft">
         佛心投資 · 불심 투자
       </p>
-      <h1 className="rise rise-d1 mt-2 break-keep font-serif text-lg font-light text-hanji">
-        사기 전에, 마음을 본다
-      </h1>
+      {/* 형: 「최대한 텍스트 없애」 — 머리에 적힌 「佛心投資 · 불심 투자」가
+          이미 무엇을 하는 자리인지 말한다. 그 아래 한 줄을 더 얹으면
+          둘 다 안 읽힌다. */}
 
       {/* 뼈대 — 삼독이 곧 손실의 세 가지 원인. 설명은 여기 한 번뿐이다 */}
       <div className="rise rise-d2 mt-4 grid w-full grid-cols-3 gap-2">
@@ -104,10 +104,9 @@ export default function TamjinchiPage() {
             >
               {p.hanja}
             </span>
+            {/* 한자 · 우리말 · 덧말 셋이 같은 것을 세 번 말하고 있었다.
+                둘이면 족하다 — 덧말은 누르면 나오는 자가진단이 맡는다 */}
             <p className="mt-2 text-[12.5px] text-hanji">{p.full}</p>
-            <p className="mt-0.5 break-keep text-[11px] text-hanji-faint">
-              {p.trap}
-            </p>
           </div>
         ))}
       </div>
@@ -203,7 +202,8 @@ function Pause({
   // 세기 전: 여태 끝까지 센 횟수 · 세는 중: 남은 초 · 다 셈: 108 · 고른 뒤: 멈춘 횟수
   const hero =
     phase === "count"
-      ? { cap: "남은 셈", n: Math.ceil(left), unit: "초" }
+      // 세는 중에는 글자를 안 적는다 — 큰 수와 「초」가 이미 다 말한다
+      ? { cap: "", n: Math.ceil(left), unit: "초" }
       : phase === "ready"
         ? { cap: "끝까지 센 108초", n: book?.pauses ?? 0, unit: "번" }
         : phase === "ask"
@@ -263,12 +263,14 @@ function Pause({
         />
 
         <div className="absolute flex flex-col items-center">
-          <p
-            aria-live="polite"
-            className="text-[11px] tracking-[0.3em] text-hanji-faint"
-          >
-            {hero.cap}
-          </p>
+          {hero.cap && (
+            <p
+              aria-live="polite"
+              className="text-[11px] tracking-[0.3em] text-hanji-faint"
+            >
+              {hero.cap}
+            </p>
+          )}
           <p className="mt-1 font-serif text-[68px] font-light leading-none tabular-nums text-hanji">
             {hero.n}
             <span className="ml-1 text-[13px] tracking-[0.2em] text-hanji-faint">
