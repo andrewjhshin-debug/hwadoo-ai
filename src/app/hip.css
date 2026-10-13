@@ -8196,3 +8196,12 @@ html[data-theme="light"] {
   .hip-tower-stage[data-hot] .hip-tower-cap.ghost { opacity: 0.42; }
   .hip-tower-stage[data-hot="2"] .hip-tower-cap.ghost { opacity: 0.6; filter: none; }
 }
+
+/* 법당 공양 — 머리 오른쪽과 같은 연꽃 */
+@media (min-width: 0px) {
+  .hip-rail-offer i .hip-rail-lotus {
+    display: block;
+    font-size: 23px;
+    line-height: 1;
+  }
+}

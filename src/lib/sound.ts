@@ -27,18 +27,51 @@ let waking = false;
 function armWake() {
   if (waking || typeof window === "undefined") return;
   waking = true;
-  const wake = () => {
-    if (actx && actx.state === "suspended") void actx.resume();
-    if (actx && actx.state === "running") off();
-  };
-  const off = () => {
-    document.removeEventListener("pointerdown", wake, true);
-    document.removeEventListener("touchstart", wake, true);
-    document.removeEventListener("keydown", wake, true);
-  };
-  document.addEventListener("pointerdown", wake, true);
-  document.addEventListener("touchstart", wake, true);
-  document.addEventListener("keydown", wake, true);
+  document.addEventListener("pointerdown", 깨우기, true);
+  document.addEventListener("touchstart", 깨우기, true);
+  document.addEventListener("keydown", 깨우기, true);
+  // 다른 앱에 갔다 오면 iOS 는 통을 재운다 — 돌아올 때도 한 번 깨운다
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") 깨우기();
+  });
+}
+
+/**
+ * 잠든 통을 되살린다.
+ *
+ * 형: 「소리가 다 안 나긴 해, 모바일 아직」
+ *
+ * 두 군데가 틀렸었다.
+ *
+ * ① **"suspended" 하나만 봤다.** iOS 는 전화·시리·다른 앱 소리·화면
+ *    잠금 뒤에 통을 `"interrupted"` 로 세워 둔다. 표준에 없는 값이라
+ *    `=== "suspended"` 검사에 안 걸리고, 그래서 아무도 깨우지 않았다.
+ *    폰에서 한 번 끊기면 앱을 완전히 다시 띄우기 전까지 전부 무음이었다.
+ *
+ * ② **한 번 켜지면 귀를 뗐다.** running 이 되는 순간 리스너 셋을 모두
+ *    떼고 `waking` 은 true 로 남아 다시 달 길이 없었다. 그 뒤에 ①이
+ *    일어나면 끝이다. 귀 셋은 켜져 있어도 거의 공짜다 — 떼지 않는다.
+ */
+function 깨우기() {
+  if (!actx || actx.state === "running" || actx.state === "closed") return;
+  void actx.resume().catch(() => {});
+}
+
+/**
+ * 아이폰 옆구리 무음 스위치를 비껴간다.
+ *
+ * iOS 는 그 스위치가 올라가 있으면 WebAudio 를 **통째로 묵살한다** —
+ * 오류도 없고 state 는 running 그대로다. 그래서 「되는 것 같은데 안
+ * 들린다」가 된다. 카테고리를 playback 으로 바꾸면 음악 앱처럼 쳐 줘서
+ * 스위치를 타지 않는다. (Safari 16.4+. 없는 데서는 그냥 넘어간다.)
+ */
+function 무음스위치비껴가기() {
+  try {
+    const s = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
+    if (s) s.type = "playback";
+  } catch {
+    /* 못 바꿔도 소리는 난다 — 무음 스위치만 탄다 */
+  }
 }
 
 function audio(): AudioContext | null {
@@ -50,9 +83,10 @@ function audio(): AudioContext | null {
         (window as unknown as { webkitAudioContext?: typeof AudioContext })
           .webkitAudioContext;
       if (!AC) return null;
+      무음스위치비껴가기();
       actx = new AC();
     }
-    if (actx.state === "suspended") void actx.resume();
+    깨우기();
     armWake();
     return actx;
   } catch {

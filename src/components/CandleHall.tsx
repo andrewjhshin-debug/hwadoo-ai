@@ -8,6 +8,7 @@ import Gongyang, { type 공양갈래 } from "@/components/Gongyang";
 import { 신고보내기 } from "@/lib/dm";
 import LotusCount, { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
+import { strikeBell } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -168,6 +169,9 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
           lotusCost: cost, until: Date.now() + (publicCandle ? PUBLIC_BURN_DAYS : PRIVATE_BURN_DAYS) * 86_400_000,
         });
       }
+      // 법당에는 소리가 한 줄도 없었다 — 공양을 올려도 아무 일도 안
+      // 일어난 것처럼 조용했다. 올라선 그 순간에만 경쇠 한 번.
+      strikeBell(0.5);
       pingLotus();
     }
     catch { setError(갈래 === "giwa" ? "기와를 올리지 못했습니다. 잠시 뒤 다시 해 주세요." : "공양을 올리지 못했습니다. 잠시 뒤 다시 해 주세요."); } finally { setBusy(false); }
@@ -1051,7 +1055,12 @@ export default function CandleHall() {
         </button>
         <button className="hip-rail-btn hip-rail-offer" data-kind={공양대표색} onClick={start} aria-label="공양 올리기">
           <i>
-            <Yeonkkot />
+            {/* 형: 「법당에 공양 그 연꽃을 없애고 이거를 적용시켜」
+                브랜드 PNG 는 굵은 자줏빛 테두리라, 옆의 흰 선 아이콘 둘
+                사이에서 혼자 스티커처럼 떴다. 머리 오른쪽이 이미 쓰는
+                연꽃으로 맞춘다 — 두 자리가 같은 꽃이어야 「연꽃」이
+                한 번만 설명된다. */}
+            <span className="hip-rail-lotus" aria-hidden>🪷</span>
           </i>
           <b>공양</b>
         </button>
