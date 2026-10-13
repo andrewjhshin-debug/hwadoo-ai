@@ -5,7 +5,7 @@ import type { CSSProperties, PointerEvent } from "react";
 import HipRoom from "@/components/HipRoom";
 import { addMerit } from "@/lib/merit";
 import { buzz, strikeStone } from "@/lib/sound";
-import { ATLAS_SIZE, STONE_ATLAS, TOWER_STONES, TOWER_WIDTH, TOWER_HEIGHT, evaluateBalance, nextAim, placeStone, supportOf } from "@/lib/tower-balance";
+import { ATLAS_SIZE, STONE_ATLAS, TOWER_STONES, TOWER_WIDTH, TOWER_HEIGHT, clampPlacementX, evaluateBalance, nextAim, placeStone, supportOf, survivingStones } from "@/lib/tower-balance";
 import type { Balance, PlacedStone } from "@/lib/tower-balance";
 import "./tower.css";
 
@@ -57,13 +57,21 @@ export default function TowerPage() {
     if (locked.current) return;
     const old = stonesRef.current;
     if (old.length >= TOWER_STONES.length) return;
-    const stone = placeStone(old.length, Math.max(-108, Math.min(108, x)), old.at(-1));
+    const stone = placeStone(old.length, clampPlacementX(old.length, x), old.at(-1));
     const next = [...old, stone], balance = evaluateBalance(next);
     stonesRef.current = next; setStones(next); setAim(null);
     strikeStone(.25 + old.length * .018, old.length); buzz(balance.risk < .7 ? 7 : 13);
     if (!balance.stable) {
       locked.current = true; setFailure(balance); buzz(30);
-      resetTimer.current = setTimeout(reset, 1200); return;
+      const remaining = survivingStones(next, balance);
+      resetTimer.current = setTimeout(() => {
+        // Continue from the untouched lower stones; no full reset or coordinate correction.
+        resetTimer.current = null;
+        stonesRef.current = remaining;
+        setStones(remaining); setFailure(null); setAim(null);
+        pointer.current = null; locked.current = false;
+      }, 1200);
+      return;
     }
     if (next.length === TOWER_STONES.length) {
       locked.current = true;
@@ -71,7 +79,7 @@ export default function TowerPage() {
       setReward(addMerit("tower", multiplier, 1).gained); setDone(true); buzz(20);
       // Completion never recenters, scales, animates or corrects stone coordinates.
     }
-  }, [reset]);
+  }, []);
 
   useEffect(() => {
     const keyboard = (event: KeyboardEvent) => {
@@ -80,7 +88,7 @@ export default function TowerPage() {
       if (event.code === "ArrowLeft" || event.code === "ArrowRight") {
         event.preventDefault();
         const step = event.code === "ArrowLeft" ? -3 : 3;
-        setAim(value => Math.max(-108, Math.min(108, (value ?? nextAim(stonesRef.current)) + step)));
+        setAim(value => clampPlacementX(stonesRef.current.length, (value ?? nextAim(stonesRef.current)) + step));
       } else if ((event.code === "Space" || event.code === "Enter") && !event.repeat) {
         event.preventDefault(); place(aim ?? nextAim(stonesRef.current));
       }
@@ -91,9 +99,9 @@ export default function TowerPage() {
 
   const pointerX = (event: PointerEvent<HTMLButtonElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    return Math.max(-108, Math.min(108, (event.clientX - rect.left - rect.width / 2) / scale));
+    return clampPlacementX(stonesRef.current.length, (event.clientX - rect.left - rect.width / 2) / scale);
   };
-  const previewX = aim ?? nextAim(stones);
+  const previewX = stopped ? 0 : clampPlacementX(count, aim ?? nextAim(stones));
   const preview = !stopped ? placeStone(count, previewX, stones.at(-1)) : null;
   const balance = evaluateBalance(stones), prospective = preview ? evaluateBalance([...stones, preview]) : balance;
   const contact = count > 0 && !stopped ? supportOf(stones[count - 1]) : null;

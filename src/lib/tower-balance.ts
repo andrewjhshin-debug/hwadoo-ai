@@ -17,6 +17,11 @@ export const TOWER_STONES = [
 ] as const;
 export type PlacedStone = { index: number; x: number; y: number };
 export type Balance = { stable: boolean; risk: number; joint: number; direction: -1 | 1 };
+/** Accept any initial tap, but keep the whole rock visible inside the board. */
+export function clampPlacementX(index: number, x: number) {
+  const limit = TOWER_WIDTH / 2 - TOWER_STONES[index].width / 2 - 6;
+  return Math.max(-limit, Math.min(limit, x));
+}
 export function supportOf(placed: PlacedStone) {
   const s = TOWER_STONES[placed.index], a = s.tilt * Math.PI / 180;
   const dx = s.width * s.offset, dy = s.height * (s.top - s.bottom);
@@ -38,8 +43,9 @@ function massOf(p: PlacedStone) {
 /** Every contact bears the entire upper sub-tower, not just its adjacent stone. */
 export function evaluateBalance(stones: readonly PlacedStone[]): Balance {
   let result: Balance = { stable: true, risk: 0, joint: 0, direction: 1 };
-  for (let joint = 0; joint < stones.length; joint++) {
-    const contact = joint === 0 ? { x: 0, half: 88 } : supportOf(stones[joint - 1]);
+  // The first rock is the fixed foundation wherever it was placed, never a failed joint.
+  for (let joint = 1; joint < stones.length; joint++) {
+    const contact = supportOf(stones[joint - 1]);
     let weight = 0, moment = 0;
     for (let i = joint; i < stones.length; i++) { const m = massOf(stones[i]); weight += m.weight; moment += m.x * m.weight; }
     const delta = moment / weight - contact.x;
@@ -56,4 +62,9 @@ export function evaluateBalance(stones: readonly PlacedStone[]): Balance {
 }
 export function nextAim(stones: readonly PlacedStone[]) {
   return stones.length ? supportOf(stones[stones.length - 1]).x : 0;
+}
+
+/** Remove only the animated falling suffix. Surviving stone objects and coordinates stay intact. */
+export function survivingStones(stones: readonly PlacedStone[], failure: Balance) {
+  return stones.slice(0, Math.max(1, failure.joint));
 }
