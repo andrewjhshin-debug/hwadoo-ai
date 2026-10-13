@@ -16,16 +16,18 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 
 // ── merit.ts 에서 숫자를 읽어 온다 ─────────────────────────
 const ts = readFileSync("src/lib/merit.ts", "utf8");
+const 하루 = Number(ts.match(/DAILY_TOTAL_CAP = (\d+)/)[1]);
 function 표뽑기(머리) {
   const i = ts.indexOf(머리);
   const j = ts.indexOf("\n};", i);
   const out = {};
-  for (const m of ts.slice(i, j).matchAll(/^ {2}([a-z]+): (\d+)/gm)) out[m[1]] = Number(m[2]);
+  // 천장 칸에는 숫자 대신 DAILY_TOTAL_CAP 이라 적힌 데가 있다 — 그것도 읽는다
+  for (const m of ts.slice(i, j).matchAll(/^ {2}([a-z]+): (DAILY_TOTAL_CAP|\d+)/gm))
+    out[m[1]] = m[2] === "DAILY_TOTAL_CAP" ? 하루 : Number(m[2]);
   return out;
 }
 const 값 = 표뽑기("export const MERIT_VALUE: Record<MeritSource, number> = {");
 const 천장 = 표뽑기("export const DAILY_CAP: Record<MeritSource, number> = {");
-const 하루 = Number(ts.match(/DAILY_TOTAL_CAP = (\d+)/)[1]);
 
 // ── 사람 말 — 코드가 모르는 것만 여기 둔다 ─────────────────
 // 초(秒)는 한 번 하는 데 걸리는 시간. 분당 환산과 상한 기준을 여기서 센다.
