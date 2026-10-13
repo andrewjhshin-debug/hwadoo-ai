@@ -31,6 +31,16 @@ function notify() {
 export function captureInstallPrompt() {
   if (typeof window === "undefined" || listening) return;
   listening = true;
+  // 알림 허용 여부와 설치 준비는 별개다. 기존 알림 워커를 같은 주소로
+  // 등록해 루트 scope의 워커가 둘이 경쟁하지 않도록 한다.
+  if (window.isSecureContext && "serviceWorker" in navigator) {
+    void navigator.serviceWorker.register("/firebase-messaging-sw.js", {
+      scope: "/",
+      updateViaCache: "none",
+    }).catch(() => {
+      // 워커를 지원하지 않는 환경에서도 수동 설치 안내는 유지한다.
+    });
+  }
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault(); // 브라우저의 기본 미니바를 막고, 우리가 때를 고른다
     deferredPrompt = e as BeforeInstallPromptEvent;
@@ -54,6 +64,9 @@ export async function promptInstall(): Promise<
 > {
   const ev = deferredPrompt;
   if (!ev) return "unavailable";
+  // 프롬프트는 일회용이다. 연속 터치가 같은 이벤트를 두 번 열지 않게 한다.
+  deferredPrompt = null;
+  notify();
   try {
     await ev.prompt();
     const choice = await ev.userChoice;
@@ -92,3 +105,6 @@ export function onInstallChange(fn: () => void): () => void {
     subscribers.delete(fn);
   };
 }
+
+// 컴포넌트 효과를 기다리지 않고, 클라이언트 모듈이 로드될 때부터 받는다.
+if (typeof window !== "undefined") captureInstallPrompt();

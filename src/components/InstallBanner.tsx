@@ -11,7 +11,7 @@
 // ────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
-import { canInstall, isIOS, isStandalone, promptInstall } from "@/lib/install";
+import { canInstall, isIOS, isStandalone, onInstallChange, promptInstall } from "@/lib/install";
 
 // 영구 비표시 키 — 한 번 담거나 닫으면 다시는 묻지 않는다
 const LATER_KEY = "hwadoo-install-done";
@@ -23,6 +23,16 @@ export default function InstallBanner() {
   const [phase, setPhase] = useState<Phase | null>(null); // null 이면 그리지 않는다
   const [shown, setShown] = useState(false); // 스르륵 등장의 스위치
   const [busy, setBusy] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const refresh = () => {
+      setReady(canInstall());
+      if (isStandalone()) setPhase(null);
+    };
+    refresh();
+    return onInstallChange(refresh);
+  }, []);
 
   // 배너가 떠 있는 동안 몸통에 표를 남긴다 — 사유의 방 FAB 와 스크롤
   // 바닥 여백이 이 표를 보고 배너 높이만큼 비켜선다 (globals.css 참조)
@@ -39,7 +49,7 @@ export default function InstallBanner() {
     if (isStandalone()) return;
     // 이 세션에서 '다음에'라 했으면 조용히 있는다 — 새 세션이면 또 묻는다
     try {
-      if (localStorage.getItem(LATER_KEY)) return;
+      if (sessionStorage.getItem(LATER_KEY)) return;
     } catch {
       // 저장소가 막힌 브라우저 — 그래도 묻는다
     }
@@ -51,7 +61,7 @@ export default function InstallBanner() {
   // 이 세션에는 그만 묻는다
   const close = () => {
     try {
-      localStorage.setItem(LATER_KEY, "1");
+      sessionStorage.setItem(LATER_KEY, "1");
     } catch {
       // 못 적어도 화면에서는 내린다
     }
@@ -63,11 +73,12 @@ export default function InstallBanner() {
     if (canInstall()) {
       setBusy(true);
       try {
-        await promptInstall();
+        const outcome = await promptInstall();
+        if (outcome === "accepted") close();
+        else if (outcome === "unavailable") setPhase(isIOS() ? "ios" : "manual");
       } finally {
         setBusy(false);
       }
-      close(); // 수락이든 거절이든 — 이 세션에는 더 묻지 않는다
     } else if (isIOS()) {
       setPhase("ios");
     } else {
@@ -105,7 +116,7 @@ export default function InstallBanner() {
                 disabled={busy}
                 className="rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
               >
-                {busy ? "여는 중…" : "담기"}
+                {busy ? "여는 중…" : ready ? "앱 설치" : "설치 방법"}
               </button>
               <button
                 onClick={close}
@@ -125,11 +136,17 @@ export default function InstallBanner() {
                 </>
               ) : (
                 <>
+                  카카오톡·네이버 안에서 열었다면 먼저 Chrome 또는 삼성 인터넷으로 열어 주세요.
                   브라우저 메뉴(⋮)의 &lsquo;앱 설치&rsquo; 또는 &lsquo;홈
                   화면에 추가&rsquo;를 누르면 담깁니다.
                 </>
               )}
             </p>
+            {ready && (
+              <button onClick={handleInstall} disabled={busy} className="shrink-0 rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] text-gold">
+                {busy ? "여는 중…" : "앱 설치"}
+              </button>
+            )}
             <button
               onClick={close}
               className="shrink-0 rounded-[10px] border border-ink-3 px-4 py-2 text-[12px] tracking-[0.15em] text-hanji-dim transition-colors hover:text-hanji"

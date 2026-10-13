@@ -724,6 +724,7 @@ export default function SettingsPage() {
     try {
       const result = await promptInstall();
       if (result === "accepted") setInstallDone(true);
+      else if (result === "unavailable") setInstallGuide(true);
       // dismissed / unavailable — 프롬프트가 비워져 onInstallChange 가 안내로 바꾼다
     } finally {
       setInstallBusy(false);
@@ -1553,7 +1554,7 @@ export default function SettingsPage() {
               <p className="break-keep text-[12px] leading-6 text-hanji-faint">
                 {installUi === "ios"
                   ? "사파리 공유 단추(□↑) → '홈 화면에 추가'를 누르면 앱처럼 쓸 수 있습니다."
-                  : "브라우저 메뉴(⋮)의 '앱 설치' 또는 '홈 화면에 추가'를 누르면 담깁니다."}
+                  : "Android Chrome: 오른쪽 위 ⋮ → '홈 화면에 추가' → '설치'를 누르세요. 이미 설치했다면 '앱 열기'가 표시될 수 있습니다. 카톡·네이버 안에서는 먼저 Chrome으로 열어 주세요."}
               </p>
             </div>
           )}

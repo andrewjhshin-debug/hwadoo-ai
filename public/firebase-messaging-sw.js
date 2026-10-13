@@ -1,4 +1,12 @@
 // ─────────────────────────────────────────────────────────────
+
+// 설치 호환성용 네트워크 경로. HTML/API/개인 데이터를 캐시에 저장하지
+// 않아 배포 후 옛 화면이나 다른 계정 데이터가 남지 않도록 한다.
+self.addEventListener("fetch", (event) => {
+  if (event.request.method === "GET" && new URL(event.request.url).origin === self.location.origin) {
+    event.respondWith(fetch(event.request));
+  }
+});
 // 화두 — 아침 문안 알림 서비스 워커 (FCM 백그라운드 수신)
 // 서버는 data-only 메시지만 보낸다 — 알림 표시는 오직 여기서 한다.
 // (notification 페이로드를 쓰면 브라우저가 한 번 더 띄워 중복된다)
