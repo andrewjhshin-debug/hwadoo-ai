@@ -1,0 +1,30 @@
+/* Successful rocks never move after placement. Only the failing upper sub-tower animates. */
+.hip-room-body:has(> .hip-cairn) { overflow: hidden; padding-bottom: 8px; }
+.hip-room .hip-room-body > .hip-cairn { margin-block: 8px 0; }
+.hip-cairn { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; max-height: 600px; }
+.hip-cairn .hip-tower-kicker, .hip-cairn-progress, .hip-cairn .hip-tower-lean, .hip-cairn-done { flex-shrink: 0; }
+.hip-cairn-progress { display: flex; gap: 6px; align-items: center; justify-content: center; height: 28px; margin-top: 8px; }
+.hip-cairn-progress i { width: 5px; height: 5px; border-radius: 50%; background: rgba(101,104,98,.18); }
+.hip-cairn-progress i[data-filled] { background: #737b71; }
+.hip-cairn-progress span { margin-left: 8px; color: #62685f; font-size: 14px; font-variant-numeric: tabular-nums; }
+.hip-cairn-progress small { font-size: 12px; color: #979a90; }
+.hip-cairn .hip-cairn-stage { flex: 1 1 auto; width: min(100%,360px); height: auto; max-height: 460px; min-height: 120px; margin-top: 0; border-radius: 0; background: none; overflow: hidden; touch-action: none; }
+.hip-cairn-plane { position: absolute; bottom: 4px; left: 50%; transform-origin: 50% 100%; pointer-events: none; }
+.hip-cairn-ground { position: absolute; left: 60px; bottom: 20px; width: 240px; height: 7px; border-radius: 50%; background: rgba(62,69,59,.10); filter: blur(4px); }
+.hip-cairn-rock { position: absolute; display: block; overflow: hidden; transform: rotate(var(--rock-angle)); transform-origin: 50% var(--rock-pivot); filter: saturate(.35) drop-shadow(0 1px 1px rgba(37,43,34,.15)); pointer-events: none; }
+.hip-cairn-rock img { position: absolute; display: block; max-width: none; max-height: none; object-fit: fill; user-select: none; }
+.hip-cairn-rock.preview { opacity: .30; }
+.hip-cairn-preview[data-risk="edge"] .preview { opacity: .48; filter: sepia(.3) drop-shadow(0 0 3px rgba(162,118,56,.25)); }
+.hip-cairn-preview[data-risk="fall"] .preview { opacity: .50; filter: sepia(.45) saturate(1.4) drop-shadow(0 0 4px rgba(170,91,83,.40)); }
+.hip-cairn-contact { position: absolute; height: 2px; border-radius: 50%; background: rgba(108,125,101,.22); }
+.hip-cairn .hip-tower-lean { width: min(100%,320px); height: 3px; margin-top: 4px; }
+.hip-cairn-done { min-height: 78px; margin-top: 8px; }
+.hip-cairn-done > span { min-height: 18px; color: #9a7d61; font-size: 12px; font-variant-numeric: tabular-nums; }
+.hip-cairn-done button { padding: 10px 22px; margin-top: 4px; }
+.hip-cairn-rock.falling { animation: cairn-slip .92s cubic-bezier(.35,.05,.7,1) both; }
+@keyframes cairn-slip {
+  0% { transform: rotate(var(--rock-angle)); }
+  20% { transform: translateX(calc(var(--fall-x) * .13)) rotate(calc(var(--rock-angle) + var(--fall-angle) * .10)); }
+  100% { transform: translate(var(--fall-x),180px) rotate(calc(var(--rock-angle) + var(--fall-angle))); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .hip-cairn-rock.falling { animation: none; opacity: .25; } }
