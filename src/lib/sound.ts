@@ -9,53 +9,34 @@ import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
 // ── 소리 — 나무를 빚는다 ────────────────────────────────────
 
 let actx: AudioContext | null = null;
-let mobileSpeaker: HTMLAudioElement | null = null;
-let mobileDestination: MediaStreamAudioDestinationNode | null = null;
-let speakerReady = false;
-
-/** Local-only playback diagnostics; running does not prove the phone is audible. */
+/** 들여다보기용 — running 이라고 들린다는 뜻은 아니다 */
 export function soundStatus() {
   return {
     context: actx?.state ?? "not-created",
     muted: isSoundMuted(),
-    output: speakerReady ? "media" : "web-audio",
-    mediaPaused: mobileSpeaker?.paused ?? null,
+    output: "web-audio",
+    mediaPaused: null,
   };
 }
 
-// Android에서는 같은 합성음을 미디어 재생 경로로도 출력할 수 있게 한다.
-// 마이크/네트워크는 사용하지 않는다. 미디어 재생이 거절되면 기존 출력으로
-// 되돌려 소리가 끊기지 않게 하고, 다음 사용자 터치에서 다시 시도한다.
-function wakeMobileSpeaker(ac: AudioContext) {
-  if (!/Android/i.test(navigator.userAgent ?? "")) return;
-  try {
-    if (!mobileSpeaker) {
-      mobileDestination = ac.createMediaStreamDestination();
-      mobileSpeaker = new Audio();
-      mobileSpeaker.srcObject = mobileDestination.stream;
-      mobileSpeaker.preload = "auto";
-    }
-    if (!mobileSpeaker.paused) return;
-    const speaker = mobileSpeaker;
-    void speaker.play().then(() => {
-      if (speaker !== mobileSpeaker || ac !== actx) return;
-      speakerReady = true;
-      routeOutput(ac);
-    }).catch(() => {
-      if (speaker !== mobileSpeaker || ac !== actx) return;
-      speakerReady = false;
-      routeOutput(ac);
-    });
-  } catch {
-    speakerReady = false;
-  }
-}
-
-function routeOutput(ac: AudioContext) {
-  if (!masterGain) return;
-  masterGain.disconnect();
-  masterGain.connect(speakerReady && mobileDestination ? mobileDestination : ac.destination);
-}
+// ── 안드로이드 「미디어 길」은 걷어냈다 ──────────────────────
+//
+// 형: 「화두 갤럭시 폰 모바일 소리가 안 난다」 / 「안 들리고… 재점검 제발」
+//
+// 안드로이드에서만 소리 전부를 MediaStreamAudioDestinationNode 로 돌려
+// 숨은 <audio srcObject> 로 되틀던 길이 있었다. 소리를 **살리려고** 넣은
+// 것인데, 재어 보니 정확히 그 반대였다 —
+//
+//   스피커(ac.destination) 로 간 소리 세기 : 0
+//   미디어 통(MediaStream) 로 샌 소리 세기 : 224
+//
+// 크롬은 getUserMedia 가 아닌 MediaStream 을 <audio srcObject> 로 틀면
+// 소리를 안 낸다. 그런데 play() 는 **성공으로 떨어진다.** 그래서 코드는
+// 「됐다」 하고 speakerReady 를 세우고 masterGain 을 그리로 옮겨 버렸다.
+// 갤럭시에서 앱 전체가 벙어리가 된 자리가 여기다. 오류 한 줄 없이.
+//
+// 안드로이드 크롬은 손짓만 있으면 평범한 ac.destination 으로 잘 운다.
+// 길을 하나로 되돌린다 — 재는 자(scripts/sound-output-check.mjs)를 남긴다.
 /**
  * 잠든 소리통을 **첫 손짓에** 깨운다.
  *
@@ -106,7 +87,6 @@ function 깨우기() {
   const ac = audioContext();
   if (!ac) return;
   if (ac.state !== "running") void ac.resume().catch(() => {});
-  wakeMobileSpeaker(ac);
   // 사용자 손짓 안에서 출력 경로도 열어 둔다. 무음 설정은 바꾸지 않는다.
   if (unlockedContext !== ac) {
     try {
@@ -144,12 +124,6 @@ function audioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
   try {
     if (!actx || actx.state === "closed") {
-      mobileSpeaker?.pause();
-      if (mobileSpeaker) mobileSpeaker.srcObject = null;
-      mobileDestination?.stream.getTracks().forEach(track => track.stop());
-      mobileSpeaker = null;
-      mobileDestination = null;
-      speakerReady = false;
       const AC =
         window.AudioContext ??
         (window as unknown as { webkitAudioContext?: typeof AudioContext })
@@ -239,7 +213,7 @@ function master(ac: AudioContext): DynamicsCompressorNode {
     masterGain = ac.createGain();
     masterGain.gain.value = isSoundMuted() ? 0 : 1;
     bus.connect(masterGain);
-    routeOutput(ac);
+    masterGain.connect(ac.destination);
   }
   // 저장소 변경/계정 전환 후에도 UI의 음소거와 실제 gain이 어긋나지 않는다.
   masterGain?.gain.setValueAtTime(isSoundMuted() ? 0 : 1, ac.currentTime);
