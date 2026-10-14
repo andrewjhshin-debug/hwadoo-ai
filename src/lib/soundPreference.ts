@@ -4,11 +4,21 @@ export const SOUND_MUTE_EVENT = "hwadoo-sound-mute";
 
 export function isSoundMuted(): boolean {
   if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(SOUND_MUTED_KEY) === "1";
+  try {
+    return window.localStorage.getItem(SOUND_MUTED_KEY) === "1";
+  } catch {
+    return memoryMuted;
+  }
 }
+let memoryMuted = false;
 
 export function setSoundMuted(muted: boolean) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(SOUND_MUTED_KEY, muted ? "1" : "0");
+  memoryMuted = muted;
+  try {
+    window.localStorage.setItem(SOUND_MUTED_KEY, muted ? "1" : "0");
+  } catch {
+    // 저장소를 막아 둔 기기에서도 현재 화면의 소리 스위치는 작동한다.
+  }
   window.dispatchEvent(new CustomEvent(SOUND_MUTE_EVENT));
 }

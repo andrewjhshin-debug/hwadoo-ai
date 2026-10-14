@@ -9,6 +9,43 @@ import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
 // ── 소리 — 나무를 빚는다 ────────────────────────────────────
 
 let actx: AudioContext | null = null;
+let mobileSpeaker: HTMLAudioElement | null = null;
+let mobileDestination: MediaStreamAudioDestinationNode | null = null;
+let speakerReady = false;
+
+// Android에서는 같은 합성음을 미디어 재생 경로로도 출력할 수 있게 한다.
+// 마이크/네트워크는 사용하지 않는다. 미디어 재생이 거절되면 기존 출력으로
+// 되돌려 소리가 끊기지 않게 하고, 다음 사용자 터치에서 다시 시도한다.
+function wakeMobileSpeaker(ac: AudioContext) {
+  if (!/Android/i.test(navigator.userAgent ?? "")) return;
+  try {
+    if (!mobileSpeaker) {
+      mobileDestination = ac.createMediaStreamDestination();
+      mobileSpeaker = new Audio();
+      mobileSpeaker.srcObject = mobileDestination.stream;
+      mobileSpeaker.preload = "auto";
+    }
+    if (!mobileSpeaker.paused) return;
+    const speaker = mobileSpeaker;
+    void speaker.play().then(() => {
+      if (speaker !== mobileSpeaker || ac !== actx) return;
+      speakerReady = true;
+      routeOutput(ac);
+    }).catch(() => {
+      if (speaker !== mobileSpeaker || ac !== actx) return;
+      speakerReady = false;
+      routeOutput(ac);
+    });
+  } catch {
+    speakerReady = false;
+  }
+}
+
+function routeOutput(ac: AudioContext) {
+  if (!masterGain) return;
+  masterGain.disconnect();
+  masterGain.connect(speakerReady && mobileDestination ? mobileDestination : ac.destination);
+}
 /**
  * 잠든 소리통을 **첫 손짓에** 깨운다.
  *
@@ -59,6 +96,7 @@ function 깨우기() {
   const ac = audioContext();
   if (!ac) return;
   if (ac.state !== "running") void ac.resume().catch(() => {});
+  wakeMobileSpeaker(ac);
   // 사용자 손짓 안에서 출력 경로도 열어 둔다. 무음 설정은 바꾸지 않는다.
   if (unlockedContext !== ac) {
     try {
@@ -96,6 +134,12 @@ function audioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
   try {
     if (!actx || actx.state === "closed") {
+      mobileSpeaker?.pause();
+      if (mobileSpeaker) mobileSpeaker.srcObject = null;
+      mobileDestination?.stream.getTracks().forEach(track => track.stop());
+      mobileSpeaker = null;
+      mobileDestination = null;
+      speakerReady = false;
       const AC =
         window.AudioContext ??
         (window as unknown as { webkitAudioContext?: typeof AudioContext })
@@ -185,8 +229,10 @@ function master(ac: AudioContext): DynamicsCompressorNode {
     masterGain = ac.createGain();
     masterGain.gain.value = isSoundMuted() ? 0 : 1;
     bus.connect(masterGain);
-    masterGain.connect(ac.destination);
+    routeOutput(ac);
   }
+  // 저장소 변경/계정 전환 후에도 UI의 음소거와 실제 gain이 어긋나지 않는다.
+  masterGain?.gain.setValueAtTime(isSoundMuted() ? 0 : 1, ac.currentTime);
   return bus;
 }
 
