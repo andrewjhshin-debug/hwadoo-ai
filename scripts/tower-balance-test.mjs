@@ -11,6 +11,13 @@ assert.equal(TOWER_STONES.length, 9);
 assert.equal(new Set(TOWER_STONES.map(s => s.crop.join(","))).size, 9);
 assert.equal(evaluateBalance([]).stable, true);
 assert.equal(evaluateBalance([placeStone(0, 0)]).stable, true);
+const wedge = placeStone(3, 0);
+const wedgeBefore = JSON.stringify(wedge);
+const flat = placeStone(4, 0, wedge);
+const contact = m.supportOf(wedge);
+const originalFlatY = contact.y - contact.x * contact.slope - TOWER_STONES[4].height * TOWER_STONES[4].bottom + 1.5;
+assert.ok(Math.abs(flat.y - originalFlatY - 6.5) < 1e-8, "only the floating wedge/flat contact receives additional overlap");
+assert.equal(JSON.stringify(wedge), wedgeBefore, "closing the contact cannot move the lower rock");
 for (const x of [-500, -108, 0, 108, 500]) {
   assert.equal(evaluateBalance([placeStone(0, x)]).stable, true, "foundation is valid wherever placed");
 }
