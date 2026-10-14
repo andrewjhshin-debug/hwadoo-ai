@@ -13,6 +13,16 @@ let mobileSpeaker: HTMLAudioElement | null = null;
 let mobileDestination: MediaStreamAudioDestinationNode | null = null;
 let speakerReady = false;
 
+/** Local-only playback diagnostics; running does not prove the phone is audible. */
+export function soundStatus() {
+  return {
+    context: actx?.state ?? "not-created",
+    muted: isSoundMuted(),
+    output: speakerReady ? "media" : "web-audio",
+    mediaPaused: mobileSpeaker?.paused ?? null,
+  };
+}
+
 // Android에서는 같은 합성음을 미디어 재생 경로로도 출력할 수 있게 한다.
 // 마이크/네트워크는 사용하지 않는다. 미디어 재생이 거절되면 기존 출력으로
 // 되돌려 소리가 끊기지 않게 하고, 다음 사용자 터치에서 다시 시도한다.

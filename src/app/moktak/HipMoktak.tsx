@@ -34,6 +34,7 @@ import HipLanes, { type LaneTab } from "@/components/HipLanes";
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
 import { ROUND } from "@/lib/merit";
@@ -355,6 +356,7 @@ export default function HipMoktak({
               숨겨 두면 있는 줄도 모르고, 열면 화면이 통째로 덮여
               치던 것이 사라진다. 내려야 보이니 치는 동안은 안 걸린다. */}
           {tab === "moktak" && options}
+          <Link href="/sound-check" className="mt-4 inline-block text-xs text-hanji-dim">소리 확인</Link>
         </div>
       </div>
     </HipShell>
