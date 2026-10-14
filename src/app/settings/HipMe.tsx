@@ -103,6 +103,8 @@ export default function HipMe({
   // 법명 고치기 — 그 자리에서 편다. 화면을 옮기지 않는다
   /** 공덕 ⓘ 서랍 */
   const [openInfo, setOpenInfo] = useState(false);
+  /** 눌러서 수를 펴 본 자리 — 하나씩만 */
+  const [본자리, 본자리잡기] = useState<string | null>(null);
   /** 공덕 알약 — 접힌 것이 기본. 형: 「동그라미들 접었다 펼치기 기능 둬」 */
   const [openHits, setOpenHits] = useState(false);
   /** 접었을 때 보일 것 — 형: 「이거 3개까지만 나오고 나머진 접고」.
@@ -213,15 +215,30 @@ export default function HipMe({
             지금 자리를 한 번 더 적던 줄(童 동자)을 걷었다 — 아래 여섯 자리에
             이미 켜져 있는데 위에 또 적으니 같은 말이 두 번이었다. */}
         <div className="hip-seats">
+          {/* 형: 「계급 밑에 숫자 자체는 지우고 클릭하면 띄우든 하자」
+              여섯 자리 밑에 여섯 수가 늘 깔려 있었다. 2,073,600 같은 수는
+              사람이 가늠하는 수가 아니라, 읽히지도 않으면서 자리만 먹었다.
+              **궁금한 자리만 눌러서 본다.** 칸은 비워 두되 높이는 남겨
+              둔다 — 뜰 때마다 아래가 들썩이면 그게 더 거슬린다. */}
           {seats.map((r) => (
             <i
               key={r.hanja}
+              role="button"
+              tabIndex={0}
+              aria-label={`${r.name} · 공덕 ${r.need.toLocaleString("ko-KR")}`}
               data-got={r.got ? "1" : undefined}
               data-here={r.here ? "1" : undefined}
+              onClick={() => 본자리잡기((v) => (v === r.hanja ? null : r.hanja))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  본자리잡기((v) => (v === r.hanja ? null : r.hanja));
+                }
+              }}
             >
               <b>{r.hanja}</b>
               <em>{r.name}</em>
-              <u>{r.need > 0 ? r.need.toLocaleString("ko-KR") : "시작"}</u>
+              <u>{본자리 === r.hanja ? (r.need > 0 ? r.need.toLocaleString("ko-KR") : "시작") : ""}</u>
             </i>
           ))}
         </div>

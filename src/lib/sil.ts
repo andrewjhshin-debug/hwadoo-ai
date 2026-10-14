@@ -122,16 +122,19 @@ export function 소원고치기(wish: string): 실 | null {
  * 안 닳는다 — 벌이 아니다.
  */
 export function 닳음(s: 실): number {
+  return Math.min(1, 온날수(s) / 실날수);
+}
+
+/** 실을 맨 날부터 몇 날을 들렀나 — 「며칠째」 */
+export function 온날수(s: 실): number {
   const 맨날 = visitDayKey(s.at);
   // 맨 날을 포함해 그 뒤로 들른 날만 센다
-  const 온날 = loadVisits().filter((d) => d >= 맨날).length;
-  return Math.min(1, 온날 / 실날수);
+  return loadVisits().filter((d) => d >= 맨날).length;
 }
 
 /** 끊어지기까지 남은 날 — 화면이 한 줄로 알릴 수 있게 */
 export function 남은날(s: 실): number {
-  const 맨날 = visitDayKey(s.at);
-  return Math.max(0, 실날수 - loadVisits().filter((d) => d >= 맨날).length);
+  return Math.max(0, 실날수 - 온날수(s));
 }
 
 /** 다섯 결 중 어디인가 — 0 새 실 … 4 벼랑, 5 끊어짐 */

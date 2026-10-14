@@ -8213,3 +8213,20 @@ html[data-theme="light"] {
     transform: none;
   }
 }
+
+/* 계급 수는 눌러야 뜬다 — 칸만 비워 두고 높이는 남긴다 */
+@media (min-width: 0px) {
+  .hip-seats i { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .hip-seats i u { min-height: 12px; }
+}
+
+/* 오색실 — 며칠째 */
+@media (min-width: 0px) {
+  .hip-sil-day {
+    margin: 6px 2px -4px 0;
+    text-align: right;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: #c2a7b2;
+  }
+}

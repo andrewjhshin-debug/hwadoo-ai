@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { MERIT_EVENT, loadMerit } from "@/lib/merit";
-import { SIL_EVENT, 결, 닳음, 소원고치기, 실매기, 실읽기, type 실 } from "@/lib/sil";
+import { SIL_EVENT, 결, 닳음, 소원고치기, 실매기, 실읽기, 온날수, type 실 } from "@/lib/sil";
 
 /**
  * 꼬인 끈 한 가닥 — 네 장을 겹쳐 두고 **닳은 만큼 갈아 낀다.**
@@ -149,6 +149,10 @@ export default function Osaeksil() {
         </button>
       </p>
       {풀이 && <실풀이 />}
+      {/* 형: 「요 동그라미쯤에 며칠째 출석인지 써 줄 수 있나」
+          남은 날을 적지 않는다 — 「14일 남음」은 줄어드는 수라 오늘
+          온 것이 보람으로 안 읽힌다. 쌓이는 쪽으로 적는다. */}
+      <p className="hip-sil-day">{온날수(s)}일째</p>
 
       {/* 형: 「실 소원 눌리면 뜨도록 하자, 문장을 실 밖 아래 두지 말고」
           소원을 실 아래 늘 깔아 두니 실에 딸린 설명처럼 읽혔다.
