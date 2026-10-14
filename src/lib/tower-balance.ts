@@ -35,7 +35,7 @@ export function placeStone(index: number, x: number, below?: PlacedStone): Place
   // The wedge's sloping silhouette leaves an optical gap beneath the flat
   // fifth rock. Seat that one contact deeper, at placement time only.
   // Other contacts and already placed rocks are unchanged.
-  const overlap = below ? (index === 4 && below.index === 3 ? 8 : 1.5) : 0;
+  const overlap = below ? (index === 4 && below.index === 3 ? 18 : 1.5) : 0;
   return { index, x, y: floor - s.height * s.bottom + overlap };
 }
 function massOf(p: PlacedStone) {
