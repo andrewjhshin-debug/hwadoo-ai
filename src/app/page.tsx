@@ -728,9 +728,7 @@ export default function Home() {
                 <p className="text-[10px] tracking-[0.34em] text-hanji-faint">
                   숨을 고르다
                 </p>
-                <p className="mt-1.5 break-keep text-[13px] leading-6 text-hanji-dim">
-                  답을 쓰는 것으로 화두가 끝나지는 않습니다.
-                </p>
+                {/* 부제 뺐다 — 라벨 「숨을 고르다」와 단추 「호흡 명상 →」이 이미 같은 말이다 */}
               </div>
               <Link
                 href="/breath"
@@ -794,14 +792,8 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            {/* 안내 말풍선 */}
-            <div className="flex flex-col items-start">
-              <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-ink-2/40 px-4 py-3">
-                <p className="text-[12.5px] leading-6 text-hanji-dim">
-                  며칠을 품고 계셨습니다. 무엇이 보였습니까.
-                </p>
-              </div>
-            </div>
+            {/* 안내 말풍선 뺐다 — 아래 입력칸의 「여기에 답을 적어 주세요…」가
+                같은 말을 하고 있었다 */}
 
             {/* 사유의 방 단상은 여기에 두지 않는다 — 섞이면 어느 것이
                 내 답인지 흐려진다. 단상은 서고에서 따로 펼쳐 본다. */}
@@ -1095,9 +1087,8 @@ export default function Home() {
                   style={{ width: `${moonPct}%` }}
                 />
               </div>
-              <p className="mt-2.5 break-keep text-[11px] leading-5 text-hanji-faint">
-                {durationLabel(current.durationDays)} 뒤 답을 쓸 수 있어요
-              </p>
+              {/* 「며칠 뒤 답을 쓸 수 있어요」 뺐다 — 위 숫자와 막대가 이미 센다.
+                  게다가 그 날수는 처음 받은 기간이라 남은 시간과 어긋나 보였다 */}
             </div>
           </div>
         )}
@@ -1162,18 +1153,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* 참구의 마음가짐 — 넉 줄을 한 줄로 접는다. 펴면 그대로 다 있다 */}
-        <details className="mt-8 w-full max-w-md">
-          <summary
-            className={`${FOLD} text-center text-[12px] leading-6 tracking-[0.04em] text-hanji-faint transition-colors hover:text-hanji-dim`}
-          >
-            서두르지 마세요. 질문에는 정답이 없습니다.
-          </summary>
-          <p className="mt-2.5 break-keep text-center text-[12px] leading-6 text-hanji-faint">
-            생각으로 찾아낸 것은 답이 아닙니다. 생각하기보다 끝까지 하는 힘이
-            중요합니다.
-          </p>
-        </details>
+        {/* 「참구의 마음가짐」 접힘 통째로 뺐다 — 누르는 것도 값도 아닌 분위기 문구고,
+            같은 말이 /ganhwaseon 二·四 걸음에 이미 있다. 형: 「개같은 멘트 넣지 말라고」 */}
 
         {/* 기다리는 동안 — 갈 곳. 내 도량(나무·공덕·오늘의 세 가지)도 여기서 */}
         {!unlocked && (

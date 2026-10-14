@@ -188,16 +188,15 @@ export default function SambaePage() {
         </span>
       </button>
 
-      <p className="mt-1 h-5 text-[12px] tracking-[0.2em] text-hanji-faint">
-        {done ? "" : "불상을 눌러 한 배"}
-      </p>
+      {/* 「불상을 눌러 한 배」 줄은 걷었다 — 형: 「개같은 멘트 넣지 말라고」.
+          누를 것이 불상 하나뿐이고 광배가 숨 쉰다. 스크린리더 몫은 125줄 aria-label 이 쥔다. */}
 
       {/* ── 마쳤다 ── */}
       {done && (
         /* 형: 「저거 밑에 짤린다, 한 화면에」 — 「한 번 더 · 백팔배로」가
            아래 염주 자리에 깔렸다. 염주 자리는 성역이라 그만큼 비운다
            (hip-write-foot 이 --hip-rail 만큼 여백을 준다) */
-        <div className="rise hip-write-foot mt-3 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 pt-4 text-center">
+        <div className="rise hip-write-foot mt-6 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 pt-4 text-center">
           <p className="font-serif text-[26px] leading-none text-gold">+9</p>
           <p className="mt-1.5 text-[11.5px] tracking-[0.2em] text-hanji-faint">공덕</p>
           <p className="mt-3 break-keep text-[12.5px] leading-6 text-hanji-dim">
@@ -224,7 +223,7 @@ export default function SambaePage() {
           같은 공덕을 위 금선이 이미 재고 있었다. 자가 둘이면 둘 다 안 읽힌다. */}
 
       {!done && doneToday() && (
-        <p className="mt-4 text-[11.5px] tracking-wide text-hanji-faint">
+        <p className="mt-7 text-[11.5px] tracking-wide text-hanji-faint">
           오늘 이미 {rounds}번 했어요
         </p>
       )}

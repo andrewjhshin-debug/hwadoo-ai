@@ -870,9 +870,9 @@ export default function SettingsPage() {
               >
                 {loginBusy ? "여는 중" : "구글로 로그인"}
               </button>
-              <p className="hip-acc-why">
-                로그인하면 기기가 바뀌어도 이어집니다 · 만 19세 이상
-              </p>
+              {/* 「로그인하면 기기가 바뀌어도 이어집니다」는 바로 위 단추가
+                  이미 하는 말이라 걷었다. 형: 「텍스트는 아예 거의 다 줄여버려」 */}
+              <p className="hip-acc-why">만 19세 이상</p>
               {loginError && <p className="hip-acc-bad">{loginError}</p>}
             </>
           )

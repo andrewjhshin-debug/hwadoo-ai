@@ -216,9 +216,7 @@ export default function BaePage() {
           아래 염주 자리도 거기서 비켜 준다. */}
       <div className="flex w-full flex-col items-center">
         <p className="rise text-xs tracking-[0.5em] text-gold-soft">百八拜 · 백팔배</p>
-        <p className="rise rise-d1 mt-3 text-[12.5px] tracking-[0.15em] text-hanji-dim">
-          {senseOn ? "폰을 지니고 절하세요 — 일어설 때마다 한 배" : "일어설 때마다 한 번"}
-        </p>
+        {/* 머리 안내 한 줄은 걷었다 — 같은 말이 아래 원 안에 상태까지 따라가며 뜬다 */}
 
         {/* 셈판 — 큰 원 하나가 전부다.
             형: 「백팔배는 실제로 한 것만 재도록 하자. 손으로 클릭하는
@@ -233,7 +231,7 @@ export default function BaePage() {
           onClick={손으로}
           disabled={done}
           aria-label="한 배 세기"
-          className="rise rise-d2 relative mt-8 block select-none outline-none disabled:cursor-default"
+          className="rise rise-d2 relative mt-10 block select-none outline-none disabled:cursor-default"
           style={{ WebkitTapHighlightColor: "transparent" }}
         >
           <svg viewBox="0 0 300 300" className="h-[300px] w-[300px]" aria-hidden>
@@ -318,15 +316,9 @@ export default function BaePage() {
 
         {done ? (
           <div className="rise mt-2 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 py-5 text-center">
-            <p className="break-keep font-serif text-[17px] leading-8 text-hanji">
-              백팔배를 마쳤습니다.
-            </p>
-            <p className="mt-2 break-keep text-[12.5px] leading-6 text-hanji-dim">
-              번뇌 백여덟을 하나씩 내려놓았어요. 공덕 324가 쌓였습니다 —
-              <br />
-              내 도량에서 남에게 회향할 수 있어요.
-            </p>
-            <div className="mt-4 flex justify-center gap-2">
+            {/* 마쳤다는 말과 공덕 안내 두 줄은 걷었다 — 원 안 「108」과
+                맨 아래 누적 공덕, 「회향하러 가기」 단추가 이미 그 말이다 */}
+            <div className="flex justify-center gap-2">
               <button
                 onClick={reset}
                 className="rounded-[10px] border border-ink-3 px-4 py-2 text-[12px] tracking-[0.15em] text-hanji-dim transition-colors hover:text-hanji"

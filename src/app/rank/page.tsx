@@ -167,9 +167,9 @@ export default function RankPage() {
               <p className={`font-serif text-[20px] leading-none ${TONE[myRealm.color]}`}>
                 {rankByNeed(myRealm.need).name}
               </p>
-              <p className="mt-2 break-keep text-[12px] leading-4 text-hanji-dim">
-                {rankByNeed(myRealm.need).say}
-              </p>
+              {/* 자리 이름 밑에 붙던 say 한 줄은 뗐다 — 아래 막대와
+                  「○○까지 공덕 N」이 이미 할 말을 한다.
+                  merit.ts 의 RANKS.say 는 DailyPractice 가 쓰니 건드리지 않는다. */}
             </div>
           </div>
 
@@ -204,9 +204,8 @@ export default function RankPage() {
           육도는 오르는 계단이 아니라 벗어나야 할 굴레라 등급표로
           쓰지 않는다 — 숫자만 빌린다. */}
       <div className="rise rise-d3 mb-6 mt-6 w-full rounded-[16px] border border-ink-3 bg-ink-2/50 px-3 py-3.5">
-        <p className="px-1 pb-3 text-[10.5px] tracking-[0.25em] text-hanji-faint">
-          位 · 공덕이 곧 자리
-        </p>
+        {/* 「공덕이 곧 자리」는 사다리를 보면 아는 것이라 뗐다 — 「位」 한 자만 둔다. */}
+        <p className="px-1 pb-3 text-[10.5px] tracking-[0.25em] text-hanji-faint">位</p>
         <ul className="flex flex-col gap-1.5">
           {REALMS.map((r) => {
             const on = myRealm.id === r.id;
@@ -214,6 +213,7 @@ export default function RankPage() {
             return (
               <li
                 key={r.id}
+                aria-label={`${rk.name} · 공덕 ${won(r.need)}`}
                 className={`flex items-center gap-3 rounded-[12px] border px-3 py-2.5 transition-colors ${
                   on
                     ? "border-gold/55 bg-gold/10"
@@ -239,13 +239,9 @@ export default function RankPage() {
                 >
                   {rk.name}
                 </span>
-                <span
-                  className={`shrink-0 text-[12.5px] tabular-nums ${
-                    on ? "text-gold" : "text-hanji-dim"
-                  }`}
-                >
-                  {r.need === 0 ? "시작" : won(r.need)}
-                </span>
+                {/* 형: 「숫자 자체는 지우고」 — 21,600·151,200… 문턱 수는
+                    가늠이 안 되는 큰 수라 눈에서 뺐다.
+                    값은 위 li 의 aria-label 로 스크린리더에 남는다(HipMe 와 같은 꼴). */}
               </li>
             );
           })}

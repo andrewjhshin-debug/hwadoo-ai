@@ -118,7 +118,8 @@ function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => voi
         {/* 손잡이 — 밑에서 올라온 판이라는 표 */}
         <i className="hip-gift-grip" aria-hidden />
         <div className="hip-gift-top">
-          <p>供養 · 무엇을 올릴까요</p>
+          {/* 한자 「供養」은 바로 아래 고르는 칸 그림이 다 말한다 — 장식이라 뗀다 */}
+          <p>무엇을 올릴까요</p>
           <button onClick={onClose}>닫기</button>
         </div>
         <ul className="hip-gift-grid">
@@ -136,9 +137,8 @@ function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => voi
             </li>
           ))}
         </ul>
-        <p className="hip-gift-foot">
-          공개로 걸면 연꽃 {PUBLIC_CANDLE_PRICE}송이 · {PUBLIC_BURN_DAYS}일
-        </p>
+        {/* 공개 값은 다음 판 고르는 단추 둘이 다 적는다 — 무엇을 올릴지도
+            안 정한 자리에서 값을 미리 말하지 않는다 */}
       </div>
     </div>
   );
@@ -187,7 +187,8 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
     <div className="hip-deung-form" role="dialog" aria-label="연등 달기">
       <div className="hip-deung-form-box">
         <div className="hip-deung-form-top">
-          <p>供養 · 공양 올리기</p>
+          {/* 한자 「供養」은 뒤의 「공양」과 글자 그대로 같은 말이라 뗀다 */}
+          <p>공양 올리기</p>
           <button onClick={onClose}>닫기</button>
         </div>
         {/* 형: 「저거 사이즈는 유지, 쌀로 될 때 너무 작아진다.
@@ -382,7 +383,8 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
       return;
     }
     모임잡기((v) => (r.added ? v + POUR_UNIT - POUR_PER_DAY : v + POUR_UNIT));
-    나눔말잡기(r.added ? "하루가 늘었습니다" : "");
+    // 그릇에서 숫자를 뗐으니 보탠 티는 누른 뒤 한 줄로만 낸다
+    나눔말잡기(r.added ? "하루가 늘었습니다" : "보탰습니다");
     if (r.added) onChanged();
   };
 
@@ -549,10 +551,12 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
             >
               신고하기
             </button>
+            {/* 「여럿이 신고하면 먼저 가려집니다」는 우리 쪽 처리 순서라
+                신고한 사람이 할 일이 없다 — 뗀다 */}
             {신고함 && (
               <p className="hip-say-note">
                 {신고함 === "보냄"
-                  ? "접수했습니다. 여럿이 신고하면 먼저 가려집니다."
+                  ? "접수했습니다."
                   : 신고함 === "이미"
                     ? "이미 신고하셨습니다."
                     : "지금은 보내지 못했습니다."}
@@ -578,7 +582,8 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
         {!mine && (
           <div className="hip-say-pool">
             <i style={{ width: `${Math.min(100, (모임 / POUR_PER_DAY) * 100)}%` }} />
-            <b>{모임.toLocaleString("ko-KR")} / {POUR_PER_DAY.toLocaleString("ko-KR")} · 차면 하루</b>
+            {/* 숫자 둘은 왼쪽 막대가 이미 하는 말이고 가늠도 안 되는 큰 수다 */}
+            <b>차면 하루</b>
           </div>
         )}
         {나눔말 && <p className="hip-say-note">{나눔말}</p>}
@@ -906,7 +911,8 @@ export default function CandleHall() {
       >
         내 공양
       </button>
-      <h1>法堂 · 법당</h1>
+      {/* 한자 「法堂」은 뒤의 「법당」과 같은 말이라 뗀다 */}
+      <h1>법당</h1>
       <LotusCount className="shrink-0" merit={false}/>
     </div>
     {/* 형: 「위는 연등, 아래는 초 쌀 등등 뭐 이런 식으로 가자」

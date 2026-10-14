@@ -66,9 +66,10 @@ export default function TodayPracticePopover() {
           />
           <section id="hip-today-practice" className="hip-today-popover" role="dialog" aria-modal="true" aria-label="오늘의 수행">
             <div className="hip-today-head">
+              {/* 부제 뺌 — 다 채웠는지는 옆의 「2 / 3」이 이미 말한다.
+                  div 는 남긴다(.hip-today-head > div:first-child 의 flex:1 이 여기 걸려 있다). */}
               <div>
                 <p>오늘의 수행</p>
-                <span>{finished ? "오늘 몫을 다 채웠어요" : "가볍게, 세 가지만"}</span>
               </div>
               <div className="hip-today-count" aria-label={`${completed}개 완료`}>{completed} / {missions.length}</div>
               <button type="button" aria-label="오늘의 수행 닫기" onClick={() => setOpen(false)}>×</button>
@@ -94,13 +95,12 @@ export default function TodayPracticePopover() {
               })}
             </ul>
 
-            {finished ? (
-              <p className="hip-today-finished">내일의 세 가지도 여기서 확인해요.</p>
-            ) : next ? (
+            {/* 다 마친 뒤 뜨던 「내일의 세 가지도 여기서 확인해요」 뺌 — 체크 셋이 이미 끝을 말한다. */}
+            {!finished && next && (
               <Link className="hip-today-go" href={next.href} onClick={() => setOpen(false)}>
                 수행 이어가기 <span aria-hidden>→</span>
               </Link>
-            ) : null}
+            )}
           </section>
         </>,
         document.body,

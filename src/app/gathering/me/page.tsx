@@ -422,7 +422,9 @@ export default function 인연내프로필() {
               })()}
 
               {/* 남에게는 안 보이는 자리 — 여기서만 사진을 뺀다 */}
-              <p className="hip-mepic-note">올린 사진 {장수}장 · 눌러서 빼기</p>
+              {/* 「올린 사진 N장 · 눌러서 빼기」는 걷었다 — 바로 아래 사진이
+                  깔리고 한 장마다 ✕ 가 얹힌다. 보면 아는 것을 글로 적은 줄이었다.
+                  형: 「의미 정보가 전달되도록만 하고 나머지 다 지우고」 */}
               <div>
                 {(me?.photos ?? []).map((f) => (
                   <span key={f.path} data-state={f.state}>

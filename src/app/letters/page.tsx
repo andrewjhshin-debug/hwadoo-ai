@@ -134,11 +134,12 @@ export default function LettersPage() {
 
   const report = async (t: DmThread) => {
     setMenuOpen(false);
-    const ok = await confirm(
-      "이 대화를 신고하겠습니까?",
-      "관리자가 살펴보고 필요한 손을 씁니다.",
-      { confirm: "신고", cancel: "두기" }
-    );
+    // 부제 「관리자가 살펴보고…」는 뺐다 — 물음과 「신고」 단추면 끝난다.
+    // 차단 쪽 부제는 진짜 결과라 남긴다.
+    const ok = await confirm("이 대화를 신고하겠습니까?", undefined, {
+      confirm: "신고",
+      cancel: "두기",
+    });
     if (!ok) return;
     try {
       await reportThread(t, "쪽지 대화 신고");

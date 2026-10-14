@@ -3006,7 +3006,6 @@ html[data-theme="light"] {
   .hip-today-progress { flex: 0 0 auto; font-size: 10px; color: #ab9ca0; }
   .hip-today-go { display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 12px; min-height: 38px; border-radius: 999px; background: linear-gradient(110deg, #ed7ca7, #ef6198); color: #fff; font-size: 12px; font-weight: 600; text-decoration: none; box-shadow: 0 5px 12px rgba(225, 93, 148, 0.2); }
   .hip-today-go span { font-size: 15px; }
-  .hip-today-finished { margin: 12px 0 1px; text-align: center; font-size: 10.5px; color: #9c8e93; }
 
   /* 연꽃 한가운데 — 형: 「가운데 샛노란색」 →
      「완전 샛노랑으로 덮으라는 게 아니라 기존 유지하면서 겹치듯,
@@ -6085,7 +6084,6 @@ html[data-theme="light"] {
     font-size: 11px;
     color: #fff;
   }
-  .hip-yeon-line[data-empty="1"] { color: #c3bbb0; }
   /* 카드 아래 두 손이 Link 일 때도 단추처럼 */
   .hip-yeon-hands a {
     display: grid;
@@ -6862,11 +6860,6 @@ html[data-theme="light"] {
     font-weight: 600;
     color: #bd5d8b;
   }
-  .hip-deck-limit span {
-    margin-left: 7px;
-    font-weight: 400;
-    color: #a88c98;
-  }
 
   /* 남은 자리를 여는 한 손 */
   /* 단추는 **카드 밑에.** 판이 길어지면 굴려서 닿는다.
@@ -7396,12 +7389,6 @@ html[data-theme="light"] {
   .hip-mepic-peek .hip-yeon-face { max-height: 46vh; }
   .hip-mepic-peek .hip-yeon-more,
   .hip-mepic-peek .hip-yeon-menu { display: none; }
-  .hip-mepic-note {
-    margin: 14px 0 8px;
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    color: #a39a8f;
-  }
   /* 「내려감」 딱지 */
   .hip-yeon-big span u {
     position: absolute;

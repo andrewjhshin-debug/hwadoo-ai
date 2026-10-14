@@ -52,10 +52,9 @@ export default function MyHwaduPage() {
       <h1 className="rise text-center text-xs tracking-[0.5em] text-gold-soft">
         내가 던지는 화두
       </h1>
-      <p className="rise rise-d1 mt-7 text-center font-serif text-lg font-light leading-9 text-hanji">
-        물음 하나를 놓고 갑니다.
-      </p>
-      <p className="rise rise-d1 mt-3 text-center text-[13px] leading-7 text-hanji-dim">
+      {/* 「물음 하나를 놓고 갑니다」는 바로 위 제목과 같은 말이라 뺐다.
+          형: 「의미 정보가 전달되도록만 하고 나머지 다 지우고」 */}
+      <p className="rise rise-d1 mt-7 text-center text-[13px] leading-7 text-hanji-dim">
         살펴본 뒤, 누군가의 오늘 화두로 나갑니다.
       </p>
 

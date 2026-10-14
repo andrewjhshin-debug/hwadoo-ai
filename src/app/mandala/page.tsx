@@ -32,7 +32,6 @@
 // ────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { PALETTE, TEMPLATES, buildMandala } from "@/lib/mandala";
 import { useConfirm } from "@/components/Confirm";
 import HipRoom from "@/components/HipRoom";
@@ -440,12 +439,8 @@ export default function MandalaPage() {
         ) : (
           <DrawMode color={color} onPick={changeColor} />
         )}
-
-        <div className="mt-6 hidden text-center md:block">
-          <Link href="/" className="text-xs tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim">
-            ← 화두로 돌아가기
-          </Link>
-        </div>
+        {/* 아래 「← 화두로 돌아가기」 끈은 뺐다 — HipRoom 이 왼쪽 위에 연꽃 홈
+            단추를 이미 달아 준다. 나가는 문이 둘일 까닭이 없다 */}
       </div>
     </HipRoom>
   );
@@ -989,12 +984,14 @@ function ColorMode({ color, onPick }: { color: string; onPick: (c: string) => vo
         </button>
       </div>
 
+      {/* 다 칠한 만다라가 바로 위에 통째로 놓여 있다 — 다 칠했다는 말은
+          보면 아는 것이라 뺐다. 남길 값은 번 공덕 하나 */}
       {justDone > 0 && (
         <p
           role="status"
           className="rise mt-2 rounded-full border border-gold/45 bg-gold/10 px-4 py-1.5 text-[12px] tracking-wide text-gold"
         >
-          한 장을 다 칠했습니다 — 공덕 {justDone.toLocaleString("ko-KR")}
+          공덕 {justDone.toLocaleString("ko-KR")}
         </p>
       )}
 

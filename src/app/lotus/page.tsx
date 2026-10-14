@@ -250,10 +250,10 @@ function LotusClosed() {
         <h1 className="mt-4 font-serif text-[22px] font-light text-hanji">
           연꽃
         </h1>
+        {/* 닫힘 안내는 사는 단추 자리(「판매는 채비가 끝나는 대로 엽니다」) 한 번으로 족하다 —
+            머리말에 또 적던 줄을 뺐다. 심사용 상품 설명 한 줄만 남긴다 */}
         <p className="mt-2.5 break-keep text-[13px] leading-7 text-hanji-dim">
           연꽃은 화두 안에서 쓰는 서비스 이용권입니다.
-          <br />
-          지금은 베타 기간이라 <span className="text-gold-soft">판매를 잠시 닫아</span> 두었습니다.
         </p>
       </div>
 
@@ -284,9 +284,12 @@ function LotusClosed() {
           </li>
         ))}
       </ul>
+      {/* 위 목록이 송이당 1,000 / 900 / 800원을 나란히 찍어 준다 —
+          「여러 개 사면 개당 값이 내려갑니다」는 보면 아는 것이라 뺐다.
+          부가세·사용 기간은 법 고지라 그대로 둔다 */}
       <p className="mt-3 text-[11.5px] leading-6 text-hanji-faint">
-        표시 가격은 부가세 포함입니다. 여러 개를 한 번에 구매하면 개당 값이
-        내려갑니다. 구매한 연꽃의 사용 기간은 구매일로부터 5년입니다.
+        표시 가격은 부가세 포함입니다. 구매한 연꽃의 사용 기간은 구매일로부터
+        5년입니다.
       </p>
 
       {/* ── 쓰임 · 제공 · 환불 — 사기 전에 보여야 하는 것들 ── */}
@@ -333,11 +336,8 @@ function LotusClosed() {
         판매는 채비가 끝나는 대로 엽니다
       </div>
 
-      <p className="mt-6 break-keep text-center text-[12.5px] leading-6 text-hanji-faint">
-        그 사이에도 수행은 그대로입니다 — 공덕은 쌓이고,
-        <br />
-        쌓인 공덕으로 연꽃을 얻는 길은 열려 있습니다.
-      </p>
+      {/* 분위기 두 줄을 지웠다 — 닫힌 것은 바로 위 단추 자리가 말하고,
+          공덕으로 바꾸는 길은 위 「쓰임」 칸에 이미 적혀 있다 */}
       <div className="mt-6 flex justify-center">
         <Link
           href="/tea"

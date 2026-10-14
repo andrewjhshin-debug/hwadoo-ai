@@ -162,9 +162,9 @@ export default function DailyPractice() {
             )}
             {nameErr && <p className="mt-1 text-[11px] text-vermilion">{nameErr}</p>}
 
-            <p className="mt-1.5 break-keep text-[11.5px] leading-5 text-hanji-faint">
-              {rank.say}
-            </p>
+            {/* rank.say 한 줄은 지웠다 — 바로 아래 막대와 「○○까지 공덕 N」이
+                할 말을 다 한다. merit.ts 의 say 자체는 /rank 카드와 승급 연출이
+                쓰므로 그대로 둔다. */}
             <div className="mt-2.5 h-[6px] overflow-hidden rounded-full bg-ink-3">
               <div
                 className="h-full rounded-full bg-gold transition-[width] duration-500"
@@ -316,25 +316,27 @@ export default function DailyPractice() {
                 {/* 붙은 값은 화면 상태가 아니라 **하루 장부**에서 읽는다.
                     상태에만 두었더니 상을 받고 다른 방에 갔다 오면 0 으로
                     되돌아가, 이미 108 을 받은 사람에게 「안 붙었습니다」라고
-                    거짓을 말했다. 칸이 아예 없으면(옛 장부) 단정하지 않는다. */}
+                    거짓을 말했다. 칸이 아예 없으면(옛 장부) 단정하지 않는다.
+
+                    「오늘 몫은 여기까지 — 내일 또 만나요」는 분위기 멘트라 뺐고,
+                    「쌓였어요」까지 덜어 「공덕 +N」으로 둔다 — 바로 위 단추의
+                    「공덕 N 받기」와 짝이 맞는다. */}
                 {claimed === null
                   ? "오늘의 세 가지를 마쳤어요. 내일 또 만나요."
                   : claimed > 0
-                    ? `공덕 ${claimed.toLocaleString("ko-KR")}이 쌓였어요. 오늘 몫은 여기까지 — 내일 또 만나요.`
+                    ? `공덕 +${claimed.toLocaleString("ko-KR")}`
                     : "오늘의 세 가지를 마쳤어요. 오늘 몫이 이미 차서 공덕은 안 붙었습니다."}
               </p>
             ) : (
-              <>
-                <p className="break-keep text-[12.5px] leading-6 text-hanji">
-                  오늘의 세 가지를 마쳤습니다.
-                </p>
-                <button
-                  onClick={claim}
-                  className="mt-2.5 rounded-full border border-gold/60 px-5 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/15"
-                >
-                  공덕 {MERIT_VALUE.daily} 받기
-                </button>
-              </>
+              // 「오늘의 세 가지를 마쳤습니다」는 지웠다 — 이 금색 칸은 셋을 다
+              // 마쳤을 때만 뜨고, 접힘 머리의 「3 / 3」이 이미 같은 말을 한다.
+              // 글을 뺀 자리의 단추 mt-2.5 도 같이 뗐다(위쪽 빈 틈 방지).
+              <button
+                onClick={claim}
+                className="rounded-full border border-gold/60 px-5 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/15"
+              >
+                공덕 {MERIT_VALUE.daily} 받기
+              </button>
             )}
           </div>
         )}

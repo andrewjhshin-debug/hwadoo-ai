@@ -115,13 +115,8 @@ export default function 내프로필보기() {
                 {me.merit?.rank && <span data-rank="1">{me.merit.rank}</span>}
               </div>
 
-              {me.line ? (
-                <p className="hip-yeon-line">{me.line}</p>
-              ) : (
-                <p className="hip-yeon-line" data-empty="1">
-                  한 마디가 비어 있습니다
-                </p>
-              )}
+              {/* 비었다는 말은 맨 위 빠진 알약이 이미 한다 — 없으면 안 그린다 */}
+              {me.line && <p className="hip-yeon-line">{me.line}</p>}
             </div>
 
             <div className="hip-yeon-hands">

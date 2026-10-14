@@ -49,7 +49,6 @@ import {
   getLotus,
   reportComment,
   requestThread,
-  FIRST_GRANT,
   type DmThread,
 } from "@/lib/dm";
 import { TEMPLES } from "@/lib/pilgrimage";
@@ -772,11 +771,12 @@ export default function GatheringBoard({
 
   const report = async (p: Post, c: Comment) => {
     if (!user || reported.has(c.id)) return;
-    const ok = await confirm(
-      "이 댓글을 신고하시겠습니까?",
-      "신고는 관리자에게 전해져 살펴봅니다.",
-      { confirm: "신고하기", cancel: "두기" }
-    );
+    // 부제 「신고는 관리자에게 전해져 살펴봅니다」는 뗐다 — 누를지 말지를
+    // 바꾸지 않는 말이다. 물음과 단추면 끝난다
+    const ok = await confirm("이 댓글을 신고하시겠습니까?", undefined, {
+      confirm: "신고하기",
+      cancel: "두기",
+    });
     if (!ok) return;
     try {
       await reportComment(p.id, c);
@@ -899,13 +899,14 @@ export default function GatheringBoard({
                   뒷방 주인 — 연꽃 없이 무제한으로 청할 수 있습니다
                 </p>
               ) : (
+                /* 첫 선물·「수락되면 무료」는 뗐다 — 위 단추가 값을 이미
+                   말했고, 지금 누를 일과 상관없는 안내였다. 잔고만 남긴다 */
                 <p className="mt-2.5 break-keep text-center text-[11px] leading-5 text-hanji-faint">
                   내 연꽃{" "}
                   <span className="text-gold">
                     {dmLotus === null ? "…" : dmLotus}
                   </span>
-                  송이 · 처음 오신 분께는 {FIRST_GRANT}송이를 드립니다 ·
-                  수락되면 대화는 무료
+                  송이
                 </p>
               )}
             </>
@@ -1320,7 +1321,9 @@ export default function GatheringBoard({
                       "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%238a8175' stroke-width='1.6'><path d='M1 1.5 6 6.5 11 1.5'/></svg>\")",
                   }}
                 >
-                  <option value="">절 고르기 (선택)</option>
+                  {/* (선택)은 뗐다 — 한 칸에 세 번 적혀 있었고,
+                      비워 둬도 안 막히는 건 눌러 보면 안다 */}
+                  <option value="">절 고르기</option>
                   {TEMPLES.map((t) => (
                     <option key={t.name + t.address} value={t.name} className="bg-ink-2">
                       {t.name} · {t.region}
@@ -1346,7 +1349,7 @@ export default function GatheringBoard({
                   혼자 떨어져 있었다. 한 줄에 나란히 세운다. */}
               <div className="flex gap-2">
                 <label className="flex flex-1 flex-col gap-1.5 text-[10.5px] tracking-wide text-hanji-faint">
-                  날짜 (선택)
+                  날짜
                   <input
                     type="date"
                     value={date}
@@ -1356,7 +1359,7 @@ export default function GatheringBoard({
                   />
                 </label>
                 <label className="flex flex-1 flex-col gap-1.5 text-[10.5px] tracking-wide text-hanji-faint">
-                  시작 시각 (선택)
+                  시작 시각
                   <input
                     type="time"
                     value={time}
@@ -1475,12 +1478,10 @@ export default function GatheringBoard({
             같다. 위에 한 줄로 「지난번 것」이라고만 밝힌다. */}
         {loadError && !posts?.length ? (
           <li className="flex flex-col items-start gap-2.5 px-4 py-6">
+            {/* 달래는 둘째 줄은 뗐다 — 무엇이 잘못됐는지는 윗줄이,
+                무엇을 할지는 아래 단추가 이미 말한다 */}
             <p className="break-keep text-[13px] leading-7 text-hanji-dim">
               지금 목록을 불러오지 못했습니다.
-              <br />
-              <span className="text-hanji-faint">
-                글은 그대로 있습니다 — 사라진 것이 아닙니다.
-              </span>
             </p>
             <button
               onClick={refresh}
@@ -1496,12 +1497,10 @@ export default function GatheringBoard({
         ) : sorted.length === 0 && filtering ? (
           /* ★ 갈래를 고른 탓에 안 보이는 것을 「없다」고 말하면 안 된다. */
           <li className="flex flex-col items-center gap-3 px-4 py-10">
+            {/* 걸러진 건수는 뗐다 — 거른 탓이라는 말을 윗줄·아래 단추와
+                세 번 하던 자리다. 수는 「전체 보기」를 누르면 보인다 */}
             <p className="break-keep text-center text-[13.5px] leading-7 text-hanji-dim">
               거른 조건에 맞는 글이 없습니다.
-              <br />
-              <span className="text-hanji-faint">
-                글 {(posts ?? []).filter((p) => !p.deleted).length}건이 걸러져 있습니다.
-              </span>
             </p>
             <button
               onClick={clearFilters}
@@ -1513,10 +1512,10 @@ export default function GatheringBoard({
         ) : sorted.length === 0 ? (
           <li className="flex flex-col items-center gap-3 px-4 py-12">
             <Dudu stage={0} mood="tilt" uid="empty" className="h-[112px] w-[112px] opacity-90" />
+            {/* 「첫 글을 올리면…」은 뗐다 — 위 머리줄의 「글 쓰기」 단추가
+                이미 그 말이다 */}
             <p className="break-keep text-center text-[13.5px] leading-7 text-hanji-dim">
               아직 아무도 없네요.
-              <br />
-              첫 글을 올리면 제일 잘 보여요.
             </p>
           </li>
         ) : (

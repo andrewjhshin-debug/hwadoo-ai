@@ -89,8 +89,8 @@ export default function GanhwaseonPage() {
       </div>
 
       {/* 명상과의 차이는 이 페이지에서 제일 먼저 풀려야 할 오해다.
-          본문에 이미 있던 '비우는 / 채우는'을 글자 크기로 끌어올려
-          문단을 읽기 전에 눈으로 먼저 알아채게 했다. */}
+          '비우는 / 채우는'은 아래 카드가 34px 글자로 말한다 —
+          같은 말을 받아쓰던 본문 두 문장은 지웠다. 그림으로 본 것은 또 적지 않는다. */}
       <h2 className="rise rise-d2 mt-12 text-[11px] tracking-[0.3em] text-hanji-faint">
         명상과 무엇이 다른가
       </h2>
@@ -110,10 +110,7 @@ export default function GanhwaseonPage() {
       </div>
 
       <p className="rise rise-d2 mt-5 break-keep text-[14.5px] font-light leading-8 text-hanji-dim">
-        흔히 아는 명상은 <span className="text-hanji">마음을 비우는</span>{" "}
-        연습입니다. 간화선은 반대로{" "}
-        <span className="text-hanji">질문 하나를 채우는</span> 연습이에요. “나는
-        누구인가.” 이런 질문을 하나 받아서 풀지 않고, 검색하지 않고, 그냥{" "}
+        “나는 누구인가.” 이런 질문을 하나 받아서 풀지 않고, 검색하지 않고, 그냥{" "}
         <span className="text-hanji">품고 삽니다</span>. 밥 먹을 때도 걸을 때도
         잠들기 전에도 그 질문이 마음 한구석에 있는 상태 — 그게 간화선입니다.
       </p>
@@ -153,11 +150,11 @@ export default function GanhwaseonPage() {
       </details>
 
       {/* 여섯 걸음 — 카드 여섯 장은 테두리가 여섯 겹이라 시끄러웠다.
-          금색 한자 뱃지와 세로 실선 하나로 꿰어 '순서'가 보이게 했다. */}
-      <div className="rise rise-d3 mt-12 flex items-baseline justify-between">
-        <h2 className="text-[11px] tracking-[0.3em] text-hanji-faint">하는 법</h2>
-        <span className="font-serif text-[13px] text-gold-soft">여섯 걸음</span>
-      </div>
+          금색 한자 뱃지와 세로 실선 하나로 꿰어 '순서'가 보이게 했다.
+          「여섯 걸음」 라벨도 지웠다 — 一二三四五六 뱃지가 몇 걸음인지 스스로 센다. */}
+      <h2 className="rise rise-d3 mt-12 text-[11px] tracking-[0.3em] text-hanji-faint">
+        하는 법
+      </h2>
 
       <ol className="rise rise-d3 mt-5">
         {STEPS.map((s, i) => (

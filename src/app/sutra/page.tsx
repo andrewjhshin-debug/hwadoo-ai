@@ -314,12 +314,8 @@ function Board({
         >
           ← 그만
         </button>
-        <p className="text-[12px] tracking-[0.15em] text-hanji-dim">
-          {sutra.name}
-          <span className="ml-2 text-hanji-faint">
-            {at + 1} / {sutra.lines.length}
-          </span>
-        </p>
+        {/* 구 번호는 뺐다 — 바로 아래 금빛 막대가 같은 것을 잰다. 자가 둘이면 둘 다 안 읽힌다 */}
+        <p className="text-[12px] tracking-[0.15em] text-hanji-dim">{sutra.name}</p>
         <span className="w-10" aria-hidden />
       </div>
       <div className="rise mt-3 h-[5px] w-full overflow-hidden rounded-full bg-ink-3">
@@ -399,13 +395,15 @@ function Board({
         </button>
       </div>
 
-      <p className="mt-5 break-keep text-center text-[11.5px] leading-5 text-hanji-faint">
-        {mode === "memo"
-          ? helped
+      {/* 보고 치기 갈래의 「다 치면 저절로 다음 구로 넘어가요」는 뺐다 — 첫 구에서 바로 안다.
+          연꽃이 걸린 상태만 외워 치기에 남긴다. 빈 태그도 여백도 안 남게 통째로 가른다 */}
+      {mode === "memo" && (
+        <p className="mt-5 break-keep text-center text-[11.5px] leading-5 text-hanji-faint">
+          {helped
             ? "이 판은 도움을 받았어요 — 공덕은 그대로 쌓입니다."
-            : "아직 한 번도 보지 않았어요. 이대로 끝내면 연꽃이 옵니다."
-          : "다 치면 저절로 다음 구로 넘어가요."}
-      </p>
+            : "아직 한 번도 보지 않았어요. 이대로 끝내면 연꽃이 옵니다."}
+        </p>
+      )}
     </>
   );
 }

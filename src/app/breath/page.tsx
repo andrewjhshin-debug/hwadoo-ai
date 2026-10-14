@@ -522,10 +522,9 @@ export default function BreathPage() {
             <p className="mt-1.5 text-[11px] tabular-nums tracking-[0.3em] text-hanji-faint">
               {clock}
             </p>
-            {/* 숫자를 보고 있으면 명상이 아니라 구경이다 */}
-            <p className="mt-2.5 text-[12px] tracking-[0.2em] text-gold-soft">
-              눈을 감고 하면 더 효과적입니다
-            </p>
+            {/* 「눈을 감고 하면 더 효과적입니다」를 걷었다 — 시작 화면(498줄)에
+                글자 하나 안 틀리고 같은 말이 있고, 눈을 감았으면 읽지도 못한다.
+                눈길을 시계에서 떼는 일은 위 GUIDES 네 마디가 맡는다. */}
             <div className="mt-4 flex items-center gap-3">
               <button
                 type="button"

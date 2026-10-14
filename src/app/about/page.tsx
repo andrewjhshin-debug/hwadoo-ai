@@ -60,31 +60,33 @@ export default function AboutPage() {
       </h1>
 
       {/* ── 묻는 쪽이 뒤집힌다 — 이 서비스의 전부를 두 줄로 ── */}
+      {/* 오른쪽 「내가 묻는다 / 내가 답한다」는 지웠다 — 화살표 방향이 곧 그 말이다.
+          형: 「의미 정보가 전달되도록만 하고 나머지 다 지우고」. 뜻은 aria-label 로 옮겼다. */}
       <div className="rise rise-d1 mt-11 overflow-hidden rounded-[14px] border border-ink-3 bg-ink-2/50">
         <div className="flex items-center gap-3 px-5 py-4">
           <span className="w-[52px] shrink-0 text-[11px] tracking-[0.12em] text-hanji-faint">
             여느 AI
           </span>
-          <span className="flex items-center gap-2.5 text-[14px] text-hanji-faint">
+          <span
+            aria-label="사람이 AI에게 묻는다"
+            className="flex items-center gap-2.5 text-[14px] text-hanji-faint"
+          >
             <span>사람</span>
             <Flow />
             <span>AI</span>
-          </span>
-          <span className="ml-auto shrink-0 text-[12px] text-hanji-faint">
-            내가 묻는다
           </span>
         </div>
         <div className="flex items-center gap-3 border-t border-ink-3 px-5 py-4">
           <span className="w-[52px] shrink-0 text-[11px] tracking-[0.12em] text-gold">
             화두
           </span>
-          <span className="flex items-center gap-2.5 font-serif text-[15px] text-hanji">
+          <span
+            aria-label="화두가 사람에게 묻는다"
+            className="flex items-center gap-2.5 font-serif text-[15px] text-hanji"
+          >
             <span>화두</span>
             <Flow className="text-gold" />
             <span>사람</span>
-          </span>
-          <span className="ml-auto shrink-0 text-[12px] text-hanji">
-            내가 답한다
           </span>
         </div>
       </div>

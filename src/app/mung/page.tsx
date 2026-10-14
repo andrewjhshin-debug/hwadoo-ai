@@ -123,8 +123,9 @@ export default function MungPage() {
           className="mung-dot block h-[10px] w-[10px] rounded-full"
           style={{ background: "var(--color-gold)" }}
         />
+        {/* 시작 화면 설명을 걷어내면서 「나가면 끝난다」는 규칙만 이리로 옮겼다 */}
         <p className="mung-hint absolute bottom-[14vh] text-[11.5px] tracking-[0.3em] text-hanji-faint">
-          아무 데나 누르면 끝납니다
+          누르거나 나가면 끝납니다
         </p>
       </div>
     );
@@ -179,20 +180,13 @@ export default function MungPage() {
           </>
         ) : (
           <>
+            {/* 형: 「텍스트는 아예 거의 다 줄여버려」 — 설명 두 줄을 걷었다.
+                점 하나만 남는 것도 시간을 끝난 뒤에 알려 주는 것도 한 판 들어가면
+                바로 안다. 끝내는 법은 앉은 화면 안내 한 줄이 제자리에서 말한다. */}
             <p className="rise rise-d1 mt-7 break-keep font-serif text-[27px] leading-[1.5] text-hanji sm:text-[31px]">
               아무것도
               <br />
               하지 마세요
-            </p>
-            <p className="rise rise-d1 mt-5 break-keep text-[13px] leading-7 text-hanji-dim">
-              화면에 점 하나만 남습니다.
-              <br />
-              건드리거나 앱을 나가면 끝납니다.
-            </p>
-            {/* 얼마나 앉았는지는 **끝난 뒤에만** 알려 준다. 재는 것이 보이면
-                쳐다보게 되고, 쳐다보는 동안은 멍이 아니다. */}
-            <p className="rise rise-d2 mt-3 text-[11.5px] leading-6 text-hanji-faint">
-              시간은 끝난 뒤에 알려 드립니다.
             </p>
 
             <button

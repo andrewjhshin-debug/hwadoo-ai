@@ -67,9 +67,8 @@ export default function EmptyPage() {
       <p className="rise font-serif text-[68px] font-light leading-none text-gold-grad">
         空
       </p>
-      <p className="rise mt-5 text-[11px] tracking-[0.5em] text-gold-soft">
-        비움 — 무한한 가능성
-      </p>
+      {/* 「비움 — 무한한 가능성」 지움 — 바로 위 空 이 이미 그 말이다.
+          형: 「의미 정보가 전달되도록만 하고 나머지 다 지우고」 */}
       <p className="question-glow rise rise-d1 mt-7 text-center font-serif text-xl font-light leading-[1.9] text-hanji">
         쥐고 있던 것 하나를 내려놓습니다.
         <br />
