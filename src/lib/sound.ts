@@ -29,6 +29,9 @@ function armWake() {
   waking = true;
   document.addEventListener("pointerdown", 깨우기, true);
   document.addEventListener("touchstart", 깨우기, true);
+  document.addEventListener("touchend", 깨우기, true);
+  document.addEventListener("pointerup", 깨우기, true);
+  document.addEventListener("click", 깨우기, true);
   document.addEventListener("keydown", 깨우기, true);
   // 다른 앱에 갔다 오면 iOS 는 통을 재운다 — 돌아올 때도 한 번 깨운다
   document.addEventListener("visibilitychange", () => {
@@ -53,9 +56,24 @@ function armWake() {
  *    일어나면 끝이다. 귀 셋은 켜져 있어도 거의 공짜다 — 떼지 않는다.
  */
 function 깨우기() {
-  if (!actx || actx.state === "running" || actx.state === "closed") return;
-  void actx.resume().catch(() => {});
+  const ac = audioContext();
+  if (!ac) return;
+  if (ac.state !== "running") void ac.resume().catch(() => {});
+  // 사용자 손짓 안에서 출력 경로도 열어 둔다. 무음 설정은 바꾸지 않는다.
+  if (unlockedContext !== ac) {
+    try {
+      const source = ac.createBufferSource();
+      source.buffer = ac.createBuffer(1, 1, ac.sampleRate);
+      source.connect(ac.destination);
+      source.onended = () => source.disconnect();
+      source.start();
+      unlockedContext = ac;
+    } catch {
+      // 다음 손짓에서 다시 시도한다.
+    }
+  }
 }
+let unlockedContext: AudioContext | null = null;
 
 /**
  * 아이폰 옆구리 무음 스위치를 비껴간다.
@@ -74,10 +92,10 @@ function 무음스위치비껴가기() {
   }
 }
 
-function audio(): AudioContext | null {
+function audioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
   try {
-    if (!actx) {
+    if (!actx || actx.state === "closed") {
       const AC =
         window.AudioContext ??
         (window as unknown as { webkitAudioContext?: typeof AudioContext })
@@ -85,13 +103,24 @@ function audio(): AudioContext | null {
       if (!AC) return null;
       무음스위치비껴가기();
       actx = new AC();
+      noiseBuf = null;
+      breathBuf = null;
+      hallNode = null;
+      hallGain = null;
+      bus = null;
+      masterGain = null;
+      live = [];
     }
-    깨우기();
-    armWake();
     return actx;
   } catch {
     return null;
   }
+}
+
+function audio(): AudioContext | null {
+  armWake();
+  깨우기();
+  return actx;
 }
 
 // 짧은 백색소음 버퍼 — 나무 결의 재료
@@ -162,11 +191,14 @@ function master(ac: AudioContext): DynamicsCompressorNode {
 }
 
 if (typeof window !== "undefined") {
+  // 소리가 타이머에서 시작되더라도 앞선 첫 터치를 놓치지 않는다.
+  armWake();
   window.addEventListener(SOUND_MUTE_EVENT, () => {
     if (masterGain && actx) {
       masterGain.gain.setTargetAtTime(isSoundMuted() ? 0 : 1, actx.currentTime, 0.015);
     }
     if (isSoundMuted()) hushVoice();
+    else 깨우기();
   });
 }
 

@@ -8200,8 +8200,16 @@ html[data-theme="light"] {
 /* 법당 공양 — 머리 오른쪽과 같은 연꽃 */
 @media (min-width: 0px) {
   .hip-rail-offer i .hip-rail-lotus {
-    display: block;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    font-style: normal;
+    font-weight: 400;
     font-size: 23px;
     line-height: 1;
+    letter-spacing: 0;
+    transform: none;
   }
 }
