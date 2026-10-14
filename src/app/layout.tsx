@@ -126,6 +126,27 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${serifKR.variable} ${sansKR.variable} h-full antialiased`}
     >
       <body className="flex h-dvh overflow-hidden">
+        {/* ── 설치 신호를 **리액트가 깨어나기 전에** 잡는다 ──
+            형: 「모바일 크롬에서 설치가 안 된다」
+
+            beforeinstallprompt 는 판이 열리자마자 **딱 한 번** 온다.
+            우리는 그걸 VisitLedger 가 마운트된 뒤에야 받으려 했는데,
+            그때는 이미 지나간 뒤라 영영 못 받는다 — 그래서 「담기」가
+            눌러도 아무 일이 없고 「설치 방법」으로 주저앉았다.
+            여기 인라인으로 두면 판이 그려지기도 전에 귀가 달린다.
+            서비스워커도 같이 여기서 건다 — 크롬은 워커가 판을 잡아야
+            설치할 수 있다고 본다. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__hwaduBip=e;' +
+              'window.dispatchEvent(new Event("hwadu-bip"))});' +
+              'window.addEventListener("appinstalled",function(){window.__hwaduBip=null;' +
+              'window.dispatchEvent(new Event("hwadu-bip"))});' +
+              'if(window.isSecureContext&&navigator.serviceWorker){' +
+              'navigator.serviceWorker.register("/firebase-messaging-sw.js",{scope:"/",updateViaCache:"none"}).catch(function(){})}',
+          }}
+        />
         <ConfirmProvider>
         {/* 묵은 조각 되살리기 — 배포가 지나간 뒤 열려 있던 판을 다시 연다.
             형: 「인연 프로필 채우려면 계속 이렇게 뜸」 */}

@@ -2,6 +2,12 @@
 
 // 설치 호환성용 네트워크 경로. HTML/API/개인 데이터를 캐시에 저장하지
 // 않아 배포 후 옛 화면이나 다른 계정 데이터가 남지 않도록 한다.
+// 첫 방문부터 판을 잡는다. 이게 없으면 워커는 **다음 방문**에야 깨어나는데,
+// 크롬은 「워커가 판을 잡고 있나」로 설치 가능 여부를 본다 —
+// 그래서 처음 들어온 사람에게는 설치 길이 안 열렸다.
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method === "GET" && new URL(event.request.url).origin === self.location.origin) {
     event.respondWith(fetch(event.request));

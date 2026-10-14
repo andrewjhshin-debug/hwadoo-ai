@@ -28,29 +28,20 @@ function notify() {
 }
 
 // 페이지 초기에 한 번 — 이벤트를 가로채 모듈 변수에 담는다 (여러 번 불러도 무해)
+type 창 = Window & { __hwaduBip?: BeforeInstallPromptEvent | null };
+
 export function captureInstallPrompt() {
   if (typeof window === "undefined" || listening) return;
   listening = true;
-  // 알림 허용 여부와 설치 준비는 별개다. 기존 알림 워커를 같은 주소로
-  // 등록해 루트 scope의 워커가 둘이 경쟁하지 않도록 한다.
-  if (window.isSecureContext && "serviceWorker" in navigator) {
-    void navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-      scope: "/",
-      updateViaCache: "none",
-    }).catch(() => {
-      // 워커를 지원하지 않는 환경에서도 수동 설치 안내는 유지한다.
-    });
-  }
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault(); // 브라우저의 기본 미니바를 막고, 우리가 때를 고른다
-    deferredPrompt = e as BeforeInstallPromptEvent;
+  // 이벤트와 워커는 layout.tsx 의 인라인 쪽이 **판이 그려지기 전에** 맡는다.
+  // 여기서는 그쪽이 잡아 둔 것을 집어 오고, 뒤늦게 오는 것도 받는다.
+  // (여기서만 귀를 달면 늦는다 — 신호는 하이드레이션 전에 지나간다)
+  const 집어오기 = () => {
+    deferredPrompt = (window as 창).__hwaduBip ?? null;
     notify();
-  });
-  // 설치가 끝나면 프롬프트는 더 쓸 수 없다
-  window.addEventListener("appinstalled", () => {
-    deferredPrompt = null;
-    notify();
-  });
+  };
+  집어오기();
+  window.addEventListener("hwadu-bip", 집어오기);
 }
 
 // 지금 [홈 화면에 담기] 버튼을 보여줄 수 있는가
