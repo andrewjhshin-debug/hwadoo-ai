@@ -223,8 +223,24 @@ function master(ac: AudioContext): DynamicsCompressorNode {
     masterGain.connect(ac.destination);
   }
   // 저장소 변경/계정 전환 후에도 UI의 음소거와 실제 gain이 어긋나지 않는다.
-  masterGain?.gain.setValueAtTime(isSoundMuted() ? 0 : 1, ac.currentTime);
+  const 꺼짐 = isSoundMuted();
+  masterGain?.gain.setValueAtTime(꺼짐 ? 0 : 1, ac.currentTime);
+  // 꺼 놓고 「소리가 안 난다」 하는 길을 막는다 — 소리를 내려 했는데
+  // 깃발이 켜져 있으면 그 자리에서 알린다. 머리 오른쪽 스피커는 19px
+  // 짜리라 엄지로 스쳐 꺼 놓고도 모른다.
+  if (꺼짐) 음소거알림();
   return bus;
+}
+
+/** 소리를 내려 했는데 꺼져 있었다 — 한 번만 알린다 */
+export const SOUND_BLOCKED_EVENT = "hwadu-sound-blocked";
+let 알린때 = 0;
+function 음소거알림() {
+  if (typeof window === "undefined") return;
+  const now = Date.now();
+  if (now - 알린때 < 8_000) return; // 연타에 도배되지 않게
+  알린때 = now;
+  window.dispatchEvent(new CustomEvent(SOUND_BLOCKED_EVENT));
 }
 
 if (typeof window !== "undefined") {
