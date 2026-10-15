@@ -8255,3 +8255,57 @@ html[data-theme="light"] {
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
+
+/* 얼굴 인증 — 형이 보여 준 그 꼴. 동그란 미리보기 하나와 한 줄 */
+@media (min-width: 0px) {
+  .hip-face {
+    position: fixed;
+    inset: 0;
+    /* 쪽지 판(2147483001)만 빼고 모두 덮는다 — 아래 탭띠·설치 띠가
+       뚫고 올라오면 카메라 판이 반쯤 가린다 */
+    z-index: 2147482000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    padding: 24px;
+    background: #fbfaf8;
+  }
+  .hip-face-x {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + 14px);
+    right: 18px;
+    border: 0;
+    background: none;
+    font-size: 22px;
+    color: #6e6455;
+  }
+  .hip-face-ring {
+    width: min(74vw, 300px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    padding: 10px;
+    background: rgba(26, 23, 20, 0.07);
+    transition: background 0.25s;
+  }
+  .hip-face-ring[data-ok="1"] { background: rgba(239, 123, 164, 0.3); }
+  .hip-face-ring video {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    /* 거울처럼 — 사람은 제 얼굴이 뒤집혀 보이면 못 맞춘다 */
+    transform: scaleX(-1);
+  }
+  .hip-face-say {
+    margin: 0;
+    font-size: 17px;
+    color: #17140f;
+  }
+  .hip-face-sub {
+    margin: -16px 0 0;
+    font-size: 12.5px;
+    color: #a39a8f;
+  }
+}

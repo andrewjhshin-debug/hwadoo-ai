@@ -17,6 +17,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import FaceLive from "@/components/FaceLive";
 import HipRoom from "@/components/HipRoom";
 import { watchAuth } from "@/lib/sync";
 import { loadMe, setName } from "@/lib/me";
@@ -55,8 +56,9 @@ export default function 인연내프로필() {
   const [올리는중, 올리는중잡기] = useState(false);
   const [탈, 탈잡기] = useState("");
   const 파일 = useRef<HTMLInputElement | null>(null);
-  const 인증파일 = useRef<HTMLInputElement | null>(null);
   const [인증, 인증잡기] = useState<인증도전 | null>(null);
+  /** 얼굴 인증 판이 떠 있나 */
+  const [얼굴판, 얼굴판잡기] = useState(false);
   const [법명, 법명잡기] = useState("");
   const [이름말, 이름말잡기] = useState(false);
   const [이름탈, 이름탈잡기] = useState("");
@@ -204,13 +206,17 @@ export default function 인연내프로필() {
   const 인증시작 = async () => {
     try { 인증잡기(await 인증도전받기()); } catch (e) { 탈잡기(e instanceof Error ? e.message : "인증을 시작하지 못했습니다"); }
   };
-  const 인증사진고르기 = async (fs: FileList | null) => {
-    const file = fs?.[0];
+  const 얼굴찍힘 = async (file: File) => {
+    얼굴판잡기(false);
+    await 인증사진고르기(null, file);
+  };
+  const 인증사진고르기 = async (fs: FileList | null, 바로?: File) => {
+    const file = 바로 ?? fs?.[0];
     if (!file || !인증) return;
     올리는중잡기(true);
     try { await 인증사진올리기(file, 인증); 인증잡기(null); await 다시읽기(); }
     catch (e) { 탈잡기(e instanceof Error ? e.message : "인증 사진을 올리지 못했습니다"); }
-    finally { 올리는중잡기(false); if (인증파일.current) 인증파일.current.value = ""; }
+    finally { 올리는중잡기(false); }
   };
 
   if (있나 === false)
@@ -345,12 +351,23 @@ export default function 인연내프로필() {
               <div className="space-y-2 rounded-2xl border border-gold/25 bg-white/45 px-4 py-3 text-[12px] text-hanji-dim">
                 <p>지금 카메라에서 <b>{인증.gesture}</b></p>
                 <p className="text-[10px] text-hanji-faint">인증 사진은 관리자만 확인하고 30일 뒤 지웁니다.</p>
-                <button type="button" onClick={() => 인증파일.current?.click()} className="text-gold underline underline-offset-4">카메라로 찍기</button>
+                {/* 형: 「개인 id 사진 올릴 때 이걸로 증명하게」
+                    몸짓만으로는 인쇄한 사진으로도 흉내가 난다. 눈을
+                    감았다 뜨는 것은 못 흉내낸다 — 깜박임을 보고 그
+                    순간을 찍는다. 갤러리에서 고를 길은 두지 않는다. */}
+                <button type="button" onClick={() => 얼굴판잡기(true)} className="text-gold underline underline-offset-4">얼굴 인증 시작</button>
               </div>
             )}
-            <input ref={인증파일} type="file" accept="image/*" capture="user" hidden onChange={(e) => void 인증사진고르기(e.target.files)} />
           </div>
         </div>
+
+        {얼굴판 && 인증 && (
+          <FaceLive
+            gesture={인증.gesture}
+            onShot={(f) => void 얼굴찍힘(f)}
+            onClose={() => 얼굴판잡기(false)}
+          />
+        )}
 
         {/* ── 돋보기 — **남이 보는 내 카드** ─────────────────
             형: 「돋보기 눌리면 남이 보는 전체 내 프로필 어떻게 보이는지
