@@ -26,6 +26,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef } from "react";
+import { strikeBell } from "@/lib/sound";
 import Link from "next/link";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
@@ -229,7 +230,16 @@ export function HipGardenEmpty({
           </p>
         </div>
 
-        <button onClick={onReceive} className="hip-strike">
+        {/* 뜰에는 소리가 **한 줄도** 없었다. 들어와서 맨 처음 누르는
+            자리가 이것인데 아무 소리도 안 나니, 형에게는 앱 전체가
+            벙어리로 읽혔다. 물음이 건너오는 순간에 경쇠 한 번. */}
+        <button
+          onClick={() => {
+            strikeBell(0.45);
+            onReceive();
+          }}
+          className="hip-strike"
+        >
           새 화두 받기
         </button>
 
