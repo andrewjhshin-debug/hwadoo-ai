@@ -1,101 +1,129 @@
 "use client";
 
-import Link from "next/link";
+// ─────────────────────────────────────────────────────────────
+// 소리 점검 — 앱에서는 길을 걷었다(형: 「어플에선 지워야지」).
+// 주소를 직접 쳐서만 들어온다. 내가 물어볼 때만 쓴다.
+//
+// 단추 하나로 끝낸다. 누르면 음소거를 풀고, 통을 깨우고,
+// **4초짜리** 긴 소리를 낸다 — 짧으면 갤럭시에서 볼륨 키가 미디어를
+// 안 잡는다. 그 다음 음원 파일로 한 번 더, 길을 달리해서 낸다.
+//
+//   둘 다 들림   → 앱은 멀쩡
+//   ②만 들림     → 웹오디오가 막혔다
+//   둘 다 안 들림 → 크롬이 이 사이트 소리를 막았거나 기기 쪽
+// ─────────────────────────────────────────────────────────────
+
 import { useEffect, useRef, useState } from "react";
-import { soundStatus, strikeBell, wakeBreath } from "@/lib/sound";
-import { setSoundMuted } from "@/lib/soundPreference";
+import { soundStatus } from "@/lib/sound";
+import { isSoundMuted, setSoundMuted } from "@/lib/soundPreference";
+
+/** 어느 판인지 — 형 폰이 새 코드인지 아닌지 이 여섯 자가 말한다 */
+const 판 = (process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7) || "로컬";
 
 export default function SoundCheck() {
-  const native = useRef<HTMLAudioElement>(null);
-  const [message, setMessage] = useState("");
-  const [status, setStatus] = useState<ReturnType<typeof soundStatus> | null>(null);
-  const [busy, setBusy] = useState(false);
-  // 설치 상태 — 형: 「다운 안 되는데」. 폰 속을 볼 길이 이것뿐이다
+  const [말, 말잡기] = useState("단추를 누르세요");
+  const [줄, 줄잡기] = useState<string[]>([]);
+  const ac = useRef<AudioContext | null>(null);
+  const el = useRef<HTMLAudioElement | null>(null);
   const [설치, 설치잡기] = useState("보는 중");
+
   useEffect(() => {
-    type 창 = Window & {
-      __hwaduBip?: unknown;
-      getInstalledRelatedApps?: never;
-    };
-    const 보기 = async () => {
+    type 창 = Window & { __hwaduBip?: unknown };
+    const 보기 = () => {
       const standalone =
         window.matchMedia("(display-mode: standalone)").matches ||
         (window.navigator as { standalone?: boolean }).standalone === true;
-      const 쟁임 = !!(window as 창).__hwaduBip;
-      let 깔림 = "모름";
-      try {
-        const nav = navigator as Navigator & {
-          getInstalledRelatedApps?: () => Promise<unknown[]>;
-        };
-        if (nav.getInstalledRelatedApps) {
-          깔림 = (await nav.getInstalledRelatedApps()).length ? "있음" : "없음";
-        }
-      } catch {
-        /* 못 물어보면 모름으로 둔다 */
-      }
       설치잡기(
         standalone
-          ? "이미 앱으로 열려 있음 — 더 깔 게 없습니다"
-          : 쟁임
-            ? "설치 신호 받음 ✅ — 크롬 ⋮ 메뉴에 「앱 설치」가 있어야 합니다"
-            : `설치 신호 안 옴 ❌ (깔린 앱 ${깔림})`
+          ? "이미 앱으로 열려 있음"
+          : (window as 창).__hwaduBip
+            ? "설치 신호 받음 — 크롬 ⋮ 에 「앱 설치」가 있어야 함"
+            : "설치 신호 안 옴"
       );
     };
-    void 보기();
-    window.addEventListener("hwadu-bip", () => void 보기());
-  }, []);
-  useEffect(() => {
-    const refresh = () => setStatus(soundStatus());
-    refresh();
-    const timer = window.setInterval(refresh, 500);
-    return () => window.clearInterval(timer);
+    보기();
+    window.addEventListener("hwadu-bip", 보기);
+    return () => window.removeEventListener("hwadu-bip", 보기);
   }, []);
 
-  const testNative = async () => {
-    if (!native.current || busy) return;
-    // This explicitly labeled action enables the app's sound preference.
+  const 해보기 = async () => {
+    const 적기 = (t: string) => 줄잡기((v) => [...v, t]);
+    줄잡기([]);
+    말잡기("내는 중 — 지금 볼륨 올려 보세요");
+
+    // ① 음소거부터 푼다. 이 깃발이 켜져 있으면 뭘 해도 소용없다
     setSoundMuted(false);
-    setBusy(true);
-    setMessage("재생 확인 중…");
-    native.current.volume = .8;
-    native.current.currentTime = 0;
+    적기(`음소거 → ${isSoundMuted() ? "아직 켜짐 ❌" : "풀림"}`);
+
+    // ② 웹오디오로 4초. 앱이 쓰는 그 길이다
     try {
-      await native.current.play();
-      setMessage("브라우저가 음원 재생을 허용했어요. 실제 소리가 들리는지 확인해 주세요.");
-    } catch (error) {
-      const name = error instanceof Error ? error.name : "UnknownError";
-      setMessage(name === "NotAllowedError"
-        ? "Chrome이 재생을 막았어요. 주소창의 사이트 정보 → 권한 → 소리를 허용해 주세요."
-        : `음원 재생 실패 (${name}). 이 문구를 알려 주세요.`);
-    } finally {
-      setBusy(false);
-      setStatus(soundStatus());
+      type 창 = Window & { webkitAudioContext?: typeof AudioContext };
+      const AC = window.AudioContext ?? (window as unknown as 창).webkitAudioContext;
+      if (!AC) throw new Error("웹오디오 없음");
+      if (!ac.current) ac.current = new AC();
+      const c = ac.current;
+      if (c.state !== "running") await c.resume().catch(() => {});
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = "triangle";
+      o.frequency.value = 523;
+      g.gain.value = 0.0001;
+      g.gain.exponentialRampToValueAtTime(0.6, c.currentTime + 0.08);
+      g.gain.setValueAtTime(0.6, c.currentTime + 3.6);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 4);
+      o.connect(g).connect(c.destination);
+      o.start();
+      o.stop(c.currentTime + 4.05);
+      적기(`① 웹오디오 4초 → 통 ${c.state}`);
+    } catch (e) {
+      적기(`① 웹오디오 막힘 — ${String(e).slice(0, 50)} ❌`);
     }
+
+    // ③ 음원 파일로 한 번 더 — 웹오디오를 안 거치는 다른 길
+    try {
+      if (!el.current) el.current = new Audio("/sfx/moktak.wav");
+      el.current.loop = true;
+      el.current.volume = 1;
+      el.current.currentTime = 0;
+      await el.current.play();
+      적기("② 음원 파일 → 재생 시작");
+      window.setTimeout(() => {
+        el.current?.pause();
+        if (el.current) el.current.loop = false;
+      }, 4000);
+    } catch (e) {
+      const n = e instanceof Error ? e.name : "?";
+      적기(`② 음원 파일 막힘 — ${n} ❌`);
+    }
+
+    const s = soundStatus();
+    적기(`통 ${s.context} · 음소거 ${s.muted ? "켜짐" : "꺼짐"} · 출력 ${s.output}`);
+    window.setTimeout(() => 말잡기("들렸나요?"), 4200);
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-6 py-12 text-hanji">
-      <Link href="/moktak" className="text-sm text-hanji-dim">← 공덕으로</Link>
-      <h1 className="text-xl">모바일 소리 확인</h1>
-      <section className="space-y-3 rounded-2xl border border-ink-3 p-5">
-        <h2 className="text-base">1. 목탁 음원 직접 재생</h2>
-        <p className="text-sm leading-6 text-hanji-dim">앱 효과음 코드를 거치지 않고 음원 파일을 직접 재생합니다. 버튼은 앱 음소거를 해제합니다.</p>
-        <button type="button" onClick={testNative} disabled={busy} className="rounded-full border border-gold/50 px-5 py-3 text-sm text-gold disabled:opacity-50">
-          {busy ? "확인 중…" : "소리 켜고 목탁 확인"}
-        </button>
-        <audio ref={native} controls preload="none" src="/sfx/moktak.wav" className="block w-full" aria-label="목탁 음원 직접 재생" />
-        <p role="status" className="text-sm leading-6 text-hanji-dim">{message}</p>
-      </section>
-      <section className="space-y-3 rounded-2xl border border-ink-3 p-5">
-        <h2 className="text-base">2. 앱 효과음 재생</h2>
-        <button type="button" onClick={() => { setSoundMuted(false); wakeBreath(); strikeBell(.65); setStatus(soundStatus()); }} className="rounded-full border border-gold/50 px-5 py-3 text-sm text-gold">종소리 확인</button>
-        {status && <p className="break-words text-xs leading-6 text-hanji-dim">오디오: {status.context} · 음소거: {status.muted ? "켜짐" : "꺼짐"} · 출력: {status.output}</p>}
-      </section>
-      <section className="space-y-2 rounded-2xl border border-ink-3 p-5">
-        <h2 className="text-base">3. 설치</h2>
-        <p className="break-words text-sm leading-6 text-hanji-dim">{설치}</p>
-      </section>
-      <p className="text-sm leading-6 text-hanji-dim">둘 다 조용하면 휴대폰의 미디어 음량과 Chrome 사이트의 소리 허용을 확인해 주세요. 목탁만 들리면 앱 출력 문제이므로 그 결과를 알려 주세요. 재생 허용이나 running 표시는 실제로 들린다는 뜻은 아닙니다.</p>
+    <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-5 px-6 py-10 text-hanji">
+      <button
+        type="button"
+        onClick={해보기}
+        className="rounded-3xl border border-gold/50 bg-gold/5 py-10 text-[19px]"
+      >
+        소리 내 보기 (4초)
+      </button>
+      <p className="text-center text-[14px] text-hanji-dim">{말}</p>
+
+      <div className="space-y-1 rounded-2xl border border-ink-3 p-4 text-[12px] leading-6 text-hanji-dim">
+        {줄.map((t, i) => (
+          <p key={i} className="break-words">{t}</p>
+        ))}
+        <p className="pt-1">설치 — {설치}</p>
+        <p>판 — {판}</p>
+      </div>
+
+      <div className="rounded-2xl bg-ink-1/40 px-4 py-4 text-[12px] leading-[1.9] text-hanji-dim">
+        <p>소리 나는 동안 볼륨 키를 올려 보세요 (미디어로 잡힙니다)</p>
+        <p>그래도 조용하면 크롬 주소창 ⓘ → 사이트 설정 → 소리</p>
+      </div>
     </main>
   );
 }

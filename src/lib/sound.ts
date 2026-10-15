@@ -110,8 +110,15 @@ let unlockedContext: AudioContext | null = null;
  * 오류도 없고 state 는 running 그대로다. 그래서 「되는 것 같은데 안
  * 들린다」가 된다. 카테고리를 playback 으로 바꾸면 음악 앱처럼 쳐 줘서
  * 스위치를 타지 않는다. (Safari 16.4+. 없는 데서는 그냥 넘어간다.)
+ *
+ * **아이폰에서만 건다.** 크롬도 이 손잡이를 받는데, 안드로이드에서
+ * playback 으로 돌리면 오디오 포커스를 새로 달라고 하는 셈이라
+ * 다른 앱이 쥐고 있을 때 우리 소리가 죽을 수 있다. 갤럭시가 벙어리인
+ * 동안은 **내가 끼워 넣은 변수부터** 뺀다 — 안드로이드는 애초에
+ * 무음 스위치가 없으니 이 손잡이가 필요 없다.
  */
 function 무음스위치비껴가기() {
+  if (!/iPad|iPhone|iPod/.test(navigator.userAgent ?? "")) return;
   try {
     const s = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
     if (s) s.type = "playback";
