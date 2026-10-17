@@ -22,8 +22,11 @@ const BANDS = [[0, 300], [300, 600], [600, 1500], [1500, 1e9]];
 
 async function 재기(이름, path, 셀렉터, { ms = 1500, pre = (p) => p, blockSfx = false, ls = {} } = {}) {
   const p = await ctx.newPage();
-  if (blockSfx) await p.route("**/sfx/**", (r) => r.abort());
-  await p.addInitScript((ls) => {
+  await p.addInitScript(({ ls, blockSfx }) => {
+    if (blockSfx) {
+      const of = window.fetch;
+      window.fetch = (u, ...r) => (String(u).includes("/sfx/") ? Promise.reject(new Error("blocked")) : of(u, ...r));
+    }
     for (const [k, v] of Object.entries(ls)) try { localStorage.setItem(k, v); } catch {}
     window.__spec = { an: null, hold: null, pow: null, frames: 0, timer: 0, rate: 0, firstSound: -1, armedAt: 0, states: [] };
     // 통의 상태 변화를 시각과 함께 적는다 — 손짓 뒤 몇 ms 만에 running 이 되나
@@ -92,14 +95,14 @@ async function 재기(이름, path, 셀렉터, { ms = 1500, pre = (p) => p, bloc
         sfx: performance.getEntriesByType("resource").filter((e) => e.name.includes("/sfx/")).map((e) => e.name.replace(/^.*\/sfx\//, "")),
       };
     };
-  }, ls);
+  }, { ls, blockSfx });
   await p.goto(집 + path, { waitUntil: "domcontentloaded", timeout: 60000 });
   await p.waitForTimeout(5000);
   await pre(p);
   const el = p.locator(셀렉터).first();
+  const tap1At = await p.evaluate(() => Math.round(performance.now()));
   if (!(await el.count())) { console.log(`\n[${이름}] 못 찾음: ${셀렉터}`); await p.close(); return; }
   // 첫 손짓으로 통을 깨우고 그래프를 만든다(분석기가 그때 생긴다) — 소리는 두 번째 탭을 잰다
-  const tap1At = await p.evaluate(() => Math.round(performance.now()));
   await el.tap();
   await p.waitForTimeout(1800);
   const armed = await p.evaluate(() => window.__arm());
@@ -108,6 +111,8 @@ async function 재기(이름, path, 셀렉터, { ms = 1500, pre = (p) => p, bloc
   await p.waitForTimeout(ms);
   const r = await p.evaluate((b) => window.__report(b), BANDS);
   console.log(`\n[${이름}] ${셀렉터}`);
+  console.log(`  통 상태 흐름(ms, 첫 탭 기준): ${r.states.map(([t, st]) => `${t - tap1At}:${st}`).join(" → ")} · 지금 ${r.state}`);
+  console.log(`  두 번째 탭 뒤 소리가 분석기에 처음 잡힌 때: ${r.firstSound < 0 ? "못 잡음" : r.firstSound + "ms"}`);
   console.log(`  sampleRate ${r.rate} · bin ${r.binHz.toFixed(2)}Hz · frames ${r.frames} · 받은 음원: ${r.sfx.join(", ") || "없음"}`);
   console.log(`  peak byte ${r.peakByte} @ ${r.peakHz}Hz · 파워 최대 bin @ ${r.peakPowHz}Hz`);
   const lab = ["0–300", "300–600", "600–1500", "1500+"];
@@ -123,7 +128,7 @@ const 염주 = '[aria-label^="염주 굴리기"]';
 const 그릇 = 'button[aria-label="싱잉볼 치기"]';
 
 console.log(`집: ${집}`);
-await 재기("목탁 · 공유마당 음원(기본)", "/moktak?lane=moktak", 목탁, { ms: 1600 });
+await 재기("목탁 · 공유마당 음원(기본)", "/moktak?lane=moktak", 목탁, { ms: 1600, ls: { "hwadu.moktak-sfx.v1": "gongyu" } });
 await 재기("목탁 · 형 음원(hyung)", "/moktak?lane=moktak", 목탁, { ms: 1600, ls: { "hwadu.moktak-sfx.v1": "hyung" } });
 await 재기("목탁 · 빚은 소리(음원 차단)", "/moktak?lane=moktak", 목탁, { ms: 1200, blockSfx: true });
 await 재기("키캡", "/moktak?lane=keycap", 키캡, { ms: 1500 });

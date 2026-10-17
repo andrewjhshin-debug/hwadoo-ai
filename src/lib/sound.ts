@@ -86,7 +86,19 @@ function armWake() {
 function 깨우기() {
   const ac = audioContext();
   if (!ac) return;
-  if (ac.state !== "running") void ac.resume().catch(() => {});
+  if (ac.state !== "running") {
+    // 형: 「여전히 소리가 안 들려」 — 폰에서 resume() 약속이 영영 안 풀리면
+    // (출력 장치·오디오 포커스를 못 잡으면) state 는 suspended 인 채
+    // **오류 한 줄 없이** 무음이 된다. 여태 그걸 아무도 몰랐다.
+    // 손짓 뒤 1.5초가 지나도 안 깨어나면 화면에 말한다 — 무음을 보이게.
+    void ac.resume().catch(() => {});
+    window.setTimeout(() => {
+      if (ac === actx && ac.state !== "running") {
+        console.warn("[화두 소리] 통이 안 깨어난다 — state:", ac.state);
+        소리막힘알림("asleep", ac.state);
+      }
+    }, 1_500);
+  }
   // 압축기는 갓 만들어진 뒤 50ms 동안 첫 소리를 8dB 누른다(측정:
   // scripts/sound-compressor-init.mjs). 첫 손짓에 미리 세워 두면 첫 타부터
   // 제 크기로 난다. 무음을 고치는 줄은 아니다 — 첫 타가 작게 들리는 것을 고친다
@@ -241,13 +253,23 @@ function master(ac: AudioContext): DynamicsCompressorNode {
 
 /** 소리를 내려 했는데 꺼져 있었다 — 한 번만 알린다 */
 export const SOUND_BLOCKED_EVENT = "hwadu-sound-blocked";
+/** 왜 막혔나 — muted: 깃발이 켜짐 · asleep: 통이 안 깨어남 */
+export type 소리막힘 = { reason: "muted" | "asleep"; state?: string };
 let 알린때 = 0;
-function 음소거알림() {
+function 소리막힘알림(reason: 소리막힘["reason"], state?: string) {
   if (typeof window === "undefined") return;
   const now = Date.now();
   if (now - 알린때 < 8_000) return; // 연타에 도배되지 않게
   알린때 = now;
-  window.dispatchEvent(new CustomEvent(SOUND_BLOCKED_EVENT));
+  window.dispatchEvent(new CustomEvent<소리막힘>(SOUND_BLOCKED_EVENT, { detail: { reason, state } }));
+}
+function 음소거알림() {
+  소리막힘알림("muted");
+}
+
+/** 바깥에서 통을 깨운다 — 「다시」 단추가 손짓 안에서 부른다 */
+export function wakeSound() {
+  깨우기();
 }
 
 if (typeof window !== "undefined") {
