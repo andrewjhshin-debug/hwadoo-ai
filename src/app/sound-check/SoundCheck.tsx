@@ -26,7 +26,9 @@ const 판 = (process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7) ||
  * 따로라, 어느 걸 열었는지 형도 나도 몰랐다. 이 한 줄이 가른다.
  */
 function 어느판() {
-  if (typeof navigator === "undefined") return "";
+  // navigator 가 아니라 window 를 본다 — Node 24 에는 navigator 전역이 있어서
+  // 프리렌더 때 이 가드를 지나 window.matchMedia 에서 터졌다(빌드가 깨졌다)
+  if (typeof window === "undefined") return "";
   if (/\bwv\b/.test(navigator.userAgent)) return "설치 앱";
   if (window.matchMedia("(display-mode: standalone)").matches) return "홈화면 PWA";
   return /Chrome/.test(navigator.userAgent) ? "크롬" : "브라우저";
@@ -130,7 +132,7 @@ export default function SoundCheck() {
         ))}
         <p className="pt-1">설치 — {설치}</p>
         <p>판 — {판} · {어느판()}</p>
-        <p className="break-words">UA — {typeof navigator === "undefined" ? "" : navigator.userAgent.replace(/^Mozilla\/5\.0 /, "").slice(0, 90)}</p>
+        <p className="break-words">UA — {typeof window === "undefined" ? "" : navigator.userAgent.replace(/^Mozilla\/5\.0 /, "").slice(0, 90)}</p>
       </div>
 
       <div className="rounded-2xl bg-ink-1/40 px-4 py-4 text-[12px] leading-[1.9] text-hanji-dim">
