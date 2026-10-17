@@ -303,6 +303,27 @@ function 음소거알림() {
   소리막힘알림("muted");
 }
 
+/**
+ * 통이 깨어 있지 않으면 **깬 뒤에** 친다.
+ *
+ * 형 갤럭시 수사의 마지막 사실 — 사운드체크 ①(판이 만든 통, resume 을 await
+ * 한 뒤 소리를 만듦)은 늘 나고, 엔진이 만든 통은 새로 만들어도(④) 안 났다.
+ * 둘의 차이는 순서뿐이다: 엔진은 resume() 을 던져 놓고 **바로** 노드를 만들어
+ * 시작시켰다. 명세로는 깨어나면 밀린 소리가 나와야 하지만, 형 폰 크롬은
+ * 「아직 안 깬 통에 꽂은 소리」를 버린다. ①과 같은 순서로 맞춘다 —
+ * running 이면 지금, 아니면 resume 이 풀린 뒤 **같은 손짓 안에서** 다시.
+ * 한 번만 미룬다 — 깨어난 뒤에도 안 돌면 그 소리는 버린다(무한 되풀이 방지).
+ */
+function 깬뒤에(ac: AudioContext, 다시: () => void): boolean {
+  if (ac.state === "running") return true;
+  // 손짓이 한 번도 없었으면 resume 은 영영 안 풀린다(백팔배 기울기 셈) —
+  // 미루기만 하면 아무 말 없이 조용하다. master() 에 두었던 「톡 치라」가
+  // 이 미루기 앞에서 막히므로 여기서 말한다.
+  if (손짓있었나() === false) 소리막힘알림("asleep", "no-gesture");
+  void ac.resume().then(() => { if (ac === actx && ac.state === "running") 다시(); }).catch(() => {});
+  return false;
+}
+
 /** 바깥에서 통을 깨운다 — 「다시」 단추가 손짓 안에서 부른다 */
 export function wakeSound() {
   깨우기();
@@ -317,6 +338,7 @@ export function wakeSound() {
 export function 맨소리(sec = 1) {
   const ac = audio();
   if (!ac) return "통 없음";
+  if (!깬뒤에(ac, () => void 맨소리(sec))) return "통 없음";
   const o = ac.createOscillator();
   const g = ac.createGain();
   o.type = "triangle";
@@ -520,6 +542,7 @@ const VOICES = 8;
 export function strikeMoktak(vol: number) {
   const ac = audio();
   if (!ac) return;
+  if (!깬뒤에(ac, () => void strikeMoktak(vol))) return;
   loadMoktak(ac);
 
   const t = ac.currentTime;
@@ -615,6 +638,7 @@ const BELL_PARTIALS = [
 export function strikeBell(vol: number, size = 0) {
   const ac = audio();
   if (!ac) return;
+  if (!깬뒤에(ac, () => void strikeBell(vol, size))) return;
   const t = ac.currentTime;
 
   // 형: 「효과음만, 더 광명 공명 더 간지나게」
@@ -761,6 +785,7 @@ function synthMoktak(ac: AudioContext, vol: number, speed = 0) {
 export function clickBead(vol: number) {
   const ac = audio();
   if (!ac) return;
+  if (!깬뒤에(ac, () => void clickBead(vol))) return;
   const t = ac.currentTime;
   const out = ac.createGain();
   out.gain.value = vol * 1.15;
@@ -864,6 +889,7 @@ export function hushBowl(sec = 1.1) {
 export function strikeBowl(vol: number, tone: BowlTone = "mid"): number {
   const ac = audio();
   if (!ac) return 0;
+  if (!깬뒤에(ac, () => void strikeBowl(vol, tone))) return 0;
   const base = BOWL_TONES.find((b) => b.id === tone)?.hz ?? 210;
   const t = ac.currentTime;
 
@@ -954,6 +980,7 @@ export function buzz(ms: number) {
 export function strikeStone(vol = 0.3, layer = 0) {
   const ac = audio();
   if (!ac) return;
+  if (!깬뒤에(ac, () => void strikeStone(vol, layer))) return;
   const t = ac.currentTime;
   const out = ac.createGain();
   out.gain.setValueAtTime(0.0001, t);
@@ -1124,6 +1151,7 @@ export function wakeBreath() {
 export function strikeJukbi(vol: number) {
   const ac = audio();
   if (!ac) return;
+  if (!깬뒤에(ac, () => void strikeJukbi(vol))) return;
   loadJukbi(ac);
   const t = ac.currentTime;
   const out = ac.createGain();
@@ -1297,6 +1325,7 @@ export function speak(text: string) {
 export function clickKeycap(vol: number, phase: "down" | "up" = "down") {
   const ac = audio();
   if (!ac) return;
+  if (!깬뒤에(ac, () => void clickKeycap(vol, phase))) return;
   const t = ac.currentTime;
   const out = ac.createGain();
   out.gain.value = vol * (phase === "down" ? 1 : 0.55);
