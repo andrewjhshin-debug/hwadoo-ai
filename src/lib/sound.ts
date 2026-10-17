@@ -314,13 +314,31 @@ function 음소거알림() {
  * running 이면 지금, 아니면 resume 이 풀린 뒤 **같은 손짓 안에서** 다시.
  * 한 번만 미룬다 — 깨어난 뒤에도 안 돌면 그 소리는 버린다(무한 되풀이 방지).
  */
-function 깬뒤에(ac: AudioContext, 다시: () => void): boolean {
+const 미룬것 = new Map<string, () => void>();
+let 미룸통: AudioContext | null = null;
+function 깬뒤에(ac: AudioContext, 열쇠: string, 다시: () => void): boolean {
   if (ac.state === "running") return true;
   // 손짓이 한 번도 없었으면 resume 은 영영 안 풀린다(백팔배 기울기 셈) —
-  // 미루기만 하면 아무 말 없이 조용하다. master() 에 두었던 「톡 치라」가
-  // 이 미루기 앞에서 막히므로 여기서 말한다.
-  if (손짓있었나() === false) 소리막힘알림("asleep", "no-gesture");
-  void ac.resume().then(() => { if (ac === actx && ac.state === "running") 다시(); }).catch(() => {});
+  // 미루면 약속만 절마다 쌓인다. 말만 하고 버린다. 톡 뒤 첫 절부터 정상.
+  if (손짓있었나() === false) {
+    소리막힘알림("asleep", "no-gesture");
+    return false;
+  }
+  // 같은 소리는 **마지막 하나만** 남긴다 — 염주를 쓸거나 자동 목탁이 돌 때
+  // 안 깬 사이 들어온 타들이 깨는 순간 한 덩어리로 터지지 않게.
+  미룬것.set(열쇠, 다시);
+  // resume 은 통마다 한 번만 건다. 통이 바뀌면(통닫기) 옛 약속은 버린다.
+  if (미룸통 !== ac) {
+    미룸통 = ac;
+    const 풀기 = () => {
+      if (미룸통 === ac) 미룸통 = null;
+      const 둘 = [...미룬것.values()];
+      미룬것.clear();
+      if (ac !== actx || ac.state !== "running") return;
+      for (const f of 둘) f();
+    };
+    void ac.resume().then(풀기).catch(풀기);
+  }
   return false;
 }
 
@@ -338,7 +356,7 @@ export function wakeSound() {
 export function 맨소리(sec = 1) {
   const ac = audio();
   if (!ac) return "통 없음";
-  if (!깬뒤에(ac, () => void 맨소리(sec))) return "통 없음";
+  if (!깬뒤에(ac, "맨소리", () => void 맨소리(sec))) return `${ac.state} → 깨운 뒤 냄`;
   const o = ac.createOscillator();
   const g = ac.createGain();
   o.type = "triangle";
@@ -542,7 +560,7 @@ const VOICES = 8;
 export function strikeMoktak(vol: number) {
   const ac = audio();
   if (!ac) return;
-  if (!깬뒤에(ac, () => void strikeMoktak(vol))) return;
+  if (!깬뒤에(ac, "strikeMoktak", () => void strikeMoktak(vol))) return;
   loadMoktak(ac);
 
   const t = ac.currentTime;
@@ -638,7 +656,7 @@ const BELL_PARTIALS = [
 export function strikeBell(vol: number, size = 0) {
   const ac = audio();
   if (!ac) return;
-  if (!깬뒤에(ac, () => void strikeBell(vol, size))) return;
+  if (!깬뒤에(ac, "strikeBell", () => void strikeBell(vol, size))) return;
   const t = ac.currentTime;
 
   // 형: 「효과음만, 더 광명 공명 더 간지나게」
@@ -785,7 +803,7 @@ function synthMoktak(ac: AudioContext, vol: number, speed = 0) {
 export function clickBead(vol: number) {
   const ac = audio();
   if (!ac) return;
-  if (!깬뒤에(ac, () => void clickBead(vol))) return;
+  if (!깬뒤에(ac, "clickBead", () => void clickBead(vol))) return;
   const t = ac.currentTime;
   const out = ac.createGain();
   out.gain.value = vol * 1.15;
@@ -889,7 +907,9 @@ export function hushBowl(sec = 1.1) {
 export function strikeBowl(vol: number, tone: BowlTone = "mid"): number {
   const ac = audio();
   if (!ac) return 0;
-  if (!깬뒤에(ac, () => void strikeBowl(vol, tone))) return 0;
+  // 0 을 돌려주면 호출처가 `if (!secs) return` 으로 공덕·여운 UI 를 건너뛰고,
+  // 소리만 뒤늦게 난다(리뷰에서 잡음). 가장 긴 여운을 돌려준다
+  if (!깬뒤에(ac, "strikeBowl", () => void strikeBowl(vol, tone))) return 14;
   const base = BOWL_TONES.find((b) => b.id === tone)?.hz ?? 210;
   const t = ac.currentTime;
 
@@ -980,7 +1000,7 @@ export function buzz(ms: number) {
 export function strikeStone(vol = 0.3, layer = 0) {
   const ac = audio();
   if (!ac) return;
-  if (!깬뒤에(ac, () => void strikeStone(vol, layer))) return;
+  if (!깬뒤에(ac, "strikeStone", () => void strikeStone(vol, layer))) return;
   const t = ac.currentTime;
   const out = ac.createGain();
   out.gain.setValueAtTime(0.0001, t);
@@ -1052,6 +1072,10 @@ function breathe(kind: "in" | "out", sec: number, vol: number): () => void {
   const ac = audio();
   // vol 0 으로 부르면 소리는 내지 않고 오디오 문만 연다(첫 터치에서 깨우기)
   if (!ac || sec <= 0 || vol <= 0) return () => {};
+  // 다른 소리와 같은 병 — 안 깬 통에 꽂지 않는다. 돌려주는 「거두기」는
+  // 뒤늦게 시작된 숨을 마디가 바뀔 때 끌 수 있게 바꿔 끼운다
+  let hush: () => void = () => {};
+  if (!깬뒤에(ac, "breathe", () => { hush = breathe(kind, sec, vol); })) return () => hush();
   try {
     const t = ac.currentTime;
     const dur = Math.max(0.3, sec);
@@ -1151,7 +1175,7 @@ export function wakeBreath() {
 export function strikeJukbi(vol: number) {
   const ac = audio();
   if (!ac) return;
-  if (!깬뒤에(ac, () => void strikeJukbi(vol))) return;
+  if (!깬뒤에(ac, "strikeJukbi", () => void strikeJukbi(vol))) return;
   loadJukbi(ac);
   const t = ac.currentTime;
   const out = ac.createGain();
@@ -1325,7 +1349,7 @@ export function speak(text: string) {
 export function clickKeycap(vol: number, phase: "down" | "up" = "down") {
   const ac = audio();
   if (!ac) return;
-  if (!깬뒤에(ac, () => void clickKeycap(vol, phase))) return;
+  if (!깬뒤에(ac, "clickKeycap", () => void clickKeycap(vol, phase))) return;
   const t = ac.currentTime;
   const out = ac.createGain();
   out.gain.value = vol * (phase === "down" ? 1 : 0.55);

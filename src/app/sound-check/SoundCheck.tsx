@@ -133,7 +133,7 @@ export default function SoundCheck() {
           setSoundMuted(false);
           const st = 맨소리(1.2);
           줄잡기((v) => [...v, `② 엔진 통 맨소리 → 통 ${st}`]);
-          window.setTimeout(() => { const r = 통사정(); 줄잡기((v) => [...v, `   ② 통 끝 세기 ${r.세기} · ${r.말}`]); }, 350);
+          window.setTimeout(() => { const r = 통사정(); 줄잡기((v) => [...v, `   ② 통 끝 세기 ${r.세기} · ${r.말}`]); }, 2500); // 첫 resume 이 2.2초 걸린다(실측) — 그 전에 재면 거짓 0
         }}
         className="rounded-3xl border border-ink-3 py-7 text-[17px]"
       >
@@ -146,7 +146,7 @@ export default function SoundCheck() {
           strikeMoktak(0.8);
           const s = soundStatus();
           줄잡기((v) => [...v, `③ 진짜 목탁 → 통 ${s.context} · 음소거 ${s.muted ? "켜짐" : "꺼짐"}`]);
-          window.setTimeout(() => { const r = 통사정(); 줄잡기((v) => [...v, `   ③ 통 끝 세기 ${r.세기} · ${r.말}`]); }, 120);
+          window.setTimeout(() => { const r = 통사정(); 줄잡기((v) => [...v, `   ③ 통 끝 세기 ${r.세기} · ${r.말}`]); }, 2500); // 첫 resume 이 2.2초 걸린다(실측) — 그 전에 재면 거짓 0
         }}
         className="rounded-3xl border border-ink-3 py-7 text-[17px]"
       >
@@ -164,7 +164,7 @@ export default function SoundCheck() {
           setSoundMuted(false);
           const st = 맨소리(1.2);
           줄잡기((v) => [...v, `④ 통 다 닫고 새 통으로 → ${st}`]);
-          window.setTimeout(() => { const r = 통사정(); 줄잡기((v) => [...v, `   ④ 통 끝 세기 ${r.세기} · ${r.말}`]); }, 350);
+          window.setTimeout(() => { const r = 통사정(); 줄잡기((v) => [...v, `   ④ 통 끝 세기 ${r.세기} · ${r.말}`]); }, 2500); // 첫 resume 이 2.2초 걸린다(실측) — 그 전에 재면 거짓 0
         }}
         className="rounded-3xl border border-ink-3 py-7 text-[17px]"
       >
