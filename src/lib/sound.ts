@@ -193,6 +193,7 @@ function audioContext(): AudioContext | null {
 }
 
 function audio(): AudioContext | null {
+  if (렌더중) return actx; // 굽는 중 — 바꿔 끼운 오프라인 통을 그대로
   armWake();
   깨우기();
   return actx;
@@ -316,7 +317,7 @@ function 음소거알림() {
 const 미룬것 = new Map<string, () => void>();
 let 미룸통: AudioContext | null = null;
 function 깬뒤에(ac: AudioContext, 열쇠: string, 다시: () => void): boolean {
-  if (ac.state === "running") return true;
+  if (렌더중 || ac.state === "running") return true;
   // 손짓이 한 번도 없었으면 resume 은 영영 안 풀린다(백팔배 기울기 셈) —
   // 미루면 약속만 절마다 쌓인다. 말만 하고 버린다. 톡 뒤 첫 절부터 정상.
   if (손짓있었나() === false) {
@@ -467,8 +468,27 @@ if (typeof window !== "undefined") {
 // 데스크톱은 그대로 WebAudio(또렷하고 빠르다).
 // ─────────────────────────────────────────────────────────────
 export type 소리길 = "element" | "webaudio";
+/** 소리를 파일로 굽는 중 — 그동안은 WebAudio 길·깨우기 없이 바로 그린다 */
+let 렌더중 = false;
+/**
+ * 굽기 훅 — 엔진의 통을 잠깐 OfflineAudioContext 로 바꿔 끼우고 소리 함수를
+ * 돌린다. /dev/render-sfx 가 쓴다. 종·염주·키캡·싱잉볼·돌을 **같은 코드로**
+ * 파일에 굽기 위한 것 — 손으로 다시 그리지 않는다.
+ */
+export function __renderWith(off: OfflineAudioContext, fn: () => void) {
+  const 원래 = actx;
+  const 원래bus = bus, 원래gain = masterGain, 원래hall = hallNode, 원래hallGain = hallGain, 원래noise = noiseBuf;
+  actx = off as unknown as AudioContext;
+  bus = null; masterGain = null; hallNode = null; hallGain = null; noiseBuf = null;
+  렌더중 = true;
+  try { fn(); } finally {
+    렌더중 = false;
+    actx = 원래; bus = 원래bus; masterGain = 원래gain; hallNode = 원래hall; hallGain = 원래hallGain; noiseBuf = 원래noise;
+  }
+}
 /** 어느 길로 트나 — localStorage hwadoo.sound-path 로 강제할 수 있다(점검용) */
 export function 소리길(): 소리길 {
+  if (렌더중) return "webaudio";
   if (typeof window === "undefined") return "webaudio";
   const 강제 = window.localStorage.getItem("hwadoo.sound-path");
   if (강제 === "element" || 강제 === "webaudio") return 강제;
@@ -717,6 +737,10 @@ const BELL_PARTIALS = [
  * @param size 0 = 경쇠(작고 맑게) · 1 = 범종(크고 길게)
  */
 export function strikeBell(vol: number, size = 0) {
+  if (소리길() === "element") {
+    엘리먼트치기(size ? "/sfx/bell-large.wav" : "/sfx/bell-small.wav", vol);
+    return;
+  }
   const ac = audio();
   if (!ac) return;
   if (!깬뒤에(ac, "strikeBell", () => void strikeBell(vol, size))) return;
@@ -864,6 +888,10 @@ function synthMoktak(ac: AudioContext, vol: number, speed = 0) {
 
 // 염주 한 알 — 알끼리 부딪는 또렷한 딸깍 (묵직한 속살 한 점 포함)
 export function clickBead(vol: number) {
+  if (소리길() === "element") {
+    엘리먼트치기("/sfx/bead.wav", vol);
+    return;
+  }
   const ac = audio();
   if (!ac) return;
   if (!깬뒤에(ac, "clickBead", () => void clickBead(vol))) return;
@@ -968,6 +996,26 @@ export function hushBowl(sec = 1.1) {
  * 돌려주는 값은 이 소리가 몇 초쯤 갈지 — 화면이 여운을 그릴 때 쓴다.
  */
 export function strikeBowl(vol: number, tone: BowlTone = "mid"): number {
+  if (소리길() === "element") {
+    bowlStop?.();
+    const src = `/sfx/bowl-${tone}.wav`;
+    if (!엘리먼트치기(src, vol)) return 0;
+    const a = 엘리먼트들.get(src)?.find((x) => !x.paused) ?? null;
+    const stop = () => {
+      if (!a) return;
+      // 부드럽게 재운다 — 1초에 걸쳐 볼륨을 내리고 멈춘다
+      const 처음 = a.volume;
+      const t0 = Date.now();
+      const id = window.setInterval(() => {
+        const k = Math.min(1, (Date.now() - t0) / 1000);
+        a.volume = 처음 * (1 - k);
+        if (k >= 1) { window.clearInterval(id); a.pause(); a.volume = 처음; }
+      }, 40);
+    };
+    bowlStop = stop;
+    a?.addEventListener("ended", () => { if (bowlStop === stop) bowlStop = null; }, { once: true });
+    return 14;
+  }
   const ac = audio();
   if (!ac) return 0;
   // 0 을 돌려주면 호출처가 `if (!secs) return` 으로 공덕·여운 UI 를 건너뛰고,
@@ -1061,6 +1109,10 @@ export function buzz(ms: number) {
 
 /** 돌을 얹을 때의 낮은 둔탁한 울림. 층이 오를수록 아주 조금 맑아진다. */
 export function strikeStone(vol = 0.3, layer = 0) {
+  if (소리길() === "element") {
+    엘리먼트치기(`/sfx/stone-${Math.max(0, Math.min(3, Math.round(layer)))}.wav`, vol);
+    return;
+  }
   const ac = audio();
   if (!ac) return;
   if (!깬뒤에(ac, "strikeStone", () => void strikeStone(vol, layer))) return;
@@ -1414,6 +1466,10 @@ export function speak(text: string) {
 
 /** 키캡 하나 — down 은 바닥을 치는 소리, up 은 되돌아오는 소리 */
 export function clickKeycap(vol: number, phase: "down" | "up" = "down") {
+  if (소리길() === "element") {
+    엘리먼트치기(phase === "up" ? "/sfx/keycap-up.wav" : "/sfx/keycap-down.wav", vol);
+    return;
+  }
   const ac = audio();
   if (!ac) return;
   if (!깬뒤에(ac, "clickKeycap", () => void clickKeycap(vol, phase))) return;
