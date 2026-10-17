@@ -302,6 +302,28 @@ export function wakeSound() {
   깨우기();
 }
 
+/**
+ * 점검용 — **엔진의 통**으로 맨소리를 낸다. 압축기·잔향·masterGain 을 안 거치고
+ * destination 에 바로 꽂는다. 사운드체크의 ①(제 통)은 나는데 목탁은 안 날 때,
+ * 이게 나면 통은 멀쩡하고 master() 사슬이 범인이다. 안 나면 통 자체(판 뜰 때
+ * 손짓 밖에서 만든 것)가 범인이다.
+ */
+export function 맨소리(sec = 1) {
+  const ac = audio();
+  if (!ac) return "통 없음";
+  const o = ac.createOscillator();
+  const g = ac.createGain();
+  o.type = "triangle";
+  o.frequency.value = 523;
+  g.gain.value = 0.0001;
+  g.gain.exponentialRampToValueAtTime(0.5, ac.currentTime + 0.05);
+  g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + sec);
+  o.connect(g).connect(ac.destination);
+  o.start();
+  o.stop(ac.currentTime + sec + 0.05);
+  return ac.state;
+}
+
 if (typeof window !== "undefined") {
   // 소리가 타이머에서 시작되더라도 앞선 첫 터치를 놓치지 않는다.
   armWake();

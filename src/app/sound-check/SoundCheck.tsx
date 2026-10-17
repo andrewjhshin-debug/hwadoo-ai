@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
-import { soundStatus } from "@/lib/sound";
+import { soundStatus, strikeMoktak, 맨소리 } from "@/lib/sound";
 import { isSoundMuted, setSoundMuted } from "@/lib/soundPreference";
 
 /** 어느 판인지 — 형 폰이 새 코드인지 아닌지 이 여섯 자가 말한다 */
@@ -120,9 +120,35 @@ export default function SoundCheck() {
       <button
         type="button"
         onClick={해보기}
-        className="rounded-3xl border border-gold/50 bg-gold/5 py-10 text-[19px]"
+        className="rounded-3xl border border-gold/50 bg-gold/5 py-7 text-[17px]"
       >
-        소리 내 보기 (4초)
+        ① 생소리 (4초)
+      </button>
+      {/* 형: 「사운드체크에선 나는데 목탁은 안 나」 — 어디서 끊기는지 가른다.
+          ② 는 엔진의 통만 쓰고 압축기·잔향은 안 거친다. ③ 은 진짜 목탁 길 전부.
+          ①○ ②○ ③× → master() 사슬 / ①○ ②× → 통(판 뜰 때 손짓 밖에서 만든 것) */}
+      <button
+        type="button"
+        onClick={() => {
+          setSoundMuted(false);
+          const st = 맨소리(1.2);
+          줄잡기((v) => [...v, `② 엔진 통 맨소리 → 통 ${st}`]);
+        }}
+        className="rounded-3xl border border-ink-3 py-7 text-[17px]"
+      >
+        ② 엔진 통으로 생소리
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setSoundMuted(false);
+          strikeMoktak(0.8);
+          const s = soundStatus();
+          줄잡기((v) => [...v, `③ 진짜 목탁 → 통 ${s.context} · 음소거 ${s.muted ? "켜짐" : "꺼짐"}`]);
+        }}
+        className="rounded-3xl border border-ink-3 py-7 text-[17px]"
+      >
+        ③ 진짜 목탁
       </button>
       <p className="text-center text-[14px] text-hanji-dim">{말}</p>
 
@@ -136,8 +162,7 @@ export default function SoundCheck() {
       </div>
 
       <div className="rounded-2xl bg-ink-1/40 px-4 py-4 text-[12px] leading-[1.9] text-hanji-dim">
-        <p>소리 나는 동안 볼륨 키를 올려 보세요 (미디어로 잡힙니다)</p>
-        <p>그래도 조용하면 크롬 주소창 ⓘ → 사이트 설정 → 소리</p>
+        <p>① ② ③ 셋 다 눌러 보고 뭐가 들렸는지 알려 주세요</p>
       </div>
     </main>
   );
