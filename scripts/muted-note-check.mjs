@@ -11,8 +11,8 @@ await p.reload({ waitUntil: "domcontentloaded" });
 await p.waitForTimeout(3000);
 await p.locator('.hip-obj[aria-label="목탁 치기"]').first().tap();
 await p.waitForTimeout(700);
-const 떴나 = await p.locator(".hip-soundoff").count();
-const 글 = 떴나 ? await p.locator(".hip-soundoff").innerText() : "";
+const 떴나 = await p.locator('.hip-soundoff[data-reason="muted"]').count();
+const 글 = 떴나 ? await p.locator('.hip-soundoff[data-reason="muted"]').innerText() : "";
 console.log(`음소거 켜 둔 채 목탁 → ${떴나 ? "✅ 알림 뜸: " + 글.replace(/\n/g, " ") : "❌ 아무 말 없음"}`);
 if (떴나) {
   await p.locator(".hip-soundoff button").tap();
@@ -26,5 +26,6 @@ await p.reload({ waitUntil: "domcontentloaded" });
 await p.waitForTimeout(3000);
 await p.locator('.hip-obj[aria-label="목탁 치기"]').first().tap();
 await p.waitForTimeout(700);
-console.log(`켜 둔 채 목탁 → ${(await p.locator(".hip-soundoff").count()) ? "❌ 쓸데없이 뜸" : "✅ 조용함"}`);
+// 헤드리스 크롬은 출력 장치가 없어 통이 영영 suspended 라 asleep 알림은 뜰 수 있다 — muted 만 본다
+console.log(`켜 둔 채 목탁 → ${(await p.locator('.hip-soundoff[data-reason="muted"]').count()) ? "❌ 음소거 알림이 쓸데없이 뜸" : "✅ 음소거 알림 없음"}`);
 await b.close();

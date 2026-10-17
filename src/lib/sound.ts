@@ -87,22 +87,40 @@ function 깨우기() {
   const ac = audioContext();
   if (!ac) return;
   if (ac.state !== "running") {
+    // 백팔배는 기울기(deviceorientation)만으로 센다. 그 판을 새로고침·홈화면·
+    // 딥링크로 곧장 열고 손을 안 대면 **손짓이 한 번도 없다** — 기울기는 명세상
+    // 활성화 이벤트가 아니라 크롬이 통을 영영 안 깨운다(실측 20초 suspended,
+    // 스피커 0 / 톡 한 번 → 1.2초 뒤 running, 221). 4초 기다릴 것도 없이
+    // 바로 말한다. 톡 자체가 armWake 의 캡처 리스너로 깨우니 단추를 안 눌러도 된다.
     // 형: 「여전히 소리가 안 들려」 — 폰에서 resume() 약속이 영영 안 풀리면
     // (출력 장치·오디오 포커스를 못 잡으면) state 는 suspended 인 채
     // **오류 한 줄 없이** 무음이 된다. 여태 그걸 아무도 몰랐다.
     // 손짓 뒤 1.5초가 지나도 안 깨어나면 화면에 말한다 — 무음을 보이게.
-    void ac.resume().catch(() => {});
-    window.setTimeout(() => {
-      if (ac === actx && ac.state !== "running") {
-        console.warn("[화두 소리] 통이 안 깨어난다 — state:", ac.state);
-        소리막힘알림("asleep", ac.state);
-      }
-    }, 1_500);
+    // 실서버 실측(scripts/sound-first-tap-delay.mjs): 첫 탭의 resume 이
+    // 2.2초 걸렸다. 1.5초면 소리가 곧 날 사람에게도 「안 깨어나요」가 뜬다.
+    // 약속이 풀리면 타이머를 끈다 — 느려도 깨어나면 아무 말 없다.
+    // **손짓이 있었는데도** 안 깨어날 때만 센다. 판이 뜰 때 통을 미리 데우는
+    // 호출(warmMoktak 등)은 손짓 밖이라 suspended 가 정상이다 — 거기서 울리면
+    // 들어오자마자 헛알림이 뜨고, 그게 도배 방지 타이머를 먹어 진짜 알림을 삼킨다.
+    if (손짓있었나() === true) {
+      const 지킴 = window.setTimeout(() => {
+        if (ac === actx && ac.state !== "running") {
+          console.warn("[화두 소리] 통이 안 깨어난다 — state:", ac.state);
+          소리막힘알림("asleep", ac.state);
+        }
+      }, 4_000);
+      ac.resume().then(() => window.clearTimeout(지킴)).catch(() => {});
+    } else {
+      void ac.resume().catch(() => {});
+    }
   }
   // 압축기는 갓 만들어진 뒤 50ms 동안 첫 소리를 8dB 누른다(측정:
   // scripts/sound-compressor-init.mjs). 첫 손짓에 미리 세워 두면 첫 타부터
-  // 제 크기로 난다. 무음을 고치는 줄은 아니다 — 첫 타가 작게 들리는 것을 고친다
-  if (!bus) master(ac);
+  // 제 크기로 난다. 무음을 고치는 줄은 아니다 — 첫 타가 작게 들리는 것을 고친다.
+  // **손짓이 있었을 때만.** 판이 뜰 때 통을 데우는 호출(warmMoktak, 손짓 밖)
+  // 에서 master() 를 부르면 거기 둔 「톡 치라」 검사가 들어오자마자 헛울리고,
+  // 그게 도배 방지를 먹어 진짜 알림을 삼킨다 — 계기판으로 잡은 사고다.
+  if (!bus && 손짓있었나() === true) master(ac);
   // 사용자 손짓 안에서 출력 경로도 열어 둔다. 무음 설정은 바꾸지 않는다.
   if (unlockedContext !== ac) {
     try {
@@ -118,6 +136,10 @@ function 깨우기() {
   }
 }
 let unlockedContext: AudioContext | null = null;
+/** 이 문서에서 손짓이 한 번이라도 있었나 — 모르는 브라우저면 undefined */
+function 손짓있었나(): boolean | undefined {
+  return (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation?.hasBeenActive;
+}
 
 /**
  * 아이폰 옆구리 무음 스위치를 비껴간다.
@@ -248,6 +270,12 @@ function master(ac: AudioContext): DynamicsCompressorNode {
   // 깃발이 켜져 있으면 그 자리에서 알린다. 머리 오른쪽 스피커는 19px
   // 짜리라 엄지로 스쳐 꺼 놓고도 모른다.
   if (꺼짐) 음소거알림();
+  // 백팔배는 기울기(deviceorientation)만으로 센다. 그 판을 새로고침·홈화면·
+  // 딥링크로 곧장 열고 손을 안 대면 **손짓이 한 번도 없다** — 기울기는 명세상
+  // 활성화 이벤트가 아니라 크롬이 통을 영영 안 깨운다(실측 20초 suspended,
+  // 스피커 0 / 톡 한 번 → 1.2초 뒤 running, 221). 소리를 내려는 바로 그 자리에서
+  // 「톡 치라」고 말한다. 톡 자체가 armWake 의 캡처 리스너로 깨운다.
+  else if (ac.state !== "running" && 손짓있었나() === false) 소리막힘알림("asleep", "no-gesture");
   return bus;
 }
 
@@ -255,12 +283,14 @@ function master(ac: AudioContext): DynamicsCompressorNode {
 export const SOUND_BLOCKED_EVENT = "hwadu-sound-blocked";
 /** 왜 막혔나 — muted: 깃발이 켜짐 · asleep: 통이 안 깨어남 */
 export type 소리막힘 = { reason: "muted" | "asleep"; state?: string };
-let 알린때 = 0;
+// 도배 방지는 **까닭별로 따로** — 한 까닭이 다른 까닭의 알림을 삼키지 않게
+const 알린때 = new Map<string, number>();
 function 소리막힘알림(reason: 소리막힘["reason"], state?: string) {
   if (typeof window === "undefined") return;
   const now = Date.now();
-  if (now - 알린때 < 8_000) return; // 연타에 도배되지 않게
-  알린때 = now;
+  const 열쇠 = reason + (state ?? "");
+  if (now - (알린때.get(열쇠) ?? 0) < 8_000) return; // 연타에 도배되지 않게
+  알린때.set(열쇠, now);
   window.dispatchEvent(new CustomEvent<소리막힘>(SOUND_BLOCKED_EVENT, { detail: { reason, state } }));
 }
 function 음소거알림() {

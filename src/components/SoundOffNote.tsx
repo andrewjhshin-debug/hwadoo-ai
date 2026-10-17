@@ -38,11 +38,13 @@ export default function SoundOffNote() {
 
   if (!막힘 || typeof document === "undefined") return null;
   const 잠듦 = 막힘.reason === "asleep";
+  // 손짓이 한 번도 없었던 판 — 톡 한 번이면 끝이라 그렇게 말한다
+  const 톡 = 잠듦 && 막힘.state === "no-gesture";
   // 통(.hip-screen) 안에 두면 눌리지 않는다 — 그림은 위에 떠도 히트테스트가
   // 통에 걸린다. z 로 겨루지 말고 body 바로 아래로 꺼낸다(이 판의 단골 함정).
   return createPortal(
     <div className="hip-soundoff" role="status" data-reason={막힘.reason}>
-      <span>{잠듦 ? "소리통이 안 깨어나요" : "소리가 꺼져 있습니다"}</span>
+      <span>{톡 ? "화면을 한 번 톡 치면 소리가 켜져요" : 잠듦 ? "소리통이 안 깨어나요" : "소리가 꺼져 있습니다"}</span>
       <button
         type="button"
         onClick={() => {
@@ -52,7 +54,7 @@ export default function SoundOffNote() {
           막힘잡기(null);
         }}
       >
-        {잠듦 ? "다시" : "켜기"}
+        {톡 ? "톡" : 잠듦 ? "다시" : "켜기"}
       </button>
     </div>,
     document.body,
