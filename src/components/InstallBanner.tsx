@@ -11,7 +11,7 @@
 // ────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
-import { canInstall, isIOS, isStandalone, onInstallChange, promptInstall } from "@/lib/install";
+import { canInstall, isInstalledHere, isIOS, isStandalone, onInstallChange, promptInstall } from "@/lib/install";
 
 // 영구 비표시 키 — 한 번 담거나 닫으면 다시는 묻지 않는다
 const LATER_KEY = "hwadoo-install-done";
@@ -53,9 +53,20 @@ export default function InstallBanner() {
     } catch {
       // 저장소가 막힌 브라우저 — 그래도 묻는다
     }
-    setPhase("ask");
-    const t = window.setTimeout(() => setShown(true), 1500);
-    return () => window.clearTimeout(t);
+    let 살아있음 = true;
+    let t = 0;
+    // 크롬으로 열었지만 **이미 깔려 있는** 폰 — 거기선 설치 신호가 안 와서
+    // 띠가 「설치 방법」으로 주저앉고, 사람은 「설치가 안 된다」고 읽는다.
+    // 깔려 있으면 띠 자체를 안 띄운다.
+    void isInstalledHere().then((깔림) => {
+      if (!살아있음 || 깔림) return;
+      setPhase("ask");
+      t = window.setTimeout(() => setShown(true), 1500);
+    });
+    return () => {
+      살아있음 = false;
+      window.clearTimeout(t);
+    };
   }, []);
 
   // 이 세션에는 그만 묻는다

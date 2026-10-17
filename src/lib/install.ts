@@ -80,6 +80,27 @@ export function isStandalone(): boolean {
   return (navigator as { standalone?: boolean }).standalone === true;
 }
 
+/**
+ * 이 폰에 이미 깔려 있나 — 크롬이 안다(getInstalledRelatedApps).
+ *
+ * 형: 「설치도 뭔가 이상」 — 이미 깔린 폰에서는 크롬이 설치 신호를
+ * **아예 안 보낸다.** 그러면 우리 띠는 「설치 방법」으로 주저앉고, 사람은
+ * 「설치가 안 된다」고 읽는다. 사실은 **이미 돼 있는 것**이다. 깔려
+ * 있으면 묻지 않는다. (manifest 의 related_applications 가 있어야 답한다)
+ */
+export async function isInstalledHere(): Promise<boolean> {
+  if (typeof navigator === "undefined") return false;
+  const nav = navigator as Navigator & {
+    getInstalledRelatedApps?: () => Promise<{ platform: string }[]>;
+  };
+  if (!nav.getInstalledRelatedApps) return false;
+  try {
+    return (await nav.getInstalledRelatedApps()).length > 0;
+  } catch {
+    return false;
+  }
+}
+
 // 아이폰·아이패드인가 — 설치 안내 문구를 가르는 데 쓴다
 export function isIOS(): boolean {
   if (typeof navigator === "undefined") return false;

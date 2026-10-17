@@ -34,5 +34,12 @@
     "lifestyle",
     "education",
     "health"
-  ]
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://www.hwa-du.com/manifest.json"
+    }
+  ],
+  "prefer_related_applications": false
 }
