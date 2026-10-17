@@ -39,6 +39,10 @@
     {
       "platform": "webapp",
       "url": "https://www.hwa-du.com/manifest.json"
+    },
+    {
+      "platform": "play",
+      "id": "com.svaha.hwadu"
     }
   ],
   "prefer_related_applications": false

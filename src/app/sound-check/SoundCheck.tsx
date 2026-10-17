@@ -20,6 +20,18 @@ import { isSoundMuted, setSoundMuted } from "@/lib/soundPreference";
 /** 어느 판인지 — 형 폰이 새 코드인지 아닌지 이 여섯 자가 말한다 */
 const 판 = (process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7) || "로컬";
 
+/**
+ * 어느 「화두」인가 — 폰에는 셋이 있을 수 있다. 설치 앱(Capacitor WebView,
+ * UA 에 「wv」), 홈 화면 PWA(standalone), 크롬. 아이콘은 같고 저장소는
+ * 따로라, 어느 걸 열었는지 형도 나도 몰랐다. 이 한 줄이 가른다.
+ */
+function 어느판() {
+  if (typeof navigator === "undefined") return "";
+  if (/\bwv\b/.test(navigator.userAgent)) return "설치 앱";
+  if (window.matchMedia("(display-mode: standalone)").matches) return "홈화면 PWA";
+  return /Chrome/.test(navigator.userAgent) ? "크롬" : "브라우저";
+}
+
 export default function SoundCheck() {
   const [말, 말잡기] = useState("단추를 누르세요");
   const [줄, 줄잡기] = useState<string[]>([]);
@@ -117,7 +129,8 @@ export default function SoundCheck() {
           <p key={i} className="break-words">{t}</p>
         ))}
         <p className="pt-1">설치 — {설치}</p>
-        <p>판 — {판}</p>
+        <p>판 — {판} · {어느판()}</p>
+        <p className="break-words">UA — {typeof navigator === "undefined" ? "" : navigator.userAgent.replace(/^Mozilla\/5\.0 /, "").slice(0, 90)}</p>
       </div>
 
       <div className="rounded-2xl bg-ink-1/40 px-4 py-4 text-[12px] leading-[1.9] text-hanji-dim">

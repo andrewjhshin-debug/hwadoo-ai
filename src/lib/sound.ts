@@ -87,6 +87,10 @@ function 깨우기() {
   const ac = audioContext();
   if (!ac) return;
   if (ac.state !== "running") void ac.resume().catch(() => {});
+  // 압축기는 갓 만들어진 뒤 50ms 동안 첫 소리를 8dB 누른다(측정:
+  // scripts/sound-compressor-init.mjs). 첫 손짓에 미리 세워 두면 첫 타부터
+  // 제 크기로 난다. 무음을 고치는 줄은 아니다 — 첫 타가 작게 들리는 것을 고친다
+  if (!bus) master(ac);
   // 사용자 손짓 안에서 출력 경로도 열어 둔다. 무음 설정은 바꾸지 않는다.
   if (unlockedContext !== ac) {
     try {
@@ -147,7 +151,10 @@ function audioContext(): AudioContext | null {
       live = [];
     }
     return actx;
-  } catch {
+  } catch (e) {
+    // 여기로 빠지면 모든 strike 가 흔적 없이 무음이 된다. 폰을 chrome://inspect
+    // 로 들여다볼 때 이 한 줄이 있어야 「통을 못 만들었다」가 보인다
+    console.warn("[화두 소리] 통을 못 만들었다", e);
     return null;
   }
 }

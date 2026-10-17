@@ -25,7 +25,17 @@ async function 재기(이름, path, 셀렉터, { ms = 1500, pre = (p) => p, bloc
   if (blockSfx) await p.route("**/sfx/**", (r) => r.abort());
   await p.addInitScript((ls) => {
     for (const [k, v] of Object.entries(ls)) try { localStorage.setItem(k, v); } catch {}
-    window.__spec = { an: null, hold: null, pow: null, frames: 0, timer: 0, rate: 0 };
+    window.__spec = { an: null, hold: null, pow: null, frames: 0, timer: 0, rate: 0, firstSound: -1, armedAt: 0, states: [] };
+    // 통의 상태 변화를 시각과 함께 적는다 — 손짓 뒤 몇 ms 만에 running 이 되나
+    const OAC = window.AudioContext;
+    window.AudioContext = class extends OAC {
+      constructor(...a) {
+        super(...a);
+        window.__ac = this;
+        window.__spec.states.push([Math.round(performance.now()), this.state]);
+        this.addEventListener("statechange", () => window.__spec.states.push([Math.round(performance.now()), this.state]));
+      }
+    };
     const 원래 = AudioNode.prototype.connect;
     AudioNode.prototype.connect = function (t, ...r) {
       try {
@@ -47,11 +57,12 @@ async function 재기(이름, path, 셀렉터, { ms = 1500, pre = (p) => p, bloc
     window.__arm = () => {
       const s = window.__spec;
       if (!s.an) return false;
-      s.hold.fill(0); s.pow.fill(0); s.frames = 0;
+      s.hold.fill(0); s.pow.fill(0); s.frames = 0; s.firstSound = -1; s.armedAt = performance.now();
       const d = new Uint8Array(s.an.frequencyBinCount);
       s.timer = setInterval(() => {
         s.an.getByteFrequencyData(d);
         s.frames++;
+        if (s.firstSound < 0) { for (let i = 0; i < d.length; i++) if (d[i] > 40) { s.firstSound = Math.round(performance.now() - s.armedAt); break; } }
         for (let i = 0; i < d.length; i++) {
           if (d[i] > s.hold[i]) s.hold[i] = d[i];
           if (d[i]) { const db = -100 + (d[i] / 255) * 70; s.pow[i] += Math.pow(10, db / 10); }
@@ -75,7 +86,7 @@ async function 재기(이름, path, 셀렉터, { ms = 1500, pre = (p) => p, bloc
         if (s.pow[i] > peakPow) { peakPow = s.pow[i]; peakPowHz = f; }
       }
       return {
-        rate: s.rate, binHz: hz, frames: s.frames, peakByte, peakHz: Math.round(peakHz), peakPowHz: Math.round(peakPowHz),
+        rate: s.rate, binHz: hz, firstSound: s.firstSound, states: s.states, state: window.__ac?.state, frames: s.frames, peakByte, peakHz: Math.round(peakHz), peakPowHz: Math.round(peakPowHz),
         bytePct: byte.map((v) => byteAll ? Math.round(1000 * v / byteAll) / 10 : 0),
         powPct: pow.map((v) => powAll ? Math.round(1000 * v / powAll) / 10 : 0),
         sfx: performance.getEntriesByType("resource").filter((e) => e.name.includes("/sfx/")).map((e) => e.name.replace(/^.*\/sfx\//, "")),
@@ -88,6 +99,7 @@ async function 재기(이름, path, 셀렉터, { ms = 1500, pre = (p) => p, bloc
   const el = p.locator(셀렉터).first();
   if (!(await el.count())) { console.log(`\n[${이름}] 못 찾음: ${셀렉터}`); await p.close(); return; }
   // 첫 손짓으로 통을 깨우고 그래프를 만든다(분석기가 그때 생긴다) — 소리는 두 번째 탭을 잰다
+  const tap1At = await p.evaluate(() => Math.round(performance.now()));
   await el.tap();
   await p.waitForTimeout(1800);
   const armed = await p.evaluate(() => window.__arm());
@@ -114,7 +126,7 @@ console.log(`집: ${집}`);
 await 재기("목탁 · 공유마당 음원(기본)", "/moktak?lane=moktak", 목탁, { ms: 1600 });
 await 재기("목탁 · 형 음원(hyung)", "/moktak?lane=moktak", 목탁, { ms: 1600, ls: { "hwadu.moktak-sfx.v1": "hyung" } });
 await 재기("목탁 · 빚은 소리(음원 차단)", "/moktak?lane=moktak", 목탁, { ms: 1200, blockSfx: true });
-await 재기("키캡", "/moktak?lane=keycap", 키캡, { ms: 600 });
-await 재기("염주", "/moktak?lane=yeomju", 염주, { ms: 600 });
+await 재기("키캡", "/moktak?lane=keycap", 키캡, { ms: 1500 });
+await 재기("염주", "/moktak?lane=yeomju", 염주, { ms: 1500 });
 await 재기("싱잉볼(중간 그릇)", "/moktak?lane=bowl", 그릇, { ms: 3000 });
 await ctx.close();
