@@ -83,59 +83,58 @@ function armWake() {
  *    떼고 `waking` 은 true 로 남아 다시 달 길이 없었다. 그 뒤에 ①이
  *    일어나면 끝이다. 귀 셋은 켜져 있어도 거의 공짜다 — 떼지 않는다.
  */
+/**
+ * 통마다 **딱 한 번**의 resume 약속. 모두가 이 하나를 기다린다.
+ *
+ * 형: 「진심 아직도 안 남, 모바일도 설치한 것도」 — 다섯 번 고쳐도 안 났다.
+ * 남은 사실은 하나: 사운드체크 ①(판이 직접 만든 통 — new → await resume →
+ * 소리)은 형 폰에서 **늘** 난다. 엔진은 통을 만든 뒤 ①이 안 하는 일을 했다:
+ * 한 탭에 캡처 리스너 다섯이 resume 을 다섯 번, 4초 타이머 다섯 개, 1프레임
+ * 무음 버퍼를 destination 에 꽂아 start. 어느 것이 범인인지 가설을 세우지
+ * 않는다 — **①과 글자 그대로 같게** 만든다. resume 하나, 약속 하나, 그 외 없음.
+ */
+let 깨움약속: Promise<void> | null = null;
+let 깨움통: AudioContext | null = null;
+let 지킴통: AudioContext | null = null;
+function 깨어남(ac: AudioContext): Promise<void> {
+  if (ac.state === "running") return Promise.resolve();
+  // **손짓 밖**(판 뜰 때 데우기)에서 건 resume 은 크롬이 나중 손짓으로 살려 주지
+  // 않는다 — 그 약속을 기억해 두면 탭이 와도 영영 안 풀린다(측정으로 잡음:
+  // destination 세기 0). 그래서 손짓 밖에서는 걸어만 두고 기억하지 않는다.
+  // 기억하는 것은 **손짓 안에서 건 첫 resume** 하나다. 모두가 그것을 기다린다.
+  if (손짓있었나() === false) {
+    void ac.resume().catch(() => {});
+    return 깨움약속 ?? new Promise<void>(() => {});
+  }
+  if (깨움통 !== ac) {
+    깨움통 = ac;
+    깨움약속 = ac.resume().catch(() => {});
+  }
+  return 깨움약속 ?? Promise.resolve();
+}
+
 function 깨우기() {
   const ac = audioContext();
   if (!ac) return;
   if (ac.state !== "running") {
-    // 백팔배는 기울기(deviceorientation)만으로 센다. 그 판을 새로고침·홈화면·
-    // 딥링크로 곧장 열고 손을 안 대면 **손짓이 한 번도 없다** — 기울기는 명세상
-    // 활성화 이벤트가 아니라 크롬이 통을 영영 안 깨운다(실측 20초 suspended,
-    // 스피커 0 / 톡 한 번 → 1.2초 뒤 running, 221). 4초 기다릴 것도 없이
-    // 바로 말한다. 톡 자체가 armWake 의 캡처 리스너로 깨우니 단추를 안 눌러도 된다.
-    // 형: 「여전히 소리가 안 들려」 — 폰에서 resume() 약속이 영영 안 풀리면
-    // (출력 장치·오디오 포커스를 못 잡으면) state 는 suspended 인 채
-    // **오류 한 줄 없이** 무음이 된다. 여태 그걸 아무도 몰랐다.
-    // 손짓 뒤 1.5초가 지나도 안 깨어나면 화면에 말한다 — 무음을 보이게.
-    // 실서버 실측(scripts/sound-first-tap-delay.mjs): 첫 탭의 resume 이
-    // 2.2초 걸렸다. 1.5초면 소리가 곧 날 사람에게도 「안 깨어나요」가 뜬다.
-    // 약속이 풀리면 타이머를 끈다 — 느려도 깨어나면 아무 말 없다.
-    // **손짓이 있었는데도** 안 깨어날 때만 센다. 판이 뜰 때 통을 미리 데우는
-    // 호출(warmMoktak 등)은 손짓 밖이라 suspended 가 정상이다 — 거기서 울리면
-    // 들어오자마자 헛알림이 뜨고, 그게 도배 방지 타이머를 먹어 진짜 알림을 삼킨다.
-    if (손짓있었나() === true) {
+    const 약속 = 깨어남(ac);
+    // 손짓이 있었는데도 4초 안에 안 깨면 화면에 말한다 — 통마다 한 번만 건다.
+    // (손짓 없는 호출 — 판 뜰 때 데우기 — 는 suspended 가 정상이라 안 센다)
+    if (손짓있었나() === true && 지킴통 !== ac) {
+      지킴통 = ac;
       const 지킴 = window.setTimeout(() => {
         if (ac === actx && ac.state !== "running") {
           console.warn("[화두 소리] 통이 안 깨어난다 — state:", ac.state);
           소리막힘알림("asleep", ac.state);
         }
       }, 4_000);
-      ac.resume().then(() => window.clearTimeout(지킴)).catch(() => {});
-    } else {
-      void ac.resume().catch(() => {});
+      void 약속.then(() => window.clearTimeout(지킴));
     }
   }
-  // 압축기는 갓 만들어진 뒤 50ms 동안 첫 소리를 8dB 누른다(측정:
-  // scripts/sound-compressor-init.mjs). 첫 손짓에 미리 세워 두면 첫 타부터
-  // 제 크기로 난다. 무음을 고치는 줄은 아니다 — 첫 타가 작게 들리는 것을 고친다.
-  // **손짓이 있었을 때만.** 판이 뜰 때 통을 데우는 호출(warmMoktak, 손짓 밖)
-  // 에서 master() 를 부르면 거기 둔 「톡 치라」 검사가 들어오자마자 헛울리고,
-  // 그게 도배 방지를 먹어 진짜 알림을 삼킨다 — 계기판으로 잡은 사고다.
+  // 압축기는 뺐지만 masterGain 은 첫 손짓에 세워 둔다(첫 타 지연 없게).
+  // 손짓이 있었을 때만 — 판 뜰 때 데우는 호출에서 세우면 헛알림을 부른다.
   if (!bus && 손짓있었나() === true) master(ac);
-  // 사용자 손짓 안에서 출력 경로도 열어 둔다. 무음 설정은 바꾸지 않는다.
-  if (unlockedContext !== ac) {
-    try {
-      const source = ac.createBufferSource();
-      source.buffer = ac.createBuffer(1, 1, ac.sampleRate);
-      source.connect(ac.destination);
-      source.onended = () => source.disconnect();
-      source.start();
-      unlockedContext = ac;
-    } catch {
-      // 다음 손짓에서 다시 시도한다.
-    }
-  }
 }
-let unlockedContext: AudioContext | null = null;
 /** 이 문서에서 손짓이 한 번이라도 있었나 — 모르는 브라우저면 undefined */
 function 손짓있었나(): boolean | undefined {
   return (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation?.hasBeenActive;
@@ -327,17 +326,17 @@ function 깬뒤에(ac: AudioContext, 열쇠: string, 다시: () => void): boolea
   // 같은 소리는 **마지막 하나만** 남긴다 — 염주를 쓸거나 자동 목탁이 돌 때
   // 안 깬 사이 들어온 타들이 깨는 순간 한 덩어리로 터지지 않게.
   미룬것.set(열쇠, 다시);
-  // resume 은 통마다 한 번만 건다. 통이 바뀌면(통닫기) 옛 약속은 버린다.
+  // resume 을 따로 걸지 않는다 — 통마다 하나뿐인 그 약속(깨어남)을 기다린다.
+  // 통이 바뀌면(통닫기) 옛 약속은 버린다.
   if (미룸통 !== ac) {
     미룸통 = ac;
-    const 풀기 = () => {
+    void 깨어남(ac).then(() => {
       if (미룸통 === ac) 미룸통 = null;
       const 둘 = [...미룬것.values()];
       미룬것.clear();
       if (ac !== actx || ac.state !== "running") return;
       for (const f of 둘) f();
-    };
-    void ac.resume().then(풀기).catch(풀기);
+    });
   }
   return false;
 }
@@ -406,6 +405,7 @@ export async function 통닫기() {
   if (!actx) return;
   try { await actx.close(); } catch { /* 닫혀 있어도 그만 */ }
   actx = null; bus = null; masterGain = null; 귀노드 = null; hallNode = null; hallGain = null; noiseBuf = null; breathBuf = null; live = [];
+  깨움통 = null; 깨움약속 = null; 지킴통 = null; 미룸통 = null; 미룬것.clear();
 }
 
 if (typeof window !== "undefined") {
