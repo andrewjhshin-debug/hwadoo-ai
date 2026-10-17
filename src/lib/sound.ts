@@ -267,6 +267,7 @@ function master(ac: AudioContext): GainNode {
     masterGain.gain.value = isSoundMuted() ? 0 : 1;
     masterGain.connect(ac.destination);
     bus = masterGain;
+    if (귀노드 && 귀노드.context === ac) masterGain.connect(귀노드);
   }
   // 저장소 변경/계정 전환 후에도 UI의 음소거와 실제 gain이 어긋나지 않는다.
   const 꺼짐 = isSoundMuted();
@@ -324,9 +325,47 @@ export function 맨소리(sec = 1) {
   g.gain.exponentialRampToValueAtTime(0.5, ac.currentTime + 0.05);
   g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + sec);
   o.connect(g).connect(ac.destination);
+  g.connect(귀(ac)); // 재기 — 통 끝에 신호가 왔는지
   o.start();
   o.stop(ac.currentTime + sec + 0.05);
   return ac.state;
+}
+
+/**
+ * 점검용 — 통 끝(destination 직전)에 귀를 하나 단다. 들을 수 없으니 **센다.**
+ * masterGain 과 맨소리 둘 다 여기로도 보낸다. 세기가 0 이면 그래프 안에서
+ * 죽은 것이고, 세기는 있는데 안 들리면 통 밖(기기가 이 통에 출력을 안 줌)이다.
+ */
+let 귀노드: AnalyserNode | null = null;
+function 귀(ac: AudioContext): AnalyserNode {
+  if (!귀노드 || 귀노드.context !== ac) {
+    귀노드 = ac.createAnalyser();
+    귀노드.fftSize = 2048;
+    masterGain?.connect(귀노드);
+  }
+  return 귀노드;
+}
+/** 지금 통 끝의 세기 0~255 와 통의 속사정 */
+export function 통사정() {
+  const ac = actx;
+  if (!ac) return { 세기: -1, 말: "통 없음" };
+  let 세기 = -1;
+  if (귀노드) {
+    const d = new Uint8Array(귀노드.frequencyBinCount);
+    귀노드.getByteFrequencyData(d);
+    세기 = Math.max(...d);
+  }
+  const b = (ac as AudioContext & { baseLatency?: number; outputLatency?: number });
+  return {
+    세기,
+    말: `${ac.state} · ${ac.sampleRate}Hz · 지연 ${((b.baseLatency ?? 0) * 1000).toFixed(0)}/${((b.outputLatency ?? 0) * 1000).toFixed(0)}ms · 채널 ${ac.destination.channelCount}/${ac.destination.maxChannelCount} · 시계 ${ac.currentTime.toFixed(1)}`,
+  };
+}
+/** 점검용 — 엔진 통을 아예 닫고 다음 손짓에 새로 만들게 한다 */
+export async function 통닫기() {
+  if (!actx) return;
+  try { await actx.close(); } catch { /* 닫혀 있어도 그만 */ }
+  actx = null; bus = null; masterGain = null; 귀노드 = null; hallNode = null; hallGain = null; noiseBuf = null; breathBuf = null; live = [];
 }
 
 if (typeof window !== "undefined") {

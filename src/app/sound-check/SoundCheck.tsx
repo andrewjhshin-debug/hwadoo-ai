@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
-import { soundStatus, strikeMoktak, 맨소리 } from "@/lib/sound";
+import { soundStatus, strikeMoktak, 맨소리, 통사정, 통닫기 } from "@/lib/sound";
 import { isSoundMuted, setSoundMuted } from "@/lib/soundPreference";
 
 /** 어느 판인지 — 형 폰이 새 코드인지 아닌지 이 여섯 자가 말한다 */
@@ -133,6 +133,7 @@ export default function SoundCheck() {
           setSoundMuted(false);
           const st = 맨소리(1.2);
           줄잡기((v) => [...v, `② 엔진 통 맨소리 → 통 ${st}`]);
+          window.setTimeout(() => { const r = 통사정(); 줄잡기((v) => [...v, `   ② 통 끝 세기 ${r.세기} · ${r.말}`]); }, 350);
         }}
         className="rounded-3xl border border-ink-3 py-7 text-[17px]"
       >
@@ -145,10 +146,29 @@ export default function SoundCheck() {
           strikeMoktak(0.8);
           const s = soundStatus();
           줄잡기((v) => [...v, `③ 진짜 목탁 → 통 ${s.context} · 음소거 ${s.muted ? "켜짐" : "꺼짐"}`]);
+          window.setTimeout(() => { const r = 통사정(); 줄잡기((v) => [...v, `   ③ 통 끝 세기 ${r.세기} · ${r.말}`]); }, 120);
         }}
         className="rounded-3xl border border-ink-3 py-7 text-[17px]"
       >
         ③ 진짜 목탁 (새 사슬)
+      </button>
+      {/* 형: 「이제 ①만 들려」 — ②가 압축기·잔향을 안 지나는데도 죽었다.
+          의심: ①이 만든 통과 엔진 통이 **둘** 살아 있어서 폰이 하나에만 출력을 준다.
+          ①의 통을 닫고 엔진 통도 닫은 뒤, 새 통 하나로 ②를 다시 낸다. 이게 나면 그 가설이 맞다. */}
+      <button
+        type="button"
+        onClick={async () => {
+          try { await ac.current?.close(); } catch { /* 이미 닫힘 */ }
+          ac.current = null;
+          await 통닫기();
+          setSoundMuted(false);
+          const st = 맨소리(1.2);
+          줄잡기((v) => [...v, `④ 통 다 닫고 새 통으로 → ${st}`]);
+          window.setTimeout(() => { const r = 통사정(); 줄잡기((v) => [...v, `   ④ 통 끝 세기 ${r.세기} · ${r.말}`]); }, 350);
+        }}
+        className="rounded-3xl border border-ink-3 py-7 text-[17px]"
+      >
+        ④ 통 다 닫고 다시 ②
       </button>
       <p className="text-center text-[14px] text-hanji-dim">{말}</p>
 
@@ -162,7 +182,7 @@ export default function SoundCheck() {
       </div>
 
       <div className="rounded-2xl bg-ink-1/40 px-4 py-4 text-[12px] leading-[1.9] text-hanji-dim">
-        <p>① ② ③ 셋 다 눌러 보고 뭐가 들렸는지 알려 주세요</p>
+        <p>① ② ③ ④ 다 눌러 보고 화면 찍어 주세요</p>
       </div>
     </main>
   );
