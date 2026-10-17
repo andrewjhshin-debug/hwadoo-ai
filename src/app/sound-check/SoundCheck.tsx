@@ -148,7 +148,7 @@ export default function SoundCheck() {
         }}
         className="rounded-3xl border border-ink-3 py-7 text-[17px]"
       >
-        ③ 진짜 목탁
+        ③ 진짜 목탁 (새 사슬)
       </button>
       <p className="text-center text-[14px] text-hanji-dim">{말}</p>
 

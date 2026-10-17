@@ -62,21 +62,16 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     statusBarStyle: "black-translucent",
   },
-  // 형: 「컴터 버전 파비콘 좀 다시 만들어줄래 모바일과 같이」
-  //
-  // 탭에는 분홍 연꽃 획(icon.svg)이, 홈 화면에는 동자가 있었다 —
-  // 같은 앱인데 얼굴이 둘이었다. 게다가 public/favicon.ico 는 리뉴얼
-  // 전의 **먹빛 법륜**이 그대로 남아 있어, 브라우저가 그걸 물면 세 번째
-  // 얼굴이 떴다. 홈 화면 아이콘(icon-512) 한 장에서 전부 다시 구웠다.
-  // 16px 칸은 둘레 여백을 걷어내고 잘랐다 — 안 그러면 점 하나로 뭉갠다.
+  // Approved gradient logo 04 (2026-10-17). All icon sizes share one master.
+  // Versioned asset paths avoid reusing the old lotus/character favicon cache.
   icons: {
     icon: [
-      { url: "/favicon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/brand/dongja-gradient-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/dongja-gradient-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/brand/dongja-gradient-v1/icon-192.png", type: "image/png", sizes: "192x192" },
     ],
-    shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    shortcut: "/brand/dongja-gradient-v1/favicon.ico",
+    apple: "/brand/dongja-gradient-v1/apple-touch-icon.png",
   },
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",

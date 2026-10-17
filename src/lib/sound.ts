@@ -242,26 +242,31 @@ function hall(ac: AudioContext): GainNode {
     hallNode.connect(wet);
     // 잔향도 압축기를 거친다. 예전엔 곧장 나가서, 빨리 칠 때 울림만
     // 따로 쌓여 찌그러졌다 — 정작 그걸 받으라고 둔 압축기를 비껴갔다.
-    wet.connect(master(ac));
+    // 잔향은 **길에서 뺐다.** 측정상 −50dB(안 들림)인데 형 갤럭시에서 ③ 목탁을
+    // 죽인 두 용의자 중 하나다(압축기와 함께). 컨볼버가 NaN 을 내면 섞이는 자리
+    // 전체가 무음이 된다. 보내는 쪽(send.connect(hall(ac))) 네 군데는 그대로 두고
+    // 받는 끝을 끊는다 — 오는 소리는 여기서 사라진다. 잔향을 살리려면 wet 을
+    // 8~12 로 올리고 normalize 를 끈 뒤 **폰에서** 다시 재야 한다.
+    // wet.connect(master(ac));  ← 끊음
   }
   return hallGain;
 }
 
 // 귀가 아프지 않게 — 세게 쳐도 찌그러지지 않도록 한 번 눌러 준다
-let bus: DynamicsCompressorNode | null = null;
+let bus: GainNode | null = null;
 let masterGain: GainNode | null = null;
-function master(ac: AudioContext): DynamicsCompressorNode {
+function master(ac: AudioContext): GainNode {
   if (!bus) {
-    bus = ac.createDynamicsCompressor();
-    bus.threshold.value = -12;
-    bus.knee.value = 20;
-    bus.ratio.value = 6;
-    bus.attack.value = 0.002;
-    bus.release.value = 0.18;
+    // 형 갤럭시 수사(2026-10-17)의 끝 — 사운드체크 ①②(통→스피커 직행)는 나고
+    // ③ 진짜 목탁만 안 났다. ③과 ②의 차이는 **이 사슬**뿐이었다: 압축기와 잔향.
+    // 둘 다 재 보니 귀에 안 들리는 기여였다(압축기 +1.5dB, 잔향 −50dB) —
+    // 그런데 형 폰에서는 소리를 통째로 먹었다. 들리지도 않는 것이 소리를
+    // 죽이면 그건 있을 자리가 없다. 압축기를 길에서 뺀다. masterGain 은 남는다 —
+    // 음소거 스위치가 이것 하나로 든다. 사슬은 이제 ②와 같다: 통 → gain → 스피커.
     masterGain = ac.createGain();
     masterGain.gain.value = isSoundMuted() ? 0 : 1;
-    bus.connect(masterGain);
     masterGain.connect(ac.destination);
+    bus = masterGain;
   }
   // 저장소 변경/계정 전환 후에도 UI의 음소거와 실제 gain이 어긋나지 않는다.
   const 꺼짐 = isSoundMuted();
