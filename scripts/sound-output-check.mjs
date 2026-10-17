@@ -39,6 +39,9 @@ await p.addInitScript(() => {
   };
 });
 await p.goto(집 + "/moktak", { waitUntil: "domcontentloaded", timeout: 60000 });
+// 이 자는 **WebAudio 길**을 잰다. 안드로이드 UA 는 이제 <audio> 길을 타므로 강제한다
+await p.evaluate(() => localStorage.setItem("hwadoo.sound-path", "webaudio"));
+await p.reload({ waitUntil: "domcontentloaded" });
 await p.waitForTimeout(6000);
 const 목탁 = p.locator('.hip-obj[aria-label="목탁 치기"]').first();
 if (!(await 목탁.count())) { console.log("목탁을 못 찾음"); await ctx.close(); process.exit(0); }

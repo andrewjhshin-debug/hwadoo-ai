@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
-import { soundStatus, strikeMoktak, 맨소리, 통사정, 통닫기 } from "@/lib/sound";
+import { soundStatus, strikeMoktak, 맨소리, 통사정, 통닫기, 소리길, set소리길 } from "@/lib/sound";
 import { isSoundMuted, setSoundMuted } from "@/lib/soundPreference";
 
 /** 어느 판인지 — 형 폰이 새 코드인지 아닌지 이 여섯 자가 말한다 */
@@ -170,6 +170,20 @@ export default function SoundCheck() {
       >
         ④ 통 다 닫고 다시 ②
       </button>
+      {/* 다른 길 — <audio> 태그. 맨 처음 사운드체크에서 음원 파일은 형 폰에서 났다.
+          안드로이드는 이제 목탁·죽비를 이 길로 튼다. 여기서는 길을 강제해 확인한다. */}
+      <button
+        type="button"
+        onClick={() => {
+          set소리길("element");
+          setSoundMuted(false);
+          strikeMoktak(0.8);
+          줄잡기((v) => [...v, `⑤ 음원 파일 길 목탁 → 길 ${소리길()}`]);
+        }}
+        className="rounded-3xl border border-gold/50 bg-gold/5 py-7 text-[17px]"
+      >
+        ⑤ 새 길로 목탁
+      </button>
       <p className="text-center text-[14px] text-hanji-dim">{말}</p>
 
       <div className="space-y-1 rounded-2xl border border-ink-3 p-4 text-[12px] leading-6 text-hanji-dim">
@@ -177,7 +191,7 @@ export default function SoundCheck() {
           <p key={i} className="break-words">{t}</p>
         ))}
         <p className="pt-1">설치 — {설치}</p>
-        <p>판 — {판} · {어느판()}</p>
+        <p>판 — {판} · {어느판()} · 길 {typeof window === "undefined" ? "" : 소리길()}</p>
         <p className="break-words">UA — {typeof window === "undefined" ? "" : navigator.userAgent.replace(/^Mozilla\/5\.0 /, "").slice(0, 90)}</p>
       </div>
 

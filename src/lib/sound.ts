@@ -454,6 +454,65 @@ if (typeof window !== "undefined") {
 //
 // 고른 소리는 목탁 화면이 서랍에 적어 두고(hwadu.moktak-sfx.v1) 여기에
 // 알려 준다. 둘 다 미리 받아 두지 않는다 — 쓰는 것만 받는다.
+// ─────────────────────────────────────────────────────────────
+// 다른 길 — <audio> 태그로 음원 파일을 튼다.
+//
+// 형: 「도대체 왜 안 날까, 다른 방식으로 접근해서 고쳐 봐」
+//
+// WebAudio 길을 여섯 번 다듬어도 형 갤럭시에서 엔진 소리가 안 났다.
+// 그런데 맨 처음 사운드체크에서 **음원 파일(<audio>)은 났다.** 그 길은
+// AudioContext 를 아예 안 거친다 — 브라우저가 가장 오래, 가장 널리 트는
+// 길이다. 느리고(수십 ms) 겹치면 둔하지만 **난다.** 안드로이드에서는
+// 목탁·죽비를 이 길로 보낸다. 되면 나머지 소리도 파일로 구워 이 길로.
+// 데스크톱은 그대로 WebAudio(또렷하고 빠르다).
+// ─────────────────────────────────────────────────────────────
+export type 소리길 = "element" | "webaudio";
+/** 어느 길로 트나 — localStorage hwadoo.sound-path 로 강제할 수 있다(점검용) */
+export function 소리길(): 소리길 {
+  if (typeof window === "undefined") return "webaudio";
+  const 강제 = window.localStorage.getItem("hwadoo.sound-path");
+  if (강제 === "element" || 강제 === "webaudio") return 강제;
+  return /Android/i.test(navigator.userAgent) ? "element" : "webaudio";
+}
+export function set소리길(v: 소리길 | null) {
+  if (v) window.localStorage.setItem("hwadoo.sound-path", v);
+  else window.localStorage.removeItem("hwadoo.sound-path");
+}
+/** 음원마다 넷을 돌려 쓴다 — 연타가 앞 소리를 끊지 않게 */
+const 엘리먼트들 = new Map<string, HTMLAudioElement[]>();
+const 엘리먼트수 = 4;
+function 엘리먼트치기(src: string, vol: number): boolean {
+  if (typeof window === "undefined") return false;
+  if (isSoundMuted()) {
+    음소거알림();
+    return false;
+  }
+  let 묶음 = 엘리먼트들.get(src);
+  if (!묶음) {
+    묶음 = Array.from({ length: 엘리먼트수 }, () => {
+      const a = new Audio(src);
+      a.preload = "auto";
+      (a as HTMLAudioElement & { playsInline?: boolean }).playsInline = true;
+      return a;
+    });
+    엘리먼트들.set(src, 묶음);
+  }
+  const a = 묶음.find((x) => x.paused || x.ended) ?? 묶음[0];
+  try {
+    a.volume = Math.max(0, Math.min(1, vol));
+    a.currentTime = 0;
+    void a.play().catch((e: unknown) => {
+      // 손짓 없이 틀면 브라우저가 막는다 — 그걸 화면에 말한다
+      if ((e as { name?: string })?.name === "NotAllowedError") 소리막힘알림("asleep", "no-gesture");
+      else console.warn("[화두 소리] 음원 재생 실패", e);
+    });
+    return true;
+  } catch (e) {
+    console.warn("[화두 소리] 음원 재생 실패", e);
+    return false;
+  }
+}
+
 export type MoktakVoice = "gongyu" | "hyung";
 const MOKTAK_URL: Record<MoktakVoice, string> = {
   gongyu: "/sfx/moktak.wav",
@@ -558,6 +617,10 @@ let live: { g: GainNode; src: AudioBufferSourceNode }[] = [];
 const VOICES = 8;
 
 export function strikeMoktak(vol: number) {
+  if (소리길() === "element") {
+    엘리먼트치기(MOKTAK_URL[moktakVoice], vol);
+    return;
+  }
   const ac = audio();
   if (!ac) return;
   if (!깬뒤에(ac, "strikeMoktak", () => void strikeMoktak(vol))) return;
@@ -1173,6 +1236,10 @@ export function wakeBreath() {
 //   꼬리는 2초 가까이 끈다. 절 한 번에 걸리는 시간이 그쯤이라, 다음 절을
 //   시작할 즈음 앞 소리가 막 사라진다.
 export function strikeJukbi(vol: number) {
+  if (소리길() === "element") {
+    엘리먼트치기("/sfx/jukbi.wav", vol);
+    return;
+  }
   const ac = audio();
   if (!ac) return;
   if (!깬뒤에(ac, "strikeJukbi", () => void strikeJukbi(vol))) return;
