@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="lotus" x1="256" y1="76" x2="256" y2="422" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EF7BA4"/>
+      <stop offset=".53" stop-color="#EF8DAA"/>
+      <stop offset=".76" stop-color="#AAC6BC"/>
+      <stop offset="1" stop-color="#5CC2AC"/>
+    </linearGradient>
+  </defs>
+  <g stroke="url(#lotus)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M256 76C190 137 158 241 256 366C354 241 322 137 256 76Z"/>
+    <path d="M256 420C148 433 76 376 52 276C144 264 222 309 256 420Z"/>
+    <path d="M256 420C364 433 436 376 460 276C368 264 290 309 256 420Z"/>
+  </g>
+  <circle cx="256" cy="381" r="8" fill="url(#lotus)"/>
+</svg>

@@ -62,16 +62,16 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     statusBarStyle: "black-translucent",
   },
-  // Approved gradient logo 04 (2026-10-17). All icon sizes share one master.
+  // Approved pink-to-mint lotus (2026-10-19). All sizes share one vector master.
   // Versioned asset paths avoid reusing the old lotus/character favicon cache.
   icons: {
     icon: [
-      { url: "/brand/dongja-gradient-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/brand/dongja-gradient-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/brand/dongja-gradient-v1/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/brand/lotus-gradient-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/lotus-gradient-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/brand/lotus-gradient-v1/icon-192.png", type: "image/png", sizes: "192x192" },
     ],
-    shortcut: "/brand/dongja-gradient-v1/favicon.ico",
-    apple: "/brand/dongja-gradient-v1/apple-touch-icon.png",
+    shortcut: "/brand/lotus-gradient-v1/favicon.ico",
+    apple: "/brand/lotus-gradient-v1/apple-touch-icon.png",
   },
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",
