@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { addMerit } from "@/lib/merit";
+import { createStepDetector, type StepDetector } from "@/lib/stepDetect";
 
 const KEY = "hwadu.walking.on";
 const STEP_METERS = 100;
@@ -14,19 +15,15 @@ const MERIT_STEPS = Math.ceil(STEP_METERS / WALKING_STEP_METERS);
 const WALK_MIN = 0.4; // m/s — 신호등 앞에 선 시간은 세지 않는다
 const WALK_MAX = 2.5; // m/s — 자전거·차량 이동은 세지 않는다
 
-// ── 걸음은 **가락**으로 가린다 ──────────────────────────────
-// 형: 「가만히 있는데 카운트되질 않나, 진짜 걸었는데 안 올라가질 않나」
+// ── 걸음 감지는 src/lib/stepDetect.ts 가 한다 ──────────────
+// 형: 「켜도 뭐 안 돼. 진짜 한 걸음으로 카운팅 되도록. 첨부터 다시 봐」
 //
-// 흔들림 한 번을 걸음 한 번으로 세고 있었다. 문턱이 0.07 m/s² —
-// 손에 쥐고만 있어도 넘는 수다. 그래서 책상에 두어도, 차에 앉아도 셌다.
-//
-// 걷기는 **반복**이다. 한 번의 충격은 걸음이 아니고, 비슷한 간격으로
-// 네 번 이어져야 걸음이다. 이어지기 전의 것은 세지 않고 쥐고 있다가,
-// 가락이 잡히면 그때 한꺼번에 센다. 끊기면 버린다.
-const 가락최소 = 300; // ms — 분당 200걸음보다 빠른 건 걷기가 아니다
-const 가락최대 = 1_000; // ms — 분당 60걸음보다 느린 건 서성임이다
-const 가락잡힘 = 4; // 이만큼 이어져야 걷는 것으로 본다
-
+// 여기 있던 고정 문턱(0.07 → 0.18 로 올렸다 내렸다)과 네 번 가락은 걷어냈다.
+// 손에 들고 화면을 보며 걸으면 충격이 0.1 m/s² 밖에 안 남아 문턱 아래였고,
+// 문턱을 내리면 가만히 있어도 셌다 — 숫자를 손으로 돌리는 방식의 한계다.
+// 이제 감지기가 최근 3초의 잡음을 스스로 재서 문턱을 정한다(자기 보정).
+// 가짜 걸음 흔적 34가지(손·주머니·가방·떨림·버스·계단·뛰기·꺼내 들기…)로
+// 돌려 보는 검사가 scripts/step-detect-check.mjs · step-detect-break.mjs 다.
 type Point = { lat: number; lon: number; at: number };
 
 function todayMeterKey() {
@@ -56,17 +53,13 @@ export default function WalkingMerit() {
   const last = useRef<Point | null>(null);
   const carry = useRef(0);
   const motionOn = useRef(false);
-  // 주머니에 비스듬히 든 폰은 중력의 `크기`가 거의 바뀌지 않는다.
-  // 그래서 크기 하나만 보던 예전 방식은 발걸음을 놓쳤다. 세 축 각각의
-  // 느린 기준점을 빼서, 어느 방향으로 꽂혀 있어도 발걸음의 충격만 남긴다.
-  const gravity = useRef({ x: 0, y: 0, z: 0, ready: false });
-  const noise = useRef(0.04);
-  const lastStepAt = useRef(0);
   const lastSensorStepAt = useRef(0);
-  const previousPulse = useRef(0);
-  const peakPulse = useRef(0);
-  /** 비슷한 간격으로 몇 번이나 이어졌나 — 걷기는 반복이다 */
-  const 가락 = useRef(0);
+  /** 걸음 감지기 — 센서 표본을 먹이면 걸음을 돌려준다 */
+  const 감지기 = useRef<StepDetector | null>(null);
+  /** 발자국 미터 — 움직임 세기(0~5 칸)와 「방금 한 걸음」 쿵 */
+  const [세기, 세기잡기] = useState(0);
+  const [쿵, 쿵잡기] = useState(false);
+  const 세기적은때 = useRef(0);
   const motionSeenAt = useRef(0);
   const motionStatusTimer = useRef<number | null>(null);
   const meritSteps = useRef(0);
@@ -95,66 +88,16 @@ export default function WalkingMerit() {
   };
 
   const onMotion = (event: DeviceMotionEvent) => {
-    if (!motionOn.current) return;
-    const acceleration = event.accelerationIncludingGravity;
-    if (!acceleration && !event.acceleration) return;
-    const x = acceleration?.x ?? 0;
-    const y = acceleration?.y ?? 0;
-    const z = acceleration?.z ?? 0;
-    const raw = event.acceleration;
-    const rawImpact = Math.hypot(raw?.x ?? 0, raw?.y ?? 0, raw?.z ?? 0);
+    if (!motionOn.current || !감지기.current) return;
+    const a = event.accelerationIncludingGravity;
+    if (!a || a.x === null || a.y === null || a.z === null) return;
     motionSeenAt.current = Date.now();
     if (motionStatusTimer.current !== null) {
       window.clearTimeout(motionStatusTimer.current);
       motionStatusTimer.current = null;
     }
-
-    if (!gravity.current.ready) {
-      gravity.current = { x, y, z, ready: true };
-      previousPulse.current = 0;
-      return;
-    }
-
-    // 0.92는 천천히 바뀌는 주머니 기울기는 따라가되, 한 걸음 충격은 남긴다.
-    gravity.current.x = gravity.current.x * 0.92 + x * 0.08;
-    gravity.current.y = gravity.current.y * 0.92 + y * 0.08;
-    gravity.current.z = gravity.current.z * 0.92 + z * 0.08;
-    const tiltedImpact = Math.hypot(
-      x - gravity.current.x,
-      y - gravity.current.y,
-      z - gravity.current.z,
-    );
-    const pulse = Math.max(tiltedImpact, rawImpact);
-    // 기기마다 센서 단위가 달라 고정 문턱만 쓰면 조용한 기기에서 안 센다.
-    // 가만히 있을 때의 흔들림을 기준으로 문턱을 낮게 따라가되, 걸음 중에는
-    // 기준이 지나치게 올라가지 않도록 0.28에서 막는다.
-    noise.current = noise.current * 0.96 + Math.min(pulse, 0.16) * 0.04;
-    // 바닥을 0.07 에서 0.18 로 올린다 — 0.07 은 손에 쥐고만 있어도 넘는다.
-    // 가락 검사가 뒤를 받치므로 문턱을 올려도 진짜 걸음은 안 놓친다
-    const threshold = Math.min(0.34, Math.max(0.18, noise.current * 1.65 + 0.06));
-    const now = Date.now();
-    const interval = now - lastStepAt.current;
-    if (pulse > previousPulse.current) {
-      peakPulse.current = Math.max(peakPulse.current, pulse);
-    } else if (pulse < previousPulse.current && peakPulse.current >= threshold) {
-      // 꼭대기를 지났다 — 걸음 **후보** 하나
-      const 이어짐 =
-        lastStepAt.current > 0 && interval >= 가락최소 && interval <= 가락최대;
-      if (이어짐) 가락.current += 1;
-      else 가락.current = 1; // 끊겼다 — 처음부터 다시 센다
-      lastStepAt.current = now;
-
-      if (가락.current >= 가락잡힘) {
-        // 가락이 막 잡힌 순간에는 쥐고 있던 후보까지 한꺼번에 센다
-        const 몫 = 가락.current === 가락잡힘 ? 가락잡힘 : 1;
-        lastSensorStepAt.current = now;
-        countSteps(몫);
-      }
-      peakPulse.current = 0;
-    }
-    // 한참 조용하면 가락은 끊긴 것이다
-    if (lastStepAt.current && now - lastStepAt.current > 가락최대 * 2) 가락.current = 0;
-    previousPulse.current = pulse;
+    // 감지기가 시간 간격으로 필터를 맞추므로 표본의 제 시각을 준다
+    감지기.current.feed(a.x, a.y, a.z, event.timeStamp || performance.now());
   };
 
   const startMotion = async () => {
@@ -172,22 +115,33 @@ export default function WalkingMerit() {
       }
     }
     motionOn.current = true;
-    lastStepAt.current = 0;
     lastSensorStepAt.current = 0;
-    previousPulse.current = 0;
-    peakPulse.current = 0;
-    gravity.current = { x: 0, y: 0, z: 0, ready: false };
-    noise.current = 0.04;
     motionSeenAt.current = 0;
+    감지기.current = createStepDetector({
+      onStep: (n) => {
+        lastSensorStepAt.current = Date.now();
+        countSteps(n);
+        // 발자국이 한 번 쿵 — 글자 없이 「잡혔다」가 보이게
+        쿵잡기(true);
+        window.setTimeout(() => 쿵잡기(false), 160);
+      },
+      onLevel: (v) => {
+        // 표본마다 오니(50~60Hz) 열 번에 한 번만 그린다
+        const now = Date.now();
+        if (now - 세기적은때.current < 100) return;
+        세기적은때.current = now;
+        세기잡기(Math.round(Math.max(0, Math.min(1, v)) * 5));
+      },
+    });
     motionListener.current = onMotion;
     window.addEventListener("devicemotion", onMotion, { passive: true });
     // 허용 버튼은 눌렀는데 센서 이벤트 자체가 끊긴 경우를 "민감도 문제"로
     // 착각하지 않게, 원인을 화면에서 바로 알려 준다.
     motionStatusTimer.current = window.setTimeout(() => {
       if (!motionSeenAt.current) {
-        setNotice("걸음 센서 신호가 들어오지 않아요. 휴대폰 설정에서 '신체 활동' 권한을 허용해 주세요.");
+        setNotice("센서 신호가 안 들어와요 — 크롬 ⓘ → 사이트 설정 → 동작 센서");
       }
-    }, 7_000);
+    }, 3_000);
   };
 
   const stop = () => {
@@ -195,15 +149,12 @@ export default function WalkingMerit() {
     watch.current = null;
     last.current = null;
     carry.current = 0;
-    lastStepAt.current = 0;
     lastSensorStepAt.current = 0;
-    previousPulse.current = 0;
-    peakPulse.current = 0;
-    gravity.current = { x: 0, y: 0, z: 0, ready: false };
     if (motionStatusTimer.current !== null) window.clearTimeout(motionStatusTimer.current);
     motionStatusTimer.current = null;
     motionOn.current = false;
-    가락.current = 0;
+    감지기.current = null;
+    세기잡기(0);
     놓기();
     if (motionListener.current) window.removeEventListener("devicemotion", motionListener.current);
     motionListener.current = null;
@@ -328,7 +279,11 @@ export default function WalkingMerit() {
         <span>오늘 걸음</span>
       </div>
       <p className="walking-merit-distance">{(meters / 1000).toFixed(1)} km 걸었습니다</p>
-      <div className="walking-merit-track" aria-hidden><i /><i /><i /><i /><i /></div>
+      {/* 발자국 다섯 = 살아 있는 미터. 센서가 오면 세기만큼 켜지고 걸음이 잡히면 쿵.
+          켰는데 안 움직이면 센서가 안 오는 것, 움직이는데 숫자가 안 오르면 감지기 — 보면 안다 */}
+      <div className="walking-merit-track" aria-hidden data-step={쿵 ? "1" : undefined}>
+        {[1, 2, 3, 4, 5].map((k) => <i key={k} data-lit={on && 세기 >= k ? "1" : undefined} />)}
+      </div>
       <button type="button" onClick={on ? stop : begin} aria-pressed={on} className="walking-merit-toggle">
         <span className="walking-merit-dot" data-on={on ? "1" : undefined} />
         {on ? "포행 멈추기" : "포행 시작"}

@@ -89,6 +89,14 @@ html[data-theme="light"] body {
 .walking-merit-track { display: flex; justify-content: center; gap: 16px; margin: 30px 0; }
 .walking-merit-track i { display: block; width: 8px; height: 13px; border-radius: 70% 40% 65% 45%; background: #ef7ba4; opacity: .28; transform: rotate(-20deg); }
 .walking-merit-track i:nth-child(even) { margin-top: 11px; background: #5cc2ac; transform: rotate(20deg); }
+/* 발자국 다섯이 **살아 있는 미터**다 — 형: 「켜도 뭐 안 돼」. 센서가 오면 움직임
+   세기만큼 발자국이 켜지고, 걸음이 잡히면 한 번 쿵 한다. 글자 없이 보인다.
+   꺼져 있거나 센서가 안 오면 전부 흐리다 — 그게 곧 「신호 없음」이다. */
+.walking-merit-track i { transition: opacity .12s, transform .12s; }
+.walking-merit-track i[data-lit="1"] { opacity: 1; }
+.walking-merit-track[data-step="1"] i[data-lit="1"]:last-of-type,
+.walking-merit-track[data-step="1"] i[data-lit="1"] { transform: scale(1.35) rotate(-20deg); }
+.walking-merit-track[data-step="1"] i:nth-child(even)[data-lit="1"] { transform: scale(1.35) rotate(20deg); }
 .walking-merit-page .walking-merit-toggle { min-width: 178px; min-height: 46px; justify-content: center; border-color: rgba(217, 180, 91, .64); background: #1c1a17; color: #f7efe1; font-size: 13px; }
 .walking-merit-page .walking-merit-toggle[aria-pressed="true"] { border-color: #ef7ba4; background: #ef7ba4; color: #fff; }
 .walking-merit-page .walking-merit-dot { background: #e8c666; }
