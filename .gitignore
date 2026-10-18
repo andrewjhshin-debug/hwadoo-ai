@@ -58,3 +58,5 @@ _*.mjs
 
 # 점검용 크롬 프로필 — 저장소에 들어가면 안 된다
 .chromeprof*/
+walk.png
+*.png.tmp
