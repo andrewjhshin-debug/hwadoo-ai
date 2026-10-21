@@ -66,12 +66,12 @@ export const metadata: Metadata = {
   // Versioned asset paths avoid reusing the old lotus/character favicon cache.
   icons: {
     icon: [
-      { url: "/brand/lotus-gradient-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/brand/lotus-gradient-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/brand/lotus-gradient-v1/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/brand/lotus-gradient-dark-v2/icon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/brand/lotus-gradient-dark-v2/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/lotus-gradient-dark-v2/favicon-32.png", type: "image/png", sizes: "32x32" },
     ],
-    shortcut: "/brand/lotus-gradient-v1/favicon.ico",
-    apple: "/brand/lotus-gradient-v1/apple-touch-icon.png",
+    shortcut: "/brand/lotus-gradient-dark-v2/favicon.ico",
+    apple: "/brand/lotus-gradient-dark-v2/apple-touch-icon.png",
   },
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",

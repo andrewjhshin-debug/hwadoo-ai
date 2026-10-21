@@ -5,6 +5,8 @@ import sharp from "sharp";
 
 const input = process.argv[2] ?? "design/brand/2026-10-17/logo04-master.png";
 const output = process.argv[3] ?? "public/brand/dongja-gradient-v1";
+const platformBackground = process.argv[4] ?? "#fbfaf8";
+const opaqueInstall = process.argv.includes("--opaque-install");
 await fs.mkdir(output, { recursive: true });
 const source = input.endsWith(".svg") ? await sharp(input, { density: 384 }).png().toBuffer() : await fs.readFile(input);
 const meta = await sharp(source).metadata();
@@ -18,13 +20,13 @@ const plain = async size => {
 const opaque = async (size, safe = false) => {
   const inner = safe ? Math.round(size * .82) : size;
   const mark = await plain(inner);
-  return sharp({ create: { width: size, height: size, channels: 4, background: "#fbfaf8" } })
-    .composite([{ input: mark, gravity: "centre" }]).flatten({ background: "#fbfaf8" }).png().toBuffer();
+  return sharp({ create: { width: size, height: size, channels: 4, background: platformBackground } })
+    .composite([{ input: mark, gravity: "centre" }]).flatten({ background: platformBackground }).png().toBuffer();
 };
 const outputs = new Map();
 for (const size of [16, 32, 180, 192, 512]) {
   const name = size === 16 || size === 32 || size === 180 ? `favicon-${size}.png` : `icon-${size}.png`;
-  outputs.set(name, await plain(size));
+  outputs.set(name, opaqueInstall && size >= 192 ? await opaque(size) : await plain(size));
 }
 outputs.set("apple-touch-icon.png", await opaque(180));
 outputs.set("icon-512-maskable.png", await opaque(512, true));
@@ -54,7 +56,7 @@ for (const [name] of outputs) {
   if (!name.endsWith(".png")) continue;
   const file = path.join(output, name);
   const info = await sharp(file).metadata();
-  const opaqueFile = name.includes("maskable") || name.includes("apple-touch");
+  const opaqueFile = name.includes("maskable") || name.includes("apple-touch") || (opaqueInstall && name.startsWith("icon-"));
   if (opaqueFile && (await sharp(file).ensureAlpha().stats()).channels.at(-1).min !== 255) throw new Error(`${name}: expected opaque platform background`);
   console.log(`${name}: ${info.width}x${info.height}, alpha=${info.hasAlpha}`);
 }
