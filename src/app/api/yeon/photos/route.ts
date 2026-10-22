@@ -13,7 +13,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { FieldPath, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { ADMIN_UID, isAdminAccount } from "@/lib/config";
 import { isYeonPhotoPath, isYeonProofPath, shortPhotoUrl } from "@/lib/yeonPhotoServer";
@@ -39,13 +39,14 @@ export async function GET(req: Request) {
     (me.verified && isAdminAccount({ uid: me.uid, email: me.email }));
   if (!뒷방) return Response.json({ error: "not-admin" }, { status: 403 });
 
-  // 사진 칸이 있는 프로필만. 수가 늘면 여기서부터 페이지를 나눈다
-  // (ponytail: 지금은 몇 백이라 한 번에 읽는다. 천을 넘으면 커서로)
-  const snap = await getFirestore(app)
-    .collection("yeon-profiles")
-    .limit(600)
-    .get()
-    .catch(() => null);
+  const after = new URL(req.url).searchParams.get("after") ?? "";
+  if (after && !/^[A-Za-z0-9_-]{1,128}$/.test(after)) return Response.json({ error: "bad-cursor" }, { status: 400 });
+  // Bound reads and URL signing per request. Always offer a cursor, even when a
+  // scanned page contains no pending photos, so later signups cannot starve.
+  const pageSize = 40;
+  let query = getFirestore(app).collection("yeon-profiles").orderBy(FieldPath.documentId());
+  if (after) query = query.startAfter(after);
+  const snap = await query.select("name", "state", "photos", "photoProof").limit(pageSize).get();
 
   const 줄: {
     uid: string;
@@ -78,5 +79,7 @@ export async function GET(req: Request) {
       proof: proofUrl && proof?.path ? { path: proof.path, url: proofUrl, gesture: proof.gesture ?? "" } : undefined,
     });
   }
-  return Response.json({ rows: 줄, total: 줄.reduce((a, r) => a + r.photos.length, 0) });
+  return Response.json({ rows: 줄, total: 줄.reduce((a, r) => a + r.photos.length, 0),
+    nextCursor: snap.size === pageSize ? snap.docs.at(-1)!.id : null,
+  }, { headers: { "Cache-Control": "private, no-store" } });
 }

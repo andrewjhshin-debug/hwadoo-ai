@@ -723,13 +723,27 @@ export default function AdminPage() {
     { uid: string; name: string; state?: string; photos: { path: string; url: string }[]; proof?: { path: string; url: string; gesture: string } }[]
   >([]);
   const [사진잠금말, 사진잠금말잡기] = useState("");
-  const 사진줄읽기 = useCallback(async () => {
+  const [사진다음, 사진다음잡기] = useState<string | null>(null);
+  const [사진읽는중, 사진읽는중잡기] = useState(false);
+  const 사진읽기잠금 = useRef(false);
+  const 사진줄읽기 = useCallback(async (after = "") => {
     const u = auth.currentUser;
-    if (!u) return;
-    const r = await fetch("/api/yeon/photos", {
-      headers: { authorization: `Bearer ${await u.getIdToken()}` },
-    }).then((x) => x.json()).catch(() => null);
-    사진줄잡기(Array.isArray(r?.rows) ? r.rows : []);
+    if (!u || 사진읽기잠금.current) return;
+    사진읽기잠금.current = true;
+    사진읽는중잡기(true);
+    try {
+      const response = await fetch(`/api/yeon/photos${after ? `?after=${encodeURIComponent(after)}` : ""}`, {
+        headers: { authorization: `Bearer ${await u.getIdToken()}` },
+        signal: AbortSignal.timeout(25_000), cache: "no-store",
+      });
+      if (!response.ok) throw new Error("심사 목록을 읽지 못했습니다. 다시 시도해 주세요.");
+      const r = await response.json();
+      사진줄잡기(Array.isArray(r?.rows) ? r.rows : []);
+      사진다음잡기(typeof r.nextCursor === "string" ? r.nextCursor : null);
+      사진잠금말잡기("");
+    } catch {
+      사진잠금말잡기("심사 목록을 읽지 못했습니다. 처음부터 새로고침하거나 다시 시도해 주세요.");
+    } finally { 사진읽기잠금.current = false; 사진읽는중잡기(false); }
   }, []);
   useEffect(() => { if (isAdmin) void 사진줄읽기(); }, [isAdmin, 사진줄읽기]);
 
@@ -1872,9 +1886,13 @@ export default function AdminPage() {
               </button>
             </div>
             {사진잠금말 && <p className="mt-2 text-[11px] text-hanji-faint">{사진잠금말}</p>}
+            <div className="my-3 flex gap-3">
+              <button disabled={사진읽는중} className={smallBtn} onClick={() => void 사진줄읽기()}>처음부터 새로고침</button>
+              <button disabled={사진읽는중 || !사진다음} className={smallBtn} onClick={() => 사진다음 && void 사진줄읽기(사진다음)}>{사진읽는중 ? "읽는 중" : "다음 등록자 확인"}</button>
+            </div>
             {사진줄.length === 0 ? (
               <p className="mt-3 text-sm text-hanji-faint">
-                기다리는 사진이 없습니다.
+                {사진다음 ? "이 구간에 대기 사진이 없습니다. 다음 등록자를 확인해 주세요." : "이 구간의 대기 사진이 없습니다."}
               </p>
             ) : (
               <ul className="mt-3 space-y-5">

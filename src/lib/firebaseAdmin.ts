@@ -12,6 +12,7 @@ import {
   type ServiceAccount,
 } from "firebase-admin/app";
 import type { Firestore } from "firebase-admin/firestore";
+import { PHOTO_BUCKET } from "./storageConfig";
 
 // FCM sendEach 도, Firestore 일괄 쓰기도 한 번에 500개까지
 export const BATCH = 500;
@@ -30,7 +31,7 @@ export function adminApp(): App | null {
     if (typeof account.private_key === "string") {
       account.private_key = account.private_key.replace(/\\n/g, "\n");
     }
-    return initializeApp({ credential: cert(account) });
+    return initializeApp({ credential: cert(account), storageBucket: PHOTO_BUCKET });
   } catch {
     return null;
   }

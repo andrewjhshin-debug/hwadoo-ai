@@ -10,14 +10,16 @@ const READ_FOR_MS = 5 * 60_000;
 export function isYeonPhotoPath(uid: string, value: unknown): value is string {
   return typeof value === "string"
     && value.startsWith(`yeon/${uid}/`)
-    && /^[A-Za-z0-9._/-]{1,220}$/.test(value);
+    && /^[A-Za-z0-9._/-]{1,220}$/.test(value)
+    && /^[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)$/.test(value.slice(`yeon/${uid}/`.length));
 }
 
 /** 즉석 인증 사진은 공개 프로필 사진과 다른, 비공개 칸에만 둔다. */
 export function isYeonProofPath(uid: string, value: unknown): value is string {
   return typeof value === "string"
     && value.startsWith(`yeon-proof/${uid}/`)
-    && /^[A-Za-z0-9._/-]{1,220}$/.test(value);
+    && /^[A-Za-z0-9._/-]{1,220}$/.test(value)
+    && /^[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)$/.test(value.slice(`yeon-proof/${uid}/`.length));
 }
 
 export async function shortPhotoUrl(app: App, path: string): Promise<string | null> {

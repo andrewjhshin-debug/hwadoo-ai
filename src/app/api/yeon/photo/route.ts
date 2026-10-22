@@ -6,7 +6,8 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { adminApp } from "@/lib/firebaseAdmin";
-import { isYeonPhotoPath, revokeLegacyPhotoUrl, shortPhotoUrl } from "@/lib/yeonPhotoServer";
+import { isYeonPhotoPath, shortPhotoUrl } from "@/lib/yeonPhotoServer";
+import { appendPendingPhoto, photoList, validPhotoMetadata } from "@/lib/yeonPhotoPolicy";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -33,22 +34,28 @@ export async function POST(req: Request) {
 
   // 실제로 방금 자기 칸에 올라온 파일인지 확인한다. URL 문자열만 만들어
   // 외부 그림을 심사 줄에 섞는 일도 막는다.
-  const [exists] = await getStorage(who.app).bucket().file(path).exists().catch(() => [false]);
-  if (!exists) return Response.json({ error: "missing-file" }, { status: 404 });
+  try {
+    const [meta] = await getStorage(who.app).bucket().file(path).getMetadata();
+    if (!validPhotoMetadata(meta.size, meta.contentType))
+      return Response.json({ error: "invalid-file" }, { status: 400 });
+  } catch (error) {
+    const missing = (error as { code?: number }).code === 404;
+    console.error("yeon-photo-metadata", { code: (error as { code?: unknown }).code });
+    return Response.json({ error: missing ? "missing-file" : "storage-unavailable" }, { status: missing ? 404 : 503 });
+  }
 
   const db = getFirestore(who.app);
   const ref = db.doc(`yeon-profiles/${who.uid}`);
-  const current = await ref.get();
-  const data = current.data() ?? {};
-  const photos = Array.isArray(data.photos) ? data.photos : [];
-  if (photos.some((photo: { path?: unknown }) => photo?.path === path))
-    return Response.json({ ok: true, again: true });
-  if (photos.length >= 5) return Response.json({ error: "photo-limit" }, { status: 409 });
-
-  await ref.set(
+  try {
+    const result = await db.runTransaction(async tx => {
+      const current = await tx.get(ref);
+      const data = current.data() ?? {};
+      const next = appendPendingPhoto(data.photos, path, Date.now());
+      if (next.again || next.full) return next;
+      tx.set(ref,
     {
       uid: who.uid,
-      photos: [...photos, { path, state: "pending", at: typeof body?.at === "number" ? body.at : Date.now() }],
+      photos: next.photos,
       // 새 사진은 즉석 인증까지 통과해야 공개 카드에 설 수 있다. 기존
       // 이용자는 갑자기 감추지 않되, 이 시점 이후 새로 올린 사진부터 적용한다.
       photoProofRequired: true,
@@ -56,8 +63,15 @@ export async function POST(req: Request) {
       state: data.state === "활동" || data.state === "쉼" || data.state === "정지" ? data.state : "심사중",
     },
     { merge: true },
-  );
-  return Response.json({ ok: true });
+      );
+      return next;
+    });
+    if (result.full) return Response.json({ error: "photo-limit" }, { status: 409 });
+    return Response.json({ ok: true, again: result.again });
+  } catch (error) {
+    console.error("yeon-photo-register", { code: (error as { code?: unknown }).code });
+    return Response.json({ error: "temporarily-unavailable" }, { status: 503 });
+  }
 }
 
 /** 내 사진 미리보기 — 본인 인증 뒤에만 짧은 주소를 발급한다. */
@@ -71,7 +85,7 @@ export async function GET(req: Request) {
     const url = await shortPhotoUrl(who.app, photo.path);
     return url ? { path: photo.path, url, state: photo.state ?? "pending", at: photo.at } : null;
   }));
-  return Response.json({ photos: visible.filter(Boolean) });
+  return Response.json({ photos: visible.filter(Boolean) }, { headers: { "Cache-Control": "private, no-store" } });
 }
 
 export async function DELETE(req: Request) {
@@ -82,19 +96,22 @@ export async function DELETE(req: Request) {
   if (!path) return Response.json({ error: "bad-photo" }, { status: 400 });
   const db = getFirestore(who.app);
   const ref = db.doc(`yeon-profiles/${who.uid}`);
-  const current = await ref.get();
-  if (!current.exists) return Response.json({ error: "no-profile" }, { status: 404 });
-  const photos = Array.isArray(current.data()?.photos) ? current.data()!.photos : [];
-  const next = photos.filter((photo: { path?: unknown }) => photo?.path !== path);
-  const approved = next.filter((photo: { state?: unknown }) => photo?.state === "ok").length;
-  await ref.set(
+  const found = await db.runTransaction(async tx => {
+    const current = await tx.get(ref);
+    if (!current.exists) return false;
+    const next = photoList(current.data()?.photos).filter(photo => photo.path !== path);
+    const approved = next.filter(photo => photo.state === "ok").length;
+    tx.set(ref,
     {
       photos: next,
       approvedPhotoCount: approved,
-      state: approved === 0 && current.data()?.state === "활동" ? "심사중" : current.data()?.state,
+      state: approved === 0 && current.data()?.state === "활동" ? "심사중" : current.data()?.state ?? "심사중",
     },
     { merge: true },
-  );
+    );
+    return true;
+  });
+  if (!found) return Response.json({ error: "no-profile" }, { status: 404 });
   await getStorage(who.app).bucket().file(path).delete().catch(() => {});
   return Response.json({ ok: true });
 }

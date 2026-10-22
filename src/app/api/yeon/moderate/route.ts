@@ -75,6 +75,9 @@ export async function POST(req: Request) {
   // 사진의 통과·거부는 **서버만** 한다. 그게 이 길이다.
   if (act === "photo-ok" || act === "photo-no") {
     if (!path) return Response.json({ error: "bad-path" }, { status: 400 });
+    const result = await db.runTransaction(async tx => {
+    const s = await tx.get(칸);
+    if (!s.exists) return Response.json({ error: "no-profile" }, { status: 404 });
     const photos = (s.data()!.photos ?? []) as { path?: string; state?: string }[];
     if (!photos.some((f) => f.path === path))
       return Response.json({ error: "no-photo" }, { status: 404 });
@@ -96,13 +99,20 @@ export async function POST(req: Request) {
       : act === "photo-ok" && currentState === "심사중" && basics && proofOk
         ? "활동"
         : currentState;
-    await 칸.set({ photos: nextPhotos, approvedPhotoCount: approved, state }, { merge: true });
-    await revokeLegacyPhotoUrl(app, path).catch(() => {});
-    await adminAudit(db, { by: me.uid, action: act, target: uid, detail: { path, approved } }).catch(() => {});
+    tx.set(칸, { photos: nextPhotos, approvedPhotoCount: approved, state }, { merge: true });
     return Response.json({ ok: true, state: act === "photo-ok" ? "ok" : "no", profileState: state });
+    });
+    if (result.ok) {
+      await revokeLegacyPhotoUrl(app, path).catch(() => {});
+      await adminAudit(db, { by: me.uid, action: act, target: uid, detail: { path } }).catch(() => {});
+    }
+    return result;
   }
 
   if (act === "proof-ok" || act === "proof-no") {
+    const result = await db.runTransaction(async tx => {
+    const s = await tx.get(칸);
+    if (!s.exists) return Response.json({ error: "no-profile" }, { status: 404 });
     const proof = s.data()!.photoProof as { path?: string; state?: string } | undefined;
     if (!proof?.path || proof.state !== "pending") return Response.json({ error: "no-proof" }, { status: 404 });
     const profile = s.data()!;
@@ -114,14 +124,19 @@ export async function POST(req: Request) {
       && typeof profile.line === "string" && profile.line.trim().length > 0;
     const state = act === "proof-ok" && profile.state === "심사중" && basics && approved > 0 && !profile.reportHold
       ? "활동" : profile.state;
-    await 칸.set({ photoProof: { ...proof, state: act === "proof-ok" ? "ok" : "no" }, state }, { merge: true });
-    await adminAudit(db, { by: me.uid, action: act, target: uid }).catch(() => {});
+    tx.set(칸, { photoProof: { ...proof, state: act === "proof-ok" ? "ok" : "no" }, state }, { merge: true });
     return Response.json({ ok: true, state: act === "proof-ok" ? "ok" : "no", profileState: state });
+    });
+    if (result.ok) await adminAudit(db, { by: me.uid, action: act, target: uid }).catch(() => {});
+    return result;
   }
 
   if (act === "photos-off") {
+    const result = await db.runTransaction(async tx => {
+    const s = await tx.get(칸);
+    if (!s.exists) return Response.json({ error: "no-profile" }, { status: 404 });
     const photos = (s.data()!.photos ?? []) as { state?: string }[];
-    await 칸.set(
+    tx.set(칸,
       {
         photos: photos.map((f) => ({ ...f, state: "no" })),
         approvedPhotoCount: 0,
@@ -130,8 +145,10 @@ export async function POST(req: Request) {
       },
       { merge: true }
     );
-    await adminAudit(db, { by: me.uid, action: act, target: uid, detail: { photos: photos.length } }).catch(() => {});
     return Response.json({ ok: true, photos: photos.length });
+    });
+    if (result.ok) await adminAudit(db, { by: me.uid, action: act, target: uid }).catch(() => {});
+    return result;
   }
 
   await 칸.set(

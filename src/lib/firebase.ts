@@ -9,6 +9,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 import { getStorage } from "firebase/storage";
+import { PHOTO_BUCKET } from "./storageConfig";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAdNMHbhnjJqyB5i6rhF8SxpouTuqqN4OE",
@@ -20,7 +21,7 @@ const firebaseConfig = {
   databaseURL:
     "https://hwadu-9dc7b-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "hwadu-9dc7b",
-  storageBucket: "hwadu-9dc7b.firebasestorage.app",
+  storageBucket: PHOTO_BUCKET,
   messagingSenderId: "107600530616",
   appId: "1:107600530616:web:e14ae88f504ee14b93f84d",
 };

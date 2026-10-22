@@ -54,6 +54,8 @@ export default function 인연내프로필() {
   const [me, setMe] = useState<인연프로필 | null>(null);
   const [있나, 있나잡기] = useState<boolean | null>(null);
   const [올리는중, 올리는중잡기] = useState(false);
+  const 사진잠금 = useRef(false);
+  const [사진진행, 사진진행잡기] = useState("");
   const [탈, 탈잡기] = useState("");
   const 파일 = useRef<HTMLInputElement | null>(null);
   const [인증, 인증잡기] = useState<인증도전 | null>(null);
@@ -95,6 +97,9 @@ export default function 인연내프로필() {
     try {
       const p = await 내프로필();
       setMe(p);
+      if (p?.photos?.length && p.photos.every(photo => !photo.url)) {
+        탈잡기(prior => prior || "등록된 사진의 미리보기를 불러오지 못했어요. 새로고침 후에도 같으면 문의해 주세요.");
+      }
       if (p?.name) 법명잡기(p.name);
       else void 법명맞추기(p);
     } catch (e) {
@@ -130,8 +135,10 @@ export default function 인연내프로필() {
         // 방금 섰다는 것은 말해 준다 — 조용히 서면 선 줄을 모른다
         탈잡기("");
       }
+      return true;
     } catch (e) {
       탈잡기(e instanceof Error ? e.message : "저장하지 못했습니다");
+      return false;
     }
   };
 
@@ -157,8 +164,7 @@ export default function 인연내프로필() {
     저장중잡기(true);
     저장됨잡기(false);
     try {
-      await 고치기({});
-      저장됨잡기(true);
+      if (await 고치기({})) 저장됨잡기(true);
       window.setTimeout(() => 저장됨잡기(false), 2200);
     } finally {
       저장중잡기(false);
@@ -173,15 +179,17 @@ export default function 인연내프로필() {
   const 장수 = me?.photos?.length ?? 0;
 
   const 사진고르기 = async (fs: FileList | null) => {
-    if (!fs?.length) return;
+    if (!fs?.length || 사진잠금.current) return;
+    사진잠금.current = true;
     탈잡기("");
     올리는중잡기(true);
     try {
       const 이미 = me?.photos ?? [];
       const 받을 = Array.from(fs).slice(0, Math.max(0, 사진칸 - 이미.length));
       const 새것 = [];
-      for (const f of 받을) {
-        새것.push(await 사진올리기(f));
+      for (const [index, f] of 받을.entries()) {
+        사진진행잡기(`${index + 1}/${받을.length}장 · 사진 준비 중`);
+        새것.push(await 사진올리기(f, percent => 사진진행잡기(`${index + 1}/${받을.length}장 · ${percent === 100 ? "등록 확인 중" : `${percent}%`}`)));
         // **한 장 굽고 한 번 쉰다.**
         // 잇달아 구우면 앞엣것이 아직 안 치워졌는데 다음 것을 편다 —
         // 폰에서 판 그리는 일꾼이 거기서 죽는다(형이 본 그 창).
@@ -190,14 +198,14 @@ export default function 인연내프로필() {
       }
       // 심사 줄에는 사진올리기()가 서버를 통해 직접 적는다. 여기서 배열을
       // 다시 쓰면 브라우저가 승인 상태를 바꿀 수 있는 문이 도로 열린다.
-      if (새것.length) await 다시읽기();
+      // 목록 갱신은 finally에서 성공·부분 실패 모두 한 번만 한다.
     } catch (e) {
-      // 사진 실패 사유(저장소 코드 등)는 프로필 화면에 내보이지 않는다.
-      // 재시도는 할 수 있게 두되, 사용자가 "까닭 모름" 같은 내부 문구를
-      // 보게 하지 않는다.
-      console.warn("인연 사진 업로드 실패", e);
-      탈잡기("");
+      탈잡기(e instanceof Error ? e.message : "사진을 올리지 못했어요. 다시 시도해 주세요.");
     } finally {
+      // Earlier successful photos must appear even if a later file failed.
+      await 다시읽기();
+      사진잠금.current = false;
+      사진진행잡기("");
       올리는중잡기(false);
       if (파일.current) 파일.current.value = "";
     }
@@ -212,11 +220,13 @@ export default function 인연내프로필() {
   };
   const 인증사진고르기 = async (fs: FileList | null, 바로?: File) => {
     const file = 바로 ?? fs?.[0];
-    if (!file || !인증) return;
+    if (!file || !인증 || 사진잠금.current) return;
+    사진잠금.current = true;
+    사진진행잡기("인증 사진 준비 중");
     올리는중잡기(true);
-    try { await 인증사진올리기(file, 인증); 인증잡기(null); await 다시읽기(); }
+    try { await 인증사진올리기(file, 인증, percent => 사진진행잡기(`인증 사진 · ${percent === 100 ? "등록 확인 중" : `${percent}%`}`)); 인증잡기(null); await 다시읽기(); }
     catch (e) { 탈잡기(e instanceof Error ? e.message : "인증 사진을 올리지 못했습니다"); }
-    finally { 올리는중잡기(false); }
+    finally { 사진잠금.current = false; 사진진행잡기(""); 올리는중잡기(false); }
   };
 
   if (있나 === false)
@@ -328,6 +338,7 @@ export default function 인연내프로필() {
             </div>
           )}
 
+          {사진진행 && <p role="status" aria-live="polite" className="mt-3 text-center text-xs text-hanji-dim">{사진진행}</p>}
           <input
             ref={파일}
             type="file"
@@ -448,7 +459,8 @@ export default function 인연내프로필() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={f.url} alt="" />
                     <button
-                      onClick={() => void 사진빼기(f.path).then(() => 다시읽기())}
+                      disabled={올리는중}
+                      onClick={() => void 사진빼기(f.path).then(() => 다시읽기()).catch(error => 탈잡기(error instanceof Error ? error.message : "사진을 지우지 못했어요."))}
                       aria-label="사진 빼기"
                     >
                       ✕

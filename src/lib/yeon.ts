@@ -20,8 +20,8 @@ import {
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
-import { auth, db, storage } from "@/lib/firebase";
-import { ref as sref, uploadBytes } from "firebase/storage";
+import { auth, db } from "@/lib/firebase";
+import { uploadPhotoBytes, registerPhoto, photoError, type PhotoProgress } from "./yeonUpload";
 import { pingPush } from "@/lib/dm";
 
 /** 사진 한 장 */
@@ -230,6 +230,8 @@ export async function 내프로필(): Promise<인연프로필 | null> {
   // 주소로만 미리 본다. 실패해도 프로필 편집 자체는 멈추지 않는다.
   const signed = await fetch("/api/yeon/photo", {
     headers: { authorization: `Bearer ${await u.getIdToken()}` },
+    signal: AbortSignal.timeout(12_000),
+    cache: "no-store",
   })
     .then((r) => r.ok ? r.json() : null)
     .catch(() => null);
@@ -286,7 +288,8 @@ export async function 프로필저장(
  * 그때 막는다.
  */
 async function 다시굽기(file: File): Promise<{ 짐: Blob; 종류: string; 끝: string }> {
-  const 통째 = { 짐: file as Blob, 종류: file.type, 끝: "jpg" };
+  if (file.size === 0 || file.size > 40 * 1024 * 1024)
+    throw new Error("빈 파일이거나 너무 큰 사진입니다. 40MB 이하 사진을 선택해 주세요.");
 
   // 긴 변 한도. 형: 「사진 왜 누리끼리하지? 원본대로 올라가도록」
   //
@@ -363,25 +366,26 @@ async function 다시굽기(file: File): Promise<{ 짐: Blob; 종류: string; �
       const img = new Image();
       img.decoding = "async";
       await new Promise<void>((ok, no) => {
-        img.onload = () => ok();
-        img.onerror = () => no(new Error("못 연다"));
+        const timer = setTimeout(() => { img.src = ""; no(new Error("사진 열기 시간 초과")); }, 20_000);
+        img.onload = () => { clearTimeout(timer); ok(); };
+        img.onerror = () => { clearTimeout(timer); no(new Error("못 연다")); };
         img.src = url;
       });
       const blob = await 굽기(img, img.naturalWidth, img.naturalHeight);
       // 다 썼으면 그림도 놓아 준다
       img.src = "";
-      if (!blob) return 통째;
+      if (!blob) throw new Error("사진 변환 실패");
       return { 짐: blob, 종류: "image/jpeg", 끝: "jpg" };
     } finally {
       URL.revokeObjectURL(url);
     }
   } catch {
-    return 통째;
+    throw new Error("사진을 열지 못했어요. JPG·PNG·WEBP로 저장한 사진을 다시 선택해 주세요.");
   }
 }
 
 /** 사진을 올린다 — 저장소에 두고, 프로필에는 pending 으로 적는다 */
-export async function 사진올리기(file: File): Promise<사진> {
+export async function 사진올리기(file: File, progress?: PhotoProgress): Promise<사진> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   // 사진이 아닌 것만 막는다. 갈래는 다시 구우면서 맞춘다
@@ -392,35 +396,22 @@ export async function 사진올리기(file: File): Promise<사진> {
   const { 짐, 종류, 끝 } = await 다시굽기(file);
   if (!/^image\/(jpeg|png|webp)$/.test(종류))
     throw new Error(`이 사진은 다루지 못합니다 (${종류 || "갈래 모름"})`);
-  if (짐.size > 8 * 1024 * 1024) throw new Error("사진이 너무 큽니다");
+  if (짐.size >= 8 * 1024 * 1024) throw new Error("사진이 너무 큽니다");
 
-  const path = `yeon/${u.uid}/${Date.now()}.${끝}`;
+  const path = `yeon/${u.uid}/${crypto.randomUUID()}.${끝}`;
   try {
-    await uploadBytes(sref(storage, path), 짐, { contentType: 종류 });
+    if (auth.currentUser?.uid !== u.uid) throw new Error("계정이 바뀌었어요. 다시 로그인해 주세요.");
+    await uploadPhotoBytes(path, 짐, 종류, progress);
     // 사진 배열은 Firestore에서 브라우저가 직접 고치지 않는다. 그 길을
     // 열어 두면 콘솔에서 pending을 ok로 바꿔 승인제를 통째로 건널 수 있다.
     const at = Date.now();
-    const token = await u.getIdToken();
-    const registered = await fetch("/api/yeon/photo", {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-      body: JSON.stringify({ path, at }),
-    });
-    if (!registered.ok) throw new Error("사진 심사 줄에 올리지 못했습니다");
+    await registerPhoto("/api/yeon/photo", u.uid, { path });
     return { path, url: "", state: "pending", at };
   } catch (e) {
     // 「사진을 올리지 못했습니다」 한 줄로 삼키면 다음 사람이 또 처음부터
     // 파야 한다. 저장소가 아예 안 열려 있던 것을 찾는 데 한나절을 썼다.
     // **까닭을 그대로 보여 준다** — 고칠 사람이 바로 알아보게.
-    const 코드 = (e as { code?: string })?.code ?? "";
-    const 말 = {
-      "storage/unauthorized": "저장소 규칙이 막고 있습니다 (npm run rules:deploy)",
-      "storage/unauthenticated": "다시 들어와 주세요",
-      "storage/retry-limit-exceeded": "그물이 약합니다. 잠시 뒤 다시",
-      "storage/quota-exceeded": "저장소가 찼습니다",
-      "storage/unknown": "저장소가 아직 안 열렸을 수 있습니다",
-    }[코드];
-    throw new Error(말 ? `${말} (${코드})` : `사진을 올리지 못했습니다 (${코드 || "까닭 모름"})`);
+    throw new Error(photoError(e));
   }
 }
 
@@ -447,18 +438,15 @@ export async function 인증도전받기(): Promise<인증도전> {
   return r.json() as Promise<인증도전>;
 }
 
-export async function 인증사진올리기(file: File, challenge: 인증도전): Promise<void> {
+export async function 인증사진올리기(file: File, challenge: 인증도전, progress?: PhotoProgress): Promise<void> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   const { 짐, 종류, 끝 } = await 다시굽기(file);
-  const path = `yeon-proof/${u.uid}/${Date.now()}.${끝}`;
-  await uploadBytes(sref(storage, path), 짐, { contentType: 종류 });
-  const r = await fetch("/api/yeon/proof", {
-    method: "POST",
-    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
-    body: JSON.stringify({ path, code: challenge.code }),
-  });
-  if (!r.ok) throw new Error("인증 사진을 심사 줄에 올리지 못했습니다");
+  const path = `yeon-proof/${u.uid}/${crypto.randomUUID()}.${끝}`;
+  try {
+    await uploadPhotoBytes(path, 짐, 종류, progress);
+    await registerPhoto("/api/yeon/proof", u.uid, { path, code: challenge.code });
+  } catch (error) { throw new Error(photoError(error)); }
   void pingPush({ kind: "proof" });
 }
 
