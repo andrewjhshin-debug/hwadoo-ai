@@ -31,6 +31,7 @@ import {
   type Thought,
 } from "@/lib/thoughts";
 import { Banga } from "./icons";
+import ReflectionPractice from "./ReflectionPractice";
 
 // 화두가 없을 때 쓴 글을 잠시 맡아 두는 자리 — 어떤 경우에도 글이 사라지지 않게
 const DRAFT_KEY = "hwadoo-notes-draft";
@@ -67,6 +68,7 @@ export default function ThoughtRoom({
   const [list, setList] = useState<Thought[]>([]);
   const [draft, setDraft] = useState("");
   const [hasHwadu, setHasHwadu] = useState(true);
+  const [sessionKey, setSessionKey] = useState("");
   const [editing, setEditing] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [err, setErr] = useState("");
@@ -81,6 +83,7 @@ export default function ThoughtRoom({
   const read = useCallback(() => {
     const s = loadStore();
     setHasHwadu(!!s.current);
+    setSessionKey(s.current ? `${s.current.hwaduId}-${s.current.receivedAt}` : "");
     setList(parseThoughts(s.current?.notes));
     setQuestion(s.current ? sessionQuestion(s.current) : "");
     if (s.current) {
@@ -346,6 +349,13 @@ export default function ThoughtRoom({
           </div>
         ))}
 
+        {hasHwadu && list.length > 0 && (
+          <ReflectionPractice key={sessionKey} onReflect={(text) => {
+            const s = loadStore();
+            if (!s.current || !text.trim()) return false;
+            return write(appendThought(s.current.notes, text));
+          }} />
+        )}
         <div ref={bottom} />
       </div>
 
