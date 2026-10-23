@@ -1,30 +1,33 @@
-/* Successful rocks never move after placement. Only the failing upper sub-tower animates. */
-.hip-room-body:has(> .hip-cairn) { overflow: hidden; padding-bottom: 8px; }
-.hip-room .hip-room-body > .hip-cairn { margin-block: 8px 0; }
-.hip-cairn { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; max-height: 600px; }
-.hip-cairn .hip-tower-kicker, .hip-cairn-progress, .hip-cairn .hip-tower-lean, .hip-cairn-done { flex-shrink: 0; }
-.hip-cairn-progress { display: flex; gap: 6px; align-items: center; justify-content: center; height: 28px; margin-top: 8px; }
-.hip-cairn-progress i { width: 5px; height: 5px; border-radius: 50%; background: rgba(101,104,98,.18); }
-.hip-cairn-progress i[data-filled] { background: #737b71; }
-.hip-cairn-progress span { margin-left: 8px; color: #62685f; font-size: 14px; font-variant-numeric: tabular-nums; }
-.hip-cairn-progress small { font-size: 12px; color: #979a90; }
-.hip-cairn .hip-cairn-stage { flex: 1 1 auto; width: min(100%,360px); height: auto; max-height: 460px; min-height: 120px; margin-top: 0; border-radius: 0; background: none; overflow: hidden; touch-action: none; }
-.hip-cairn-plane { position: absolute; bottom: 4px; left: 50%; transform-origin: 50% 100%; pointer-events: none; }
-.hip-cairn-ground { position: absolute; left: 60px; bottom: 20px; width: 240px; height: 7px; border-radius: 50%; background: rgba(62,69,59,.10); filter: blur(4px); }
-.hip-cairn-rock { position: absolute; display: block; overflow: hidden; transform: rotate(var(--rock-angle)); transform-origin: 50% var(--rock-pivot); filter: saturate(.35) drop-shadow(0 1px 1px rgba(37,43,34,.15)); pointer-events: none; }
-.hip-cairn-rock img { position: absolute; display: block; max-width: none; max-height: none; object-fit: fill; user-select: none; }
-.hip-cairn-rock.preview { opacity: .30; }
-.hip-cairn-preview[data-risk="edge"] .preview { opacity: .48; filter: sepia(.3) drop-shadow(0 0 3px rgba(162,118,56,.25)); }
-.hip-cairn-preview[data-risk="fall"] .preview { opacity: .50; filter: sepia(.45) saturate(1.4) drop-shadow(0 0 4px rgba(170,91,83,.40)); }
-.hip-cairn-contact { position: absolute; height: 2px; border-radius: 50%; background: rgba(108,125,101,.22); }
-.hip-cairn .hip-tower-lean { width: min(100%,320px); height: 3px; margin-top: 4px; }
-.hip-cairn-done { min-height: 78px; margin-top: 8px; }
-.hip-cairn-done > span { min-height: 18px; color: #9a7d61; font-size: 12px; font-variant-numeric: tabular-nums; }
-.hip-cairn-done button { padding: 10px 22px; margin-top: 4px; }
-.hip-cairn-rock.falling { animation: cairn-slip .92s cubic-bezier(.35,.05,.7,1) both; }
-@keyframes cairn-slip {
-  0% { transform: rotate(var(--rock-angle)); }
-  20% { transform: translateX(calc(var(--fall-x) * .13)) rotate(calc(var(--rock-angle) + var(--fall-angle) * .10)); }
-  100% { transform: translate(var(--fall-x),180px) rotate(calc(var(--rock-angle) + var(--fall-angle))); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) { .hip-cairn-rock.falling { animation: none; opacity: .25; } }
+/* Preserve the app shell, brand palette and navigation. */
+.hip-room-body:has(> .tower-game) { overflow: hidden; padding-bottom: 6px; }
+.tower-game { --tower-text: #343831; --tower-muted: #73756c; --tower-paper: #fbfaf8; --tower-line: #d7d7ce; width: min(100%, 460px); flex: 1; min-height: 0; margin: 0 auto; display: flex; flex-direction: column; position: relative; color: var(--tower-text); }
+.tower-score { position: relative; flex-shrink: 0; padding: 2px 14px 0; text-align: left; }
+.tower-score h1 { margin: 0; font-size: 12px; font-weight: 400; color: var(--tower-muted); }
+.tower-score p { margin: 3px 0; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.tower-score b { font-family: var(--font-serif), serif; font-size: clamp(38px, 7vh, 60px); font-weight: 400; letter-spacing: -.04em; }
+.tower-score p span { margin-left: 7px; font-size: 22px; }
+.tower-score small { color: var(--tower-muted); font-size: 11px; }
+.tower-canvas { display: block; width: 100%; flex: 1 1 0; min-height: 100px; height: 0; object-fit: contain; touch-action: none; cursor: grab; border: 0; background: var(--tower-paper); border-radius: 14px; }
+.tower-canvas:active { cursor: grabbing; }
+.tower-canvas:focus-visible { outline: 2px solid #b84b76; outline-offset: 2px; }
+.tower-actions { flex-shrink: 0; min-height: 91px; text-align: center; padding: 4px 0 0; }
+.tower-actions p { margin: 0 0 2px; min-height: 19px; font-size: 12px; color: var(--tower-muted); }
+.tower-actions button, .tower-share-buttons button, .tower-share-close { min-height: 42px; padding: 9px 17px; border-radius: 999px; border: 1px solid var(--tower-line); color: var(--tower-text); background: transparent; font-size: 12px; white-space: nowrap; cursor: pointer; margin: 2px 4px; }
+.tower-actions button:disabled, .tower-share-buttons button:disabled { opacity: .4; cursor: default; }
+.tower-actions button:active, .tower-share-buttons button:active { transform: scale(.98); }
+.tower-actions button:focus-visible, .tower-share-panel button:focus-visible { outline: 2px solid #b84b76; outline-offset: 2px; }
+.tower-actions small { display: block; min-height: 17px; color: var(--tower-muted); font-size: 10px; }
+.tower-actions .tower-primary, .tower-share-buttons .tower-primary { border-color: #c95883; color: #9d325b; background: #fceaf1; }
+.tower-error { font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; text-align: center; color: #a0375b; }
+.tower-share-veil { position: fixed; inset: 0; z-index: 60; background: #1e221ec2; display: grid; place-items: center; padding: 18px; }
+.tower-share-panel { width: min(100%, 420px); max-height: 88dvh; overflow-y: auto; padding: 20px; border-radius: 22px; background: var(--tower-paper); color: var(--tower-text); }
+.tower-share-close { float: right; padding: 5px 12px; min-height: 36px; }
+.tower-share-panel h2 { margin: 8px 0; font-size: 23px; font-weight: 500; }
+.tower-share-panel > p { font-size: 13px; }
+.tower-share-panel video { display: block; max-height: 45dvh; width: 100%; margin: 12px auto; border-radius: 12px; background: var(--tower-paper); }
+.tower-share-poster { display: block; width: 100%; height: 36dvh; object-fit: contain; margin-top: 10px; border-radius: 12px; }
+.tower-share-buttons { display: flex; flex-wrap: wrap; gap: 5px; margin: 18px 0 10px; }
+.tower-share-panel small { display: block; font-size: 10px; line-height: 1.8; color: var(--tower-muted); }
+@media (max-height: 650px) { .tower-score b { font-size: 36px; } .tower-actions { min-height: 75px; } .tower-actions p { font-size: 10px; } }
+@media (prefers-color-scheme: dark) { .tower-share-panel { --tower-text: #e3e5df; --tower-muted: #b7bab0; --tower-line: #73786a; --tower-paper: #20251f; } }
+@media (prefers-reduced-motion: reduce) { .tower-actions button:active, .tower-share-buttons button:active { transform: none; } }

@@ -1,149 +1,170 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { CSSProperties, PointerEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
+import { useConfirm } from "@/components/Confirm";
 import { addMerit } from "@/lib/merit";
+import { auth } from "@/lib/firebase";
 import { buzz, strikeStone } from "@/lib/sound";
-import { ATLAS_SIZE, STONE_ATLAS, TOWER_STONES, TOWER_WIDTH, TOWER_HEIGHT, clampPlacementX, evaluateBalance, nextAim, placeStone, supportOf, survivingStones } from "@/lib/tower-balance";
-import type { Balance, PlacedStone } from "@/lib/tower-balance";
+import { STONE_ATLAS } from "@/lib/tower-balance";
+import { seedOf, GAME_WIDTH, type ReplayFrame } from "@/lib/tower-game";
+import { createTowerEngine, type TowerEngine, type TowerStatus } from "@/lib/tower-engine";
+import { claimTowerHeight, loadTowerRecord, towerDay } from "@/lib/tower-record";
+import { makeTowerVideo, shareFrame } from "@/lib/tower-share";
 import "./tower.css";
 
-function Rock({ stone, preview = false, falling = false, direction = 1 }: {
-  stone: PlacedStone; preview?: boolean; falling?: boolean; direction?: number;
-}) {
-  const s = TOWER_STONES[stone.index], [x, y, w, h] = s.crop;
-  return <span className={`hip-cairn-rock${preview ? " preview" : ""}${falling ? " falling" : ""}`} data-stone={stone.index} aria-hidden="true" style={{
-    left: TOWER_WIDTH / 2 + stone.x - s.width / 2, top: stone.y, width: s.width, height: s.height,
-    "--rock-angle": `${s.tilt}deg`, "--rock-pivot": `${s.bottom * 100}%`,
-    "--fall-x": `${direction * 105}px`, "--fall-angle": `${direction * 65}deg`,
-  } as CSSProperties}>
-    {/* CSS crop preserves the generated atlas and its alpha without rewriting pixels. */}
-    {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={STONE_ATLAS} alt="" draggable={false} style={{ width: `${ATLAS_SIZE / w * 100}%`, height: `${ATLAS_SIZE / h * 100}%`, left: `${-x / w * 100}%`, top: `${-y / h * 100}%` }} />
-  </span>;
-}
-
 export default function TowerPage() {
-  const [stones, setStones] = useState<PlacedStone[]>([]);
-  const stonesRef = useRef<PlacedStone[]>([]);
-  const [aim, setAim] = useState<number | null>(null);
-  const [failure, setFailure] = useState<Balance | null>(null);
-  const [done, setDone] = useState(false);
+  const ask = useConfirm();
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const engine = useRef<TowerEngine | null>(null);
+  const atlas = useRef<HTMLImageElement | null>(null);
+  const capture = useRef<AbortController | null>(null);
+  const dragged = useRef<number | null>(null);
+  const [run, setRun] = useState(0);
+  const [game, setGame] = useState<TowerStatus>({ height: 0, peak: 0, count: 0, phase: "ready" });
+  const [best, setBest] = useState(0);
   const [reward, setReward] = useState(0);
-  const [scale, setScale] = useState(1);
-  const stage = useRef<HTMLButtonElement>(null);
-  const locked = useRef(false);
-  const pointer = useRef<number | null>(null);
-  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const count = stones.length, stopped = done || failure !== null;
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState("");
+  const [seed, setSeed] = useState("");
+  const [target, setTarget] = useState(0);
+  const [sharing, setSharing] = useState(false);
+  const [rendering, setRendering] = useState(false);
+  const [video, setVideo] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState("");
+  const replay = useRef<ReplayFrame[]>([]);
+  const poster = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const el = stage.current;
-    if (!el) return;
-    const resize = () => setScale(Math.min(el.clientWidth / TOWER_WIDTH, (el.clientHeight - 12) / TOWER_HEIGHT));
-    const observer = new ResizeObserver(resize);
-    observer.observe(el); resize();
-    return () => { observer.disconnect(); if (resetTimer.current) clearTimeout(resetTimer.current); };
-  }, []);
-
-  const reset = useCallback(() => {
-    if (resetTimer.current) clearTimeout(resetTimer.current);
-    resetTimer.current = null; stonesRef.current = []; locked.current = false; pointer.current = null;
-    setStones([]); setAim(null); setFailure(null); setDone(false); setReward(0);
-  }, []);
-
-  const place = useCallback((x: number) => {
-    if (locked.current) return;
-    const old = stonesRef.current;
-    if (old.length >= TOWER_STONES.length) return;
-    const stone = placeStone(old.length, clampPlacementX(old.length, x), old.at(-1));
-    const next = [...old, stone], balance = evaluateBalance(next);
-    stonesRef.current = next; setStones(next); setAim(null);
-    strikeStone(.25 + old.length * .018, old.length); buzz(balance.risk < .7 ? 7 : 13);
-    if (!balance.stable) {
-      locked.current = true; setFailure(balance); buzz(30);
-      const remaining = survivingStones(next, balance);
-      resetTimer.current = setTimeout(() => {
-        // Continue from the untouched lower stones; no full reset or coordinate correction.
-        resetTimer.current = null;
-        stonesRef.current = remaining;
-        setStones(remaining); setFailure(null); setAim(null);
-        pointer.current = null; locked.current = false;
-      }, 1200);
-      return;
-    }
-    if (next.length === TOWER_STONES.length) {
-      locked.current = true;
-      const multiplier = balance.risk < .5 ? 1.35 : balance.risk < .8 ? 1 : .75;
-      setReward(addMerit("tower", multiplier, 1).gained); setDone(true); buzz(20);
-      // Completion never recenters, scales, animates or corrects stone coordinates.
-    }
+    const query = new URLSearchParams(window.location.search);
+    const challenge = query.get("seed") ?? "";
+    const value = /^[A-Za-z0-9-]{1,24}$/.test(challenge) ? challenge : towerDay().replaceAll("-", "");
+    const goal = Number(query.get("target"));
+    const timer = window.setTimeout(() => {
+      setSeed(value); setTarget(Number.isFinite(goal) && goal > 0 && goal < 100000 ? goal : 0);
+      setBest(loadTowerRecord(auth.currentUser?.uid ?? "guest").best);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
-    const keyboard = (event: KeyboardEvent) => {
-      const el = event.target as HTMLElement | null;
-      if (el?.closest("input,textarea,select,[contenteditable='true']") || locked.current) return;
-      if (event.code === "ArrowLeft" || event.code === "ArrowRight") {
-        event.preventDefault();
-        const step = event.code === "ArrowLeft" ? -3 : 3;
-        setAim(value => clampPlacementX(stonesRef.current.length, (value ?? nextAim(stonesRef.current)) + step));
-      } else if ((event.code === "Space" || event.code === "Enter") && !event.repeat) {
-        event.preventDefault(); place(aim ?? nextAim(stonesRef.current));
-      }
+    if (!canvas.current || !seed) return;
+    const el = canvas.current;
+    let disposed = false, started = false;
+    const image = new Image(); atlas.current = image;
+    const start = () => {
+      if (disposed || started) return;
+      started = true;
+      engine.current = createTowerEngine(el, image, seedOf(seed), setGame, height => {
+        const owner = auth.currentUser?.uid ?? "guest";
+        const award = () => {
+          if (auth.currentUser?.uid !== owner && !(owner === "guest" && !auth.currentUser)) return;
+          const { record, delta } = claimTowerHeight(owner, height);
+          const gained = delta ? addMerit("tower", delta / 3, delta).gained : 0;
+          if (!disposed) { setBest(record.best); if (gained) setReward(v => v + gained); }
+        };
+        if (navigator.locks) void navigator.locks.request(`hwadu-tower-reward:${owner}`, award);
+        else award();
+      }, (depth, failed) => { strikeStone(.28 + Math.min(15, depth) * .012, depth % 9); buzz(failed ? 25 : 8); });
+      setReady(true);
     };
-    window.addEventListener("keydown", keyboard);
-    return () => window.removeEventListener("keydown", keyboard);
-  }, [aim, place]);
+    image.onload = start;
+    image.onerror = () => { if (!disposed) setError("돌 이미지를 불러오지 못했어요. 새로고침해 주세요."); };
+    image.src = STONE_ATLAS;
+    if (image.complete && image.naturalWidth) start();
+    return () => { disposed = true; engine.current?.dispose(); engine.current = null; capture.current?.abort(); };
+  }, [seed, run]);
 
-  const pointerX = (event: PointerEvent<HTMLButtonElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    return clampPlacementX(stonesRef.current.length, (event.clientX - rect.left - rect.width / 2) / scale);
+  useEffect(() => {
+    if (!video) return;
+    const url = URL.createObjectURL(video);
+    const timer = window.setTimeout(() => setVideoUrl(url), 0);
+    return () => { clearTimeout(timer); URL.revokeObjectURL(url); };
+  }, [video]);
+
+  useEffect(() => {
+    if (sharing && !video && poster.current && atlas.current && engine.current)
+      shareFrame(poster.current.getContext("2d")!, atlas.current, engine.current.record());
+  }, [sharing, video]);
+
+  const point = (x: number) => {
+    const rect = canvas.current!.getBoundingClientRect();
+    return (x - rect.left - rect.width / 2) / Math.min(rect.width / GAME_WIDTH, rect.height / 520);
   };
-  const previewX = stopped ? 0 : clampPlacementX(count, aim ?? nextAim(stones));
-  const preview = !stopped ? placeStone(count, previewX, stones.at(-1)) : null;
-  const balance = evaluateBalance(stones), prospective = preview ? evaluateBalance([...stones, preview]) : balance;
-  const contact = count > 0 && !stopped ? supportOf(stones[count - 1]) : null;
+  const openShare = () => {
+    if (!engine.current || game.phase === "busy") return;
+    engine.current.pause(); replay.current = engine.current.replay(); setSharing(true); setVideo(null); setVideoUrl(""); setError("");
+  };
+  const closeShare = () => { capture.current?.abort(); setSharing(false); setRendering(false); setVideo(null); setVideoUrl(""); engine.current?.resume(); canvas.current?.focus(); };
+  const download = (file: File) => {
+    const url = URL.createObjectURL(file), a = document.createElement("a");
+    a.href = url; a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  };
+  const challengeUrl = () => `${window.location.origin}/tower?seed=${encodeURIComponent(seed)}&target=${game.peak.toFixed(1)}`;
+  const createVideo = async () => {
+    if (!atlas.current || rendering) return;
+    const controller = new AbortController();
+    capture.current = controller; setRendering(true); setError("");
+    try { const file = await makeTowerVideo(atlas.current, replay.current, controller.signal); if (!controller.signal.aborted) setVideo(file); }
+    catch (e) { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : "영상을 만들지 못했어요."); }
+    finally { if (capture.current === controller) setRendering(false); }
+  };
 
   return <HipRoom here="/tower" scroll={false}>
-    <section className="hip-tower hip-cairn" aria-label="돌탑 쌓기">
-      <p className="hip-tower-kicker">石塔 · 돌탑</p>
-      <div className="hip-cairn-progress" aria-label={`${count} / ${TOWER_STONES.length}개 쌓음`}>
-        {TOWER_STONES.map((s, i) => <i key={s.name} data-filled={i < count || undefined} aria-hidden="true" />)}
-        <span>{count}<small> / {TOWER_STONES.length}</small></span>
+    <section className="tower-game" aria-label="돌탑 높이 도전">
+      <header className="tower-score">
+        <h1>石塔 · 돌탑</h1>
+        <p><b>{game.height.toFixed(1)}</b><span>cm</span></p>
+        <small>최고 {best.toFixed(1)} cm{target > 0 ? ` / 도전 ${target.toFixed(1)} cm` : ""}</small>
+      </header>
+      <canvas ref={canvas} width={720} height={1040} className="tower-canvas" tabIndex={0} role="button" aria-label="돌을 좌우로 끌고 놓으세요. 키보드는 방향키와 스페이스로 조작합니다."
+        aria-disabled={!ready || game.phase !== "ready"}
+        onPointerDown={event => { if (!ready || game.phase !== "ready") return; dragged.current = event.pointerId; event.currentTarget.setPointerCapture(event.pointerId); engine.current?.aim(point(event.clientX)); }}
+        onPointerMove={event => { if (dragged.current === event.pointerId || event.pointerType === "mouse") engine.current?.aim(point(event.clientX)); }}
+        onPointerUp={event => { if (dragged.current !== event.pointerId) return; dragged.current = null; engine.current?.drop(point(event.clientX)); if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
+        onPointerCancel={() => { dragged.current = null; }}
+        onKeyDown={event => { if (["ArrowLeft", "ArrowRight", " ", "Enter"].includes(event.key)) { event.preventDefault(); if (event.key === "ArrowLeft") engine.current?.nudge(-4); else if (event.key === "ArrowRight") engine.current?.nudge(4); else if (!event.repeat) engine.current?.drop(); } }}
+      >돌탑 쌓기는 캔버스를 지원하는 브라우저에서 이용할 수 있어요.</canvas>
+      <div className="tower-actions">
+        <p role="status">{!ready ? "돌을 준비하고 있어요" : game.phase === "busy" ? "" : game.phase === "fallen" ? "남은 돌에서 계속" : game.phase === "paused" ? "잠시 쉬는 중" : "끌어서 맞추고, 놓으면 툭"}</p>
+        {game.phase === "fallen" || game.phase === "paused" ? <button className="tower-primary" onClick={() => engine.current?.resume()}>이어서 쌓기</button> : <button disabled={!ready || game.phase === "busy"} onClick={() => engine.current?.pause()}>잠시 멈춤</button>}
+        <button disabled={!game.count || game.phase === "busy"} onClick={openShare}>기록 공유</button>
+        {game.phase === "paused" && <button onClick={async () => { if (await ask("새로 쌓을까요?", "현재 돌탑은 사라지고 최고 기록은 남아요.")) { engine.current?.dispose(); setReady(false); setReward(0); setRun(v => v + 1); } }}>새로 쌓기</button>}
+        <small aria-live="polite">{reward > 0 ? `오늘 새 높이 공덕 +${reward.toLocaleString()}` : "오늘 처음 넘긴 10cm 구간마다 공덕"}</small>
       </div>
-      <button ref={stage} type="button" className="hip-tower-stage hip-cairn-stage" disabled={stopped} aria-label="돌을 끌어 위치를 맞추고 놓기"
-        onPointerDown={event => {
-          if (locked.current) return;
-          event.preventDefault(); pointer.current = event.pointerId;
-          event.currentTarget.setPointerCapture(event.pointerId); setAim(pointerX(event));
-        }}
-        onPointerMove={event => { if (!locked.current && (event.pointerType === "mouse" || pointer.current === event.pointerId)) setAim(pointerX(event)); }}
-        onPointerUp={event => {
-          if (pointer.current !== event.pointerId) return;
-          pointer.current = null;
-          const x = pointerX(event);
-          if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-          place(x);
-        }}
-        onPointerCancel={() => { pointer.current = null; setAim(null); }}
-        onPointerLeave={() => { if (pointer.current === null) setAim(null); }}
-      >
-        <span className="hip-cairn-plane" style={{ width: TOWER_WIDTH, height: TOWER_HEIGHT, transform: `translateX(-50%) scale(${scale})` }}>
-          <span className="hip-cairn-ground" aria-hidden="true" />
-          {stones.map(stone => <Rock key={stone.index} stone={stone} falling={!!failure && stone.index >= failure.joint} direction={failure?.direction} />)}
-          {contact && <span className="hip-cairn-contact" aria-hidden="true" style={{ left: TOWER_WIDTH / 2 + contact.x - contact.half, top: contact.y, width: contact.half * 2 }} />}
-          {preview && <span data-risk={prospective.stable ? prospective.risk > .78 ? "edge" : "safe" : "fall"} className="hip-cairn-preview"><Rock stone={preview} preview /></span>}
-        </span>
-      </button>
-      <span className="hip-tower-lean" role="meter" aria-label="돌탑의 균형 위험도" aria-valuenow={Math.round(Math.min(1, prospective.risk) * 100)} aria-valuemin={0} aria-valuemax={100}>
-        <i style={{ width: `${Math.min(100, prospective.risk * 100)}%` }} />
-      </span>
-      <div className="hip-tower-done hip-cairn-done" style={{ visibility: done ? "visible" : "hidden" }} aria-hidden={!done}>
-        <span role={done ? "status" : undefined}>{reward > 0 ? `+${reward.toLocaleString()} 공덕` : ""}</span>
-        <button onClick={reset} disabled={!done}>한 번 더</button>
-      </div>
+      {error && !sharing && <p role="alert" className="tower-error">{error}</p>}
+      {sharing && <div className="tower-share-veil" role="dialog" aria-modal="true" aria-label="돌탑 기록 공유" onKeyDown={e => {
+        if (e.key === "Escape") closeShare();
+        if (e.key === "Tab") {
+          const items = [...e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), video[controls]')];
+          const first = items[0], last = items.at(-1);
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+        }
+      }}>
+        <div className="tower-share-panel">
+          <button className="tower-share-close" onClick={closeShare} autoFocus>닫기</button>
+          <h2>내 돌탑 {game.peak.toFixed(1)} cm</h2>
+          <p>이 높이, 넘을 수 있어?</p>
+          {video && videoUrl && <video controls playsInline src={videoUrl} aria-label="최근 8초 돌탑 리플레이" />}
+          {!video && <canvas className="tower-share-poster" ref={poster} width={540} height={960} aria-label="이번 돌탑 최고 높이 기록 이미지" />}
+          <div className="tower-share-buttons">
+            {!video ? <button className="tower-primary" disabled={rendering} onClick={() => void createVideo()}>{rendering ? "8초 영상 만드는 중…" : "리플레이 만들기"}</button> : <>
+              <button className="tower-primary" onClick={async () => { try { if (navigator.canShare?.({ files: [video] })) await navigator.share({ files: [video], title: "화두 돌탑" }); else download(video); } catch (e) { if ((e as Error).name !== "AbortError") setError("공유하지 못했어요. 영상 저장을 이용해 주세요."); } }}>영상 공유</button>
+              <button onClick={() => download(video)}>영상 저장</button>
+            </>}
+            <button onClick={() => {
+              if (!atlas.current || !engine.current) return;
+              const image = document.createElement("canvas"); image.width = 540; image.height = 960;
+              shareFrame(image.getContext("2d")!, atlas.current, engine.current.record());
+              image.toBlob(blob => { if (blob) download(new File([blob], "hwadu-tower.png", { type: "image/png" })); }, "image/png");
+            }}>기록 이미지 저장</button>
+            <button onClick={async () => { try { await navigator.clipboard.writeText(challengeUrl()); setError("같은 돌 순서로 도전하는 링크를 복사했어요."); } catch { setError(`도전 주소: ${challengeUrl()}`); } }}>친구 도전 링크</button>
+          </div>
+          {error && <p role="status" className="tower-error">{error}</p>}
+          <small>공유는 직접 선택할 때만 실행돼요. 화면·음성·프로필은 녹화하지 않아요.</small>
+        </div>
+      </div>}
     </section>
   </HipRoom>;
 }
