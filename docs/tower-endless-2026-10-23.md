@@ -7,6 +7,10 @@
 - Bounded replay holds up to 64 canvas snapshots. Explicit export locally renders an eight-second silent video; unsupported browsers can save a PNG. No microphone, camera, profile or full-screen recording. Closing cancels rendering and releases media tracks.
 - Reduced-motion, keyboard controls, hidden-tab suspension and modal focus handling included.
 
+## Difficulty adjustment, 2026-10-24
+
+First three stones retain the introductory placement rules. From the fourth stone, a deterministic visible aiming sway introduces release timing. Its amplitude and speed increase gradually and are capped. The exact same sway offset is used for the preview and released stone: no hidden random miss penalty. Aiming time stops while paused or hidden. Automatic center alignment after a successful placement is removed. Advanced support windows narrow progressively while partial-collapse recovery and daily reward rules remain unchanged.
+
 ## Verification
 
 Production build, targeted ESLint, existing tower balance test and new tower-endless-test.mjs passed. New test covers deterministic sequences, a playable 35-stone path, unchanged surviving positions, partial collapse, duplicate-input lock, hidden-tab suspension, bounded replay and reward replay prevention.

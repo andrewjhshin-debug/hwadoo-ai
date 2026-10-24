@@ -18,6 +18,13 @@ export function seedOf(text: string) {
   for (const ch of text.slice(0, 32)) hash = Math.imul(hash ^ ch.charCodeAt(0), 16777619);
   return hash >>> 0;
 }
+/** Visible timing challenge, never a hidden random landing penalty. */
+export function aimSway(depth: number, activeMs: number, seed: number) {
+  if (depth < 3) return 0;
+  const level = Math.min(1, (depth - 2) / 14);
+  const phase = activeMs / 1000 * (1.7 + level * 1.3) + random(seed ^ depth) * Math.PI * 2;
+  return Math.sin(phase) * (7 + level * 17) + Math.sin(phase * 1.73) * level * 4;
+}
 export function stoneSpec(depth: number, seed: number): Omit<GameStone, "x" | "y"> {
   const r = random(seed ^ Math.imul(depth + 1, 2654435761));
   const art = depth === 0 ? 0 : depth < 3 ? [1, 2][depth - 1] : 1 + Math.floor(r * 8);
@@ -25,7 +32,7 @@ export function stoneSpec(depth: number, seed: number): Omit<GameStone, "x" | "y
   const width = depth === 0 ? 210 : depth < 3 ? 180 - depth * 12 : 110 + Math.round(random(seed ^ (depth + 71) * 829) * 48);
   return { depth, art, width, height: source.height / source.width * width,
     angle: depth === 0 ? 0 : depth < 3 ? source.tilt * .4 : source.tilt * .65 + (r - .5) * 5,
-    support: depth < 3 ? .34 : Math.max(.19, source.support + .055),
+    support: depth < 3 ? .34 : Math.max(.135, source.support + .02 - Math.min(.055, (depth - 3) * .004)),
     offset: source.offset * .65, massOffset: source.massOffset,
     top: source.top, bottom: source.bottom };
 }

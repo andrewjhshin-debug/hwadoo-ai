@@ -1,4 +1,4 @@
-import { cameraFor, contact, dropStone, paintTower, remainingStones, stability, towerHeight, type GameStone, type ReplayFrame } from "./tower-game";
+import { aimSway, cameraFor, contact, dropStone, paintTower, remainingStones, stability, towerHeight, type GameStone, type ReplayFrame } from "./tower-game";
 export type TowerStatus = { height: number; peak: number; count: number; phase: "ready" | "busy" | "fallen" | "paused" };
 
 /** Canvas animation is isolated from React. Settled world coordinates are immutable. */
@@ -8,6 +8,7 @@ export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageEle
   let peak = 0, aim = 0, camera = 0, targetCamera = 0, start = 0, last = 0;
   let fallFrom = Infinity, direction = 1, risk = 0, mode = "", disposed = false, reduced = false;
   let raf = 0, recorded = 0;
+  let activeMs = 0;
   const history: ReplayFrame[] = [];
   let highlight: ReplayFrame[] = [], bestStones: readonly GameStone[] = [];
   const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -16,12 +17,13 @@ export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageEle
   const state = (): TowerStatus => ({ height: towerHeight(stones), peak, count: stones.length, phase });
   const emit = () => onChange(state());
   let frame: ReplayFrame = { stones, camera, fallFrom, fall: 0, direction, swing: 0, height: 0 };
-  const preview = () => dropStone(stones, aim, seed);
+  const preview = () => dropStone(stones, aim + aimSway(stones.length, activeMs, seed), seed);
   const animate = (now: number) => {
     if (disposed) return;
     raf = requestAnimationFrame(animate);
     if (document.hidden) { last = now; return; }
     const dt = Math.min(50, now - last); last = now;
+    if (phase === "ready") activeMs += dt;
     camera += (targetCamera - camera) * Math.min(1, dt / 95);
     const elapsed = now - start;
     let drop = 0, swing = 0, fall = 0;
@@ -42,7 +44,6 @@ export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageEle
           if (towerHeight(stones) >= peak) { peak = towerHeight(stones); bestStones = stones; }
           highlight = history.slice();
           onStable(peak); emit();
-          aim = contact(stones.at(-1)!).x;
         }
       }
     } else if (mode === "fall") {
@@ -75,7 +76,8 @@ export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageEle
     nudge(dx: number) { if (phase === "ready") aim += dx; },
     drop(x = aim) {
       if (phase !== "ready") return;
-      const stone = dropStone(stones, x, seed);
+      aim = x;
+      const stone = dropStone(stones, x + aimSway(stones.length, activeMs, seed), seed);
       stones = [...stones, stone];
       const balance = stability(stones);
       risk = balance.risk; direction = balance.direction;

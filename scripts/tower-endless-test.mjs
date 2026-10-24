@@ -11,6 +11,14 @@ const balance = load("src/lib/tower-balance.ts");
 const game = load("src/lib/tower-game.ts", { "./tower-balance": balance });
 assert.deepEqual(game.stoneSpec(40, 123), game.stoneSpec(40, 123));
 assert.notDeepEqual(game.stoneSpec(40, 123), game.stoneSpec(40, 124));
+assert.equal(game.aimSway(2, 1000, 17), 0, "first three stones teach positioning without sway");
+assert.notEqual(game.aimSway(10, 1000, 17), game.aimSway(10, 1400, 17), "timing changes the visible release position");
+for (let depth = 3; depth < 60; depth++) {
+  const s = game.stoneSpec(depth, 123);
+  const previousSupport = Math.max(.19, balance.TOWER_STONES[s.art].support + .055);
+  assert(s.support < previousSupport, "advanced support windows are narrower than the original easy mode");
+}
+for (let t = 0; t < 10000; t += 100) assert(Math.abs(game.aimSway(100, t, 17)) <= 28);
 for (const x of [-10000, 0, 10000]) assert(game.stability([game.dropStone([], x, 1)]).stable);
 assert.equal(game.rewardTier(9.99), 0); assert.equal(game.rewardTier(10), 1);
 let longest = 0;

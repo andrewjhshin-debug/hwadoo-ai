@@ -126,7 +126,7 @@ export default function TowerPage() {
         onKeyDown={event => { if (["ArrowLeft", "ArrowRight", " ", "Enter"].includes(event.key)) { event.preventDefault(); if (event.key === "ArrowLeft") engine.current?.nudge(-4); else if (event.key === "ArrowRight") engine.current?.nudge(4); else if (!event.repeat) engine.current?.drop(); } }}
       >돌탑 쌓기는 캔버스를 지원하는 브라우저에서 이용할 수 있어요.</canvas>
       <div className="tower-actions">
-        <p role="status">{!ready ? "돌을 준비하고 있어요" : game.phase === "busy" ? "" : game.phase === "fallen" ? "남은 돌에서 계속" : game.phase === "paused" ? "잠시 쉬는 중" : "끌어서 맞추고, 놓으면 툭"}</p>
+        <p role="status">{!ready ? "돌을 준비하고 있어요" : game.phase === "busy" ? "" : game.phase === "fallen" ? "남은 돌에서 계속" : game.phase === "paused" ? "잠시 쉬는 중" : game.count >= 3 ? "좌우 흔들림을 읽고, 타이밍 맞춰 툭" : "끌어서 맞추고, 놓으면 툭"}</p>
         {game.phase === "fallen" || game.phase === "paused" ? <button className="tower-primary" onClick={() => engine.current?.resume()}>이어서 쌓기</button> : <button disabled={!ready || game.phase === "busy"} onClick={() => engine.current?.pause()}>잠시 멈춤</button>}
         <button disabled={!game.count || game.phase === "busy"} onClick={openShare}>기록 공유</button>
         {game.phase === "paused" && <button onClick={async () => { if (await ask("새로 쌓을까요?", "현재 돌탑은 사라지고 최고 기록은 남아요.")) { engine.current?.dispose(); setReady(false); setReward(0); setRun(v => v + 1); } }}>새로 쌓기</button>}
