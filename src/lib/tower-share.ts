@@ -1,5 +1,17 @@
 import { paintTower, type ReplayFrame } from "./tower-game";
 
+/** Invoked directly by a button so native file sharing retains user activation. */
+export async function shareTowerRecord(file: File, url: string, height: number): Promise<"shared" | "copied"> {
+  const title = `화두 돌탑 ${height.toFixed(1)} cm`;
+  if (navigator.share) {
+    if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title, url });
+    else await navigator.share({ title, text: `${height.toFixed(1)} cm, 이 높이에 도전해 보세요.`, url });
+    return "shared";
+  }
+  await navigator.clipboard.writeText(url);
+  return "copied";
+}
+
 export function shareFrame(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, frame: ReplayFrame) {
   paintTower(ctx, atlas, frame);
   ctx.fillStyle = "#fbfaf8"; ctx.fillRect(0, 0, ctx.canvas.width, 130);

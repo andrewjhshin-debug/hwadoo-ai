@@ -24,9 +24,8 @@
 .tower-share-close { float: right; padding: 5px 12px; min-height: 36px; }
 .tower-share-panel h2 { margin: 8px 0; font-size: 23px; font-weight: 500; }
 .tower-share-panel > p { font-size: 13px; }
-.tower-share-panel video { display: block; max-height: 45dvh; width: 100%; margin: 12px auto; border-radius: 12px; background: var(--tower-paper); }
 .tower-share-poster { display: block; width: 100%; height: 36dvh; object-fit: contain; margin-top: 10px; border-radius: 12px; }
-.tower-share-buttons { display: flex; flex-wrap: wrap; gap: 5px; margin: 18px 0 10px; }
+.tower-share-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 18px 0 0; }
 .tower-share-panel small { display: block; font-size: 10px; line-height: 1.8; color: var(--tower-muted); }
 @media (max-height: 650px) { .tower-score b { font-size: 36px; } .tower-actions { min-height: 75px; } .tower-actions p { font-size: 10px; } }
 @media (prefers-color-scheme: dark) { .tower-share-panel { --tower-text: #e3e5df; --tower-muted: #b7bab0; --tower-line: #73786a; --tower-paper: #20251f; } }

@@ -1,5 +1,5 @@
 import { aimSway, cameraFor, contact, dropStone, paintTower, remainingStones, stability, towerHeight, type GameStone, type ReplayFrame } from "./tower-game";
-export type TowerStatus = { height: number; peak: number; count: number; phase: "ready" | "busy" | "fallen" | "paused" };
+export type TowerStatus = { height: number; peak: number; count: number; phase: "ready" | "busy" | "paused" };
 
 /** Canvas animation is isolated from React. Settled world coordinates are immutable. */
 export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageElement, seed: number, onChange: (state: TowerStatus) => void, onStable: (height: number) => void, onHit: (depth: number, failed: boolean) => void) {
@@ -45,7 +45,7 @@ export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageEle
       if (fall === 1) {
         stones = remainingStones(stones, fallFrom);
         highlight = history.slice();
-        mode = ""; fallFrom = Infinity; fall = 0; phase = "fallen";
+        mode = ""; fallFrom = Infinity; fall = 0; phase = "ready";
         targetCamera = cameraFor(stones); aim = contact(stones.at(-1)!).x; emit();
       }
     }
@@ -81,7 +81,7 @@ export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageEle
       paintTower(ctx, atlas, frame);
       onHit(stones.length - 1, fallFrom !== Infinity); emit();
     },
-    resume() { if (phase === "fallen" || phase === "paused") { phase = "ready"; emit(); } },
+    resume() { if (phase === "paused") { phase = "ready"; emit(); } },
     pause() { if (phase === "ready") { phase = "paused"; emit(); } },
     replay() { return highlight.length ? highlight.slice() : history.length ? history.slice() : [{ ...frame }]; },
     frame() { return { ...frame }; },

@@ -13,6 +13,10 @@ First three stones retain the introductory placement rules. From the fourth ston
 
 Instant placement follow-up: pointer press places and paints the stone immediately, with impact sound in the same handler. Removed airborne preview offset and drop animation. Stable placements settle in 180 ms; unsafe placements retain a short 500 ms balance check before partial collapse. Secondary clicks and extra pointers are ignored. Regression test checks immediate frame contents, zero drop offset, single synchronous impact and duplicate-input lock.
 
+Continuous-play follow-up: collapse returns directly to ready, keeping surviving objects and coordinates. No resume button is required after a fall. Manual pause remains available. Sharing is simplified to the record poster and two actions: share and save. The PNG is prepared before pressing share so mobile native sharing retains user activation. File sharing falls back to native challenge-link sharing, then clipboard only when native sharing is absent. Explicit cancellation does not trigger a fallback. Opening and closing sharing preserves manual pause state. Video rendering remains a library capability but is removed from this basic flow.
+
+Design scope: preserve existing brand tokens, routes, header and navigation. Share-panel variance 3 / motion 1 / density 2; no new art, dependencies, promotional content or automatic sharing.
+
 ## Verification
 
 Production build, targeted ESLint, existing tower balance test and new tower-endless-test.mjs passed. New test covers deterministic sequences, a playable 35-stone path, unchanged surviving positions, partial collapse, duplicate-input lock, hidden-tab suspension, bounded replay and reward replay prevention.
