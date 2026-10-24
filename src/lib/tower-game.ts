@@ -114,6 +114,6 @@ export function paintTower(ctx: CanvasRenderingContext2D, atlas: HTMLImageElemen
     ctx.restore();
   };
   for (const stone of frame.stones) draw(stone, false, stone.depth === frame.stones.length - 1 ? drop : 0);
-  if (preview) draw(preview, true, -80);
+  if (preview) draw(preview, true, 0);
   ctx.restore();
 }

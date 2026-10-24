@@ -1,7 +1,7 @@
 # Endless stone tower
 
 - Existing stone atlas and application shell retained. Canvas engine animates independently of React renders.
-- Drag and release to place stones; support overlap and weighted upper-stack center determine delayed partial collapse. Surviving stones retain original coordinates. Camera follows height without moving model coordinates.
+- Press to place stones instantly; support overlap and weighted upper-stack center determine delayed partial collapse. Surviving stones retain original coordinates. Camera follows height without moving model coordinates.
 - No fixed completion count. Daily seeded stone sequence can be shared using seed and target query parameters. Height in cm is a game unit, not a physical measurement.
 - Personal best and daily paid height tiers are local per-account records. Each newly crossed 10 cm tier pays 144 merit, subject to the existing daily merit cap. Rebuilding an already paid height on the same day does not pay again. This is not a server-authoritative competitive leaderboard or anti-cheat system.
 - Bounded replay holds up to 64 canvas snapshots. Explicit export locally renders an eight-second silent video; unsupported browsers can save a PNG. No microphone, camera, profile or full-screen recording. Closing cancels rendering and releases media tracks.
@@ -10,6 +10,8 @@
 ## Difficulty adjustment, 2026-10-24
 
 First three stones retain the introductory placement rules. From the fourth stone, a deterministic visible aiming sway introduces release timing. Its amplitude and speed increase gradually and are capped. The exact same sway offset is used for the preview and released stone: no hidden random miss penalty. Aiming time stops while paused or hidden. Automatic center alignment after a successful placement is removed. Advanced support windows narrow progressively while partial-collapse recovery and daily reward rules remain unchanged.
+
+Instant placement follow-up: pointer press places and paints the stone immediately, with impact sound in the same handler. Removed airborne preview offset and drop animation. Stable placements settle in 180 ms; unsafe placements retain a short 500 ms balance check before partial collapse. Secondary clicks and extra pointers are ignored. Regression test checks immediate frame contents, zero drop offset, single synchronous impact and duplicate-input lock.
 
 ## Verification
 

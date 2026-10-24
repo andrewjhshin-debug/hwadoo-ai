@@ -51,7 +51,7 @@ const stale = { best: 41, day: "2000-01-01", paidTier: 4 };
 storage.set("hwadu.tower.height.v1:u1", JSON.stringify(stale));
 assert.equal(record.claimTowerHeight("u1", 11).delta, 1, "new day pays once again");
 
-let now = 0, raf, rewards = 0, status;
+let now = 0, raf, rewards = 0, hits = 0, status;
 const listeners = new Map();
 const document = { hidden: false, addEventListener: (k, fn) => listeners.set(k, fn), removeEventListener: k => listeners.delete(k) };
 const ctx = new Proxy({ canvas: { width: 720, height: 1040 } }, { get: (obj, key) => key in obj ? obj[key] : () => {} });
@@ -59,9 +59,12 @@ const engineModule = load("src/lib/tower-engine.ts", { "./tower-game": game }, {
   window: { matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }) }, document,
   performance: { now: () => now }, requestAnimationFrame: fn => { raf = fn; return 1; }, cancelAnimationFrame: () => { raf = null; },
 });
-const engine = engineModule.createTowerEngine({ getContext: () => ctx }, {}, 17, s => status = s, () => rewards++, () => {});
+const engine = engineModule.createTowerEngine({ getContext: () => ctx }, {}, 17, s => status = s, () => rewards++, () => hits++);
 const step = ms => { for (let t = 0; t < ms; t += 20) { now += 20; raf?.(now); } };
 engine.drop(0); engine.drop(50); // duplicate input during landing is ignored
+assert.equal(engine.frame().stones.length, 1, "stone appears immediately without waiting for RAF");
+assert.equal(engine.frame().drop, 0, "instant placement has no airborne offset");
+assert.equal(hits, 1, "sound fires on placement, not after a drop animation");
 step(1300); assert.equal(status.count, 1); assert.equal(rewards, 1);
 engine.pause(); engine.drop(0); step(200); assert.equal(status.count, 1);
 engine.resume(); engine.drop(0); step(100);

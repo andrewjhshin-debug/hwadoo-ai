@@ -19,7 +19,6 @@ export default function TowerPage() {
   const engine = useRef<TowerEngine | null>(null);
   const atlas = useRef<HTMLImageElement | null>(null);
   const capture = useRef<AbortController | null>(null);
-  const dragged = useRef<number | null>(null);
   const [run, setRun] = useState(0);
   const [game, setGame] = useState<TowerStatus>({ height: 0, peak: 0, count: 0, phase: "ready" });
   const [best, setBest] = useState(0);
@@ -117,16 +116,14 @@ export default function TowerPage() {
         <p><b>{game.height.toFixed(1)}</b><span>cm</span></p>
         <small>최고 {best.toFixed(1)} cm{target > 0 ? ` / 도전 ${target.toFixed(1)} cm` : ""}</small>
       </header>
-      <canvas ref={canvas} width={720} height={1040} className="tower-canvas" tabIndex={0} role="button" aria-label="돌을 좌우로 끌고 놓으세요. 키보드는 방향키와 스페이스로 조작합니다."
+      <canvas ref={canvas} width={720} height={1040} className="tower-canvas" tabIndex={0} role="button" aria-label="원하는 위치를 누르면 바로 쌓입니다. 키보드는 방향키와 스페이스로 조작합니다."
         aria-disabled={!ready || game.phase !== "ready"}
-        onPointerDown={event => { if (!ready || game.phase !== "ready") return; dragged.current = event.pointerId; event.currentTarget.setPointerCapture(event.pointerId); engine.current?.aim(point(event.clientX)); }}
-        onPointerMove={event => { if (dragged.current === event.pointerId || event.pointerType === "mouse") engine.current?.aim(point(event.clientX)); }}
-        onPointerUp={event => { if (dragged.current !== event.pointerId) return; dragged.current = null; engine.current?.drop(point(event.clientX)); if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
-        onPointerCancel={() => { dragged.current = null; }}
+        onPointerDown={event => { if (!ready || game.phase !== "ready" || !event.isPrimary || event.button !== 0) return; engine.current?.drop(point(event.clientX)); }}
+        onPointerMove={event => { if (event.pointerType === "mouse") engine.current?.aim(point(event.clientX)); }}
         onKeyDown={event => { if (["ArrowLeft", "ArrowRight", " ", "Enter"].includes(event.key)) { event.preventDefault(); if (event.key === "ArrowLeft") engine.current?.nudge(-4); else if (event.key === "ArrowRight") engine.current?.nudge(4); else if (!event.repeat) engine.current?.drop(); } }}
       >돌탑 쌓기는 캔버스를 지원하는 브라우저에서 이용할 수 있어요.</canvas>
       <div className="tower-actions">
-        <p role="status">{!ready ? "돌을 준비하고 있어요" : game.phase === "busy" ? "" : game.phase === "fallen" ? "남은 돌에서 계속" : game.phase === "paused" ? "잠시 쉬는 중" : game.count >= 3 ? "좌우 흔들림을 읽고, 타이밍 맞춰 툭" : "끌어서 맞추고, 놓으면 툭"}</p>
+        <p role="status">{!ready ? "돌을 준비하고 있어요" : game.phase === "busy" ? "" : game.phase === "fallen" ? "남은 돌에서 계속" : game.phase === "paused" ? "잠시 쉬는 중" : game.count >= 3 ? "흔들림을 보고, 타이밍 맞춰 누르세요" : "원하는 위치를 누르면 바로 쌓여요"}</p>
         {game.phase === "fallen" || game.phase === "paused" ? <button className="tower-primary" onClick={() => engine.current?.resume()}>이어서 쌓기</button> : <button disabled={!ready || game.phase === "busy"} onClick={() => engine.current?.pause()}>잠시 멈춤</button>}
         <button disabled={!game.count || game.phase === "busy"} onClick={openShare}>기록 공유</button>
         {game.phase === "paused" && <button onClick={async () => { if (await ask("새로 쌓을까요?", "현재 돌탑은 사라지고 최고 기록은 남아요.")) { engine.current?.dispose(); setReady(false); setReward(0); setRun(v => v + 1); } }}>새로 쌓기</button>}

@@ -26,16 +26,10 @@ export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageEle
     if (phase === "ready") activeMs += dt;
     camera += (targetCamera - camera) * Math.min(1, dt / 95);
     const elapsed = now - start;
-    let drop = 0, swing = 0, fall = 0;
-    if (mode === "drop") {
-      const t = Math.min(1, elapsed / (reduced ? 80 : 240));
-      drop = -80 * (1 - t * t);
-      if (t === 1) {
-        mode = "settle"; start = now;
-        onHit(stones.length - 1, fallFrom !== Infinity);
-      }
-    } else if (mode === "settle") {
-      const t = elapsed / (reduced ? 100 : 700);
+    const drop = 0;
+    let swing = 0, fall = 0;
+    if (mode === "settle") {
+      const t = elapsed / (reduced ? 100 : fallFrom === Infinity ? 180 : 500);
       swing = reduced ? 0 : Math.sin(t * Math.PI * 5) * Math.exp(-t * 2.7) * (1 + risk * 2.4) * direction;
       if (t >= 1) {
         if (fallFrom !== Infinity) { mode = "fall"; start = now; }
@@ -82,7 +76,10 @@ export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageEle
       const balance = stability(stones);
       risk = balance.risk; direction = balance.direction;
       fallFrom = balance.stable && !(stones.length > 5 && risk > .97) ? Infinity : Math.max(1, balance.joint);
-      targetCamera = cameraFor(stones); phase = "busy"; mode = "drop"; start = performance.now(); emit();
+      targetCamera = cameraFor(stones); phase = "busy"; mode = "settle"; start = performance.now();
+      frame = { stones, camera, fallFrom, fall: 0, direction, swing: 0, height: towerHeight(stones), drop: 0 };
+      paintTower(ctx, atlas, frame);
+      onHit(stones.length - 1, fallFrom !== Infinity); emit();
     },
     resume() { if (phase === "fallen" || phase === "paused") { phase = "ready"; emit(); } },
     pause() { if (phase === "ready") { phase = "paused"; emit(); } },
