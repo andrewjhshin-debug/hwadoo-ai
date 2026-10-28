@@ -109,6 +109,7 @@ export async function GET(req: Request) {
     기와,
     인연,
     인연활동,
+    인연심사,
     글,
     주문문서,
   ] = await Promise.all([
@@ -121,6 +122,8 @@ export async function GET(req: Request) {
     셈(db.collection("candles").where("gift", "==", "giwa")),
     셈(db.collection("yeon-profiles")),
     셈(db.collection("yeon-profiles").where("state", "==", "활동")),
+    // 심사 대기 — 사진 승인이 있어야 카드가 서므로 운영자 손이 병목이다(출시 점검 2026-10-28)
+    셈(db.collection("yeon-profiles").where("state", "==", "심사중")),
     셈(db.collection("posts")),
     db.collection("orders").orderBy("createdAt", "desc").limit(40).get().catch(() => null),
   ]);
@@ -160,7 +163,7 @@ export async function GET(req: Request) {
     at: Date.now(),
     블로그,
     사람: { 계정, 오늘: 오늘움직임, 이레: 이레움직임, 서른: 서른움직임 },
-    도량: { 공양, 공개공양, 기와, 인연, 인연활동, 글 },
+    도량: { 공양, 공개공양, 기와, 인연, 인연활동, 인연심사, 글 },
     돈: {
       누적: 받은것.reduce((s, o) => s + o.price, 0),
       건수: 받은것.length,

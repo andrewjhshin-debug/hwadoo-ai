@@ -24,7 +24,7 @@ type 상황 = {
     마지막: number;
   } | null;
   사람: { 계정: number; 오늘: number; 이레: number; 서른: number };
-  도량: { 공양: number; 공개공양: number; 기와: number; 인연: number; 인연활동: number; 글: number };
+  도량: { 공양: number; 공개공양: number; 기와: number; 인연: number; 인연활동: number; 인연심사: number; 글: number };
   돈: { 누적: number; 건수: number; 기다림: number; 달별: { 달: string; 원: number }[] };
   주문: { id: string; n: number; price: number; status: string; depositor: string; email: string | null; at: number }[];
 };
@@ -115,6 +115,7 @@ export default function DeskPage() {
         {[
           ["인연 프로필", d.도량.인연],
           ["인연 활동 중", d.도량.인연활동],
+          ["인연 심사 대기", d.도량.인연심사],
           ["모임 글", d.도량.글],
         ].map(([k, v]) => (
           <div key={k as string} className="desk-card">
