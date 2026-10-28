@@ -31,6 +31,40 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // ── 헤더 ─────────────────────────────────────────────────
+  // 출시 점검(2026-10-28)에서 잰 두 가지.
+  //
+  // ① 그림·소리·글꼴은 max-age=0 이었다 — 코드만 1년 캐시였다. 그러면 재방문마다
+  //    파일 하나하나에 「바뀌었나?」를 묻는다. 느린 망에선 그 왕복이 그림 수만큼
+  //    더 든다. 하루는 그냥 쓰고, 그 뒤 일주일은 쓰면서 뒤에서 새로 받는다.
+  //    (제자리에서 다시 구운 파일 — sil-*.png, sfx — 이 있어 1년은 못 준다.)
+  // ② 보안 헤더는 HTTPS 강제 하나뿐이었다. 다른 사이트가 화두를 액자에 끼워
+  //    속이는 것, MIME 추측, 안 쓰는 권한(마이크·결제)을 막는다.
+  //    CSP 는 구글 태그·네이버·센트리와 부딪혀 깨질 수 있어 일부러 뺐다.
+  async headers() {
+    const 하루 = "public, max-age=86400, stale-while-revalidate=604800";
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // 카메라: 얼굴 인증 · 위치: 포행·절 지도 · 센서: 포행·백팔배. 마이크·결제는 안 쓴다
+          {
+            key: "Permissions-Policy",
+            value:
+              "camera=(self), geolocation=(self), accelerometer=(self), gyroscope=(self), microphone=(), payment=(), usb=(), interest-cohort=()",
+          },
+        ],
+      },
+      ...["obj", "brand", "dudu", "sticker", "twin", "images", "seo", "sfx"].map((d) => ({
+        source: `/${d}/:path*`,
+        headers: [{ key: "Cache-Control", value: 하루 }],
+      })),
+    ];
+  },
 };
 
 // ── 감시탑 ──────────────────────────────────────────────

@@ -260,7 +260,7 @@ export default function BaePage() {
               절하는 자리에 방석이 깔려 있는 것이니, 동그라미 **아래쪽**에
               깔고 숫자는 그 위에 선다. 글자를 가리지 않게 옅게. */}
           <img
-            src="/obj/cushion.png"
+            src="/obj/cushion.webp"
             alt=""
             aria-hidden
             draggable={false}

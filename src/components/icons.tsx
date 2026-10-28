@@ -112,7 +112,7 @@ export function LotusMark({ className = "w-5 h-5", stroke = "currentColor" }: Ic
 function LotusBloom({ className = "w-5 h-5" }: IconProps) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden>
-      <image href="/brand/lotus-bloom-v1.png" width="64" height="64" />
+      <image href="/brand/lotus-bloom-256.png" width="64" height="64" />
     </svg>
   );
 }

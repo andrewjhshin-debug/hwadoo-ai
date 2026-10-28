@@ -75,7 +75,7 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onCli
 function 법당중앙({ children }: { children?: React.ReactNode }) {
   return <div className="hip-hall-shrine">
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img className="hip-hall-scene" src="/obj/hall-scene-v1.png" alt="" draggable={false} />
+    <img className="hip-hall-scene" src="/obj/hall-scene-v1.webp" alt="" draggable={false} />
     {children}
   </div>;
 }
@@ -95,7 +95,7 @@ const 공양들: { k: 공양갈래; 이름: string; 그림: string }[] = [
   { k: "ssal", 이름: "쌀", 그림: "/obj/gong-ssal.png" },
   { k: "cho", 이름: "초", 그림: "/obj/gong-cho.png" },
   { k: "hyang", 이름: "향", 그림: "/obj/gong-hyang.png" },
-  { k: "giwa", 이름: "기와 불사", 그림: "/obj/gong-giwa.png" },
+  { k: "giwa", 이름: "기와 불사", 그림: "/obj/gong-giwa.webp" },
 ];
 
 function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => void; onClose: () => void }) {
@@ -929,7 +929,7 @@ export default function CandleHall() {
           aria-label={기와들.length ? `기와 불사 ${기와들.length}장 보기` : "기와 불사"}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/obj/gong-giwa-eave-v2.png" alt="" draggable={false} />
+          <img src="/obj/gong-giwa-eave-v2.webp" alt="" draggable={false} />
           {기와들.length > 0 && <b>{Math.min(기와들.length, 999)}</b>}
         </button>
       </div>
