@@ -18,6 +18,8 @@ import FreshChunks from "@/components/FreshChunks";
 import VisitLedger from "@/components/VisitLedger";
 import ScrollTop from "@/components/ScrollTop";
 import InstallBanner from "@/components/InstallBanner";
+import WalkingRuntime from "@/components/WalkingRuntime";
+import InvestmentShortcut from "@/components/InvestmentShortcut";
 import {
   BIZ_ADDRESS,
   BIZ_MAIL_ORDER_NO,
@@ -238,6 +240,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SilCut />
         {/* 홈 화면에 담기 — 세션마다 한 번, 탭바 위에 낮게 깔려 묻는다 */}
         <InstallBanner />
+        <WalkingRuntime />
+        <InvestmentShortcut />
         </ConfirmProvider>
         {/* ── 지표 둘 ────────────────────────────────────────
             베르셀은 「몇 명 왔나」, GA4 는 「어디서 나갔나」.

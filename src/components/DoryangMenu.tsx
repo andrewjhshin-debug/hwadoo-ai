@@ -25,7 +25,6 @@ import {
   Hasim,
   Ilwonsang,
   Dharmachakra,
-  Jeoul,
   Iljumun,
   Nohda,
   Letter,
@@ -101,7 +100,6 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
     doors: [
       { href: "/ganhwaseon", label: "간화선이란?", say: "물음을 드는 법", Icon: Dharmachakra },
       { href: "/masters", label: "선지식의 한마디", say: "옛 어른의 말", Icon: SeonMaster },
-      { href: "/tamjinchi", label: "불심 투자", say: "탐·진·치를 보다", Icon: Jeoul },
     ],
   },
   {

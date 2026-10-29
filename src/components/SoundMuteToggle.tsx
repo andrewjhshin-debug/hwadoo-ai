@@ -34,7 +34,7 @@ export default function SoundMuteToggle({ compact = false }: Props) {
       title={label}
       className={
         compact
-          ? `p-1.5 transition-colors ${muted ? "text-gold" : "text-hanji-faint hover:text-gold-soft"}`
+          ? `hip-top-ico hip-sound-toggle transition-colors ${muted ? "text-gold" : "text-hanji-faint hover:text-gold-soft"}`
           : `flex w-full items-center justify-between rounded-[10px] border px-3 py-2.5 text-left text-[13px] transition-colors ${
               muted
                 ? "border-gold/45 bg-gold/10 text-hanji"

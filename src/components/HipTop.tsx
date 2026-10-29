@@ -20,9 +20,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import LotusCount from "@/components/LotusCount";
 import SoundMuteToggle from "@/components/SoundMuteToggle";
 import TodayPracticePopover from "@/components/TodayPracticePopover";
+import { useWalking } from "@/components/WalkingRuntime";
+import { toggleWalking } from "@/lib/walking";
 
 export default function HipTop({
   /** 이 판이 더 얹고 싶은 것 — 예: 뜰의 ○(물음만 보기) */
@@ -38,6 +39,7 @@ export default function HipTop({
   // 넘길 때마다 연꽃 셈이 자리를 옮기니 눈이 그것을 따라다녔다.
   // 자리는 고정이 먼저다. 지금 있는 자리는 지우는 대신 **채워서** 알린다.
   const path = usePathname();
+  const walking = useWalking();
   const here = path === "/settings";
   return (
     <div className="hip-top-right">
@@ -46,6 +48,9 @@ export default function HipTop({
           연꽃은 **쓰는 자리**에서만 셈하면 된다 — 법당(공양)과
           손잡고 절로(쪽지 청하기), 그리고 연꽃 판 자체. */}
       <SoundMuteToggle compact />
+      <button type="button" className="hip-top-ico hip-walking-toggle" aria-label={walking.on ? "포행 끄기" : "포행 켜기"} aria-pressed={walking.on} onClick={toggleWalking} title={walking.on ? `포행 켜짐 · ${walking.steps}걸음` : "포행 켜기"}>
+        <span>포행</span><small>{walking.on ? "ON" : "OFF"}</small>
+      </button>
       <TodayPracticePopover />
       <Link href="/letters" aria-label="쪽지함" className="hip-top-ico">
         <svg viewBox="0 0 24 24" aria-hidden>

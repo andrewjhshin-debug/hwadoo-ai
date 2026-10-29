@@ -30,7 +30,7 @@ export function stoneSpec(depth: number, seed: number): Omit<GameStone, "x" | "y
   const art = depth === 0 ? 0 : depth < 3 ? [1, 2][depth - 1] : 1 + Math.floor(r * 8);
   const source = TOWER_STONES[art];
   const width = depth === 0 ? 210 : depth < 3 ? 180 - depth * 12 : 110 + Math.round(random(seed ^ (depth + 71) * 829) * 48);
-  return { depth, art, width, height: source.height / source.width * width,
+  return { depth, art, width, height: source.crop[3] / source.crop[2] * width,
     angle: depth === 0 ? 0 : depth < 3 ? source.tilt * .4 : source.tilt * .65 + (r - .5) * 5,
     support: depth < 3 ? .34 : Math.max(.135, source.support + .02 - Math.min(.055, (depth - 3) * .004)),
     offset: source.offset * .65, massOffset: source.massOffset,
@@ -52,7 +52,8 @@ export function dropStone(stones: readonly GameStone[], x: number, seed: number)
   const at = below ? contact(below) : null;
   const bounded = clampAim(spec, x);
   const floor = at ? at.y + (bounded - at.x) * at.slope : FLOOR;
-  const overlap = !below ? 0 : below.art === 3 && spec.art === 4 ? spec.height * .55 : 2;
+  // v4 silhouettes have real contact pixels; do not bury a slab halfway into a wedge.
+  const overlap = below ? 2 : 0;
   return { ...spec, x: bounded, y: floor - spec.height * spec.bottom + overlap };
 }
 

@@ -143,12 +143,13 @@ export function drawHwadu(prev: number | null = null): number {
 // ── 참회록(懺悔錄) ───────────────────────────────────────────
 // 매매일지이되 값을 적지 않는다. 무엇을 했고 그때 어떤 독이 움직였는가.
 
-export type Deed = "buy" | "sell" | "hold";
+export type Deed = "buy" | "sell" | "hold" | "check";
 
 export const DEED_LABEL: Record<Deed, string> = {
   buy: "샀다",
   sell: "팔았다",
   hold: "참았다",
+  check: "점검",
 };
 
 export type Entry = {
@@ -183,7 +184,7 @@ export function loadTamjinchi(): TamjinchiBook {
     return {
       pauses: num(p.pauses),
       held: num(p.held),
-      entries: list.filter(isEntry),
+      entries: list.filter(isEntry).slice(0, MAX_ENTRIES),
     };
   } catch {
     return { ...EMPTY, entries: [] };
@@ -191,7 +192,7 @@ export function loadTamjinchi(): TamjinchiBook {
 }
 
 function num(v: unknown): number {
-  return typeof v === "number" && v > 0 ? Math.floor(v) : 0;
+  return typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0;
 }
 
 function isEntry(v: unknown): v is Entry {
@@ -199,17 +200,22 @@ function isEntry(v: unknown): v is Entry {
   return (
     !!e &&
     typeof e.id === "string" &&
-    typeof e.at === "number" &&
-    (e.deed === "buy" || e.deed === "sell" || e.deed === "hold") &&
+    typeof e.at === "number" && Number.isFinite(e.at) &&
+    (e.poison === null || e.poison === "tam" || e.poison === "jin" || e.poison === "chi") &&
+    (e.deed === "buy" || e.deed === "sell" || e.deed === "hold" || e.deed === "check") &&
     typeof e.text === "string"
   );
 }
 
+let writeSucceeded = true;
+export function tamjinchiWriteSucceeded() { return writeSucceeded; }
 function save(b: TamjinchiBook): TamjinchiBook {
   try {
     window.localStorage.setItem(TAMJINCHI_KEY, JSON.stringify(b));
+    writeSucceeded = true;
     window.dispatchEvent(new CustomEvent(TAMJINCHI_EVENT));
   } catch {
+    writeSucceeded = false;
     // 못 적어도 세는 일은 이어진다
   }
   return b;

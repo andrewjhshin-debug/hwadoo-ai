@@ -18,6 +18,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
+import HipRoom from "@/components/HipRoom";
+import InvestmentPractice from "@/components/InvestmentPractice";
+import "./investment.css";
 import {
   addEntry,
   CHOICES,
@@ -34,6 +37,7 @@ import {
   removeEntry,
   TEXT_MAX,
   verdictOf,
+  tamjinchiWriteSucceeded,
   type Deed,
   type Poison,
   type TamjinchiBook,
@@ -65,9 +69,10 @@ const TJ_CSS = `
 @media (prefers-reduced-motion: reduce) { .tj-orb { --tj-max: 1.1; } }
 `;
 
-type Tab = "pause" | "check" | "hwadu" | "log";
+type Tab = "practice" | "pause" | "check" | "hwadu" | "log";
 
 const TABS: { id: Tab; label: string }[] = [
+  { id: "practice", label: "마음점검" },
   { id: "pause", label: "108초" },
   { id: "check", label: "자가진단" },
   { id: "hwadu", label: "화두" },
@@ -75,13 +80,13 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 export default function TamjinchiPage() {
-  const [tab, setTab] = useState<Tab>("pause");
+  const [tab, setTab] = useState<Tab>("practice");
   const [book, setBook] = useState<TamjinchiBook | null>(null);
 
-  useEffect(() => setBook(loadTamjinchi()), []);
+  useEffect(() => { const timer = window.setTimeout(() => setBook(loadTamjinchi()), 0); return () => clearTimeout(timer); }, []);
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
+    <HipRoom here="/tamjinchi" lanes={false} rail="/settings"><div className="investment-page mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-4 pb-16 pt-4">
       <style>{TJ_CSS}</style>
 
       <p className="rise text-[11px] tracking-[0.5em] text-gold-soft">
@@ -92,7 +97,7 @@ export default function TamjinchiPage() {
           둘 다 안 읽힌다. */}
 
       {/* 뼈대 — 삼독이 곧 손실의 세 가지 원인. 설명은 여기 한 번뿐이다 */}
-      <div className="rise rise-d2 mt-4 grid w-full grid-cols-3 gap-2">
+      {tab === "check" && <div className="rise rise-d2 mt-4 grid w-full grid-cols-3 gap-2">
         {POISONS.map((p) => (
           <div
             key={p.id}
@@ -109,10 +114,10 @@ export default function TamjinchiPage() {
             <p className="mt-2 text-[12.5px] text-hanji">{p.full}</p>
           </div>
         ))}
-      </div>
+      </div>}
 
       {/* 알약 세그먼트 — 고른 쪽만 먹으로 채운다 */}
-      <div className="rise rise-d2 mt-4 flex w-full rounded-full border border-ink-3 bg-ink-2/50 p-1">
+      <div className="investment-tabs rise rise-d2 mt-4 flex w-full rounded-full border border-ink-3 bg-ink-2/50 p-1">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -131,6 +136,7 @@ export default function TamjinchiPage() {
       </div>
 
       <div className="mt-5 w-full">
+        {tab === "practice" && <InvestmentPractice book={book} onPause={() => setTab("pause")} onRecord={(poison, text) => { setBook(addEntry("check", poison, text)); return tamjinchiWriteSucceeded(); }} />}
         {tab === "pause" && (
           <Pause book={book} onNote={(held) => setBook(notePause(held))} />
         )}
@@ -144,7 +150,7 @@ export default function TamjinchiPage() {
           />
         )}
       </div>
-    </div>
+    </div></HipRoom>
   );
 }
 
@@ -167,7 +173,6 @@ function Pause({
   // 남은 시간은 시작 시각에서 계산한다 — 창을 가렸다 돌아와도 어긋나지 않게
   useEffect(() => {
     if (phase !== "count") return;
-    let raf = 0;
     const tick = () => {
       const gone = (performance.now() - startRef.current) / 1000;
       const l = Math.max(0, PAUSE_SECONDS - gone);
@@ -176,10 +181,9 @@ function Pause({
         setPhase("ask");
         return;
       }
-      raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    const timer = window.setInterval(tick, 200);
+    return () => window.clearInterval(timer);
   }, [phase]);
 
   const begin = () => {

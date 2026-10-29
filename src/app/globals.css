@@ -62,6 +62,23 @@ html[data-theme="light"] body {
 
 /* 포행 — 공덕 줄 바로 아래의 작은 시작점. 어느 방에서도 한 자리에 남는다. */
 .walking-merit { position: relative; }
+.walking-diagnostics { margin: 20px auto 0; max-width: 290px; font-size: 12px; color: #777267; }
+.walking-diagnostics > div { display: flex; justify-content: space-between; gap: 12px; margin: 8px 0; }
+.walking-diagnostics dd { margin: 0; color: #c2537e; }
+.hip-walking-toggle { display: flex; flex-direction: column; justify-content: center; gap: 3px; border: 0; background: none; cursor: pointer; }
+.hip-walking-toggle span { font-size: 10px; }
+.hip-walking-toggle small { font: 8px/1 sans-serif; letter-spacing: .03em; }
+.hip-walking-toggle[aria-pressed="true"] { color: #b53b6c; background: #fbe7ef; border-radius: 10px; }
+.hip-top-right > .hip-top-ico, .hip-top-right .hip-today-wrap { align-self: center; }
+.hip-top-right .hip-sound-toggle svg { width: 19px; height: 19px; }
+.investment-shortcut { position: fixed; z-index: 45; right: max(12px, calc(50vw - 224px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 23px); display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #e4c8d2; border-radius: 50%; color: #b94b76; background: #fff8fb; box-shadow: 0 3px 12px #b94b7615; }
+.investment-shortcut:focus-visible { outline: 2px solid #b94b76; outline-offset: 3px; }
+@media (max-width: 700px) {
+  body:has(.investment-shortcut) .hip-mala { left: 12px; right: 66px; width: auto; max-width: 460px; margin: 0 auto; }
+  body:has(.investment-shortcut) .hip-mala-track { width: 100%; max-width: 360px; gap: 4px; }
+  body:has(.investment-shortcut) .hip-mala button { width: auto; min-width: 0; flex: 1; }
+}
+body:has([role="dialog"][aria-modal="true"]) .investment-shortcut, html[data-drawer] .investment-shortcut { visibility: hidden; pointer-events: none; }
 .walking-merit-toggle {
   display: inline-flex;
   min-height: 29px;

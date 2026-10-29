@@ -2900,7 +2900,8 @@ html[data-theme="light"] {
   .hip-top-right {
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 5px;
+    flex-shrink: 0;
   }
   /* 형: 「연꽃이랑 공양은 좀 작게 만들어서 오른쪽 위로」 —
      알약이 머리줄의 반을 먹어서 나머지 셋이 구석으로 밀렸다.
@@ -2915,8 +2916,11 @@ html[data-theme="light"] {
   .hip-top-ico {
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 36px;
+    flex-shrink: 0;
+    padding: 0;
+    line-height: 1;
     color: #a39a8f;
   }
   .hip-top-ico svg {
@@ -2937,7 +2941,7 @@ html[data-theme="light"] {
 
   /* 오늘의 수행은 메인 카드가 아니다. 쪽지함 옆 꽃을 눌렀을 때만, 손바닥만 한
      장부로 열린다. */
-  .hip-today-wrap { position: relative; }
+  .hip-today-wrap { position: relative; display: flex; align-items: center; height: 36px; }
   .hip-today-trigger {
     position: relative;
     border: 0;
@@ -2946,7 +2950,7 @@ html[data-theme="light"] {
     font-size: 16px;
     line-height: 1;
   }
-  .hip-today-trigger > span { transform: translateY(1px); }
+  .hip-today-trigger > span { display: block; line-height: 1; }
   .hip-today-badge {
     position: absolute;
     top: 4px;

@@ -5,7 +5,7 @@ import WalkingMerit from "@/components/WalkingMerit";
 
 export default function WalkingPage() {
   return (
-    <HipRoom here="/walking" scroll={false}>
+    <HipRoom here="/walking">
       <WalkingMerit />
     </HipRoom>
   );
