@@ -20,6 +20,7 @@
 import { useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
 import InvestmentPractice from "@/components/InvestmentPractice";
+import { DancheongGauge, InvestmentBloom } from "@/components/InvestmentDancheong";
 import "./investment.css";
 import {
   addEntry,
@@ -33,6 +34,7 @@ import {
   PAUSE_SECONDS,
   POISONS,
   POISON_BY_ID,
+  poisonLevels,
   QUESTIONS,
   removeEntry,
   TEXT_MAX,
@@ -72,11 +74,11 @@ const TJ_CSS = `
 type Tab = "practice" | "pause" | "check" | "hwadu" | "log";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "practice", label: "마음점검" },
+  { id: "practice", label: "한 판" },
   { id: "pause", label: "108초" },
-  { id: "check", label: "자가진단" },
-  { id: "hwadu", label: "화두" },
-  { id: "log", label: "참회록" },
+  { id: "check", label: "삼독" },
+  { id: "hwadu", label: "한 장" },
+  { id: "log", label: "기록" },
 ];
 
 export default function TamjinchiPage() {
@@ -90,31 +92,13 @@ export default function TamjinchiPage() {
       <style>{TJ_CSS}</style>
 
       <p className="rise text-[11px] tracking-[0.5em] text-gold-soft">
-        佛心投資 · 불심 투자
+        불심투자
       </p>
       {/* 형: 「최대한 텍스트 없애」 — 머리에 적힌 「佛心投資 · 불심 투자」가
           이미 무엇을 하는 자리인지 말한다. 그 아래 한 줄을 더 얹으면
           둘 다 안 읽힌다. */}
 
       {/* 뼈대 — 삼독이 곧 손실의 세 가지 원인. 설명은 여기 한 번뿐이다 */}
-      {tab === "check" && <div className="rise rise-d2 mt-4 grid w-full grid-cols-3 gap-2">
-        {POISONS.map((p) => (
-          <div
-            key={p.id}
-            className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-2 py-2.5 text-center"
-          >
-            <span
-              aria-hidden
-              className="mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-gold/40 bg-gold/10 font-serif text-[15px] leading-none text-gold"
-            >
-              {p.hanja}
-            </span>
-            {/* 한자 · 우리말 · 덧말 셋이 같은 것을 세 번 말하고 있었다.
-                둘이면 족하다 — 덧말은 누르면 나오는 자가진단이 맡는다 */}
-            <p className="mt-2 text-[12.5px] text-hanji">{p.full}</p>
-          </div>
-        ))}
-      </div>}
 
       {/* 알약 세그먼트 — 고른 쪽만 먹으로 채운다 */}
       <div className="investment-tabs rise rise-d2 mt-4 flex w-full rounded-full border border-ink-3 bg-ink-2/50 p-1">
@@ -136,7 +120,7 @@ export default function TamjinchiPage() {
       </div>
 
       <div className="mt-5 w-full">
-        {tab === "practice" && <InvestmentPractice book={book} onPause={() => setTab("pause")} onRecord={(poison, text) => { setBook(addEntry("check", poison, text)); return tamjinchiWriteSucceeded(); }} />}
+        {tab === "practice" && <InvestmentPractice book={book} onPause={() => setTab("pause")} onRecord={(poison, text) => { const next = addEntry("check", poison, text); const saved = tamjinchiWriteSucceeded(); if (saved) setBook(next); return saved; }} />}
         {tab === "pause" && (
           <Pause book={book} onNote={(held) => setBook(notePause(held))} />
         )}
@@ -286,9 +270,7 @@ function Pause({
 
       {phase === "ready" && (
         <p className="mt-4 break-keep text-[12.5px] leading-6 text-hanji-dim">
-          <span className="text-hanji">고리를 누르면 백여덟을 셉니다.</span>
-          <br />
-          원이 커지면 들이쉬고, 작아지면 내쉬세요.
+          <span className="text-hanji">눌러서 숨 고르기</span>
         </p>
       )}
 
@@ -298,14 +280,14 @@ function Pause({
           onClick={() => setPhase("ready")}
           className="mt-4 rounded-full border border-ink-3 px-9 py-2.5 text-[13px] tracking-[0.3em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
         >
-          그만두기
+          그만
         </button>
       )}
 
       {phase === "ask" && (
         <>
           <p className="mt-5 break-keep font-serif text-xl font-light text-hanji question-glow">
-            그래도 사시겠어요?
+            마음은, 그대로?
           </p>
           <div className="mt-5 flex items-center gap-3">
             <button
@@ -330,15 +312,15 @@ function Pause({
         <>
           <p className="mt-5 break-keep text-[13px] leading-6 text-hanji-dim">
             {chose === "hold"
-              ? "멈춘 것도 한 매매입니다."
-              : "정하셨으면 참회록에 한 줄 남겨 두세요."}
+              ? "오늘은, 한숨."
+              : "한 줄, 남겨 두기."}
           </p>
           <button
             type="button"
             onClick={begin}
             className="mt-5 rounded-full border border-ink-3 px-9 py-3 text-[13px] tracking-[0.3em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
           >
-            다시 세기
+            한 번 더
           </button>
         </>
       )}
@@ -357,6 +339,7 @@ function Check() {
   if (done) {
     const v = verdictOf(answers);
     const meta = v.poison ? POISON_BY_ID[v.poison] : null;
+    const levels = poisonLevels(answers);
     return (
       <div className="rise flex flex-col items-center rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-10 text-center">
         <span
@@ -366,14 +349,17 @@ function Check() {
           {meta ? meta.hanja : "空"}
         </span>
         <p className="mt-6 break-keep font-serif text-[17px] font-light leading-[1.9] text-hanji">
-          {v.line}
+          {meta ? `${meta.full}, 한숨 먼저.` : "지금은 고요."}
         </p>
+        <div className="investment-poison-chart" aria-label="내 답변의 탐진치 막대">
+          {POISONS.map(p => <div className="investment-poison-row" key={p.id}><span>{p.name}</span><DancheongGauge value={levels[p.id]} tone={p.id === "tam" ? "jade" : p.id === "jin" ? "coral" : "gold"} label={`${p.full} 응답 ${Math.round(levels[p.id] * 100)}%`} /></div>)}
+        </div>
         <button
           type="button"
           onClick={() => setAnswers([])}
           className="mt-7 rounded-full border border-ink-3 px-8 py-2.5 text-[12.5px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
         >
-          다시 보기
+          한 번 더
         </button>
       </div>
     );
@@ -382,9 +368,8 @@ function Check() {
   return (
     <div className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-8">
       {/* 진행 막대 — 몇 개 남았는지 숫자로 세지 않게 */}
-      <div className="h-px w-full bg-ink-3">
+      <div className="investment-quiz-progress">
         <div
-          className="h-px bg-gold transition-[width] duration-300"
           style={{ width: `${(i / QUESTIONS.length) * 100}%` }}
         />
       </div>
@@ -412,7 +397,7 @@ function Check() {
           onClick={() => setAnswers((a) => a.slice(0, -1))}
           className="mx-auto mt-6 block text-[12px] text-hanji-faint transition-colors hover:text-hanji-dim"
         >
-          한 걸음 뒤로
+          이전
         </button>
       )}
     </div>
@@ -425,22 +410,14 @@ function LossHwadu() {
   const [idx, setIdx] = useState<number | null>(null);
 
   return (
-    <div className="flex flex-col items-center rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-10 text-center">
+    <div className="flex flex-col items-center text-center">
       {idx === null ? (
-        <>
-          <p className="break-keep text-[13px] leading-6 text-hanji-dim">
-            잃은 날에는 값을 보지 말고 물음을 보세요.
-          </p>
-          <button
-            type="button"
-            onClick={() => setIdx(drawHwadu(null))}
-            className="btn-obang mt-6 px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
-          >
-            화두 열기
-          </button>
-        </>
+        <button type="button" onClick={() => setIdx(drawHwadu(null))} className="investment-hwadu-draw" aria-label="화두 한 장 뽑기">
+          <InvestmentBloom lit={[true, true, true]} />
+          <span>한 장, 툭.</span>
+        </button>
       ) : (
-        <>
+        <div key={idx} className="investment-hwadu-open rounded-[24px] border border-ink-3 bg-ink-2/50 px-6 py-10">
           <span
             aria-hidden
             className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10 font-serif text-[18px] leading-none text-gold"
@@ -455,9 +432,9 @@ function LossHwadu() {
             onClick={() => setIdx((p) => drawHwadu(p))}
             className="mt-8 rounded-full border border-ink-3 px-8 py-2.5 text-[12.5px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
           >
-            다른 화두
+            한 장 더
           </button>
-        </>
+        </div>
       )}
     </div>
   );
@@ -511,7 +488,7 @@ function Confession({
         </div>
 
         <p className="mt-4 text-[11.5px] tracking-[0.2em] text-hanji-faint">
-          그때 움직인 것
+          그때의 마음
         </p>
         <div className="mt-2 flex gap-2">
           {POISONS.map((p) => (
@@ -538,7 +515,7 @@ function Confession({
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, TEXT_MAX))}
             rows={2}
-            placeholder="무엇이 나를 움직였나요"
+            placeholder="한 줄, 남겨 두기"
             className="journal-area text-[15px]"
           />
         </div>
@@ -554,14 +531,14 @@ function Confession({
             disabled={!text.trim()}
             className="btn-obang px-7 py-2.5 text-[12.5px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90 disabled:opacity-40"
           >
-            적기
+            남기기
           </button>
         </div>
       </div>
 
       {entries.length === 0 ? (
         <p className="mt-10 text-center text-[13px] text-hanji-faint">
-          아직 적은 것이 없어요.
+          첫 줄을 남겨요.
         </p>
       ) : (
         <ul className="mt-6 flex flex-col gap-3">

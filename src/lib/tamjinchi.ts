@@ -96,6 +96,18 @@ export const CHOICES: { score: number; label: string }[] = [
 
 export type Verdict = { poison: Poison | null; line: string };
 
+/** Actual responses expressed as bar lengths, independently for each category. */
+export function poisonLevels(answers: readonly number[]): Record<Poison, number> {
+  const sum = { tam: 0, jin: 0, chi: 0 };
+  const maximum = { tam: 0, jin: 0, chi: 0 };
+  QUESTIONS.forEach((question, i) => {
+    maximum[question.poison] += 3;
+    const value = answers[i];
+    if (Number.isFinite(value)) sum[question.poison] += Math.min(3, Math.max(0, value));
+  });
+  return { tam: sum.tam / maximum.tam, jin: sum.jin / maximum.jin, chi: sum.chi / maximum.chi };
+}
+
 /**
  * 답한 것으로 지금 무엇이 센지 본다.
  * 점수는 돌려주지 않는다 — 숫자를 보여 주면 사람이 점수를 관리하기 시작한다.
