@@ -34,3 +34,7 @@ Prompt: one 3x3 transparent sprite atlas, nine distinct neutral-charcoal natural
 - TypeScript, targeted ESLint, production build, followed by browser layout checks.
 
 Browser UI QA was blocked: local browser use is disabled in Work settings. Do not bypass that setting or claim screenshot/viewport verification. Physical Android walking/screen-lock behaviour and OS-specific permission prompts cannot be certified from synthetic tests. No real-phone accuracy claim without device testing.
+
+## Bottom bar restoration follow-up
+
+Per the user's correction, remove all shortcut-dependent bottom-nav overrides. Restore the original centered navigation, 54 x 42 buttons, six-pixel gaps and bottom safe-area +16 px position. The independent shortcut is now 38 x 38 at safe-area +86 px, above rather than beside the bottom bar. Reuse the existing native radial Mandala glyph in restrained dancheong green/red/ochre/blue colors, without chart imagery. `scripts/investment-shortcut-layout-test.mjs` guards the restored separation; it is a structural regression test, not a browser screenshot test.
