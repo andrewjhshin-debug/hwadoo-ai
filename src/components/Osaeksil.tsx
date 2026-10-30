@@ -26,7 +26,7 @@ const 결그림 = ["/obj/sil-sae.png", "/obj/sil-baram.png", "/obj/sil-seong.png
 /** 각 그림이 온전히 보이는 지점(닳음 0~1) */
 const 결점 = [0, 0.4, 0.78, 1];
 
-export function SilCord({ wear, className = "" }: { wear: number; className?: string }) {
+export function SilCord({ wear, className = "", srcs = 결그림 }: { wear: number; className?: string; srcs?: string[] }) {
   const w = Math.max(0, Math.min(1, wear));
   // 지금 어느 두 장 사이인가
   let k = 0;
@@ -36,9 +36,9 @@ export function SilCord({ wear, className = "" }: { wear: number; className?: st
   return (
     <span className={`hip-sil-stack ${className}`} aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={결그림[k]} alt="" draggable={false} />
+      <img src={srcs[k]} alt="" draggable={false} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={결그림[k + 1]} alt="" draggable={false} style={{ opacity: 섞 }} />
+      <img src={srcs[k + 1]} alt="" draggable={false} style={{ opacity: 섞 }} />
     </span>
   );
 }

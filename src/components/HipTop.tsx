@@ -20,6 +20,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import SilTop from "@/components/SilTop";
 import SoundMuteToggle from "@/components/SoundMuteToggle";
 import TodayPracticePopover from "@/components/TodayPracticePopover";
 import { useWalking } from "@/components/WalkingRuntime";
@@ -51,6 +52,8 @@ export default function HipTop({
       <button type="button" className="hip-top-ico hip-walking-toggle" aria-label={walking.on ? "포행 끄기" : "포행 켜기"} aria-pressed={walking.on} onClick={toggleWalking} title={walking.on ? `포행 켜짐 · ${walking.steps}걸음` : "포행 켜기"}>
         <span>포행</span><small>{walking.on ? "ON" : "OFF"}</small>
       </button>
+      {/* 형: 「포행 OFF 랑 연잎 사이」 — 출석할수록 헤지는 오색실. 눌리면 팝업 */}
+      <SilTop />
       <TodayPracticePopover />
       <Link href="/letters" aria-label="쪽지함" className="hip-top-ico">
         <svg viewBox="0 0 24 24" aria-hidden>
