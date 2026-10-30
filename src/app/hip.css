@@ -8313,3 +8313,34 @@ html[data-theme="light"] {
     color: #a39a8f;
   }
 }
+
+/* 머리 오른쪽 오색실 — 아이콘과 팝업 틀. 안쪽(.hip-sil)은 내 도량에 있던 그대로 */
+@media (min-width: 0px) {
+  .hip-sil-top svg {
+    width: 22px;
+    height: 24px;
+    overflow: visible;
+    /* .hip-top-ico svg 의 stroke 규칙이 얹히지 않게 — 선 색은 가닥마다 인라인으로 준다 */
+    stroke: none;
+    stroke-width: 0;
+  }
+  .hip-sil-pop {
+    max-height: min(78svh, 560px);
+    overflow-y: auto;
+    padding-top: 22px;
+  }
+  .hip-sil-pop .hip-sil { margin-top: 0; padding: 0; }
+  .hip-sil-pop .hip-sil-cord { height: 52px; }
+  .hip-sil-pop-x {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    background: none;
+    font-size: 20px;
+    line-height: 1;
+    color: #b6a9b0;
+  }
+}
