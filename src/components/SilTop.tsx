@@ -18,52 +18,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import Osaeksil from "@/components/Osaeksil";
+import Osaeksil, { SilCord } from "@/components/Osaeksil";
 import { MERIT_EVENT } from "@/lib/merit";
 import { SIL_EVENT, 닳음, 실읽기 } from "@/lib/sil";
 
-/** 흰 · 노 · 초 · 빨 · 파 — 형이 말한 오색의 순서 */
-const 빛 = ["#e9dfc9", "#f2b03a", "#6ba575", "#cf5d5a", "#5b7fae"];
-const 자리 = [5.2, 8.6, 12, 15.4, 18.8];
-
-const 눌러 = (v: number) => Math.max(0, Math.min(1, v));
-
-/** 가닥 하나가 얼마나 닳았나 — 앞 가닥이 먼저, 뒤 가닥이 늦게(끝에는 모두) */
-function 가닥닳음(wear: number, i: number) {
-  return 눌러((wear - i * 0.1) / 0.6);
-}
+/** 팝업의 실 사진을 고리로 만 팔찌(scripts/make-sil-ring.mjs) — 닳을수록 색이 바래고 끝이 풀리다 마지막엔 끊어진다 */
+const 고리 = ["sae", "baram", "seong", "cut"].map((n) => `/obj/sil-ring-${n}.webp`);
 
 function 실그림({ wear }: { wear: number | null }) {
-  const 없음 = wear === null;
-  return (
-    <svg viewBox="0 0 24 26" aria-hidden>
-      {자리.map((x, i) => {
-        const w = 없음 ? 0 : 가닥닳음(wear, i);
-        const 끝 = 23 - w * 8; // 닳을수록 짧아진다
-        const 휨 = i % 2 ? 1.1 : -1.1; // 땋은 듯 엇갈리게
-        const 색 = 없음 ? "#cdc2c8" : 빛[i];
-        const 투명 = 없음 ? 0.55 : 1 - w * 0.5;
-        return (
-          <g key={i} style={{ opacity: 투명 }}>
-            <path
-              d={`M${x} 5.5 C${x + 휨} 10 ${x - 휨} 16 ${x} ${끝}`}
-              style={{ stroke: 색, strokeWidth: 2.3, fill: "none", strokeLinecap: "round" }}
-            />
-            {/* 끝이 풀려 털이 선다 — 어느 정도 닳은 가닥부터 */}
-            {w > 0.3 && (
-              <g style={{ stroke: 색, strokeWidth: 0.8, fill: "none", strokeLinecap: "round", opacity: 0.85 }}>
-                <path d={`M${x} ${끝} l-1.7 2.4`} />
-                <path d={`M${x} ${끝} l0.2 2.9`} />
-                <path d={`M${x} ${끝} l1.7 2.2`} />
-              </g>
-            )}
-          </g>
-        );
-      })}
-      {/* 매듭 — 다섯 가닥을 한데 묶은 자리 */}
-      <rect x="3" y="3" width="18" height="3.4" rx="1.7" style={{ fill: 없음 ? "#d9cfd4" : "#e9a6bd", stroke: "none" }} />
-    </svg>
-  );
+  return <SilCord wear={wear ?? 0} srcs={고리} className={`hip-sil-ico${wear === null ? " is-none" : ""}`} />;
 }
 
 export default function SilTop() {
