@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
+import TowerRanking from "@/components/TowerRanking";
 import { useConfirm } from "@/components/Confirm";
 import { addMerit } from "@/lib/merit";
 import { auth } from "@/lib/firebase";
@@ -103,6 +104,7 @@ export default function TowerPage() {
     <section className="tower-game" aria-label="돌탑 높이 도전">
       <header className="tower-score">
         <h1>石塔 · 돌탑</h1>
+        <TowerRanking engine={engine} peak={game.peak} seed={seed} phase={game.phase} />
         <p><b>{game.height.toFixed(1)}</b><span>cm</span></p>
         <small>최고 {best.toFixed(1)} cm{target > 0 ? ` / 도전 ${target.toFixed(1)} cm` : ""}</small>
       </header>

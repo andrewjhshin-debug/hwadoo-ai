@@ -61,6 +61,7 @@ export async function POST(req: Request) {
   const batch = db.batch();
   batch.delete(profile);
   batch.delete(db.doc(`users/${uid}`));
+  batch.delete(db.doc(`tower-ranks/${uid}`));
   batch.delete(db.doc(`yeon-pins/${uid}`));
   ownDaily.docs.forEach((doc) => batch.delete(doc.ref));
   ownTokens.docs.forEach((doc) => batch.delete(doc.ref));

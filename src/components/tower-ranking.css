@@ -1,0 +1,36 @@
+.tower-rank-open { position: absolute; right: 12px; top: 2px; display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 8px 13px; border: 1px solid #e0d6c6; border-radius: 24px; background: #fffcf6; color: #79633f; font-size: 12px; cursor: pointer; }
+.tower-rank-open svg { width: 16px; height: 16px; }
+.tower-rank-open:disabled { opacity: .45; cursor: default; }
+.tower-rank-dialog { --rank-ink: #332f30; --rank-muted: #817a77; --rank-paper: #fcfaf7; --rank-line: #e9e2dc; color: var(--rank-ink); background: var(--rank-paper); width: min(390px, calc(100% - 28px)); max-height: calc(100dvh - 40px); margin: auto; padding: 0; border: 0; border-radius: 24px; overflow: auto; scrollbar-width: none; box-shadow: 0 18px 80px #25201e25; }
+.tower-rank-dialog::-webkit-scrollbar { display: none; }
+.tower-rank-dialog::backdrop { background: #29252275; }
+.tower-rank-sheet { padding: 23px 22px 20px; }
+.tower-rank-sheet header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.tower-rank-sheet h2 { margin: 0; font-size: 25px; font-weight: 500; letter-spacing: -.04em; }
+.tower-rank-sheet header > button { display: grid; place-items: center; min-width: 42px; min-height: 42px; border: 0; background: transparent; color: var(--rank-muted); font-size: 25px; cursor: pointer; }
+.tower-rank-dialog button:focus-visible, .tower-rank-open:focus-visible { outline: 2px solid #b84b76; outline-offset: 3px; }
+.tower-rank-period { display: flex; gap: 3px; padding: 3px; margin-bottom: 20px; background: #eeeae5; border-radius: 22px; }
+.tower-rank-period button { flex: 1; min-height: 40px; border: 0; border-radius: 20px; background: transparent; color: var(--rank-muted); font-size: 13px; cursor: pointer; }
+.tower-rank-period button[aria-pressed="true"] { background: #fffdf9; color: var(--rank-ink); box-shadow: 0 2px 6px #30251d09; }
+.tower-rank-leader { display: flex; align-items: center; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--rank-line); }
+.tower-rank-medal { flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #f0e5d1; color: #916f37; }
+.tower-rank-leader > div { flex: 1; min-width: 0; }
+.tower-rank-leader strong { display: block; font-size: 17px; font-weight: 500; overflow-wrap: anywhere; margin-top: 4px; }
+.tower-rank-leader small { display: block; font-size: 11px; color: var(--rank-muted); }
+.tower-rank-leader p { margin: 0; text-align: right; font-size: 25px; font-variant-numeric: tabular-nums; }
+.tower-rank-columns { display: flex; justify-content: space-between; margin: 18px 7px 5px; color: var(--rank-muted); font-size: 11px; }
+.tower-rank-list { list-style: none; margin: 0; padding: 0; }
+.tower-rank-list li { display: grid; grid-template-columns: 23px minmax(0, 1fr) auto; align-items: center; gap: 8px; min-height: 45px; padding: 5px 7px; border-bottom: 1px solid var(--rank-line); font-size: 13px; font-variant-numeric: tabular-nums; }
+.tower-rank-list li:last-child { border-bottom: 0; }
+.tower-rank-list li > span:first-child { color: var(--rank-muted); }
+.tower-rank-list li > span:nth-child(2) { overflow-wrap: anywhere; }
+.tower-rank-list strong, .tower-rank-mine strong { font-weight: 500; white-space: nowrap; }
+.tower-rank-list strong small, .tower-rank-mine strong small { font-size: 11px; font-weight: 400; color: var(--rank-muted); }
+.tower-rank-list li.is-me { border-radius: 10px; border-bottom-color: transparent; background: #fbe6ed; color: #9a355a; }
+.tower-rank-list li.is-me > span:first-child { color: #9a355a; }
+.tower-rank-list span > small { display: inline-block; margin-left: 5px; font-size: 10px; color: #9a355a; }
+.tower-rank-mine { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 16px; padding: 14px 10px; background: #fbe6ed; border-radius: 12px; font-size: 13px; font-variant-numeric: tabular-nums; color: #9a355a; }
+.tower-rank-message { padding: 28px 8px; font-size: 13px; line-height: 1.8; text-align: center; color: var(--rank-muted); }
+.tower-rank-message button { min-height: 42px; padding: 8px 18px; border-radius: 22px; border: 1px solid var(--rank-line); background: transparent; color: var(--rank-ink); cursor: pointer; }
+.tower-rank-login { margin-bottom: 0; padding: 16px 0 0; font-size: 12px; }
+@media (max-width: 360px) { .tower-rank-sheet { padding: 18px 14px; } .tower-rank-leader { gap: 9px; } }
