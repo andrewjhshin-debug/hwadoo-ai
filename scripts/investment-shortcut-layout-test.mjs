@@ -7,5 +7,5 @@ assert(!/body:has\(\.investment-shortcut\)\s+\.hip-mala/.test(css), "investment 
 assert(/bottom: calc\(env\(safe-area-inset-bottom, 0px\) \+ 16px\)/.test(hip));
 assert(hip.includes("min-width: 54px") && hip.includes("gap: 6px"), "original bottom bar button sizes and gap stay intact");
 assert(css.includes("+ 86px") && css.includes("width: 38px; height: 38px"), "smaller shortcut sits above the bar");
-assert(component.includes("<Mandala") && !component.includes("Jeoul"), "native radial ornament replaces the old scales, without graph imagery");
-console.log("PASS: original bottom bar unchanged; independent smaller shortcut above it; native dancheong-color radial mark");
+assert(component.includes("<InvestmentChartMark") && !component.includes("Mandala"), "requested candlestick chart replaces radial ornament");
+console.log("PASS: original bottom bar unchanged; independent smaller shortcut above it; dancheong candlestick chart mark");

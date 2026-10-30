@@ -72,11 +72,7 @@ html[data-theme="light"] body {
 .hip-top-right > .hip-top-ico, .hip-top-right .hip-today-wrap { align-self: center; }
 .hip-top-right .hip-sound-toggle svg { width: 19px; height: 19px; }
 .investment-shortcut { position: fixed; z-index: 45; right: max(14px, calc(50vw - 184px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 86px); display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #dce7df; border-radius: 50%; color: #658e7e; background: #fffcf8; box-shadow: 0 2px 8px #658e7e10; }
-.investment-dancheong { width: 22px; height: 22px; }
-.investment-dancheong > circle:nth-child(1) { stroke: #658e7e; }
-.investment-dancheong > circle:nth-child(2) { stroke: #bd6b73; }
-.investment-dancheong > circle:nth-child(3) { stroke: #b79a55; fill: #b79a55; }
-.investment-dancheong > path { stroke: #7093a3; }
+.investment-chart-mark { display: block; width: 23px; height: 23px; }
 .investment-shortcut:focus-visible { outline: 2px solid #b94b76; outline-offset: 3px; }
 body:has([role="dialog"][aria-modal="true"]) .investment-shortcut, html[data-drawer] .investment-shortcut { visibility: hidden; pointer-events: none; }
 .walking-merit-toggle {

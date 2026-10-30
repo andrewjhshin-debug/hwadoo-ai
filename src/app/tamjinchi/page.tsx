@@ -1,594 +1,116 @@
 "use client";
-
-// ─────────────────────────────────────────────────────────────
-// 불심 투자(佛心投資) — 돈 앞에서 흔들리는 마음을 삼독으로 본다.
-//
-// 네 자리를 알약 하나에 넣었다 —
-//  · 108초  사기 전에 세는 시간. 다 세면 "그래도 사시겠어요?"
-//  · 자가진단  아홉 물음. 점수판이 아니라 한 마디로 돌려준다.
-//  · 화두   잃은 날 여는 물음 여섯 중 하나.
-//  · 참회록  무엇을 했고 그때 어떤 독이 움직였는가.
-//
-// 종목·값·전망은 이 화면에 없다. 넣는 순간 유사투자자문이 된다.
-// 참회록에 금액 칸을 두지 않은 것도 같은 까닭 — 칸이 없어야 안 적는다.
-//
-// 공덕은 주지 않는다. 108초가 공덕 버는 단추가 되면 멈추려고 세는 게
-// 아니라 세려고 세게 된다. 셈은 tamjinchi 장부 안에서만 한다.
-// 브라우저 서랍은 붙고 난 뒤에 읽는다(useEffect) — 하이드레이션.
-// ─────────────────────────────────────────────────────────────
-
 import { useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
-import InvestmentPractice from "@/components/InvestmentPractice";
-import { DancheongGauge, InvestmentBloom } from "@/components/InvestmentDancheong";
+import { useConfirm } from "@/components/Confirm";
+import { InvestmentChartMark } from "@/components/InvestmentDancheong";
+import { loadTamjinchi, DEED_LABEL, type TamjinchiBook } from "@/lib/tamjinchi";
+import { DEFAULT_INVESTMENT_RULES, INVESTMENT_RULES_KEY, normalizeInvestmentRules } from "@/lib/investment-practice";
+import { ACTIONS, ACTUAL_ACTIONS, MOODS, DEFAULT_DECISION_DRAFT, DECISION_DRAFT_KEY, EMPTY_DECISION_BOOK, addDecision, decisionStats, makeDecision, mergeDecisionBackup, normalizeDecisionDraft, readDecisionBook, reviewDecision, writeDecisionBook, type Decision, type DecisionAction, type DecisionBook, type DecisionDraft, type DecisionReview } from "@/lib/investment-decisions";
 import "./investment.css";
-import {
-  addEntry,
-  CHOICES,
-  dayLabel,
-  DEED_LABEL,
-  drawHwadu,
-  loadTamjinchi,
-  LOSS_HWADU,
-  notePause,
-  PAUSE_SECONDS,
-  POISONS,
-  POISON_BY_ID,
-  poisonLevels,
-  QUESTIONS,
-  removeEntry,
-  TEXT_MAX,
-  verdictOf,
-  tamjinchiWriteSucceeded,
-  type Deed,
-  type Poison,
-  type TamjinchiBook,
-} from "@/lib/tamjinchi";
 
-const RING_R = 88;
-const RING_BOX = 192;
-const RING_C = 2 * Math.PI * RING_R;
-
-// 숨 리듬 — 들숨 4초, 날숨 6초. 호흡 명상과 같은 결이되 이 화면의 것은
-// 따로 이름을 둔다(섞이면 나중에 한쪽만 고칠 수 없다).
-const TJ_CSS = `
-.tj-orb {
-  --tj-max: 1.5;
-  width: 120px;
-  height: 120px;
-  border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--color-gold) 45%, transparent);
-  background: radial-gradient(circle at 50% 42%,
-    color-mix(in srgb, var(--color-gold) 14%, transparent), transparent 74%);
-  box-shadow: 0 0 26px color-mix(in srgb, var(--color-gold) 10%, transparent);
-}
-.tj-orb-anim { animation: tj-breath 10000ms cubic-bezier(0.45,0.05,0.55,0.95) infinite; }
-@keyframes tj-breath {
-  0%   { transform: scale(1);              box-shadow: 0 0 26px color-mix(in srgb, var(--color-gold) 10%, transparent); }
-  40%  { transform: scale(var(--tj-max));  box-shadow: 0 0 66px color-mix(in srgb, var(--color-gold) 28%, transparent); }
-  100% { transform: scale(1);              box-shadow: 0 0 26px color-mix(in srgb, var(--color-gold) 10%, transparent); }
-}
-@media (prefers-reduced-motion: reduce) { .tj-orb { --tj-max: 1.1; } }
-`;
-
-type Tab = "practice" | "pause" | "check" | "hwadu" | "log";
-
-const TABS: { id: Tab; label: string }[] = [
-  { id: "practice", label: "한 판" },
-  { id: "pause", label: "108초" },
-  { id: "check", label: "삼독" },
-  { id: "hwadu", label: "한 장" },
-  { id: "log", label: "기록" },
-];
-
-export default function TamjinchiPage() {
-  const [tab, setTab] = useState<Tab>("practice");
-  const [book, setBook] = useState<TamjinchiBook | null>(null);
-
-  useEffect(() => { const timer = window.setTimeout(() => setBook(loadTamjinchi()), 0); return () => clearTimeout(timer); }, []);
-
-  return (
-    <HipRoom here="/tamjinchi" lanes={false} rail="/settings"><div className="investment-page mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-4 pb-16 pt-4">
-      <style>{TJ_CSS}</style>
-
-      <p className="rise text-[11px] tracking-[0.5em] text-gold-soft">
-        불심투자
-      </p>
-      {/* 형: 「최대한 텍스트 없애」 — 머리에 적힌 「佛心投資 · 불심 투자」가
-          이미 무엇을 하는 자리인지 말한다. 그 아래 한 줄을 더 얹으면
-          둘 다 안 읽힌다. */}
-
-      {/* 뼈대 — 삼독이 곧 손실의 세 가지 원인. 설명은 여기 한 번뿐이다 */}
-
-      {/* 알약 세그먼트 — 고른 쪽만 먹으로 채운다 */}
-      <div className="investment-tabs rise rise-d2 mt-4 flex w-full rounded-full border border-ink-3 bg-ink-2/50 p-1">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            aria-pressed={tab === t.id}
-            className={`flex-1 rounded-full py-2.5 text-[12.5px] tracking-[0.1em] transition-colors ${
-              tab === t.id
-                ? "bg-hanji text-ink"
-                : "text-hanji-faint hover:text-hanji-dim"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-5 w-full">
-        {tab === "practice" && <InvestmentPractice book={book} onPause={() => setTab("pause")} onRecord={(poison, text) => { const next = addEntry("check", poison, text); const saved = tamjinchiWriteSucceeded(); if (saved) setBook(next); return saved; }} />}
-        {tab === "pause" && (
-          <Pause book={book} onNote={(held) => setBook(notePause(held))} />
-        )}
-        {tab === "check" && <Check />}
-        {tab === "hwadu" && <LossHwadu />}
-        {tab === "log" && (
-          <Confession
-            book={book}
-            onWrite={(d, p, t) => setBook(addEntry(d, p, t))}
-            onErase={(id) => setBook(removeEntry(id))}
-          />
-        )}
-      </div>
-    </div></HipRoom>
-  );
-}
-
-// ── 매매 전 108초 ────────────────────────────────────────────
-
-function Pause({
-  book,
-  onNote,
-}: {
-  book: TamjinchiBook | null;
-  onNote: (held: boolean) => void;
-}) {
-  const [phase, setPhase] = useState<"ready" | "count" | "ask" | "after">(
-    "ready"
-  );
-  const [left, setLeft] = useState(PAUSE_SECONDS);
-  const [chose, setChose] = useState<"buy" | "hold" | null>(null);
-  const startRef = useRef(0);
-
-  // 남은 시간은 시작 시각에서 계산한다 — 창을 가렸다 돌아와도 어긋나지 않게
+type View = "before" | "review" | "pattern";
+const date = (at: number) => new Date(at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+export default function InvestmentPage() {
+  const ask = useConfirm();
+  const [view, setView] = useState<View>("before"), [book, setBook] = useState<DecisionBook>(EMPTY_DECISION_BOOK);
+  const [ready, setReady] = useState(false), [message, setMessage] = useState(""), [now, setNow] = useState(0);
+  const [rules, setRules] = useState(DEFAULT_INVESTMENT_RULES), [legacy, setLegacy] = useState<TamjinchiBook | null>(null), [open, setOpen] = useState<string | null>(null);
+  const [draft, setDraft] = useState<DecisionDraft>(DEFAULT_DECISION_DRAFT);
+  const importInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (phase !== "count") return;
-    const tick = () => {
-      const gone = (performance.now() - startRef.current) / 1000;
-      const l = Math.max(0, PAUSE_SECONDS - gone);
-      setLeft(l);
-      if (l <= 0) {
-        setPhase("ask");
-        return;
-      }
+    const load = () => {
+      setNow(Date.now()); setLegacy(loadTamjinchi());
+      try { setBook(readDecisionBook()); setReady(true); } catch (e) { setMessage((e as Error).message); }
     };
-    const timer = window.setInterval(tick, 200);
-    return () => window.clearInterval(timer);
-  }, [phase]);
-
-  const begin = () => {
-    startRef.current = performance.now();
-    setLeft(PAUSE_SECONDS);
-    setChose(null);
-    setPhase("count");
+    const timer = window.setTimeout(() => {
+      load();
+      try { setRules(normalizeInvestmentRules(JSON.parse(localStorage.getItem(INVESTMENT_RULES_KEY) ?? "null"))); setDraft(normalizeDecisionDraft(JSON.parse(localStorage.getItem(DECISION_DRAFT_KEY) ?? "null"))); } catch { /* Empty or invalid draft never changes saved records. */ }
+    }, 0);
+    const refreshTime = window.setInterval(() => setNow(Date.now()), 30000);
+    window.addEventListener("storage", load);
+    return () => { clearTimeout(timer); clearInterval(refreshTime); window.removeEventListener("storage", load); };
+  }, []);
+  useEffect(() => {
+    if (!ready) return;
+    const timer = window.setTimeout(() => { try { localStorage.setItem(DECISION_DRAFT_KEY, JSON.stringify(draft)); } catch { setMessage("초안을 자동 저장하지 못했어요. 입력한 내용을 따로 보관해 주세요."); } }, 400);
+    return () => clearTimeout(timer);
+  }, [draft, ready]);
+  const commit = (change: (current: DecisionBook) => DecisionBook) => {
+    try { setBook(writeDecisionBook(change(readDecisionBook()))); setNow(Date.now()); return true; }
+    catch (e) { setMessage(e instanceof Error ? e.message : "저장하지 못했어요. 저장 공간과 브라우저 설정을 확인해 주세요."); return false; }
   };
-
-  const answer = (held: boolean) => {
-    onNote(held);
-    setChose(held ? "hold" : "buy");
-    setPhase("after");
-  };
-
-  // 고리는 시간이 갈수록 차오른다
-  const offset = phase === "count" ? RING_C * (left / PAUSE_SECONDS) : 0;
-
-  // 한가운데 숫자 하나가 판마다 뜻을 바꾼다 —
-  // 세기 전: 여태 끝까지 센 횟수 · 세는 중: 남은 초 · 다 셈: 108 · 고른 뒤: 멈춘 횟수
-  const hero =
-    phase === "count"
-      // 세는 중에는 글자를 안 적는다 — 큰 수와 「초」가 이미 다 말한다
-      ? { cap: "", n: Math.ceil(left), unit: "초" }
-      : phase === "ready"
-        ? { cap: "끝까지 센 108초", n: book?.pauses ?? 0, unit: "번" }
-        : phase === "ask"
-          ? { cap: "다 셌어요", n: PAUSE_SECONDS, unit: "초" }
-          : { cap: "그중 멈춘 것", n: book?.held ?? 0, unit: "번" };
-
-  return (
-    <div className="flex flex-col items-center text-center">
-      {/* 고리 자체가 단추다 — 「세기 시작」을 따로 찾아 누르게 하면
-          화면이 길어지고, 무엇보다 눈이 이미 가 있는 자리가 여기다. */}
-      <div
-        role={phase === "ready" ? "button" : undefined}
-        tabIndex={phase === "ready" ? 0 : undefined}
-        onClick={phase === "ready" ? begin : undefined}
-        onKeyDown={
-          phase === "ready"
-            ? (e) => (e.key === "Enter" || e.key === " ") && begin()
-            : undefined
-        }
-        aria-label={phase === "ready" ? "백여덟 세기 시작" : undefined}
-        className={`relative flex items-center justify-center ${
-          phase === "ready" ? "cursor-pointer transition-transform active:scale-95" : ""
-        }`}
-        style={{ width: RING_BOX, height: RING_BOX }}
-      >
-        <svg
-          aria-hidden
-          viewBox={`0 0 ${RING_BOX} ${RING_BOX}`}
-          className="absolute inset-0 h-full w-full -rotate-90"
-        >
-          <circle
-            cx={RING_BOX / 2}
-            cy={RING_BOX / 2}
-            r={RING_R}
-            fill="none"
-            stroke="var(--color-ink-3)"
-            strokeWidth="1"
-          />
-          {phase !== "ready" && (
-            <circle
-              cx={RING_BOX / 2}
-              cy={RING_BOX / 2}
-              r={RING_R}
-              fill="none"
-              stroke="var(--color-gold)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeDasharray={RING_C}
-              strokeDashoffset={offset}
-            />
-          )}
-        </svg>
-
-        <div
-          aria-hidden
-          className={`tj-orb ${phase === "count" ? "tj-orb-anim" : ""}`}
-        />
-
-        <div className="absolute flex flex-col items-center">
-          {hero.cap && (
-            <p
-              aria-live="polite"
-              className="text-[11px] tracking-[0.3em] text-hanji-faint"
-            >
-              {hero.cap}
-            </p>
-          )}
-          <p className="mt-1 font-serif text-[68px] font-light leading-none tabular-nums text-hanji">
-            {hero.n}
-            <span className="ml-1 text-[13px] tracking-[0.2em] text-hanji-faint">
-              {hero.unit}
-            </span>
-          </p>
-        </div>
-      </div>
-
-      {phase === "ready" && (
-        <p className="mt-4 break-keep text-[12.5px] leading-6 text-hanji-dim">
-          <span className="text-hanji">눌러서 숨 고르기</span>
-        </p>
-      )}
-
-      {phase === "count" && (
-        <button
-          type="button"
-          onClick={() => setPhase("ready")}
-          className="mt-4 rounded-full border border-ink-3 px-9 py-2.5 text-[13px] tracking-[0.3em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-        >
-          그만
-        </button>
-      )}
-
-      {phase === "ask" && (
-        <>
-          <p className="mt-5 break-keep font-serif text-xl font-light text-hanji question-glow">
-            마음은, 그대로?
-          </p>
-          <div className="mt-5 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => answer(false)}
-              className="rounded-full border border-ink-3 px-7 py-3 text-[13px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-            >
-              그래도 산다
-            </button>
-            <button
-              type="button"
-              onClick={() => answer(true)}
-              className="btn-obang px-7 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
-            >
-              오늘은 멈춘다
-            </button>
-          </div>
-        </>
-      )}
-
-      {phase === "after" && (
-        <>
-          <p className="mt-5 break-keep text-[13px] leading-6 text-hanji-dim">
-            {chose === "hold"
-              ? "오늘은, 한숨."
-              : "한 줄, 남겨 두기."}
-          </p>
-          <button
-            type="button"
-            onClick={begin}
-            className="mt-5 rounded-full border border-ink-3 px-9 py-3 text-[13px] tracking-[0.3em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-          >
-            한 번 더
-          </button>
-        </>
-      )}
-    </div>
-  );
+  const stats = decisionStats(book, now);
+  return <HipRoom here="/tamjinchi" lanes={false} rail="/settings">
+    <section className="mind-invest" aria-label="불심투자">
+      <header className="mind-invest-head"><InvestmentChartMark /><div><h1>불심투자</h1><p>시세보다 먼저, 내 판단을 봅니다.</p></div></header>
+      <nav className="mind-invest-tabs" aria-label="불심투자 기능">{([["before", "판단 전"], ["review", "다시보기"], ["pattern", "내 패턴"]] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={view === id} onClick={() => { setView(id); setMessage(""); }}>{label}{id === "review" && stats.due > 0 && <span aria-label={`${stats.due}건 돌아볼 때`}>{stats.due}</span>}</button>)}</nav>
+      {message && <p className="mind-invest-message" role="status">{message}</p>}
+      {view === "before" && <>
+        {stats.due > 0 && <button type="button" className="mind-invest-due" onClick={() => setView("review")}>돌아볼 때가 된 판단 {stats.due}건 <span>열어보기 →</span></button>}
+        <DecisionComposer draft={draft} onChange={setDraft} ready={ready} rules={rules} onSave={() => {
+          try { const record = makeDecision(draft, rules); if (commit(current => addDecision(current, record))) { setDraft({ ...DEFAULT_DECISION_DRAFT }); try { localStorage.setItem(DECISION_DRAFT_KEY, JSON.stringify(DEFAULT_DECISION_DRAFT)); } catch { /* Saved record is already durable; deferred draft saving will report failures. */ } setOpen(record.id); setView("review"); setMessage("판단을 저장했어요. 나중에 실제 행동과 비교해 보세요."); } }
+          catch (e) { setMessage((e as Error).message); }
+        }} />
+      </>}
+      {view === "review" && <DecisionShelf book={book} now={now} open={open} setOpen={setOpen} onReview={(id, review) => { if (commit(current => reviewDecision(current, id, review))) { setMessage("처음 판단은 그대로 두고, 돌아본 내용을 붙였어요."); setOpen(null); } }} onDelete={async id => {
+        if (await ask("이 판단 기록을 지울까요?", "이 브라우저에서 삭제되며 되돌릴 수 없어요. 필요하면 먼저 백업해 주세요.")) if (commit(current => ({ ...current, records: current.records.filter(r => r.id !== id) }))) setMessage("기록을 삭제했어요.");
+      }} />}
+      {view === "pattern" && <>
+        <DecisionPatterns book={book} now={now} />
+        <details className="mind-invest-rules"><summary>내가 지킬 원칙 3가지</summary>{rules.map((rule, i) => <label key={i}><span>원칙 {i + 1}</span><input maxLength={80} value={rule} onChange={e => setRules(items => items.map((s, j) => j === i ? e.target.value : s))} /></label>)}<button type="button" className="mind-invest-secondary" onClick={() => { try { localStorage.setItem(INVESTMENT_RULES_KEY, JSON.stringify(normalizeInvestmentRules(rules))); setMessage("원칙을 저장했어요. 다음 판단부터 새 원칙이 붙어요."); } catch { setMessage("원칙을 저장하지 못했어요."); } }}>원칙 저장</button></details>
+        <div className="mind-invest-backup"><button type="button" className="mind-invest-secondary" disabled={!ready} onClick={() => {
+          try { const file = new Blob([JSON.stringify(readDecisionBook(), null, 2)], { type: "application/json" }); const url = URL.createObjectURL(file), a = document.createElement("a"); a.href = url; a.download = "hwadu-investment-decisions.json"; a.click(); setTimeout(() => URL.revokeObjectURL(url), 30000); }
+          catch { setMessage("백업 파일을 만들지 못했어요."); }
+        }}>새 기록 백업</button><button type="button" className="mind-invest-secondary" onClick={() => importInput.current?.click()}>백업 불러오기</button><input ref={importInput} type="file" accept="application/json,.json" hidden aria-label="불심투자 백업 파일" onChange={async e => {
+          const file = e.target.files?.[0]; e.target.value = ""; if (!file) return;
+          if (file.size > 2 * 1024 * 1024) { setMessage("백업 파일은 2MB 이하만 불러올 수 있어요."); return; }
+          try { const data: unknown = JSON.parse(await file.text()); if (commit(current => mergeDecisionBackup(current, data))) setMessage("백업을 합쳤어요. 같은 기록은 현재 내용을 유지했어요."); }
+          catch { setMessage("불심투자 새 기록 백업 파일인지 확인해 주세요. 기존 기록은 바꾸지 않았어요."); }
+        }} /></div>
+        <details className="mind-invest-legacy"><summary>이전 참회록 {legacy?.entries.length ?? 0}건</summary>{legacy?.entries.length ? legacy.entries.map(entry => <article key={entry.id}><small>{date(entry.at)} · {DEED_LABEL[entry.deed]}</small><p>{entry.text}</p></article>) : <p>이 브라우저에 남아 있는 이전 기록이 없어요.</p>}</details>
+      </>}
+      <footer className="mind-invest-privacy">이 브라우저에만 저장되며 자동 동기화되지 않아요. 새 기록 백업에는 이전 참회록이 포함되지 않아요. 종목 추천·수익 예측·매매 신호는 제공하지 않아요.</footer>
+    </section>
+  </HipRoom>;
 }
 
-// ── 삼독 자가진단 ────────────────────────────────────────────
-
-function Check() {
-  const [answers, setAnswers] = useState<number[]>([]);
-  const i = answers.length;
-  const done = i >= QUESTIONS.length;
-  const q = QUESTIONS[i];
-
-  if (done) {
-    const v = verdictOf(answers);
-    const meta = v.poison ? POISON_BY_ID[v.poison] : null;
-    const levels = poisonLevels(answers);
-    return (
-      <div className="rise flex flex-col items-center rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-10 text-center">
-        <span
-          aria-hidden
-          className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 bg-gold/10 font-serif text-[26px] leading-none text-gold"
-        >
-          {meta ? meta.hanja : "空"}
-        </span>
-        <p className="mt-6 break-keep font-serif text-[17px] font-light leading-[1.9] text-hanji">
-          {meta ? `${meta.full}, 한숨 먼저.` : "지금은 고요."}
-        </p>
-        <div className="investment-poison-chart" aria-label="내 답변의 탐진치 막대">
-          {POISONS.map(p => <div className="investment-poison-row" key={p.id}><span>{p.name}</span><DancheongGauge value={levels[p.id]} tone={p.id === "tam" ? "jade" : p.id === "jin" ? "coral" : "gold"} label={`${p.full} 응답 ${Math.round(levels[p.id] * 100)}%`} /></div>)}
-        </div>
-        <button
-          type="button"
-          onClick={() => setAnswers([])}
-          className="mt-7 rounded-full border border-ink-3 px-8 py-2.5 text-[12.5px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-        >
-          한 번 더
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-6 py-8">
-      {/* 진행 막대 — 몇 개 남았는지 숫자로 세지 않게 */}
-      <div className="investment-quiz-progress">
-        <div
-          style={{ width: `${(i / QUESTIONS.length) * 100}%` }}
-        />
-      </div>
-
-      <p className="mt-8 break-keep text-center font-serif text-[17px] font-light leading-[1.9] text-hanji">
-        {q.ask}
-      </p>
-
-      <div className="mt-8 grid grid-cols-4 gap-2">
-        {CHOICES.map((c) => (
-          <button
-            key={c.score}
-            type="button"
-            onClick={() => setAnswers((a) => [...a, c.score])}
-            className="rounded-full border border-ink-3 py-2.5 text-[12.5px] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
-
-      {i > 0 && (
-        <button
-          type="button"
-          onClick={() => setAnswers((a) => a.slice(0, -1))}
-          className="mx-auto mt-6 block text-[12px] text-hanji-faint transition-colors hover:text-hanji-dim"
-        >
-          이전
-        </button>
-      )}
-    </div>
-  );
+function DecisionComposer({ draft, onChange, ready, rules, onSave }: { draft: DecisionDraft; onChange: (draft: DecisionDraft) => void; ready: boolean; rules: string[]; onSave: () => void }) {
+  const [now, setNow] = useState(0);
+  useEffect(() => { if (!draft.pauseUntil) return; const timer = setInterval(() => setNow(Date.now()), 500); return () => clearInterval(timer); }, [draft.pauseUntil]);
+  const remaining = draft.pauseUntil ? Math.max(0, Math.ceil((draft.pauseUntil - now) / 1000)) : 0;
+  const update = (patch: Partial<DecisionDraft>) => onChange({ ...draft, ...patch });
+  return <form className="mind-invest-form" onSubmit={e => { e.preventDefault(); onSave(); }}>
+    <h2>이번 판단을 남겨 두세요.</h2><p className="mind-invest-help">수익을 맞히는 일지가 아니라, 그때의 나와 나중의 나를 비교하는 기록이에요.</p>
+    <fieldset><legend>지금 하려는 행동</legend><div className="mind-invest-choices">{(Object.keys(ACTIONS) as DecisionAction[]).map(id => <button type="button" key={id} aria-pressed={draft.action === id} onClick={() => update({ action: id })}>{ACTIONS[id]}</button>)}</div></fieldset>
+    <label>무엇에 관한 판단인가요? <small>선택</small><input value={draft.name} maxLength={60} placeholder="내가 알아볼 이름이나 별칭" onChange={e => update({ name: e.target.value })} /></label>
+    <fieldset><legend>지금 마음에 가까운 것</legend><div className="mind-invest-moods">{(Object.keys(MOODS) as (keyof typeof MOODS)[]).map(id => <button key={id} type="button" aria-pressed={draft.mood === id} onClick={() => update({ mood: id })}>{MOODS[id]}</button>)}</div></fieldset>
+    <label className="mind-invest-range">충동 강도 <strong>{draft.intensity} / 10</strong><input type="range" min={0} max={10} step={1} value={draft.intensity} onChange={e => update({ intensity: Number(e.target.value) })} /><small>내가 느끼는 강도예요. 진단이나 투자 점수가 아니에요.</small></label>
+    {draft.intensity >= 7 && <p className="mind-invest-callout">충동을 높게 기록했어요. 108초 쉬며 아래 이유를 다시 읽어 볼 수 있어요.</p>}
+    <label>왜 지금 이 판단을 하나요?<textarea required maxLength={500} rows={3} value={draft.reason} placeholder="남의 결론 대신, 내 이유를 한두 문장으로" onChange={e => update({ reason: e.target.value })} /></label>
+    <label>어떤 사실이 확인되면 내 생각을 다시 볼 건가요?<textarea required maxLength={500} rows={2} value={draft.invalidation} placeholder="처음 생각과 반대되는 근거를 구체적으로" onChange={e => update({ invalidation: e.target.value })} /></label>
+    <details className="mind-invest-snapshot"><summary>이 판단에 함께 남길 나의 원칙</summary><ul>{rules.map((rule, i) => <li key={i}>{rule || "아직 적지 않은 원칙"}</li>)}</ul><p>‘내 패턴’에서 바꿀 수 있어요. 저장된 판단의 원칙은 바뀌지 않아요.</p></details>
+    <label>언제 다시 볼까요?<select value={draft.delay} onChange={e => update({ delay: Number(e.target.value) })}><option value={3600000}>1시간 뒤</option><option value={86400000}>내일 이 시간</option><option value={604800000}>7일 뒤</option></select><small>앱이 자동으로 알림을 보내지는 않아요. 다시 들어오면 돌아볼 기록을 보여줘요.</small></label>
+    <div className="mind-invest-pause"><button type="button" className="mind-invest-secondary" disabled={!!draft.pauseUntil && remaining > 0} onClick={() => { const t = Date.now(); setNow(t); update({ pauseUntil: t + 108000 }); }}>{draft.pauseUntil ? remaining > 0 ? `${Math.min(108, remaining)}초 남음` : "108초 쉬기 완료" : "108초 쉬어 보기"}</button><span role="status">{draft.pauseUntil && remaining === 0 ? "이유를 다시 읽고, 지금의 판단을 저장해 보세요." : "쉬는 동안에도 기록을 고칠 수 있어요."}</span></div>
+    <button type="submit" className="mind-invest-primary" disabled={!ready || !draft.reason.trim() || !draft.invalidation.trim()}>판단 저장</button>
+  </form>;
 }
 
-// ── 손실 났을 때 여는 화두 ───────────────────────────────────
-
-function LossHwadu() {
-  const [idx, setIdx] = useState<number | null>(null);
-
-  return (
-    <div className="flex flex-col items-center text-center">
-      {idx === null ? (
-        <button type="button" onClick={() => setIdx(drawHwadu(null))} className="investment-hwadu-draw" aria-label="화두 한 장 뽑기">
-          <InvestmentBloom lit={[true, true, true]} />
-          <span>한 장, 툭.</span>
-        </button>
-      ) : (
-        <div key={idx} className="investment-hwadu-open rounded-[24px] border border-ink-3 bg-ink-2/50 px-6 py-10">
-          <span
-            aria-hidden
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10 font-serif text-[18px] leading-none text-gold"
-          >
-            問
-          </span>
-          <p className="question-glow mt-7 break-keep font-serif text-xl font-light leading-[1.9] text-hanji">
-            {LOSS_HWADU[idx]}
-          </p>
-          <button
-            type="button"
-            onClick={() => setIdx((p) => drawHwadu(p))}
-            className="mt-8 rounded-full border border-ink-3 px-8 py-2.5 text-[12.5px] tracking-[0.2em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-          >
-            한 장 더
-          </button>
-        </div>
-      )}
-    </div>
-  );
+function DecisionShelf({ book, now, open, setOpen, onReview, onDelete }: { book: DecisionBook; now: number; open: string | null; setOpen: (id: string | null) => void; onReview: (id: string, review: DecisionReview) => void; onDelete: (id: string) => void }) {
+  const [filter, setFilter] = useState<"pending" | "done" | "all">("pending");
+  const items = book.records.filter(r => filter === "all" || (filter === "done" ? !!r.review : !r.review)).sort((a, b) => Number(!b.review && b.revisitAt <= now) - Number(!a.review && a.revisitAt <= now) || b.at - a.at);
+  return <section><h2>그때의 이유, 지금의 행동.</h2><div className="mind-invest-filter">{([["pending", "아직 안 돌아본"], ["done", "돌아본"], ["all", "전체"]] as const).map(([id, label]) => <button type="button" key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}</div>
+    {!items.length && <div className="mind-invest-empty"><p>{book.records.length ? "이 조건에 맞는 판단 기록이 없어요." : "먼저 판단을 하나 남겨 보세요."}</p><small>나중에 비교할 ‘그때의 이유’가 여기에 남아요.</small></div>}
+    <div className="mind-invest-records">{items.map(r => <article key={r.id} className="mind-invest-record"><button type="button" className="mind-invest-record-toggle" aria-expanded={open === r.id} onClick={() => setOpen(open === r.id ? null : r.id)}><span><b>{r.name || "이름 없는 판단"}</b><small>{date(r.at)} · {ACTIONS[r.action]}</small></span><span>{r.review ? "돌아봄" : r.revisitAt <= now ? "지금 돌아보기" : `${date(r.revisitAt)} 다시보기`}</span></button>{open === r.id && <div className="mind-invest-record-body"><dl><dt>처음 이유</dt><dd>{r.reason}</dd><dt>다시 볼 기준</dt><dd>{r.invalidation}</dd><dt>그때 마음</dt><dd>{MOODS[r.mood]} · 충동 {r.intensity}/10{r.pauseSeconds ? " · 108초 쉼" : ""}</dd><dt>그때의 원칙</dt><dd>{r.principles.filter(Boolean).join(" / ") || "남긴 원칙이 없어요."}</dd></dl>{r.review ? <div className="mind-invest-reviewed"><h3>돌아본 내용</h3><p>{ACTUAL_ACTIONS[r.review.action]} · 원칙 {r.review.rules === "yes" ? "지켰다" : r.review.rules === "partly" ? "일부 지켰다" : "못 지켰다"} · 지금 충동 {r.review.intensity}/10</p><p>{r.review.note || "덧붙인 내용이 없어요."}</p><small>{date(r.review.at)} 기록</small></div> : <ReviewForm record={r} onSave={onReview} />}<button type="button" className="mind-invest-delete" onClick={() => onDelete(r.id)}>이 기록 삭제</button></div>}</article>)}</div>
+  </section>;
 }
-
-// ── 매매일지 = 참회록 ────────────────────────────────────────
-
-const DEEDS: Deed[] = ["buy", "sell", "hold"];
-
-function Confession({
-  book,
-  onWrite,
-  onErase,
-}: {
-  book: TamjinchiBook | null;
-  onWrite: (deed: Deed, poison: Poison | null, text: string) => void;
-  onErase: (id: string) => void;
-}) {
-  const [deed, setDeed] = useState<Deed>("buy");
-  const [poison, setPoison] = useState<Poison | null>(null);
-  const [text, setText] = useState("");
-
-  const entries = book?.entries ?? [];
-
-  const write = () => {
-    if (!text.trim()) return;
-    onWrite(deed, poison, text);
-    setText("");
-    setPoison(null);
-  };
-
-  return (
-    <div>
-      <div className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-4">
-        <div className="flex gap-2">
-          {DEEDS.map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => setDeed(d)}
-              aria-pressed={deed === d}
-              className={`flex-1 rounded-full py-2.5 text-[12.5px] tracking-[0.1em] transition-colors ${
-                deed === d
-                  ? "bg-hanji text-ink"
-                  : "border border-ink-3 text-hanji-faint hover:text-hanji-dim"
-              }`}
-            >
-              {DEED_LABEL[d]}
-            </button>
-          ))}
-        </div>
-
-        <p className="mt-4 text-[11.5px] tracking-[0.2em] text-hanji-faint">
-          그때의 마음
-        </p>
-        <div className="mt-2 flex gap-2">
-          {POISONS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              // 한 번 더 누르면 풀린다 — 모르겠으면 안 고르는 게 맞다
-              onClick={() => setPoison((v) => (v === p.id ? null : p.id))}
-              aria-pressed={poison === p.id}
-              className={`flex-1 rounded-full py-2.5 text-[12.5px] transition-colors ${
-                poison === p.id
-                  ? "bg-gold/15 text-gold"
-                  : "border border-ink-3 text-hanji-faint hover:text-hanji-dim"
-              }`}
-            >
-              <span className="font-serif">{p.hanja}</span>{" "}
-              <span className="tracking-[0.1em]">{p.name}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-4 border-t border-ink-3 pt-3.5">
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value.slice(0, TEXT_MAX))}
-            rows={2}
-            placeholder="한 줄, 남겨 두기"
-            className="journal-area text-[15px]"
-          />
-        </div>
-
-        <div className="mt-3 flex items-center justify-between">
-          {/* 글자 수는 얼마 안 남았을 때만 — 늘 띄워 두면 쓰기 전부터 재게 된다 */}
-          <span className="text-[11px] tabular-nums text-hanji-faint">
-            {text.length > TEXT_MAX - 30 ? `${TEXT_MAX - text.length}자 남음` : ""}
-          </span>
-          <button
-            type="button"
-            onClick={write}
-            disabled={!text.trim()}
-            className="btn-obang px-7 py-2.5 text-[12.5px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90 disabled:opacity-40"
-          >
-            남기기
-          </button>
-        </div>
-      </div>
-
-      {entries.length === 0 ? (
-        <p className="mt-10 text-center text-[13px] text-hanji-faint">
-          첫 줄을 남겨요.
-        </p>
-      ) : (
-        <ul className="mt-6 flex flex-col gap-3">
-          {entries.map((e) => (
-            <li
-              key={e.id}
-              className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3.5"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="text-[11.5px] tabular-nums text-hanji-faint">
-                  {dayLabel(e.at)}
-                </span>
-                <span className="text-[12px] text-hanji-dim">
-                  {DEED_LABEL[e.deed]}
-                </span>
-                {e.poison && (
-                  <span
-                    aria-label={POISON_BY_ID[e.poison].full}
-                    className="flex h-6 w-6 items-center justify-center rounded-full border border-gold/40 bg-gold/10 font-serif text-[12px] leading-none text-gold"
-                  >
-                    {POISON_BY_ID[e.poison].hanja}
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => onErase(e.id)}
-                  aria-label="지우기"
-                  className="ml-auto text-hanji-faint transition-colors hover:text-vermilion"
-                >
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 24 24"
-                    width="14"
-                    height="14"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  >
-                    <path d="M6 6l12 12M18 6L6 18" />
-                  </svg>
-                </button>
-              </div>
-              <p className="mt-2 break-keep text-[13.5px] leading-7 text-hanji-dim">
-                {e.text}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+function ReviewForm({ record, onSave }: { record: Decision; onSave: (id: string, review: DecisionReview) => void }) {
+  const [action, setAction] = useState<DecisionAction | "">(""), [rules, setRules] = useState<DecisionReview["rules"] | "">(""), [intensity, setIntensity] = useState(record.intensity), [note, setNote] = useState("");
+  return <form className="mind-invest-review-form" onSubmit={e => { e.preventDefault(); if (action && rules) onSave(record.id, { at: Date.now(), action, rules, intensity, note }); }}><h3>실제로는 어떻게 했나요?</h3><label>실제 행동<select required value={action} onChange={e => setAction(e.target.value as DecisionAction)}><option value="" disabled>직접 고르세요</option>{(Object.keys(ACTUAL_ACTIONS) as DecisionAction[]).map(id => <option key={id} value={id}>{ACTUAL_ACTIONS[id]}</option>)}</select></label><label>그때 정한 원칙<select required value={rules} onChange={e => setRules(e.target.value as DecisionReview["rules"])}><option value="" disabled>직접 고르세요</option><option value="yes">지켰다</option><option value="partly">일부 지켰다</option><option value="no">못 지켰다</option></select></label><label>지금 충동 강도: {intensity} / 10<input type="range" min={0} max={10} value={intensity} onChange={e => setIntensity(Number(e.target.value))} /></label><label>다음 판단에 남길 한 가지 <small>선택</small><textarea maxLength={600} rows={2} value={note} onChange={e => setNote(e.target.value)} /></label><button type="submit" className="mind-invest-primary" disabled={!action || !rules}>돌아보기 저장</button></form>;
+}
+function DecisionPatterns({ book, now }: { book: DecisionBook; now: number }) {
+  const s = decisionStats(book, now);
+  const points = s.last.map((r, i) => `${30 + i * (280 / Math.max(1, s.last.length - 1))},${130 - r.intensity * 11}`);
+  return <section className="mind-invest-pattern"><h2>내 판단에 남은 습관.</h2><dl className="mind-invest-metrics"><div><dt>남긴 판단</dt><dd>{s.count}<small>건</small></dd></div><div><dt>돌아본 판단</dt><dd>{s.reviewed}<small>건</small></dd></div><div><dt>원칙을 지켰다고 기록</dt><dd>{s.keptRate === null ? "아직 없음" : `${s.keptRate}%`}</dd></div></dl><p className="mind-invest-help">마지막 비율은 돌아본 {s.reviewed}건 중 ‘지켰다’고 직접 입력한 기록 기준이에요. 수익률이나 투자 능력 점수가 아니에요.</p>
+    <figure className="mind-invest-chart"><figcaption>최근 {s.last.length}회 판단의 충동 강도</figcaption>{s.last.length ? <svg viewBox="0 0 340 160" role="img" aria-label={`입력 순서대로 기록한 충동 강도: ${s.last.map(r => r.intensity).join(", ")}. 0부터 10까지.`}>{[0, 5, 10].map(n => <g key={n}><text x="3" y={134 - n * 11}>{n}</text><line x1="28" x2="316" y1={130 - n * 11} y2={130 - n * 11} /></g>)}{points.length > 1 && <polyline points={points.join(" ")} />}{s.last.map((r, i) => <circle key={r.id} cx={30 + i * (280 / Math.max(1, s.last.length - 1))} cy={130 - r.intensity * 11} r="3.5" />)}</svg> : <p className="mind-invest-empty">기록이 생기면 내 입력값으로만 그려져요.</p>}<p>왼쪽이 이전 기록, 오른쪽이 최근 기록이에요. 주가 차트가 아니에요.</p></figure>
+  </section>;
 }

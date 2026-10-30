@@ -3,6 +3,14 @@
 import { useId } from "react";
 
 export type DancheongTone = "jade" | "coral" | "gold";
+/** Candlestick-chart silhouette, with the existing dancheong paint colors. Not market data. */
+export function InvestmentChartMark({ className = "investment-chart-mark" }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false" fill="none">
+    <g stroke="#48675f" strokeWidth="1.1" strokeLinecap="round"><line x1="5" y1="10" x2="5" y2="21" /><line x1="12" y1="5" x2="12" y2="18" /><line x1="19" y1="2" x2="19" y2="13" /></g>
+    <rect x="3" y="13" width="4" height="6" rx=".8" fill="#3d8877" /><rect x="10" y="8" width="4" height="7" rx=".8" fill="#c66f62" /><rect x="17" y="4" width="4" height="6" rx=".8" fill="#3d8877" />
+    <polyline points="2,10 7,7 12,9 21,2" stroke="#bf9a49" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>;
+}
 const PAINT = {
   jade: { ground: "#246e64", petal: "#a8d5be", heart: "#e8bd61" },
   coral: { ground: "#b94f46", petal: "#f3c4a5", heart: "#88b7ac" },

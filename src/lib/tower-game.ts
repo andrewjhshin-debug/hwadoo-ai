@@ -1,4 +1,5 @@
 import { TOWER_STONES } from "./tower-balance";
+import { silhouetteSeat } from "./tower-geometry";
 
 export const GAME_WIDTH = 360;
 export const GAME_HEIGHT = 520;
@@ -52,9 +53,8 @@ export function dropStone(stones: readonly GameStone[], x: number, seed: number)
   const at = below ? contact(below) : null;
   const bounded = clampAim(spec, x);
   const floor = at ? at.y + (bounded - at.x) * at.slope : FLOOR;
-  // v4 silhouettes have real contact pixels; do not bury a slab halfway into a wedge.
-  const overlap = below ? 2 : 0;
-  return { ...spec, x: bounded, y: floor - spec.height * spec.bottom + overlap };
+  const y = silhouetteSeat({ ...spec, x: bounded }, below, FLOOR);
+  return { ...spec, x: bounded, y: y ?? floor - spec.height * spec.bottom };
 }
 
 /** Suffix mass moments: linear work rather than quadratic work as the tower grows. */

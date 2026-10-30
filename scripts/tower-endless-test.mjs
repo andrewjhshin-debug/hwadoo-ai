@@ -8,7 +8,8 @@ function load(file, deps = {}, globals = {}) {
   return module.exports;
 }
 const balance = load("src/lib/tower-balance.ts");
-const game = load("src/lib/tower-game.ts", { "./tower-balance": balance });
+const geometry = load("src/lib/tower-geometry.ts", { "./tower-shapes.json": { default: JSON.parse(fs.readFileSync("src/lib/tower-shapes.json", "utf8")) } });
+const game = load("src/lib/tower-game.ts", { "./tower-balance": balance, "./tower-geometry": geometry });
 assert.deepEqual(game.stoneSpec(40, 123), game.stoneSpec(40, 123));
 assert.notDeepEqual(game.stoneSpec(40, 123), game.stoneSpec(40, 124));
 assert.equal(game.aimSway(2, 1000, 17), 0, "first three stones teach positioning without sway");
