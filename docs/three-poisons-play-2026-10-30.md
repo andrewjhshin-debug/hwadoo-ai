@@ -1,0 +1,9 @@
+# Simplified Buddhist play
+
+Replaces the text-heavy investment landing with a short timing game centred on 貪・瞋・癡. Greed transforms to giving (보시), anger to compassion (자비), and ignorance to wisdom (지혜). The existing dancheong columns illuminate as a held control fills; releasing inside the visible light band transforms that column and blooms it. Three precise releases can score 108. Early/late releases retry only the current poison and preserve earlier transformations. Later rounds get modestly harder, capped after five levels.
+
+The only persistent gameplay value is a local best score under a new key. No money, prices, stock simulation, merit, lotus spending, diagnosis or spiritual ranking is introduced. Actual app currency is untouched. Sharing is explicit and includes only the score. Existing private judgement records, drafts, principles and legacy journals remain fully accessible at `/tamjinchi/records`, including their backup and review tools; no migration or deletion occurs.
+
+Animation writes one CSS property through requestAnimationFrame; React state changes only at input/state transitions. Pointer capture covers finger release outside the control. Pointer cancellation, lost capture, window blur and a hidden page safely cancel the current hold without awarding or clearing prior successes. Space/Enter holds and two-click assistive activation are supported. Reduced-motion preference uses the slower, wider target mode, also available from the help control. Animation and timers clean up on exit.
+
+`scripts/poison-practice-test.mjs` covers 300 three-stage runs, timing bounds, 108-point perfect completion, retries/cancellation, duplicate-input guards, bounded difficulty, monotonic best, corrupt/quota storage preservation and unchanged old keys. Existing decision tests now target the retained records page. Physical-mobile and rendered-browser checks are not claimed because browser control is disabled in this task environment.

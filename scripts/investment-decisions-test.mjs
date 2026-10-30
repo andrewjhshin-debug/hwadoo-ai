@@ -54,7 +54,7 @@ const art = load("src/components/InvestmentDancheong.tsx");
 const chart = renderToStaticMarkup(React.createElement(art.InvestmentChartMark));
 assert.equal((chart.match(/<rect/g) ?? []).length, 3);
 assert(chart.includes("polyline") && chart.includes("#3d8877") && chart.includes("#c66f62"));
-const page = fs.readFileSync("src/app/tamjinchi/page.tsx", "utf8");
+const page = fs.readFileSync("src/app/tamjinchi/records/page.tsx", "utf8");
 assert(!page.includes("<InvestmentPractice") && !page.includes("세 번, 툭"));
 assert(page.includes("이전 참회록") && page.includes("DECISION_DRAFT_KEY"));
 console.log("PASS: plan/review lifecycle, due dates, immutable original reasons/rules, real-only stats, unfinished pause, backup merge/validation/limits, quota/corrupt storage preservation, legacy preservation, three-candle dancheong mark");
