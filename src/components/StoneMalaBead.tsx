@@ -7,6 +7,27 @@ export const STONE_MALA_SYMBOLS = [
   { name: "탑", path: "M12 1v4M9 5h6l2 4H7l2-4ZM6 11h12l2 4H4l2-4ZM3 17h18l1 5H2l1-5ZM8 9v2m8-2v2M7 15v2m10-2v2" },
   { name: "매듭", path: "m12 2 5 5-5 5-5-5 5-5Zm-5 5-5 5 5 5 5-5-5-5Zm10 0 5 5-5 5-5-5 5-5ZM7 17l5 5 5-5-5-5-5 5Z" },
   { name: "향로", path: "M8 2q-3 2 0 4m4-5q-3 3 0 5m4-4q-3 2 0 4M5 9h14v3H5V9ZM4 14h16v3c0 3-4 5-8 5s-8-2-8-5v-3ZM4 15H2v3h3m15-3h2v3h-3M8 21l-1 2m9-2 1 2" },
+  { name: "보리수", path: "M10 22v-8m4 8v-8M6 22h12M12 3C7-1 4 5 7 8c-6-1-7 6-2 8 3 2 6-1 7-3 1 2 4 5 7 3 5-2 4-9-2-8 3-3 0-9-5-5ZM12 6v7m-5-2 5 2 5-2" },
+  { name: "코끼리", path: "M8 7C8 1 16 1 16 7v8M8 7v9M8 7C0 1-1 17 6 17l2-3m8-7c8-6 9 10 2 10l-2-3M8 15l2 2v3c0 4 6 3 5-1M8 6q4-3 8 0M10 9v1m4-1v1M6 15l1 4 2-2m9-2-1 4-2-2" },
+  { name: "금강저", path: "M10 9h4v6h-4V9ZM9 9h6m-6 6h6M12 9V1m0 22v-8M10 8C4 6 6 2 8 2q-1 3 4 6 5-3 4-6c2 0 4 4-2 6M10 16c-6 2-4 6-2 6q-1-3 4-6 5 3 4 6c2 0 4-4-2-6" },
+  { name: "목어", path: "M4 9C0 13 3 21 12 21c7 0 11-4 10-9-1-5-9-7-13-4L5 3 2 4l2 5ZM5 12q7 6 14 0M8 13q4-7 9-3M17 8v1M11 18l6-2M8 4l7-2" },
+  { name: "범종", path: "M10 5V3q2-3 4 0v2M6 12c0-9 12-9 12 0v6l3 3H3l3-3v-6ZM4 18h16M10 21v2h4v-2M9 9h6m-6 4h6" },
+  { name: "소라", path: "M18 4C9-2 1 6 4 14c1 4 5 6 9 5l7 3 2-4-4-8c2-1 2-4 0-6ZM17 7C12 3 5 7 8 12c2 3 7 1 5-2q-2-2-3 0M4 14l6-1m3 6 5-9m-2 8 4 1" },
+  { name: "보개", path: "M12 2v2M2 11c2-10 18-10 20 0H2ZM12 4v16q0 3 3 1M3 11v4m6-4v4m6-4v4m6-4v4M3 16v1m6-1v1m6-1v1m6-1v1" },
+  { name: "승리의 깃발", path: "M7 23V2m-2 0h4M7 4h12l-2 4 2 4H7m0 3h12l-2 4 2 3H7M10 5v6m4-6v6M10 16v5m4-5v5" },
+  { name: "보병", path: "M8 3h8v3H8V3ZM10 6v3C0 12 5 22 12 22s12-10 2-13V6M7 13q5 3 10 0M8 21h8M12 3V1m-4 9 4 3 4-3" },
+  { name: "쌍어", path: "M8 4C0 7 1 16 8 19c5-4 5-11 0-15Zm8 0c8 3 7 12 0 15-5-4-5-11 0-15ZM8 19l-3 3h6l-3-3Zm8 0-3 3h6l-3-3ZM6 8v1m12-1v1M4 13l4-2m12 2-4-2" },
+  { name: "발우", path: "M2 9h20v3c0 7-20 7-20 0V9ZM3 9q9-5 18 0M8 17v4h8v-4M9 6V3m6 3V3M6 12q6 3 12 0" },
+  { name: "석장", path: "M12 9v14M12 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM8 7C2 3 2 13 7 12m9-5c6-4 6 6 1 5M7 8v5m10-5v5M10 17h4m-4 3h4" },
+  { name: "지혜의 검", path: "M12 2 8 7l2 8h4l2-8-4-5ZM12 5v10M6 16q6 3 12 0M11 18v3m2-3v3M10 22h4M5 8q-3-3 0-6m14 6q3-3 0-6" },
+  { name: "여의주", path: "M12 2C9 7 3 8 3 15a9 7 0 0 0 18 0c0-5-3-7-5-9q1 5-2 6 1-6-2-10ZM12 12c-6 3-5 8 0 8s6-5 0-8Z" },
+  { name: "불족적", path: "M8 9c-4 3-3 7-1 9l1 4h7l1-4c2-5 1-9-3-10M14 4a2 3 0 1 0 4 0 2 3 0 1 0-4 0ZM9 3a1.5 2 0 1 0 3 0 1.5 2 0 1 0-3 0ZM5 5a1.2 1.6 0 1 0 2.4 0 1.2 1.6 0 1 0-2.4 0ZM3 8h1M11 12v6m-3-3h6m-5-2 4 4m-4 0 4-4" },
+  { name: "좌불", path: "M10 4a2 2 0 1 0 4 0 2 2 0 1 0-4 0ZM11 1h2M8 10q4-5 8 0l1 5 4 3q3 4-3 4H6q-6 0-3-4l4-3 1-5ZM9 12v5h6v-5M6 20l6-3 6 3M10 15h4" },
+  { name: "염주", path: "M10 2a2 2 0 1 0 4 0 2 2 0 1 0-4 0ZM4 4a2 2 0 1 0 4 0 2 2 0 1 0-4 0ZM1 10a2 2 0 1 0 4 0 2 2 0 1 0-4 0ZM3 16a2 2 0 1 0 4 0 2 2 0 1 0-4 0ZM16 4a2 2 0 1 0 4 0 2 2 0 1 0-4 0ZM19 10a2 2 0 1 0 4 0 2 2 0 1 0-4 0ZM17 16a2 2 0 1 0 4 0 2 2 0 1 0-4 0ZM10 19h4v3h-4v-3ZM12 22v2" },
+  { name: "경전", path: "M3 3h16v17H5c-4 0-4-5 0-5h14M5 3v12m14-9h2v16H5M8 6h8M8 9h8M8 12h5" },
+  { name: "합장", path: "M11 17V3c0-3-3-2-3 1L6 9l-2 5 4 5m5-2V3c0-3 3-2 3 1l2 5 2 5-4 5M11 7 8 12m5-5 3 5M3 17l5 2 3 3-3 2-6-4 1-3Zm18 0-5 2-3 3 3 2 6-4-1-3Z" },
+  { name: "공양등", path: "M12 2C5 9 10 13 12 11c4-1 4-5 0-9ZM3 14h18c-1 5-17 5-18 0ZM12 18v3M7 22h10M9 12h6" },
+  { name: "사찰", path: "M12 2v3M4 9q8-8 16 0l3 1H1l3-1ZM5 10v10m14-10v10M3 14h18M9 20v-6h6v6M2 21h20M7 6l-2-2m12 2 2-2" },
 ] as const;
 
 export const ZODIAC_MALA_SYMBOLS = [
@@ -35,9 +56,9 @@ export default function StoneMalaBead({ base, gold, fill, index, baseFilter, gol
     <img src={gold} alt="" aria-hidden draggable={false} className="absolute inset-0 block w-full" style={{ filter: goldFilter, opacity: amount, transition: "opacity .16s ease-out" }} />
     <svg viewBox="0 0 920 920" aria-hidden="true" focusable="false" style={engraving}>
       <g transform="translate(225 225) scale(19.58)" fill="none" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round">
-        <path d={symbol.path} stroke="#f6f1df" strokeOpacity={zodiac ? .38 : .62} transform="translate(.35 .35)" />
-        <path d={symbol.path} stroke={zodiac ? "#4f2d15" : "#474c4b"} strokeOpacity={.59 * (1 - amount)} />
-        <path d={symbol.path} stroke="#805d24" strokeOpacity={.7 * amount} />
+        <path d={symbol.path} stroke="#f6f1df" strokeOpacity={zodiac ? .38 : .4} transform="translate(.35 .35)" />
+        <path d={symbol.path} stroke={zodiac ? "#4f2d15" : "#353b39"} strokeOpacity={(zodiac ? .59 : .86) * (1 - amount)} />
+        <path d={symbol.path} stroke="#805d24" strokeOpacity={(zodiac ? .7 : .9) * amount} />
       </g>
     </svg>
   </>;

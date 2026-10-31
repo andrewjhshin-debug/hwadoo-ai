@@ -8,7 +8,9 @@ import {createRequire} from 'node:module';
 import {execFileSync} from 'node:child_process';
 const require=createRequire(import.meta.url), mod={};
 new Function('require','exports',ts.transpileModule(fs.readFileSync('src/components/StoneMalaBead.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText)(require,mod);
-assert.equal(mod.STONE_MALA_SYMBOLS.length,6);assert.equal(mod.ZODIAC_MALA_SYMBOLS.length,12);
+assert.equal(mod.STONE_MALA_SYMBOLS.length,27);assert.equal(mod.ZODIAC_MALA_SYMBOLS.length,12);
+assert.equal(new Set(mod.STONE_MALA_SYMBOLS.map(s=>s.name)).size,27);
+for(const name of ['보리수','코끼리','금강저','목어','범종','좌불','합장'])assert(mod.STONE_MALA_SYMBOLS.some(s=>s.name===name));
 assert.equal(new Set(mod.ZODIAC_MALA_SYMBOLS.map(s=>s.name)).size,12);
 assert.equal(mod.ZODIAC_MALA_SYMBOLS[8].name,'원숭이');
 for(const zodiac of [false,true])for(let i=0;i<27;i++)for(const fill of [0,.5,1]){
@@ -27,4 +29,4 @@ const geometry=s=>s.slice(s.indexOf('const 자리 = Array.from'),s.indexOf('cons
 assert.equal(geometry(page),geometry(before),'shared paw geometry and fill calculation must not change');
 assert.equal((page.match(/<StoneMalaBead/g)||[]).length,2,'main and full-screen renderers must both show motifs');
 assert(beadSkins.includes('name: "열두 띠 나무"')&&beadSkins.includes('/obj/bead-wood-one-v1.png'));
-console.log('PASS: four replaces neon, fifth zodiac; 6/12 repeating symbols; all 27 positions and partial/full gold; exact cat canvas/alpha bounds; 27/108 constants and shared geometry unchanged; both renderers; saved neon migration');
+console.log('PASS: 27 distinct Buddhist stone motifs and 12 zodiac motifs; all 27 positions and partial/full gold; exact cat canvas/alpha bounds; 27/108 constants and shared geometry unchanged; both renderers; saved neon migration');
