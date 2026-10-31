@@ -150,7 +150,7 @@ const SKINS = {
     { id: "wood", name: "나무", src: "/obj/moktak.png", dot: "#c98f5e" },
   ],
   bead: [
-    // 앞의 둘은 **세로**(고리를 정면에서 본 그림), 뒤의 셋은 **가로**
+    // 앞의 둘은 **세로**(고리를 정면에서 본 그림), 뒤의 넷은 **가로**
     // (3D 로 구운, 비스듬히 누운 고리). 살갗을 누르면 세로↔가로가
     // 자연스럽게 넘어간다 — `wide` 가 그 갈림길이다.
     { id: "wood", name: "나무", src: "/obj/bead.png", dot: "#a8703f" },
@@ -169,6 +169,7 @@ const SKINS = {
     // Fourth slot replaces neon. Geometry, rotation and fill logic stay shared with paw.
     { id: "stone", name: "불교 문양 돌", src: "/obj/bead-stone-one-v2.png", dot: "#969995", wide: true, one: "/obj/bead-stone-one-v2.png", lit: "/obj/bead-stone-one-gold-v2.png" },
     { id: "zodiac", name: "열두 띠 나무", src: "/obj/bead-wood-one-v1.png", dot: "#ae7946", wide: true, one: "/obj/bead-wood-one-v1.png", lit: "/obj/bead-wood-one-gold-v1.png" },
+    { id: "sandalwood", name: "나뭇결", src: "/obj/bead-wood-one-v2.png", dot: "#87512f", wide: true, one: "/obj/bead-wood-one-v2.png", lit: "/obj/bead-wood-one-gold-v2.png" },
   ],
   bowl: [
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
