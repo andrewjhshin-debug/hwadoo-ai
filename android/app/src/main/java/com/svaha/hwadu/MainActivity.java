@@ -7,6 +7,8 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
+    // 걸음 센서 — 화면 꺼져도 세는 포행(StepCounterPlugin)
+    registerPlugin(StepCounterPlugin.class);
     super.onCreate(savedInstanceState);
     // 인연 카드의 얼굴은 앱 바깥으로 저장·화면 녹화되지 않게 한다.
     // 웹에서는 완전 차단이 불가능하지만, 설치형 Android 앱은 운영체제가

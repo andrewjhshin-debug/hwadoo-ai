@@ -386,14 +386,13 @@ export default function BaePage() {
                         "웹은 움직임을 못 읽어요. 눌러서 세어도 됩니다."
                       : sense === "asking"
                         ? "권한을 묻는 중…"
-                      : "주머니에 비스듬히 넣어도, 절하면 세어집니다."}
+                      : ""}
               </p>
             </div>
 
             <div className="flex items-center justify-between border-t border-ink-3 pt-4">
-              <span className="text-[12px] tracking-[0.2em] text-hanji-dim">
-                죽비 — 박자 이끌기
-              </span>
+              {/* 형: 「이 말 지워」 — 설명 없이 스위치만. 뭔지는 켜 보면 안다 */}
+              <span className="text-[12px] tracking-[0.2em] text-hanji-dim">죽비</span>
               <button
                 role="switch"
                 aria-checked={auto}
