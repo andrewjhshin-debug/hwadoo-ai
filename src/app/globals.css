@@ -72,18 +72,18 @@ html[data-theme="light"] body {
 .hip-top-right > .hip-top-ico, .hip-top-right .hip-today-wrap { align-self: center; }
 .hip-top-right .hip-sound-toggle svg { width: 19px; height: 19px; }
 /* 법륜 단추 — 아래 띠 오른쪽 위. 누르면 위로 알이 차례로 튀어 오른다 */
-.wheel-fab { position: fixed; z-index: 45; right: max(14px, calc(50vw - 184px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 86px); display: flex; flex-direction: column-reverse; align-items: center; gap: 10px; }
+.wheel-fab { position: fixed; z-index: 45; right: max(14px, calc(50vw - 184px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 86px); display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 10px; }
 .investment-shortcut { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #dce7df; border-radius: 50%; color: #658e7e; background: #fffcf8; box-shadow: 0 2px 8px #658e7e10; }
 .wheel-ico { width: 23px; height: 23px; transition: transform .45s cubic-bezier(.2,.8,.3,1); }
 .wheel-fab[data-open="1"] .wheel-ico { transform: rotate(135deg); color: #b53b6c; }
-.wheel-beads { display: flex; flex-direction: column-reverse; align-items: center; gap: 10px; margin: 0; padding: 0; list-style: none; pointer-events: none; }
+.wheel-beads { display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 10px; margin: 0; padding: 0; list-style: none; pointer-events: none; }
 .wheel-beads li { transform: translateY(18px) scale(.4); opacity: 0; transition: transform .32s cubic-bezier(.34,1.56,.64,1) calc(var(--i) * 45ms), opacity .2s calc(var(--i) * 45ms); }
 .wheel-fab[data-open="1"] .wheel-beads { pointer-events: auto; }
 .wheel-fab[data-open="1"] .wheel-beads li { transform: none; opacity: 1; }
-.wheel-beads a { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #fff; box-shadow: inset -3px -4px 7px rgba(26,23,20,.1), inset 3px 3px 6px rgba(255,255,255,.9), 0 2px 6px rgba(26,23,20,.14); }
-.wheel-beads a b { font-family: var(--font-serif); font-weight: 400; font-size: 17px; line-height: 1; color: #7b7368; }
-.wheel-beads a[data-on="1"] { background: var(--hip-pink, #ef7ba4); }
-.wheel-beads a[data-on="1"] b { color: #fff; }
+.wheel-beads a { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.wheel-beads a b { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #fff; box-shadow: inset -3px -4px 7px rgba(26,23,20,.1), inset 3px 3px 6px rgba(255,255,255,.9), 0 2px 6px rgba(26,23,20,.14); font-size: 19px; line-height: 1; }
+.wheel-beads a span { padding: 5px 11px; border-radius: 14px; background: #fff; box-shadow: 0 2px 6px rgba(26,23,20,.12); font-size: 12.5px; color: #4a443d; white-space: nowrap; }
+.wheel-beads a[data-on="1"] span { background: var(--hip-pink, #ef7ba4); color: #fff; }
 .wheel-scrim { position: fixed; inset: 0; z-index: 44; background: rgba(255,255,255,.45); backdrop-filter: blur(2px); }
 .investment-shortcut:focus-visible { outline: 2px solid #b94b76; outline-offset: 3px; }
 body:has([role="dialog"][aria-modal="true"]) .wheel-fab, html[data-drawer] .wheel-fab { visibility: hidden; pointer-events: none; }

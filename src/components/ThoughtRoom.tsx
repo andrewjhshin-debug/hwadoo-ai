@@ -220,14 +220,14 @@ export default function ThoughtRoom({
 
       {/* ── 오간 말 ── */}
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
-        {/* 오른쪽 — 화두가 묻는다 */}
+        {/* 왼쪽 — 화두가 묻는다. 형: 「간화선 물음을 왼쪽에, 내가 대답하는 거야」 */}
         {question && (
-          <div className="tr-say flex justify-end">
+          <div className="tr-say flex justify-start">
             <div className="max-w-[85%]">
-              <p className="mb-1.5 text-right text-[10px] tracking-[0.3em] text-gold-soft">
+              <p className="mb-1.5 text-left text-[10px] tracking-[0.3em] text-gold-soft">
                 話頭
               </p>
-              <div className="rounded-[16px] rounded-tr-[4px] border border-gold/35 bg-gold/[0.08] px-4 py-3.5">
+              <div className="rounded-[16px] rounded-tl-[4px] border border-gold/35 bg-gold/[0.08] px-4 py-3.5">
                 <p className="whitespace-pre-line break-keep font-serif text-[15px] font-light leading-8 text-hanji">
                   {question.replace(/\n+/g, "\n")}
                 </p>
@@ -236,11 +236,11 @@ export default function ThoughtRoom({
           </div>
         )}
 
-        {/* 오른쪽 — 오늘의 참구법. 화두가 건네는 두 번째 말 */}
+        {/* 왼쪽 — 오늘의 참구법. 화두가 건네는 두 번째 말 */}
         {guide && (
-          <div className="tr-say flex justify-end">
+          <div className="tr-say flex justify-start">
             <div className="max-w-[85%]">
-              <div className="rounded-[16px] rounded-tr-[4px] border border-ink-3 bg-ink-2/60 px-4 py-3">
+              <div className="rounded-[16px] rounded-tl-[4px] border border-ink-3 bg-ink-2/60 px-4 py-3">
                 <p className="text-[10px] tracking-[0.28em] text-gold-soft">
                   {day}일째
                 </p>
@@ -252,12 +252,12 @@ export default function ThoughtRoom({
           </div>
         )}
 
-        {/* 왼쪽 — 내가 적는다 */}
+        {/* 오른쪽 — 내가 답한다 */}
         {list.map((t, i) => (
-          <div key={`${t.at}-${i}`} className="tr-say flex justify-start">
+          <div key={`${t.at}-${i}`} className="tr-say flex justify-end">
             <div className="group max-w-[85%]">
               {editing === i ? (
-                <div className="rounded-[16px] rounded-tl-[4px] border border-gold/50 bg-ink/50 p-2">
+                <div className="rounded-[16px] rounded-tr-[4px] border border-gold/50 bg-ink/50 p-2">
                   <textarea
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
@@ -310,7 +310,7 @@ export default function ThoughtRoom({
                   // 길게 누르면 iOS 는 복사 막대를, 안드로이드는 글자 선택을 열어
                   // 드러내기와 같이 뜨는다. 누르는 면은 선택되지 않게 한다.
                   style={{ WebkitTouchCallout: "none" }}
-                  className="block w-full select-none rounded-[16px] rounded-tl-[4px] border border-ink-3 bg-ink-2/70 px-4 py-3 text-left transition-colors hover:border-gold/35"
+                  className="block w-full select-none rounded-[16px] rounded-tr-[4px] border border-ink-3 bg-ink-2/70 px-4 py-3 text-left transition-colors hover:border-gold/35"
                 >
                   <p className="whitespace-pre-line break-keep text-[14.5px] leading-8 text-hanji">
                     {t.text}
@@ -318,7 +318,7 @@ export default function ThoughtRoom({
                 </button>
               )}
 
-              <div className="mt-1 flex items-center gap-2.5 pl-1">
+              <div className="mt-1 flex items-center justify-end gap-2.5 pr-1">
                 <span className="text-[10.5px] text-hanji-faint">
                   {whenLabel(t.at)}
                 </span>

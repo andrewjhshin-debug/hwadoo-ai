@@ -25,6 +25,7 @@ import { watchAuth } from "@/lib/sync";
 import Link from "next/link";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
+import Osaeksil from "@/components/Osaeksil";
 import { LOTUS_PRICE } from "@/lib/merit";
 
 export type HipMeProps = {
@@ -58,6 +59,8 @@ export type HipMeProps = {
       했다. 옛 머리띠(☰)까지 끄면서 마지막 길도 막혔었다.
       숨길 것이 아니라 보이는 자리에 둔다 */
   account: React.ReactNode;
+  /** 승인 기다리는 화두 수 — 뒷방 계정의 대시보드 들머리에 얹는다 */
+  pendingCount?: number | null;
   /** 아직 안 들어왔나 — 그러면 계정 칸을 **맨 위로** 올린다.
       형: 「로그인도 지금 안 돼. 로그인이 제일 시급」.
       단추는 있었다. 동그라미 스물여섯 개 아래, 1,098px 지점에 있었다 —
@@ -88,6 +91,7 @@ export default function HipMe({
   bells,
   services,
   account,
+  pendingCount = null,
   guest,
   onRename,
   onReroll,
@@ -352,8 +356,9 @@ export default function HipMe({
             **접었을 때는 한 번이라도 한 것**만 — 그게 내 살림이다.
             나머지는 「+12」 알 하나 뒤에 접어 둔다. 눌러 보면 무엇을
             더 하면 공덕이 붙는지 그 자리에서 펼쳐진다. 설명은 없다. */}
-        {/* 오색실은 머리 오른쪽(SilTop)으로 나갔다 — 형: 「전면으로 빼자」.
-            내 도량에 들어와야만 닳는 것이 보이던 것을 어느 판에서든 보이게. */}
+        {/* 오색실 — 머리 오른쪽(SilTop)에도 있지만 여기도 둔다.
+            형: 「오색실 위치 원래대로 내 도량에도 오색실 넣어라」 */}
+        <Osaeksil />
         <div className="hip-me-hits" data-open={openHits ? "1" : undefined}>
           {(openHits ? hits : foldedHits).map((h) => (
             <span key={h.label}>
@@ -421,9 +426,15 @@ export default function HipMe({
             부제(「매출 · 사람 · 법당 · 블로그」)는 걷었다 — 제목+부제 꼴인데,
             뭐가 들었는지는 들어가면 안다 */}
         {뒷방 && (
-          <a className="hip-me-desk" href="/desk">
-            <b>狀 況 板</b>
-          </a>
+          <div className="hip-me-back">
+            <a className="hip-me-desk" href="/admin">
+              <b>대시보드</b>
+              <span>{pendingCount === null ? "" : pendingCount > 0 ? `기다리는 화두 ${pendingCount}` : "기다리는 물음 없음"}</span>
+            </a>
+            <a className="hip-me-desk" href="/desk">
+              <b>狀 況 板</b>
+            </a>
+          </div>
         )}
 
         {/* ── 도량 안내와 사업자 정보 ──

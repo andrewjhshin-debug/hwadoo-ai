@@ -8,8 +8,8 @@
 //
 // 여태는 불심투자 하나로만 가는 지름길이었다. 내 도량(我) 안에만
 // 묻혀 있던 방들 — 비움·불심투자·하심·호흡·멍·연꽃·정진 — 을 이
-// 바퀴가 품는다. 누르면 위로 알이 차례로 튀어 오르고, 알마다 한자
-// 하나. 글자 없이 아래 띠(話功堂緣我)와 같은 말로 말한다.
+// 바퀴가 품는다. 누르면 위로 알이 차례로 튀어 오른다 — 이모지 알에
+// 한글 이름표. 형: 「한자 말고 한글이든 이모지로」
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
@@ -17,15 +17,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Dharmachakra } from "./icons";
 
-/** 숨어 있던 방 — 아래가 먼저 튀어 오른다 */
+/** 잘 안 보이고 숨어 있던 것 — 형이 동그라미 친 다섯. 아래가 먼저 튀어 오른다 */
 const 알: { href: string; mark: string; name: string }[] = [
-  { href: "/tamjinchi", mark: "投", name: "불심투자" },
-  { href: "/empty", mark: "空", name: "비움" },
-  { href: "/hasim", mark: "下", name: "하심" },
-  { href: "/breath", mark: "息", name: "호흡" },
-  { href: "/mung", mark: "無", name: "멍" },
-  { href: "/lotus", mark: "蓮", name: "연꽃" },
-  { href: "/rank", mark: "進", name: "정진" },
+  { href: "/try", mark: "✨", name: "체험하기" },
+  { href: "/draw", mark: "🍃", name: "오늘의 운세" },
+  { href: "/sutra", mark: "📖", name: "외우기" },
+  { href: "/empty", mark: "🥣", name: "비움" },
+  { href: "/ganhwaseon", mark: "🧘", name: "간화선" },
 ];
 
 export default function InvestmentShortcut() {
@@ -50,8 +48,8 @@ export default function InvestmentShortcut() {
         <ul className="wheel-beads">
           {알.map((b, i) => (
             <li key={b.href} style={{ "--i": i } as React.CSSProperties}>
-              <Link href={b.href} aria-label={b.name} title={b.name} data-on={path === b.href ? "1" : undefined} tabIndex={열림 ? 0 : -1}>
-                <b>{b.mark}</b>
+              <Link href={b.href} data-on={path === b.href ? "1" : undefined} tabIndex={열림 ? 0 : -1}>
+                <span>{b.name}</span><b>{b.mark}</b>
               </Link>
             </li>
           ))}

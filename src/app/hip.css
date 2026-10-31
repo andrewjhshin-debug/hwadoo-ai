@@ -8164,6 +8164,8 @@ html[data-theme="light"] {
     color: #f2e7c9;
   }
   .hip-me-desk span { font-size: 11.5px; color: #8e867a; }
+  .hip-me-back { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hip-me-back .hip-me-desk { flex-direction: column; align-items: flex-start; gap: 4px; }
 }
 
 /* ── 꼭대기 자연석 — 거친 결·둥글게 닳은 삼각 윤곽 ────────── */

@@ -793,6 +793,7 @@ export default function SettingsPage() {
         지운 것은 없다, 한 겹 아래로 갔을 뿐이다. */}
     {!meMore && (
       <HipMe
+        pendingCount={pendingCount}
         name={me?.name ?? "나무"}
         rank={{ hanja: meRank.hanja, name: meRank.name }}
         pct={Math.round(realmProgress(merit.total, journalCount) * 100)}
@@ -836,23 +837,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* 뒷방 — **관리자로 들어왔을 때만.**
-                  형: 「나는 andrewjhshin@gmail.com 이고 관리자니까 관리 기능
-                  뒷방 관리하는 거, 그거 내 아이디로 접속했을 때만 그 기능 줘야지.
-                  오리지날에 있는 거 그대로 가져가자」 — 옛 판의 그 칸 그대로,
-                  승인 기다리는 화두 수까지 같이 온다. */}
-              {isAdminAccount(user) && (
-                <Link href="/admin" className="hip-acc-admin">
-                  <b>뒷방</b>
-                  <span>
-                    {pendingCount === null
-                      ? "살피는 중"
-                      : pendingCount > 0
-                        ? `기다리는 화두 ${pendingCount}`
-                        : "기다리는 물음 없음"}
-                  </span>
-                </Link>
-              )}
+              {/* 뒷방 들머리는 맨 아래 狀況板 옆으로 갔다(HipMe) — 형: 「대시보드라고 이름 고치고 저 아래로」 */}
 
               <button
                 onClick={() => logout().catch(() => {})}
