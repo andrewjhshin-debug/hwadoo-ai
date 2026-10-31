@@ -25,6 +25,7 @@ import { watchAuth } from "@/lib/sync";
 import Link from "next/link";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
+import HipHeader from "@/components/HipHeader";
 import Osaeksil from "@/components/Osaeksil";
 import { LOTUS_PRICE } from "@/lib/merit";
 
@@ -143,7 +144,7 @@ export default function HipMe({
       <span aria-hidden className="hip-bloom hip-bloom-a" />
       <span aria-hidden className="hip-bloom hip-bloom-b" />
 
-      <header className="hip-screen-top">
+      <HipHeader>
         <a href="/" aria-label="화두 홈" className="hip-home">
           <svg viewBox="0 0 24 24" aria-hidden>
             <path d="M12 4.2c1.7 2.4 2.4 4.4 2.4 6.3s-1.1 3.7-2.4 4.9c-1.3-1.2-2.4-3-2.4-4.9s.7-3.9 2.4-6.3z" />
@@ -154,7 +155,7 @@ export default function HipMe({
         </a>
         {/* 여기는 이미 내 도량이니 我 단추는 숨긴다 */}
         <HipTop />
-      </header>
+      </HipHeader>
 
       <div className="hip-screen-mid">
         {/* 이름과 자리 — 형: 「동자승 캐릭터 쓰지 말라고」.

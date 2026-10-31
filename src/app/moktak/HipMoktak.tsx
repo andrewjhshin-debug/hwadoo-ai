@@ -36,6 +36,7 @@ import HipLanes, { type LaneTab } from "@/components/HipLanes";
 import { useEffect, useRef, useState } from "react";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
+import HipHeader from "@/components/HipHeader";
 import { ROUND } from "@/lib/merit";
 
 /** 갈래 이름은 HipLanes 가 쥔다 — 여기서는 옛 이름으로 다시 내보낸다 */
@@ -153,7 +154,7 @@ export default function HipMoktak({
         <span aria-hidden className="hip-bloom hip-bloom-a" />
         <span aria-hidden className="hip-bloom hip-bloom-b" />
 
-        <header className="hip-screen-top">
+        <HipHeader>
           <a href="/" aria-label="화두 홈" className="hip-home">
             <svg viewBox="0 0 24 24" aria-hidden>
               <path d="M12 4.2c1.7 2.4 2.4 4.4 2.4 6.3s-1.1 3.7-2.4 4.9c-1.3-1.2-2.4-3-2.4-4.9s.7-3.9 2.4-6.3z" />
@@ -167,7 +168,7 @@ export default function HipMoktak({
               화면 반대편 귀퉁이에서 깜빡였다. 보라는 것을 안 보이는 데
               두었으니 켜지는 줄도 몰랐다. 손이 가는 자리 옆으로 옮긴다. */}
           <HipTop />
-        </header>
+        </HipHeader>
 
         {/* ── 갈래 셋 ──
             형: 「공덕에는 오리지날처럼 위에 목탁 염주 싱잉볼로 옮길 수 있는

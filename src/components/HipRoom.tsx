@@ -22,6 +22,7 @@ import type { ReactNode } from "react";
 import HipShell from "@/components/HipShell";
 import HipLanes from "@/components/HipLanes";
 import HipTop from "@/components/HipTop";
+import HipHeader from "@/components/HipHeader";
 
 export default function HipRoom({
   /** 이 방의 길 — 갈래 띠에서 채워질 알약을 고른다 (예: "/bae") */
@@ -62,7 +63,7 @@ export default function HipRoom({
         <span aria-hidden className="hip-bloom hip-bloom-a" />
         <span aria-hidden className="hip-bloom hip-bloom-b" />
 
-        <header className="hip-screen-top">
+        <HipHeader>
           <a href="/" aria-label="화두 홈" className="hip-home">
             <svg viewBox="0 0 24 24" aria-hidden>
               <path d="M12 4.2c1.7 2.4 2.4 4.4 2.4 6.3s-1.1 3.7-2.4 4.9c-1.3-1.2-2.4-3-2.4-4.9s.7-3.9 2.4-6.3z" />
@@ -72,7 +73,7 @@ export default function HipRoom({
             <b>화두</b>
           </a>
           <HipTop />
-        </header>
+        </HipHeader>
 
         {lanes && <HipLanes room={here} />}
 

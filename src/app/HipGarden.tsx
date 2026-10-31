@@ -30,6 +30,7 @@ import { strikeBell } from "@/lib/sound";
 import Link from "next/link";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
+import HipHeader from "@/components/HipHeader";
 import { durationLabel } from "@/lib/store";
 
 /** 글자 크기 — **가장 긴 한 줄**로 고른다.
@@ -154,7 +155,7 @@ export function HipGardenEmpty({
         <span aria-hidden className="hip-bloom hip-bloom-a" />
         <Mark />
 
-        <header className="hip-screen-top">
+        <HipHeader>
           <HipTop />
           {/* 누구의 물음인가 — 알약 하나로 말 없이 */}
           <div className="hip-seg" role="group" aria-label="누구의 화두">
@@ -174,7 +175,7 @@ export function HipGardenEmpty({
               </button>
             ))}
           </div>
-        </header>
+        </HipHeader>
 
         <div className="hip-screen-mid">
           {/* ── 큰 것 하나 — 연꽃 ──
@@ -354,10 +355,10 @@ export function HipGardenHolding({
             내 도량 · 연꽃/공덕 갯수 이렇게 오리지날처럼 따와서 넣자」.
             며칠째인지는 바닥이 이미 말한다 — 같은 말을 두 번 하면
             둘 다 안 읽힌다. */}
-        <header className="hip-screen-top">
+        <HipHeader>
           <span />
           <HipTop />
-        </header>
+        </HipHeader>
 
         <div className="hip-screen-mid">
           {/* 큰 것 하나 — 오브제가 아니라 **물음**이다 */}

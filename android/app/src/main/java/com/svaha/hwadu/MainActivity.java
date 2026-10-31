@@ -12,5 +12,7 @@ public class MainActivity extends BridgeActivity {
     // 캡처 막기 — 인연 방에서만(SecureScreenPlugin). 전체 FLAG_SECURE 는 걷었다
     registerPlugin(SecureScreenPlugin.class);
     super.onCreate(savedInstanceState);
+    // Capture is allowed by default. The route policy protects Inyeon only.
+    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
   }
 }

@@ -9,7 +9,8 @@ import Sidebar from "@/components/Sidebar";
 import MobileTabBar from "@/components/MobileTabBar";
 import HipMala from "@/components/HipMala";
 import DoryangMenu from "@/components/DoryangMenu";
-import MeritBar from "@/components/MeritBar";
+import HipDayBar from "@/components/HipDayBar";
+import SecureScreen from "@/components/SecureScreen";
 import MeritToast from "@/components/MeritToast";
 import DailyLotusReward from "@/components/DailyLotusReward";
 import SilCut from "@/components/SilCut";
@@ -154,6 +155,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <VisitLedger />
         {/* 방을 옮기면 맨 위부터 — 스크롤 통이 창이 아니라 안쪽 div 라 직접 되돌린다 */}
         <ScrollTop />
+        <SecureScreen />
+        <HipDayBar />
+        <div id="hip-header-layer" />
         <Sidebar />
         {/* 스크롤 통에는 여백을 주지 않는다.
             min-h-full 은 통의 **안쪽 상자(content box)** 높이를 기준으로 재므로,
@@ -162,7 +166,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             여백은 안쪽 두 조각(본문·띠)이 각자 진다. */}
         <div id="scroll-box" className="obang-aura flex-1 overflow-x-hidden overflow-y-auto">
           {/* 공덕 줄 — 어느 방에 있든 맨 위에 금빛 실 한 가닥 */}
-          <MeritBar />
           {/* 본문은 꼭 한 화면을 채운다 — 그래야 아래 띠가 내려야 나온다 */}
           <div className="flex min-h-full flex-col pt-16 md:pt-0">
             <main className="flex flex-1 flex-col">{children}</main>

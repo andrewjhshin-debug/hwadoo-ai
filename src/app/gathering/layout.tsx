@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import SecureScreen from "@/components/SecureScreen";
 
 // 인연 게시판 — "use client" 페이지라 여기(레이아웃)서 제목·설명을 단다
 export const metadata: Metadata = {
@@ -20,11 +19,6 @@ export default function GatheringLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // 설치 앱에서 인연 방(게시판·오늘의 인연·내 프로필)만 캡처를 막는다
-  return (
-    <>
-      <SecureScreen />
-      {children}
-    </>
-  );
+  // Root SecureScreen tracks entry and exit so normal routes are explicitly unlocked.
+  return <>{children}</>;
 }

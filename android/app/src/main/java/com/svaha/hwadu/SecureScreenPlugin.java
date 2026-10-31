@@ -1,5 +1,6 @@
 package com.svaha.hwadu;
 
+import android.app.Activity;
 import android.view.WindowManager;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -17,12 +18,24 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 public class SecureScreenPlugin extends Plugin {
   @PluginMethod
   public void on(PluginCall call) {
-    getActivity().runOnUiThread(() -> getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE));
-    call.resolve();
+    apply(call, true);
   }
   @PluginMethod
   public void off(PluginCall call) {
-    getActivity().runOnUiThread(() -> getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE));
-    call.resolve();
+    apply(call, false);
+  }
+
+  private void apply(PluginCall call, boolean secure) {
+    final Activity activity = getActivity();
+    if (activity == null) {
+      call.reject("Activity unavailable");
+      return;
+    }
+    activity.runOnUiThread(() -> {
+      if (secure) activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+      else activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+      // Resolve only after the window flag changes, preserving route-call order.
+      call.resolve();
+    });
   }
 }

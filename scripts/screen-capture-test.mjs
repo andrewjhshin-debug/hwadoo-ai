@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+const mod={};new Function('exports',ts.transpileModule(fs.readFileSync('src/lib/screen-capture.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(mod);
+const {isInyeonRoute,createCapturePolicy}=mod;
+for(const path of ['/gathering','/gathering/yeon','/gathering/me','/gathering/me/view'])assert(isInyeonRoute(path));
+for(const path of [null,'/','/moktak','/candle','/walking','/settings','/saju','/letters','/community','/gathering-other'])assert(!isInyeonRoute(path));
+let calls=[],bridge=null;
+const plugin={on:async()=>{calls.push('on');},off:async()=>{calls.push('off');}};
+const late=createCapturePolicy(()=>bridge);await late.route('/moktak');assert.deepEqual(calls,[]);bridge=plugin;await late.refresh();assert.deepEqual(calls,['off'],'late native bridge is explicitly unlocked on a normal screen');await late.route('/gathering');assert.deepEqual(calls,['off','on']);await late.stop();assert.equal(calls.at(-1),'off');
+calls=[];const quick=createCapturePolicy(()=>plugin);await Promise.all([quick.route('/gathering'),quick.route('/gathering/me'),quick.route('/candle')]);assert.deepEqual(calls,['off'],'stale queued Inyeon calls cannot relock a normal page');
+calls=[];let finish;const pending=createCapturePolicy(()=>({on:()=>{calls.push('on');return new Promise(resolve=>{finish=resolve;});},off:async()=>{calls.push('off');}}));const enter=pending.route('/gathering');for(let i=0;i<6;i++)await Promise.resolve();assert.equal(calls[0],'on');const leave=pending.route('/moktak');finish();await Promise.all([enter,leave]);assert.deepEqual(calls,['on','off'],'a native call already in flight is followed by the latest unlock');
+let fail=true,unlocked=false;const recover=createCapturePolicy(()=>({on:async()=>{},off:async()=>{if(fail)throw Error('bridge unavailable');unlocked=true;}}));await assert.rejects(recover.route('/'));fail=false;await recover.refresh();assert(unlocked,'a rejected native call never poisons the queue');
+const layout=fs.readFileSync('src/app/layout.tsx','utf8'),gathering=fs.readFileSync('src/app/gathering/layout.tsx','utf8');assert.equal((layout.match(/<SecureScreen\s*\/>/g)||[]).length,1);assert(!gathering.includes('<SecureScreen'));
+console.log('PASS: only Inyeon routes protected; normal routes explicitly unlock; late bridge; rapid navigation; in-flight route ordering; rejection recovery; root policy owns capture state.');

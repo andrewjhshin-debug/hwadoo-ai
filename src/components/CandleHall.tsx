@@ -8,6 +8,7 @@ import Gongyang, { type 공양갈래 } from "@/components/Gongyang";
 import { 신고보내기 } from "@/lib/dm";
 import { pingLotus } from "@/components/LotusCount";
 import HipTop from "@/components/HipTop";
+import HipHeader from "@/components/HipHeader";
 import { Yeonkkot } from "@/components/icons";
 import { strikeBell } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
@@ -901,7 +902,7 @@ export default function CandleHall() {
 
   return <div className="hip-hall">
     {/* 형: 「법당이랑 인연만 오른쪽 위가 달라 — 다 통일해」 */}
-    <header className="hip-screen-top hip-screen-top-hall">
+    <HipHeader>
       <a href="/" aria-label="화두 홈" className="hip-home">
         <svg viewBox="0 0 24 24" aria-hidden>
       <path d="M12 4.2c1.7 2.4 2.4 4.4 2.4 6.3s-1.1 3.7-2.4 4.9c-1.3-1.2-2.4-3-2.4-4.9s.7-3.9 2.4-6.3z" />
@@ -911,7 +912,7 @@ export default function CandleHall() {
         <b>화두</b>
       </a>
       <HipTop />
-    </header>
+    </HipHeader>
     <div className="hip-hall-top">
       {/* 「내 것만」 — 누르면 남의 것이 희미해지고 내 것만 밝아진다.
           거르지 않는다(사라지면 법당이 빈다) — **밝기로 가른다.**

@@ -16,6 +16,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MERIT_EVENT, todayRoom } from "@/lib/merit";
+import { DAILY_EVENT } from "@/lib/daily";
 
 export default function HipDayBar() {
   const [찬만큼, 찬만큼잡기] = useState(0);
@@ -24,19 +25,24 @@ export default function HipDayBar() {
   const 앞값 = useRef(0);
 
   useEffect(() => {
+    let timer: number | undefined;
     const 읽기 = () => {
       const { earned, cap } = todayRoom();
       const v = cap > 0 ? Math.max(0, Math.min(1, earned / cap)) : 0;
       if (v > 앞값.current) {
         막쌓임잡기(true);
-        window.setTimeout(() => 막쌓임잡기(false), 420);
+        if (timer !== undefined) window.clearTimeout(timer);
+        timer = window.setTimeout(() => 막쌓임잡기(false), 420);
       }
       앞값.current = v;
       찬만큼잡기(v);
     };
-    읽기();
+    const initial = window.setTimeout(읽기, 0);
     window.addEventListener(MERIT_EVENT, 읽기);
-    return () => window.removeEventListener(MERIT_EVENT, 읽기);
+    window.addEventListener(DAILY_EVENT, 읽기);
+    window.addEventListener("storage", 읽기);
+    document.addEventListener("visibilitychange", 읽기);
+    return () => { window.clearTimeout(initial); if (timer !== undefined) window.clearTimeout(timer); window.removeEventListener(MERIT_EVENT, 읽기); window.removeEventListener(DAILY_EVENT, 읽기); window.removeEventListener("storage", 읽기); document.removeEventListener("visibilitychange", 읽기); };
   }, []);
 
   return (

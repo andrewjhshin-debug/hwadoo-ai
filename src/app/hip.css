@@ -8393,8 +8393,27 @@ html[data-theme="light"] {
   .hip-go-note { margin: 6px 0 0; font-size: 11px; color: #9aa0a8; }
 }
 
-/* 법당·인연에 끼운 머리띠 — 뜰·목탁(.hip-screen 안)과 같은 자리(x 26 · y 18)에 맞춘다 */
+/* All menu headers share the garden viewport coordinates, outside page containers. */
 @media (min-width: 0px) {
-  .hip-screen-top-gather { margin: 18px 26px 0; }
-  .hip-screen-top-hall { margin: 0 12px; }
+  :root { --hip-header-top: calc(env(safe-area-inset-top, 0px) + 18px); --hip-header-inset: 26px; --hip-header-height: 40px; }
+  #hip-header-layer { display: contents; }
+  .hip-header-slot { display: block; width: 100%; height: var(--hip-header-height); flex: 0 0 var(--hip-header-height); }
+  .hip-screen-top.hip-app-header {
+    position: fixed; top: var(--hip-header-top); left: 50%; right: auto;
+    transform: translateX(-50%); width: calc(100% - var(--hip-header-inset) * 2);
+    max-width: none; height: var(--hip-header-height); margin: 0; padding: 0 0 4px;
+    z-index: 65; flex-wrap: nowrap; box-sizing: border-box;
+  }
+  .hip-app-header > .hip-top-right { order: 2; margin-left: auto; }
+  .hip-app-header > :not(.hip-top-right) { flex-shrink: 0; }
+  .hip-app-header .hip-top-right { height: 36px; }
+}
+@media (min-width: 768px) {
+  .hip-screen-top.hip-app-header { width: 460px; }
+}
+@media (max-width: 380px) {
+  .hip-app-header .hip-top-right { gap: 2px; }
+  .hip-app-header .hip-top-ico { width: 30px; }
+  .hip-app-header > .hip-seg { flex-shrink: 1; min-width: 0; }
+  .hip-app-header .hip-seg button { padding: 0 5px; font-size: 10px; letter-spacing: 0; white-space: nowrap; }
 }
