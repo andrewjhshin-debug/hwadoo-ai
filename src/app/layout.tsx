@@ -64,16 +64,15 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     statusBarStyle: "black-translucent",
   },
-  // Approved pink-to-mint lotus (2026-10-19). All sizes share one vector master.
-  // Versioned asset paths avoid reusing the old lotus/character favicon cache.
+  // Match the Android app's existing golden lotus. Versioned URLs avoid old icon caches.
   icons: {
     icon: [
-      { url: "/brand/lotus-gradient-dark-v2/icon.svg", type: "image/svg+xml", sizes: "any" },
-      { url: "/brand/lotus-gradient-dark-v2/favicon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/brand/lotus-gradient-dark-v2/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/brand/lotus-gold-dark-v1/icon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/brand/lotus-gold-dark-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/lotus-gold-dark-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
     ],
-    shortcut: "/brand/lotus-gradient-dark-v2/favicon.ico",
-    apple: "/brand/lotus-gradient-dark-v2/apple-touch-icon.png",
+    shortcut: "/brand/lotus-gold-dark-v1/favicon.ico",
+    apple: "/brand/lotus-gold-dark-v1/apple-touch-icon.png",
   },
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",
