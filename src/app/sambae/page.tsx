@@ -26,7 +26,7 @@ import HipRoom from "@/components/HipRoom";
 import Info from "@/components/Info";
 import { addMerit, inRound, loadMerit, ROUND } from "@/lib/merit";
 import { buzz, hushVoice, setVoice, strikeBell, warmJukbi } from "@/lib/sound";
-import { BOWS, doneToday, finishSambae, loadSambae, TO } from "@/lib/sambae";
+import { BOWS, finishSambae, loadSambae, TO } from "@/lib/sambae";
 
 export default function SambaePage() {
   const [n, setN] = useState(0); // 이번 판에 몇 배
@@ -222,11 +222,6 @@ export default function SambaePage() {
       {/* 「백팔 한 바퀴」 줄은 걷었다 — 형: 「이 말 지우고」.
           같은 공덕을 위 금선이 이미 재고 있었다. 자가 둘이면 둘 다 안 읽힌다. */}
 
-      {!done && doneToday() && (
-        <p className="mt-7 text-[11.5px] tracking-wide text-hanji-faint">
-          오늘 이미 {rounds}번 했어요
-        </p>
-      )}
     </HipRoom>
   );
 }
