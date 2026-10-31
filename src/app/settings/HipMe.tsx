@@ -395,8 +395,6 @@ export default function HipMe({
           ))}
         </div>
 
-        <Link href="/saju" className="hip-me-desk">山神閣 · 산신각에서 내 사주 보기 ↗</Link>
-
         {/* ── 계정 ──
             형: 「왜 로그인 기능이 없냐 어디서 로그인해」 「로그인 기능
             빵났다」. 폰에서 이 칸이 영구히 숨겨져 있었다(meMore 를 켜는

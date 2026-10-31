@@ -758,7 +758,7 @@ export default function SettingsPage() {
     "/moktak": "功", "/sambae": "歸", "/bae": "拜", "/breath": "息",
     "/mung": "無", "/empty": "空", "/candle": "燈", "/lotus": "蓮",
     "/community": "池", "/archive": "庫", "/sutra": "經", "/draw": "占",
-    "/rank": "進", "/tea": "茶", "/goods": "物", "/tamjinchi": "投",
+    "/rank": "進", "/tea": "茶", "/goods": "物", "/tamjinchi": "投", "/saju": "山",
     "/hasim": "下", "/letters": "信", "/moment": "時", "/try": "試",
   };
   const meServices = [
@@ -770,6 +770,8 @@ export default function SettingsPage() {
     { href: "/letters", label: "쪽지" },
     // 형: 「버튼 중에 체험하기 하나 넣고 되살리자」
     { href: "/try", label: "체험하기" },
+    // 형: 「산신각 이상한 형태 말고 그냥 버튼식으로」 — 다른 방과 같은 알 하나
+    { href: "/saju", label: "산신각" },
   ]
     .filter((v, i, a) => a.findIndex((w) => w.href === v.href) === i)
     .map((v) => ({ ...v, mark: ME_MARK[v.href] ?? "·" }));
