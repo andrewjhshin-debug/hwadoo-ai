@@ -24,7 +24,7 @@ import ShareButton from "@/components/ShareButton";
 import { MOKTAK_SVG } from "./moktakSvg";
 import HipMoktak from "./HipMoktak";
 import Dudu from "@/components/Dudu";
-import StoneMalaBead from "@/components/StoneMalaBead";
+import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -343,6 +343,11 @@ export default function MoktakPage() {
   const beadOneSrc = 그림(beadOne?.one ?? "/obj/bead-paw-one.png");
   const beadLitSrc = 그림(beadOne?.lit ?? "/obj/bead-paw-one-gold.png");
   const stoneMala = skin.bead === "stone" || skin.bead === "zodiac";
+  useEffect(() => {
+    if (!stoneMala) return;
+    const symbols = skin.bead === "zodiac" ? ZODIAC_MALA_SYMBOLS : STONE_MALA_SYMBOLS;
+    symbols.forEach(({ src }) => { const img = new window.Image(); img.src = src; });
+  }, [skin.bead, stoneMala]);
   const malaElastic = useMalaElastic(tab === "yeomju" && beadWide);
   const beadHue = (i: number) => (beadOne?.hues ? ` hue-rotate(${beadOne.hues[i % beadOne.hues.length]}deg)` : "");
 
