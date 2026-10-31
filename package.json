@@ -28,6 +28,7 @@
     "firebase-admin": "^14.2.0",
     "korean-lunar-calendar": "^0.4.0",
     "leaflet": "^1.9.4",
+    "lunar-javascript": "^1.7.7",
     "next": "16.3.0",
     "qrcode.react": "^4.2.0",
     "react": "19.2.8",

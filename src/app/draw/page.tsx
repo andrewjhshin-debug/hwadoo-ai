@@ -14,6 +14,8 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { loadMerit } from "@/lib/merit";
+import { 오늘읽기, 날수 } from "@/lib/today";
+import { 오늘법구 } from "@/lib/dhammapada";
 import { buzz, clickBead, strikeMoktak } from "@/lib/sound";
 import {
   dayKey,
@@ -141,6 +143,9 @@ export default function DrawPage() {
 
   const open = Boolean(book.today && got);
   const p = got ? poisonOf(got.poison) : null;
+  // 달력 — 랜덤이 아닌 것. 음력·일진·절기·재일, 그리고 날짜로 정해지는 법구 한 구절
+  const 날 = 오늘읽기();
+  const 법구 = 오늘법구(날수());
   // 오늘 것은 위에 이미 있다 — 자취에 두 번 적지 않는다
   const trail = (book.today ? book.log.slice(1) : book.log).slice(0, 5);
 
@@ -150,6 +155,16 @@ export default function DrawPage() {
 
       {/* 머리에 얼굴을 올리지 않는다 — 이 화면의 주인공은 뒤집는 한 장이다 */}
       <p className="rise mt-2 text-[12px] tracking-[0.35em] text-hanji-faint">運 · 오늘의 운세</p>
+      {/* 오늘이 어떤 날인가 — 절이 따르는 달력. 형: 「진짜 랜덤 말고」 */}
+      <p className="rise rise-d1 mt-2 text-center text-[12px] tracking-[0.12em] text-hanji-dim">
+        {날.음력} · {날.일진}
+        {날.절기 ? ` · ${날.절기}` : 날.다음절기 ? ` · ${날.다음절기.name} ${날.다음절기.days}일 전` : ""}
+      </p>
+      {날.재일 && (
+        <p className="rise rise-d1 mt-2 rounded-full bg-gold/15 px-3.5 py-1 text-[12px] tracking-[0.08em] text-gold">
+          {날.재일.name} · {날.재일.say}
+        </p>
+      )}
 
       {open ? (
         <>
@@ -207,6 +222,12 @@ export default function DrawPage() {
             </p>
             {/* 「손잡고 절로」로 끌고 가던 끈도 뗐다.
                 형: 「지금 뭐 딴 거 유도하지 말고」 — 읽고 하루를 살면 된다. */}
+          </div>
+
+          {/* ── 오늘의 법구 — 날짜로 정해져 전국이 같은 구절 ── */}
+          <div className="mt-4 w-full max-w-[284px] rounded-[14px] border border-ink-3 bg-ink-2/50 p-4">
+            <p className="text-[11px] tracking-[0.25em] text-hanji-faint">法句 · 오늘의 법구 {법구.n}</p>
+            <p className="mt-2 break-keep font-serif text-[14px] leading-7 text-hanji">{법구.text}</p>
           </div>
         </>
       )}
