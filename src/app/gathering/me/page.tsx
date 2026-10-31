@@ -17,6 +17,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import FaceLive from "@/components/FaceLive";
 import HipRoom from "@/components/HipRoom";
 import { watchAuth } from "@/lib/sync";
@@ -66,6 +67,7 @@ export default function 인연내프로필() {
   const [이름탈, 이름탈잡기] = useState("");
   const [저장중, 저장중잡기] = useState(false);
   const [저장됨, 저장됨잡기] = useState(false);
+  const router = useRouter();
   /** 법명은 스스로 **한 번만** 고친다 — 그 뒤로는 뒷방을 거친다 */
   const 이름잠김 = !!me?.nameChanged;
   /** 칸에 적히는 글자 — 누르기 전까지는 장부에 안 적는다 */
@@ -159,13 +161,14 @@ export default function 인연내프로필() {
   };
 
   /** 저장 — 다 찼으면 판에도 세운다 */
+  // 형: 「저장했습니다 말고 실제 저장 페이지랑 보여지는 페이지랑 구분지어」
+  // — 저장이 되면 그 자리에 머물지 않고 **남이 보는 내 장**으로 간다
   const 저장하기 = async () => {
     if (저장중) return;
     저장중잡기(true);
     저장됨잡기(false);
     try {
-      if (await 고치기({})) 저장됨잡기(true);
-      window.setTimeout(() => 저장됨잡기(false), 2200);
+      if (await 고치기({})) { 저장됨잡기(true); router.push("/gathering/me/view"); }
     } finally {
       저장중잡기(false);
     }
@@ -725,7 +728,7 @@ export default function 인연내프로필() {
             disabled={저장중}
             onClick={저장하기}
           >
-            {저장중 ? "저장하는 중" : 저장됨 ? "저장했습니다" : "저장"}
+            {저장중 ? "저장하는 중" : 저장됨 ? "보러 가는 중" : "저장"}
           </button>
         </div>
 

@@ -5,6 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import type { TowerEngine, TowerStatus } from "@/lib/tower-engine";
 import { towerWeek, type TowerBoard, type TowerProof } from "@/lib/tower-ranking";
+import { loadMe } from "@/lib/me";
 import "./tower-ranking.css";
 
 type Pending = TowerProof & { height: number; week: string };
@@ -34,7 +35,7 @@ export default function TowerRanking({ engine, peak, seed, phase }: { engine: Re
     const record = pending.current, uid = owner.current;
     if (!record || !uid || auth.currentUser?.uid !== uid) return;
     const task = (async () => {
-      await request("/api/tower/rank", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(record) });
+      await request("/api/tower/rank", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...record, name: loadMe()?.name ?? "" }) });
       if (owner.current === uid && pending.current === record) {
         pending.current = null;
         try { localStorage.removeItem(pendingKey(uid)); } catch { /* The in-memory record still succeeded. */ }

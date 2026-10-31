@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
+import { loadMe } from "@/lib/me";
 import TowerRanking from "@/components/TowerRanking";
 import { useConfirm } from "@/components/Confirm";
 import { addMerit } from "@/lib/merit";
@@ -94,11 +95,7 @@ export default function TowerPage() {
     engine.current.pause(); setRecordFile(null); setSharing(true); setError("");
   };
   const closeShare = () => { setSharing(false); setRecordFile(null); if (!shareWasPaused.current) engine.current?.resume(); canvas.current?.focus(); };
-  const download = (file: File) => {
-    const url = URL.createObjectURL(file), a = document.createElement("a");
-    a.href = url; a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 30_000);
-  };
-  const challengeUrl = () => `${window.location.origin}/tower?seed=${encodeURIComponent(seed)}&target=${game.peak.toFixed(1)}`;
+  const challengeUrl = () => `${window.location.origin}/tower/challenge?seed=${encodeURIComponent(seed)}&target=${game.peak.toFixed(1)}&n=${encodeURIComponent(loadMe()?.name ?? "")}`;
 
   return <HipRoom here="/tower" scroll={false}>
     <section className="tower-game" aria-label="돌탑 높이 도전">
@@ -140,9 +137,8 @@ export default function TowerPage() {
               if (!recordFile) return;
               setError("");
               try { if (await shareTowerRecord(recordFile, challengeUrl(), game.peak) === "copied") setError("도전 링크를 복사했어요."); }
-              catch (e) { if ((e as Error).name !== "AbortError") setError("공유하지 못했어요. 저장 버튼을 이용해 주세요."); }
-            }}>{recordFile ? "공유" : "준비 중…"}</button>
-            <button disabled={!recordFile} onClick={() => { if (recordFile) download(recordFile); }}>저장</button>
+              catch (e) { if ((e as Error).name !== "AbortError") setError("공유하지 못했어요."); }
+            }}>{recordFile ? "도전장 보내기" : "준비 중…"}</button>
           </div>
           {error && <p role="status" className="tower-error">{error}</p>}
         </div>

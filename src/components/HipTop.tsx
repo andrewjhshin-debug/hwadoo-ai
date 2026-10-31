@@ -50,7 +50,7 @@ export default function HipTop({
           손잡고 절로(쪽지 청하기), 그리고 연꽃 판 자체. */}
       <SoundMuteToggle compact />
       <button type="button" className="hip-top-ico hip-walking-toggle" aria-label={walking.on ? "포행 끄기" : "포행 켜기"} aria-pressed={walking.on} onClick={toggleWalking} title={walking.on ? `포행 켜짐 · ${walking.steps}걸음` : "포행 켜기"}>
-        <span>포행</span><small>{walking.on ? "ON" : "OFF"}</small>
+        <span>포행</span><small>{walking.on ? (walking.steps > 0 ? `${walking.steps.toLocaleString("ko-KR")}` : "ON") : "OFF"}</small>
       </button>
       {/* 형: 「포행 OFF 랑 연잎 사이」 — 출석할수록 헤지는 오색실. 눌리면 팝업 */}
       <SilTop />

@@ -6,6 +6,11 @@ import { towerWeek, verifiedTowerScore } from "@/lib/tower-ranking";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+/** 내 도량 법명 — 형: 「일법으로 이름 했으면 돌탑에도 그 이름이 가야지」. 글자·길이만 본다(me.ts 와 같은 잣대) */
+function cleanName(v: unknown) {
+  const n = typeof v === "string" ? v.trim() : "";
+  return /^[가-힣一-龥A-Za-z0-9 ]{2,8}$/.test(n) ? n : "";
+}
 function nameFor(uid: string) {
   let h = 2166136261;
   for (const ch of uid) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
@@ -21,12 +26,13 @@ export async function POST(req: Request) {
   if (!app) return Response.json({ error: "unavailable" }, { status: 503 });
   const uid = await identity(req);
   if (!uid) return Response.json({ error: "unauthorized" }, { status: 401 });
-  let score: number | null, playedWeek = "";
+  let score: number | null, playedWeek = "", myName = "";
   try {
     const text = await req.text();
     if (text.length > 24000) return Response.json({ error: "too-large" }, { status: 413 });
     const body = JSON.parse(text);
     playedWeek = typeof body?.week === "string" ? body.week : "";
+    myName = cleanName(body?.name);
     score = /^\d{4}-\d{2}-\d{2}$/.test(playedWeek) && playedWeek <= towerWeek() ? verifiedTowerScore(body) : null;
   } catch { score = null; }
   if (score === null) return Response.json({ error: "invalid-record" }, { status: 400 });
@@ -37,7 +43,7 @@ export async function POST(req: Request) {
       const all = Number(data.all ?? 0), current = Number(data[field] ?? 0);
       const thisWeek = playedWeek === week;
       if (all >= score && (!thisWeek || current >= score)) return;
-      const update: Record<string, unknown> = { name: nameFor(uid), all: Math.max(all, score), at: FieldValue.serverTimestamp() };
+      const update: Record<string, unknown> = { name: myName || nameFor(uid), all: Math.max(all, score), at: FieldValue.serverTimestamp() };
       if (thisWeek) update[field] = Math.max(current, score);
       const cutoff = towerWeek(Date.now() - 8 * 7 * 86400000);
       for (const key of Object.keys(data)) if (/^week_\d{4}-\d{2}-\d{2}$/.test(key) && key.slice(5) < cutoff) update[key] = FieldValue.delete();

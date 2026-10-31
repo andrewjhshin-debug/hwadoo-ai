@@ -112,7 +112,7 @@ export default function MeritToast() {
         <div
           key={gain}   /* 값이 같아도 다시 톡 튀게 — 쌓인 수를 열쇠로 */
           aria-live="polite"
-          className="pointer-events-none fixed right-4 top-[72px] z-[60] md:right-8 md:top-8"
+          className="pointer-events-none fixed left-4 top-[72px] z-[60] md:left-8 md:top-8"
           style={{ animation: "mt-pop 1.4s ease-out forwards" }}
         >
           <span className="rounded-full border border-gold/45 bg-ink-2/90 px-3.5 py-1.5 font-serif text-[15px] leading-none text-gold shadow-[0_8px_26px_rgba(0,0,0,0.5)] backdrop-blur">

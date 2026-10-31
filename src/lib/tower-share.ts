@@ -3,9 +3,12 @@ import { paintTower, type ReplayFrame } from "./tower-game";
 /** Invoked directly by a button so native file sharing retains user activation. */
 export async function shareTowerRecord(file: File, url: string, height: number): Promise<"shared" | "copied"> {
   const title = `화두 돌탑 ${height.toFixed(1)} cm`;
+  // 형: 「공유할 때 썸넬 링크를 제대로 해야지. 토스가 마케팅하는 거 마냥」
+  // 파일을 보내면 카톡엔 그림 한 장만 남고 돌아올 길이 없다. **링크**를 보낸다 —
+  // /tower/challenge 가 OG 그림(높이 적힌 돌탑)을 들고 있어 카톡이 카드로 편다.
+  void file;
   if (navigator.share) {
-    if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title, url });
-    else await navigator.share({ title, text: `${height.toFixed(1)} cm, 이 높이에 도전해 보세요.`, url });
+    await navigator.share({ title, text: `${height.toFixed(1)} cm. 이 높이, 넘을 수 있어?`, url });
     return "shared";
   }
   await navigator.clipboard.writeText(url);
