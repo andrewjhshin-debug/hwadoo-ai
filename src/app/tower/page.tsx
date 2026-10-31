@@ -116,7 +116,7 @@ export default function TowerPage() {
         {game.phase === "paused" ? <button className="tower-primary" onClick={() => engine.current?.resume()}>이어서 쌓기</button> : <button disabled={!ready || game.phase === "busy"} onClick={() => engine.current?.pause()}>잠시 멈춤</button>}
         <button disabled={!game.count || game.phase === "busy"} onClick={openShare}>기록 공유</button>
         {game.phase === "paused" && <button onClick={async () => { if (await ask("새로 쌓을까요?", "현재 돌탑은 사라지고 최고 기록은 남아요.")) { engine.current?.dispose(); setReady(false); setReward(0); setRun(v => v + 1); } }}>새로 쌓기</button>}
-        <small aria-live="polite">{reward > 0 ? `오늘 새 높이 공덕 +${reward.toLocaleString()}` : "오늘 처음 넘긴 10cm 구간마다 공덕"}</small>
+        <small aria-live="polite">{reward > 0 ? `오늘 새 높이 공덕 +${reward.toLocaleString()}` : ""}</small>
       </div>
       {error && !sharing && <p role="alert" className="tower-error">{error}</p>}
       {sharing && <div className="tower-share-veil" role="dialog" aria-modal="true" aria-label="돌탑 기록 공유" onKeyDown={e => {
