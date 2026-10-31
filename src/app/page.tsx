@@ -723,7 +723,7 @@ export default function Home() {
           {/* 잠시 — 다음으로 나아가기 전에.
               첫 문장만 남기고 나머지 뜻은 접어 둔다 (지우지 않는다) */}
           <div className="mt-3 w-full max-w-xl rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4 text-left">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-end gap-4">
               <Link
                 href="/breath"
                 className="shrink-0 rounded-full border border-gold/40 px-4 py-2 text-[11.5px] tracking-[0.15em] text-gold-soft transition-colors hover:bg-gold/10 hover:text-gold"
