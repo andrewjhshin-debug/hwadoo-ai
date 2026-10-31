@@ -167,7 +167,7 @@ const SKINS = {
     // 형: 「밑에 색상도 핑크로 바꾸고」 — 알이 분홍인데 점만 미색이었다
     { id: "paw", name: "발바닥", src: "/obj/bead-paw.png", dot: "#f08ba8", wide: true, one: "/obj/bead-paw-one.png", lit: "/obj/bead-paw-one-gold.png" },
     // Fourth slot replaces neon. Geometry, rotation and fill logic stay shared with paw.
-    { id: "stone", name: "불교 문양 돌", src: "/obj/bead-stone-one-v2.png", dot: "#969995", wide: true, one: "/obj/bead-stone-one-v2.png", lit: "/obj/bead-stone-one-gold-v2.png" },
+    { id: "stone", name: "회색 문양", src: "/obj/mala-stone-v4/0.webp", dot: "#adb2b8", wide: true, one: "/obj/mala-stone-v4/0.webp", lit: "/obj/mala-stone-v4/0.webp" },
     { id: "zodiac", name: "열두 띠 나무", src: "/obj/bead-wood-one-v1.png", dot: "#ae7946", wide: true, one: "/obj/bead-wood-one-v1.png", lit: "/obj/bead-wood-one-gold-v1.png" },
     { id: "sandalwood", name: "나뭇결", src: "/obj/bead-wood-one-v2.png", dot: "#87512f", wide: true, one: "/obj/bead-wood-one-v2.png", lit: "/obj/bead-wood-one-gold-v2.png" },
   ],
