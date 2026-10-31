@@ -504,7 +504,7 @@ export default function BreathPage() {
                 onClick={begin}
                 className="btn-obang px-9 py-3 text-[13px] tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
               >
-                숨을 고르다
+                시작
               </button>
               {soundButton}
             </div>

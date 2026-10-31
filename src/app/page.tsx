@@ -724,12 +724,6 @@ export default function Home() {
               첫 문장만 남기고 나머지 뜻은 접어 둔다 (지우지 않는다) */}
           <div className="mt-3 w-full max-w-xl rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4 text-left">
             <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-[10px] tracking-[0.34em] text-hanji-faint">
-                  숨을 고르다
-                </p>
-                {/* 부제 뺐다 — 라벨 「숨을 고르다」와 단추 「호흡 명상 →」이 이미 같은 말이다 */}
-              </div>
               <Link
                 href="/breath"
                 className="shrink-0 rounded-full border border-gold/40 px-4 py-2 text-[11.5px] tracking-[0.15em] text-gold-soft transition-colors hover:bg-gold/10 hover:text-gold"
