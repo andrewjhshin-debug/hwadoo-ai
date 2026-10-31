@@ -30,13 +30,13 @@ export default function StoneMalaBead({ base, gold, fill, index, baseFilter, gol
   const engraving: CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" };
   return <>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={base} alt="" draggable={false} className="block w-full" style={{ filter: `${baseFilter ?? ""}${zodiac ? " brightness(1.2) sepia(.2)" : ""}` }} />
+    <img src={base} alt="" draggable={false} className="block w-full" style={{ filter: baseFilter }} />
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src={gold} alt="" aria-hidden draggable={false} className="absolute inset-0 block w-full" style={{ filter: goldFilter, opacity: amount, transition: "opacity .16s ease-out" }} />
     <svg viewBox="0 0 920 920" aria-hidden="true" focusable="false" style={engraving}>
       <g transform="translate(225 225) scale(19.58)" fill="none" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round">
-        <path d={symbol.path} stroke="#f6f1df" strokeOpacity=".62" transform="translate(.35 .35)" />
-        <path d={symbol.path} stroke="#474c4b" strokeOpacity={.59 * (1 - amount)} />
+        <path d={symbol.path} stroke="#f6f1df" strokeOpacity={zodiac ? .38 : .62} transform="translate(.35 .35)" />
+        <path d={symbol.path} stroke={zodiac ? "#4f2d15" : "#474c4b"} strokeOpacity={.59 * (1 - amount)} />
         <path d={symbol.path} stroke="#805d24" strokeOpacity={.7 * amount} />
       </g>
     </svg>

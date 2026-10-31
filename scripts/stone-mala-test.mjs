@@ -18,7 +18,7 @@ const list=zodiac?mod.ZODIAC_MALA_SYMBOLS:mod.STONE_MALA_SYMBOLS;assert(html.inc
 }
 async function alpha(file){const {data,info}=await sharp(file).ensureAlpha().raw().toBuffer({resolveWithObject:true});let x0=info.width,y0=info.height,x1=0,y1=0;for(let y=0;y<info.height;y++)for(let x=0;x<info.width;x++)if(data[(y*info.width+x)*4+3]>128){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}return{data,info,box:[x0,y0,x1,y1]};}
 const cat=await alpha('public/obj/bead-paw-one.png');
-for(const p of ['public/obj/bead-stone-one-v1.png','public/obj/bead-stone-one-gold-v1.png']){const a=await alpha(p);assert.equal(a.info.width,920);assert.equal(a.info.height,920);a.box.forEach((n,i)=>assert(Math.abs(n-cat.box[i])<=2,`sprite outline differs: ${a.box}/${cat.box}`));for(let i=3;i<a.data.length;i+=4)assert(a.data[i]<=cat.data[i],'cannot draw outside original cat silhouette');}
+for(const p of ['public/obj/bead-stone-one-v1.png','public/obj/bead-stone-one-gold-v1.png','public/obj/bead-wood-one-v1.png','public/obj/bead-wood-one-gold-v1.png']){const a=await alpha(p);assert.equal(a.info.width,920);assert.equal(a.info.height,920);a.box.forEach((n,i)=>assert(Math.abs(n-cat.box[i])<=2,`sprite outline differs: ${a.box}/${cat.box}`));for(let i=3;i<a.data.length;i+=4)assert(a.data[i]<=cat.data[i],'cannot draw outside original cat silhouette');}
 const page=fs.readFileSync('src/app/moktak/page.tsx','utf8'),before=execFileSync('git',['show','HEAD:src/app/moktak/page.tsx'],{encoding:'utf8'});
 const beadSkins=page.split('  bead: [')[1].split('  bowl: [')[0];assert.equal((beadSkins.match(/\{ id:/g)||[]).length,5);assert(!beadSkins.includes('id: "neon"'));assert(beadSkins.includes('id: "stone"')&&beadSkins.includes('id: "zodiac"'));
 assert(page.includes('if (got.bead === "neon") got.bead = "stone"'));
@@ -26,4 +26,5 @@ for(const key of ['const RING_BEADS = 27;','const BEADS = 108;','const 고리폭
 const geometry=s=>s.slice(s.indexOf('const 자리 = Array.from'),s.indexOf('const 분홍결 ='));
 assert.equal(geometry(page),geometry(before),'shared paw geometry and fill calculation must not change');
 assert.equal((page.match(/<StoneMalaBead/g)||[]).length,2,'main and full-screen renderers must both show motifs');
+assert(beadSkins.includes('name: "열두 띠 나무"')&&beadSkins.includes('/obj/bead-wood-one-v1.png'));
 console.log('PASS: four replaces neon, fifth zodiac; 6/12 repeating symbols; all 27 positions and partial/full gold; exact cat canvas/alpha bounds; 27/108 constants and shared geometry unchanged; both renderers; saved neon migration');

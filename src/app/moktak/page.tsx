@@ -133,7 +133,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 31;
+const 그림판 = 32;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -167,7 +167,7 @@ const SKINS = {
     { id: "paw", name: "발바닥", src: "/obj/bead-paw.png", dot: "#f08ba8", wide: true, one: "/obj/bead-paw-one.png", lit: "/obj/bead-paw-one-gold.png" },
     // Fourth slot replaces neon. Geometry, rotation and fill logic stay shared with paw.
     { id: "stone", name: "불교 문양 돌", src: "/obj/bead-stone-one-v1.png", dot: "#a9aaa7", wide: true, one: "/obj/bead-stone-one-v1.png", lit: "/obj/bead-stone-one-gold-v1.png" },
-    { id: "zodiac", name: "열두 띠", src: "/obj/bead-stone-one-v1.png", dot: "#dfd4bc", wide: true, one: "/obj/bead-stone-one-v1.png", lit: "/obj/bead-stone-one-gold-v1.png" },
+    { id: "zodiac", name: "열두 띠 나무", src: "/obj/bead-wood-one-v1.png", dot: "#ae7946", wide: true, one: "/obj/bead-wood-one-v1.png", lit: "/obj/bead-wood-one-gold-v1.png" },
   ],
   bowl: [
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
