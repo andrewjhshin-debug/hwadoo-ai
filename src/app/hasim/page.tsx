@@ -34,10 +34,10 @@ import { addMerit } from "@/lib/merit";
 /**
  * 획이 이어지는 길이 — 방 한 칸 높이의 몇 배.
  *
- * 내려가는 구간을 기존 75칸에서 150칸으로 늘린다.
+ * 내려가는 구간은 135칸. 150칸에서 10% 줄인다.
  * 획의 굵기와 끝의 구성은 그대로 두고 몸통만 길게 잇는다.
  */
-const DEPTH = 150;
+const DEPTH = 135;
 
 // 잘라 둔 세 조각의 자리 — `seogye.mjs` 가 뽑아 준 값 그대로.
 // 머리 조각의 폭이 자다. 셋을 이 숫자대로 얹으면 획이 한 줄로 선다.
@@ -115,8 +115,6 @@ export default function HasimPage() {
   const [ink, setInk] = useState<Ink>("ink");
   /** 이번에 만날 한 줄 — 들어올 때 한 번 뽑는다 */
   const [say, setSay] = useState(0);
-  /** 바닥에 닿았을 때 붙은 공덕(0 이면 오늘 이미 받았거나 천장) */
-  const [got, setGot] = useState<number | null>(null);
   const paidRef = useRef(false);
 
   useEffect(() => {
@@ -160,7 +158,7 @@ export default function HasimPage() {
         // 공덕이 붙는 순간 오른쪽 위에 「+N 공덕」이 저절로 떠오른다
         // (MeritToast 가 장부를 듣고 있다). 여기서 또 적지 않는다 —
         // 형: 「플러스 뜨는 거 보여줘야지, 하심 밑에 글자로 말고」
-        setGot(addMerit("hasim").gained);
+        addMerit("hasim");
       }
       // 다시 위로 한참 올라가면 셈을 연다 — 한 번 더 내려오면 또 준다.
       // 형: 「할 때마다 주도록 해」 (하루 몫은 장부가 막는다)
@@ -402,15 +400,6 @@ export default function HasimPage() {
                   >
                     下心
                   </p>
-
-                  {/* 끝까지 내려온 값 — 형: 「다 내리면 그것도 공덕 주고」 */}
-                  {/* 붙은 값은 오른쪽 위 토스트가 말한다. 여기서는 **다
-                      찼을 때만** 한 줄 — 아무 말도 없으면 왜 안 주나 싶다. */}
-                  {got === 0 && (
-                    <p className="mt-5 text-[12.5px] tracking-[0.2em]" style={{ color: skin.dim }}>
-                      오늘 몫은 이미 받았어요
-                    </p>
-                  )}
 
                   {/* 끝까지 온 사람이 다시 위로 백 화면을 굴러 올라갈 이유가
                       없다. 형: 「하심 끝나고 되돌아가면 다시 메뉴로」 */}
