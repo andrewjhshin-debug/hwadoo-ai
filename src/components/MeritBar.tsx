@@ -12,7 +12,7 @@
 // 화면 맨 위에 늘 붙어 있으니 어느 것이 무슨 뜻인지 아무도 몰랐다.
 //
 // 이제 연꽃 하나만 잰다. 어느 방에서 목탁을 치든 이 선이 길어지고,
-// 끝까지 차면 한 번 번쩍한 뒤 처음으로 돌아간다 — 한 송이가 여물었다는 뜻.
+// 끝까지 차면 한 번 빛나고 오늘의 완주 상태로 남는다. 지급 안내는 DailyLotusReward가 맡는다.
 // 숫자는 적지 않는다. 몇 송이 쥐었는지는 연꽃 알약이 말한다.
 //
 // 스크롤을 따라 붙어 있되(sticky), 손안에서는 위 머리 띠 아래에 선다.
@@ -20,11 +20,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DAILY_TOTAL_CAP, MERIT_EVENT, todayRoom } from "@/lib/merit";
+import { DAILY_EVENT } from "@/lib/daily";
 
 export default function MeritBar() {
   const [bal, setBal] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
   const last = useRef(0);
+  const flashTimer = useRef<number | null>(null);
 
   const read = useCallback(() => {
     const b = todayRoom().earned;
@@ -34,20 +36,23 @@ export default function MeritBar() {
       b >= DAILY_TOTAL_CAP && last.current < DAILY_TOTAL_CAP
     ) {
       setFlash(true);
-      window.setTimeout(() => setFlash(false), 1200);
+      if (flashTimer.current !== null) window.clearTimeout(flashTimer.current);
+      flashTimer.current = window.setTimeout(() => setFlash(false), 1200);
     }
     last.current = b;
     setBal(b);
   }, []);
 
   useEffect(() => {
-    read();
+    const timer = flashTimer;
+    const initial = window.setTimeout(read, 0);
     window.addEventListener(MERIT_EVENT, read);
-    return () => window.removeEventListener(MERIT_EVENT, read);
+    window.addEventListener(DAILY_EVENT, read);
+    return () => { window.clearTimeout(initial); if (timer.current !== null) window.clearTimeout(timer.current); window.removeEventListener(MERIT_EVENT, read); window.removeEventListener(DAILY_EVENT, read); };
   }, [read]);
 
   // 서버가 그린 첫 그림과 어긋나지 않게 — 읽기 전에는 빈 줄만
-  const pct = bal === null ? 0 : (bal / DAILY_TOTAL_CAP) * 100;
+  const pct = bal === null ? 0 : Math.max(0, Math.min(100, (bal / DAILY_TOTAL_CAP) * 100));
 
 
   return (

@@ -6,8 +6,8 @@
 //
 // 공덕이 진짜 쌓였는지는 서버가 알 수 없다 — 그건 받아들인다.
 // 대신 **하루에 바꿀 수 있는 송이 수**를 묶는다 — 하루 한 송이.
-// 브라우저 쪽 천장(하루 공덕 2,160, 한 송이 6,480)과 맞물려,
-// 아무리 속여도 하루 한 송이가 끝이다 — 실은 정직하게 하면 사흘에 한 송이다.
+// 브라우저는 오늘 공덕 21,600을 채우면 자동으로 지급을 요청한다.
+// 서버는 계정별 한국 날짜 장부로 자동·수동 합계 하루 한 송이만 지급한다.
 //
 // 인증: Authorization: Bearer <파이어베이스 ID 토큰>
 // 몸통: { lotus: 1 }
@@ -17,7 +17,6 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { 지갑열기, 무상기한 } from "@/lib/wallet";
-import { FIRST_GRANT } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -25,17 +24,12 @@ export const runtime = "nodejs";
 /**
  * 하루에 바꿀 수 있는 송이 수 — **한 송이.**
  *
- * 공덕 값을 두 배로 올려 연꽃까지 가는 길이 한 시간 반으로 짧아졌다
- * (merit.ts DAILY_TOTAL_CAP 주석). 그렇다고 하루에 두 송이를 열면
- * 파는 연꽃이 반값이 된다 — **빨리 닿게 하되 하루 몫은 그대로** 둔다.
- * 남는 공덕은 연꽃이 아니라 사다리로 간다.
+ * 자동 지급과 수동 교환은 같은 장부를 사용해 중복 지급을 막는다.
  */
 const DAILY_CAP = 1;
 
 function today(): string {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
 }
 
 export async function POST(req: Request) {
@@ -54,8 +48,11 @@ export async function POST(req: Request) {
   }
 
   let want: unknown;
+  let requestedDay: unknown;
   try {
-    want = ((await req.json()) as { lotus?: unknown }).lotus;
+    const body = await req.json() as { lotus?: unknown; day?: unknown };
+    want = body.lotus;
+    requestedDay = body.day;
   } catch {
     return Response.json({ error: "bad-body" }, { status: 400 });
   }
@@ -66,6 +63,7 @@ export async function POST(req: Request) {
 
   const db = getFirestore(app);
   const day = today();
+  if (requestedDay !== undefined && requestedDay !== day) return Response.json({ error: "day-changed" }, { status: 409 });
   const mark = db.doc(`merit-exchange/${uid}_${day}`);
   const wallet = db.doc(`wallets/${uid}`);
 
@@ -74,8 +72,10 @@ export async function POST(req: Request) {
       const seen = await tx.get(mark);
       const used = seen.exists ? (seen.data()?.lotus as number) || 0 : 0;
       const left = DAILY_CAP - used;
-      if (left <= 0) return { granted: 0, left: 0 };
+      if (left <= 0) return { granted: 0, left: 0, received: used };
       const give = Math.min(n, left);
+      // Firestore requires all reads before writes; normalize expired free lotus too.
+      const { 지갑: balance } = await 지갑열기(tx, wallet);
       tx.set(
         mark,
         { uid, day, lotus: used + give, at: FieldValue.serverTimestamp() },
@@ -84,17 +84,14 @@ export async function POST(req: Request) {
       // **첫 지갑이면 선물을 함께 얹는다.**
       // 지갑을 만드는 길이 여럿인데 선물을 얹는 곳은 일부뿐이었다 —
       // 보상을 먼저 받은 사람은 세 송이를 영영 못 받았다(lib/wallet).
-      const { 처음인가 } = await 지갑열기(tx, wallet);
       tx.set(
         wallet,
-        처음인가
-          ? { lotus: FIRST_GRANT + give, paid: 0, free: FIRST_GRANT + give, freeUntil: 무상기한() }
-          : { lotus: FieldValue.increment(give), free: FieldValue.increment(give), freeUntil: 무상기한() },
+        { lotus: balance.lotus + give, paid: balance.paid, free: balance.free + give, freeUntil: 무상기한() },
         { merge: true }
       );
-      return { granted: give, left: left - give };
+      return { granted: give, left: left - give, received: used + give };
     });
-    return Response.json({ ok: true, ...result });
+    return Response.json({ ok: true, day, rewardId: `${uid}_${day}`, ...result }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return Response.json({ error: "write-failed" }, { status: 500 });
   }

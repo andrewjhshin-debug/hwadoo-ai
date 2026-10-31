@@ -1,0 +1,20 @@
+.daily-lotus-veil { position:fixed; inset:0; z-index:100; display:grid; place-items:center; padding:24px; background:rgba(30,25,23,.45); backdrop-filter:blur(7px); }
+.daily-lotus-card { width:min(100%,330px); padding:34px 25px 25px; border:1px solid #e8c2d1; border-radius:26px; background:#fffaf5; color:#493f39; text-align:center; box-shadow:0 18px 70px #39252238; animation:daily-lotus-enter .35s ease-out both; }
+.daily-lotus-bloom { position:relative; display:grid; place-items:center; width:140px; height:140px; margin:0 auto 24px; color:#ce9c39; }
+.daily-lotus-flower { position:relative; width:78px; height:78px; filter:drop-shadow(0 5px 14px #dfa7a56b); animation:daily-lotus-open 1.1s cubic-bezier(.2,.8,.2,1) both; }
+.daily-lotus-bloom>b { position:absolute; bottom:4px; right:12px; padding:5px 9px; border-radius:16px; background:#d5a044; color:#fff; font:600 20px/1 sans-serif; animation:daily-lotus-enter .6s .4s both; }
+.daily-lotus-ring { position:absolute; inset:18px; border:1px solid #d7ad57; border-radius:50%; animation:daily-lotus-ripple 1.8s ease-out both; }
+.daily-lotus-ring-late { animation-delay:.3s; }
+.daily-lotus-spark { position:absolute; inset:0; pointer-events:none; }
+.daily-lotus-spark>i { display:block; width:6px; height:6px; margin:6px auto 0; border-radius:50%; background:#dda853; animation:daily-lotus-spark 1.8s ease-out both; }
+.daily-lotus-card h2 { font-family:var(--font-serif),serif; font-size:clamp(19px,5vw,23px); font-weight:400; letter-spacing:-.04em; margin:0 0 12px; }
+.daily-lotus-card p { margin:0; color:#8b7a6e; font-size:13px; line-height:1.9; }
+.daily-lotus-card>button { width:100%; min-height:46px; margin-top:25px; border:0; border-radius:24px; background:#ed8fb0; color:#fff; font-size:14px; cursor:pointer; }
+.daily-lotus-card>button:focus-visible { outline:2px solid #9e5b76; outline-offset:4px; }
+.daily-lotus-status { position:fixed; z-index:75; bottom:calc(var(--hip-rail,90px) + 20px); left:50%; transform:translateX(-50%); width:max-content; max-width:calc(100% - 30px); display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px; padding:12px 16px; background:#fffaf5; border:1px solid #e8c2d1; border-radius:18px; color:#70584c; box-shadow:0 5px 24px #39252220; font-size:12px; }
+.daily-lotus-status :is(a,button) { border:0; padding:5px 7px; border-radius:12px; background:#f7dfeb; color:#9e4568; cursor:pointer; }
+@keyframes daily-lotus-enter { from { opacity:0; translate:0 12px; } to { opacity:1; translate:0 0; } }
+@keyframes daily-lotus-open { from { opacity:0; transform:scale(.35) translateY(16px); } 65% { opacity:1; transform:scale(1.12); } to { opacity:1; transform:scale(1); } }
+@keyframes daily-lotus-ripple { from { opacity:.8; transform:scale(.45); } to { opacity:0; transform:scale(1.6); } }
+@keyframes daily-lotus-spark { from { opacity:0; transform:translateY(36px) scale(.4); } 25% { opacity:1; } to { opacity:0; transform:translateY(-8px) scale(.4); } }
+@media(prefers-reduced-motion:reduce) { .daily-lotus-card,.daily-lotus-flower,.daily-lotus-bloom>b { animation:none; } .daily-lotus-ring,.daily-lotus-spark { display:none; } }
