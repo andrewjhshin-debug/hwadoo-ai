@@ -180,15 +180,6 @@ export default function MungPage() {
           </>
         ) : (
           <>
-            {/* 형: 「텍스트는 아예 거의 다 줄여버려」 — 설명 두 줄을 걷었다.
-                점 하나만 남는 것도 시간을 끝난 뒤에 알려 주는 것도 한 판 들어가면
-                바로 안다. 끝내는 법은 앉은 화면 안내 한 줄이 제자리에서 말한다. */}
-            <p className="rise rise-d1 mt-7 break-keep font-serif text-[27px] leading-[1.5] text-hanji sm:text-[31px]">
-              아무것도
-              <br />
-              하지 마세요
-            </p>
-
             <button
               onClick={begin}
               className="rise rise-d2 mt-9 w-full max-w-[280px] rounded-full border border-gold/55 bg-gold/[0.07] px-6 py-4 text-[14px] tracking-[0.18em] text-gold-soft transition-colors hover:border-gold/75 hover:bg-gold/15 hover:text-gold"
