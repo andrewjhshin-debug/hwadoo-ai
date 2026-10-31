@@ -24,6 +24,7 @@ import ShareButton from "@/components/ShareButton";
 import { MOKTAK_SVG } from "./moktakSvg";
 import HipMoktak from "./HipMoktak";
 import Dudu from "@/components/Dudu";
+import StoneMalaBead from "@/components/StoneMalaBead";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
 import {
@@ -132,7 +133,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 30;
+const 그림판 = 31;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -164,10 +165,9 @@ const SKINS = {
     // `화두 이미지/[오브제] 염주-발바닥-프롬프트.md` 를 그대로 붙이면 된다.
     // 형: 「밑에 색상도 핑크로 바꾸고」 — 알이 분홍인데 점만 미색이었다
     { id: "paw", name: "발바닥", src: "/obj/bead-paw.png", dot: "#f08ba8", wide: true, one: "/obj/bead-paw-one.png", lit: "/obj/bead-paw-one-gold.png" },
-    // 네온 — 형: 「MZ 네온 비비드」. 제미나이로 마젠타 젤리 알 한 알을 받아
-    // 발바닥과 **같은 틀**(920px 판에 알 802px)로 앉혔다. 색은 한 장을
-    // 알마다 hue 로 돌려 다섯 빛깔을 낸다 — 그림 다섯 장 대신 한 장
-    { id: "neon", name: "네온", src: "/obj/bead-neon.png", dot: "#ff3fa4", wide: true, one: "/obj/bead-neon-one.png", lit: "/obj/bead-neon-one-lit.png", hues: [0, 80, 160, 220, 300] },
+    // Fourth slot replaces neon. Geometry, rotation and fill logic stay shared with paw.
+    { id: "stone", name: "불교 문양 돌", src: "/obj/bead-stone-one-v1.png", dot: "#a9aaa7", wide: true, one: "/obj/bead-stone-one-v1.png", lit: "/obj/bead-stone-one-gold-v1.png" },
+    { id: "zodiac", name: "열두 띠", src: "/obj/bead-stone-one-v1.png", dot: "#dfd4bc", wide: true, one: "/obj/bead-stone-one-v1.png", lit: "/obj/bead-stone-one-gold-v1.png" },
   ],
   bowl: [
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
@@ -341,6 +341,7 @@ export default function MoktakPage() {
   const beadOne = (SKINS.bead as readonly { id: string; one?: string; lit?: string; hues?: number[] }[]).find((k) => k.id === skin.bead);
   const beadOneSrc = 그림(beadOne?.one ?? "/obj/bead-paw-one.png");
   const beadLitSrc = 그림(beadOne?.lit ?? "/obj/bead-paw-one-gold.png");
+  const stoneMala = skin.bead === "stone" || skin.bead === "zodiac";
   const beadHue = (i: number) => (beadOne?.hues ? ` hue-rotate(${beadOne.hues[i % beadOne.hues.length]}deg)` : "");
 
   const pickSkin = (kind: SkinKind) => (id: string) => {
@@ -519,6 +520,7 @@ export default function MoktakPage() {
       const raw = window.localStorage.getItem(SKIN_KEY);
       if (raw) {
         const got = JSON.parse(raw) as Partial<Record<SkinKind, string>>;
+        if (got.bead === "neon") got.bead = "stone";
         setSkin((s) => ({
           moktak:
             SKINS.moktak.some((k) => k.id === got.moktak) && got.moktak
@@ -551,11 +553,11 @@ export default function MoktakPage() {
       // 키캡은 세 겹이라 갈래가 여럿이다 — 있는 것만 다 받아 둔다.
       // 점을 눌렀을 때 몸만 먼저 오면 한 판 동안 그릇 없이 떠 있다
       for (const k of SKINS[kind] as readonly Record<string, unknown>[]) {
-        for (const 칸 of ["src", "cup", "back", "body"]) {
+        for (const 칸 of ["src", "one", "lit", "cup", "back", "body"]) {
           const u = k[칸];
           if (typeof u !== "string") continue;
           const im = new window.Image();
-          im.src = u;
+          im.src = 그림(u);
         }
       }
     }
@@ -947,6 +949,7 @@ export default function MoktakPage() {
                         "left .16s ease-out, top .16s ease-out, width .16s ease-out",
                     }}
                   >
+                    {stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={beadOneSrc}
@@ -973,6 +976,7 @@ export default function MoktakPage() {
                         }}
                       />
                     )}
+                    </>}
                   </span>
                 );
               });
@@ -1808,6 +1812,15 @@ export default function MoktakPage() {
                     // 실제로 세고 있다는 감각이 남는다.
                     const markerDistance = Math.min(degrees, 360 - degrees);
                     const atMarker = markerDistance < 5;
+                    if (stoneMala) return <span key={i} className="absolute block" style={{
+                      left: `${50 + (고리폭 - 2) * Math.sin(t)}%`,
+                      top: `${50 - 23 * Math.cos(t)}%`,
+                      width: `${17 * sc + (1 - front) * 3}%`,
+                      transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
+                      zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
+                      transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
+                      filter: `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))`,
+                    }}><StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={lit ? 1 : 0} index={i} zodiac={skin.bead === "zodiac"} /></span>;
                     return (
                       <img
                         // eslint-disable-next-line @next/next/no-img-element
