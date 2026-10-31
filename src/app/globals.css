@@ -88,7 +88,8 @@ html[data-theme="light"] body {
 .wheel-beads a[data-on="1"] span { background: var(--hip-pink, #ef7ba4); color: #fff; }
 .wheel-scrim { position: fixed; inset: 0; z-index: 44; background: rgba(255,255,255,.45); backdrop-filter: blur(2px); }
 .investment-shortcut:focus-visible { outline: 2px solid #b94b76; outline-offset: 3px; }
-body:has([role="dialog"][aria-modal="true"]) .wheel-fab, html[data-drawer] .wheel-fab { visibility: hidden; pointer-events: none; }
+/* 사유의 방(notes-panel)이 열리면 「내려놓기」 단추 위에 법륜이 얹혔다 — 그동안은 숨는다 */
+body:has([role="dialog"][aria-modal="true"]) .wheel-fab, body:has(.notes-panel[aria-hidden="false"]) .wheel-fab, html[data-drawer] .wheel-fab { visibility: hidden; pointer-events: none; }
 .walking-merit-toggle {
   display: inline-flex;
   min-height: 29px;
