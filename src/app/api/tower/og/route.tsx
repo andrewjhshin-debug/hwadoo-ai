@@ -36,7 +36,6 @@ export async function GET(req: Request) {
           <div style={{ marginTop: 22, display: "flex" }}>
             <div style={{ fontSize: 40, color: "#fff", background: "#1a1a1c", padding: "14px 34px", borderRadius: 48 }}>{ask}</div>
           </div>
-          <div style={{ marginTop: 34, fontSize: 24, color: "#9aa0a8" }}>hwa-du.com · 화두</div>
         </div>
         <div style={{ position: "absolute", right: 120, bottom: 40, display: "flex", flexDirection: "column-reverse", alignItems: "center" }}>
           {Array.from({ length: count }, (_, i) => {

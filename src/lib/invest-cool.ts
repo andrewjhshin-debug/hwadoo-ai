@@ -49,27 +49,10 @@ export function 치기(남은: number, 지난ms: number): [number, boolean] {
 /** 식은 정도 0(끓음)~1(다 식음) */
 export const 식음 = (남은: number) => 1 - Math.max(0, Math.min(1, 남은 / 목탁수));
 
-/** 업보 유형 — 셋 이상 쌓여야 가른다. 실소가 나야 한다 */
-export function 업보(rows: 기록[]): { name: string; say: string } | null {
-  if (rows.length < 3) return null;
-  const n = rows.length;
+/** 업보 — 유형 이름표는 걷었다(형: 「장마감 이지랄은 하지 말고」). 숫자만 센다 */
+export function 업보(rows: 기록[]): { kept: number; did: number; taps: number } {
   const kept = rows.filter((r) => r.did === "kept").length;
-  const did = n - kept;
-  const buys = rows.filter((r) => r.want === "buy").length;
-  const sells = rows.filter((r) => r.want === "sell").length;
-  const looks = rows.filter((r) => r.want === "look").length;
-  const 마감앞 = rows.filter((r) => { const d = new Date(r.at); const m = d.getHours() * 60 + d.getMinutes(); return m >= 14 * 60 + 50 && m <= 15 * 60 + 35; }).length;
-  const 밤 = rows.filter((r) => { const h = new Date(r.at).getHours(); return h >= 22 || h < 5; }).length;
-  const 급함 = rows.filter((r) => r.did === "did" && r.taps < 목탁수).length;
-
-  if (급함 / n >= 0.5) return { name: "목탁 중도 하차자", say: "108번이 그렇게 길어요?" };
-  if (마감앞 / n >= 0.5) return { name: "장 마감 5분 전 귀신", say: "꼭 그 시간에 와요. 매번." };
-  if (밤 / n >= 0.5) return { name: "미장 야행성 보살", say: "밤에 깨어 있는 건 수행이 아니에요." };
-  if (looks / n >= 0.6) return { name: "구경만 하는 돌부처", say: "보기만 하는 게 제일 어려운데요." };
-  if (kept / n >= 0.7) return { name: "참을 인(忍) 세 번", say: "아무것도 안 해서 다 지켰어요." };
-  if (did / n >= 0.7 && buys > sells) return { name: "추격매수 보살", say: "식어도 사네요. 진심이네요." };
-  if (did / n >= 0.7 && sells >= buys) return { name: "손절… 아니고 그냥 손", say: "팔고 나면 꼭 오르죠." };
-  return { name: "평범한 중생", say: "반은 참고 반은 했어요. 사람이에요." };
+  return { kept, did: rows.length - kept, taps: rows.reduce((a, r) => a + r.taps, 0) };
 }
 
 /** 결말 뒤 두두가 하는 한 마디 — 같은 말을 연달아 안 하게 n 으로 고른다 */

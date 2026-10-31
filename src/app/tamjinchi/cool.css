@@ -55,7 +55,7 @@
 .cool-karma-row b { font-family: var(--font-serif); font-weight: 400; font-size: 20px; letter-spacing: -0.03em; }
 .cool-karma-row span { font-size: 12px; color: var(--cool-dim); }
 .cool-karma-say { margin: 6px 0 0; font-size: 12.5px; color: var(--cool-faint); }
-.cool-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; text-align: center; }
+.cool-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
 .cool-nums div { padding: 8px 0; border-radius: 12px; background: #f6f5f2; }
 .cool-nums b { display: block; font-family: var(--font-serif); font-weight: 400; font-size: 22px; letter-spacing: -0.04em; }
 .cool-nums span { font-size: 10.5px; color: var(--cool-dim); }

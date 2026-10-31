@@ -19,22 +19,10 @@ assert.equal(m.읽기(st).length, 1);
 for (let i = 0; i < 600; i++) m.적기({ at: i, want: "look", did: "kept", taps: 0 }, st);
 assert.equal(m.읽기(st).length, 500);
 
-// 업보 — 셋 미만이면 없음, 패턴별로 갈린다
+// 업보 — 숫자만
 const t = (h, mi = 0) => new Date(2026, 9, 30, h, mi).getTime();
-assert.equal(m.업보([]), null);
-assert.equal(m.업보([{ at: t(10), want: "buy", did: "kept", taps: 108 }, { at: t(10), want: "buy", did: "kept", taps: 108 }]), null);
-const 마감 = Array.from({ length: 4 }, () => ({ at: t(15, 10), want: "buy", did: "kept", taps: 108 }));
-assert.equal(m.업보(마감).name, "장 마감 5분 전 귀신");
-const 밤 = Array.from({ length: 4 }, () => ({ at: t(23), want: "buy", did: "kept", taps: 108 }));
-assert.equal(m.업보(밤).name, "미장 야행성 보살");
-const 참음 = Array.from({ length: 4 }, () => ({ at: t(10), want: "buy", did: "kept", taps: 108 }));
-assert.equal(m.업보(참음).name, "참을 인(忍) 세 번");
-const 추격 = Array.from({ length: 4 }, () => ({ at: t(10), want: "buy", did: "did", taps: 108 }));
-assert.equal(m.업보(추격).name, "추격매수 보살");
-const 하차 = Array.from({ length: 4 }, () => ({ at: t(10), want: "buy", did: "did", taps: 30 }));
-assert.equal(m.업보(하차).name, "목탁 중도 하차자");
-const 구경 = Array.from({ length: 4 }, () => ({ at: t(10), want: "look", did: "kept", taps: 0 }));
-assert.equal(m.업보(구경).name, "구경만 하는 돌부처");
+assert.deepEqual(m.업보([]), { kept: 0, did: 0, taps: 0 });
+assert.deepEqual(m.업보([{ at: t(10), want: "buy", did: "kept", taps: 108 }, { at: t(10), want: "sell", did: "did", taps: 108 }]), { kept: 1, did: 1, taps: 216 });
 
 // 한마디 — 연달아 다른 말
 assert.notEqual(m.한마디("buy", "kept", 0), m.한마디("buy", "kept", 1));

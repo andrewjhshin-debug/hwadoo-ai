@@ -8,7 +8,6 @@
 // 들어오면 두두가 「뭐 하려고요?」 묻는다. 사고 싶다 → 貪 체온계가 끓고
 // 「산다」 단추는 땀 흘리며 안 눌린다. 목탁을 108번 치면 식는다 —
 // 급하게 치면 안 쳐진다. 다 식고도 사겠다면 산다. 다만 적는다.
-// 셋 이상 쌓이면 업보 유형이 뜬다(장 마감 5분 전 귀신 …).
 // 셈은 lib/invest-cool.ts, 옛 판단 기록은 /tamjinchi/records 에 그대로.
 // ─────────────────────────────────────────────────────────────
 
@@ -73,8 +72,6 @@ export default function InvestmentPage() {
   };
 
   const 업 = 업보(rows);
-  const kept = rows.filter((r) => r.did === "kept").length;
-  const 총목탁 = rows.reduce((a, r) => a + r.taps, 0);
 
   return (
     <HipRoom here="/tamjinchi" lanes={false} rail="/settings" scroll={false}>
@@ -124,18 +121,16 @@ export default function InvestmentPage() {
         {판.k === "done" && (
           <>
             <div className="cool-karma">
-              <div className="cool-karma-row"><b>{업 ? 업.name : "아직 모름"}</b><span>{rows.length}번째</span></div>
-              <p className="cool-karma-say">{업 ? 업.say : `${3 - rows.length}번 더 오면 업보 유형이 나와요.`}</p>
               <div className="cool-nums">
-                <div><b>{kept}</b><span>참음</span></div>
-                <div><b>{rows.length - kept}</b><span>그래도 함</span></div>
-                <div><b>{총목탁}</b><span>식힌 목탁</span></div>
+                <div><b>{업.kept}</b><span>참음</span></div>
+                <div><b>{업.did}</b><span>그래도 함</span></div>
+                <div><b>{업.taps}</b><span>식힌 목탁</span></div>
               </div>
             </div>
             <div className="cool-again">
               <button type="button" onClick={() => 판잡기({ k: "pick" })}>다시</button>
               <button type="button" className="cool-share" aria-label="업보 공유" onClick={async () => {
-                const text = 업 ? `내 투자 업보: ${업.name} — ${업.say}` : `불심투자 ${rows.length}번째. 참음 ${kept}.`;
+                const text = `불심투자 — 참음 ${업.kept} · 그래도 함 ${업.did} · 식힌 목탁 ${업.taps}`;
                 try { if (navigator.share) await navigator.share({ title: "화두 불심투자", text, url: `${location.origin}/tamjinchi` }); else await navigator.clipboard.writeText(`${text}\n${location.origin}/tamjinchi`); } catch { /* 취소 */ }
               }}>↗</button>
             </div>
