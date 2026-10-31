@@ -49,7 +49,10 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - uses: android-actions/setup-android@v3
+      # ubuntu-latest 에는 Android SDK 가 이미 있다(ANDROID_HOME 설정됨).
+      # setup-android 는 사라진 'tools' 꾸러미를 깔려다 죽는다(2026-10) — 쓰지 않는다.
+      - name: 안드로이드 SDK 라이선스 동의
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
       - name: 의존성 설치
         run: npm ci
