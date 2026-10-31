@@ -1,10 +1,11 @@
 // Mechanical extraction and registration of ImageGen sprites; artwork stays untouched.
 import fs from 'node:fs/promises';
 import sharp from 'sharp';
-const [input, material] = process.argv.slice(2);
+const [input, material, version = 'v3'] = process.argv.slice(2);
 if (!input || !['stone','zodiac'].includes(material)) throw Error('Usage: source.png stone|zodiac');
+if (!/^v\d+$/.test(version)) throw Error('Version must be v followed by digits');
 const cols = material === 'stone' ? 3 : 4, rows = 3;
-const folder = `public/obj/mala-${material}-v3`;
+const folder = `public/obj/mala-${material}-${version}`;
 await fs.mkdir(folder, {recursive:true});
 await fs.copyFile(input, `${folder}/source.png`);
 const {data,info:{width,height}} = await sharp(input).ensureAlpha().raw().toBuffer({resolveWithObject:true});
