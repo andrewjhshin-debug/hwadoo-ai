@@ -117,10 +117,10 @@ type AdminOffering = {
 // 구획마다 한 줄 설명 — 무엇이 모이는 자리인지
 const TAB_NOTE: Record<Tab, string> = {
   adult:
-    "성인 랜덤 풀에 섞이는 화두 — 코드에 내장된 은행 화두와, 뒷방·수행자가 더한 화두.",
+    "성인 랜덤 풀에 섞이는 화두 — 코드에 내장된 은행 화두와, 뒷도량·수행자가 더한 화두.",
   student:
     "학생·어린이 랜덤 풀에 섞이는 화두 — 학생 전용과, 학생에게도 열리는 고전.",
-  admin: "관리자가 뒷방에서 직접 던진 화두 — 승인 없이 곧바로 풀에 섞입니다.",
+  admin: "관리자가 뒷도량에서 직접 던진 화두 — 승인 없이 곧바로 풀에 섞입니다.",
   thrown:
     "수행자들이 '나도 화두 던지기'로 던진 물음 — 승인 대기와, 승인되어 풀에 든 것.",
   shared:
@@ -1020,9 +1020,9 @@ export default function AdminPage() {
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
       <h1 className="text-center text-xs tracking-[0.5em] text-gold-soft">
-        道場 뒷방 · 관리자
+        뒷도량
       </h1>
-      <p className="mt-4 text-center text-sm"><a href="/admin/saju">산신각 사주 주문 · 입금 확인 →</a></p>
+      <p className="mt-4 text-center text-sm"><a href="/desk">대시보드 →</a></p>
       <p className="mt-3 text-center text-xs text-hanji-faint">
         랜덤 풀 — 성인 {adultTotal}칙 · 학생 {studentTotal}칙
       </p>
@@ -1080,7 +1080,7 @@ export default function AdminPage() {
             {publicAdult.length > 0 && (
               <>
                 <h3 className="mt-8 text-[11px] tracking-[0.3em] text-gold-soft">
-                  뒷방·선방이 더한 화두 · {publicAdult.length}
+                  뒷도량·선방이 더한 화두 · {publicAdult.length}
                 </h3>
                 <ul className="mt-3 space-y-4">
                   {publicAdult.map((p, i) => (

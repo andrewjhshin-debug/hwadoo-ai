@@ -421,21 +421,15 @@ export default function HipMe({
           </details>
         </div>
 
-        {/* ── 상황판 ──
-            형: 「앱에서 데스크가 어디지, 내 도량에 빼 둬 봐」
-            /desk 를 주소로만 열게 두었더니 들어갈 길이 없었다.
-            뒷방 계정에만 보인다 — 손님에게는 아예 안 그린다.
-            부제(「매출 · 사람 · 법당 · 블로그」)는 걷었다 — 제목+부제 꼴인데,
-            뭐가 들었는지는 들어가면 안다 */}
+        {/* 관리자 전용: 대시보드는 매출, 뒷도량은 화두·승인 관리. */}
         {뒷방 && (
           <div className="hip-me-back">
-            <a className="hip-me-desk" href="/admin">
+            <a className="hip-me-desk hip-admin-finance" href="/desk">
               <b>대시보드</b>
-              {/* 형: 「대시보드로만 표기하고 다른 말 하지 마라」 — 숫자도 글도 없다 */}
-              {pendingCount !== null && pendingCount > 0 && <span>{pendingCount}</span>}
             </a>
-            <a className="hip-me-desk" href="/desk">
-              <b>狀 況 板</b>
+            <a className="hip-me-desk hip-admin-content" href="/admin">
+              <b>뒷도량</b>
+              {pendingCount !== null && pendingCount > 0 && <span>{pendingCount}</span>}
             </a>
           </div>
         )}

@@ -623,13 +623,16 @@ export default function Sidebar() {
                 </Link>
                 <div className="mt-1.5 flex items-center gap-4 px-1.5">
                   {isAdminAccount(user) && (
+                    <>
+                    <Link href="/desk" onClick={go("/desk")} className="hip-admin-finance rounded-full px-2 py-1 text-[11px] tracking-widest">대시보드</Link>
                     <Link
                       href="/admin"
                       onClick={go("/admin")}
-                      className="text-[11px] tracking-widest text-gold-soft transition-colors hover:text-gold"
+                      className="hip-admin-content rounded-full px-2 py-1 text-[11px] tracking-widest"
                     >
-                      뒷방(관리)
+                      뒷도량
                     </Link>
+                    </>
                   )}
                   <button
                     onClick={() => logout().catch(() => {})}

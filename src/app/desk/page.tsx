@@ -43,7 +43,7 @@ export default function DeskPage() {
       const r = await fetch("/api/desk", {
         headers: { authorization: `Bearer ${await u.getIdToken()}` },
       });
-      if (r.status === 403) return 탈잡기("뒷방 계정만 볼 수 있습니다");
+      if (r.status === 403) return 탈잡기("관리자 계정만 볼 수 있습니다");
       if (!r.ok) return 탈잡기("지금은 읽지 못했습니다");
       setD((await r.json()) as 상황);
       탈잡기("");
@@ -62,9 +62,10 @@ export default function DeskPage() {
   return (
     <main className="desk">
       <header className="desk-top">
-        <h1>화두 상황판</h1>
+        <h1>대시보드</h1>
         <span>{new Date(d.at).toLocaleString("ko-KR")}</span>
       </header>
+      <nav className="desk-links" aria-label="관리 화면"><a href="/admin/saju">산신각 입금 확인</a><a href="/admin">뒷도량 →</a></nav>
 
       {/* ── 머리 셋 ── */}
       <section className="desk-row">
@@ -156,7 +157,7 @@ export default function DeskPage() {
           <p className="desk-k">블로그 · {d.블로그?.이름 || "—"}</p>
           <span className="desk-s">
             {d.블로그?.마지막
-              ? `마지막 글 ${Math.max(0, Math.round((Date.now() - d.블로그.마지막) / 86400000))}일 전`
+              ? `마지막 글 ${Math.max(0, Math.round((d.at - d.블로그.마지막) / 86400000))}일 전`
               : "—"}
           </span>
         </div>

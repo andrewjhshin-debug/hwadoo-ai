@@ -1846,7 +1846,7 @@ export default function SettingsPage() {
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-4">
               <div>
                 <p className="font-serif text-[17px] font-light tracking-wider text-gold">
-                  뒷방 — 도량 살림
+                  뒷도량
                 </p>
                 <p className="mt-2 text-[12px] leading-6 tracking-wider text-hanji-dim">
                   {pendingCount === null ? (
@@ -1861,12 +1861,10 @@ export default function SettingsPage() {
                   )}
                 </p>
               </div>
-              <Link
-                href="/admin"
-                className="btn-obang inline-flex items-center px-6 py-3 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
-              >
-                들어가기
-              </Link>
+              <div className="flex flex-wrap gap-3">
+                <Link href="/desk" className="hip-admin-finance inline-flex items-center rounded-full px-6 py-3 text-[13px] tracking-[0.2em]">대시보드</Link>
+                <Link href="/admin" className="hip-admin-content inline-flex items-center rounded-full px-6 py-3 text-[13px] tracking-[0.2em]">뒷도량</Link>
+              </div>
             </div>
           </div>
         </section>

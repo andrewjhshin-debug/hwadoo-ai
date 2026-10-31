@@ -8190,6 +8190,10 @@ html[data-theme="light"] {
   .hip-me-desk span { font-size: 11.5px; color: #8e867a; }
   .hip-me-back { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .hip-me-back .hip-me-desk { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .hip-admin-finance { background: #f3e1b4; border: 1px solid #d3b56a; color: #624b23; }
+  .hip-admin-content { background: #dcefe7; border: 1px solid #a4cbbb; color: #315d4c; }
+  .hip-admin-finance :is(b, span), .hip-admin-content :is(b, span) { color: inherit; }
+  :is(.hip-admin-finance, .hip-admin-content):focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 }
 
 /* ── 꼭대기 자연석 — 거친 결·둥글게 닳은 삼각 윤곽 ────────── */
