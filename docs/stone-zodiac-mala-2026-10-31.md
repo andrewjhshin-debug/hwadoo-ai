@@ -13,3 +13,9 @@ The new component passes ESLint. The existing practice page retains the same fiv
 ## Wood revision
 
 User requested the fifth zodiac skin to use natural wood. It now uses `bead-wood-one-v1.png` and `bead-wood-one-gold-v1.png`, registered to the same original cat mask. Fourth stone skin is unchanged. ImageGen generated a transparent blank pair with honey-brown sandalwood grain and a matching champagne-gold state; source is retained as `bead-wood-source-v1.png`. Ivory brightening/sepia filter is removed and zodiac engraving uses darker brown. Motif sequence, transforms and counting are unchanged. The geometry test also covers both wood sprites.
+
+## Rough stone revision
+
+User requested the fourth skin to look much more like stone. Built-in ImageGen edited `public/obj/bead-stone-source-v1.png`, preserving the two-cell layout and transparent background. Final prompt: keep front-facing matching round beads and lighting; replace smooth ceramic-like surface with coarse neutral grey granite/river stone, visible pale and charcoal mineral grains, natural mottled patches, shallow pits and hairline seams; matte diffuse finish without glossy stripes. Right cell retains the same rough stone in warm ochre/champagne golden light. No symbols, cords, holes, text or floor; app overlays the original six motifs.
+
+New project assets: `public/obj/bead-stone-source-v2.png`, `public/obj/bead-stone-one-v2.png`, `public/obj/bead-stone-one-gold-v2.png`. Mechanical sprite registration uses the original cat alpha mask via `node scripts/prepare-stone-mala.mjs SOURCE stone v2`. Versioned URLs avoid reusing cached v1 art. Shape bounds, motif sequence, gold fill, drag/counting behaviour and the fifth wood skin remain unchanged. Existing geometry verification now checks the v2 sprites.

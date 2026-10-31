@@ -3,10 +3,12 @@ import fs from 'node:fs';
 import sharp from 'sharp';
 const input=process.argv[2];
 const material=process.argv[3] === 'wood' ? 'wood' : 'stone';
+const version=process.argv[4] || 'v1';
+if(!/^v\d+$/.test(version))throw Error('Version must be v followed by digits');
 if(!input)throw Error('Pass the ImageGen two-cell source PNG path');
-fs.copyFileSync(input,`public/obj/bead-${material}-source-v1.png`);
+fs.copyFileSync(input,`public/obj/bead-${material}-source-${version}.png`);
 const {data,info}=await sharp(input).ensureAlpha().raw().toBuffer({resolveWithObject:true});
-const cell=Math.floor(info.width/2), outputs=[`public/obj/bead-${material}-one-v1.png`,`public/obj/bead-${material}-one-gold-v1.png`];
+const cell=Math.floor(info.width/2), outputs=[`public/obj/bead-${material}-one-${version}.png`,`public/obj/bead-${material}-one-gold-${version}.png`];
 const template=await sharp('public/obj/bead-paw-one.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
 const mask=Buffer.alloc(920*920*4);
 for(let i=0;i<920*920;i++){mask[i*4]=mask[i*4+1]=mask[i*4+2]=255;mask[i*4+3]=template.data[i*4+3];}
