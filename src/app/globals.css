@@ -65,7 +65,7 @@ html[data-theme="light"] body {
 .walking-diagnostics { margin: 20px auto 0; max-width: 290px; font-size: 12px; color: #777267; }
 .walking-diagnostics > div { display: flex; justify-content: space-between; gap: 12px; margin: 8px 0; }
 .walking-diagnostics dd { margin: 0; color: #c2537e; }
-.hip-walking-toggle { display: flex; flex-direction: column; justify-content: center; gap: 3px; border: 0; background: none; cursor: pointer; }
+.hip-top-ico.hip-walking-toggle { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; background: none; cursor: pointer; white-space: nowrap; }
 .hip-walking-toggle span { font-size: 10px; }
 .hip-walking-toggle small { font: 8px/1 sans-serif; letter-spacing: .03em; }
 .hip-walking-toggle[aria-pressed="true"] { color: #b53b6c; background: #fbe7ef; border-radius: 10px; }
