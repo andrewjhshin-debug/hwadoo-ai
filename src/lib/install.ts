@@ -75,6 +75,8 @@ export async function promptInstall(): Promise<
 // 이미 홈 화면에서 앱처럼 열렸는가
 export function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
+  // 설치 앱(Capacitor) 안이면 이미 앱이다 — 형: 「이미 깔았는데 뭘 홈 화면에 앱처럼…」
+  if ((globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()) return true;
   if (window.matchMedia?.("(display-mode: standalone)").matches) return true;
   // iOS 사파리의 옛 표기
   return (navigator as { standalone?: boolean }).standalone === true;

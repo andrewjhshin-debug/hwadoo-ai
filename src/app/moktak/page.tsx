@@ -252,7 +252,9 @@ function SkinDots({
   const list = SKINS[kind];
   if (list.length < 2) return null;
   return (
-    <div className="flex items-center justify-center gap-2">
+    // 형: 「염주 4번째 거 왜 클릭이 안 되냐」 — 고리 그림(h-[83%])이 점 위에
+    // 얹혀 있었다. z 로 겨루지 않는다 — 점 줄만 한 층 위로 올린다(relative z-10)
+    <div className="relative z-10 flex items-center justify-center gap-2">
       {list.map((k) => (
         <button
           key={k.id}
@@ -331,6 +333,10 @@ export default function MoktakPage() {
   const beadWide = (
     SKINS.bead as readonly { id: string; wide?: boolean }[]
   ).some((k) => k.id === skin.bead && k.wide);
+  // 형: 「고양이 가로 염주 왜 오른쪽 왼쪽 잘리냐」 — 알이 가장자리(±90°)에
+  // 올 때 알 반쪽(≈10%)이 통 밖으로 나가 스크롤 통(.hip-screen-mid)에 잘렸다.
+  // 가로 반지름 42 + 10 = 102%. 39 로 두면 99% — 어느 폭에서도 안 잘린다
+  const 고리폭 = 39;
   /** 가로형 살갗의 알 한 장·불 켜진 알·빛깔 돌림 — 살갗마다 다르다 */
   const beadOne = (SKINS.bead as readonly { id: string; one?: string; lit?: string; hues?: number[] }[]).find((k) => k.id === skin.bead);
   const beadOneSrc = 그림(beadOne?.one ?? "/obj/bead-paw-one.png");
@@ -868,7 +874,7 @@ export default function MoktakPage() {
                 const 가까움 = 멂 / (멂 + Math.cos(t));
                 return {
                   t,
-                  x: 50 + 42 * Math.sin(t) * 가까움,
+                  x: 50 + 고리폭 * Math.sin(t) * 가까움,
                   y: 50 - 23 * Math.cos(t) * 가까움,
                 };
               });
@@ -1061,7 +1067,7 @@ export default function MoktakPage() {
       </div>
 
       <div className="hip-obj-foot">
-        <span>쓸거나 눌러서 한 알</span>
+        <span aria-hidden />
         <SkinDots kind="bead" pick={skin.bead} onPick={pickSkin("bead")} />
       </div>
     </div>
@@ -1811,7 +1817,7 @@ export default function MoktakPage() {
                         draggable={false}
                         className="absolute block"
                         style={{
-                          left: `${50 + 40 * Math.sin(t)}%`,
+                          left: `${50 + (고리폭 - 2) * Math.sin(t)}%`,
                           top: `${50 - 23 * Math.cos(t)}%`,
                           // 뒤쪽 알은 원근 탓에 그림 안의 여백까지 같이 작아져
                           // 서로 멀어 보였다. 앞쪽 크기는 그대로 두고, 뒤쪽만
@@ -1833,7 +1839,9 @@ export default function MoktakPage() {
               {/* 염주 — 굴리면 돈다 */}
               <div
                 className="absolute inset-0 grid place-items-center transition-opacity duration-300"
-                style={{ opacity: beadWide ? 0 : 1 }}
+                // 가로 염주일 때 이 세로 고리는 투명할 뿐 **손길은 그대로 받고** 있었다 —
+                // 그 아래 살갗 점(넷째)이 안 눌린 까닭. 안 보이면 손길도 안 받는다
+                style={{ opacity: beadWide ? 0 : 1, pointerEvents: beadWide ? "none" : "auto" }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -1888,7 +1896,6 @@ export default function MoktakPage() {
 
             <div className="mt-2 flex items-center justify-center gap-3">
               <p className="text-[11.5px] tracking-[0.2em] text-hanji-faint">
-                쓸거나 눌러서 한 알
               </p>
               <SkinDots kind="bead" pick={skin.bead} onPick={pickSkin("bead")} />
             </div>

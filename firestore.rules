@@ -715,5 +715,11 @@ service cloud.firestore {
       allow read, write: if isAdmin()
         || (request.auth != null && request.auth.uid == uid);
     }
+
+    // 같이 가요 — 절 가는 날에 손 든 사람들. 누구나 보고, 손 들기는 서버(/api/go)가 쓴다
+    match /gogo/{date} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }

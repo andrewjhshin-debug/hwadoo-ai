@@ -8365,3 +8365,32 @@ html[data-theme="light"] {
     color: #b6a9b0;
   }
 }
+
+/* ── 같이 가요 — 절 가는 날 카드의 한 줄 ─────────────────────── */
+@media (min-width: 0px) {
+  .hip-go-row { display: flex; align-items: center; gap: 10px; }
+  .hip-go-faces { display: flex; align-items: center; flex: 1; min-height: 28px; }
+  .hip-go-faces i {
+    display: grid; place-items: center; width: 28px; height: 28px; margin-left: -8px;
+    border-radius: 50%; border: 2px solid #fff; background: #e9dfe4;
+    font-family: var(--font-serif); font-style: normal; font-size: 12px; color: #6f665c;
+  }
+  .hip-go-faces i:first-child { margin-left: 0; }
+  .hip-go-faces i[data-me="1"] { background: var(--hip-pink, #ef7ba4); color: #fff; }
+  .hip-go-faces em { margin-left: 6px; font-style: normal; font-size: 11.5px; color: #9aa0a8; }
+  .hip-go-btn {
+    padding: 8px 14px; border-radius: 999px; background: #1a1a1c; color: #fff; font-size: 12.5px; letter-spacing: 0.04em;
+  }
+  .hip-go-btn[data-on="1"] { background: var(--hip-pink, #ef7ba4); }
+  .hip-go-btn:disabled { opacity: 0.5; }
+  .hip-go-share {
+    width: 34px; height: 34px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(26,23,20,.1); font-size: 15px; color: #b53b6c;
+  }
+  .hip-go-note { margin: 6px 0 0; font-size: 11px; color: #9aa0a8; }
+}
+
+/* 법당·인연에 끼운 머리띠 — 뜰·목탁(.hip-screen 안)과 같은 자리(x 26 · y 18)에 맞춘다 */
+@media (min-width: 0px) {
+  .hip-screen-top-gather { margin: 18px 26px 0; }
+  .hip-screen-top-hall { margin: 0 12px; }
+}

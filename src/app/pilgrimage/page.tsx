@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { watchOnlineCount } from "@/lib/presence";
 import MyTemplePicker from "@/components/MyTemplePicker";
 import TempleProof from "@/components/TempleProof";
+import GoTogether from "@/components/GoTogether";
 import {
   REGIONS,
   TEMPLES,
@@ -146,7 +147,7 @@ export default function PilgrimagePage() {
   const dayCard = (ev: PilgrimEvent) => (
     <article
       key={`${ev.name}-${ev.date.getTime()}`}
-      className="flex items-center gap-4 rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3.5"
+      className="grid grid-cols-[54px_1fr] gap-x-4 gap-y-3 rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3.5 [&>.hip-go]:col-span-2"
     >
       {/* D-몇 — 카드에서 가장 먼저 읽히는 자리 */}
       <div className="w-[54px] shrink-0">
@@ -187,14 +188,8 @@ export default function PilgrimagePage() {
         </p>
       </div>
 
-      {/* 글자는 줄이되 뜻은 aria-label 로 온전히 남긴다 */}
-      <button
-        onClick={() => openGathering({ date: toDateStr(ev.date) })}
-        aria-label={`${ev.date.getMonth() + 1}월 ${ev.date.getDate()}일 ${ev.name} — 이 날 함께 가기`}
-        className="shrink-0 self-center rounded-full border border-ink-3 px-3.5 py-2 text-[12px] tracking-[0.1em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-      >
-        함께 가기
-      </button>
+      {/* 같이 가요 — 형: 「같이 가요 기능 넣어」. 손 든 사람들 + 나도 손들기 + 알리기 */}
+      <GoTogether date={toDateStr(ev.date)} eventName={ev.name} />
     </article>
   );
 

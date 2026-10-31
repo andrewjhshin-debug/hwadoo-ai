@@ -45,7 +45,7 @@ function GatheringInner() {
   const 알맹이 = (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-0 pb-16 pt-0 sm:px-6 md:pt-6">
       {/* 형: 「법당이랑 인연만 오른쪽 위가 달라 — 다 통일해」. 다른 방과 같은 머리띠 */}
-        <header className="hip-screen-top">
+        <header className="hip-screen-top hip-screen-top-gather">
           <a href="/" aria-label="화두 홈" className="hip-home">
             <svg viewBox="0 0 24 24" aria-hidden>
               <path d="M12 4.2c1.7 2.4 2.4 4.4 2.4 6.3s-1.1 3.7-2.4 4.9c-1.3-1.2-2.4-3-2.4-4.9s.7-3.9 2.4-6.3z" />

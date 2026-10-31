@@ -19,6 +19,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
 import { useConfirm } from "./Confirm";
 import { dayCount, loadStore, saveStore } from "@/lib/store";
 import { sessionQuestion } from "@/lib/hwadu";
@@ -72,6 +73,32 @@ export default function ThoughtRoom({
   const [editing, setEditing] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [err, setErr] = useState("");
+  // ── 선지식 — 막히면 묻는다. 형: 「선지식의 도움 이런 느낌, 막히면 묻기 정도로」
+  // 열쇠가 서버에 없으면 단추를 아예 안 그린다(/api/zen GET).
+  const [zenOn, setZenOn] = useState(false);
+  const [zen, setZen] = useState<{ say: string; left: number } | null>(null);
+  const [zenBusy, setZenBusy] = useState(false);
+  const [zenErr, setZenErr] = useState("");
+  useEffect(() => {
+    fetch("/api/zen").then((r) => r.json()).then((j: { ok?: boolean }) => setZenOn(!!j.ok)).catch(() => setZenOn(false));
+  }, []);
+  const askZen = async () => {
+    const last = list.at(-1)?.text?.trim();
+    const mine = draft.trim() || last || "";
+    if (!mine || zenBusy) return;
+    const u = auth.currentUser;
+    if (!u) { setZenErr("들어온 뒤에 물을 수 있어요"); return; }
+    setZenBusy(true); setZenErr("");
+    try {
+      const r = await fetch("/api/zen", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ question, answer: mine, day }) });
+      const j = (await r.json().catch(() => ({}))) as { say?: string; left?: number; error?: string };
+      if (r.status === 429) setZenErr("오늘은 세 번 다 물었어요. 내일 다시.");
+      else if (!r.ok || !j.say) setZenErr("선지식이 잠시 자리를 비웠어요");
+      else setZen({ say: j.say, left: j.left ?? 0 });
+    } catch { setZenErr("선지식이 잠시 자리를 비웠어요"); }
+    finally { setZenBusy(false); }
+  };
+
   // 길게 눌러 드러낸 말풍선 — 모바일에는 hover 가 없어 따로 둔다
   const [held, setHeld] = useState<number | null>(null);
   const bottom = useRef<HTMLDivElement | null>(null);
@@ -356,6 +383,18 @@ export default function ThoughtRoom({
             return write(appendThought(s.current.notes, text));
           }} />
         )}
+        {zen && (
+          <div className="tr-say flex justify-start">
+            <div className="max-w-[85%]">
+              <p className="mb-1.5 text-left text-[10px] tracking-[0.3em] text-gold-soft">善知識</p>
+              <div className="rounded-[16px] rounded-tl-[4px] border border-gold/35 bg-gold/[0.06] px-4 py-3">
+                <p className="break-keep font-serif text-[14.5px] leading-7 text-hanji">{zen.say}</p>
+              </div>
+              <p className="mt-1 pl-1 text-[10.5px] text-hanji-faint">오늘 {zen.left}번 더</p>
+            </div>
+          </div>
+        )}
+        {zenErr && <p className="text-center text-[11px] text-hanji-faint">{zenErr}</p>}
         <div ref={bottom} />
       </div>
 
@@ -391,6 +430,16 @@ export default function ThoughtRoom({
               el.style.height = `${Math.min(160, el.scrollHeight)}px`;
             }}
           />
+          {zenOn && hasHwadu && (
+            <button
+              onClick={askZen}
+              disabled={zenBusy || !(draft.trim() || list.length)}
+              aria-label="선지식에게 묻기"
+              className="mb-0.5 shrink-0 rounded-full border border-gold/35 px-3 py-1.5 text-[11.5px] tracking-wide text-gold-soft transition-colors hover:bg-gold/10 disabled:opacity-40"
+            >
+              {zenBusy ? "…" : "막히면 묻기"}
+            </button>
+          )}
           <button
             onClick={send}
             disabled={!draft.trim()}
