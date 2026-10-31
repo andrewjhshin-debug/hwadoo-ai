@@ -2,7 +2,9 @@
 // 돌은 다시 못 그리니(엔진은 클라) 높이만큼 쌓인 돌 실루엣으로 그린다.
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
+// Node 런타임 — Edge 로 두면 satori 번들이 1.12MB 라 Vercel 무료 한도(1MB)에 걸려
+// **배포 자체가 실패했다**(2026-10-31, 다섯 커밋이 안 올라감). Node 는 250MB.
+export const runtime = "nodejs";
 
 /** 한글 글꼴 — public/fonts 의 woff(구글은 woff2 만 줘서 satori 가 못 읽는다). 한 번 받으면 모듈에 쥔다 */
 let cached: Promise<ArrayBuffer> | null = null;
