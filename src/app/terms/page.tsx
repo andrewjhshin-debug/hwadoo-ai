@@ -69,7 +69,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-[15px] text-gold-soft">6. 이용료와 차 한 잔</h2>
           <p className="mt-3">
-            서비스는 무료로 제공됩니다. "차 한 잔"은 서비스 유지를 위한
+            기본 기능은 무료이며, 선택 유료 콘텐츠는 별도로 가격과 구성을 표시합니다. ‘차 한 잔’은 서비스 유지를 위한
             자발적 결제이며, 결제 즉시 사용되어 환불되지 않습니다. 차 한 잔을
             올리는지 여부는 서비스 이용에 어떤 차등도 만들지 않습니다.
           </p>
@@ -108,6 +108,24 @@ export default function TermsPage() {
         </section>
 
         <section>
+          <h2 className="text-[15px] text-gold-soft">7-1. 산신각(명리 콘텐츠)</h2>
+          <p className="mt-3">
+            현재 무료 명식·일간 오행의 일반 설명과 구매 안내 미리보기를 제공합니다.
+            상세 풀이 판매는 준비 중이며 주문·입금을 받지 않습니다. 판매 개시 시
+            구매 화면의 총 금액과 구성을 확인하고 선택할 수 있습니다. 준비 중인 구성은
+            상세 풀이 6장과 후속 질문 3회, 계정 보관을 포함한 단건 5,900원이며 정기결제는 없습니다.
+            계좌이체는 관리자가 실제 입금을 확인한 뒤 이용 권리를 열며 자동 확인이 아닙니다.
+          </p>
+          <p className="mt-3">
+            전통 명리를 활용한 자기성찰 콘텐츠이며 미래나 성과를 보장하지 않습니다.
+            대운·용신·신살 분석은 포함하지 않습니다. 생성 실패 시 구매 권리는 유지되고
+            질문 횟수는 차감하지 않습니다. 공급 전 취소·환불과 오류 관련 요청은
+            주문번호를 첨부해 {CONTACT_EMAIL}로 보내주세요. 법령상 청약철회·환불 권리를
+            제한하지 않습니다. 환불 처리된 풀이의 이용 권리는 회수됩니다.
+          </p>
+        </section>
+
+        <section>
           <h2 className="text-[15px] text-gold-soft">
             8. 분쟁의 해결과 준거법
           </h2>
@@ -136,7 +154,7 @@ export default function TermsPage() {
         </section>
 
         <p className="border-t border-ink-3 pt-6 text-xs text-hanji-faint">
-          시행일: 2026년 9월 7일 (이전 판: 2026년 8월 24일)
+          시행일: 2026년 10월 31일 (산신각 안내 추가. 이전 판: 2026년 9월 7일)
         </p>
       </div>
     </div>

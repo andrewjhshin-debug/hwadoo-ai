@@ -5,6 +5,10 @@ declare module "lunar-javascript" {
     getSolar(): Solar;
   }
   export class Lunar {
+    getYearInGanZhiExact(): string;
+    getMonthInGanZhiExact(): string;
+    getDayInGanZhiExact2(): string;
+    getTimeInGanZhi(): string;
     getMonth(): number;
     getDay(): number;
     getDayInGanZhi(): string;
@@ -15,6 +19,7 @@ declare module "lunar-javascript" {
     getPrevJieQi(): JieQi;
   }
   export class Solar {
+    static fromYmdHms(y: number, m: number, d: number, h: number, minute: number, second: number): Solar;
     static fromYmd(y: number, m: number, d: number): Solar;
     getYear(): number;
     getMonth(): number;

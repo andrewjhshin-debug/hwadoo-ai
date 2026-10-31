@@ -17,7 +17,7 @@ export default function PrivacyPage() {
 
       <div className="rise rise-d1 mt-12 space-y-8 text-sm font-light leading-8 text-hanji-dim">
         <p className="text-hanji">
-          {SITE_NAME}(이하 "서비스")는 이용자의 사생활을 존중합니다. 이 문서는
+          {SITE_NAME}(이하 ‘서비스’)는 이용자의 사생활을 존중합니다. 이 문서는
           서비스가 어떤 정보를 왜 모으고, 어디에 맡기고, 언제 지우는지
           설명합니다.
         </p>
@@ -52,6 +52,15 @@ export default function PrivacyPage() {
             <li>
               <span className="text-hanji">알림 수단</span> — 웹푸시 토큰.
               목적: 아침 문안 등 브라우저 알림 발송.
+            </li>
+            <li>
+              <span className="text-hanji">산신각(선택 기능)</span> — 입력한 출생일·시각·
+              음양력·윤달을 서버에서 계산하고, 변환한 양력 생일·명식·오행·시각 입력 여부·
+              관심사를 계정에 보관합니다. 원래 입력한 출생 시각 문자열은 보관하지 않습니다.
+              무료 요약은 정해진 설명을 사용하며 외부 AI에 보내지 않습니다.
+              내 풀이와 질문은 다른 이용자에게 공개하지 않으며 탈퇴 시 삭제합니다.
+              판매가 열리면 입금자명·금액·주문 상태를 수동 입금 확인에 사용하고,
+              생성된 상세 풀이와 후속 질문·답변을 본인 보관함에 저장합니다.
             </li>
             {/* 인연 항목은 여태 방침에 없었다 — 사진과 출생연도가 오가는 기능인데
                 적히지 않은 수집이 되어 있었다. 법적 문구이므로 출시 전에
@@ -140,6 +149,13 @@ export default function PrivacyPage() {
             <li>Sentry — 오류 기록. 사용자가 쓴 글은 보내지 않습니다</li>
             <li>Resend — 알림 이메일 발송</li>
           </ul>
+          <p className="mt-3">
+            산신각의 상세 AI 풀이와 판매는 현재 준비 중으로, 산신각 정보를 Gemini에
+            전송하지 않습니다. 유료 프로젝트 확인과 필요한 개인정보 안내 정비 후
+            판매를 열 때에는 Google Gemini API에 계산한 명식·오행·관심사와 후속 질문·
+            기존 풀이를 전송해 답변을 생성합니다. 정확한 생일·계정 식별자·이메일은
+            AI 요청에 넣지 않습니다. 질문에 연락처 등 불필요한 개인정보를 쓰지 마세요.
+          </p>
         </section>
 
         <section>
@@ -179,8 +195,7 @@ export default function PrivacyPage() {
         </section>
 
         <p className="border-t border-ink-3 pt-6 text-xs text-hanji-faint">
-          시행일: 2026년 10월 28일 (이전 판: 2026년 9월 7일 — 인연 프로필·
-          즉석 인증 사진·위치 정보 항목 추가)
+          시행일: 2026년 10월 31일 (산신각 무료 요약·보관 항목 추가. 이전 판: 2026년 10월 28일)
         </p>
       </div>
     </div>

@@ -53,6 +53,7 @@ export async function POST(req: Request) {
     deleteSubcollection(db.doc(`yeon-blocks/${uid}`)),
     deleteSubcollection(db.doc(`yeon-owed/${uid}`)),
     deleteSubcollection(db.doc(`yeon-prefs/${uid}`)),
+    deleteSubcollection(db.doc(`saju-users/${uid}`)),
   ]);
   await Promise.all(paths.map((path) => getStorage(app).bucket().file(path).delete().catch(() => {})));
 
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
   batch.delete(profile);
   batch.delete(db.doc(`users/${uid}`));
   batch.delete(db.doc(`tower-ranks/${uid}`));
+  batch.delete(db.doc(`saju-users/${uid}`));
   batch.delete(db.doc(`yeon-pins/${uid}`));
   ownDaily.docs.forEach((doc) => batch.delete(doc.ref));
   ownTokens.docs.forEach((doc) => batch.delete(doc.ref));

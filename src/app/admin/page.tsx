@@ -1022,6 +1022,7 @@ export default function AdminPage() {
       <h1 className="text-center text-xs tracking-[0.5em] text-gold-soft">
         道場 뒷방 · 관리자
       </h1>
+      <p className="mt-4 text-center text-sm"><a href="/admin/saju">산신각 사주 주문 · 입금 확인 →</a></p>
       <p className="mt-3 text-center text-xs text-hanji-faint">
         랜덤 풀 — 성인 {adultTotal}칙 · 학생 {studentTotal}칙
       </p>
