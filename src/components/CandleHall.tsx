@@ -6,7 +6,8 @@ import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import Gongyang, { type 공양갈래 } from "@/components/Gongyang";
 import { 신고보내기 } from "@/lib/dm";
-import LotusCount, { pingLotus } from "@/components/LotusCount";
+import { pingLotus } from "@/components/LotusCount";
+import HipTop from "@/components/HipTop";
 import { Yeonkkot } from "@/components/icons";
 import { strikeBell } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
@@ -899,6 +900,18 @@ export default function CandleHall() {
   const 공양대표색 = 다걸린것[0]?.gift ?? "deung";
 
   return <div className="hip-hall">
+    {/* 형: 「법당이랑 인연만 오른쪽 위가 달라 — 다 통일해」 */}
+    <header className="hip-screen-top">
+      <a href="/" aria-label="화두 홈" className="hip-home">
+        <svg viewBox="0 0 24 24" aria-hidden>
+      <path d="M12 4.2c1.7 2.4 2.4 4.4 2.4 6.3s-1.1 3.7-2.4 4.9c-1.3-1.2-2.4-3-2.4-4.9s.7-3.9 2.4-6.3z" />
+      <path d="M12 15.4c-1.9-1.6-4.6-2.3-7.4-2.2.3 2.6 2.4 4.6 5 5 .9.1 1.7 0 2.4-.3" />
+      <path d="M12 15.4c1.9-1.6 4.6-2.3 7.4-2.2-.3 2.6-2.4 4.6-5 5-.9.1-1.7 0-2.4-.3" />
+        </svg>
+        <b>화두</b>
+      </a>
+      <HipTop />
+    </header>
     <div className="hip-hall-top">
       {/* 「내 것만」 — 누르면 남의 것이 희미해지고 내 것만 밝아진다.
           거르지 않는다(사라지면 법당이 빈다) — **밝기로 가른다.**
@@ -913,7 +926,7 @@ export default function CandleHall() {
       </button>
       {/* 한자 「法堂」은 뒤의 「법당」과 같은 말이라 뗀다 */}
       <h1>법당</h1>
-      <LotusCount className="shrink-0" merit={false}/>
+      <span aria-hidden />
     </div>
     {/* 형: 「위는 연등, 아래는 초 쌀 등등 뭐 이런 식으로 가자」
         절이 그렇다 — 등은 천장에 매달리고 공양물은 불단 위에 놓인다.

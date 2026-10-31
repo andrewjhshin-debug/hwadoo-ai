@@ -1831,7 +1831,7 @@ export default function SettingsPage() {
           {BIZ_ADDRESS} · 연락처 {BIZ_PHONE ?? CONTACT_EMAIL}
         </p>
         <p className="mt-2 px-2 text-[10px] tracking-widest text-hanji-faint">
-          © {new Date().getFullYear()} 화두 · 물음은 오래된 것, 답은 나의 것
+          © {new Date().getFullYear()} 화두 · AI가 묻고, 인간이 답하다
         </p>
       </section>
 

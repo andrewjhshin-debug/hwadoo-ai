@@ -94,12 +94,6 @@ export default function EmptyPage() {
             ))}
           </div>
 
-          {/* 지우는 법은 한 번만 알린다 — 도장을 찍어 본 사람에게만 */}
-          {log.some((x) => !x.note) && (
-            <p className="mt-5 text-[11px] leading-5 text-hanji-faint">
-              잘못 눌렀으면 한 번 더 눌러 지워요.
-            </p>
-          )}
 
           <Past log={log} today={today} />
         </>
@@ -303,35 +297,12 @@ function Past({
   today: string;
 }) {
   const days = recentDays(10, log).filter((d) => d.day !== today);
-  const total = daysTouchedInMonth(
-    Number(today.slice(0, 4)),
-    Number(today.slice(5, 7)),
-    undefined,
-    log
-  );
-
-  if (log.length === 0) {
-    return (
-      <p className="rise rise-d4 mt-12 text-[12.5px] leading-6 text-hanji-faint">
-        오늘 하나만 비워 보세요.
-      </p>
-    );
-  }
+  if (log.length === 0) return null;
 
   return (
     <section className="mt-14 w-full">
-      <div className="flex items-baseline justify-between">
-        <p className="text-[11px] tracking-[0.35em] text-hanji-faint">지난 것</p>
-        <p className="text-[11px] tracking-[0.15em] text-hanji-faint">
-          이달 비운 날 {total}
-        </p>
-      </div>
-
-      {days.length === 0 ? (
-        <p className="mt-4 text-[12.5px] leading-6 text-hanji-faint">
-          오늘이 첫 날이에요.
-        </p>
-      ) : (
+      {/* 형: 「지난 것 · 이달 비운 날 1 — 이런 말 다 쳐내」. 머리줄 없이 기록만 */}
+      {days.length === 0 ? null : (
         <ul className="mt-5 flex flex-col gap-5">
           {days.map(({ day, entries }) => {
             const stamps = entries.filter((x) => !x.note);

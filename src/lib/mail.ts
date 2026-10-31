@@ -106,7 +106,7 @@ function letter(opts: {
             <!-- 발 — 표어와 도장 -->
             <tr>
               <td style="padding:36px 36px 30px;text-align:center;">
-                <p style="margin:0;font-size:12px;letter-spacing:0.2em;color:#7d6f5e;">물음은 오래된 것, 답은 나의 것</p>
+                <p style="margin:0;font-size:12px;letter-spacing:0.2em;color:#7d6f5e;">AI가 묻고, 인간이 답하다</p>
                 <p style="margin:10px 0 0;font-size:11px;color:#5c5348;">話頭 · 화두 — 당신에게 묻는 도량</p>
               </td>
             </tr>

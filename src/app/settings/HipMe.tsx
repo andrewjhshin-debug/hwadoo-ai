@@ -429,7 +429,8 @@ export default function HipMe({
           <div className="hip-me-back">
             <a className="hip-me-desk" href="/admin">
               <b>대시보드</b>
-              <span>{pendingCount === null ? "" : pendingCount > 0 ? `기다리는 화두 ${pendingCount}` : "기다리는 물음 없음"}</span>
+              {/* 형: 「대시보드로만 표기하고 다른 말 하지 마라」 — 숫자도 글도 없다 */}
+              {pendingCount !== null && pendingCount > 0 && <span>{pendingCount}</span>}
             </a>
             <a className="hip-me-desk" href="/desk">
               <b>狀 況 板</b>

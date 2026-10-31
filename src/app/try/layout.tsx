@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "화두 체험하기 — 물음 하나 품어 보기 | 화두",
   description:
-    "가입 없이 화두 하나를 받아 품어 보는 곳. 물음은 오래된 것, 답은 나의 것.",
+    "가입 없이 화두 하나를 받아 품어 보는 곳. AI가 묻고, 인간이 답하다.",
   alternates: { canonical: "/try" },
   openGraph: {
     title: "화두 체험하기 — 물음 하나 품어 보기 | 화두",

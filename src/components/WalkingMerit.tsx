@@ -14,6 +14,5 @@ export default function WalkingMerit() {
     <dl className="walking-diagnostics"><div><dt>걸음 센서</dt><dd>{sensor}</dd></div><div><dt>위치 보정</dt><dd>{walk.gps === "live" ? "위치 수신 중" : walk.gps === "denied" ? "사용 불가" : walk.gps === "waiting" ? "위치 기다리는 중" : "꺼짐"}</dd></div></dl>
     {walk.motion === "silent" && <p className="walking-merit-guide">Chrome 사이트 설정에서 ‘동작 센서’를 허용해 주세요. 실내에서는 위치 보정도 어려울 수 있어요.</p>}
     {walk.motion === "denied" && <p className="walking-merit-guide">동작 센서 권한을 허용한 뒤 OFF → ON으로 다시 시작해 주세요.</p>}
-    <p className="walking-merit-guide">거리와 위치로 보충한 걸음은 추정치예요{walk.estimated ? ` (오늘 ${walk.estimated.toLocaleString()}걸음 보충)` : ""}.{hasNativeSteps() ? "" : " 화면이 꺼지면 웹에서는 못 세요 — 설치 앱은 꺼져도 셉니다."}</p>
   </section>;
 }
