@@ -5898,6 +5898,30 @@ html[data-theme="light"] {
     flex-wrap: wrap;
     gap: 6px;
   }
+  /* 둘의 공통점 — 말 붙일 구실. 알약보다 한 톤 진하게 */
+  .hip-yeon-same { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hip-yeon-same span {
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: #1a1a1c;
+    color: #fff;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+  /* 인연이 닿은 뒤 첫 말 셋 */
+  .hip-yeon-first { display: flex; flex-direction: column; gap: 8px; width: min(100%, 320px); }
+  .hip-yeon-first a {
+    display: block;
+    padding: 12px 16px;
+    border-radius: 18px 18px 18px 4px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(26, 23, 20, 0.08);
+    font-size: 14px;
+    color: #1a1a1c;
+    text-align: left;
+    text-decoration: none;
+  }
+  .hip-yeon-first a:active { transform: scale(0.985); }
   .hip-yeon-tags span {
     padding: 7px 12px;
     border-radius: 999px;

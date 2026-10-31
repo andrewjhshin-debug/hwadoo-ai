@@ -34,6 +34,34 @@ import {
   type 오늘사람,
 } from "@/lib/yeonToday";
 
+/**
+ * 둘의 공통점 — 형: 「데이팅 기능 다시 잘 다듬어봐」.
+ * 카드에서 말 붙일 구실이 되는 순서: 같은 절 › 같은 동네 › 가고 싶은 절이
+ * 같다 › 하고 싶은 데이트 › 관심 › 취향. 둘만 보여 준다(셋부터는 표다).
+ */
+function 공통점(나: 인연프로필 | null, 이: 오늘사람): string[] {
+  if (!나) return [];
+  const out: string[] = [];
+  if (나.temple && 나.temple === 이.temple) out.push(`같은 절 · ${이.temple}`);
+  if (나.area && 나.area === 이.area) out.push(`같은 동네 · ${이.area}`);
+  if (나.wantTemple && (나.wantTemple === 이.wantTemple || 나.wantTemple === 이.temple)) out.push(`${나.wantTemple} 가고 싶은 둘`);
+  const 겹 = (a?: string[], b?: string[]) => (a ?? []).filter((x) => (b ?? []).includes(x));
+  for (const x of [...겹(나.date, 이.date), ...겹(나.care, 이.care), ...겹(나.like, 이.like)]) out.push(`둘 다 ${x}`);
+  return Array.from(new Set(out)).slice(0, 2);
+}
+
+/** 인연이 닿은 뒤 첫 쪽지 — 공통점에서 세 문장을 꺼낸다. 빈손으로 쪽지함에 가면 아무도 첫 말을 못 꺼낸다 */
+function 첫말(나: 인연프로필 | null, 이: 오늘사람): string[] {
+  const out: string[] = [];
+  if (나?.temple && 나.temple === 이.temple) out.push(`${이.temple} 다니시네요, 저도요. 언제 가세요?`);
+  else if (이.temple) out.push(`${이.temple} 다니시는군요. 저는 ${나?.temple ?? "아직 정한 절이 없어요"}.`);
+  const d = (나?.date ?? []).find((x) => (이.date ?? []).includes(x)) ?? 이.date?.[0];
+  if (d) out.push(`${d}, 언제 한번 같이 어때요?`);
+  if (이.wantTemple) out.push(`${이.wantTemple} 가 보고 싶으시다고요. 저도 가 본 적 없어요.`);
+  out.push("합장. 인연이 닿았네요.");
+  return Array.from(new Set(out)).slice(0, 3);
+}
+
 const 무료카드 = 6;
 const 하루최대카드 = 10;
 
@@ -298,6 +326,14 @@ export default function 오늘의인연() {
             />
           )}
           <p>인연이 닿았습니다</p>
+          {/* 첫 말 — 누르면 그 문장이 쪽지 칸에 적힌 채 쪽지함이 열린다 */}
+          {닿은이 && (
+            <div className="hip-yeon-first">
+              {첫말(나, 닿은이).map((t) => (
+                <Link key={t} href={`/letters?say=${encodeURIComponent(t)}`}>{t}</Link>
+              ))}
+            </div>
+          )}
           <Link href="/letters" className="hip-yeon-hap">
             쪽지함 열기
           </Link>
@@ -455,6 +491,11 @@ export default function 오늘의인연() {
             아니라 표가 됐고, 단추가 화면 밖으로 밀렸다.
             말 붙일 구실이 되는 순서로 여섯만 세운다 — 다니는 절, 가고
             싶은 절, 직업, MBTI, 그리고 관심·취향에서 남은 자리만큼. */}
+        {공통점(나, 이).length > 0 && (
+          <div className="hip-yeon-same" aria-label="둘의 공통점">
+            {공통점(나, 이).map((x) => <span key={x}>✦ {x}</span>)}
+          </div>
+        )}
         <div className="hip-yeon-tags">
           {(
             [

@@ -57,6 +57,13 @@ export default function LettersPage() {
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => watchAuth(setUser), []);
+  // 인연이 닿은 자리에서 고른 첫 말이 ?say= 로 온다 — 쪽지 칸에 미리 적어 둔다
+  useEffect(() => {
+    try {
+      const say = new URLSearchParams(window.location.search).get("say");
+      if (say) { setDraft(say.slice(0, 200)); window.history.replaceState(null, "", "/letters"); }
+    } catch { /* 주소를 못 읽으면 빈 칸 */ }
+  }, []);
 
   const refresh = useCallback(() => {
     fetchMyThreads()
