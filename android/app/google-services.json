@@ -13,9 +13,9 @@
       },
       "oauth_client": [
         {
-          "client_id": "107600530616-l06e416gpm7l3rhl7kpgsibdail8d30k.apps.googleusercontent.com",
+          "client_id": "107600530616-sdk996ebma6h9t3127ht7cp6nuh1c3ld.apps.googleusercontent.com",
           "client_type": 1,
-          "android_info": { "package_name": "com.svaha.hwadu", "certificate_hash": "5fc3bf10af46667597cda8b8d2e3742306e448ce" }
+          "android_info": { "package_name": "com.svaha.hwadu", "certificate_hash": "6663ad888f8dcc809d28639c28023b1512a44d8f" }
         },
         { "client_id": "107600530616-ftqtc918h7qa40g0uojj5c5a7ccfeqth.apps.googleusercontent.com", "client_type": 3 }
       ],
