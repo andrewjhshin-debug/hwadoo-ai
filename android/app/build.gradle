@@ -19,6 +19,15 @@ android {
     // 릴리스 서명 — 열쇠는 저장소에 두지 않는다.
     // 깃허브 액션이 시크릿에서 꺼내 keystore.jks 와 환경변수로 넘겨준다.
     signingConfigs {
+        // 디버그 열쇠를 저장소에 둔다 — 비밀이 아니다(안드로이드 표준 debug 키).
+        // 러너마다 열쇠가 새로 생기면 지문(SHA-1)이 매번 달라져 구글 로그인이
+        // 깨진다. 한 열쇠로 고정해 파이어베이스에 지문을 한 번만 적는다.
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
         release {
             def ks = System.getenv("HWADU_KEYSTORE_PATH")
             if (ks) {

@@ -132,7 +132,7 @@ const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keyc
 /** 그림 판 번호 — 그림을 고쳐 올려도 **파일 이름이 같으면** 브라우저가
     옛 것을 그대로 쥐고 있다. 형이 「아직 진하다」고 한 게 그것이었다.
     고칠 때마다 이 수를 올리면 새 그림으로 갈린다. */
-const 그림판 = 28;
+const 그림판 = 29;
 const 그림 = (s: string) => `${s}?v=${그림판}`;
 
 const SKINS = {
@@ -163,7 +163,11 @@ const SKINS = {
     // 제대로 된 그림은 제미나이로 받는다 —
     // `화두 이미지/[오브제] 염주-발바닥-프롬프트.md` 를 그대로 붙이면 된다.
     // 형: 「밑에 색상도 핑크로 바꾸고」 — 알이 분홍인데 점만 미색이었다
-    { id: "paw", name: "발바닥", src: "/obj/bead-paw.png", dot: "#f08ba8", wide: true },
+    { id: "paw", name: "발바닥", src: "/obj/bead-paw.png", dot: "#f08ba8", wide: true, one: "/obj/bead-paw-one.png", lit: "/obj/bead-paw-one-gold.png" },
+    // 네온 — 형: 「MZ 네온 비비드」. 제미나이로 마젠타 젤리 알 한 알을 받아
+    // 발바닥과 **같은 틀**(920px 판에 알 802px)로 앉혔다. 색은 한 장을
+    // 알마다 hue 로 돌려 다섯 빛깔을 낸다 — 그림 다섯 장 대신 한 장
+    { id: "neon", name: "네온", src: "/obj/bead-neon.png", dot: "#ff3fa4", wide: true, one: "/obj/bead-neon-one.png", lit: "/obj/bead-neon-one-lit.png", hues: [0, 80, 160, 220, 300] },
   ],
   bowl: [
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
@@ -327,6 +331,11 @@ export default function MoktakPage() {
   const beadWide = (
     SKINS.bead as readonly { id: string; wide?: boolean }[]
   ).some((k) => k.id === skin.bead && k.wide);
+  /** 가로형 살갗의 알 한 장·불 켜진 알·빛깔 돌림 — 살갗마다 다르다 */
+  const beadOne = (SKINS.bead as readonly { id: string; one?: string; lit?: string; hues?: number[] }[]).find((k) => k.id === skin.bead);
+  const beadOneSrc = 그림(beadOne?.one ?? "/obj/bead-paw-one.png");
+  const beadLitSrc = 그림(beadOne?.lit ?? "/obj/bead-paw-one-gold.png");
+  const beadHue = (i: number) => (beadOne?.hues ? ` hue-rotate(${beadOne.hues[i % beadOne.hues.length]}deg)` : "");
 
   const pickSkin = (kind: SkinKind) => (id: string) => {
     setSkin((s) => {
@@ -838,7 +847,11 @@ export default function MoktakPage() {
               // 금은 아래 한가운데(표시점)에서 물결처럼 번져 나간다 —
               // 알의 자리와 상관없이 지나간 만큼 든다.
               const 칸 = 360 / RING_BEADS;
-              const 물결 = (pos / BEADS) * 360;
+              // 형: 「첫 염주 저기만 나머지와 같은 황금이 아니야」 — 백여덟째
+              // 타에서 셈이 0 으로 돌아가니 **다 물든 고리를 볼 틈이 없었다.**
+              // 표시점 바로 앞 알이 늘 덜 찬 채로 남는다. 백일곱째에 한 바퀴가
+              // 다 차게 한 알 앞당긴다
+              const 물결 = (pos / (BEADS - 1)) * 360;
 
               // ── 알 크기는 **이웃까지의 거리**에서 나온다 ──────
               // 형: 「뒤가 벌어진다」 → 원근을 줬더니 「이제 앞이 벌어진다」
@@ -901,8 +914,8 @@ export default function MoktakPage() {
                   pos === 0
                     ? 0
                     : Math.max(0, Math.min(1, (물결 - (표시에서 - 칸)) / 칸));
-                const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})`;
-                const 금결 = `brightness(${(1.0 + 0.07 * front).toFixed(2)})`;
+                const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})${beadHue(i)}`;
+                const 금결 = `brightness(${(1.0 + 0.07 * front).toFixed(2)})${beadHue(i)}`;
                 return (
                   <span
                     key={i}
@@ -927,7 +940,7 @@ export default function MoktakPage() {
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={그림("/obj/bead-paw-one.png")}
+                      src={beadOneSrc}
                       alt=""
                       draggable={false}
                       className="block w-full"
@@ -939,7 +952,7 @@ export default function MoktakPage() {
                     {채움 > 0 && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={그림("/obj/bead-paw-one-gold.png")}
+                        src={beadLitSrc}
                         alt=""
                         aria-hidden
                         draggable={false}
@@ -1790,7 +1803,7 @@ export default function MoktakPage() {
                       <img
                         // eslint-disable-next-line @next/next/no-img-element
                         key={i}
-                        src={그림("/obj/bead-paw-one.png")}
+                        src={beadOneSrc}
                         alt=""
                         draggable={false}
                         className="absolute block"
@@ -1806,7 +1819,7 @@ export default function MoktakPage() {
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: lit
                             ? `sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(${(1.06 + 0.22 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
-                            : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))`,
+                            : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))${beadHue(i)}`,
                         }}
                       />
                     );

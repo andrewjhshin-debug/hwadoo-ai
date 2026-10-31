@@ -63,11 +63,15 @@ jobs:
       - name: 서명 열쇠 꺼내기
         env:
           KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          HWADU_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          HWADU_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           if [ -n "$KS_B64" ]; then
             echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/keystore.jks"
             echo "HWADU_KEYSTORE_PATH=$RUNNER_TEMP/keystore.jks" >> "$GITHUB_ENV"
             echo "서명 열쇠 준비됨 — 서명된 AAB 가 나옵니다"
+            # 구글 로그인용 지문 — 파이어베이스 안드로이드 앱에 적어야 한다
+            keytool -list -v -keystore "$RUNNER_TEMP/keystore.jks" -storepass "$HWADU_KEYSTORE_PASSWORD" -alias "$HWADU_KEY_ALIAS" 2>/dev/null | grep -E "SHA1|SHA256" || true
           else
             echo "서명 열쇠 없음 — 서명 안 된 파일이 나옵니다(시험 설치는 가능, 스토어 업로드는 불가)"
           fi

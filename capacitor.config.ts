@@ -27,6 +27,13 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: false,
   },
   plugins: {
+    // 구글 로그인 — WebView 안에서는 구글이 OAuth 창을 막는다(disallowed_useragent).
+    // 네이티브 계정 고르기로 idToken 만 받고, 로그인 자체는 웹 SDK 가 한다
+    // (skipNativeAuth). 그래야 웹과 같은 auth 상태·같은 Firestore 규칙을 탄다.
+    FirebaseAuthentication: {
+      skipNativeAuth: true,
+      providers: ["google.com"],
+    },
     SplashScreen: {
       launchShowDuration: 800,
       backgroundColor: "#ECEEF1",

@@ -19,6 +19,7 @@
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
+  signInWithCredential,
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
@@ -572,8 +573,26 @@ function 아이폰홈화면(): boolean {
   return ios && (window.navigator as { standalone?: boolean }).standalone === true;
 }
 
+/** 설치 앱(Capacitor) 안인가 — 다리가 있고 네이티브 판이면 */
+type 인증다리 = { signInWithGoogle(o: { skipNativeAuth: boolean }): Promise<{ credential?: { idToken?: string | null; accessToken?: string | null } }> };
+function 앱다리(): 인증다리 | null {
+  const cap = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean; Plugins?: { FirebaseAuthentication?: 인증다리 } } }).Capacitor;
+  return cap?.isNativePlatform?.() ? cap.Plugins?.FirebaseAuthentication ?? null : null;
+}
+
 export async function loginWithGoogle() {
   const provider = new GoogleAuthProvider();
+
+  // ── 설치 앱 — 구글이 WebView 의 OAuth 창을 막는다(403 disallowed_useragent).
+  //    네이티브 계정 고르기로 idToken 만 받아 웹 SDK 에 넣는다. ──
+  const 다리 = 앱다리();
+  if (다리) {
+    const r = await 다리.signInWithGoogle({ skipNativeAuth: true });
+    const idToken = r.credential?.idToken;
+    if (!idToken) throw new Error("구글 계정 고르기가 끝나지 않았어요");
+    await signInWithCredential(auth, GoogleAuthProvider.credential(idToken, r.credential?.accessToken ?? undefined));
+    return;
+  }
 
   // ── 팝업을 **먼저** 연다. 언제나. ────────────────────────────
   //

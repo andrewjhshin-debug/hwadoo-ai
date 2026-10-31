@@ -1,0 +1,33 @@
+{
+  "project_info": {
+    "project_number": "107600530616",
+    "firebase_url": "https://hwadu-9dc7b-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "hwadu-9dc7b",
+    "storage_bucket": "hwadu-9dc7b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:107600530616:android:ee230a94b41d808493f84d",
+        "android_client_info": { "package_name": "com.svaha.hwadu" }
+      },
+      "oauth_client": [
+        {
+          "client_id": "107600530616-l06e416gpm7l3rhl7kpgsibdail8d30k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": { "package_name": "com.svaha.hwadu", "certificate_hash": "5fc3bf10af46667597cda8b8d2e3742306e448ce" }
+        },
+        { "client_id": "107600530616-ftqtc918h7qa40g0uojj5c5a7ccfeqth.apps.googleusercontent.com", "client_type": 3 }
+      ],
+      "api_key": [ { "current_key": "AIzaSyAHFpmgMBdSG9jGiEG8QzyVhgkFnqAvQMc" } ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            { "client_id": "107600530616-ftqtc918h7qa40g0uojj5c5a7ccfeqth.apps.googleusercontent.com", "client_type": 3 }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
