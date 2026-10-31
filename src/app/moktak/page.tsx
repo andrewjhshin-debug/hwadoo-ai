@@ -25,6 +25,7 @@ import { MOKTAK_SVG } from "./moktakSvg";
 import HipMoktak from "./HipMoktak";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead from "@/components/StoneMalaBead";
+import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
 import {
@@ -342,6 +343,7 @@ export default function MoktakPage() {
   const beadOneSrc = 그림(beadOne?.one ?? "/obj/bead-paw-one.png");
   const beadLitSrc = 그림(beadOne?.lit ?? "/obj/bead-paw-one-gold.png");
   const stoneMala = skin.bead === "stone" || skin.bead === "zodiac";
+  const malaElastic = useMalaElastic(tab === "yeomju" && beadWide);
   const beadHue = (i: number) => (beadOne?.hues ? ` hue-rotate(${beadOne.hues[i % beadOne.hues.length]}deg)` : "");
 
   const pickSkin = (kind: SkinKind) => (id: string) => {
@@ -663,6 +665,7 @@ export default function MoktakPage() {
 
   // 한 알 — 번뇌 하나가 보리로
   const advance = () => {
+    malaElastic.pulse();
     clickBead(vol);
     earn("bead");
     buzz(6);
@@ -813,7 +816,7 @@ export default function MoktakPage() {
         </svg>
 
         {beadWide && (
-          <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div ref={malaElastic.normalRef} aria-hidden className="pointer-events-none absolute inset-0">
             {/* ── 고리에 알 놓기 ────────────────────────────────
                 형: 「가운데 염주를 고정하는 게 아니고 자연스럽게 돌면서,
                      가운데 앞에는 가운데.. 좀 자연스럽게 다시」
@@ -1795,7 +1798,7 @@ export default function MoktakPage() {
                     뒤(위)로 갈수록 작아지고 어둡고 뒤에 깔린다.
                   넘긴 만큼 금빛으로 물든다. 세로형이 하던 그 일을 그대로. */}
               {beadWide && (
-                <div aria-hidden className="pointer-events-none absolute inset-0">
+                <div ref={malaElastic.expandedRef} aria-hidden className="pointer-events-none absolute inset-0">
                   {Array.from({ length: RING_BEADS }, (_, i) => {
                     // 0 = 맨 위(뒤) · 180 = 맨 아래(앞)
                     const t = ((i / RING_BEADS) * 360 + angle) * (Math.PI / 180);
