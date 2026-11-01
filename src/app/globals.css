@@ -1645,3 +1645,25 @@ body:has(.hip-say) :is(.wheel-fab, .doryang-fab) { display: none !important; }
 body:has([role="dialog"], [aria-modal="true"], .hip-seat-card, .hip-yeon-big) :is(.hip-mala, .wheel-fab, .doryang-fab) { display: none !important; }
 .hip-qa-min { display: none; margin-top: 4px; font-size: 11px; color: #c0457a; }
 textarea[data-short="1"] + .hip-qa-min { display: block; }
+
+/* ── 폰 검수 ── */
+/* 머리띠(HipHeader) 없는 옛 판 — 「오늘의 공덕」 띠가 제목 위에 얹혔다(굿즈·비움·간화선·순례·외우기·약관…).
+   띠가 보이는 판이면 그만큼 본문을 내린다. 띠를 숨기는 판(법당·인연·선지식·알림)은 빼고 */
+@media (max-width: 767px) {
+  body:not(:has(.hip-room, .hip-hall, .hip-gather-page, .hip-masters, .hip-alerts)) #scroll-box > div { padding-top: calc(env(safe-area-inset-top, 0px) + 84px) !important; }
+}
+/* 알림 — 제 머리(← 알림)가 있으니 공덕 띠를 걷고, 폭을 끝까지 */
+body:has(.hip-alerts) .hip-daybar { display: none !important; }
+.hip-alerts { width: 100%; padding-top: env(safe-area-inset-top, 0px); }
+/* 받은 호감 — 화면 한가운데 떠 있던 제목을 위로 붙인다 */
+body:has(.hip-likes) .hip-screen-mid { justify-content: flex-start !important; align-content: flex-start !important; }
+.hip-likes { margin: 0 auto auto !important; align-self: flex-start !important; }
+.hip-likes { width: 100%; }
+/* 불심투자 — 두두 그림이 남아 있었다(형: 「저딴 캐릭터 앱에서 아예 없애」). 말풍선만 남긴다 */
+.cool-dudu > img { display: none !important; }
+.cool-dudu { grid-template-columns: 1fr !important; }
+/* 돌탑 — 머리가 가로줄(flex)로 풀려 「Ⅱ」 단추가 제목 「돌탑」을, 「랭킹」이 높이 숫자를 덮었다. 가운데 세로로 되돌린다 */
+.tower-game .tower-score { display: block !important; text-align: center !important; padding: 4px 58px 6px !important; }
+.tower-game .tower-score h1 { margin: 0 0 2px !important; }
+/* 받은 호감 — 인연은 먹·금. 분홍 바탕 덩이를 걷는다 */
+body:has(.hip-likes) .hip-bloom { display: none !important; }

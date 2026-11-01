@@ -266,10 +266,10 @@ function LotusClosed() {
             className="flex items-baseline justify-between rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4"
           >
             <span className="flex items-baseline gap-2">
-              <span className="text-[14px] text-hanji">{p.label}</span>
+              <span className="whitespace-nowrap text-[14px] text-hanji">{p.label}</span>
               {p.best && (
-                <span className="rounded-full border border-gold/40 px-2 py-[2px] text-[10.5px] text-gold-soft">
-                  가장 많이 찾는
+                <span className="whitespace-nowrap rounded-full border border-gold/40 px-2 py-[2px] text-[10.5px] text-gold-soft">
+                  인기
                 </span>
               )}
             </span>
@@ -277,7 +277,7 @@ function LotusClosed() {
               <span className="block font-serif text-[17px] text-hanji">
                 {won(p.price)}
               </span>
-              <span className="block text-[11px] text-hanji-faint">
+              <span className="block whitespace-nowrap text-[11px] text-hanji-faint">
                 송이당 {won(p.each)}
               </span>
             </span>
@@ -489,7 +489,7 @@ function LotusInner() {
             </p>
             <p className="mt-2 text-[11.5px] tracking-wide text-hanji-faint">
               송이당 {won(picked.each)}
-              {picked.best ? " · 가장 많이 찾는" : ""}
+              {picked.best ? " · 인기" : ""}
             </p>
           </div>
 

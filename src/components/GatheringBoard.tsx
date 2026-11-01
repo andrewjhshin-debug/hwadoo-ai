@@ -1379,7 +1379,7 @@ export default function GatheringBoard({
         {!qualified ? (
           <p className="mt-4 break-keep text-[13px] leading-7 text-hanji-dim">
             {!user
-              ? "글을 쓰려면 로그인이 필요합니다 — 왼쪽 아래(모바일은 내 도량)에서 로그인해 주세요."
+              ? "로그인하면 글을 쓸 수 있어요"
               : "화두 하나를 회향한 뒤에 글을 쓸 수 있습니다."}
           </p>
         ) : (
