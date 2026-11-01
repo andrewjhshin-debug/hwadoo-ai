@@ -85,12 +85,16 @@ function CommentIcon({ className = "h-[13px] w-[13px]" }: { className?: string }
 // 음양 프로필 — 쪽지 단추와 같은 태극 문양.
 // 남(양) = 금빛 반쪽이 찬 원, 여(음) = 같은 문양을 선으로만, 미표시 = 빈 원.
 function GenderMark({
-  g,
+  g: 받은,
   className = "h-9 w-9",
+  seed,
 }: {
   g?: "m" | "f" | null;
   className?: string;
+  /** 성별을 안 적은 글 — 사람마다 늘 같은 음양 하나로(빈 동그라미 대신) */
+  seed?: string;
 }) {
+  const g = 받은 ?? (seed ? ([...seed].reduce((h, c) => h + c.charCodeAt(0), 0) % 2 ? "m" : "f") : null);
   if (g === "m") {
     return (
       <svg
@@ -157,7 +161,7 @@ function RankBadge({ hanja }: { hanja?: string | null }) {
 /** 글쓴이 얼굴 — 사진을 켠 사람은 작게(누르거나 키울 수 없다), 아니면 음양 문양 */
 function PostFace({ p, className = "h-9 w-9" }: { p: Pick<Post, "avatar" | "authorUid" | "gender">; className?: string }) {
   const [안됨, 안됨잡기] = useState(false);
-  if (!p.avatar || 안됨) return <GenderMark g={p.gender} className={className} />;
+  if (!p.avatar || 안됨) return <GenderMark g={p.gender} seed={p.authorUid} className={className} />;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={`/api/avatar/${p.authorUid}`} alt="" draggable={false} onError={() => 안됨잡기(true)} onContextMenu={(e) => e.preventDefault()} className={`hip-post-face ${className}`} />
@@ -1251,11 +1255,6 @@ export default function GatheringBoard({
             </ul>
           ) : null}
 
-          {/* 주의 — 작게 한 줄 */}
-          <p className="mt-5 break-keep text-[10px] leading-4 text-hanji-faint/80">
-            처음 만나는 자리는 사찰 등 열린 곳에서 · 연락처 등 개인정보는
-            아껴 주세요.
-          </p>
         </div>
 
         {/* 댓글 쓰기 — 모바일은 아래 탭 바로 위에 고정 (내려진 글은 닫힘).
@@ -1472,14 +1471,14 @@ export default function GatheringBoard({
   return (
     <div>
       {/* 갈래 필터 — 전체 / 동행 / 도반 찾기 / 울력·봉사 */}
-      <div className="flex flex-wrap gap-1.5 px-4 pb-2.5 pt-1 sm:px-0">
+      <div className="flex items-center gap-1.5 overflow-x-auto px-4 pb-2 pt-0.5 sm:px-0">
         {[{ key: "all" as const, label: "전체", hint: "" }, ...GATHERING_CATEGORIES].map(
           (c) => (
             <button
               key={c.key}
               onClick={() => setCategoryFilter(c.key)}
               aria-pressed={categoryFilter === c.key}
-              className={`rounded-full border px-3 py-1 text-[11.5px] tracking-wide transition-colors ${
+              className={`shrink-0 rounded-full border px-2 py-1 text-[11px] transition-colors ${
                 categoryFilter === c.key
                   ? "border-gold/60 bg-gold/10 text-gold"
                   : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
@@ -1489,22 +1488,7 @@ export default function GatheringBoard({
             </button>
           )
         )}
-      </div>
-
-      <div className="flex items-center justify-end gap-2 px-4 pb-2 sm:px-0">
-        {/* 서랍 사본으로 버티는 중 — 이 말이 없으면 「왜 새 글이 없지」 한다 */}
-        {loadError && !!posts?.length && (
-          <p className="mt-2 flex items-center gap-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
-            <span>지금은 연결이 안 되어 지난번에 본 목록을 보이고 있습니다.</span>
-            <button
-              onClick={refresh}
-              className="shrink-0 rounded-full border border-gold/45 px-2.5 py-1 text-[11px] text-gold transition-colors hover:bg-gold/10"
-            >
-              다시
-            </button>
-          </p>
-        )}
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
         {/* 연꽃 잔고 — 누르면 연꽃 공양(구매)으로 */}
         <Link
           href="/lotus"
@@ -1522,11 +1506,26 @@ export default function GatheringBoard({
             setOpen(true);
             pushLayer();
           }}
-          className="rounded-full border border-gold/50 px-3.5 py-1 text-[12px] tracking-[0.1em] text-gold transition-colors hover:bg-gold/10"
+          className="rounded-full bg-[#f2789f] px-3 py-1 text-[12px] font-semibold text-white"
         >
-          글 쓰기
+          글쓰기
         </button>
         </div>
+      </div>
+
+      <div className="flex items-center justify-end gap-2 px-4 pb-2 sm:px-0">
+        {/* 서랍 사본으로 버티는 중 — 이 말이 없으면 「왜 새 글이 없지」 한다 */}
+        {loadError && !!posts?.length && (
+          <p className="mt-2 flex items-center gap-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
+            <span>지금은 연결이 안 되어 지난번에 본 목록을 보이고 있습니다.</span>
+            <button
+              onClick={refresh}
+              className="shrink-0 rounded-full border border-gold/45 px-2.5 py-1 text-[11px] text-gold transition-colors hover:bg-gold/10"
+            >
+              다시
+            </button>
+          </p>
+        )}
       </div>
 
       <ul className="divide-y divide-ink-3/60 border-y border-ink-3/60">
@@ -1595,7 +1594,7 @@ export default function GatheringBoard({
                   setSelectedId(p.id);
                   pushLayer();
                 }}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gold/5 sm:px-2"
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-gold/5 sm:px-2"
               >
                 {/* 프로필 — 사진을 켠 사람은 작은 얼굴, 아니면 음양 */}
                 <PostFace p={p} />
@@ -1607,14 +1606,14 @@ export default function GatheringBoard({
                       </span>
                     )}
                     <span
-                      className={`block truncate text-[15px] font-medium leading-6 ${
-                        p.deleted ? "text-hanji-faint" : "text-hanji"
+                      className={`block truncate text-[16px] font-semibold leading-6 ${
+                        p.deleted ? "text-hanji-faint" : "text-[#1a1a1c]"
                       }`}
                     >
                       {p.title}
                     </span>
                   </span>
-                  <span className="mt-0.5 flex min-w-0 items-center gap-2.5 text-[11.5px] tracking-wide text-hanji-faint">
+                  <span className="mt-0.5 flex min-w-0 items-center gap-2.5 text-[12px] text-[#6e6a6c]">
                     <span className="shrink-0">{stamp(p.createdAt)}</span>
                     <span className="flex shrink-0 items-center gap-1">
                       <EyeIcon />

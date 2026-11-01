@@ -57,7 +57,7 @@ function GatheringInner() {
 
         </>
       )}
-      <section className={view === "list" ? "rise rise-d1 mt-5" : ""}>
+      <section className={view === "list" ? "rise rise-d1" : ""}>
         <GatheringBoard
           key={fresh}
           initialTemple={temple}

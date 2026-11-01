@@ -782,7 +782,7 @@ function 사연목록({
             onClick={() => 내공양만잡기((v) => !v)}
             disabled={!me}
           >
-            내 공양만
+            내 공양
           </button>
           <button onClick={onClose}>닫기</button>
         </div>
