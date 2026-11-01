@@ -25,6 +25,13 @@ export type 자취 = {
 export function 쓰임말(why: string): string {
   const 표: Record<string, string> = {
     "dm-request": "쪽지 청하기",
+    like: "호감",
+    "like-sincere": "진심 호감",
+    "dm-room": "쪽지방 열기",
+    "dm-reveal": "누군지 보기",
+    "dm-contact": "번호·카톡 열기",
+    "dm-contact-both": "번호·카톡 열기(둘 몫)",
+    "dm-read-pass": "읽음 확인",
     "yeon-hap": "합장",
     "yeon-more": "누가 합장했나 보기",
     candle: "초 공양",

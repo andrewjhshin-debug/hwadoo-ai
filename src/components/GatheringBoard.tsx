@@ -7,7 +7,7 @@
 //   조회 수 · 쓴 날짜 → 내용 → (있으면) 약속 절·날짜·시간 →
 //   합장(공감, 토글)·[함께하기] → 댓글들 → 댓글 쓰기(모바일: 아래 탭 바로 위 고정).
 // · 음양 문양 — 글쓴이·댓글 단 이 이름 곁 (남녀는 음양). 누르면 쪽지 팝업:
-//   청하기 1건 = 연꽃 3송이, 수락된 대화는 열 마디까지 무료(lib/dmLadder).
+//   얼굴 → 호감(1송이·진심 3) → 「나도」면 청실홍실 → 쪽지방 3송이 한 번 → 무제한(lib/dmLadder).
 //   첫 계정엔 연꽃 3송이 무료.
 // · 합장은 계정당 하나(토글 — 다시 누르면 거둔다).
 //   댓글 좋아요/싫어요는 계정당 하나 — 갈아탈 수 있고, 다시 누르면 거둔다.
@@ -42,18 +42,16 @@ import {
   type GatheringCategory,
   type Post,
 } from "@/lib/community";
-import InyeonThread, { InyeonThreadBadge } from "@/components/InyeonThread";
+import { InyeonThreadBadge } from "@/components/InyeonThread";
+import LikeSheet from "@/components/LikeSheet";
 import { loadStore } from "@/lib/store";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { bumpPost } from "@/lib/community";
 import { isAdminAccount } from "@/lib/config";
 import {
   dmVisible,
-  fetchMyThreads,
   getLotus,
   reportComment,
-  requestThread,
-  type DmThread,
 } from "@/lib/dm";
 import { TEMPLES } from "@/lib/pilgrimage";
 
@@ -231,7 +229,7 @@ function useGo(postId: string) {
   };
   return { 판, 보내기 };
 }
-function GoPostBox({ p, open, matched = false }: { p: Post; open: () => void; matched?: boolean }) {
+function GoPostBox({ p, open }: { p: Post; open: () => void }) {
   const { 판 } = useGo(p.id);
   const 줄 = Object.entries(판?.people ?? {}).sort((a, b) => a[1].at - b[1].at);
   const 수 = Math.max(1, 줄.length);
@@ -240,7 +238,7 @@ function GoPostBox({ p, open, matched = false }: { p: Post; open: () => void; ma
       {/* 형: 「같이 가요 버튼도 없애, 그냥 클릭하면 게시물 들어가지는 거로」 */}
       <button type="button" className="hip-go-box-main" onClick={open}>
         <span className="hip-go-box-when">{[날말(p.meetDate), p.meetTime ? timeLabel(p.meetTime) : "", p.templeName].filter(Boolean).join(" · ")}</span>
-        <span className="hip-go-box-title">{p.title}{matched && <InyeonThreadBadge />}</span>
+        <span className="hip-go-box-title">{p.title}</span>
         <span className="hip-go-box-faces">
           {(줄.length ? 줄 : [[p.authorUid, { name: p.authorName, at: 0 }] as [string, 가는사람]]).slice(0, 3).map(([id, x]) => <GoFace key={id} uid={id} name={x.name} sex={x.sex} />)}
           <small>{p.capacity ? `${수}/${p.capacity}명` : `${수}명`}</small>
@@ -536,18 +534,13 @@ export default function GatheringBoard({
   const [votes, setVotes] = useState<Record<string, VoteDir>>({});
   const [reported, setReported] = useState<Set<string>>(new Set());
 
-  // 연꽃 팝업 — 쪽지 청하기
+  // 호감 판 — 얼굴을 누르면 뜬다. 형: 「호감 보내기가 하나뿐인 입구」
   const [dmTarget, setDmTarget] = useState<{
     postId: string;
     uid: string;
     name: string;
+    sex?: "m" | "f" | null;
   } | null>(null);
-  const [dmIntro, setDmIntro] = useState("");
-  const [진심, 진심잡기] = useState(false);
-  const [dmBusy, setDmBusy] = useState(false);
-  const [dmNeed, setDmNeed] = useState(false);
-  const [dmLotus, setDmLotus] = useState<number | null>(null);
-  const [threadByKey, setThreadByKey] = useState<Record<string, DmThread>>({});
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -648,19 +641,6 @@ export default function GatheringBoard({
     setVotes(loadVotes(user?.uid));
   }, [user]);
 
-  // 내가 청해 둔 쪽지 대화들
-  useEffect(() => {
-    if (!user || !dmVisible(user.uid)) return;
-    fetchMyThreads()
-      .then((list) => {
-        const m: Record<string, DmThread> = {};
-        for (const t of list)
-          if (t.requesterUid === user.uid) m[`${t.postId}|${t.ownerUid}`] = t;
-        setThreadByKey(m);
-      })
-      .catch(() => {});
-  }, [user]);
-
   // 지도 팝업에서 절 이름·날짜가 넘어오면 — 폼에 미리 채우고 연다
   useEffect(() => {
     if (initialTemple) setTemple(initialTemple);
@@ -738,16 +718,6 @@ export default function GatheringBoard({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, user]);
-
-  // 연꽃 팝업이 열리면 — 잔고를 살핀다
-  useEffect(() => {
-    if (!dmTarget || !user) return;
-    setDmNeed(false);
-    setDmLotus(null);
-    getLotus()
-      .then(setDmLotus)
-      .catch(() => {});
-  }, [dmTarget, user]);
 
   // 글쓰기 자격 — 로그인 + 1회향 (글·댓글 공통)
   const qualified = !!user && returnedCount >= 1;
@@ -936,38 +906,10 @@ export default function GatheringBoard({
   const isMine = (p: Post) =>
     !!user && (user.uid === p.authorUid || isAdminAccount(user));
 
-  // 연꽃 — 이 사람에게 쪽지 팝업을 연다
-  const openLantern = (p: Post, uid: string, name: string) => {
-    setDmIntro("");
-    setDmNeed(false);
-    setDmTarget({ postId: p.id, uid, name });
+  // 얼굴 — 이 사람에게 호감 판을 연다
+  const openLantern = (p: Post, uid: string, name: string, sex?: "m" | "f" | null) => {
+    setDmTarget({ postId: p.id, uid, name, sex });
     pushLayer();
-  };
-
-  const submitDmRequest = async (p: Post) => {
-    if (!dmTarget) return;
-    setDmBusy(true);
-    setDmNeed(false);
-    try {
-      const t = await requestThread(
-        p,
-        { uid: dmTarget.uid, name: dmTarget.name },
-        dmIntro,
-        진심
-      );
-      if (t === "need-lotus") {
-        setDmNeed(true);
-        return;
-      }
-      setThreadByKey((m) => ({ ...m, [`${p.id}|${dmTarget.uid}`]: t }));
-      setDmIntro("");
-      getLotus().then(setLotusBal).catch(() => {});
-      goBack(); // 팝업 층을 걷는다
-    } catch {
-      // 연결·권한 문제 — 입력은 남긴다
-    } finally {
-      setDmBusy(false);
-    }
   };
 
   // 댓글·답글 남기기
@@ -1077,8 +1019,7 @@ export default function GatheringBoard({
     }
   };
 
-  // 프로필 태극이 곧 쪽지 단추 — 누르면 그 사람에게 쪽지 팝업.
-  // 이미 대화가 있으면 모서리에 금점 하나.
+  // 프로필 얼굴이 곧 호감 단추 — 누르면 그 사람에게 호감 판.
   const profileFor = (
     p: Post,
     uid: string,
@@ -1088,135 +1029,21 @@ export default function GatheringBoard({
   ) => {
     const face = { avatar: uid === p.authorUid ? p.avatar : false, authorUid: uid, gender: g };
     if (!dmVisible(user?.uid)) return <PostFace p={face} className={cls} />;
-    const has = !!threadByKey[`${p.id}|${uid}`];
     return (
       <button
-        onClick={() => openLantern(p, uid, name)}
-        title={has ? "쪽지함으로" : "쪽지 보내기"}
-        aria-label={`${name}에게 쪽지 보내기`}
+        onClick={() => openLantern(p, uid, name, g)}
+        title="호감 보내기"
+        aria-label={`${name}에게 호감 보내기`}
         className="relative shrink-0 rounded-full transition-transform active:scale-90"
       >
         <PostFace p={face} className={cls} />
-        {has && (
-          <span
-            aria-hidden
-            className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-gold shadow-[0_0_5px_var(--color-gold)]"
-          />
-        )}
       </button>
     );
   };
 
-  // ── 연꽃 팝업 — 쪽지 청하기 ──────────────────────────────
-  const lanternModal = () => {
-    if (!dmTarget) return null;
-    const p = posts?.find((x) => x.id === dmTarget.postId);
-    if (!p) return null;
-    const thread = threadByKey[`${p.id}|${dmTarget.uid}`];
-    return (
-      <div
-        className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-4 sm:items-center"
-        onClick={goBack}
-      >
-        <div
-          className="w-full max-w-sm rounded-[16px] border border-gold/30 bg-ink-2 px-5 py-5 shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <p className="flex items-center gap-2 text-[15.5px] tracking-wide text-hanji">
-            <YinYang className="h-[22px] w-[22px] text-gold" />
-            {dmTarget.name} 님에게 쪽지
-          </p>
-
-          {!user ? (
-            <p className="mt-3 break-keep text-[13.5px] leading-6 text-hanji-dim">
-              쪽지는 로그인한 분만 보낼 수 있습니다 — 왼쪽 아래(모바일은 내
-              도량)에서 로그인해 주세요.
-            </p>
-          ) : user.uid === dmTarget.uid ? (
-            <p className="mt-3 break-keep text-[13.5px] leading-6 text-hanji-dim">
-              내 이름 곁의 음양입니다. 다른 수행자의 문양을 눌러 보세요.
-            </p>
-          ) : thread ? (
-            <>
-              <p className="mt-3 text-[12px] leading-6 text-hanji-dim">
-                {thread.status === "accepted"
-                  ? "대화가 열려 있어요"
-                  : thread.status === "pending"
-                    ? "답을 기다리는 중이에요"
-                    : "지난번엔 이어지지 않았어요"}
-              </p>
-              <Link
-                href="/letters"
-                className="mt-3 inline-block rounded-[10px] border border-gold/50 px-4 py-2.5 text-[13.5px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
-              >
-                쪽지함 →
-              </Link>
-            </>
-          ) : dmNeed ? (
-            <>
-              <p className="mt-3 break-keep text-[13.5px] leading-6 text-hanji-dim">
-                연꽃이 없습니다 — 연꽃 한 송이(1,000원)로 쪽지를 청할 수
-                있습니다.
-              </p>
-              <Link
-                href="/lotus"
-                className="mt-3 inline-block rounded-[10px] border border-gold/50 px-4 py-2.5 text-[13.5px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
-              >
-                연꽃 얻기 →
-              </Link>
-            </>
-          ) : (
-            <>
-              <textarea
-                value={dmIntro}
-                onChange={(e) => setDmIntro(e.target.value)}
-                rows={3}
-                maxLength={200}
-                placeholder="한 마디와 함께"
-                className="mt-3 w-full resize-none rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-3 text-[15px] leading-7 text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
-              />
-              {/* 진심 쪽지 — 🪷5. 받는 쪽 맨 위, 금테 */}
-              {!isAdminAccount(user) && (
-                <label className="hip-sincere">
-                  <input type="checkbox" checked={진심} onChange={(e) => 진심잡기(e.target.checked)} />
-                  <span><b>진심 쪽지</b> · 상대 쪽지함 맨 위에 금테로</span>
-                </label>
-              )}
-              <button
-                onClick={() => submitDmRequest(p)}
-                disabled={dmBusy || !dmIntro.trim()}
-                className="btn-obang mt-3 w-full rounded-[10px] py-3 text-[14px] tracking-[0.15em] text-hanji transition-opacity enabled:hover:opacity-90 disabled:opacity-40"
-              >
-                {dmBusy
-                  ? "보내는 중…"
-                  : isAdminAccount(user)
-                    ? "쪽지 청하기"
-                    : `쪽지 청하기 — 연꽃 ${진심 ? 5 : 3}송이`}
-              </button>
-              {isAdminAccount(user) ? null : (
-                /* 첫 선물·「수락되면 무료」는 뗐다 — 위 단추가 값을 이미
-                   말했고, 지금 누를 일과 상관없는 안내였다. 잔고만 남긴다 */
-                <p className="mt-2.5 break-keep text-center text-[11px] leading-5 text-hanji-faint">
-                  내 연꽃{" "}
-                  <span className="text-gold">
-                    {dmLotus === null ? "…" : dmLotus}
-                  </span>
-                  송이
-                </p>
-              )}
-            </>
-          )}
-
-          <button
-            onClick={goBack}
-            className="mt-3.5 w-full text-center text-[12.5px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
-          >
-            닫기
-          </button>
-        </div>
-      </div>
-    );
-  };
+  // ── 호감 판 ──────────────────────────────────────────
+  const lanternModal = () =>
+    dmTarget ? <LikeSheet to={dmTarget.uid} name={dmTarget.name} sex={dmTarget.sex} onClose={goBack} /> : null;
 
   // ── 댓글 한 덩이 ─────────────────────────────────────────
   const renderComment = (p: Post, c: Comment, isReply: boolean) => {
@@ -1327,8 +1154,6 @@ export default function GatheringBoard({
     const ids = new Set(all.map((c) => c.id));
     const tops = all.filter((c) => !c.parentId || !ids.has(c.parentId));
     const childrenOf = (id: string) => all.filter((c) => c.parentId === id);
-    // 청실홍실 — 글을 올린 이와 처음 붙은 다른 사람. 그 둘이 이어진 자리다.
-    const tied = all.find((c) => !c.deleted && c.authorUid && c.authorUid !== p.authorUid);
 
     return (
       <div className="px-4 pb-28 sm:px-0 md:pb-0">
@@ -1397,6 +1222,8 @@ export default function GatheringBoard({
           {profileFor(p, p.authorUid, p.authorName, p.gender, "h-9 w-9")}
           <span className="text-[13.5px] text-hanji-dim">{p.authorName}</span>
           <RankBadge hanja={p.rankHanja} />
+          {/* 청실홍실로 이어진 사람이면 — 형: 「밖에서도 매칭됐구나 알 수 있게」 */}
+          {matchedPosts.includes(p.id) && p.category !== "together" && <InyeonThreadBadge />}
           <span className="ml-auto flex shrink-0 items-center gap-2 text-[10.5px] tracking-wide text-hanji-faint">
             <span className="flex items-center gap-1">
               <EyeIcon className="h-[12px] w-[12px]" />
@@ -1405,21 +1232,6 @@ export default function GatheringBoard({
             <span>{stamp(p.createdAt)}</span>
           </span>
         </div>
-
-        {/* 청실홍실 — 함께 가겠다는 이가 붙으면 실이 걸린다 */}
-        {tied && p.category !== "together" && (
-          <div className="mt-4">
-            {/* 낮 — 이 판은 흰 카드 위다. 안 넘기면 먹빛 상자에 먹빛
-                글자가 되어 이름이 통째로 안 읽혔다 */}
-            <InyeonThread
-              leftName={p.authorName}
-              rightName={tied.authorName}
-              leftGender={p.gender}
-              rightGender={tied.gender}
-              낮
-            />
-          </div>
-        )}
 
         {/* 내용 */}
         <p
@@ -1441,13 +1253,13 @@ export default function GatheringBoard({
           </p>
         )}
 
-        {/* 합장 — 가운데 동그라미 하나 (내려진 글에는 없다) */}
+        {/* 공감 — 가운데 동그라미 하나 (내려진 글에는 없다). 「합장」은 이제 안 쓴다 */}
         {p.deleted ? null : (
         <div className="mt-4 flex flex-col items-center gap-1">
           <button
             onClick={() => like(p)}
             aria-pressed={liked}
-            aria-label="합장"
+            aria-label="공감"
             className={`flex h-12 w-12 items-center justify-center rounded-full border text-[19px] transition-all active:scale-90 ${
               liked
                 ? "border-gold/60 bg-gold/10"
@@ -1461,7 +1273,7 @@ export default function GatheringBoard({
               liked ? "text-gold" : "text-hanji-faint"
             }`}
           >
-            합장{p.hapjang > 0 ? ` ${p.hapjang}` : ""}
+            공감{p.hapjang > 0 ? ` ${p.hapjang}` : ""}
           </span>
           {likeHint && !user && (
             <span className="text-[10.5px] text-hanji-faint">
@@ -1840,9 +1652,9 @@ export default function GatheringBoard({
                   <span className="hip-feed-title" data-gone={p.deleted ? "1" : undefined}>
                     {!p.deleted && p.category && p.category !== "free" && <em>{categoryLabel(p.category)}</em>}
                     {p.title}
-                    {matchedPosts.includes(p.id) && !p.deleted && <InyeonThreadBadge />}
                   </span>
                   <span className="hip-feed-meta">
+                    {matchedPosts.includes(p.id) && !p.deleted && p.category !== "together" && <InyeonThreadBadge />}
                     {p.authorName || "이름 없는 이"} · {stamp(p.createdAt)} · <EyeIcon />{p.views ?? 0} · <CommentIcon />{p.commentCount}
                     {(p.templeName || p.meetDate) && <i> · {[p.templeName, p.meetDate ? legacyDate(p.meetDate) : null].filter(Boolean).join(" ")}</i>}
                   </span>

@@ -15,11 +15,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getAuth } from "firebase-admin/auth";
-import { FieldValue, getFirestore, type Firestore } from "firebase-admin/firestore";
-import { getMessaging, type TokenMessage } from "firebase-admin/messaging";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
-import { MERIT_ON_MATCH, QUIET_HOURS, pairId, today } from "@/lib/yeonPick";
-import { SITE_URL } from "@/lib/config";
+import { today } from "@/lib/yeonPick";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -80,124 +78,6 @@ export async function POST(req: Request) {
     );
 
   if (act === "pass") return Response.json({ ok: true, matched: false });
-
-  // 합장을 적는다
-  await db.doc(`yeon-haps/${me}_${to}`).set({
-    from: me,
-    to,
-    at: FieldValue.serverTimestamp(),
-  });
-
-  // 저쪽이 먼저 합장해 두었나 — 그러면 인연이 닿는다
-  const 저쪽 = await db.doc(`yeon-haps/${to}_${me}`).get();
-  if (!저쪽.exists) return Response.json({ ok: true, matched: false });
-
-  const id = pairId(me, to);
-  const 방 = db.doc(`yeon-matches/${id}`);
-  const 이미 = await 방.get();
-  // 짝 문서가 있어도 **방이 살아 있을 때만** 그 id 를 돌려준다.
-  // 사흘 조용해서 걷힌 방은 thread 칸이 비어 있다(api/push/daily) —
-  // 그걸 그대로 돌려주면 「인연이 닿았습니다」가 뜨는데 쪽지함엔 아무것도
-  // 없고, 그 짝은 영영 새 방을 못 연다.
-  const 옛방: string | undefined = 이미.exists ? 이미.data()!.thread : undefined;
-  if (옛방) {
-    const t = await db.doc(`dm-threads/${옛방}`).get();
-    if (t.exists) return Response.json({ ok: true, matched: true, thread: 옛방 });
-  }
-
-  // 쪽지방을 연다 — 기존 dm-threads 를 그대로 쓴다.
-  //
-  // **모양을 꼭 맞춰야 한다.** 쪽지함(/letters)은 한 줄을 그릴 때
-  // `t.ownerUid === 나 ? t.requesterName : t.ownerName` 로 상대 이름을
-  // 집는다. 인연 방에 그 칸이 없으면 undefined 가 되고, 바로 다음 줄의
-  // `.slice(0,1)` 에서 터져 **쪽지함 전체가 하얗게 죽는다** — 그 한 줄이
-  // 아니라 판이 통째로.
-  // 쪽지 보내기도 마찬가지다. sendMessage 가 방 문서를 갱신하는데,
-  // 규칙이 `requesterUid` 가 그대로인지 보므로 그 칸이 없으면 거절된다.
-  // 그래서 모임 글에서 열린 방과 **같은 칸을 다 채운다.**
-  const [나문서, 저문서] = await Promise.all([
-    db.doc(`yeon-profiles/${me}`).get(),
-    db.doc(`yeon-profiles/${to}`).get(),
-  ]);
-  const 내이름 = (나문서.data()?.name as string) || "도반";
-  const 저이름 = (저문서.data()?.name as string) || "도반";
-
-  const thread = db.collection("dm-threads").doc();
-  const 때 = FieldValue.serverTimestamp();
-  const batch = db.batch();
-  batch.set(thread, {
-    members: [me, to],
-    // 인연으로 열린 방은 청할 것이 없다 — 바로 이어진 사이다
-    status: "accepted",
-    requesterUid: me,
-    requesterName: 내이름,
-    ownerUid: to,
-    ownerName: 저이름,
-    // 모임 글에서 온 방이 아니다. 쪽지함이 제목 자리에 이것을 적는다
-    postId: "",
-    postTitle: "因緣 · 인연",
-    intro: "",
-    msgCount: 0,
-    from: me,
-    to,
-    kind: "yeon",
-    createdAt: 때,
-    updatedAt: 때,
-  });
-  batch.set(방, {
-    pair: [me, to],
-    thread: thread.id,
-    at: 때,
-    // 아무 말 없이 사흘이 지나면 조용히 닫는다. 죽은 방이 쌓이면
-    // 쪽지함이 쓸모없어진다
-    quietUntil: Date.now() + QUIET_HOURS * 3600_000,
-    closed: false,
-  });
-  await batch.commit();
-
-  // 공덕은 양쪽에 — 만남도 수행이다.
-  // 공덕 장부는 브라우저에 있으므로(merit.ts) 여기서는 「받을 것」만 적어
-  // 두고, 각자 들어올 때 챙겨 간다
-  const 몫 = { merit: MERIT_ON_MATCH, why: "yeon", at: 때 };
-  await Promise.all([
-    db.collection(`yeon-owed/${me}/list`).add(몫),
-    db.collection(`yeon-owed/${to}/list`).add(몫),
-  ]);
-
-  // 닿았다고 **알린다.**
-  // 여태 아무 소리도 안 났다 — 방은 사흘 조용하면 걷히는데(QUIET_HOURS),
-  // 둘 다 모르고 지나가면 그 인연은 아무 일도 없이 사라진다.
-  // 이 앱에서 알림을 보낼 까닭이 있다면 바로 이 순간이다.
-  await 닿았다고알리기(db, [
-    { uid: me, 상대: 저이름 },
-    { uid: to, 상대: 내이름 },
-  ]).catch(() => {
-    /* 알림이 못 가도 인연은 닿았다 — 여기서 실패를 올리지 않는다 */
-  });
-
-  return Response.json({ ok: true, matched: true, thread: thread.id });
-}
-
-/** 양쪽에 한 통씩. 토큰이 없으면 조용히 접는다 */
-async function 닿았다고알리기(
-  db: Firestore,
-  받을이들: { uid: string; 상대: string }[]
-) {
-  const 뭉치 = await Promise.all(
-    받을이들.map(async ({ uid, 상대 }) => {
-      const snap = await db.collection("push-tokens").where("uid", "==", uid).get();
-      return snap.docs.map<TokenMessage>((d) => ({
-        token: d.id,
-        data: {
-          title: "因緣 · 인연이 닿았습니다",
-          body: `${상대} 님과 서로 합장했습니다`,
-          url: `${SITE_URL}/letters`,
-        },
-        webpush: { fcmOptions: { link: `${SITE_URL}/letters` } },
-      }));
-    })
-  );
-  const messages = 뭉치.flat();
-  if (!messages.length) return;
-  await getMessaging().sendEach(messages.slice(0, 500));
+  // 마음 보내기는 호감 하나로 모였다 — 형: 「호감 보내기가 하나뿐인 입구」(/api/yeon/like)
+  return Response.json({ error: "use-like" }, { status: 410 });
 }

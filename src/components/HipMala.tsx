@@ -44,7 +44,7 @@ export const BEADS: Bead[] = [
     mark: "緣",
     name: "절로",
     href: "/gathering",
-    also: ["/pilgrimage", "/gathering/yeon", "/gathering/me", "/gathering/me/view", "/gathering/alerts", "/letters", "/go", "/moment"],
+    also: ["/pilgrimage", "/gathering/yeon", "/gathering/me", "/gathering/me/view", "/gathering/alerts", "/gathering/likes", "/letters", "/go", "/moment"],
   },
   {
     mark: "我",
