@@ -39,11 +39,14 @@ export async function GET(req: Request) {
   const 앉은 = Object.values(자리).filter((v) => v?.uid && typeof v.at === "number" && 지금 - v.at < 앉는시간 && v.uid !== me);
   const db = getFirestore(app);
   const 문서 = await db.getAll(db.doc(`yeon-profiles/${me}`), ...앉은.map((v) => db.doc(`yeon-profiles/${v.uid}`)));
+  // 서로 막은 사이는 목록에서 뺀다(양쪽 다)
+  const 막힘 = 앉은.length ? await db.getAll(...앉은.flatMap((v) => [db.doc(`yeon-blocks/${me}/list/${v.uid}`), db.doc(`yeon-blocks/${v.uid}/list/${me}`)])) : [];
   const 내것 = (문서[0].data() ?? {}) as 프;
   const 나 = { temple: 내것.religionOk ? (내것.temple ?? "") : "", area: 내것.area ?? "" };
   const 올해 = new Date(지금 + 9 * 3_600_000).getUTCFullYear();
 
   const 줄: 사람[] = 앉은.flatMap((v, i) => {
+    if (막힘[i * 2]?.exists || 막힘[i * 2 + 1]?.exists) return [];
     const d = (문서[i + 1].data() ?? {}) as 프;
     // 신고로 묶였거나 쉬는·정지된 사람은 줄에 안 세운다
     if (d.reportHold === true || d.state === "정지" || d.state === "쉼") return [];

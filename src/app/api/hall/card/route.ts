@@ -18,9 +18,13 @@ export async function GET(req: Request) {
   if (!app) return Response.json({ error: "server-not-ready" }, { status: 503 });
   const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/, "");
   if (!token) return Response.json({ error: "no-token" }, { status: 401 });
-  try { await getAuth(app).verifyIdToken(token); } catch { return Response.json({ error: "bad-token" }, { status: 401 }); }
+  let me = "";
+  try { me = (await getAuth(app).verifyIdToken(token)).uid; } catch { return Response.json({ error: "bad-token" }, { status: 401 }); }
   const uid = new URL(req.url).searchParams.get("uid") ?? "";
   if (!/^[A-Za-z0-9]{6,64}$/.test(uid)) return Response.json({ error: "bad-uid" }, { status: 400 });
+  // 서로 막은 사이면 아무것도 안 보인다
+  const [막1, 막2] = await getFirestore(app).getAll(getFirestore(app).doc(`yeon-blocks/${me}/list/${uid}`), getFirestore(app).doc(`yeon-blocks/${uid}/list/${me}`));
+  if (막1.exists || 막2.exists) return Response.json({}, { headers: { "cache-control": "no-store" } });
   const d = (await getFirestore(app).doc(`yeon-profiles/${uid}`).get()).data() as
     | {
         state?: string; reportHold?: boolean; approvedPhotoCount?: number; avatarOn?: boolean;
