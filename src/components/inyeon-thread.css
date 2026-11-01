@@ -3,6 +3,6 @@
 .silk-knot {display:block;width:100%;height:auto;overflow:visible}
 .inyeon-silk-names {display:flex;justify-content:space-between;gap:16px;font:300 13px/1.5 var(--font-serif,serif)}
 .inyeon-silk-names>span {display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.inyeon-silk-names small {font:10px/1.2 sans-serif;letter-spacing:.12em}
+.inyeon-silk-names small {font:500 10px/1.2 sans-serif;letter-spacing:.12em}
 .silk-match-badge {display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;width:30px;height:22px;flex-shrink:0;margin-left:5px;border-radius:12px;background:#f5eee7}
 .silk-knot-small {width:27px;height:20px;display:block}
