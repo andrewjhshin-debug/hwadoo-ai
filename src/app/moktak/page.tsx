@@ -172,11 +172,12 @@ const SKINS = {
     { id: "sandalwood", name: "나뭇결", src: "/obj/bead-wood-one-v2.png", dot: "#87512f", wide: true, one: "/obj/bead-wood-one-v2.png", lit: "/obj/bead-wood-one-v2.png" },
   ],
   bowl: [
+    // 형: 「얘를 맨 왼쪽으로, 디폴트로 — 처음 쓰는 사람이 더 간지나는 거 보게」
+    { id: "hammered", name: "두드린 놋쇠", src: "/obj/bowl-hammered-v2.webp", dot: "#ab824a" },
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
     { id: "indigo", name: "쪽빛", src: "/obj/bowl-indigo.png", dot: "#3b3560" },
     { id: "verdigris", name: "청동녹", src: "/obj/bowl-verdigris.png", dot: "#5f9a93" },
     { id: "ivory", name: "크림빛", src: "/obj/bowl-ivory-v2.webp", dot: "#e9dfbe" },
-    { id: "hammered", name: "두드린 놋쇠", src: "/obj/bowl-hammered-v2.webp", dot: "#ab824a" },
   ],
   // 키캡 셋 — 형: 「그럼 저기서 포대랑 미륵으로도 키캡 만들어라 딱 됐네 ㅋ」
   //
