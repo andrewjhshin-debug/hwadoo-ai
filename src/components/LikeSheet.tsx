@@ -12,13 +12,14 @@ import { 호감보내기 } from "@/lib/yeonLike";
 import { loadMe } from "@/lib/me";
 import { Yeonkkot } from "@/components/icons";
 import MatchScreen from "@/components/MatchScreen";
+import { pingLotus } from "@/components/LotusCount";
 
 type G = "m" | "f" | "" | null | undefined;
 
 export default function LikeSheet({ to, name, sex, onClose, onDone }: { to: string; name: string; sex?: G; onClose: () => void; onDone?: () => void }) {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [말, 말잡기] = useState("");
-  const [상태, 상태잡기] = useState<"" | "busy" | "sent" | "lotus" | "fail">("");
+  const [상태, 상태잡기] = useState<"" | "busy" | "sent" | "lotus" | "fail" | "nope">("");
   const [짝, 짝잡기] = useState<string | null>(null);
   useEffect(() => watchAuth(setUser), []);
   const 주인 = isAdminAccount(user ?? null);
@@ -29,6 +30,9 @@ export default function LikeSheet({ to, name, sex, onClose, onDone }: { to: stri
     if (r === "login") { 상태잡기(""); await loginWithGoogle(); return; }
     if (r === "need-lotus") { 상태잡기("lotus"); return; }
     if (r === "fail") { 상태잡기("fail"); return; }
+    if (r === "nope") { 상태잡기("nope"); return; }
+    // 연꽃을 썼으니 윗단 알약을 새로 읽힌다 — 안 그러면 쓰기 전 숫자 그대로 보인다
+    pingLotus();
     onDone?.();
     if (r.matched && r.pair) { 짝잡기(r.pair); 상태잡기(""); return; }
     상태잡기("sent");
@@ -60,7 +64,8 @@ export default function LikeSheet({ to, name, sex, onClose, onDone }: { to: stri
             </div>
             <p className="hip-like-note">진심은 상대 받은 호감 맨 위에, 처음부터 누군지 보여요</p>
             {상태 === "lotus" && <Link href="/lotus" className="hip-contact-lotus">연꽃이 모자라요 · 채우기</Link>}
-            {상태 === "fail" && <p className="hip-like-note">보내지 못했어요</p>}
+            {상태 === "fail" && <p className="hip-like-note">보내지 못했어요. 잠시 뒤 다시 눌러 주세요</p>}
+            {상태 === "nope" && <p className="hip-like-note">지금은 이 분께 호감을 보낼 수 없어요</p>}
           </>
         )}
       </div>
