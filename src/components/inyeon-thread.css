@@ -10,3 +10,18 @@
 .silk-match-badge > i {width:7px;height:7px;border-radius:50%;background:#3b4a8f;box-shadow:0 0 0 1px #f6f2ee}
 .silk-match-badge > i + i {margin-left:-2.5px;background:#b0233f}
 .silk-match-badge > b {margin-left:4px;font:500 9.5px/1 sans-serif;color:#8a7a62;letter-spacing:0}
+
+/* ── 신비로운 하늘 — 위 새벽 파랑, 아래 해질 녘 분홍(「너의 이름은」 포스터) ── */
+.inyeon-silk-sky.inyeon-silk-day { position:relative; padding:14px 18px 14px; border:0; background:linear-gradient(180deg,#dfe9f6 0%,#eef0f8 40%,#f8eef3 72%,#fbe6ec 100%); box-shadow:0 6px 24px rgba(120,110,160,.10); color:#6c6470; }
+.inyeon-silk-say { margin:0 0 2px; text-align:center; font:400 11.5px/1.4 var(--font-serif,serif); letter-spacing:.32em; color:#7b6f86; opacity:0; animation:silk-say 1.2s ease .9s forwards; }
+.inyeon-silk-stage { position:relative; }
+.inyeon-silk-draw { clip-path:inset(0 50% 0 50%); animation:silk-draw 1.4s cubic-bezier(.3,.7,.2,1) .15s forwards; }
+.inyeon-silk-glow { position:absolute; left:50%; top:50%; width:120px; height:60px; transform:translate(-50%,-50%) scale(.3); border-radius:50%; background:radial-gradient(closest-side,rgba(255,250,236,.95),rgba(255,214,226,.55) 45%,rgba(196,214,255,0)); opacity:0; animation:silk-glow 1.2s ease 1.2s forwards, silk-breathe 4.2s ease-in-out 2.4s infinite; pointer-events:none; }
+.inyeon-silk-mote { position:absolute; left:calc(50% + (var(--k) - 4) * 9px); top:55%; width:3px; height:3px; border-radius:50%; background:#fffbe9; box-shadow:0 0 6px 2px rgba(255,236,200,.75); opacity:0; animation:silk-mote 3.6s ease-out calc(1.4s + var(--k) * .38s) infinite; pointer-events:none; }
+@keyframes silk-draw { to { clip-path:inset(0 0 0 0); } }
+@keyframes silk-glow { 0% { opacity:0; transform:translate(-50%,-50%) scale(.3); } 45% { opacity:1; transform:translate(-50%,-50%) scale(1.25); } 100% { opacity:.7; transform:translate(-50%,-50%) scale(1); } }
+@keyframes silk-breathe { 0%,100% { opacity:.55; } 50% { opacity:.95; } }
+@keyframes silk-mote { 0% { opacity:0; transform:translate(0,0); } 20% { opacity:.95; } 100% { opacity:0; transform:translate(calc((var(--k) - 4) * 2px), -38px); } }
+@keyframes silk-say { to { opacity:1; } }
+@media (prefers-reduced-motion: reduce) { .inyeon-silk-draw { clip-path:none; animation:none; } .inyeon-silk-glow { opacity:.7; animation:none; transform:translate(-50%,-50%); } .inyeon-silk-mote { display:none; } .inyeon-silk-say { opacity:1; animation:none; } }
+.inyeon-silk-sky .inyeon-silk-names { margin-top:2px; }
