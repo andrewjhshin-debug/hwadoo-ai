@@ -4,5 +4,6 @@
 .hip-daybar .hip-daybar-row {display:grid;grid-template-columns:minmax(0,1fr) 32px;align-items:center;gap:4px;height:20px}
 .hip-daybar .hip-daybar-row>.hip-daybar-track {min-width:0;height:7px;margin:0;align-self:center}
 .hip-daybar .hip-daybar-row>.hip-daybar-lotus {display:grid;place-items:center;align-self:center;width:32px;height:32px;min-width:32px;margin:0;padding:0;border:0;background:transparent;line-height:0}
-.hip-daybar .hip-daybar-row>.hip-daybar-lotus>.merit-lotus {display:block;width:32px;height:28.8px;max-width:none;max-height:none}
+/* Base ends at SVG y=30: shift 6.1px to align its bottom with the 7px track bottom. */
+.hip-daybar .hip-daybar-row>.hip-daybar-lotus>.merit-lotus {display:block;width:32px;height:28.8px;max-width:none;max-height:none;transform:translateY(-6.1px)}
 .hip-daybar .hip-daybar-lotus,.hip-daybar[data-full="1"] .hip-daybar-lotus {filter:none!important;box-shadow:none!important;animation:none!important}
