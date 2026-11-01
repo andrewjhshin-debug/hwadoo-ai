@@ -34,6 +34,7 @@ import {
 } from "@/lib/dm";
 import { isAdminAccount } from "@/lib/config";
 import { DM_READ_PASS } from "@/lib/dmLadder";
+import HandInHand from "@/components/HandInHand";
 import ContactSwap from "@/components/ContactSwap";
 import { pingLotus } from "@/components/LotusCount";
 
@@ -276,6 +277,9 @@ export default function LettersPage() {
             )}
           </div>
         </div>
+
+        {/* 손잡고 절로 — 청실홍실 둘 사이 방에서만 */}
+        {opened.pair && <HandInHand pair={opened.pair} />}
 
         {/* 연락처 열기 — 둘 다 열어야 서로 보인다 */}
         <ContactSwap threadId={opened.id} pair={opened.pair} user={user} />
