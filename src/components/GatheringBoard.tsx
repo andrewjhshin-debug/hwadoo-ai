@@ -45,6 +45,7 @@ import {
 import InyeonThread, { InyeonThreadBadge } from "@/components/InyeonThread";
 import { loadStore } from "@/lib/store";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
+import { bumpPost } from "@/lib/community";
 import { isAdminAccount } from "@/lib/config";
 import {
   dmVisible,
@@ -787,8 +788,10 @@ export default function GatheringBoard({
         !p.deleted &&
         (categoryFilter === "all" || (p.category ?? "together") === categoryFilter)
     );
+    // 끌어올린 글(bumpUntil, 🪷3·하루)이 먼저, 그다음 새 글
+    const 위 = (p: Post) => ((p.bumpUntil ?? 0) > Date.now() ? 1 : 0);
     list.sort(
-      (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
+      (a, b) => 위(b) - 위(a) || (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
     );
     return list;
   }, [posts, categoryFilter, 찾을말]);
@@ -1354,6 +1357,12 @@ export default function GatheringBoard({
                     className="block w-full px-4 py-2.5 text-left text-[12.5px] text-hanji-dim transition-colors hover:bg-gold/10 hover:text-hanji"
                   >
                     고치기
+                  </button>
+                  <button
+                    onClick={async () => { setMenuOpen(false); const r = await bumpPost(p.id); if (r === "need-lotus") window.location.href = "/lotus"; else if (r) refresh(); }}
+                    className="block w-full border-t border-ink-3/60 px-4 py-2.5 text-left text-[12.5px] text-hanji-dim transition-colors hover:bg-gold/10 hover:text-hanji"
+                  >
+                    끌어올리기 🪷3
                   </button>
                   <button
                     onClick={() => remove(p)}

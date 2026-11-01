@@ -67,6 +67,10 @@ export async function POST(req: Request) {
   if ("needLotus" in result) return Response.json({ error: "need-lotus" }, { status: 402 });
   if ("limited" in result) return Response.json({ error: "daily-limit" }, { status: 429 });
   // 받는 이에게 쪽지 알림(인연판 종)
-  if (!result.exists) await 알림쓰기(db, targetUid, `dm_${id}`, { kind: "dm", text: `${requesterName || "누군가"}님이 쪽지를 청했어요`, threadId: id, by: requesterName });
+  // 누가 청했나는 「다 보기」(🪷1)를 내야 보인다 — 알림에서 먼저 새면 값이 무너진다. 진심 쪽지만 이름을 싣는다
+  if (!result.exists)
+    await 알림쓰기(db, targetUid, `dm_${id}`, sincere
+      ? { kind: "dm", text: `${requesterName || "누군가"}님이 진심 쪽지를 청했어요`, threadId: id, by: requesterName }
+      : { kind: "dm", text: "누군가 쪽지를 청했어요", threadId: id });
   return Response.json({ ok: true, already: result.exists, thread: result.thread });
 }

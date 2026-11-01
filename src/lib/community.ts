@@ -77,6 +77,7 @@ export type Post = {
   meetPlace?: string | null; // 같이 가요 — 어디서 만나 어떻게 가나
   openChatUrl?: string | null; // 오픈채팅 링크 — open.kakao.com 만 허용
   lantern?: boolean; // 연등 — 연꽃 한 송이로 목록 맨 위에 밝힌 글
+  bumpUntil?: number; // 끌어올림 — 🪷3 로 하루 맨 위(서버만 쓴다)
   avatar?: boolean; // 글쓴이가 「글에 내 사진」을 켰다 — /api/avatar/{uid}
 };
 
@@ -577,3 +578,19 @@ export async function fetchMyApprovedAnswerCount(uid: string): Promise<number> {
     return 0;
   }
 }
+
+/** 글 끌어올리기 — 🪷3, 하루 맨 위. 글쓴이만(서버가 본다) */
+export async function bumpPost(postId: string): Promise<number | "need-lotus" | null> {
+  const u = auth.currentUser;
+  if (!u) return null;
+  const r = await fetch("/api/post-bump", {
+    method: "POST",
+    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+    body: JSON.stringify({ post: postId }),
+  }).catch(() => null);
+  if (!r) return null;
+  if (r.status === 402) return "need-lotus";
+  const j = (await r.json().catch(() => null)) as { bumpUntil?: number } | null;
+  return r.ok && j?.bumpUntil ? j.bumpUntil : null;
+}
+

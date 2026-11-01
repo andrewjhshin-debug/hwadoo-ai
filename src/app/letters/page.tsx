@@ -30,12 +30,15 @@ import {
   reportThread,
   sendMessage,
   buyDmPass,
+  buyReadPass,
+  markRead,
+  revealRequests,
   DM_SEEN_EVENT,
   type DmMessage,
   type DmThread,
 } from "@/lib/dm";
 import { isAdminAccount } from "@/lib/config";
-import { DM_CONTACT, DM_CONTACT_BOTH, DM_FREE_MSGS, DM_PASSES, type DmPass, 끝난이용권, 보낼수있나 } from "@/lib/dmLadder";
+import { DM_CONTACT, DM_CONTACT_BOTH, DM_FREE_MSGS, DM_PASSES, DM_READ_PASS, DM_REVEAL, type DmPass, 끝난이용권, 보낼수있나 } from "@/lib/dmLadder";
 
 // "8.25" — 서버 시각이 아직이면 빈 문자열
 function dstr(t?: { seconds: number }): string {
@@ -111,6 +114,7 @@ export default function LettersPage() {
     setDraft("");
     // 읽음 — 봉투 위 붉은 점이 꺼진다
     if (user) markDmSeen(user.uid, t.id, t.lastAt?.seconds);
+    void markRead(t.id); // 상대가 읽음 확인을 샀다면 「읽음」이 뜬다
     try {
       window.history.pushState({ hwadooLayer: true }, "");
     } catch {
@@ -140,6 +144,17 @@ export default function LettersPage() {
       if (r === "need-lotus") 모자람잡기(true);
       else { 모자람잡기(false); 고칠방(t.id, { passUntil: r }); getLotus().then(setLotus); }
     } catch { /* 연결 문제 — 판은 그대로 */ } finally { 사는중잡기(false); }
+  };
+
+  // ── 읽음 확인 ──
+  const 읽음켬 = (t: DmThread) => isAdminAccount(user) || (t.readPassUntil?.[user?.uid ?? ""] ?? 0) > Date.now();
+  const 상대읽은때 = (t: DmThread) => Math.max(0, ...Object.entries(t.lastRead ?? {}).filter(([k]) => k !== user?.uid).map(([, v]) => v));
+  const 읽혔나 = (t: DmThread, m: DmMessage) => ((m.createdAt as { seconds?: number } | undefined)?.seconds ?? Infinity) * 1000 <= 상대읽은때(t);
+  const 내마지막 = (ms: DmMessage[]) => ms.map((m) => m.uid).lastIndexOf(user?.uid ?? "");
+  const 읽음사기 = async (t: DmThread) => {
+    const r = await buyReadPass(t.id);
+    if (r === "need-lotus") window.location.href = "/lotus";
+    else if (r) { 고칠방(t.id, { readPassUntil: r }); refresh(); } // 상대가 읽은 때는 서버가 다시 줄 때 붙는다
   };
 
   const send = async (t: DmThread) => {
@@ -288,15 +303,23 @@ export default function LettersPage() {
         {/* 연락처 열기 — 둘 다 열어야 서로 보인다 */}
         <ContactSwap threadId={opened.id} user={user} />
 
+        {/* 읽음 확인 — 🪷2, 이레. 산 사람만 제 쪽지 밑에 「읽음」을 본다 */}
+        {!읽음켬(opened) && !isAdminAccount(user) && (
+          <button onClick={() => void 읽음사기(opened)} className="mt-2 self-end text-[12px] text-[#a8804a] underline underline-offset-4">
+            읽음 확인 7일 · 🪷{DM_READ_PASS.n}
+          </button>
+        )}
+
         {/* 말풍선 */}
         <div className="mt-5 flex flex-1 flex-col gap-2.5 overflow-y-auto">
           {msgs === null ? (
             <p className="text-[13px] text-hanji-faint">펴 보는 중…</p>
           ) : msgs.length === 0 ? null : (
-            msgs.map((m) => (
+            msgs.map((m, i) => (
               <p
                 key={m.id}
-                className={`max-w-[82%] break-keep rounded-[14px] border px-4 py-2.5 text-[15px] leading-7 ${
+                data-read={읽음켬(opened) && i === 내마지막(msgs) && 읽혔나(opened, m) ? "읽음" : undefined}
+                className={`relative max-w-[82%] break-keep rounded-[14px] border px-4 py-2.5 text-[15px] leading-7 data-[read]:mb-4 data-[read]:after:absolute data-[read]:after:-bottom-5 data-[read]:after:right-1 data-[read]:after:text-[10.5px] data-[read]:after:text-[#a8804a] data-[read]:after:content-[attr(data-read)] ${
                   m.uid === user.uid
                     ? "self-end rounded-br-[4px] border-gold/30 bg-gold/10 text-hanji"
                     : "self-start rounded-bl-[4px] border-ink-3 bg-ink-2/60 text-hanji-dim"
@@ -392,6 +415,17 @@ export default function LettersPage() {
         </div>
       </div>
 
+      {/* 누가 청했나 다 보기 — 🪷1, 그날 하루. 진심 쪽지는 처음부터 보인다 */}
+      {incoming.some((t) => t.hidden) && (
+        <button
+          onClick={async () => { const r = await revealRequests(); if (r === "need-lotus") window.location.href = "/lotus"; else if (r) refresh(); }}
+          className="mt-5 flex w-full items-center justify-between rounded-[14px] bg-[#1a1a1c] px-4 py-3 text-[13.5px] text-white"
+        >
+          <span>{incoming.filter((t) => t.hidden).length}명이 쪽지를 청했어요</span>
+          <span className="text-[#d9b97a]">누군지 보기 · 🪷{DM_REVEAL}</span>
+        </button>
+      )}
+
       {/* 새로운 청 — 수락해야 대화가 열린다 */}
       {incoming.length > 0 && (
         <ul className="mt-5 flex flex-col gap-3">
@@ -402,12 +436,15 @@ export default function LettersPage() {
             >
               {t.sincere && <p className="mb-1 text-[11px] tracking-wide text-[#a8804a]">진심 쪽지</p>}
               <p className="break-keep text-[15px] leading-7 text-hanji">
-                <span className="text-gold">{t.requesterName}</span>
+                {t.hidden
+                  ? <span aria-label="가려진 이름" className="inline-block h-[14px] w-16 translate-y-[2px] rounded bg-[#b98a4e]/35 blur-[3px]" />
+                  : <span className="text-gold">{t.requesterName}</span>}
                 <span className="text-[12.5px] text-hanji-faint">
                   {" "}
                   · {t.postTitle}
                 </span>
               </p>
+              {t.hidden && <p aria-hidden className="mt-2 h-[13px] w-4/5 rounded bg-hanji-faint/25 blur-[3px]" />}
               {t.intro && (
                 <p className="mt-1 break-keep text-[14px] leading-7 text-hanji-dim">
                   &ldquo;{t.intro}&rdquo;

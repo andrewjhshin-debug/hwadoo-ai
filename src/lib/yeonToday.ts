@@ -42,6 +42,8 @@ export type 오늘사람 = {
   badges?: string[];
   /** 통과된 사진만 */
   photos: string[];
+  /** 잠긴 사진 수 — 「사진 더 보기」 🪷1 로 연다 */
+  morePhotos?: number;
   /** 이 카드를 연 사람에게만 찍히는 캡처 억제 표식 */
   photoMark?: string;
   /** 붙박이 한 장(운영자) — 맨 앞에 크게 선다 */
@@ -73,6 +75,19 @@ export type 인연탈 =
   | "max-today"
   | "no-one"
   | "무엇인가";
+
+/** 사진 더 보기 — 🪷1, 이레. 연 뒤의 사진 주소 전부를 돌려준다 */
+export async function 사진더보기(target: string): Promise<string[] | "need-lotus" | null> {
+  const r = await fetch("/api/yeon/photo-unlock", {
+    method: "POST",
+    headers: { authorization: await 표(), "content-type": "application/json" },
+    body: JSON.stringify({ target }),
+  }).catch(() => null);
+  if (!r) return null;
+  if (r.status === 402) return "need-lotus";
+  const j = (await r.json().catch(() => null)) as { photos?: string[] } | null;
+  return r.ok && j?.photos ? j.photos : null;
+}
 
 async function 표() {
   const u = auth.currentUser;

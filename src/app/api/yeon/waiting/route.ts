@@ -30,7 +30,7 @@ async function 셈(app: App, db: Firestore, me: string, 열림: boolean) {
   let people: unknown[] | undefined;
   if (열림) {
     const 문서 = await Promise.all(남은.slice(0, 12).map((u) => db.doc(`yeon-profiles/${u}`).get()));
-    people = (await Promise.all(문서.filter((d) => d.exists && d.data()?.state === "활동").map((d) => 추려서(app, { uid: d.id, ...d.data() })))).filter(Boolean);
+    people = (await Promise.all(문서.filter((d) => d.exists && d.data()?.state === "활동").map((d) => 추려서(app, { uid: d.id, ...d.data() }, false, me)))).filter(Boolean);
   }
   return { got: 남은.length, sent: 보낸.size, open: 열림, people };
 }
