@@ -485,6 +485,13 @@ export default function 오늘의인연() {
           </span>
         </div>
 
+        {/* 인증 뱃지 — 우리가 실제로 확인한 것만 */}
+        {!!이.badges?.length && (
+          <div className="hip-yeon-badges">
+            {이.badges.map((b) => <span key={b}>✓ {b}</span>)}
+          </div>
+        )}
+
         {/* ── 무엇을 하는 사람인가 ── */}
         {/* 알약은 **여섯까지.**
             형: 「심플리시티가 핵심이다」 — 열두 개를 다 깔았더니 사람이

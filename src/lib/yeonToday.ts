@@ -38,6 +38,8 @@ export type 오늘사람 = {
   /** 물음 답 — 열 자 넘게 쓴 것만 온다 */
   qa?: Record<string, string>;
   rank: string;
+  /** 인증 뱃지 — 사진 확인·얼굴 인증·휴대폰 인증·절 다녀옴 */
+  badges?: string[];
   /** 통과된 사진만 */
   photos: string[];
   /** 이 카드를 연 사람에게만 찍히는 캡처 억제 표식 */

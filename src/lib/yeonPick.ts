@@ -1,3 +1,4 @@
+import { getFirestore } from "firebase-admin/firestore";
 import type { App } from "firebase-admin/app";
 import type { Firestore } from "firebase-admin/firestore";
 // 문턱 스위치 하나 — 켜면 확인 안 된 사람은 판에도 못 서고 뽑히지도 않는다
@@ -81,7 +82,18 @@ export async function 추려서(app: App, p: 프로필, 붙박이 = false) {
     f.state === "ok" && isYeonPhotoPath(p.uid, f.path)
   );
   const photos = (await Promise.all(approved.map((f) => shortPhotoUrl(app, f.path)))).filter((url): url is string => !!url);
+  // 인증 뱃지 — 우리식. 신분증 대신 우리가 실제로 확인한 것만 단다.
+  // 형: 「왜 뺐지 이거 우리식으로 할수 있나」
+  let 절간횟수 = 0;
+  try { 절간횟수 = (await getFirestore(app).collection("temple-proofs").where("uid", "==", p.uid).count().get()).data().count; } catch { /* 없으면 0 */ }
+  const badges = [
+    "사진 확인",
+    ...(p.photoProof?.state === "ok" ? ["얼굴 인증"] : []),
+    ...(p.verified ? ["휴대폰 인증"] : []),
+    ...(절간횟수 > 0 ? [`절 ${절간횟수}번 다녀옴`] : []),
+  ];
   return {
+    badges,
     uid: p.uid,
     // 붙박이 — 운영자 한 장. 화면이 이걸 보고 카드를 키운다
     pinned: 붙박이 || undefined,

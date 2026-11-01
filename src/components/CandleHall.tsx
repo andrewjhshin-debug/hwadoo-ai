@@ -95,9 +95,9 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
 // 위로 조금 겹친다(불단 쪽으로 바짝). [줄 위치(마루 높이 %), 크기(마루 폭 %), 개수, 양끝 여백 %]
 // 형: 「지금 좌복 훌륭. 맨 아래도 3개 정도 — 3줄로」. 뒤에서부터 다섯·넷·셋
 const 좌복줄: [number, number, number, number][] = [
-  [-6, 17, 5, 1],
-  [17, 21, 4, 5],
-  [44, 25, 3, 10],
+  [2, 19, 5, 0],
+  [26, 23, 4, 3],
+  [54, 27, 3, 7],
 ];
 function 법당마루() {
   return <div className="hip-hall-floor" aria-hidden>
@@ -960,7 +960,7 @@ export default function CandleHall() {
           aria-label={기와들.length ? `기와 불사 ${기와들.length}장 보기` : "기와 불사"}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/obj/gong-giwa-roof.webp" alt="" draggable={false} />
+          <img src="/obj/hall-roof-cute.webp" alt="" draggable={false} />
           {기와들.length > 0 && <b>{Math.min(기와들.length, 999)}</b>}
         </button>
       </div>
