@@ -62,16 +62,25 @@ export async function POST(req: Request) {
   });
   if (left < 0) return Response.json({ error: "quota", left: 0 }, { status: 429 });
 
-  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent", {
-    method: "POST",
-    headers: { "x-goog-api-key": key, "content-type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: 선지식 }] },
-      contents: [{ role: "user", parts: [{ text: `화두: ${question}\n품은 지 ${day}일째.\n수행자의 한 줄: ${answer}` }] }],
-      generationConfig: { thinkingConfig: { thinkingBudget: 0 }, maxOutputTokens: 120, temperature: 0.9 },
-    }),
-  }).catch(() => null);
-  if (!r || !r.ok) return Response.json({ error: "upstream", left }, { status: 502 });
+  const 보낼것 = JSON.stringify({
+    system_instruction: { parts: [{ text: 선지식 }] },
+    contents: [{ role: "user", parts: [{ text: `화두: ${question}\n품은 지 ${day}일째.\n수행자의 한 줄: ${answer}` }] }],
+    generationConfig: { thinkingConfig: { thinkingBudget: 0 }, maxOutputTokens: 120, temperature: 0.9 },
+  });
+  const 부르기 = (headers: Record<string, string>) =>
+    fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent", {
+      method: "POST",
+      headers: { ...headers, "content-type": "application/json" },
+      body: 보낼것,
+    }).catch(() => null);
+  // 키 꼴이 둘이다 — 옛 「AIza…」는 x-goog-api-key, 새 「AQ.…」는 Bearer 로 받는 일이 있다.
+  // 앞의 것이 열쇠 문제(401/403)로 막히면 다른 꼴로 한 번 더 두드린다
+  let r = await 부르기({ "x-goog-api-key": key });
+  if (r && (r.status === 401 || r.status === 403)) r = await 부르기({ authorization: `Bearer ${key}` });
+  if (!r || !r.ok) {
+    console.error("zen upstream", r?.status, (await r?.text().catch(() => ""))?.slice(0, 300));
+    return Response.json({ error: "upstream", left }, { status: 502 });
+  }
   const j = (await r.json().catch(() => null)) as { candidates?: { content?: { parts?: { text?: string }[] } }[] } | null;
   const text = (j?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("").trim().replace(/[*_`"“”]/g, "").slice(0, 140);
   if (!text) return Response.json({ error: "empty", left }, { status: 502 });
