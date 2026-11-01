@@ -6,5 +6,64 @@
 .saju-pills{display:flex;flex-wrap:wrap;gap:7px;}.saju-pills button{flex:1;white-space:nowrap;padding:10px;}.saju-pills button[aria-pressed=true]{background:#e7efe3;border-color:#a5bca0;color:#385d40;}.saju-toolbar{display:flex;gap:7px;margin:22px 0 15px;}.saju-toolbar button{font-size:12px;}.saju-history{color:var(--sj-muted);}.saju-error{border-radius:12px;padding:13px;background:#f7e5e9;color:#9d3e5d;}.saju-seal{width:110px;height:110px;display:grid;place-items:center;background:#e5ecdf;color:#6c865d;border-radius:50%;font-family:var(--font-serif),serif;font-size:47px;margin:38px auto 22px;}.saju-start{text-align:center;}
 .saju-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding-top:20px;}.saju-pillars>div{text-align:center;background:#f0f0e6;border-radius:13px;padding:15px 4px;}.saju-pillars strong{display:block;font-family:var(--font-serif),serif;font-size:29px;font-weight:400;letter-spacing:.1em;margin-top:9px;writing-mode:vertical-lr;justify-self:center;}.saju-elements{display:flex;gap:8px;justify-content:space-between;margin:18px 0 8px;font-size:13px;}.saju-elements b{font-weight:500;}.saju-action{padding:16px;background:#e9f0e4;border-radius:13px;}.saju-offer{margin-top:30px;border:1px solid #d9dfcf;padding:20px;border-radius:19px;background:#fcfaf3;}.saju-offer>span{font-size:11px;color:var(--sj-muted);}.saju-offer h2{margin-top:9px;}.saju-price{font-size:35px;font-weight:400;font-variant-numeric:tabular-nums;}.saju-price small{display:inline;margin-left:6px;font-size:11px;}.saju summary{font-size:12px;min-height:40px;padding:10px 0;cursor:pointer;}.saju details p{font-size:12px;color:var(--sj-muted);}.saju-bank{display:flex;flex-direction:column;gap:10px;font-size:13px;overflow-wrap:anywhere;}.saju-bank p{font-size:12px;color:var(--sj-muted);}.saju-bank strong{font-weight:500;}
 .saju-reading-title{margin-top:42px;}.saju-reading-title>span{font-size:12px;color:var(--sj-green);}.saju-reading-section{margin:30px 0;border-top:1px solid var(--sj-line);padding-top:20px;}.saju-reading-section small{color:#9f8d64;}.saju-reading-section h3{margin:8px 0 14px;}.saju-questions{margin:35px 0;}.saju-questions>div{padding:17px 0;border-bottom:1px solid var(--sj-line);}.saju-questions b{font-size:14px;font-weight:500;}.saju-questions h3>small{display:inline;float:right;}.saju-basis{border-top:1px solid var(--sj-line);margin-top:30px;}.saju-footer{font-size:10px;color:var(--sj-muted);line-height:1.9;margin-top:35px;border-top:1px solid var(--sj-line);padding-top:20px;}.saju-admin-order{padding:18px;border:1px solid var(--sj-line);border-radius:14px;margin:15px 0;font-size:13px;}.saju-admin-order code{display:block;font-size:11px;overflow-wrap:anywhere;}
-@media(max-width:360px){.saju{padding-left:3px;padding-right:3px;}.saju h1{font-size:29px;}.saju-offer{padding:15px;}.saju-pills button{font-size:12px;}}
+.saju { width:min(100%,420px); padding:0 14px 24px; }
+.hip-screen-mid > .saju:first-child:last-child { margin-block:0; }
+.saju-head { min-height:36px; font-size:12px; }
+.saju-head > span:first-of-type { margin:auto; letter-spacing:.24em; }
+.saju-head > a:first-child { width:32px; font-size:20px; }
+.saju-head::after { content:""; width:32px; }
+.saju-head:has(a:last-child:not(:first-child))::after { display:none; }
+.saju-entrance { text-align:center; padding:12px 0 25px; }
+.saju-entrance .saju-seal { width:54px; height:64px; margin:0 auto 12px; border:1px solid #c5d3c0; border-radius:28px 28px 10px 10px; background:#edf1e8; color:#65816b; font-size:27px; }
+.saju-entrance h1 { margin:0; font-size:28px; line-height:1.4; letter-spacing:.12em; }
+.saju-entrance p { margin:8px 0 0; font-size:12px; color:var(--sj-muted); letter-spacing:.12em; }
+.saju-birth-head { display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:13px; }
+.saju-birth-head .saju-pills { gap:0; padding:3px; border-radius:24px; background:#e9eee5; }
+.saju-birth-head button { min-height:32px; padding:5px 14px; border:0; background:transparent; }
+.saju-birth-head button[aria-pressed=true] { background:#fffdf7; }
+.saju-form .saju-birth-date { margin:8px 0 0; }
+.saju-form .saju-birth-date input { margin:0; background:transparent; border:0; border-bottom:1px solid #c8d3c3; border-radius:0; min-height:54px; font-size:20px; }
+.saju-time { margin:8px 0 0; }
+.saju-time summary,.saju-history summary { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.saju-time summary small,.saju-history summary small { display:inline; }
+.saju-time summary::after { content:"+"; color:var(--sj-muted); }
+.saju-time[open] summary::after { content:"−"; }
+.saju-time summary small { margin-left:auto; }
+.saju-time label { margin:0 0 8px; }
+.saju .saju-local { font-size:10px; text-align:right; }
+.saju-form fieldset { margin:18px 0 20px; }
+.saju-form legend { margin-bottom:12px; }
+.saju-form fieldset button { background:transparent; border-color:#cbd6c5; }
+.saju-form fieldset button[aria-pressed=true] { background:#e3ecde; }
+.saju-consent { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; column-gap:10px; }
+.saju-consent .saju-check { margin:0; align-items:center; font-size:11px; }
+.saju-consent .saju-check input { margin:0; }
+.saju-consent details { font-size:11px; color:var(--sj-muted); }
+.saju-consent details[open] { flex-basis:100%; }
+.saju-consent summary { font-size:10px; min-height:32px; padding:6px 0; }
+.saju-consent p { margin:0; font-size:11px; line-height:1.7; }
+.saju-form .saju-primary { margin:14px 0 0; }
+.saju-toolbar { justify-content:center; margin:0 0 16px; }
+.saju-toolbar button { border:0; background:transparent; text-decoration:underline; text-underline-offset:5px; }
+.saju-fortune { text-align:center; padding:28px 22px; border-top:1px solid #ccd7c7; border-bottom:1px solid #ccd7c7; }
+.saju-fortune > span { display:block; font-family:var(--font-serif),serif; font-size:56px; font-weight:300; color:#7e9474; }
+.saju-fortune h2 { font-family:var(--font-serif),serif; font-size:22px; margin:14px 0 18px; }
+.saju-fortune p { margin:0; font-size:16px; line-height:1.85; text-wrap:pretty; }
+.saju-history { margin:22px 0 0; border-top:1px solid var(--sj-line); padding-top:8px; }
+.saju-history label { font-size:12px; }
+.saju-history button { margin:12px 6px 0 0; }
+.saju-basis { margin-top:18px; }
+.saju-footer { border:0; text-align:center; margin-top:22px; padding:0; }
+.saju-footer summary { font-size:10px; }
+.saju-footer p { font-size:11px; }
+@media(max-width:360px){.saju{padding-left:5px;padding-right:5px;}.saju-entrance{padding-top:8px;padding-bottom:18px;}.saju-offer{padding:15px;}.saju-pills button{font-size:12px;}}
+@media(max-height:740px){
+  .hip-room-body:has(> .saju) { padding-top:8px; }
+  .saju-entrance { display:flex; align-items:center; justify-content:center; gap:12px; padding:8px 0 18px; }
+  .saju-entrance .saju-seal { width:34px; height:42px; margin:0; font-size:21px; }
+  .saju-entrance h1 { font-size:24px; }
+  .saju-entrance p { display:none; }
+  .saju-form fieldset { margin:12px 0; }
+  .saju-form .saju-birth-date input { min-height:48px; }
+}
 @media print{body *{visibility:hidden}.saju-result,.saju-result *{visibility:visible}.saju-result{position:absolute;inset:0;color:#222;background:#fff}.saju-result button,.saju-questions form,.saju-offer{display:none!important}.saju-reading-section{break-inside:avoid;}}
