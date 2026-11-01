@@ -114,7 +114,11 @@ function 법당인원() {
       const nw = img.naturalWidth || 940, nh = img.naturalHeight || 1672;
       const k = Math.max(w / nw, h / nh), H = nh * k;
       const py = parseFloat(getComputedStyle(img).objectPosition.split(" ")[1] ?? "50") / 100;
-      topSet((h - H) * (isNaN(py) ? 0.5 : py) + H * 0.42 - 6);
+      // 처마(지붕 그림) 아래로는 절대 안 올라간다 — 형: 「끊기잖아, 아마추어처럼 하지 마」
+      const 지붕 = p.closest(".hip-hall-sky")?.querySelector(".hip-hall-roof")?.getBoundingClientRect();
+      const 판위 = p.getBoundingClientRect().top;
+      const 처마밑 = 지붕 ? 지붕.bottom - 판위 + 34 : 0;
+      topSet(Math.max(처마밑, (h - H) * (isNaN(py) ? 0.5 : py) + H * 0.42 - 6));
     };
     재기();
     img.addEventListener("load", 재기);
@@ -133,7 +137,7 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="hip-hall-scene" src="/obj/hall-scene-v1.webp" alt="" draggable={false} />
       {/* 형: 「부처 머리 바로 위에 법당에 n명 있습니다, 검은 글씨에 숫자만 파랑」 */}
-      <법당인원 />
+      {/* 머리 위 「법당에 N명」은 걷었다 — 형: 「앉은 사람 N명 저렇게 두고 위에 저 부분은 지워라」 */}
       {children}
     </div>
     <법당마루 />
@@ -150,11 +154,11 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
 // 두 줄, 줄마다 같은 크기·같은 간격, 기울기 0. 뒷줄 다섯, 앞줄 넷은 뒷줄 틈에 엇갈려 앉고
 // 위로 조금 겹친다(불단 쪽으로 바짝). [줄 위치(마루 높이 %), 크기(마루 폭 %), 개수, 양끝 여백 %]
 // 형: 「지금 좌복 훌륭. 맨 아래도 3개 정도 — 3줄로」. 뒤에서부터 다섯·넷·셋
-// 형: 「법당에 좌복 3줄 가」 — 다섯·넷·셋, 열두 자리(실시간 DB 규칙이 0~11 칸까지 받는다)
+// 형: 「법당에 좌복 3줄 가」「3번째 줄도 좌복 4개」 — 다섯·넷·넷, 열세 자리(실시간 DB 규칙 0~12 칸)
 const 좌복줄: [number, number, number, number][] = [
   [6, 17, 5, 2],
   [34, 19, 4, 6],
-  [62, 21, 3, 12],
+  [62, 21, 4, 6],
 ];
 const 좌복수 = 좌복줄.reduce((n, [, , k]) => n + k, 0);
 /** 좌복에 앉은 넋 — hall-seats/{자리} = { uid, name, hue, at }. 앱을 나가면 저절로 비운다 */
@@ -203,12 +207,11 @@ function 법당마루() {
                 <small>{이.name}</small>
               </i>
             )}
-            {/* 형: 「다른 사람 앉아 있으면 눌러서 볼 수 있게, 얼굴이 뜨면 보고 좋아요」 — 넋 대신 얼굴. 옆에 ♡ */}
+            {/* 형: 「영혼 느낌이 더 낫다, 일법처럼 복구해」 — 남도 내 것과 같은 넋. 이름표 옆에 작은 ♡, 넋을 누르면 카드 */}
             {이 && 이.uid !== 나 && (
-              <i className="hip-seatface">
-                <좌복얼굴 uid={이.uid} sex={이.sex} />
-                <small>{이.name}</small>
-                <button type="button" className="hip-seatface-heart" aria-label={`${이.name}에게 좋아요`} onClick={(e) => { e.stopPropagation(); void 좋아요(이.uid); }}>♡</button>
+              <i className="hip-soul hip-soul-other" style={{ "--h": 이.hue } as React.CSSProperties}>
+                <em />
+                <small>{이.name}<button type="button" className="hip-soul-heart" aria-label={`${이.name}에게 좋아요`} onClick={(e) => { e.stopPropagation(); void 좋아요(이.uid); }}>♡</button></small>
               </i>
             )}
           </span>

@@ -22,10 +22,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /** 판 안에서 갈리는 물건 넷 */
+// 형: 「싱잉볼을 맨 앞으로, 메인으로」
 export const OBJ_LANES = [
+  ["bowl", "싱잉볼"],
   ["moktak", "목탁"],
   ["yeomju", "염주"],
-  ["bowl", "싱잉볼"],
   ["keycap", "키캡"],
 ] as const;
 

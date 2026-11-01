@@ -1636,3 +1636,10 @@ body:has(.hip-say) :is(.wheel-fab, .doryang-fab) { display: none !important; }
 .hip-people-say { margin: 24px 0; text-align: center; font-size: 13px; color: #8a8178; }
 
 .hip-cmt-op { display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 999px; background: #f4efe8; font-size: 10px; line-height: 15px; color: #8a6a3e; }
+.hip-yh-top h1 small { margin-left: 2px; font-size: 13px; font-weight: 400; font-family: inherit; color: #8a8178; letter-spacing: 0; }
+/* 남의 넋 — 내 것과 같은 결, 이름표만 흰색 + 작은 ♡. 넋도 눌린다 */
+.hip-soul.hip-soul-other { pointer-events: auto; cursor: pointer; }
+.hip-soul.hip-soul-other small { display: inline-flex; align-items: center; gap: 2px; pointer-events: auto; }
+.hip-soul-heart { margin-left: 2px; padding: 0; border: 0; background: none; font-size: 10px; line-height: 1; color: #c47a92; cursor: pointer; }
+/* 아래에서 올라오는 판이 열려 있으면 염주 줄을 걷는다 — 형: 「겹치잖아, 이런 디테일 놓치지 마」 */
+body:has([role="dialog"], [aria-modal="true"], .hip-seat-card, .hip-yeon-big) :is(.hip-mala, .wheel-fab, .doryang-fab) { display: none !important; }

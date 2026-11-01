@@ -30,7 +30,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ uid: st
   // 통과한 장이 없고 기다리는 장만 있으면 「심사중」 자리표시. **기다리는 사진 자체는 절대 안 내보낸다.**
   // 정지·쉼은 아무것도 안 보인다. 얼굴 인증이 아직이면 진짜 사진 대신 「심사중」
   if (!d?.avatarOn || d.reportHold === true || d.state === "정지" || d.state === "쉼") return new Response(null, { status: 404 });
-  const 인증대기 = d.photoProofRequired === true && d.photoProof?.state !== "ok";
+  // 심사 통과한 사진이면 얼굴 인증 여부와 상관없이 보인다 — 형: 「이건 승인됐는데 왜 대표 프로필 안 떠」
+  const 인증대기 = false;
   const first = 인증대기 ? undefined : (d.photos ?? []).find((p) => p.state === "ok" && isYeonPhotoPath(uid, p.path));
   if (!first?.path) {
     const 기다림 = 인증대기 || (d.photos ?? []).some((p) => p.state !== "ok" && p.state !== "no");

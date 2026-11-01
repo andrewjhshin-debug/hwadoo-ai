@@ -234,7 +234,7 @@ function SkinDots({
 type Pop = { id: number; ch: string; dx: number; rot: number };
 
 export default function MoktakPage() {
-  const [tab, setTab] = useState<PracticeTab>("moktak");
+  const [tab, setTab] = useState<PracticeTab>("bowl");
   /** 키캡 갈래에서 무엇을 누르나 — 동자(기본)인가 목탁인가 */
   // 방(백팔배·멍·호흡…)에서 물건 알약을 누르면 ?lane=… 을 달고 돌아온다.
   // useSearchParams 는 이 판을 통째로 동적으로 만들어 버리니 쓰지 않는다 —

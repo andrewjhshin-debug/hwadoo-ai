@@ -39,7 +39,7 @@ export default function 내프로필보기() {
   return (
     <HipRoom here="/gathering/me/view" lanes={false} rail="/gathering" scroll>
       <div className="hip-yeon hip-yeon-view">
-        <p className="hip-yeon-head">因緣 · 남이 보는 나</p>
+        {/* 「남이 보는 나」 머리말은 걷었다 — 형 */}
 
         {있나 === false && <p className="hip-yeon-say">들어온 뒤에 열립니다</p>}
 
