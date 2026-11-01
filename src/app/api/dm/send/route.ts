@@ -41,6 +41,8 @@ export async function POST(req: Request) {
 
   // ── 이용권 사기 ──
   if (typeof b?.buy === "string") {
+    // 제 칸만 — "constructor" 같은 원형 이름으로 값표를 빠져나가지 못하게
+    if (typeof b.buy !== "string" || !Object.hasOwn(DM_PASSES, b.buy)) return Response.json({ error: "bad-pass" }, { status: 400 });
     const kind = b.buy as DmPass;
     const p = DM_PASSES[kind];
     if (!p) return Response.json({ error: "bad-pass" }, { status: 400 });
