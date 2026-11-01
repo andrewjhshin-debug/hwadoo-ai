@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "presence": {
+      ".read": true,
+      "$sessionId": {
+        ".write": true
+      }
+    },
+    "hall-seats": {
+      ".read": true,
+      "$seat": {
+        ".write": "auth != null && $seat.matches(/^([0-9]|1[0-1])$/) && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.child('uid').val() === auth.uid))",
+        ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'name', 'hue', 'at']) && newData.child('name').isString() && newData.child('name').val().length <= 12 && newData.child('hue').isNumber())"
+      }
+    }
+  }
+}

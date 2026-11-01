@@ -9,6 +9,8 @@ import { 신고보내기 } from "@/lib/dm";
 import { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
 import { watchOnlineCount } from "@/lib/presence";
+import { onDisconnect, onValue, ref, remove, set } from "firebase/database";
+import { rtdb } from "@/lib/firebase";
 import { strikeBell } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
 import { auth, db } from "@/lib/firebase";
@@ -79,7 +81,8 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onCli
 function 법당인원() {
   const [n, setN] = useState(0);
   useEffect(() => watchOnlineCount(setN), []);
-  return n > 0 ? <small className="hip-hall-count">{n}명</small> : null;
+  // 형: 「위에 그냥 텍스트로만, 숫자만 파란 계열로」
+  return n > 0 ? <>법당에 <b className="hip-hall-n">{n}</b>명 있습니다</> : <>법당</>;
 }
 
 function 법당중앙({ children }: { children?: React.ReactNode }) {
@@ -109,14 +112,47 @@ const 좌복줄: [number, number, number, number][] = [
   [26, 23, 4, 3],
   [54, 27, 3, 7],
 ];
+/** 좌복에 앉은 넋 — hall-seats/{자리} = { uid, name, hue, at }. 앱을 나가면 저절로 비운다 */
+type 앉은이 = { uid: string; name: string; hue: number; at: number };
+
+// 형: 「좌복 누르면 그 위에 내 등이 켜지고 — 영혼 느낌으로, 색은 여러 개, 튀지 않게 은은하게」
 function 법당마루() {
-  return <div className="hip-hall-floor" aria-hidden>
+  const [자리, 자리잡기] = useState<Record<string, 앉은이>>({});
+  const [나, 나잡기] = useState<string | null>(null);
+  useEffect(() => watchAuth((u) => 나잡기(u?.uid ?? null)), []);
+  useEffect(() => onValue(ref(rtdb, "hall-seats"), (snap) => 자리잡기((snap.val() as Record<string, 앉은이>) ?? {})), []);
+  const 내자리 = Object.entries(자리).find(([, v]) => v.uid === 나)?.[0];
+  const 누름 = async (k: string) => {
+    if (!나) { await loginWithGoogle(); return; }
+    if (자리[k] && 자리[k].uid !== 나) return; // 남의 자리
+    if (내자리) await remove(ref(rtdb, `hall-seats/${내자리}`)).catch(() => {});
+    if (내자리 === k) return; // 일어선다
+    const r = ref(rtdb, `hall-seats/${k}`);
+    await set(r, { uid: 나, name: (loadMe()?.name ?? "수행자").slice(0, 12), hue: Math.floor(Math.random() * 360), at: Date.now() }).catch(() => {});
+    onDisconnect(r).remove().catch(() => {});
+  };
+  let 번 = 0;
+  const 앉은수 = Object.keys(자리).length;
+  return <div className="hip-hall-floor">
     {좌복줄.flatMap(([top, w, n, 끝], r) => {
       const 칸 = (100 - 끝 * 2) / n;
-      return Array.from({ length: n }, (_, i) => (
-        <span key={`${r}-${i}`} style={{ left: `${끝 + 칸 * (i + 0.5) - w / 2}%`, top: `${top}%`, width: `${w}%`, zIndex: r * 10 + i }} />
-      ));
+      return Array.from({ length: n }, (_, i) => {
+        const k = String(번++);
+        const 이 = 자리[k];
+        return (
+          <span key={k} role="button" tabIndex={0} aria-label={이 ? `${이.name} 앉아 있음` : "좌복에 앉기"} onClick={() => void 누름(k)}
+            style={{ left: `${끝 + 칸 * (i + 0.5) - w / 2}%`, top: `${top}%`, width: `${w}%`, zIndex: r * 10 + i }}>
+            {이 && (
+              <i className="hip-soul" data-me={이.uid === 나 ? "1" : undefined} style={{ "--h": 이.hue } as React.CSSProperties}>
+                <em />
+                <small>{이.name}</small>
+              </i>
+            )}
+          </span>
+        );
+      });
     })}
+    {앉은수 > 0 && <p className="hip-soul-count">{앉은수}명 함께 앉아 있음</p>}
   </div>;
 }
 
@@ -239,15 +275,16 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
           <Gongyang 갈래={gift} name={미리} seed={씨} drop={0} />
         </div>}
 
-        <details className="hip-offering-name"><summary>{갈래 === "giwa" ? "새길 이름" : "이름"} <span>선택</span></summary>
-        <label className="sr-only" htmlFor="offering-name">이름</label>
+        {/* 형: 「이름 선택이 아니라 이름을 쓰고 내용을 쓰는 거」 */}
         <input
           id="offering-name"
           value={forName}
           onChange={(e) => setForName(e.target.value.slice(0, 20))}
+          placeholder="이름"
+          aria-label="이름"
           className="hip-deung-in"
           disabled={busy}
-        /></details>
+        />
 
         <label className="hip-deung-lab" htmlFor="offering-wish">
           <span className="sr-only">사연</span>
@@ -258,6 +295,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
           value={wish}
           onChange={(e) => setWish(e.target.value.slice(0, 120))}
           rows={4}
+          placeholder="내용"
           className="hip-deung-in hip-deung-area"
           disabled={busy}
         />
@@ -963,7 +1001,7 @@ export default function CandleHall() {
         내 공양
       </button>
       {/* 한자 「法堂」은 뒤의 「법당」과 같은 말이라 뗀다 */}
-      <h1>법당 <법당인원 /></h1>
+      <h1><법당인원 /></h1>
       <span aria-hidden />
     </div>
     {/* 형: 「위는 연등, 아래는 초 쌀 등등 뭐 이런 식으로 가자」

@@ -100,7 +100,8 @@ function GenderMark({
       <svg
         viewBox="0 0 24 24"
         fill="none"
-        className={`shrink-0 text-gold ${className}`}
+        className={`shrink-0 ${className}`}
+        style={{ color: "#4a7fd6" }}
         aria-label="양 — 남"
       >
         <circle cx="12" cy="12" r="9.25" stroke="currentColor" strokeWidth="1.4" />
@@ -119,7 +120,8 @@ function GenderMark({
       <svg
         viewBox="0 0 24 24"
         fill="none"
-        className={`shrink-0 text-gold ${className}`}
+        className={`shrink-0 ${className}`}
+        style={{ color: "#e2556b" }}
         aria-label="음 — 여"
       >
         <g transform="rotate(180 12 12)">
@@ -1471,31 +1473,14 @@ export default function GatheringBoard({
   return (
     <div>
       {/* 갈래 필터 — 전체 / 동행 / 도반 찾기 / 울력·봉사 */}
-      <div className="flex items-center gap-1.5 overflow-x-auto px-4 pb-2 pt-0.5 sm:px-0">
-        {[{ key: "all" as const, label: "전체", hint: "" }, ...GATHERING_CATEGORIES].map(
-          (c) => (
-            <button
-              key={c.key}
-              onClick={() => setCategoryFilter(c.key)}
-              aria-pressed={categoryFilter === c.key}
-              className="hip-tab"
-            >
-              {c.label}
-            </button>
-          )
-        )}
+      <div className="hip-board-bar">
+        {/* 골스처럼 — 「전체 ∨」 작게 하나. 갈래 줄이 자리를 너무 먹었다 */}
+        <label className="hip-cat-pick">
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value as typeof categoryFilter)} aria-label="갈래">
+            {[{ key: "all" as const, label: "전체" }, ...GATHERING_CATEGORIES].map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+          </select>
+        </label>
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
-        {/* 연꽃 잔고 — 누르면 연꽃 공양(구매)으로 */}
-        <Link
-          href="/lotus"
-          /* 형: 「연꽃이란 말 자체는 지우고 크기도 좀 줄이고」.
-             꽃 그림이 이미 「연꽃」이라 말하고 있는데 옆에 또 적었다. */
-          aria-label="연꽃 공양"
-          className="inline-flex items-center gap-1 rounded-full border border-ink-3 px-2.5 py-1 text-[12px] tracking-[0.06em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-        >
-          <Yeonkkot className="h-[14px] w-[14px]" />
-          {user && lotusBal !== null ? lotusBal : ""}
-        </Link>
         <button
           onClick={() => {
             resetForm();
