@@ -175,6 +175,8 @@ const SKINS = {
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
     { id: "indigo", name: "쪽빛", src: "/obj/bowl-indigo.png", dot: "#3b3560" },
     { id: "verdigris", name: "청동녹", src: "/obj/bowl-verdigris.png", dot: "#5f9a93" },
+    { id: "ivory", name: "크림빛", src: "/obj/bowl-ivory-v1.webp", dot: "#e9dfbe" },
+    { id: "hammered", name: "두드린 놋쇠", src: "/obj/bowl-hammered-v1.webp", dot: "#ab824a" },
   ],
   // 키캡 셋 — 형: 「그럼 저기서 포대랑 미륵으로도 키캡 만들어라 딱 됐네 ㅋ」
   //
