@@ -34,6 +34,8 @@ export async function POST(req: Request) {
   const intro = typeof body?.intro === "string" ? body.intro.trim().slice(0, 200) : "";
   if (!postId || !/^[A-Za-z0-9]{6,64}$/.test(targetUid) || !targetName || targetUid === uid)
     return Response.json({ error: "bad-request" }, { status: 400 });
+  // 샘플 글의 가짜 계정에는 쪽지가 가지 않는다 — 값을 받고 없는 사람에게 보내면 기만이다
+  if (targetUid.startsWith("hwaduSample")) return Response.json({ error: "sample" }, { status: 409 });
 
   const db = getFirestore(app);
   const id = createHash("sha256").update(`${uid}|${targetUid}|${postId}`).digest("hex").slice(0, 40);

@@ -43,7 +43,7 @@ import {
 } from "@/lib/community";
 import InyeonThread from "@/components/InyeonThread";
 import { loadStore } from "@/lib/store";
-import { watchAuth } from "@/lib/sync";
+import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { isAdminAccount } from "@/lib/config";
 import {
   dmVisible,
@@ -170,59 +170,142 @@ function PostFace({ p, className = "h-9 w-9" }: { p: Pick<Post, "avatar" | "auth
   );
 }
 
-/** 「같이 가요」 글 박스 — 같이 가는 사람 얼굴을 줄 세우고, 단추 하나로 손을 든다 */
-type 가는사람 = { name: string; at: number };
-const 요일 = ["일", "월", "화", "수", "목", "금", "토"];
-function GoPostBox({ p, open }: { p: Post; open: () => void }) {
-  const 열쇠 = `p_${p.id}`;
-  const [people, setPeople] = useState<Record<string, 가는사람> | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [방, 방잡기] = useState(false);
+/** 갈래 고르기 — 「전체 ∨」 를 누르면 아래로 작은 판이 열린다 */
+function CatPick({ value, onChange }: { value: string; onChange: (k: string) => void }) {
+  const [열림, 열기] = useState(false);
+  const 갈래 = [{ key: "all", label: "전체" }, ...GATHERING_CATEGORIES];
+  const 지금 = 갈래.find((c) => c.key === value)?.label ?? "전체";
   useEffect(() => {
-    let alive = true;
-    fetch(`/api/go?date=${열쇠}`, { cache: "no-store" }).then((r) => r.json()).then((j: { people?: Record<string, 가는사람> }) => { if (alive) setPeople(j.people ?? {}); }).catch(() => { if (alive) setPeople({}); });
-    return () => { alive = false; };
-  }, [열쇠]);
-  const uid = auth.currentUser?.uid ?? "";
-  const 나 = !!(uid && (people?.[uid] || uid === p.authorUid));
-  const 줄 = Object.entries(people ?? {}).sort((a, b) => a[1].at - b[1].at);
-  const 날 = p.meetDate ? (() => { const [y, m, d] = p.meetDate!.split("-").map(Number); return `${요일[new Date(y, m - 1, d).getDay()]} ${m}.${d}`; })() : "";
-  // 형: 「버튼 눌리면 뭐가 되도록 — 단체방 느낌」. 손 들면 곧장 방이 열린다. 이미 들었으면 방으로
-  const 손 = async () => {
-    const u = auth.currentUser;
-    if (!u) { open(); return; }
-    if (busy) return;
-    setBusy(true);
-    try {
-      const r = await fetch("/api/go", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ date: 열쇠, eventName: p.title, on: true, name: anonName() }) });
-      const j = (await r.json().catch(() => ({}))) as { people?: Record<string, 가는사람> };
-      if (r.ok && j.people) { setPeople(j.people); 방잡기(true); }
-    } finally { setBusy(false); }
-  };
-  const 나가기 = async () => {
-    const u = auth.currentUser;
-    if (!u || uid === p.authorUid) return;
-    const r = await fetch("/api/go", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ date: 열쇠, on: false }) });
-    const j = (await r.json().catch(() => ({}))) as { people?: Record<string, 가는사람> };
-    if (r.ok && j.people) setPeople(j.people);
-    방잡기(false);
-  };
+    if (!열림) return;
+    const 닫 = () => 열기(false);
+    window.addEventListener("pointerdown", 닫);
+    return () => window.removeEventListener("pointerdown", 닫);
+  }, [열림]);
   return (
-    <div className="hip-go-box">
-      {/* 형: 「단체방이란 버튼은 없애」 — 손 든 사람은 상자를 누르면 곧장 방이다 */}
-      <button type="button" className="hip-go-box-main" onClick={나 ? () => 방잡기(true) : open}>
-        <span className="hip-go-box-when">{[날, p.templeName].filter(Boolean).join(" · ")}</span>
-        <span className="hip-go-box-title">{p.title}</span>
-        <span className="hip-go-box-faces">
-          {(줄.length ? 줄 : [[p.authorUid, { name: p.authorName, at: 0 }] as [string, 가는사람]]).slice(0, 3).map(([id, x]) => <GoFace key={id} uid={id} name={x.name} />)}
-          <small>{Math.max(1, 줄.length)}명</small>
-        </span>
+    <div className="hip-cat" onPointerDown={(e) => e.stopPropagation()}>
+      <button type="button" className="hip-cat-btn" aria-expanded={열림} onClick={() => 열기(!열림)}>
+        {지금}
+        <svg viewBox="0 0 10 6" aria-hidden><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.4" /></svg>
       </button>
-      {!나 && <button type="button" className="hip-go-box-btn" disabled={busy || people === null} onClick={손}>같이 가요</button>}
-      {방 && <GoRoom postId={p.id} 날={[날, p.templeName, p.meetTime].filter(Boolean).join(" · ")} onClose={() => 방잡기(false)} onLeave={uid === p.authorUid ? undefined : 나가기} />}
+      {열림 && (
+        <ul className="hip-cat-menu" role="listbox">
+          {갈래.map((c) => (
+            <li key={c.key}>
+              <button type="button" role="option" aria-selected={c.key === value} onClick={() => { onChange(c.key); 열기(false); }}>
+                {c.label}
+                {c.key === value && <svg viewBox="0 0 12 10" aria-hidden><path d="M1 5l3.5 3.5L11 1.5" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
+
+/** 「같이 가요」 글 박스 — 목록에서는 정보만. 누르면 글로 들어간다 */
+type 가는사람 = { name: string; at: number; sex?: string };
+const 요일 = ["일", "월", "화", "수", "목", "금", "토"];
+function 날말(d?: string | null) {
+  if (!d) return "";
+  const [y, m, dd] = d.split("-").map(Number);
+  return `${m}.${dd} ${요일[new Date(y, m - 1, dd).getDay()]}`;
+}
+function useGo(postId: string) {
+  const 열쇠 = `p_${postId}`;
+  const [판, 판잡기] = useState<{ people: Record<string, 가는사람>; wait: Record<string, 가는사람> } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/go?date=${열쇠}`, { cache: "no-store" }).then((r) => r.json()).then((j: { people?: Record<string, 가는사람>; wait?: Record<string, 가는사람> }) => { if (alive) 판잡기({ people: j.people ?? {}, wait: j.wait ?? {} }); }).catch(() => { if (alive) 판잡기({ people: {}, wait: {} }); });
+    return () => { alive = false; };
+  }, [열쇠]);
+  const 보내기 = async (body: Record<string, unknown>) => {
+    const u = auth.currentUser;
+    if (!u) return "login" as const;
+    const r = await fetch("/api/go", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ date: 열쇠, name: anonName(), ...body }) });
+    const j = (await r.json().catch(() => ({}))) as { people?: Record<string, 가는사람>; wait?: Record<string, 가는사람>; error?: string };
+    if (r.ok && j.people) 판잡기({ people: j.people, wait: j.wait ?? {} });
+    return j.error ?? "ok";
+  };
+  return { 판, 보내기 };
+}
+function GoPostBox({ p, open }: { p: Post; open: () => void }) {
+  const { 판 } = useGo(p.id);
+  const 줄 = Object.entries(판?.people ?? {}).sort((a, b) => a[1].at - b[1].at);
+  const 수 = Math.max(1, 줄.length);
+  return (
+    <div className="hip-go-box">
+      {/* 형: 「같이 가요 버튼도 없애, 그냥 클릭하면 게시물 들어가지는 거로」 */}
+      <button type="button" className="hip-go-box-main" onClick={open}>
+        <span className="hip-go-box-when">{[날말(p.meetDate), p.meetTime ? timeLabel(p.meetTime) : "", p.templeName].filter(Boolean).join(" · ")}</span>
+        <span className="hip-go-box-title">{p.title}</span>
+        <span className="hip-go-box-faces">
+          {(줄.length ? 줄 : [[p.authorUid, { name: p.authorName, at: 0 }] as [string, 가는사람]]).slice(0, 3).map(([id, x]) => <GoFace key={id} uid={id} name={x.name} />)}
+          <small>{p.capacity ? `${수}/${p.capacity}명` : `${수}명`}</small>
+        </span>
+      </button>
+    </div>
+  );
+}
+
+/** 글 안 「같이 가요」 판 — 어디·언제·몇 명·어떻게, 그리고 신청/승인.
+ *  형: 「딱 눌렸을 때 어디 며칠 몇 시 몇 명 어떻게 간다 — 정보성으로」 「신청하면 글쓴이가 승인」 */
+function GoPanel({ p }: { p: Post }) {
+  const { 판, 보내기 } = useGo(p.id);
+  const [방, 방잡기] = useState(false);
+  const [말, 말잡기] = useState("");
+  const uid = auth.currentUser?.uid ?? "";
+  const 글쓴이 = uid === p.authorUid;
+  const 들어감 = 글쓴이 || !!(uid && 판?.people[uid]);
+  const 기다림 = !!(uid && 판?.wait[uid]);
+  const 사람 = Object.entries(판?.people ?? {}).sort((a, b) => a[1].at - b[1].at);
+  const 신청 = Object.entries(판?.wait ?? {}).sort((a, b) => a[1].at - b[1].at);
+  const 수 = Math.max(1, 사람.length);
+  const 참 = !!p.capacity && 수 >= p.capacity;
+  const 누름 = async (body: Record<string, unknown>) => {
+    const r = await 보내기(body);
+    if (r === "login") { await loginWithGoogle(); return; }
+    if (r === "full") 말잡기("인원이 다 찼어요");
+    else 말잡기("");
+  };
+  return (
+    <div className="hip-go-panel">
+      <dl>
+        {p.templeName && <><dt>어디</dt><dd>{p.templeName}</dd></>}
+        {p.meetDate && <><dt>언제</dt><dd>{[날말(p.meetDate), p.meetTime ? timeLabel(p.meetTime) : ""].filter(Boolean).join(" ")}</dd></>}
+        <dt>인원</dt><dd>{p.capacity ? `${수} / ${p.capacity}명` : `${수}명 함께`}</dd>
+        {p.meetPlace && <><dt>가는 길</dt><dd>{p.meetPlace}</dd></>}
+      </dl>
+      <div className="hip-go-panel-faces">
+        {사람.map(([id, x]) => <span key={id}><GoFace uid={id} name={x.name} /><small>{x.name}</small></span>)}
+      </div>
+      {글쓴이 && 신청.length > 0 && (
+        <ul className="hip-go-wait">
+          {신청.map(([id, x]) => (
+            <li key={id}>
+              <GoFace uid={id} name={x.name} />
+              <b>{x.name}</b>
+              <button type="button" onClick={() => void 누름({ uid: id, approve: false })}>거절</button>
+              <button type="button" data-ok="1" disabled={참} onClick={() => void 누름({ uid: id, approve: true })}>승인</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="hip-go-panel-act">
+        {들어감 ? (
+          <button type="button" data-on="1" onClick={() => 방잡기(true)}>대화방</button>
+        ) : 기다림 ? (
+          <button type="button" onClick={() => void 누름({ on: false })}>승인 기다리는 중 · 취소</button>
+        ) : (
+          <button type="button" data-on="1" disabled={!판 || 참} onClick={() => void 누름({ on: true })}>{참 ? "인원이 다 찼어요" : "같이 가요 신청"}</button>
+        )}
+      </div>
+      {말 && <p className="hip-go-panel-say">{말}</p>}
+      {방 && <GoRoom postId={p.id} 날={[날말(p.meetDate), p.templeName, p.meetTime ? timeLabel(p.meetTime) : ""].filter(Boolean).join(" · ")} onClose={() => 방잡기(false)} onLeave={글쓴이 ? undefined : () => { void 누름({ on: false }); 방잡기(false); }} />}
+    </div>
+  );
+}
+
 /** 같이 가요 단체방 — 손 든 사람끼리. 5초마다 새 말을 읽는다 */
 type 방말 = { id: string; uid: string; name: string; text: string; at: number };
 function GoRoom({ postId, 날, onClose, onLeave }: { postId: string; 날: string; onClose: () => void; onLeave?: () => void }) {
@@ -390,6 +473,8 @@ export default function GatheringBoard({
   const [temple, setTemple] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+  const [capacity, setCapacity] = useState(4);
+  const [meetPlace, setMeetPlace] = useState("");
   const [category, setCategory] = useState<GatheringCategory>("companion");
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
@@ -661,6 +746,8 @@ export default function GatheringBoard({
     setTemple("");
     setDate("");
     setTime("");
+    setCapacity(4);
+    setMeetPlace("");
     setCategory("companion");
     setFormError("");
   };
@@ -675,6 +762,7 @@ export default function GatheringBoard({
         templeName: temple || undefined,
         meetDate: date || undefined,
         meetTime: time || undefined,
+        ...(category === "together" ? { capacity, meetPlace } : {}),
         category,
       };
       if (editingId) await updateGathering(editingId, input);
@@ -704,6 +792,8 @@ export default function GatheringBoard({
     setTemple(p.templeName ?? "");
     setDate(p.meetDate ?? "");
     setTime(p.meetTime ?? "");
+    setCapacity(p.capacity ?? 4);
+    setMeetPlace(p.meetPlace ?? "");
     setCategory(p.category ?? "together");
     setFormError("");
     setMenuOpen(false);
@@ -922,6 +1012,8 @@ export default function GatheringBoard({
     try {
       await reportComment(p.id, c);
       setReported((s) => new Set(s).add(c.id));
+      // 바로 가린다 — 서버도 같은 글로 바꿔 둔다
+      setCommentsMap((m) => ({ ...m, [p.id]: (m[p.id] ?? []).map((x) => (x.id === c.id ? { ...x, deleted: true, body: "신고된 댓글입니다" } : x)) }));
     } catch {
       // 조용히
     }
@@ -1244,7 +1336,7 @@ export default function GatheringBoard({
         </div>
 
         {/* 청실홍실 — 함께 가겠다는 이가 붙으면 실이 걸린다 */}
-        {tied && (
+        {tied && p.category !== "together" && (
           <div className="mt-4">
             {/* 낮 — 이 판은 흰 카드 위다. 안 넘기면 먹빛 상자에 먹빛
                 글자가 되어 이름이 통째로 안 읽혔다 */}
@@ -1267,8 +1359,10 @@ export default function GatheringBoard({
           {p.body}
         </p>
 
+        {p.category === "together" && !p.deleted && <GoPanel p={p} />}
+
         {/* 약속 — 절·날짜·시간 (적은 것만) */}
-        {(p.templeName || p.meetDate) && (
+        {p.category !== "together" && (p.templeName || p.meetDate) && (
           <p className="mt-2.5 text-[12.5px] tracking-wide text-gold-soft">
             약속{p.templeName ? ` ${p.templeName}` : ""}
             {p.meetDate ? ` · ${legacyDate(p.meetDate)}` : ""}
@@ -1504,6 +1598,19 @@ export default function GatheringBoard({
                   />
                 </label>
               </div>
+              {/* 형: 「몇 명, 어떻게 간다」 — 인원(글쓴이 포함)과 가는 길 */}
+              <div className="flex gap-2">
+                <label className="flex w-24 flex-col gap-1.5 text-[10.5px] tracking-wide text-hanji-faint">
+                  인원
+                  <select value={capacity} onChange={(e) => setCapacity(Number(e.target.value))} className="w-full rounded-[10px] border border-ink-3 bg-transparent px-3 py-2.5 text-[13px] text-hanji outline-none">
+                    {Array.from({ length: 9 }, (_, i) => i + 2).map((n) => <option key={n} value={n}>{n}명</option>)}
+                  </select>
+                </label>
+                <label className="flex flex-1 flex-col gap-1.5 text-[10.5px] tracking-wide text-hanji-faint">
+                  가는 길
+                  <input value={meetPlace} maxLength={60} onChange={(e) => setMeetPlace(e.target.value)} placeholder="예) 한성대입구역 6번 출구 1:40, 셔틀" className="w-full rounded-[10px] border border-ink-3 bg-transparent px-3 py-2.5 text-[13px] text-hanji outline-none placeholder:text-hanji-faint focus:border-gold/40" />
+                </label>
+              </div>
             </div>
             )}
             {/* 형: 「저 문구 지우고」 — 「양/음(남·여) 문양은 내 도량에서
@@ -1549,11 +1656,8 @@ export default function GatheringBoard({
       {/* 갈래 필터 — 전체 / 동행 / 도반 찾기 / 울력·봉사 */}
       <div className="hip-board-bar">
         {/* 골스처럼 — 「전체 ∨」 작게 하나. 갈래 줄이 자리를 너무 먹었다 */}
-        <label className="hip-cat-pick">
-          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value as typeof categoryFilter)} aria-label="갈래">
-            {[{ key: "all" as const, label: "전체" }, ...GATHERING_CATEGORIES].map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
-          </select>
-        </label>
+        {/* 형: 「엑셀이냐 ㅡㅡ」 — 기본 select 를 걷고 작은 판으로 */}
+        <CatPick value={categoryFilter} onChange={(k) => setCategoryFilter(k as typeof categoryFilter)} />
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
         <button
           onClick={() => {

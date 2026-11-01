@@ -34,14 +34,17 @@ type G = "m" | "f" | null | undefined;
 
 /** 음양에 따른 실 색 — 토큰 밖으로 나가지 않는다 */
 function silk(g: G): string {
-  if (g === "f") return "var(--color-obang-blue)"; // 청실 · 음
-  if (g === "m") return "var(--color-vermilion)"; // 홍실 · 양
+  // 형: 「여실은 여잔데 왜 청실인 거지?」 — 앱 전체 음양 빛깔과 맞춘다: 남 파랑(청실), 여 빨강(홍실)
+  if (g === "m") return "#4a7fd6"; // 청실
+  if (g === "f") return "#e2556b"; // 홍실
   return "var(--color-gold-soft)"; // 밝히지 않은 이 — 묵은 금
 }
 
-function label(g: G): string {
-  if (g === "f") return "청실";
-  if (g === "m") return "홍실";
+/** 같은 음양끼리면 「도반」 — 형: 「남남 커플은 아니고, 도반 원하면 남남도 매칭은 되도록」 */
+function label(g: G, o?: G): string {
+  if (g && o && g === o) return "도반";
+  if (g === "m") return "청실";
+  if (g === "f") return "홍실";
   return "실";
 }
 
@@ -137,9 +140,7 @@ export default function InyeonThread({
               "linear-gradient(180deg, #100e0c, #16120f)",
         }}
       >
-        <p className="text-center text-[10px] tracking-[0.46em] text-hanji-faint/80">
-          靑絲紅絲
-        </p>
+
 
         <svg
           viewBox="0 0 300 84"
@@ -234,13 +235,13 @@ export default function InyeonThread({
           <span className="min-w-0 flex-1 truncate text-left font-serif text-[12.5px] font-light text-hanji-dim">
             {leftName}
             <span className="ml-1.5 align-middle text-[9.5px] tracking-[0.1em]" style={{ color: a }}>
-              {label(leftGender)}
+              {label(leftGender, rightGender)}
             </span>
           </span>
           <span className="shrink-0 text-gold-soft/75" aria-hidden>·</span>
           <span className="min-w-0 flex-1 truncate text-right font-serif text-[12.5px] font-light text-hanji-dim">
             <span className="mr-1.5 align-middle text-[9.5px] tracking-[0.1em]" style={{ color: b }}>
-              {label(rightGender)}
+              {label(rightGender, leftGender)}
             </span>
             {rightName}
           </span>

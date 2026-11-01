@@ -1389,4 +1389,70 @@ body:not(:has(.hip-me-head)) .site-foot { display: none; }
 .hip-write-btn { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 12px; border-radius: 999px; background: #1a1a1c; color: #fff; font-size: 13px; font-weight: 600; }
 .hip-write-btn svg { width: 13px; height: 13px; }
 .hip-yh-lotus:not(:has(*)) { display: none; }
+/* 같이 가요 상자 — 굵기 빼고 글처럼 */
+.hip-go-box-title, .hip-go-box-when { font-weight: 400 !important; }
+/* 갈래 고르기 — 작은 판 */
+.hip-cat { position: relative; }
+.hip-cat-btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 2px; font-size: 14px; font-weight: 600; color: #1a1a1c; }
+.hip-cat-btn svg { width: 10px; height: 6px; color: #8a8580; transition: transform .15s; }
+.hip-cat-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.hip-cat-menu { position: absolute; top: calc(100% + 6px); left: -8px; z-index: 40; min-width: 156px; margin: 0; padding: 6px; list-style: none; border-radius: 14px; background: #fff; box-shadow: 0 12px 32px rgba(26,23,20,.16), 0 0 0 1px rgba(26,23,20,.05); animation: hip-cat-in .14s ease-out; }
+@keyframes hip-cat-in { from { opacity: 0; transform: translateY(-4px); } }
+.hip-cat-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 12px; border-radius: 9px; font-size: 14px; color: #3a3632; text-align: left; }
+.hip-cat-menu button:active, .hip-cat-menu button:hover { background: #f4f2ef; }
+.hip-cat-menu button[aria-selected="true"] { font-weight: 600; color: #1a1a1c; }
+.hip-cat-menu svg { width: 12px; height: 10px; color: #a8804a; }
 
+
+/* ── 인연은 핑크를 안 쓴다 — 형: 「아예 핑크를 안 써도 된다」. 음양(남 파랑·여 빨강)만 빛깔, 나머지는 먹과 금 ── */
+.hip-yh-doors a { gap: 6px; display: flex !important; align-items: center; justify-content: center; font-weight: 500 !important; }
+.hip-yh-doors a b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-family: var(--font-serif); font-weight: 400; font-size: 12px; background: #f3efe8; color: #8a6a3e; }
+.hip-yh-doors a[data-main="1"] { background: #1a1a1c !important; color: #fff !important; }
+.hip-yh-doors a[data-main="1"] b { background: #a8804a; color: #fff; }
+.hip-yh-lotus { background: #f4f1ec !important; color: #6e5a3e !important; }
+.hip-go-box-when, .hip-feed-title em, .hip-feed-meta i { color: #a8804a !important; }
+.hip-yeon-head, .hip-deck-limit { color: #8a7a62 !important; }
+body:has(.hip-yh, .hip-yeon-deck, .hip-yeon-head) .hip-bloom { display: none !important; }
+.hip-yeon-deck li { background: radial-gradient(70% 55% at 28% 16%, rgba(255,255,255,.08), transparent 70%), linear-gradient(155deg, #34302c, #1a1a1c) !important; box-shadow: 0 8px 22px rgba(26,23,20,.18), inset 0 0 0 1px rgba(168,128,74,.45) !important; }
+.hip-yeon-deck li > span { text-shadow: none !important; }
+.hip-yeon-deck li > span:empty::before { content: ""; display: block; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(201,162,104,.75); box-shadow: 0 0 0 6px rgba(201,162,104,.12); }
+.hip-room-msgs p[data-me="1"] span { background: #1a1a1c !important; }
+.hip-room header small { color: #a8804a !important; }
+.hip-yeon-avatar-on input { accent-color: #1a1a1c !important; }
+.hip-seat-go { background: #f4f1ec !important; color: #6e5a3e !important; }
+
+/* 같이 가요 — 글 안 정보판 */
+.hip-go-panel { margin-top: 16px; padding: 16px; border-radius: 16px; background: #faf8f5; border: 1px solid #eee8df; }
+.hip-go-panel dl { display: grid; grid-template-columns: 56px 1fr; row-gap: 8px; margin: 0; font-size: 14px; }
+.hip-go-panel dt { color: #9a8f82; }
+.hip-go-panel dd { margin: 0; color: #1a1a1c; }
+.hip-go-panel-faces { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.hip-go-panel-faces span { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.hip-go-panel-faces .hip-go-face { margin: 0 !important; width: 34px; height: 34px; }
+.hip-go-panel-faces small { font-size: 11px; color: #6e6862; }
+.hip-go-wait { margin: 14px 0 0; padding: 10px 0 0; list-style: none; border-top: 1px solid #eee8df; }
+.hip-go-wait li { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.hip-go-wait li .hip-go-face { margin: 0 !important; }
+.hip-go-wait b { flex: 1; font-weight: 500; font-size: 14px; color: #1a1a1c; }
+.hip-go-wait button { padding: 6px 12px; border-radius: 999px; font-size: 12.5px; color: #6e6862; border: 1px solid #e3ddd5; }
+.hip-go-wait button[data-ok="1"] { background: #1a1a1c; border-color: #1a1a1c; color: #fff; }
+.hip-go-wait button:disabled { opacity: .4; }
+.hip-go-panel-act { margin-top: 14px; }
+.hip-go-panel-act button { width: 100%; height: 44px; border-radius: 12px; font-size: 14px; color: #6e6862; border: 1px solid #e3ddd5; background: #fff; }
+.hip-go-panel-act button[data-on="1"] { background: #1a1a1c; border-color: #1a1a1c; color: #fff; }
+.hip-go-panel-act button:disabled { opacity: .45; }
+.hip-go-panel-say { margin: 8px 0 0; font-size: 12px; color: #9a8f82; text-align: center; }
+
+/* 형: 「꺽쇠 눌리면 그 밑으로 쭉 카테고리 나오도록, 따로 팝업 말고」 — 띠 아래 한 줄로 펼친다 */
+.hip-board-bar { flex-wrap: wrap; }
+.hip-cat { display: contents; }
+.hip-cat-menu { position: static !important; order: 9; flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; min-width: 0 !important; margin: 8px 0 2px !important; padding: 0 !important; box-shadow: none !important; background: transparent !important; border-radius: 0 !important; animation: hip-cat-down .16s ease-out !important; }
+@keyframes hip-cat-down { from { opacity: 0; transform: translateY(-3px); } }
+.hip-cat-menu li { flex: none; }
+.hip-cat-menu button { width: auto !important; padding: 7px 13px !important; border-radius: 999px !important; background: #f4f2ef; font-size: 13px !important; gap: 4px; }
+.hip-cat-menu button[aria-selected="true"] { background: #1a1a1c !important; color: #fff !important; font-weight: 500 !important; }
+.hip-cat-menu button svg { display: none; }
+/* 형: 「인연 게시판에선 바 메뉴를 치웠다가 눌리면 튀어나오든」 — 판 아래 염주 줄을 걷는다. 오른쪽 아래 법륜 단추가 모든 방을 연다 */
+@media (max-width: 767px) {
+  body:has(.hip-yh) .hip-mala { display: none !important; }
+}

@@ -137,7 +137,7 @@ service cloud.firestore {
         || (request.auth != null
             && request.auth.uid == resource.data.authorUid
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'body', 'openChatUrl', 'gender', 'rankHanja', 'category', 'deleted'])
+                 .hasOnly(['title', 'templeName', 'meetDate', 'meetTime', 'capacity', 'meetPlace', 'body', 'openChatUrl', 'gender', 'rankHanja', 'category', 'deleted'])
             // 만들 때만 막으면 **고치기로 뚫린다**
             && request.resource.data.get('title', '').size() <= 120
             && request.resource.data.get('body', '').size() <= 4000);

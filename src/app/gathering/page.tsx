@@ -59,8 +59,9 @@ function GatheringInner() {
               <Link href="/lotus" className="hip-yh-lotus" aria-label="연꽃"><LotusCount look="line" /></Link>
             </div>
             <nav className="hip-yh-doors" aria-label="인연">
-              <Link href="/gathering/yeon" data-main="1">새 인연</Link>
-              <Link href="/gathering/me">내 프로필</Link>
+              {/* 형: 「원래 이뻤는데? 한자로 해봐」 */}
+              <Link href="/gathering/yeon" data-main="1"><b>緣</b>새 인연</Link>
+              <Link href="/gathering/me"><b>我</b>내 프로필</Link>
             </nav>
           </header>
 

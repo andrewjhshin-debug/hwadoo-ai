@@ -70,6 +70,8 @@ export type Post = {
   templeName?: string | null; // 어느 절로
   meetDate?: string | null; // 언제 — "2026-08-25" 꼴
   meetTime?: string | null; // 몇 시에 — "10:30" 꼴
+  capacity?: number | null; // 같이 가요 — 몇 명까지(글쓴이 포함)
+  meetPlace?: string | null; // 같이 가요 — 어디서 만나 어떻게 가나
   openChatUrl?: string | null; // 오픈채팅 링크 — open.kakao.com 만 허용
   lantern?: boolean; // 연등 — 연꽃 한 송이로 목록 맨 위에 밝힌 글
   avatar?: boolean; // 글쓴이가 「글에 내 사진」을 켰다 — /api/avatar/{uid}
@@ -221,6 +223,8 @@ function refineGathering(input: {
   templeName?: string;
   meetDate?: string; // "YYYY-MM-DD" (선택)
   meetTime?: string; // "HH:MM" (선택)
+  capacity?: number;
+  meetPlace?: string;
 }) {
   const title = input.title.trim().slice(0, 60);
   const body = input.body.trim().slice(0, 1000);
@@ -234,12 +238,17 @@ function refineGathering(input: {
   const meetTime = input.meetTime?.trim() ?? "";
   if (meetTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(meetTime))
     throw new Error("시간이 올바르지 않습니다");
+  const capacity = Number.isInteger(input.capacity) && input.capacity! >= 2 && input.capacity! <= 30 ? input.capacity! : null;
+  const meetPlace = input.meetPlace?.trim().slice(0, 60) ?? "";
+  if (/https?:\/\/|open\.kakao/i.test(meetPlace)) throw new Error("글에는 링크를 실을 수 없습니다");
   return {
     title,
     body,
     templeName: templeName || null,
     meetDate: meetDate || null,
     meetTime: meetTime || null,
+    capacity,
+    meetPlace: meetPlace || null,
   };
 }
 
@@ -251,6 +260,8 @@ export async function createGathering(input: {
   templeName?: string;
   meetDate?: string;
   meetTime?: string;
+  capacity?: number;
+  meetPlace?: string;
   category?: GatheringCategory;
 }) {
   const u = auth.currentUser;
@@ -274,6 +285,8 @@ export async function createGathering(input: {
     templeName: g.templeName,
     meetDate: g.meetDate,
     meetTime: g.meetTime,
+    capacity: g.capacity,
+    meetPlace: g.meetPlace,
     createdAt: serverTimestamp(),
   });
 }
@@ -287,6 +300,8 @@ export async function updateGathering(
     templeName?: string;
     meetDate?: string;
     meetTime?: string;
+    capacity?: number;
+    meetPlace?: string;
     category?: GatheringCategory;
   }
 ) {
@@ -298,6 +313,8 @@ export async function updateGathering(
     templeName: g.templeName,
     meetDate: g.meetDate,
     meetTime: g.meetTime,
+    capacity: g.capacity,
+    meetPlace: g.meetPlace,
     // 문양이 없던 옛 글도 고쳐 저장하면 지금 고른 음양이 붙는다
     gender: loadStore().gender ?? null,
     rankHanja: rankHanjaFor(loadStore().history.length, auth.currentUser) ?? null,

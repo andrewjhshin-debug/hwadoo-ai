@@ -155,10 +155,13 @@ export async function POST(req: Request) {
         body: "검토 중인 댓글입니다.",
       }, { merge: true });
     }
-    if (next.length >= HOLD_AT && kind === "comment") {
+    // 게시판 댓글은 **한 번만 신고돼도** 곧장 가린다 — 형: 「신고하자마자 아묻따 신고된 댓글입니다, 골스처럼」.
+    // 지우지는 않는다(원문은 reports 에 남고, 뒷방이 되돌릴 수 있다)
+    if (kind === "comment") {
       tx.set(db.doc(`posts/${postId}/comments/${commentId}`), {
         deleted: true,
-        body: "검토 중인 댓글입니다.",
+        reported: true,
+        body: "신고된 댓글입니다",
       }, { merge: true });
     }
     return { again: false, count: next.length, held: next.length >= HOLD_AT };
