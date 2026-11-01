@@ -5,16 +5,16 @@ const silk = (g: G) => g === "m" ? "#3b4a8f" : g === "f" ? "#b0233f" : "#a08550"
 const label = (g: G, other: G) => g && g === other ? "도반" : g === "m" ? "청실" : g === "f" ? "홍실" : "실";
 
 // 형이 고른 끈 — 왼쪽 청실·오른쪽 홍실이 가운데서 느슨하게 꼬인다. 끝은 둥근 매듭 + 술(「너의 이름은」 끈).
-// 형: 「탄성 있는 느낌보다 납작이 더 나아, 애니처럼」 — 미츠하 머리끈 같은 납작한 띠(public/obj/silk-ribbon-v2.webp, 915×104, 바탕 투명)
+// 형: 「탄성 있는 느낌보다 납작이 더 나아, 애니처럼」 — 미츠하 머리끈 같은 납작한 띠(public/obj/silk-ribbon-v3.webp, 915×104, 바탕 투명)
 export function SilkKnot({ compact = false }: { compact?: boolean; left?: string; right?: string }) {
   if (compact) {
     // 목록·글 머리의 작은 표 — 같은 끈의 가운데 꼬인 자리만
     return <svg viewBox="372 26 176 56" className="silk-knot-small" aria-hidden="true">
-      <image href="/obj/silk-ribbon-v2.webp" width="915" height="102" />
+      <image href="/obj/silk-ribbon-v3.webp" width="915" height="102" />
     </svg>;
   }
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src="/obj/silk-ribbon-v2.webp" alt="" className="silk-knot" draggable={false} />;
+  return <img src="/obj/silk-ribbon-v3.webp" alt="" className="silk-knot" draggable={false} />;
 }
 // 목록·글 머리의 작은 표 — 끈을 줄이면 얼룩이 된다(형: 「존나 별로네」). 청·홍 두 점이 겹친 알약 + 「이어짐」
 export function InyeonThreadBadge() {
