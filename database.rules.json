@@ -16,6 +16,7 @@
         "name": { ".validate": "newData.isString() && newData.val().length <= 12" },
         "hue": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 360" },
         "at": { ".validate": "newData.isNumber() && newData.val() <= now" },
+        "sex": { ".validate": "newData.isString() && (newData.val() === 'm' || newData.val() === 'f')" },
         "$other": { ".validate": false }
       }
     }

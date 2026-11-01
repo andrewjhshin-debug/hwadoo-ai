@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     | {
         state?: string; reportHold?: boolean; approvedPhotoCount?: number; avatarOn?: boolean;
         photoProofRequired?: boolean; photoProof?: { state?: string };
-        sex?: string; born?: number; area?: string; temple?: string; religionOk?: boolean;
+        sex?: string; born?: number; area?: string; temple?: string; religionOk?: boolean; line?: string;
       }
     | undefined;
   // 심사중이어도 대강은 보인다 — 신고로 묶인 사람만 뺀다
@@ -40,6 +40,8 @@ export async function GET(req: Request) {
       // 절은 따로 동의한 사람 것만(yeonPick 과 같은 문턱)
       temple: d.religionOk ? (d.temple ?? "") : "",
       photo: !!d.avatarOn,
+      // 한 줄 소개 — 좌복 카드 아래에
+      line: (d.line ?? "").slice(0, 80),
     },
     { headers: { "cache-control": "no-store" } }
   );

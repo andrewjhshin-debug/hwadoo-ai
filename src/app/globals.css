@@ -1588,3 +1588,40 @@ body:has(.hip-yh) :is(.doryang-fab, .wheel-fab), body:has(.hip-cmt-bar) :is(.dor
 .hip-board-bar { top: calc(env(safe-area-inset-top) + 86px) !important; padding: 4px 14px !important; }
 .hip-cat-btn { font-size: 13px !important; height: 28px !important; }
 .hip-write-btn { height: 28px !important; font-size: 12.5px !important; padding: 0 11px !important; }
+
+/* ── 좌복 얼굴(B) · 앉은 이 카드(A) · 앉은 사람 줄 ── 형: 「니 추천대로 — B + A + 리스트」 */
+.hip-seatface { position: absolute; left: 50%; bottom: 62%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; font-style: normal; animation: hip-soul-float 5.5s ease-in-out infinite; }
+.hip-seatface-img { display: block; width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 3px 10px rgba(26,23,20,.18); background: #fff; }
+.hip-seatface small { margin-top: 2px; padding: 0 6px; border-radius: 999px; background: rgba(255,255,255,.82); font-size: 9.5px; color: #4a4440; white-space: nowrap; }
+.hip-seatface-heart { position: absolute; top: -4px; right: -12px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: #c9a268; font-size: 11px; line-height: 1; box-shadow: 0 2px 6px rgba(26,23,20,.15); pointer-events: auto; }
+.hip-seatface-heart:active { transform: scale(.9); }
+.hip-people-pill { position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%); padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.82); font-size: 11.5px; color: #4a4440; box-shadow: 0 2px 8px rgba(26,23,20,.08); white-space: nowrap; z-index: 40; }
+.hip-sheet-veil { position: fixed; inset: 0; z-index: 90; display: flex; align-items: flex-end; justify-content: center; background: rgba(24,20,18,.32); }
+.hip-sheet { position: relative; width: 100%; max-width: 440px; max-height: 86dvh; overflow-y: auto; padding: 18px 18px calc(env(safe-area-inset-bottom) + 18px); border-radius: 22px 22px 0 0; background: #fffdfb; animation: hip-seat-up .2s ease-out; }
+.hip-seat-x { position: absolute; top: 12px; right: 14px; z-index: 2; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.85); color: #8a8178; font-size: 13px; }
+.hip-seat-photo { width: 100%; aspect-ratio: 4 / 4.4; border-radius: 16px; overflow: hidden; background: #f3efe9; display: grid; place-items: center; }
+.hip-seat-photo .hip-seatface-big { width: 100%; height: 100%; border: 0; border-radius: 0; box-shadow: none; }
+.hip-seat-photo svg.hip-seatface-big { width: 46%; height: 46%; background: transparent !important; }
+.hip-seat-name { margin: 12px 0 0; font-size: 15px; font-weight: 600; color: #1a1a1c; }
+.hip-seat-name[data-sex="m"]::before, .hip-seat-name[data-sex="f"]::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; vertical-align: 2px; background: #4a7fd6; }
+.hip-seat-name[data-sex="f"]::before { background: #e2556b; }
+.hip-seat-chip { display: inline-block; margin-top: 6px; padding: 3px 9px; border-radius: 999px; background: #f4efe6; color: #8a6a3e; font-size: 11.5px; }
+.hip-seat-line { margin: 8px 0 0; font-size: 13px; line-height: 1.6; color: #4a4440; }
+.hip-seat-acts { display: grid; grid-template-columns: 1fr 1.6fr; gap: 8px; margin-top: 14px; }
+.hip-seat-acts button { height: 44px; border-radius: 12px; border: 1px solid #e6e0d8; background: #fff; font-size: 13.5px; color: #3a3632; }
+.hip-seat-acts button[data-on="1"] { color: #c0453f; border-color: #f0d8d2; }
+.hip-seat-acts button[data-main="1"] { border-color: #1a1a1c; background: #1a1a1c; color: #fff; }
+.hip-sheet-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.hip-sheet-top b { font-size: 15px; font-weight: 600; color: #1a1a1c; }
+.hip-sheet-top button { width: 30px; height: 30px; color: #8a8178; font-size: 13px; }
+.hip-people ul { margin: 0; padding: 0; list-style: none; }
+.hip-people li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f1ece6; cursor: pointer; }
+.hip-people li .hip-seatface-img { width: 36px; height: 36px; border: 0; box-shadow: none; flex: none; }
+.hip-people li > span { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.hip-people li b { font-size: 13.5px; font-weight: 600; color: #1a1a1c; }
+.hip-people li small { font-size: 11px; color: #8a8178; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hip-people-heart { width: 30px; height: 30px; border-radius: 50%; color: #c9a268; font-size: 15px; }
+.hip-people-heart[data-on="1"] { color: #c0453f; }
+.hip-people-like { height: 30px; padding: 0 12px; border-radius: 999px; background: #1a1a1c; color: #fff; font-size: 12px; }
+.hip-people-say { margin: 24px 0; text-align: center; font-size: 13px; color: #8a8178; }
+
