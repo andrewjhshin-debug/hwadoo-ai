@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
@@ -14,6 +15,7 @@ import { onValue, ref, remove, serverTimestamp, set } from "firebase/database";
 import { rtdb } from "@/lib/firebase";
 import { strikeBell } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
+import { loadStore } from "@/lib/store";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { EXTEND_DAYS, POUR_PER_DAY, POUR_UNIT, PRIVATE_BURN_DAYS, PRIVATE_CANDLE_PRICE, PUBLIC_BURN_DAYS, PUBLIC_CANDLE_PRICE, 자리, 향꽂이 } from "@/lib/candleSpec";
@@ -156,7 +158,7 @@ const 좌복줄: [number, number, number, number][] = [
 ];
 const 좌복수 = 좌복줄.reduce((n, [, , k]) => n + k, 0);
 /** 좌복에 앉은 넋 — hall-seats/{자리} = { uid, name, hue, at }. 앱을 나가면 저절로 비운다 */
-type 앉은이 = { uid: string; name: string; hue: number; at: number };
+type 앉은이 = { uid: string; name: string; hue: number; at: number; sex?: string };
 /** 앉아 있는 시간 — 형: 「나가도 로그인 상태로 둘까? 그래야 쪽지 보내면 인식하니까」
  *  앱을 닫아도 자리는 남는다. 열두 시간이 지나면 빈자리로 치고 다른 이가 앉을 수 있다
  *  (database.rules.json 도 같은 값으로 묶는다) */
@@ -173,14 +175,17 @@ function 법당마루() {
     자리잡기(Object.fromEntries(Object.entries(다).filter(([, v]) => 지금 - v.at < 앉는시간)));
   }), []);
   const [본이, 본이잡기] = useState<앉은이 | null>(null);
+  const [줄판, 줄판잡기] = useState(false);
   const 내자리 = Object.entries(자리).find(([, v]) => v.uid === 나)?.[0];
+  const 남수 = Object.values(자리).filter((v) => v.uid !== 나).length;
   const 누름 = async (k: string) => {
     if (!나) { await loginWithGoogle(); return; }
     if (자리[k] && 자리[k].uid !== 나) { 본이잡기(자리[k]); return; } // 남의 자리 — 누군지 본다
     if (내자리) await remove(ref(rtdb, `hall-seats/${내자리}`)).catch(() => {});
     if (내자리 === k) return; // 일어선다
     const r = ref(rtdb, `hall-seats/${k}`);
-    await set(r, { uid: 나, name: (loadMe()?.name ?? "수행자").slice(0, 12), hue: Math.floor(Math.random() * 360), at: serverTimestamp() }).catch(() => {});
+    const 음양 = loadStore().gender;
+    await set(r, { uid: 나, name: (loadMe()?.name ?? "수행자").slice(0, 12), hue: Math.floor(Math.random() * 360), at: serverTimestamp(), ...(음양 ? { sex: 음양 } : {}) }).catch(() => {});
   };
   let 번 = 0;
   return <div className="hip-hall-floor">
@@ -192,26 +197,106 @@ function 법당마루() {
         return (
           <span key={k} role="button" tabIndex={0} aria-label={이 ? `${이.name} 앉아 있음` : "좌복에 앉기"} onClick={() => void 누름(k)}
             style={{ left: `${끝 + 칸 * (i + 0.5) - w / 2}%`, top: `${top}%`, width: `${w}%`, zIndex: r * 10 + i }}>
-            {이 && (
-              <i className="hip-soul" data-me={이.uid === 나 ? "1" : undefined} style={{ "--h": 이.hue } as React.CSSProperties}>
+            {이 && 이.uid === 나 && (
+              <i className="hip-soul" data-me="1" style={{ "--h": 이.hue } as React.CSSProperties}>
                 <em />
                 <small>{이.name}</small>
+              </i>
+            )}
+            {/* 형: 「다른 사람 앉아 있으면 눌러서 볼 수 있게, 얼굴이 뜨면 보고 좋아요」 — 넋 대신 얼굴. 옆에 ♡ */}
+            {이 && 이.uid !== 나 && (
+              <i className="hip-seatface">
+                <좌복얼굴 uid={이.uid} sex={이.sex} />
+                <small>{이.name}</small>
+                <button type="button" className="hip-seatface-heart" aria-label={`${이.name}에게 좋아요`} onClick={(e) => { e.stopPropagation(); void 좋아요(이.uid); }}>♡</button>
               </i>
             )}
           </span>
         );
       });
     })}
-    {/* 형: 「많이 좌복 위에 모였을 때 어떻게 할지」 — 열둘이 다 차면 만석. 열두 시간 지난 자리는 빈자리로 쳐서 곧 돈다 */}
-    {Object.keys(자리).length >= 좌복수 && !내자리 && <p className="hip-soul-full">자리가 다 찼어요</p>}
+    {/* 형: 「1만 명 들어왔다 쳐, 그래도 눌리면 쭉 리스트」 — 앉은 사람이 있으면 알약 하나. 다 차면 「자리가 다 찼어요」도 같은 알약이 */}
+    {남수 > 0 && (
+      <button type="button" className="hip-people-pill" onClick={() => 줄판잡기(true)}>
+        {Object.keys(자리).length >= 좌복수 && !내자리 ? "자리가 다 찼어요 · " : ""}앉은 사람 {남수}
+      </button>
+    )}
+    {줄판 && <앉은줄 닫기={() => 줄판잡기(false)} 열기={(x) => { 줄판잡기(false); 본이잡기(x); }} />}
     {본이 && <좌복카드 이={본이} 닫기={() => 본이잡기(null)} />}
   </div>;
 }
 
-/** 앉은 이 작은 카드 — 얼굴·나이·지역·절을 대강, 그리고 바로 호감(인연의 하나뿐인 입구) */
+/** 좋아요 — 값 없이 하트 하나. 받는 쪽엔 「법당에서 누군가 좋아요」 (하루 한 번) */
+async function 좋아요(to: string) {
+  const u = auth.currentUser;
+  if (!u) { await loginWithGoogle(); return false; }
+  const r = await fetch("/api/hall/like", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ to }) }).catch(() => null);
+  return !!r?.ok;
+}
+
+/** 얼굴 — 사진을 켠 사람은 사진(심사 중이면 「심사중」 그림), 없으면 음양 문양 */
+function 좌복얼굴({ uid, sex, big = false }: { uid: string; sex?: string; big?: boolean }) {
+  const [안됨, 안됨잡기] = useState(false);
+  const 음 = sex === "f" || (sex !== "m" && [...uid].reduce((h, c) => h + c.charCodeAt(0), 0) % 2 === 0);
+  if (안됨) return (
+    <svg viewBox="0 0 24 24" className={big ? "hip-seatface-img hip-seatface-big" : "hip-seatface-img"} aria-hidden style={{ transform: 음 ? "rotate(180deg)" : undefined, background: "#fff" }}>
+      <circle cx="12" cy="12" r="11" fill="#fff" stroke={음 ? "#e2556b" : "#4a7fd6"} strokeWidth="1.5" />
+      <path d="M12 1a11 11 0 0 1 0 22a5.5 5.5 0 0 1 0-11a5.5 5.5 0 0 0 0-11Z" fill={음 ? "#e2556b" : "#4a7fd6"} />
+      <circle cx="12" cy="6.5" r="1.8" fill={음 ? "#e2556b" : "#4a7fd6"} />
+      <circle cx="12" cy="17.5" r="1.8" fill="#fff" />
+    </svg>
+  );
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={`/api/avatar/${uid}`} alt="" draggable={false} className={big ? "hip-seatface-img hip-seatface-big" : "hip-seatface-img"} onError={() => 안됨잡기(true)} />;
+}
+
+/** 앉은 사람 줄 — 서버가 세운 차례(프로필 열림 → 같은 절·지역 → 공덕 → 최근) */
+type 줄사람 = { uid: string; name: string; sex: string; age: number; area: string; temple: string; line: string; photo: boolean; at: number; open: boolean };
+function 앉은줄({ 닫기, 열기 }: { 닫기: () => void; 열기: (x: 앉은이) => void }) {
+  const [줄, 줄잡기] = useState<줄사람[] | null>(null);
+  const [호감, 호감잡기] = useState<줄사람 | null>(null);
+  const [눌림, 눌림잡기] = useState<Record<string, true>>({});
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const u = auth.currentUser;
+      if (!u) { if (alive) 줄잡기([]); return; }
+      const r = await fetch("/api/hall/people", { headers: { authorization: `Bearer ${await u.getIdToken()}` }, cache: "no-store" }).catch(() => null);
+      const j = (r?.ok ? await r.json().catch(() => ({})) : {}) as { people?: 줄사람[] };
+      if (alive) 줄잡기(j.people ?? []);
+    })();
+    return () => { alive = false; };
+  }, []);
+  return (
+    // 법당 판은 transform·z 통 안이라 fixed 가 갇힌다 — 몸통(body)에 바로 띄운다
+    createPortal(
+    <div className="hip-sheet-veil" role="dialog" aria-label="앉은 사람" onClick={닫기}>
+      <div className="hip-sheet hip-people" onClick={(e) => e.stopPropagation()}>
+        <div className="hip-sheet-top"><b>앉은 사람</b><button type="button" onClick={닫기} aria-label="닫기">✕</button></div>
+        {줄 === null ? <p className="hip-people-say">…</p> : 줄.length === 0 ? <p className="hip-people-say">아직 아무도 없어요</p> : (
+          <ul>
+            {줄.map((x) => (
+              <li key={x.uid} onClick={() => 열기({ uid: x.uid, name: x.name, hue: 0, at: x.at, sex: x.sex })}>
+                <좌복얼굴 uid={x.uid} sex={x.sex} />
+                <span><b>{x.name}</b><small>{[x.age ? `${x.age}` : "", x.area, x.temple].filter(Boolean).join(" · ")}</small></span>
+                <button type="button" className="hip-people-heart" data-on={눌림[x.uid] ? "1" : undefined} aria-label="좋아요" onClick={(e) => { e.stopPropagation(); void 좋아요(x.uid).then((ok) => ok && 눌림잡기((m) => ({ ...m, [x.uid]: true }))); }}>{눌림[x.uid] ? "♥" : "♡"}</button>
+                <button type="button" className="hip-people-like" onClick={(e) => { e.stopPropagation(); 호감잡기(x); }}>호감</button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {호감 && <LikeSheet to={호감.uid} name={호감.name} sex={호감.sex === "m" || 호감.sex === "f" ? 호감.sex : null} onClose={() => 호감잡기(null)} />}
+      </div>
+    </div>, document.body)
+  );
+}
+
+/** 앉은 이 카드 — 아래에서 올라온다. 큰 얼굴 · 이름·나이·지역 · 절 · 한 줄 · ♡ 좋아요 / 호감 보내기.
+ *  쪽지는 따로 없다 — 호감이 이어지면(「나도」) 청실홍실 자리에서 쪽지방이 열린다 */
 function 좌복카드({ 이, 닫기 }: { 이: 앉은이; 닫기: () => void }) {
-  const [보임, 보임잡기] = useState<{ sex?: string; age?: number; area?: string; temple?: string; photo?: boolean } | null>(null);
+  const [보임, 보임잡기] = useState<{ sex?: string; age?: number; area?: string; temple?: string; photo?: boolean; line?: string } | null>(null);
   const [호감판, 호감판잡기] = useState(false);
+  const [좋음, 좋음잡기] = useState(false);
   useEffect(() => {
     let alive = true;
     void (async () => {
@@ -223,25 +308,25 @@ function 좌복카드({ 이, 닫기 }: { 이: 앉은이; 닫기: () => void }) {
     })();
     return () => { alive = false; };
   }, [이.uid]);
-  const 줄 = [보임?.age ? `${보임.age}세` : "", 보임?.area ?? "", 보임?.temple ?? ""].filter(Boolean).join(" · ");
+  const 성 = 보임?.sex || 이.sex;
+  const 줄 = [이.name, 보임?.age ? `${보임.age}` : "", 보임?.area ?? ""].filter(Boolean).join(" · ");
   return (
-    <div className="hip-seat-card" role="dialog" aria-label={이.name} onClick={(e) => e.stopPropagation()}>
-      <button type="button" className="hip-seat-x" aria-label="닫기" onClick={닫기}>✕</button>
-      <div className="hip-seat-who">
-        <i style={{ "--h": 이.hue } as React.CSSProperties}>
-          {보임?.photo && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={`/api/avatar/${이.uid}`} alt="" draggable={false} onError={(e) => { e.currentTarget.style.display = "none"; }} />
-          )}
-        </i>
-        <span>
-          <b>{이.name}</b>
-          {줄 && <small>{줄}</small>}
-        </span>
+    // 법당 판은 transform·z 통 안이라 fixed 가 갇힌다 — 몸통(body)에 바로 띄운다
+    createPortal(
+    <div className="hip-sheet-veil" role="dialog" aria-label={이.name} onClick={닫기}>
+      <div className="hip-sheet hip-seat-sheet" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="hip-seat-x" aria-label="닫기" onClick={닫기}>✕</button>
+        <div className="hip-seat-photo"><좌복얼굴 uid={이.uid} sex={성} big /></div>
+        <p className="hip-seat-name" data-sex={성 === "m" || 성 === "f" ? 성 : undefined}>{줄}</p>
+        {보임?.temple && <span className="hip-seat-chip">{보임.temple}</span>}
+        {보임?.line && <p className="hip-seat-line">{보임.line}</p>}
+        <div className="hip-seat-acts">
+          <button type="button" data-on={좋음 ? "1" : undefined} onClick={() => void 좋아요(이.uid).then((ok) => ok && 좋음잡기(true))}>{좋음 ? "♥ 좋아요" : "♡ 좋아요"}</button>
+          <button type="button" data-main="1" onClick={() => 호감판잡기(true)}>호감 보내기 · 🪷1</button>
+        </div>
+        {호감판 && <LikeSheet to={이.uid} name={이.name} sex={성 === "m" || 성 === "f" ? 성 : null} onClose={() => 호감판잡기(false)} />}
       </div>
-      <button type="button" className="hip-seat-like" onClick={() => 호감판잡기(true)}>호감 보내기</button>
-      {호감판 && <LikeSheet to={이.uid} name={이.name} sex={보임?.sex === "m" || 보임?.sex === "f" ? 보임.sex : null} onClose={() => 호감판잡기(false)} />}
-    </div>
+    </div>, document.body)
   );
 }
 
