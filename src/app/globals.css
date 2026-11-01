@@ -1478,3 +1478,12 @@ body:has(.hip-yh) :is(.doryang-fab, .wheel-fab), body:has(.hip-cmt-bar) :is(.dor
 .hip-sincere b { font-weight: 600; color: #8a6a3e; }
 .hip-go-yy { padding: 0; background: #fff !important; overflow: hidden; }
 .hip-yh-top h1 { font-weight: 400 !important; font-family: var(--font-serif); }
+/* 내 프로필 — 폰에선 스크롤 띠가 좁아 3:4 사진 한 장이 화면을 다 먹고 아래가 「끝」처럼 보였다.
+   사진을 화면 높이에 맞춰 줄여 아래 단추·칸이 첫 화면에 보이게 */
+@media (max-width: 767px) {
+  .hip-mepic-stage { max-width: min(200px, 30vh * 0.75) !important; }
+}
+/* 같은 까닭 — 판 아래 182px 이 빈 띠로 남아 「여기서 끝」처럼 보였다. 내 프로필에선 굴림 띠를 바닥까지 */
+@media (max-width: 767px) {
+  body:has(.hip-mepic) .hip-room { padding-bottom: 0 !important; }
+}
