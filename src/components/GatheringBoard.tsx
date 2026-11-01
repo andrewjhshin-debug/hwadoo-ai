@@ -904,7 +904,7 @@ export default function GatheringBoard({
     setMenuOpen(false);
     const ok = await confirm(
       "이 글을 내리겠습니까?",
-      "'삭제된 글입니다'로 자리만 남고, 댓글은 그대로 남습니다.",
+      "내린 글은 복구할 수 없습니다.",
       { confirm: "내리기", cancel: "두기" }
     );
     if (!ok) return;
@@ -1140,10 +1140,10 @@ export default function GatheringBoard({
             <>
               <p className="mt-3 text-[12px] leading-6 text-hanji-dim">
                 {thread.status === "accepted"
-                  ? "대화가 열려 있습니다."
+                  ? "대화가 열려 있어요"
                   : thread.status === "pending"
-                    ? "청을 넣었습니다."
-                    : "지난 청은 거절되었습니다."}
+                    ? "답을 기다리는 중이에요"
+                    : "지난번엔 이어지지 않았어요"}
               </p>
               <Link
                 href="/letters"

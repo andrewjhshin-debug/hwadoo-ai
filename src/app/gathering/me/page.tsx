@@ -335,7 +335,7 @@ export default function 인연내프로필() {
           )}
 
           {/* 형: 「돋보기 말고 최종본 내 프로필 보기」 — 누르면 남이 보는 카드가 그대로 뜬다 */}
-          <button type="button" className="hip-mepic-view" onClick={() => 크게잡기(true)} disabled={장수 === 0}>내 프로필 보기</button>
+          <button type="button" className="hip-mepic-view" onClick={() => 크게잡기(true)} disabled={장수 === 0}>남이 보는 나</button>
           {/* 형: 「대표 사진 프로필사진으로 설정 이런 식으로」 */}
           <label className="hip-yeon-avatar-on">
             <span>대표 사진을 프로필 사진으로</span>

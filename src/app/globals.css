@@ -1487,3 +1487,9 @@ body:has(.hip-yh) :is(.doryang-fab, .wheel-fab), body:has(.hip-cmt-bar) :is(.dor
 @media (max-width: 767px) {
   body:has(.hip-mepic) .hip-room { padding-bottom: 0 !important; }
 }
+/* 남이 보는 나 — 카드를 한 화면에 욱여넣던 틀(짧은 얼굴·겹치는 손)을 풀고 위에서 아래로 그냥 흐르게 */
+.hip-yeon-view { height: auto !important; min-height: 0 !important; display: block !important; }
+.hip-yeon-view .hip-yeon-card { flex: none !important; max-height: none !important; overflow: visible !important; }
+.hip-yeon-view .hip-yeon-face { aspect-ratio: 3 / 4 !important; max-height: none !important; height: auto !important; }
+.hip-yeon-view .hip-yeon-hands { position: static !important; margin: 18px 0 24px !important; }
+

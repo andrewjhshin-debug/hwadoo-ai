@@ -17,7 +17,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import HipRoom from "@/components/HipRoom";
 import { watchAuth } from "@/lib/sync";
-import { 나이, 내프로필, 모자란것, type 인연프로필 } from "@/lib/yeon";
+import { 나이, 내프로필, type 인연프로필 } from "@/lib/yeon";
 
 export default function 내프로필보기() {
   const [있나, 있나잡기] = useState<boolean | null>(null);
@@ -35,11 +35,10 @@ export default function 내프로필보기() {
 
   const 사진 = (me?.photos ?? []).filter((f) => f.state !== "no");
   const 살 = me?.born ? 나이(me.born) : 0;
-  const 빠진 = 모자란것(me ?? null);
 
   return (
     <HipRoom here="/gathering/me/view" lanes={false} rail="/gathering" scroll>
-      <div className="hip-yeon">
+      <div className="hip-yeon hip-yeon-view">
         <p className="hip-yeon-head">因緣 · 남이 보는 나</p>
 
         {있나 === false && <p className="hip-yeon-say">들어온 뒤에 열립니다</p>}
@@ -58,14 +57,7 @@ export default function 내프로필보기() {
 
         {me && (
           <>
-            {/* 못 채운 것이 있으면 맨 위에 — 남에게는 아직 안 보인다는 뜻 */}
-            {빠진.length > 0 && (
-              <div className="hip-yeon-need">
-                {빠진.map((x) => (
-                  <span key={x}>{x}</span>
-                ))}
-              </div>
-            )}
+            {/* 형: 「이딴 말 지우고」 — 빠진 칸 알약은 고치는 화면에만. 여기는 남이 보는 그대로 */}
 
             <div className="hip-yeon-card">
               <div
@@ -107,7 +99,8 @@ export default function 내프로필보기() {
                 {me.mbti && <span>{me.mbti}</span>}
                 {me.smoke && <span>흡연 {me.smoke}</span>}
                 {me.drink && <span>음주 {me.drink}</span>}
-                {[...(me.vibe ?? []), ...(me.like ?? []), ...(me.care ?? [])].map(
+                {/* 오늘의 인연 카드와 같이 — 여섯까지만 */}
+                {[...(me.vibe ?? []), ...(me.like ?? []), ...(me.care ?? [])].slice(0, 6).map(
                   (x) => (
                     <span key={x}>{x}</span>
                   )
