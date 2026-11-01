@@ -167,8 +167,7 @@ const SKINS = {
     // `화두 이미지/[오브제] 염주-발바닥-프롬프트.md` 를 그대로 붙이면 된다.
     // 형: 「밑에 색상도 핑크로 바꾸고」 — 알이 분홍인데 점만 미색이었다
     { id: "paw", name: "발바닥", src: "/obj/bead-paw.png", dot: "#f08ba8", wide: true, one: "/obj/bead-paw-one.png", lit: "/obj/bead-paw-one-gold.png" },
-    // Fourth slot replaces neon. Geometry, rotation and fill logic stay shared with paw.
-    { id: "stone", name: "청옥", src: "/obj/mala-stone-v6/0.webp", dot: "#9db9ac", wide: true, one: "/obj/mala-stone-v6/0.webp", lit: "/obj/mala-stone-v6/0.webp" },
+    // 넷째 청옥은 걷었다 — 형: 「4번째 염주 표출하지 말고 지우라니까」. 그림은 public/obj/mala-stone-v6 에 남아 있다
     { id: "zodiac", name: "열두 띠 나무", src: "/obj/bead-wood-one-v1.png", dot: "#ae7946", wide: true, one: "/obj/bead-wood-one-v1.png", lit: "/obj/bead-wood-one-gold-v1.png" },
     { id: "sandalwood", name: "나뭇결", src: "/obj/bead-wood-one-v2.png", dot: "#87512f", wide: true, one: "/obj/bead-wood-one-v2.png", lit: "/obj/bead-wood-one-v2.png" },
   ],
@@ -481,7 +480,7 @@ export default function MoktakPage() {
       const raw = window.localStorage.getItem(SKIN_KEY);
       if (raw) {
         const got = JSON.parse(raw) as Partial<Record<SkinKind, string>>;
-        if (got.bead === "neon") got.bead = "stone";
+        if (got.bead === "neon" || got.bead === "stone") got.bead = "zodiac";
         setSkin((s) => ({
           moktak:
             SKINS.moktak.some((k) => k.id === got.moktak) && got.moktak

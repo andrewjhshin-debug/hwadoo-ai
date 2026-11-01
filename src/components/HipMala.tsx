@@ -27,22 +27,24 @@
 // ─────────────────────────────────────────────────────────────
 
 import { usePathname, useRouter } from "next/navigation";
+import { ROOM_LANES } from "./HipLanes";
 
 export type Bead = { mark: string; name: string; href: string; also: string[] };
 
 /** 알 넷 — `also` 는 그 알이 품는 방들(그 방에 있어도 이 알이 켜진다).
     **이 배열이 유일한 원본이다.** 쓸기(HipShell)도 여기서 읽어 간다 */
 export const BEADS: Bead[] = [
-  { mark: "話", name: "화두", href: "/", also: ["/my-hwadu", "/archive", "/room"] },
+  { mark: "話", name: "화두", href: "/", also: ["/my-hwadu", "/archive", "/room", "/ganhwaseon", "/masters"] },
   { mark: "堂", name: "법당", href: "/candle", also: [] },
-  { mark: "功", name: "공덕", href: "/moktak", also: [] },
+  // 형: 「호흡은 왜 我로 표기되지」 — 功 줄(HipLanes)의 방은 전부 功 안이다. 목록을 손으로 따로 적지 않고 그 줄에서 읽는다
+  { mark: "功", name: "공덕", href: "/moktak", also: [...ROOM_LANES.map((r) => r.href), "/tower/challenge"] },
   // 형: 「메인 아래 탭은 화두, 손잡고 절로(게시판)」
   // 인연 세 방(오늘의 인연 · 내 프로필 · 프로필 보기)도 緣 안이다
   {
     mark: "緣",
     name: "절로",
     href: "/gathering",
-    also: ["/pilgrimage", "/gathering/yeon", "/gathering/me", "/gathering/me/view"],
+    also: ["/pilgrimage", "/gathering/yeon", "/gathering/me", "/gathering/me/view", "/gathering/alerts", "/letters", "/go", "/moment"],
   },
   {
     mark: "我",
@@ -51,7 +53,7 @@ export const BEADS: Bead[] = [
     // 읽어 주는 이름만 바로잡는다
     name: "내 도량",
     href: "/settings",
-    also: ["/rank", "/hasim", "/breath", "/mung", "/empty", "/tamjinchi", "/lotus"],
+    also: ["/rank", "/empty", "/tamjinchi", "/tamjinchi/records", "/lotus", "/settings/preferences", "/about", "/terms", "/privacy", "/youth"],
   },
 ];
 
