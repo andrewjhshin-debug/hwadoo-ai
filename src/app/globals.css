@@ -1679,3 +1679,18 @@ html[data-focus="1"] :is(.hip-daybar, .wheel-fab, .doryang-fab) { display: none 
 .hip-me-back .hip-me-desk span { margin-left: 6px; padding: 0 6px; border-radius: 999px; background: #1a1a1c; color: #fff !important; font-size: 11px; }
 /* 글 보기 — 넓은 화면에서도 아래 염주 줄이 본문·댓글을 덮었다. 글을 읽는 동안엔 폭과 상관없이 걷는다 */
 body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab) { display: none !important; }
+
+/* 손잡고 절로 — 이어진 둘 사이의 한 걸음 */
+.hip-match-names { margin: 0 0 2px; font-size: 14px; color: #6e6862; }
+.hip-match-names b { font-weight: 600; color: #1a1a1c; }
+.hip-match-names b[data-g="m"] { color: #4a7fd6; }
+.hip-match-names b[data-g="f"] { color: #e2556b; }
+.hip-hand { display: grid; gap: 8px; margin: 12px 0 4px; text-align: center; font-size: 13px; color: #6e6862; }
+.hip-hand > button, .hip-hand-two button, .hip-hand-swap { height: 40px; border-radius: 12px; border: 1px solid rgba(168,128,74,.45); background: #fffaf0; color: #6e5a3e; font-size: 13.5px; font-weight: 600; }
+.hip-hand-two { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
+.hip-hand-two button[data-main="1"] { background: #1a1a1c; border-color: #1a1a1c; color: #fff; }
+.hip-hand p { margin: 0; }
+.hip-hand p button { color: #8a7a62; text-decoration: underline; text-underline-offset: 3px; }
+.hip-hand-on { color: #8a6a3e; font-weight: 500; }
+.hip-hand-say { font-size: 12px; color: #c0457a; }
+.hip-hand button:disabled { opacity: .5; }

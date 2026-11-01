@@ -1,11 +1,12 @@
 "use client";
-// 인연이 닿았어요 — 청실홍실 끈과 단추 둘: 쪽지방 열기(🪷3, 먼저 여는 쪽이 한 번) · 번호·카톡 열기.
+// 인연이 닿았어요 — 단추 둘: 쪽지방 열기(🪷3, 먼저 여는 쪽이 한 번) · 번호·카톡 열기.
+// 청실홍실 끈은 여기서 안 건다 — 여럿과 닿을 수 있으니, 끈은 「손잡고 절로」를 둘 다 받았을 때만(HandInHand).
 // 형: 「호감 보내기 하고 상대가 받으면 번호나 카톡 아이디 열기」 — 매칭 바로 그 자리에서.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
-import InyeonThread from "@/components/InyeonThread";
+import HandInHand from "@/components/HandInHand";
 import ContactSwap from "@/components/ContactSwap";
 import { watchAuth } from "@/lib/sync";
 import { 방열기 } from "@/lib/yeonLike";
@@ -40,7 +41,7 @@ export default function MatchScreen({ pair, myName, mySex, name, sex, thread, on
   };
   return (
     <div className="hip-match">
-      <InyeonThread leftName={myName} leftGender={mySex || undefined} rightName={name} rightGender={sex || undefined} />
+      <p className="hip-match-names"><b data-g={mySex || undefined}>{myName}</b> · <b data-g={sex || undefined}>{name}</b></p>
       <p className="hip-match-say">인연이 닿았어요</p>
       <div className="hip-match-acts">
         <button className="hip-match-main" disabled={바쁨} onClick={() => void 방()}>
@@ -54,6 +55,8 @@ export default function MatchScreen({ pair, myName, mySex, name, sex, thread, on
       {탈 && <p className="hip-match-note">방을 열지 못했어요. 잠시 뒤 다시 눌러 주세요</p>}
       {/* 번호 판은 로그인해야 그린다 — 로그인 전이면 눌러도 아무것도 안 뜨던 자리 */}
       {번호 && !user && <p className="hip-match-note">들어온 뒤에 열 수 있어요</p>}
+      {/* 둘만의 다음 걸음 — 받아들이면 그때 청실홍실이 남에게도 보인다 */}
+      {user && <HandInHand pair={pair} />}
       {onClose && <button className="hip-match-later" onClick={onClose}>나중에</button>}
     </div>
   );

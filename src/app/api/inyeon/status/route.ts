@@ -25,22 +25,18 @@ export async function GET(req: Request) {
     const authors = [...new Set(Object.values(owners).filter(Boolean))];
     const paired = new Set<string>();
     const 상대: Record<string, 짝> = {};
-    // array-contains-any 는 한 번에 서른까지
-    for (let i = 0; i < authors.length; i += 30) {
-      const snap = await db.collection("yeon-pairs").where("pair", "array-contains-any", authors.slice(i, i + 30)).select("pair", "names", "sex", "state", "thread", "at").limit(500).get();
-      // 형: 「한 사람이 여러 명이랑 매칭될 수도 있거든 — 최종 매칭만」
-      // 여럿이면 가장 깊이 간 짝 하나만 건다: 번호까지 연 짝 > 쪽지방 연 짝 > 막 이어진 짝, 같으면 최근
-      const 깊이 = (d: FirebaseFirestore.DocumentData) => (d.state === "contact" ? 3 : d.thread || d.state === "room" ? 2 : 1);
-      const 고른: Record<string, { 깊: number; 때: number }> = {};
-      for (const d of snap.docs) {
-        const v = d.data(), pr = v.pair as string[], names = (v.names ?? {}) as Record<string, string>, sexes = (v.sex ?? {}) as Record<string, string>;
-        const 깊 = 깊이(v), 때 = v.at?.toMillis?.() ?? 0;
-        for (const u of pr) {
-          paired.add(u);
-          const 저 = pr.find((x) => x !== u);
-          const 앞 = 고른[u];
-          if (저 && (!앞 || 깊 > 앞.깊 || (깊 === 앞.깊 && 때 > 앞.때))) { 고른[u] = { 깊, 때 }; 상대[u] = { name: names[저] ?? "도반", sex: sexes[저] ?? "" }; }
-        }
+    // 형: 「1대1은 손잡고 절로, 떼거지는 같이 가요」 — 매칭은 남에게 안 보인다.
+    // 청실홍실은 「손잡고 절로」를 둘 다 받은 짝(hand)만 건다. 한 사람에 하나뿐이라 고를 것도 없다.
+    // ponytail: 손잡은 짝 전체를 한 번에 읽는다(색인 없이). 수천 쌍이 넘으면 pair array-contains-any + hand 복합 색인으로
+    const 글쓴이 = new Set(authors);
+    const snap = await db.collection("yeon-pairs").where("hand", "==", true).select("pair", "names", "sex").limit(2000).get();
+    for (const d of snap.docs) {
+      const v = d.data(), pr = v.pair as string[], names = (v.names ?? {}) as Record<string, string>, sexes = (v.sex ?? {}) as Record<string, string>;
+      for (const u of pr) {
+        if (!글쓴이.has(u)) continue;
+        paired.add(u);
+        const 저 = pr.find((x) => x !== u);
+        if (저) 상대[u] = { name: names[저] ?? "도반", sex: sexes[저] ?? "" };
       }
     }
     const matched = pairedPostIds(owners, together, paired);
