@@ -9,7 +9,7 @@ import { 신고보내기 } from "@/lib/dm";
 import { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
 import { watchOnlineCount } from "@/lib/presence";
-import { onDisconnect, onValue, ref, remove, set } from "firebase/database";
+import { onDisconnect, onValue, ref, remove, serverTimestamp, set } from "firebase/database";
 import { rtdb } from "@/lib/firebase";
 import { strikeBell } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
@@ -128,7 +128,7 @@ function 법당마루() {
     if (내자리) await remove(ref(rtdb, `hall-seats/${내자리}`)).catch(() => {});
     if (내자리 === k) return; // 일어선다
     const r = ref(rtdb, `hall-seats/${k}`);
-    await set(r, { uid: 나, name: (loadMe()?.name ?? "수행자").slice(0, 12), hue: Math.floor(Math.random() * 360), at: Date.now() }).catch(() => {});
+    await set(r, { uid: 나, name: (loadMe()?.name ?? "수행자").slice(0, 12), hue: Math.floor(Math.random() * 360), at: serverTimestamp() }).catch(() => {});
     onDisconnect(r).remove().catch(() => {});
   };
   let 번 = 0;

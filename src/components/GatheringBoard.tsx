@@ -16,7 +16,7 @@
 // · 글쓰기·댓글 자격: 로그인 + 1회향. 연결 주소는 [함께하기] 뒤에만 숨는다.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -177,25 +177,36 @@ function GoPostBox({ p, open }: { p: Post; open: () => void }) {
   const 열쇠 = `p_${p.id}`;
   const [people, setPeople] = useState<Record<string, 가는사람> | null>(null);
   const [busy, setBusy] = useState(false);
+  const [방, 방잡기] = useState(false);
   useEffect(() => {
     let alive = true;
     fetch(`/api/go?date=${열쇠}`, { cache: "no-store" }).then((r) => r.json()).then((j: { people?: Record<string, 가는사람> }) => { if (alive) setPeople(j.people ?? {}); }).catch(() => { if (alive) setPeople({}); });
     return () => { alive = false; };
   }, [열쇠]);
   const uid = auth.currentUser?.uid ?? "";
-  const 나 = !!(uid && people?.[uid]);
+  const 나 = !!(uid && (people?.[uid] || uid === p.authorUid));
   const 줄 = Object.entries(people ?? {}).sort((a, b) => a[1].at - b[1].at);
   const 날 = p.meetDate ? (() => { const [y, m, d] = p.meetDate!.split("-").map(Number); return `${요일[new Date(y, m - 1, d).getDay()]} ${m}.${d}`; })() : "";
+  // 형: 「버튼 눌리면 뭐가 되도록 — 단체방 느낌」. 손 들면 곧장 방이 열린다. 이미 들었으면 방으로
   const 손 = async () => {
     const u = auth.currentUser;
     if (!u) { open(); return; }
+    if (나) { 방잡기(true); return; }
     if (busy) return;
     setBusy(true);
     try {
-      const r = await fetch("/api/go", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ date: 열쇠, eventName: p.title, on: !나, name: anonName() }) });
+      const r = await fetch("/api/go", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ date: 열쇠, eventName: p.title, on: true, name: anonName() }) });
       const j = (await r.json().catch(() => ({}))) as { people?: Record<string, 가는사람> };
-      if (r.ok && j.people) setPeople(j.people);
+      if (r.ok && j.people) { setPeople(j.people); 방잡기(true); }
     } finally { setBusy(false); }
+  };
+  const 나가기 = async () => {
+    const u = auth.currentUser;
+    if (!u || uid === p.authorUid) return;
+    const r = await fetch("/api/go", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ date: 열쇠, on: false }) });
+    const j = (await r.json().catch(() => ({}))) as { people?: Record<string, 가는사람> };
+    if (r.ok && j.people) setPeople(j.people);
+    방잡기(false);
   };
   return (
     <div className="hip-go-box">
@@ -207,10 +218,65 @@ function GoPostBox({ p, open }: { p: Post; open: () => void }) {
           <small>{Math.max(1, 줄.length)}명</small>
         </span>
       </button>
-      <button type="button" className="hip-go-box-btn" data-on={나 ? "1" : undefined} disabled={busy || people === null} onClick={손}>{나 ? "가요 ✓" : "같이 가요"}</button>
+      <button type="button" className="hip-go-box-btn" data-on={나 ? "1" : undefined} disabled={busy || people === null} onClick={손}>{나 ? "단체방" : "같이 가요"}</button>
+      {방 && <GoRoom postId={p.id} 날={[날, p.templeName, p.meetTime].filter(Boolean).join(" · ")} onClose={() => 방잡기(false)} onLeave={uid === p.authorUid ? undefined : 나가기} />}
     </div>
   );
 }
+/** 같이 가요 단체방 — 손 든 사람끼리. 5초마다 새 말을 읽는다 */
+type 방말 = { id: string; uid: string; name: string; text: string; at: number };
+function GoRoom({ postId, 날, onClose, onLeave }: { postId: string; 날: string; onClose: () => void; onLeave?: () => void }) {
+  const [판, 판잡기] = useState<{ title: string; me: string; author: { uid: string; name: string }; people: Record<string, 가는사람>; msgs: 방말[] } | null>(null);
+  const [글, 글잡기] = useState("");
+  const 끝 = useRef<HTMLDivElement>(null);
+  const 읽기 = useCallback(async () => {
+    const u = auth.currentUser;
+    if (!u) return;
+    const r = await fetch(`/api/go/room?post=${postId}`, { headers: { authorization: `Bearer ${await u.getIdToken()}` }, cache: "no-store" });
+    if (r.ok) 판잡기(await r.json());
+  }, [postId]);
+  useEffect(() => { void 읽기(); const t = window.setInterval(() => void 읽기(), 5000); return () => window.clearInterval(t); }, [읽기]);
+  useEffect(() => { 끝.current?.scrollIntoView({ block: "end" }); }, [판?.msgs.length]);
+  const 보내기 = async () => {
+    const u = auth.currentUser, text = 글.trim();
+    if (!u || !text) return;
+    글잡기("");
+    await fetch("/api/go/room", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ post: postId, text }) });
+    void 읽기();
+  };
+  const 사람들 = 판 ? [[판.author.uid, { name: 판.author.name, at: 0 }] as [string, 가는사람], ...Object.entries(판.people).filter(([id]) => id !== 판.author.uid)] : [];
+  return (
+    <div className="hip-room-veil" role="dialog" aria-modal="true" aria-label="단체방" onClick={onClose}>
+      <section className="hip-room" onClick={(e) => e.stopPropagation()}>
+        <header>
+          <div>
+            <b>{판?.title ?? "…"}</b>
+            <small>{날} · {사람들.length}명</small>
+          </div>
+          <button onClick={onClose} aria-label="닫기">✕</button>
+        </header>
+        <div className="hip-room-faces">
+          {사람들.map(([id, x]) => <span key={id}><GoFace uid={id} name={x.name} /><i>{x.name}</i></span>)}
+        </div>
+        <div className="hip-room-msgs">
+          {판?.msgs.map((m) => (
+            <p key={m.id} data-me={m.uid === 판.me ? "1" : undefined}>
+              {m.uid !== 판.me && <small>{m.name}</small>}
+              <span>{m.text}</span>
+            </p>
+          ))}
+          <div ref={끝} />
+        </div>
+        <form className="hip-room-in" onSubmit={(e) => { e.preventDefault(); void 보내기(); }}>
+          <input value={글} onChange={(e) => 글잡기(e.target.value)} maxLength={300} placeholder="메시지" />
+          <button disabled={!글.trim()}>보내기</button>
+        </form>
+        {onLeave && <button className="hip-room-leave" onClick={onLeave}>방 나가기</button>}
+      </section>
+    </div>
+  );
+}
+
 function GoFace({ uid, name }: { uid: string; name: string }) {
   const [안됨, 안됨잡기] = useState(false);
   if (안됨) return <i className="hip-go-face">{(name || "行").slice(0, 1)}</i>;
@@ -1363,6 +1429,8 @@ export default function GatheringBoard({
               className="hip-rules-ph resize-none rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[15.5px] leading-8 text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
             />
             {/* 어느 절로, 언제 — 전부 선택 */}
+            {/* 절·날짜는 「같이 가요」에서만 — 단체방을 여는 글이다 */}
+            {category === "together" && (
             <div className="flex flex-col gap-3 sm:flex-row">
               {/* 절 — 골라 쓴다.
                   예전엔 빈 칸에 datalist 만 물려 두었는데, 브라우저가 화살표를
@@ -1432,6 +1500,7 @@ export default function GatheringBoard({
                 </label>
               </div>
             </div>
+            )}
             {/* 형: 「저 문구 지우고」 — 「양/음(남·여) 문양은 내 도량에서
                 설정할 수 있습니다」. 글을 쓰러 온 사람에게 딴 화면의
                 설정 이야기를 할 자리가 아니다. */}
