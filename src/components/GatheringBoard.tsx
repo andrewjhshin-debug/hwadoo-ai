@@ -241,7 +241,7 @@ function GoPostBox({ p, open, matched = false }: { p: Post; open: () => void; ma
         <span className="hip-go-box-when">{[날말(p.meetDate), p.meetTime ? timeLabel(p.meetTime) : "", p.templeName].filter(Boolean).join(" · ")}</span>
         <span className="hip-go-box-title">{p.title}{matched && <InyeonThreadBadge />}</span>
         <span className="hip-go-box-faces">
-          {(줄.length ? 줄 : [[p.authorUid, { name: p.authorName, at: 0 }] as [string, 가는사람]]).slice(0, 3).map(([id, x]) => <GoFace key={id} uid={id} name={x.name} />)}
+          {(줄.length ? 줄 : [[p.authorUid, { name: p.authorName, at: 0 }] as [string, 가는사람]]).slice(0, 3).map(([id, x]) => <GoFace key={id} uid={id} name={x.name} sex={x.sex} />)}
           <small>{p.capacity ? `${수}/${p.capacity}명` : `${수}명`}</small>
         </span>
       </button>
@@ -278,13 +278,13 @@ function GoPanel({ p }: { p: Post }) {
         {p.meetPlace && <><dt>가는 길</dt><dd>{p.meetPlace}</dd></>}
       </dl>
       <div className="hip-go-panel-faces">
-        {사람.map(([id, x]) => <span key={id}><GoFace uid={id} name={x.name} /><small>{x.name}</small></span>)}
+        {사람.map(([id, x]) => <span key={id}><GoFace uid={id} name={x.name} sex={x.sex} /><small>{x.name}</small></span>)}
       </div>
       {글쓴이 && 신청.length > 0 && (
         <ul className="hip-go-wait">
           {신청.map(([id, x]) => (
             <li key={id}>
-              <GoFace uid={id} name={x.name} />
+              <GoFace uid={id} name={x.name} sex={x.sex} />
               <b>{x.name}</b>
               <button type="button" onClick={() => void 누름({ uid: id, approve: false })}>거절</button>
               <button type="button" data-ok="1" disabled={참} onClick={() => void 누름({ uid: id, approve: true })}>승인</button>
@@ -340,7 +340,7 @@ function GoRoom({ postId, 날, onClose, onLeave }: { postId: string; 날: string
           <button onClick={onClose} aria-label="닫기">✕</button>
         </header>
         <div className="hip-room-faces">
-          {사람들.map(([id, x]) => <span key={id}><GoFace uid={id} name={x.name} /><i>{x.name}</i></span>)}
+          {사람들.map(([id, x]) => <span key={id}><GoFace uid={id} name={x.name} sex={x.sex} /><i>{x.name}</i></span>)}
         </div>
         <div className="hip-room-msgs">
           {판?.msgs.map((m) => (
@@ -361,9 +361,10 @@ function GoRoom({ postId, 날, onClose, onLeave }: { postId: string; 날: string
   );
 }
 
-function GoFace({ uid, name }: { uid: string; name: string }) {
+function GoFace({ uid, sex }: { uid: string; name?: string; sex?: string }) {
   const [안됨, 안됨잡기] = useState(false);
-  if (안됨) return <i className="hip-go-face">{(name || "行").slice(0, 1)}</i>;
+  // 형: 「해 도 고 이딴 식 말고 음양으로」 — 사진이 없으면 음양 문양
+  if (안됨) return <span className="hip-go-face hip-go-yy"><GenderMark g={sex === "m" || sex === "f" ? sex : null} seed={uid} className="h-full w-full" /></span>;
   // eslint-disable-next-line @next/next/no-img-element
   return <img className="hip-go-face" src={`/api/avatar/${uid}`} alt="" draggable={false} onError={() => 안됨잡기(true)} />;
 }
@@ -1812,7 +1813,7 @@ export default function GatheringBoard({
             const 같이 = !p.deleted && (p.category ?? "together") === "together" && !!(p.templeName || p.meetDate);
             if (같이) return (
               <li key={p.id} className="hip-go-post">
-                <GoPostBox p={p} matched={matchedPosts.includes(p.id)} open={() => { 목록자리.current = document.getElementById("scroll-box")?.scrollTop ?? 0; setSelectedId(p.id); pushLayer(); }} />
+                <GoPostBox p={p} open={() => { 목록자리.current = document.getElementById("scroll-box")?.scrollTop ?? 0; setSelectedId(p.id); pushLayer(); }} />
               </li>
             );
             // 골스 게시판처럼 — 얼굴·이름·때, 굵은 제목, 본문 두 줄, 아래 갈래·조회·댓글

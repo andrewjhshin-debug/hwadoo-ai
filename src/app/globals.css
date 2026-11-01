@@ -1453,9 +1453,15 @@ body:has(.hip-yh, .hip-yeon-deck, .hip-yeon-head) .hip-bloom { display: none !im
 .hip-cat-menu button[aria-selected="true"] { background: #1a1a1c !important; color: #fff !important; font-weight: 500 !important; }
 .hip-cat-menu button svg { display: none; }
 /* 형: 「인연 게시판에선 바 메뉴를 치웠다가 눌리면 튀어나오든」 — 판 아래 염주 줄을 걷는다. 오른쪽 아래 법륜 단추가 모든 방을 연다 */
+/* 형: 「법륜은 인연에선 안 뜨게」 「메뉴바 위까지로 게시물을 끊든」 — 인연에선 법륜을 걷고, 아래 염주 줄은 두되 그 뒤로 글이 비치지 않게 바닥을 깐다 */
+body:has(.hip-yh) :is(.doryang-fab, .wheel-fab), body:has(.hip-cmt-bar) :is(.doryang-fab, .wheel-fab) { display: none !important; }
 @media (max-width: 767px) {
-  body:has(.hip-yh) .hip-mala { display: none !important; }
+  body:has(.hip-yh) .hip-mala::before { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: calc(env(safe-area-inset-bottom) + 96px); background: linear-gradient(180deg, rgba(250,248,245,0), #faf8f5 26%); z-index: -1; pointer-events: none; }
 }
+/* 댓글 칸 — 가로로 끝까지 */
+.hip-cmt-bar { padding-right: 16px !important; }
+.hip-cmt-bar > div { width: 100%; }
+.hip-cmt-bar input { flex: 1 1 auto; min-width: 0; }
 /* 검색·더 보기 */
 .hip-find-btn { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; color: #1a1a1c; }
 .hip-find-btn[aria-pressed="true"] { background: #f4f2ef; }
@@ -1470,3 +1476,5 @@ body:has(.hip-yh, .hip-yeon-deck, .hip-yeon-head) .hip-bloom { display: none !im
 .hip-sincere { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(201,162,104,.55); background: #fffaf0; font-size: 12.5px; color: #6e5a3e; }
 .hip-sincere input { width: 16px; height: 16px; accent-color: #a8804a; }
 .hip-sincere b { font-weight: 600; color: #8a6a3e; }
+.hip-go-yy { padding: 0; background: #fff !important; overflow: hidden; }
+.hip-yh-top h1 { font-weight: 400 !important; font-family: var(--font-serif); }

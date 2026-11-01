@@ -25,17 +25,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ uid: st
         photos?: { path?: string; state?: string }[];
       }
     | undefined;
-  // 인연판에 서는 문턱(firestore.rules 의 isOpen · yeonPick)과 **같은 문턱**을 지나야 보인다.
-  // 거기에 본인이 켠 avatarOn 하나를 더 얹는다. 로그인은 묻지 않는다 — <img> 는 열쇠를
-  // 못 싣고, 글 옆 얼굴은 본인이 「게시판에 보이겠다」고 켠 것이다.
-  const 열림 =
-    d?.state === "활동" &&
-    (d.approvedPhotoCount ?? 0) > 0 &&
-    d.reportHold !== true &&
-    (d.photoProofRequired !== true || d.photoProof?.state === "ok");
-  if (!d?.avatarOn || !열림) return new Response(null, { status: 404 });
+  // 형: 「심사중이든 아니든 뜨게 해라. 심사중이라면 사진만 심사중으로」
+  // 본인이 켰으면(avatarOn) 프로필 상태와 상관없이 — 심사 통과한 첫 장을 보인다.
+  // 통과한 장이 없고 기다리는 장만 있으면 「심사중」 자리표시. **기다리는 사진 자체는 절대 안 내보낸다.**
+  if (!d?.avatarOn || d.reportHold === true) return new Response(null, { status: 404 });
   const first = (d.photos ?? []).find((p) => p.state === "ok" && isYeonPhotoPath(uid, p.path));
-  if (!first?.path) return new Response(null, { status: 404 });
+  if (!first?.path) {
+    const 기다림 = (d.photos ?? []).some((p) => p.state !== "ok" && p.state !== "no");
+    if (!기다림) return new Response(null, { status: 404 });
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#efeae3"/><circle cx="32" cy="25" r="10" fill="#d9d1c6"/><path d="M14 54c3-10 10-15 18-15s15 5 18 15" fill="#d9d1c6"/><text x="32" y="60" text-anchor="middle" font-size="9" font-family="sans-serif" fill="#8a7a62">심사중</text></svg>`;
+    return new Response(svg, { headers: { "content-type": "image/svg+xml", "cache-control": "private, max-age=300" } });
+  }
   const url = await shortPhotoUrl(app, first.path);
   if (!url) return new Response(null, { status: 404 });
   return new Response(null, { status: 302, headers: { location: url, "cache-control": "private, max-age=600" } });

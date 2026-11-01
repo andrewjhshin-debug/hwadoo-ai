@@ -28,11 +28,8 @@ export async function GET(req: Request) {
         sex?: string; born?: number; area?: string; temple?: string; religionOk?: boolean;
       }
     | undefined;
-  const 열림 =
-    d?.state === "활동" &&
-    (d.approvedPhotoCount ?? 0) > 0 &&
-    d.reportHold !== true &&
-    (d.photoProofRequired !== true || d.photoProof?.state === "ok");
+  // 심사중이어도 대강은 보인다 — 신고로 묶인 사람만 뺀다
+  const 열림 = !!d && d.reportHold !== true;
   if (!열림) return Response.json({}, { headers: { "cache-control": "no-store" } });
   const 올해 = new Date(Date.now() + 9 * 3_600_000).getUTCFullYear();
   return Response.json(
