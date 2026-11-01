@@ -1088,17 +1088,7 @@ export default function CandleHall() {
   return <div className="hip-hall">
     {/* 머리띠 없음 — 형: 「법당이랑 인연에는 위에 메뉴바 없어도 되겠다」. 그 자리를 법당이 쓴다 */}
     <div className="hip-hall-top">
-      {/* 「내 것만」 — 누르면 남의 것이 희미해지고 내 것만 밝아진다.
-          거르지 않는다(사라지면 법당이 빈다) — **밝기로 가른다.**
-          절에서 제 등을 찾는 일이 그렇다: 다 걸려 있는데 내 것만 눈에 든다 */}
-      <button
-        className="hip-hall-mine"
-        data-on={내것만 ? "1" : undefined}
-        onClick={() => 내것만잡기((v) => !v)}
-        aria-pressed={내것만}
-      >
-        내 공양
-      </button>
+      {/* 「내 공양」 단추는 걷었다 — 형: 「내 공양 지우고, 안 눌려도 연등 불빛 들어오게」. 내 등은 늘 빛난다 */}
       {/* 한자 「法堂」은 뒤의 「법당」과 같은 말이라 뗀다 */}
       <h1 aria-label="법당" />
       <span aria-hidden />
