@@ -265,6 +265,9 @@ export default function LettersPage() {
           </div>
         </div>
 
+        {/* 연락처 열기 — 둘 다 열어야 서로 보인다 */}
+        <ContactSwap threadId={opened.id} user={user} />
+
         {/* 말풍선 */}
         <div className="mt-5 flex flex-1 flex-col gap-2.5 overflow-y-auto">
           {msgs === null ? (
@@ -466,6 +469,45 @@ export default function LettersPage() {
           </>
         )}
       </ul>
+    </div>
+  );
+}
+
+/** 연락처 열기 — 내 카톡 아이디(또는 번호)를 걸면, 상대도 걸었을 때만 서로 보인다 */
+function ContactSwap({ threadId, user }: { threadId: string; user: User }) {
+  const [st, setSt] = useState<{ mine: boolean; theirs: boolean; contact: string | null } | null>(null);
+  const [쓰기, set쓰기] = useState(false);
+  const [값, set값] = useState("");
+  const 부르기 = useCallback(async (init?: RequestInit) => {
+    const r = await fetch(init ? "/api/dm/contact" : `/api/dm/contact?thread=${threadId}`, {
+      ...init,
+      headers: { "content-type": "application/json", authorization: `Bearer ${await user.getIdToken()}` },
+    });
+    if (r.ok) setSt(await r.json());
+  }, [threadId, user]);
+  useEffect(() => { setSt(null); void 부르기(); }, [부르기]);
+  if (!st) return null;
+  const 걸기 = async (contact: string) => { await 부르기({ method: "POST", body: JSON.stringify({ thread: threadId, contact }) }); set쓰기(false); };
+  return (
+    <div className="mt-4 rounded-[14px] border border-gold/25 bg-gold/5 px-4 py-3 text-[13px] text-hanji-dim">
+      {st.contact ? (
+        <p className="flex items-center justify-between gap-2">
+          <span>상대 연락처</span>
+          <b className="select-all font-medium text-hanji">{st.contact}</b>
+        </p>
+      ) : 쓰기 ? (
+        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); if (값.trim()) void 걸기(값); }}>
+          <input autoFocus value={값} onChange={(e) => set값(e.target.value)} maxLength={40} placeholder="카톡 아이디" className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3 py-2 text-hanji outline-none" />
+          <button className="rounded-[10px] border border-gold/50 px-3 py-2 text-gold">열기</button>
+        </form>
+      ) : (
+        <p className="flex items-center justify-between gap-2">
+          <span>{st.mine ? "상대가 열면 보여요" : st.theirs ? "상대가 연락처를 열었어요" : "둘 다 열면 연락처가 보여요"}</span>
+          {st.mine
+            ? <button onClick={() => void 걸기("")} className="text-hanji-faint underline underline-offset-4">거두기</button>
+            : <button onClick={() => set쓰기(true)} className="rounded-full border border-gold/50 px-3 py-1 text-gold">연락처 열기</button>}
+        </p>
+      )}
     </div>
   );
 }
