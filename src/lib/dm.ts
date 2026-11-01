@@ -37,6 +37,7 @@ import { ADMIN_UID, DM_ENABLED, FIRST_GRANT, isAdminAccount } from "./config";
 import { 막은이들 } from "./yeonToday";
 import { 무상기한 } from "./wallet";
 import type { Post } from "./community";
+import { 알림울리기 } from "./alerts";
 
 // 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 셈은 config.ts 에 있다.
 // 여기서 그대로 다시 내보내므로 부르던 쪽은 손댈 것이 없다.
@@ -168,6 +169,7 @@ export async function fetchMyThreads(): Promise<DmThread[]> {
 
 export async function acceptThread(id: string) {
   await updateDoc(doc(db, "dm-threads", id), { status: "accepted" });
+  알림울리기({ kind: "dm-accept", threadId: id });
 }
 
 export async function declineThread(id: string) {

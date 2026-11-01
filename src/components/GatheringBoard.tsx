@@ -436,6 +436,7 @@ type Props = {
   initialTemple?: string;
   initialDate?: string; // "YYYY-MM-DD"
   autoOpen?: boolean; // 처음부터 글쓰기 화면으로 시작한다
+  initialPost?: string; // 알림에서 왔다 — 그 글을 바로 연다
   // 화면이 바뀔 때 알린다 — 절로 페이지가 글 읽기/쓰기 중에는
   // 아래(지도·다가오는 날)를 접기 위해 쓴다
   onViewChange?: (view: "list" | "post" | "write") => void;
@@ -445,6 +446,7 @@ export default function GatheringBoard({
   initialTemple,
   initialDate,
   autoOpen,
+  initialPost,
   onViewChange,
 }: Props) {
   const confirm = useConfirm();
@@ -636,6 +638,9 @@ export default function GatheringBoard({
     if (initialDate) setDate(initialDate);
     if (autoOpen || initialTemple || initialDate) {
       setOpen(true);
+      pushLayer();
+    } else if (initialPost) {
+      setSelectedId(initialPost);
       pushLayer();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

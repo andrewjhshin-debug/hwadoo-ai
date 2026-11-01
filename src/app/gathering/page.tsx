@@ -14,6 +14,7 @@
 
 import Link from "next/link";
 import LotusCount from "@/components/LotusCount";
+import AlertBell from "@/components/AlertBell";
 import HipShell from "@/components/HipShell";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -56,7 +57,10 @@ function GatheringInner() {
           <header className="hip-yh">
             <div className="hip-yh-top">
               <h1>인연</h1>
-              <Link href="/lotus" className="hip-yh-lotus" aria-label="연꽃"><LotusCount look="line" /></Link>
+              <span className="hip-yh-right">
+                <AlertBell />
+                <Link href="/lotus" className="hip-yh-lotus" aria-label="연꽃"><LotusCount look="line" /></Link>
+              </span>
             </div>
             <nav className="hip-yh-doors" aria-label="인연">
               {/* 형: 「원래 이뻤는데? 한자로 해봐」 */}
@@ -73,6 +77,7 @@ function GatheringInner() {
           initialTemple={temple}
           initialDate={date}
           autoOpen={autoOpen}
+          initialPost={sp.get("post") ?? undefined}
           onViewChange={setView}
         />
       </section>
