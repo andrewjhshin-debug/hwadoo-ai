@@ -28,10 +28,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ uid: st
   // 형: 「심사중이든 아니든 뜨게 해라. 심사중이라면 사진만 심사중으로」
   // 본인이 켰으면(avatarOn) 프로필 상태와 상관없이 — 심사 통과한 첫 장을 보인다.
   // 통과한 장이 없고 기다리는 장만 있으면 「심사중」 자리표시. **기다리는 사진 자체는 절대 안 내보낸다.**
-  if (!d?.avatarOn || d.reportHold === true) return new Response(null, { status: 404 });
-  const first = (d.photos ?? []).find((p) => p.state === "ok" && isYeonPhotoPath(uid, p.path));
+  // 정지·쉼은 아무것도 안 보인다. 얼굴 인증이 아직이면 진짜 사진 대신 「심사중」
+  if (!d?.avatarOn || d.reportHold === true || d.state === "정지" || d.state === "쉼") return new Response(null, { status: 404 });
+  const 인증대기 = d.photoProofRequired === true && d.photoProof?.state !== "ok";
+  const first = 인증대기 ? undefined : (d.photos ?? []).find((p) => p.state === "ok" && isYeonPhotoPath(uid, p.path));
   if (!first?.path) {
-    const 기다림 = (d.photos ?? []).some((p) => p.state !== "ok" && p.state !== "no");
+    const 기다림 = 인증대기 || (d.photos ?? []).some((p) => p.state !== "ok" && p.state !== "no");
     if (!기다림) return new Response(null, { status: 404 });
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#efeae3"/><circle cx="32" cy="25" r="10" fill="#d9d1c6"/><path d="M14 54c3-10 10-15 18-15s15 5 18 15" fill="#d9d1c6"/><text x="32" y="60" text-anchor="middle" font-size="9" font-family="sans-serif" fill="#8a7a62">심사중</text></svg>`;
     return new Response(svg, { headers: { "content-type": "image/svg+xml", "cache-control": "private, max-age=300" } });

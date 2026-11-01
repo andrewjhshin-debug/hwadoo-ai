@@ -29,7 +29,7 @@ export async function GET(req: Request) {
       }
     | undefined;
   // 심사중이어도 대강은 보인다 — 신고로 묶인 사람만 뺀다
-  const 열림 = !!d && d.reportHold !== true;
+  const 열림 = !!d && d.reportHold !== true && d.state !== "정지" && d.state !== "쉼";
   if (!열림) return Response.json({}, { headers: { "cache-control": "no-store" } });
   const 올해 = new Date(Date.now() + 9 * 3_600_000).getUTCFullYear();
   return Response.json(
