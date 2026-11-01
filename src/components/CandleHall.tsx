@@ -665,16 +665,10 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
             줄로 바꾼다 — 작은 글씨, 아이콘 하나, 숫자.
             제 것 손보는 일은 ⋯ 서랍 안으로 들어간다. */}
         <div className="hip-say-bar">
-          {mine ? (
-            /* 제 공양에 제가 공감하는 건 나눔이 아니다. 그래서 막혀
-               있는데, 죽은 단추로 두니 「왜 공감이 안 되냐」가 됐다.
-               단추를 없애고 **수만** 적는다 */
-            <span data-stat="1"><하트 /> {공감}</span>
-          ) : (
-            <button onClick={공감누름} disabled={!me || busy} data-on={눌렀나 ? "1" : undefined}>
-              <하트 /> {공감 > 0 ? 공감 : "공감"}
-            </button>
-          )}
+          {/* 형: 「하트 좋아요 눌릴 수 있게」 — 내 것이든 남의 것이든 하트는 늘 눌린다 */}
+          <button onClick={공감누름} disabled={!me || busy} data-on={눌렀나 ? "1" : undefined}>
+            <하트 /> {공감}
+          </button>
 
           {c.visibility === "public" && (
             <span data-stat="1"><말풍선 /> {comments.length}</span>
@@ -760,9 +754,9 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
 
         {c.visibility === "public" ? (
           <>
-            {/* 댓글 — 이 판의 주인공. 쓰는 칸이 목록 **위**에 선다 */}
+            {/* 형: 「댓글 쓰기를 밑에 깔아야지」 — 쓰는 칸은 판 바닥에 붙는다 */}
             {me && (
-              <div className="hip-say-write">
+              <div className="hip-say-write hip-say-write-dock">
                 <input
                   value={body}
                   onChange={(e) => setBody(e.target.value.slice(0, 240))}

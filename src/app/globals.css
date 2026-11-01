@@ -1493,3 +1493,6 @@ body:has(.hip-yh) :is(.doryang-fab, .wheel-fab), body:has(.hip-cmt-bar) :is(.dor
 .hip-yeon-view .hip-yeon-face { aspect-ratio: 3 / 4 !important; max-height: none !important; height: auto !important; }
 .hip-yeon-view .hip-yeon-hands { position: static !important; margin: 18px 0 24px !important; }
 
+/* 법당 사연 — 댓글 쓰는 칸은 판 바닥에 */
+.hip-say-write-dock { position: fixed !important; left: 0; right: 0; bottom: 0; z-index: 5; max-width: 620px; margin: 0 auto !important; padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 10px) !important; background: #fbfaf8; border-top: 1px solid #efe9e2; }
+.hip-say-box:has(.hip-say-write-dock) { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 84px) !important; }
