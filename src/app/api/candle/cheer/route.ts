@@ -62,7 +62,9 @@ export async function POST(req: Request) {
   const s = await 초.get();
   if (!s.exists) return Response.json({ error: "no-candle" }, { status: 404 });
   // 제 것에는 못 준다 — 제 등에 제 공덕을 부으면 그건 나눔이 아니다
-  // 형: 「법당에 하트 좋아요 눌릴 수 있게」 — 내 사연에도 누를 수 있다
+  // 형: 「법당에 하트 좋아요 눌릴 수 있게」 — 하트(공감)는 내 사연에도 된다. 공덕 붓기만 막는다
+  if (act === "pour" && s.data()!.uid === uid)
+    return Response.json({ error: "mine" }, { status: 409 });
 
   if (act === "cheer") {
     const 표 = db.doc(`candle-cheers/${id}_${uid}`);

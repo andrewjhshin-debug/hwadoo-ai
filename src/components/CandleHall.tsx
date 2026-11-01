@@ -97,9 +97,30 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine, 꿴 }: { c: Candle; 
 /** 지금 법당에 있는 사람 — 형: 「법당에 n명 이런 식으로 표기」 */
 function 법당인원() {
   const [n, setN] = useState(0);
+  const [top, topSet] = useState<number | null>(null);
+  const 판 = useRef<HTMLParagraphElement | null>(null);
   useEffect(() => watchOnlineCount(setN), []);
+  // 형: 「위치 좀 더 내리라니까」 — 식으로 짐작하지 말고 그림이 실제로 놓인 자리를 잰다.
+  // 그림은 cover 로 덮이고 세로 object-position 에 맞춰 선다. 머리 꼭대기는 그림 높이의 42%.
+  useEffect(() => {
+    const p = 판.current?.parentElement;
+    const img = p?.querySelector<HTMLImageElement>(".hip-hall-scene");
+    if (!p || !img) return;
+    const 재기 = () => {
+      const w = p.clientWidth, h = p.clientHeight;
+      const nw = img.naturalWidth || 940, nh = img.naturalHeight || 1672;
+      const k = Math.max(w / nw, h / nh), H = nh * k;
+      const py = parseFloat(getComputedStyle(img).objectPosition.split(" ")[1] ?? "50") / 100;
+      topSet((h - H) * (isNaN(py) ? 0.5 : py) + H * 0.42 - 6);
+    };
+    재기();
+    img.addEventListener("load", 재기);
+    const ro = new ResizeObserver(재기);
+    ro.observe(p);
+    return () => { ro.disconnect(); img.removeEventListener("load", 재기); };
+  }, [n > 0]);
   // 형: 「위에 그냥 텍스트로만, 숫자만 파란 계열로」
-  return n > 0 ? <p className="hip-hall-many">법당에 <b>{n}</b>명 있습니다</p> : null;
+  return n > 0 ? <p ref={판} className="hip-hall-many" style={top === null ? undefined : { top }}>법당에 <b>{n}</b>명 있습니다</p> : null;
 }
 
 function 법당중앙({ children }: { children?: React.ReactNode }) {
