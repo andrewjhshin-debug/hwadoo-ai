@@ -16,8 +16,9 @@ export function SilkKnot({ compact = false }: { compact?: boolean; left?: string
   // eslint-disable-next-line @next/next/no-img-element
   return <img src="/obj/silk-cord.webp" alt="" className="silk-knot" draggable={false} />;
 }
+// 목록·글 머리의 작은 표 — 끈을 줄이면 얼룩이 된다(형: 「존나 별로네」). 청·홍 두 점이 겹친 알약 + 「이어짐」
 export function InyeonThreadBadge() {
-  return <span className="silk-match-badge" role="img" aria-label="맺어진 인연" title="맺어진 인연"><SilkKnot compact/></span>;
+  return <span className="silk-match-badge" role="img" aria-label="청실홍실로 이어진 인연" title="청실홍실로 이어진 인연"><i /><i /><b>이어짐</b></span>;
 }
 export default function InyeonThread({ leftName, rightName, leftGender, rightGender, className = "", 낮 = false }: {
   leftName: string; rightName: string; leftGender?: G; rightGender?: G; className?: string; 낮?: boolean;

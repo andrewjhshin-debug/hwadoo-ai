@@ -4,5 +4,9 @@
 .inyeon-silk-names {display:flex;justify-content:space-between;gap:16px;font:300 13px/1.5 var(--font-serif,serif)}
 .inyeon-silk-names>span {display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .inyeon-silk-names small {font:500 10px/1.2 sans-serif;letter-spacing:.12em}
-.silk-match-badge {display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;width:40px;height:14px;flex-shrink:0;margin-left:5px}
+.silk-match-badge {display:inline-flex;vertical-align:middle;align-items:center;flex-shrink:0;height:16px;margin-left:5px;padding:0 6px 0 4px;border-radius:999px;background:#f6f2ee;gap:0}
 .silk-knot-small {width:40px;height:13px;display:block}
+
+.silk-match-badge > i {width:7px;height:7px;border-radius:50%;background:#3b4a8f;box-shadow:0 0 0 1px #f6f2ee}
+.silk-match-badge > i + i {margin-left:-2.5px;background:#b0233f}
+.silk-match-badge > b {margin-left:4px;font:500 9.5px/1 sans-serif;color:#8a7a62;letter-spacing:0}
