@@ -25,7 +25,7 @@ const 알: { href: string; mark: string; name: string }[] = [
   { href: "/sutra", mark: "📖", name: "외우기" },
   { href: "/empty", mark: "🥣", name: "비움" },
   { href: "/ganhwaseon", mark: "🧘", name: "간화선" },
-  { href: "/masters", mark: "🪷", name: "선지식" },
+  { href: "/masters", mark: "📜", name: "선지식" },
 ];
 
 export default function InvestmentShortcut() {

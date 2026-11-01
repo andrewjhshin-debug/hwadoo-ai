@@ -7,7 +7,10 @@
 // 각 구획은 균질한 간격으로, 로그인 정보는 맨 아래.
 // ────────────────────────────────────────────────────────────────
 
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useState, useSyncExternalStore, type ComponentType } from "react";
+import { isSoundMuted, isVibeOff, setSoundMuted, setVibeOff, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
+import { wakeSound } from "@/lib/sound";
+import { getWalking, subscribeWalking, toggleWalking, WALKING_EMPTY } from "@/lib/walking";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { GoogleAuthProvider, reauthenticateWithPopup, type User } from "firebase/auth";
@@ -814,6 +817,7 @@ export default function SettingsPage() {
         hits={meHits}
         services={meServices}
         guest={user === null}
+        settings={<SetRows />}
         law={{
           links: [
             { href: "/about", label: "서비스 소개" },
@@ -1856,5 +1860,34 @@ export default function SettingsPage() {
       </div>
     </div>
     </>
+  );
+}
+
+/** 설정 — 켜고 끄는 줄 셋 + 문의 · 이용안내 */
+function SetRows() {
+  const [소리, 소리잡기] = useState(true);
+  const [진동, 진동잡기] = useState(true);
+  const 걸음 = useSyncExternalStore(subscribeWalking, getWalking, () => WALKING_EMPTY);
+  useEffect(() => {
+    const sync = () => 소리잡기(!isSoundMuted());
+    sync();
+    진동잡기(!isVibeOff());
+    window.addEventListener(SOUND_MUTE_EVENT, sync);
+    return () => window.removeEventListener(SOUND_MUTE_EVENT, sync);
+  }, []);
+  const 줄 = (이름: string, 켬: boolean, 바꿈: () => void) => (
+    <button type="button" onClick={바꿈} aria-pressed={켬} className="hip-set-row">
+      <span>{이름}</span>
+      <i data-on={켬 ? "1" : undefined} />
+    </button>
+  );
+  return (
+    <div className="hip-set">
+      {줄("소리", 소리, () => { setSoundMuted(소리); if (!소리) wakeSound(); })}
+      {줄("진동", 진동, () => { setVibeOff(진동); 진동잡기(!진동); })}
+      {줄("포행", 걸음.on, () => toggleWalking())}
+      <a href={`mailto:${CONTACT_EMAIL}`} className="hip-set-row"><span>문의</span><b>›</b></a>
+      <Link href="/about" className="hip-set-row"><span>이용안내</span><b>›</b></Link>
+    </div>
   );
 }

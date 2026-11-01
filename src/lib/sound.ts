@@ -4,6 +4,7 @@
 // 첫 터치에서 AudioContext 를 깨운다(브라우저 정책).
 // ─────────────────────────────────────────────────────────────
 
+import { isVibeOff } from "./soundPreference";
 import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
 
 // ── 소리 — 나무를 빚는다 ────────────────────────────────────
@@ -1100,6 +1101,7 @@ export function strikeBowl(vol: number, tone: BowlTone = "mid"): number {
 }
 
 export function buzz(ms: number) {
+  if (isVibeOff()) return;
   try {
     navigator.vibrate?.(ms);
   } catch {

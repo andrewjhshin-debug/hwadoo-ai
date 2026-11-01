@@ -22,3 +22,12 @@ export function setSoundMuted(muted: boolean) {
   }
   window.dispatchEvent(new CustomEvent(SOUND_MUTE_EVENT));
 }
+
+// 진동 스위치 — 소리와 따로. 기본은 켜짐.
+export const VIBE_OFF_KEY = "hwadoo.vibe-off.v1";
+export function isVibeOff(): boolean {
+  try { return window.localStorage.getItem(VIBE_OFF_KEY) === "1"; } catch { return false; }
+}
+export function setVibeOff(off: boolean) {
+  try { window.localStorage.setItem(VIBE_OFF_KEY, off ? "1" : "0"); } catch { /* 저장 못 해도 지금 화면은 산다 */ }
+}

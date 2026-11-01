@@ -322,16 +322,6 @@ export default function 인연내프로필() {
               >
                 {올리는중 ? "…" : "＋"}
               </button>
-              <button
-                onClick={() => 크게잡기(true)}
-                disabled={장수 === 0}
-                aria-label="남이 보는 내 프로필"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden>
-                  <circle cx="10.5" cy="10.5" r="6.5" />
-                  <path d="M15.4 15.4 21 21" />
-                </svg>
-              </button>
             </div>
           </div>
 
@@ -343,6 +333,14 @@ export default function 인연내프로필() {
               ))}
             </div>
           )}
+
+          {/* 형: 「돋보기 말고 최종본 내 프로필 보기」 — 누르면 남이 보는 카드가 그대로 뜬다 */}
+          <button type="button" className="hip-mepic-view" onClick={() => 크게잡기(true)} disabled={장수 === 0}>내 프로필 보기</button>
+          {/* 형: 「대표 사진 프로필사진으로 설정 이런 식으로」 */}
+          <label className="hip-yeon-avatar-on">
+            <span>대표 사진을 프로필 사진으로</span>
+            <input type="checkbox" defaultChecked={!!me?.avatarOn} onChange={(e) => 고치기({ avatarOn: e.target.checked })} />
+          </label>
 
           {사진진행 && <p role="status" aria-live="polite" className="mt-3 text-center text-xs text-hanji-dim">{사진진행}</p>}
           <input
@@ -403,10 +401,7 @@ export default function 인연내프로필() {
             onClick={() => 크게잡기(false)}
           >
             <div onClick={(e) => e.stopPropagation()}>
-              <p>
-                남이 보는 내 프로필
-                <button onClick={() => 크게잡기(false)} aria-label="닫기">닫기</button>
-              </p>
+              <button className="hip-mepic-x" onClick={() => 크게잡기(false)} aria-label="닫기">✕</button>
 
               {(() => {
                 const 보일사진 = (me?.photos ?? []).filter((f) => f.state !== "no");
@@ -640,11 +635,6 @@ export default function 인연내프로필() {
         </div>
 
 
-        {/* 글에 내 사진 — 게시판 글 옆에 심사 통과한 첫 사진이 작게. 형: 「상상력을 자극하고 쪽지 보내지」 */}
-        <label className="hip-yeon-avatar-on">
-          <span>게시판 글에 내 사진</span>
-          <input type="checkbox" defaultChecked={!!me?.avatarOn} onChange={(e) => 고치기({ avatarOn: e.target.checked })} />
-        </label>
 
         {/* ── 물음 — 인터뷰처럼. 셋 이상 써야 판에 선다 ──
             형: 「사람들이 글을 쓰도록 유도하려면 인터뷰나 물음별로 상세히, 써야지만 표출되도록」 */}
