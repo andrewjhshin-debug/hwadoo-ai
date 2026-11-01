@@ -16,7 +16,7 @@ export default function MeritLotus({ progress, className = "" }: { progress: num
     <svg viewBox="0 0 40 36" aria-hidden="true" className={`merit-lotus merit-lotus-gauge ${className}`.trim()} data-open={pose.progress}>
       <path fill="#a6c98d" d="M20 27C15 24 8 25 4 27C8 32 15 33 20 29C25 33 32 32 36 27C32 25 25 24 20 27Z" />
       <path d="M6 27.5Q13 30 20 28Q27 30 34 27.5" fill="none" stroke="#cbdcae" strokeWidth=".6" />
-      <svg x={(40 - width) / 2} y={28 - height} width={width} height={height} viewBox={bounds.join(" ")}>
+      <svg x={(40 - width) / 2} y={28 - height} width={width} height={height} style={{ width, height, overflow: "hidden" }} viewBox={bounds.join(" ")}>
         <image href={`/obj/lotus-bloom-${장}.webp`} width="256" height="256" />
       </svg>
     </svg>
