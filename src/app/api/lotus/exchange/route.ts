@@ -10,7 +10,9 @@
 // 서버는 계정별 한국 날짜 장부로 자동·수동 합계 하루 한 송이만 지급한다.
 //
 // 인증: Authorization: Bearer <파이어베이스 ID 토큰>
-// 몸통: { lotus: 1 }
+// 몸통: { lotus: 1, kind?: "mission" }
+//   kind 없음 = 공덕 하루치, "mission" = 오늘의 수행 셋 다 — 각각 하루 한 송이(장부가 따로).
+//   형: 「공덕 하루치 쌓으면 연꽃 하나, 오늘의 수행도 다 하면 연꽃 하나」
 // ─────────────────────────────────────────────────────────────
 
 import { getAuth } from "firebase-admin/auth";
@@ -49,10 +51,12 @@ export async function POST(req: Request) {
 
   let want: unknown;
   let requestedDay: unknown;
+  let 갈래 = "";
   try {
-    const body = await req.json() as { lotus?: unknown; day?: unknown };
+    const body = await req.json() as { lotus?: unknown; day?: unknown; kind?: unknown };
     want = body.lotus;
     requestedDay = body.day;
+    if (body.kind === "mission") 갈래 = "_m";
   } catch {
     return Response.json({ error: "bad-body" }, { status: 400 });
   }
@@ -64,7 +68,7 @@ export async function POST(req: Request) {
   const db = getFirestore(app);
   const day = today();
   if (requestedDay !== undefined && requestedDay !== day) return Response.json({ error: "day-changed" }, { status: 409 });
-  const mark = db.doc(`merit-exchange/${uid}_${day}`);
+  const mark = db.doc(`merit-exchange/${uid}_${day}${갈래}`);
   const wallet = db.doc(`wallets/${uid}`);
 
   try {
@@ -91,7 +95,7 @@ export async function POST(req: Request) {
       );
       return { granted: give, left: left - give, received: used + give };
     });
-    return Response.json({ ok: true, day, rewardId: `${uid}_${day}`, ...result }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json({ ok: true, day, rewardId: `${uid}_${day}${갈래}`, ...result }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return Response.json({ error: "write-failed" }, { status: 500 });
   }

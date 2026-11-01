@@ -85,11 +85,12 @@ export async function 추려서(app: App, p: 프로필, 붙박이 = false) {
   // 인증 뱃지 — 우리식. 신분증 대신 우리가 실제로 확인한 것만 단다.
   // 형: 「왜 뺐지 이거 우리식으로 할수 있나」
   let 절간횟수 = 0;
-  try { 절간횟수 = (await getFirestore(app).collection("temple-proofs").where("uid", "==", p.uid).count().get()).data().count; } catch { /* 없으면 0 */ }
+  // 절 이야기는 따로 동의한 사람 것만(위 temple 과 같은 문턱)
+  if (p.religionOk) try { 절간횟수 = (await getFirestore(app).collection("temple-proofs").where("uid", "==", p.uid).count().get()).data().count; } catch { /* 없으면 0 */ }
   const badges = [
     "사진 확인",
     ...(p.photoProof?.state === "ok" ? ["얼굴 인증"] : []),
-    ...(p.verified ? ["휴대폰 인증"] : []),
+    // 휴대폰 인증은 서버가 확인하는 길이 생기면 단다 — verified 는 본인이 쓸 수 있는 칸이라 못 믿는다
     ...(절간횟수 > 0 ? [`절 ${절간횟수}번 다녀옴`] : []),
   ];
   return {
