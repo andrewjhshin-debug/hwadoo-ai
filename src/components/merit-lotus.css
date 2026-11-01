@@ -1,11 +1,8 @@
-.hip-daybar .hip-daybar-lotus .merit-lotus { width:36px; height:36px; overflow:visible; }
-.hip-daybar .hip-daybar-lotus,
-.hip-daybar[data-full="1"] .hip-daybar-lotus { filter:none!important; box-shadow:none!important; animation:none!important; }
 .merit-lotus { overflow:visible; }
-.merit-lotus .merit-lotus-petal { transform-box:view-box; transform-origin:22px 33px; transition:transform .65s cubic-bezier(.2,.8,.3,1); }
-@media(prefers-reduced-motion:reduce) { .merit-lotus .merit-lotus-petal { transition:none; } }
-
-.merit-lotus-img { object-fit: contain; display: inline-block; }
-/* 오늘의 공덕 막대 옆 — 줄기 없는 꽃만, 막대 높이에 가운데 맞춤. 형: 「초록 대 빼고 옆에 중심 맞춰서」 */
-.hip-daybar .hip-daybar-lotus { align-self: center; margin: -12px -2px -12px 4px !important; width: 30px !important; height: 30px !important; flex: 0 0 30px !important; }
-.hip-daybar .hip-daybar-lotus .merit-lotus { width: 30px !important; height: 30px !important; }
+.merit-lotus-img { object-fit:contain; display:inline-block; }
+/* Fixed icon slot immediately beside the track. */
+.hip-daybar .hip-daybar-row {display:grid;grid-template-columns:minmax(0,1fr) 32px;align-items:center;gap:4px;height:20px}
+.hip-daybar .hip-daybar-row>.hip-daybar-track {min-width:0;height:7px;margin:0;align-self:center}
+.hip-daybar .hip-daybar-row>.hip-daybar-lotus {display:grid;place-items:center;align-self:center;width:32px;height:32px;min-width:32px;margin:0;padding:0;border:0;background:transparent;line-height:0}
+.hip-daybar .hip-daybar-row>.hip-daybar-lotus>.merit-lotus {display:block;width:32px;height:28.8px;max-width:none;max-height:none}
+.hip-daybar .hip-daybar-lotus,.hip-daybar[data-full="1"] .hip-daybar-lotus {filter:none!important;box-shadow:none!important;animation:none!important}
