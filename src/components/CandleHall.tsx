@@ -5,11 +5,12 @@ import Link from "next/link";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import Gongyang, { type 공양갈래 } from "@/components/Gongyang";
-import { 신고보내기 } from "@/lib/dm";
+import { requestThread, 신고보내기 } from "@/lib/dm";
+import type { Post } from "@/lib/community";
 import { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
 import { watchOnlineCount } from "@/lib/presence";
-import { onDisconnect, onValue, ref, remove, serverTimestamp, set } from "firebase/database";
+import { onValue, ref, remove, serverTimestamp, set } from "firebase/database";
 import { rtdb } from "@/lib/firebase";
 import { strikeBell } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
@@ -55,18 +56,22 @@ function 폭(n: number) {
 }
 
 /** 등이 적을 때(다섯까지) — 처마 끝에서 끝으로 늘어진 **한 가닥 줄**에 꿴다.
- *  형: 「밤티처럼하지 말고 어우러지게 다시 배치」
- *  하나 덩그러니 떠 있으면 허전하다. 줄이 있으면 하나여도 「걸렸다」로 읽힌다.
- *  줄은 포물선 y = 4·처짐·x(1−x), 등은 space-evenly 로 선 자리 x 에서 그 높이만큼 내려온다. */
-const 줄처짐 = 26; // px
-const 꿴폭 = 0.17; // 등 하나 폭(줄 폭에 대한 몫) — CSS 의 17% 와 같다
-function 줄높이(i: number, n: number) {
-  const 틈 = (1 - n * 꿴폭) / (n + 1);
-  const x = 틈 * (i + 1) + 꿴폭 * (i + 0.5);
-  return 4 * 줄처짐 * x * (1 - x);
+ *  형: 「밤티처럼하지 말고 어우러지게」 「부처 머리 바로 위에 몇 명」
+ *  가운데(부처 머리 위)는 글자 자리라 비운다 — 등은 왼쪽·오른쪽 둘로 갈라 건다.
+ *  오른쪽은 단추 줄이 있어 덜 나간다. 줄은 포물선 y = 4·처짐·x(1−x),
+ *  등은 그 높이에서 하나 건너 조금 더 길게 내려온다(층이 져야 걸린 것 같다). */
+const 줄처짐 = 14; // px
+function 꿴자리(i: number, n: number) {
+  const 왼수 = Math.ceil(n / 2);
+  const 왼 = i < 왼수;
+  const k = 왼 ? 왼수 : n - 왼수;
+  const j = 왼 ? i : i - 왼수;
+  const [a, b] = 왼 ? [0.03, 0.3] : [0.66, 0.86];
+  const x = a + ((b - a) * (j + 0.5)) / k;
+  return { x, y: 4 * 줄처짐 * x * (1 - x) + (j % 2 ? 14 : 0) };
 }
 
-function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine, 꿴 }: { c: Candle; onClick: () => void; i: number; 열: number; 줄수?: number; mine?: boolean; 꿴?: number }) {
+function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine, 꿴 }: { c: Candle; onClick: () => void; i: number; 열: number; 줄수?: number; mine?: boolean; 꿴?: { x: number; y: number } }) {
   // ── 원근 — **맨 아랫줄이 앞이다** ─────────────────────────
   // 형: 「이건 내가 말한 원근법 느낌이 아닌데? 겹치더라도 내가 준
   //      레퍼런스처럼 하고, 위에 다는 선은 없어도 되겠다」
@@ -84,7 +89,7 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine, 꿴 }: { c: Candle; 
   const seed = c.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
   // 옛 문서에는 갈래 칸이 없다 — 없으면 연등이다(여태 다 연등이었다)
   // 내 것인가 — 「내 것만」을 켜면 이 표를 보고 나머지가 희미해진다
-  return <span className="hip-hang" data-mine={mine ? "1" : undefined} style={꿴 === undefined ? undefined : ({ "--kkwen": `${꿴.toFixed(1)}px` } as React.CSSProperties)}><Gongyang 갈래={c.gift ?? "deung"} lanternColor={c.lanternColor} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
+  return <span className="hip-hang" data-mine={mine ? "1" : undefined} style={꿴 === undefined ? undefined : ({ "--kkwen": `${꿴.y.toFixed(1)}px`, "--kx": (꿴.x * 100).toFixed(1) } as React.CSSProperties)}><Gongyang wish={c.wish} 갈래={c.gift ?? "deung"} lanternColor={c.lanternColor} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
 }
 
 /** 법당의 가운데는 공양 유무와 관계없이 한 장면이다.
@@ -94,7 +99,7 @@ function 법당인원() {
   const [n, setN] = useState(0);
   useEffect(() => watchOnlineCount(setN), []);
   // 형: 「위에 그냥 텍스트로만, 숫자만 파란 계열로」
-  return n > 0 ? <>법당에 <b className="hip-hall-n">{n}</b>명 있습니다</> : <>법당</>;
+  return n > 0 ? <p className="hip-hall-many">법당에 <b>{n}</b>명 있습니다</p> : null;
 }
 
 function 법당중앙({ children }: { children?: React.ReactNode }) {
@@ -103,6 +108,8 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
     <div className="hip-hall-stage">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="hip-hall-scene" src="/obj/hall-scene-v1.webp" alt="" draggable={false} />
+      {/* 형: 「부처 머리 바로 위에 법당에 n명 있습니다, 검은 글씨에 숫자만 파랑」 */}
+      <법당인원 />
       {children}
     </div>
     <법당마루 />
@@ -126,25 +133,32 @@ const 좌복줄: [number, number, number, number][] = [
 ];
 /** 좌복에 앉은 넋 — hall-seats/{자리} = { uid, name, hue, at }. 앱을 나가면 저절로 비운다 */
 type 앉은이 = { uid: string; name: string; hue: number; at: number };
+/** 앉아 있는 시간 — 형: 「나가도 로그인 상태로 둘까? 그래야 쪽지 보내면 인식하니까」
+ *  앱을 닫아도 자리는 남는다. 열두 시간이 지나면 빈자리로 치고 다른 이가 앉을 수 있다
+ *  (database.rules.json 도 같은 값으로 묶는다) */
+const 앉는시간 = 12 * 3_600_000;
 
 // 형: 「좌복 누르면 그 위에 내 등이 켜지고 — 영혼 느낌으로, 색은 여러 개, 튀지 않게 은은하게」
 function 법당마루() {
   const [자리, 자리잡기] = useState<Record<string, 앉은이>>({});
   const [나, 나잡기] = useState<string | null>(null);
   useEffect(() => watchAuth((u) => 나잡기(u?.uid ?? null)), []);
-  useEffect(() => onValue(ref(rtdb, "hall-seats"), (snap) => 자리잡기((snap.val() as Record<string, 앉은이>) ?? {})), []);
+  useEffect(() => onValue(ref(rtdb, "hall-seats"), (snap) => {
+    const 다 = (snap.val() as Record<string, 앉은이>) ?? {};
+    const 지금 = Date.now();
+    자리잡기(Object.fromEntries(Object.entries(다).filter(([, v]) => 지금 - v.at < 앉는시간)));
+  }), []);
+  const [본이, 본이잡기] = useState<앉은이 | null>(null);
   const 내자리 = Object.entries(자리).find(([, v]) => v.uid === 나)?.[0];
   const 누름 = async (k: string) => {
     if (!나) { await loginWithGoogle(); return; }
-    if (자리[k] && 자리[k].uid !== 나) return; // 남의 자리
+    if (자리[k] && 자리[k].uid !== 나) { 본이잡기(자리[k]); return; } // 남의 자리 — 누군지 본다
     if (내자리) await remove(ref(rtdb, `hall-seats/${내자리}`)).catch(() => {});
     if (내자리 === k) return; // 일어선다
     const r = ref(rtdb, `hall-seats/${k}`);
     await set(r, { uid: 나, name: (loadMe()?.name ?? "수행자").slice(0, 12), hue: Math.floor(Math.random() * 360), at: serverTimestamp() }).catch(() => {});
-    onDisconnect(r).remove().catch(() => {});
   };
   let 번 = 0;
-  const 앉은수 = Object.keys(자리).length;
   return <div className="hip-hall-floor">
     {좌복줄.flatMap(([top, w, n, 끝], r) => {
       const 칸 = (100 - 끝 * 2) / n;
@@ -164,8 +178,64 @@ function 법당마루() {
         );
       });
     })}
-    {앉은수 > 0 && <p className="hip-soul-count">{앉은수}명 함께 앉아 있음</p>}
+    {본이 && <좌복카드 이={본이} 닫기={() => 본이잡기(null)} />}
   </div>;
+}
+
+/** 앉은 이 작은 카드 — 얼굴·나이·지역·절을 대강, 그리고 바로 쪽지(연꽃 한 송이) */
+function 좌복카드({ 이, 닫기 }: { 이: 앉은이; 닫기: () => void }) {
+  const [보임, 보임잡기] = useState<{ sex?: string; age?: number; area?: string; temple?: string; photo?: boolean } | null>(null);
+  const [말, 말잡기] = useState("");
+  const [상태, 상태잡기] = useState<"" | "busy" | "sent" | "lotus" | "fail">("");
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const u = auth.currentUser;
+      if (!u) return;
+      const r = await fetch(`/api/hall/card?uid=${이.uid}`, { headers: { authorization: `Bearer ${await u.getIdToken()}` } }).catch(() => null);
+      const j = r?.ok ? await r.json().catch(() => ({})) : {};
+      if (alive) 보임잡기(j);
+    })();
+    return () => { alive = false; };
+  }, [이.uid]);
+  const 보내기 = async () => {
+    if (상태 === "busy" || !말.trim()) return;
+    상태잡기("busy");
+    try {
+      // 법당에서 건 쪽지 — 글이 아니라 「법당」 한 곳에 묶인다
+      const t = await requestThread({ id: "hall", title: "법당", templeName: "법당", meetDate: null } as unknown as Post, { uid: 이.uid, name: 이.name }, 말.trim());
+      상태잡기(t === "need-lotus" ? "lotus" : "sent");
+    } catch { 상태잡기("fail"); }
+  };
+  const 줄 = [보임?.age ? `${보임.age}세` : "", 보임?.area ?? "", 보임?.temple ?? ""].filter(Boolean).join(" · ");
+  return (
+    <div className="hip-seat-card" role="dialog" aria-label={이.name} onClick={(e) => e.stopPropagation()}>
+      <button type="button" className="hip-seat-x" aria-label="닫기" onClick={닫기}>✕</button>
+      <div className="hip-seat-who">
+        <i style={{ "--h": 이.hue } as React.CSSProperties}>
+          {보임?.photo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={`/api/avatar/${이.uid}`} alt="" draggable={false} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+          )}
+        </i>
+        <span>
+          <b>{이.name}</b>
+          {줄 && <small>{줄}</small>}
+        </span>
+      </div>
+      {상태 === "sent" ? (
+        <Link href="/letters" className="hip-seat-go">쪽지 보냈어요 · 쪽지함</Link>
+      ) : 상태 === "lotus" ? (
+        <Link href="/lotus" className="hip-seat-go">연꽃이 모자라요 · 채우기</Link>
+      ) : (
+        <div className="hip-seat-dm">
+          <input value={말} maxLength={80} placeholder="한 마디" onChange={(e) => 말잡기(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void 보내기(); }} />
+          <button type="button" disabled={!말.trim() || 상태 === "busy"} onClick={() => void 보내기()}>쪽지 🪷1</button>
+        </div>
+      )}
+      {상태 === "fail" && <p className="hip-seat-fail">보내지 못했어요</p>}
+    </div>
+  );
 }
 
 /** 무엇을 올릴까 — **밑에서 올라오는 판**.
@@ -1013,7 +1083,7 @@ export default function CandleHall() {
         내 공양
       </button>
       {/* 한자 「法堂」은 뒤의 「법당」과 같은 말이라 뗀다 */}
-      <h1><법당인원 /></h1>
+      <h1 aria-label="법당" />
       <span aria-hidden />
     </div>
     {/* 형: 「위는 연등, 아래는 초 쌀 등등 뭐 이런 식으로 가자」
@@ -1069,7 +1139,7 @@ export default function CandleHall() {
               )}
               {등들.map((c, i) => (
                 <CandleMark
-                  꿴={등들.length <= 5 ? 줄높이(i, 등들.length) : undefined}
+                  꿴={등들.length <= 5 ? 꿴자리(i, 등들.length) : undefined}
                   key={c.id}
                   c={c}
                   i={i}

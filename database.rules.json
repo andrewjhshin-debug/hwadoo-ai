@@ -10,7 +10,7 @@
     "hall-seats": {
       ".read": true,
       "$seat": {
-        ".write": "auth != null && $seat.matches(/^([0-9]|1[0-1])$/) && (!data.exists() || data.child('uid').val() === auth.uid) && (!newData.exists() || newData.child('uid').val() === auth.uid)",
+        ".write": "auth != null && $seat.matches(/^([0-9]|1[0-1])$/) && (!data.exists() || data.child('uid').val() === auth.uid || data.child('at').val() < now - 43200000) && (!newData.exists() || newData.child('uid').val() === auth.uid)",
         ".validate": "newData.hasChildren(['uid', 'name', 'hue', 'at'])",
         "uid": { ".validate": "newData.val() === auth.uid" },
         "name": { ".validate": "newData.isString() && newData.val().length <= 12" },

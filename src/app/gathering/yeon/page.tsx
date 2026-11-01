@@ -350,7 +350,6 @@ export default function 오늘의인연() {
     return (
       <껍데기>
         <div className="hip-yeon-met">
-          <b aria-hidden>緣</b>
           <p>
             {탈 === "no-profile"
               ? "내 프로필부터 만들어 주세요"
@@ -597,7 +596,7 @@ function 껍데기({ children, 몫 }: { children: React.ReactNode; 몫?: string 
   return (
     <HipRoom here="/gathering/yeon" lanes={false} rail="/gathering" scroll>
       <div className="hip-yeon">
-        <p className="hip-yeon-head">因緣 · 오늘의 인연</p>
+        <p className="hip-yeon-head">오늘의 인연</p>
         {/* 오늘 몇 사람이 서 있나 — 형: 「하루 6개 카드는 떠 있게」
             판에 몇이 남았는지가 보여야 「더 볼 수 있다」가 읽힌다.
             무료 둘, 연꽃으로 넷 — 하루 여섯이 이 방의 몫이다. */}
@@ -636,7 +635,7 @@ function 오늘카드판({
             data-done={봤나 ? "1" : undefined}
             data-next={!봤나 && i === 본만큼 ? "1" : undefined}
           >
-            <span>緣</span>
+            <span />
             {열칸 && (
               <button
                 className="hip-deck-open"

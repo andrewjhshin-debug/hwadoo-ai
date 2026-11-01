@@ -52,11 +52,17 @@ function GatheringInner() {
                    매일매일 카드 눌리면 보이게」 */}
           {/* 문 둘 — 한 줄 두 칸, 스크롤해도 위에 붙어 있다. 형: 「공간을 많이 잡아먹어, 고정되도록」 */}
           {/* 골스 윗단처럼 — 검은 띠로 메뉴를 가른다. 스크롤해도 붙어 있다 */}
-          <nav className="hip-yeon-doors" aria-label="인연">
-            <Link href="/gathering/yeon"><b>緣</b><span>새 인연</span></Link>
-            <Link href="/gathering/me"><b>我</b><span>내 프로필</span></Link>
-            <Link href="/lotus" className="hip-yeon-lotus" aria-label="연꽃"><LotusCount look="line" /></Link>
-          </nav>
+          {/* 형: 「검게 하란 말이 아니야, 구성을 제대로」 — 윗단 한 덩이: 제목·연꽃 / 문 둘 반반 */}
+          <header className="hip-yh">
+            <div className="hip-yh-top">
+              <h1>인연</h1>
+              <Link href="/lotus" className="hip-yh-lotus" aria-label="연꽃"><LotusCount look="line" /></Link>
+            </div>
+            <nav className="hip-yh-doors" aria-label="인연">
+              <Link href="/gathering/yeon" data-main="1">새 인연</Link>
+              <Link href="/gathering/me">내 프로필</Link>
+            </nav>
+          </header>
 
         </>
       )}

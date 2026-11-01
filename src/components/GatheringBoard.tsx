@@ -191,7 +191,6 @@ function GoPostBox({ p, open }: { p: Post; open: () => void }) {
   const 손 = async () => {
     const u = auth.currentUser;
     if (!u) { open(); return; }
-    if (나) { 방잡기(true); return; }
     if (busy) return;
     setBusy(true);
     try {
@@ -210,7 +209,8 @@ function GoPostBox({ p, open }: { p: Post; open: () => void }) {
   };
   return (
     <div className="hip-go-box">
-      <button type="button" className="hip-go-box-main" onClick={open}>
+      {/* 형: 「단체방이란 버튼은 없애」 — 손 든 사람은 상자를 누르면 곧장 방이다 */}
+      <button type="button" className="hip-go-box-main" onClick={나 ? () => 방잡기(true) : open}>
         <span className="hip-go-box-when">{[날, p.templeName].filter(Boolean).join(" · ")}</span>
         <span className="hip-go-box-title">{p.title}</span>
         <span className="hip-go-box-faces">
@@ -218,7 +218,7 @@ function GoPostBox({ p, open }: { p: Post; open: () => void }) {
           <small>{Math.max(1, 줄.length)}명</small>
         </span>
       </button>
-      <button type="button" className="hip-go-box-btn" data-on={나 ? "1" : undefined} disabled={busy || people === null} onClick={손}>{나 ? "단체방" : "같이 가요"}</button>
+      {!나 && <button type="button" className="hip-go-box-btn" disabled={busy || people === null} onClick={손}>같이 가요</button>}
       {방 && <GoRoom postId={p.id} 날={[날, p.templeName, p.meetTime].filter(Boolean).join(" · ")} onClose={() => 방잡기(false)} onLeave={uid === p.authorUid ? undefined : 나가기} />}
     </div>
   );
@@ -373,6 +373,15 @@ export default function GatheringBoard({
   // 화면 — 글쓰기(open) > 글 읽기(selectedId) > 목록
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // 형: 「게시글 눌렀을 때 왜 댓글이 보이냐 — 제목부터」. 목록에서 내려온 자리 그대로 글이 열려
+  // 아랫부분(댓글)이 먼저 보였다. 글을 열면 맨 위로, 닫으면 목록 보던 자리로 돌아간다
+  const 목록자리 = useRef(0);
+  useEffect(() => {
+    const box = document.getElementById("scroll-box");
+    if (!box) return;
+    if (selectedId) { box.scrollTo(0, 0); return; }
+    box.scrollTo(0, 목록자리.current);
+  }, [selectedId]);
 
   // 글쓰기 폼 — 절·날짜·시간은 선택
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -1027,11 +1036,7 @@ export default function GatheringBoard({
                     ? "쪽지 청하기"
                     : "쪽지 청하기 — 연꽃 1송이"}
               </button>
-              {isAdminAccount(user) ? (
-                <p className="mt-2.5 text-center text-[11px] leading-5 text-gold-soft">
-                  뒷방 주인 — 연꽃 없이 무제한으로 청할 수 있습니다
-                </p>
-              ) : (
+              {isAdminAccount(user) ? null : (
                 /* 첫 선물·「수락되면 무료」는 뗐다 — 위 단추가 값을 이미
                    말했고, 지금 누를 일과 상관없는 안내였다. 잔고만 남긴다 */
                 <p className="mt-2.5 break-keep text-center text-[11px] leading-5 text-hanji-faint">
@@ -1329,7 +1334,7 @@ export default function GatheringBoard({
             오른쪽에 떠 있는 도량 단추가 「남기기」를 덮고 있었다. 단추 자리만큼
             오른쪽을 비운다(단추 48 + 좌우 여유). 넓은 화면에서는 단추가
             바닥 구석에 있으니 그대로 둔다. */}
-        <div className="fixed inset-x-0 bottom-[76px] z-[45] border-t border-ink-3 bg-ink-2/95 py-2.5 pl-4 pr-[74px] backdrop-blur md:static md:z-auto md:mt-5 md:border-0 md:bg-transparent md:p-0">
+        <div className="hip-cmt-bar fixed inset-x-0 bottom-[76px] z-[45] border-t border-ink-3 bg-ink-2/95 py-2.5 pl-4 pr-[74px] backdrop-blur md:static md:z-auto md:mt-5 md:border-0 md:bg-transparent md:p-0">
           {p.deleted ? (
             <p className="break-keep text-center text-[11px] leading-5 text-hanji-faint md:text-left">
               내려진 글에는 새 댓글을 달 수 없습니다.
@@ -1556,10 +1561,11 @@ export default function GatheringBoard({
             setOpen(true);
             pushLayer();
           }}
-          className="hip-write-fab"
-          aria-label="글쓰기"
+          className="hip-write-btn"
         >
-          <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" /></svg>
+          {/* 형: 「글쓰기 버튼 위치 ㅈㄴ 이상하다, 글쓰기로 버튼 주든」 — 떠 있는 펜을 걷고 「전체」 줄 오른쪽에 글자로 */}
+          <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" /></svg>
+          글쓰기
         </button>
         </div>
       </div>
@@ -1635,7 +1641,7 @@ export default function GatheringBoard({
             const 같이 = !p.deleted && (p.category ?? "together") === "together" && !!(p.templeName || p.meetDate);
             if (같이) return (
               <li key={p.id} className="hip-go-post">
-                <GoPostBox p={p} open={() => { setSelectedId(p.id); pushLayer(); }} />
+                <GoPostBox p={p} open={() => { 목록자리.current = document.getElementById("scroll-box")?.scrollTop ?? 0; setSelectedId(p.id); pushLayer(); }} />
               </li>
             );
             // 골스 게시판처럼 — 얼굴·이름·때, 굵은 제목, 본문 두 줄, 아래 갈래·조회·댓글
@@ -1643,6 +1649,7 @@ export default function GatheringBoard({
             <li key={p.id} className="hip-feed">
               <button
                 onClick={() => {
+                  목록자리.current = document.getElementById("scroll-box")?.scrollTop ?? 0;
                   setSelectedId(p.id);
                   pushLayer();
                 }}

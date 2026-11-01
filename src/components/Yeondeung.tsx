@@ -37,6 +37,7 @@ export default function Yeondeung({
   /** 얼마나 뒤에 있나 — 0 앞, 1 뒤. 형: 「원근법 줘서」
       뒤엣것은 작고, 옅고, 조금 흐리다. 겹쳐 걸린 등이 깊이를 얻는다 */
   깊이 = 0,
+  wish,
   onClick,
 }: {
   name: string;
@@ -45,6 +46,8 @@ export default function Yeondeung({
   drop?: number;
   dim?: boolean;
   깊이?: number;
+  /** 형: 「연등에는 기원하는 거 쪼가리로 해서 밑에 종이 달리게」 */
+  wish?: string;
   onClick?: () => void;
 }) {
   const s = Math.abs(seed);
@@ -90,7 +93,8 @@ export default function Yeondeung({
               : undefined,
           }}
         />
-        {/* 이름은 쪽지 위에 세로로 */}
+        {/* 기원 한 쪼가리 — 등 밑에 세로로 달린 한지. 앞 몇 자만 */}
+        {wish && <span className="hip-deung-wish">{wish.replace(/\s+/g, " ").trim().slice(0, 6)}</span>}
       </span>
     </button>
   );

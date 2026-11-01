@@ -38,6 +38,7 @@ export default function Gongyang({
   dim = false,
   깊이 = 0,
   lanternColor,
+  wish,
   onClick,
 }: {
   갈래?: 공양갈래;
@@ -47,11 +48,13 @@ export default function Gongyang({
   dim?: boolean;
   깊이?: number;
   lanternColor?: LanternColor;
+  /** 연등 밑에 달리는 기원 쪽지 */
+  wish?: string;
   onClick?: () => void;
 }) {
   // 연등은 제 모양을 안다 — 매달리고 쪽지에 이름이 적힌다
   if (갈래 === "deung")
-    return <Yeondeung name={name} seed={seed} color={lanternColor} drop={drop} dim={dim} 깊이={깊이} onClick={onClick} />;
+    return <Yeondeung wish={wish} name={name} seed={seed} color={lanternColor} drop={drop} dim={dim} 깊이={깊이} onClick={onClick} />;
 
   const 것 = 선것[갈래];
   const s = Math.abs(seed);

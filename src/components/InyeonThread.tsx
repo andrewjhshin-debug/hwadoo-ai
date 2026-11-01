@@ -237,9 +237,7 @@ export default function InyeonThread({
               {label(leftGender)}
             </span>
           </span>
-          <span className="shrink-0 font-serif text-[10px] tracking-[0.34em] text-gold-soft/75">
-            因緣
-          </span>
+          <span className="shrink-0 text-gold-soft/75" aria-hidden>·</span>
           <span className="min-w-0 flex-1 truncate text-right font-serif text-[12.5px] font-light text-hanji-dim">
             <span className="mr-1.5 align-middle text-[9.5px] tracking-[0.1em]" style={{ color: b }}>
               {label(rightGender)}
