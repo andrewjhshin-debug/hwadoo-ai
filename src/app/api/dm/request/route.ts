@@ -6,7 +6,8 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { isAdminAccount } from "@/lib/config";
-import { 지갑열기 } from "@/lib/wallet";
+import { 연꽃쓰기 } from "@/lib/walletSpend";
+import { DM_REQUEST, DM_SINCERE } from "@/lib/dmLadder";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
   const postTitle = typeof body?.postTitle === "string" ? body.postTitle.trim().slice(0, 120) : "";
   const meetDate = typeof body?.meetDate === "string" ? body.meetDate.slice(0, 30) : null;
   const intro = typeof body?.intro === "string" ? body.intro.trim().slice(0, 200) : "";
+  const sincere = body?.sincere === true;
   if (!postId || !/^[A-Za-z0-9]{6,64}$/.test(targetUid) || !targetName || targetUid === uid)
     return Response.json({ error: "bad-request" }, { status: 400 });
   // 샘플 글의 가짜 계정에는 쪽지가 가지 않는다 — 값을 받고 없는 사람에게 보내면 기만이다
@@ -40,7 +42,6 @@ export async function POST(req: Request) {
   const db = getFirestore(app);
   const id = createHash("sha256").update(`${uid}|${targetUid}|${postId}`).digest("hex").slice(0, 40);
   const thread = db.doc(`dm-threads/${id}`);
-  const wallet = db.doc(`wallets/${uid}`);
   const day = new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
   const limit = db.doc(`dm-request-limits/${uid}_${day}`);
   const free = isAdminAccount({ uid, email, emailVerified: !!email });
@@ -49,18 +50,13 @@ export async function POST(req: Request) {
     if (existing.exists) return { exists: true, thread: { id, ...existing.data() } };
     const used = (await tx.get(limit)).data()?.count;
     if (typeof used === "number" && used >= 5) return { limited: true };
-    if (!free) {
-      const { 지갑 } = await 지갑열기(tx, wallet);
-      if (지갑.lotus < 1) return { needLotus: true };
-      const freeUse = Math.min(지갑.free, 1);
-      tx.set(wallet, { lotus: 지갑.lotus - 1, free: 지갑.free - freeUse, paid: 지갑.paid - (1 - freeUse) }, { merge: true });
-      tx.set(db.collection(`wallet-log/${uid}/list`).doc(), {
-        n: -1, free: -freeUse, paid: -(1 - freeUse), why: "dm-request", at: FieldValue.serverTimestamp(),
-      });
-    }
+    // 형: 「쪽지 연꽃 1개는 너무 싸다」 — 청하기 3, 진심 쪽지 5
+    if (!free && !(await 연꽃쓰기(tx, db, uid, sincere ? DM_SINCERE : DM_REQUEST, sincere ? "dm-sincere" : "dm-request")))
+      return { needLotus: true };
     const data = {
       postId, postTitle, meetDate, requesterUid: uid, requesterName,
       ownerUid: targetUid, ownerName: targetName, members: [uid, targetUid], intro,
+      ...(sincere ? { sincere: true } : {}),
       status: "pending" as const, createdAt: FieldValue.serverTimestamp(), lastAt: FieldValue.serverTimestamp(),
     };
     tx.create(thread, data);

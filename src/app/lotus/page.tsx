@@ -300,7 +300,7 @@ function LotusClosed() {
         <ul className="space-y-2 break-keep text-[13px] leading-7 text-hanji-dim">
           <li>
             · <span className="text-hanji">쓰임</span> — 쪽지 청하기 · 공양
-            올리기 · 인연 한 사람 더. 한 번에 1송이. 열린 대화는 무료.
+            올리기 · 인연 한 사람 더. 쪽지 청하기 3송이(진심 쪽지 5). 열린 대화는 열 마디까지 무료.
           </li>
           <li>
             · <span className="text-hanji">처음 오신 분께</span> — 연꽃{" "}
@@ -527,8 +527,8 @@ function LotusInner() {
               <li>
                 · <span className="text-hanji">쪽지 청하기</span> — 인연
                 게시판에서 글쓴이·댓글 단 이 곁의 음양 문양을 눌러 1:1 쪽지를
-                청할 때 연꽃 1송이가 쓰입니다. 상대가 수락해 열린 대화의 쪽지는
-                무료·무제한.
+                청할 때 연꽃 3송이(진심 쪽지 5송이)가 쓰입니다. 열린 대화는 둘이 합쳐
+                열 마디까지 무료, 그다음은 이용권(하루 2 · 7일 8송이). 연락처 열기는 각자 5송이.
               </li>
               <li>
                 · <span className="text-hanji">처음 오신 분께</span> — 첫 계정에

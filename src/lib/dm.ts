@@ -14,7 +14,6 @@
 
 import { 갖춘지갑, type 지갑 } from "@/lib/wallet";
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -24,7 +23,6 @@ import {
   limit,
   orderBy,
   query,
-  serverTimestamp,
   setDoc,
   updateDoc,
   where,
@@ -37,6 +35,7 @@ import { ADMIN_UID, DM_ENABLED, FIRST_GRANT, isAdminAccount } from "./config";
 import { 막은이들 } from "./yeonToday";
 import { 무상기한 } from "./wallet";
 import type { Post } from "./community";
+import type { DmPass } from "./dmLadder";
 
 // 처음 쓰는 계정에 거저 쥐여 주는 연꽃 — 셈은 config.ts 에 있다.
 // 여기서 그대로 다시 내보내므로 부르던 쪽은 손댈 것이 없다.
@@ -84,6 +83,8 @@ export type DmThread = {
   lastBy?: string;
   lastAt?: { seconds: number };
   createdAt?: { seconds: number };
+  passUntil?: Record<string, number>; // 사람마다 이용권 끝나는 때(ms)
+  sincere?: boolean; // 진심 쪽지 — 받는 쪽 맨 위, 금테
 };
 
 export type DmMessage = {
@@ -121,7 +122,9 @@ export async function findMyRequestTo(
 export async function requestThread(
   post: Post,
   target: { uid: string; name: string },
-  intro: string
+  intro: string,
+  /** 진심 쪽지 — 🪷5, 받는 쪽 맨 위에 금테로 */
+  sincere = false
 ): Promise<DmThread | "need-lotus"> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
@@ -131,7 +134,7 @@ export async function requestThread(
     headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
     body: JSON.stringify({
       postId: post.id, postTitle: post.templeName ?? post.title, meetDate: post.meetDate ?? null,
-      targetUid: target.uid, targetName: target.name, requesterName: anonName(), intro,
+      targetUid: target.uid, targetName: target.name, requesterName: anonName(), intro, sincere,
     }),
   });
   if (r.status === 402) return "need-lotus";
@@ -193,27 +196,43 @@ export async function fetchMessages(threadId: string): Promise<DmMessage[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as DmMessage);
 }
 
-// 보낸다 — 열린 대화의 쪽지는 무료·무제한 (값은 청할 때 한 번 물었다)
+// 보낸다 — 둘이 합쳐 열 마디까지는 그냥, 그다음은 이용권(서버가 센다).
+// 막히면 "need-pass" 를 돌려준다 — 화면이 이용권 판을 연다.
 export async function sendMessage(
   threadId: string,
   body: string
-): Promise<void> {
+): Promise<"ok" | "need-pass"> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   const text = body.trim().slice(0, 500);
-  if (!text) return;
-  await addDoc(collection(db, "dm-threads", threadId, "messages"), {
-    body: text,
-    uid: u.uid,
-    createdAt: serverTimestamp(),
+  if (!text) return "ok";
+  const r = await fetch("/api/dm/send", {
+    method: "POST",
+    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+    body: JSON.stringify({ thread: threadId, body: text }),
   });
-  await updateDoc(doc(db, "dm-threads", threadId), {
-    lastText: text.slice(0, 30),
-    lastBy: u.uid,
-    lastAt: serverTimestamp(),
-    msgCount: increment(1),
-  });
+  if (r.status === 402) return "need-pass";
+  if (!r.ok) throw new Error("쪽지를 보내지 못했습니다");
   void pingPush({ kind: "dm", threadId }); // 상대에게 알림
+  return "ok";
+}
+
+// 이용권 — 하루 · 7일 · 둘 다 7일 · 다시 열기
+export async function buyDmPass(
+  threadId: string,
+  kind: DmPass
+): Promise<Record<string, number> | "need-lotus"> {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요합니다");
+  const r = await fetch("/api/dm/send", {
+    method: "POST",
+    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+    body: JSON.stringify({ thread: threadId, buy: kind }),
+  });
+  if (r.status === 402) return "need-lotus";
+  const j = (await r.json().catch(() => null)) as { passUntil?: Record<string, number> } | null;
+  if (!r.ok || !j?.passUntil) throw new Error("이용권을 사지 못했습니다");
+  return j.passUntil;
 }
 
 // ── 연꽃 지갑 ────────────────────────────────────────────
