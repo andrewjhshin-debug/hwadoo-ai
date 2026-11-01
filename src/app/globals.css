@@ -1484,8 +1484,10 @@ body:has(.hip-yh) :is(.doryang-fab, .wheel-fab), body:has(.hip-cmt-bar) :is(.dor
   .hip-mepic-stage { max-width: min(200px, 30vh * 0.75) !important; }
 }
 /* 같은 까닭 — 판 아래 182px 이 빈 띠로 남아 「여기서 끝」처럼 보였다. 내 프로필에선 굴림 띠를 바닥까지 */
+/* 형: 「잘린다, 밑부분 오류」 — 판 아래 182px 이 빈 띠로 남아 굴림 통이 화면 중간에서 끝났다(내 프로필·만다라·삼귀의…).
+   내 프로필에서만 걷었던 것을 모든 방에서 걷는다. 아래 염주 자리는 굴림 통 안쪽 여백(104px)이 이미 비운다 */
 @media (max-width: 767px) {
-  body:has(.hip-mepic) .hip-room { padding-bottom: 0 !important; }
+  html body .hip-screen.hip-room.hip-room { padding-bottom: 0 !important; }
 }
 /* 남이 보는 나 — 카드를 한 화면에 욱여넣던 틀(짧은 얼굴·겹치는 손)을 풀고 위에서 아래로 그냥 흐르게 */
 .hip-yeon-view { height: auto !important; min-height: 0 !important; display: block !important; }
@@ -1667,3 +1669,6 @@ body:has(.hip-likes) .hip-screen-mid { justify-content: flex-start !important; a
 .tower-game .tower-score h1 { margin: 0 0 2px !important; }
 /* 받은 호감 — 인연은 먹·금. 분홍 바탕 덩이를 걷는다 */
 body:has(.hip-likes) .hip-bloom { display: none !important; }
+
+/* 화두만 보기 — 오늘의 공덕 띠·법륜 걷기. 형: 「화두만 보기에서 저 부분 없애고」 */
+html[data-focus="1"] :is(.hip-daybar, .wheel-fab, .doryang-fab) { display: none !important; }

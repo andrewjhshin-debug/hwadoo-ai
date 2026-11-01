@@ -221,7 +221,7 @@ function 법당마루() {
             {이 && 이.uid !== 나 && (
               <i className="hip-soul hip-soul-other" style={{ "--h": 이.hue } as React.CSSProperties}>
                 <em />
-                <small>{이.name}<button type="button" className="hip-soul-heart" aria-label={`${이.name}에게 좋아요`} onClick={(e) => { e.stopPropagation(); void 좋아요(이.uid).then((ok) => { 자리말잡기(ok ? `${이.name}님께 ♡ 보냈어요` : "♡를 보내지 못했어요"); setTimeout(() => 자리말잡기(""), 2200); }); }}>♡</button></small>
+                <small>{이.name}</small>{/* ♡ 는 걷었다 — 형: 「저기서 하트 빼」. 좋아요는 넋을 눌러 여는 카드에서 */}
               </i>
             )}
           </span>
