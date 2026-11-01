@@ -17,6 +17,8 @@
 
 import { Yeonkkot } from "@/components/icons";
 import Link from "next/link";
+import InyeonNav from "@/components/InyeonNav";
+import { letterHref } from "@/lib/letter-navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
 import YeonWaiting from "@/components/YeonWaiting";
@@ -109,7 +111,7 @@ const 가안들: 오늘사람[] = [
   },
 ];
 
-export default function 오늘의인연() {
+export default function TodayInyeonPage() {
   const confirm = useConfirm();
   const [있나, 있나잡기] = useState<boolean | null>(null);
   const [사람들, 사람들잡기] = useState<오늘사람[] | null>(null);
@@ -192,6 +194,7 @@ export default function 오늘의인연() {
   const 이 = 남은[0];
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
     장잡기(0);
     메뉴잡기(false);
     신고창잡기(false);
@@ -204,6 +207,8 @@ export default function 오늘의인연() {
       // 사생활 창에서는 저장이 막힌다. 그러면 늘 엎어서 보여 준다
     }
     뒤집힘잡기(봤나);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [이?.uid]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const 뒤집기 = () => {
@@ -336,11 +341,11 @@ export default function 오늘의인연() {
           {닿은이 && (
             <div className="hip-yeon-first">
               {첫말(나, 닿은이).map((t) => (
-                <Link key={t} href={`/letters?say=${encodeURIComponent(t)}`}>{t}</Link>
+                <Link key={t} href={letterHref(닿음, t)}>{t}</Link>
               ))}
             </div>
           )}
-          <Link href="/letters" className="hip-yeon-hap">
+          <Link href={letterHref(닿음)} className="hip-yeon-hap">
             쪽지함 열기
           </Link>
           <button className="hip-do" onClick={() => 닿음잡기(null)}>
@@ -626,7 +631,7 @@ function 껍데기({ children, 몫 }: { children: React.ReactNode; 몫?: string 
   return (
     <HipRoom here="/gathering/yeon" lanes={false} rail="/gathering" scroll>
       <div className="hip-yeon">
-        <p className="hip-yeon-head">오늘의 인연</p>
+        <InyeonNav active="new" />
         {/* 오늘 몇 사람이 서 있나 — 형: 「하루 6개 카드는 떠 있게」
             판에 몇이 남았는지가 보여야 「더 볼 수 있다」가 읽힌다.
             무료 둘, 연꽃으로 넷 — 하루 여섯이 이 방의 몫이다. */}

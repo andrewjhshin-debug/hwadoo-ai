@@ -28,6 +28,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { ROOM_LANES } from "./HipLanes";
+import { practiceDestination } from "@/lib/recent-practice";
 
 export type Bead = { mark: string; name: string; href: string; also: string[] };
 
@@ -112,7 +113,7 @@ export default function HipMala() {
             } catch {
               /* 지나간다 */
             }
-            router.push(b.href);
+            router.push(k === here ? b.href : practiceDestination(b.href));
           }}
           aria-label={b.name}
           aria-current={k === here ? "page" : undefined}

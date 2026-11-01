@@ -3,6 +3,7 @@
 // 형: 「주관식으로 쓰게 해」 — 고르는 문장은 없다. 한 줄 쓰고, 호감 🪷1 또는 진심 🪷3.
 // 저쪽이 먼저 보냈으면 그 자리에서 청실홍실이 이어진다(값 없음).
 import Link from "next/link";
+import { flowEvent } from "@/lib/flow-events";
 import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import { watchAuth, loginWithGoogle } from "@/lib/sync";
@@ -32,6 +33,8 @@ export default function LikeSheet({ to, name, sex, onClose, onDone }: { to: stri
     if (r === "fail") { 상태잡기("fail"); return; }
     if (r === "nope") { 상태잡기("nope"); return; }
     // 연꽃을 썼으니 윗단 알약을 새로 읽힌다 — 안 그러면 쓰기 전 숫자 그대로 보인다
+    if (!r.already) flowEvent("like_sent");
+    if (r.matched && !r.already) flowEvent("match_created");
     pingLotus();
     onDone?.();
     if (r.matched && r.pair) { 짝잡기(r.pair); 상태잡기(""); return; }

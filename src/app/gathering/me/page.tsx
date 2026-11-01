@@ -19,6 +19,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import FaceLive from "@/components/FaceLive";
+import { flowEvent } from "@/lib/flow-events";
 import HipRoom from "@/components/HipRoom";
 import { watchAuth } from "@/lib/sync";
 import { loadMe, setName } from "@/lib/me";
@@ -55,7 +56,7 @@ import {
     더 받아도 고르는 일이 일이 되고, 저장소 값도 사람 수만큼 곱해진다 */
 const 사진칸 = 5;
 
-export default function 인연내프로필() {
+export default function MyInyeonProfile() {
   const [me, setMe] = useState<인연프로필 | null>(null);
   const [있나, 있나잡기] = useState<boolean | null>(null);
   // 첫 읽기가 끝났나 — 판을 한 번 새로 세우는 잣대. me 로 가르면 프로필 없는 새 사람은
@@ -64,6 +65,8 @@ export default function 인연내프로필() {
   const [올리는중, 올리는중잡기] = useState(false);
   const 사진잠금 = useRef(false);
   const [사진진행, 사진진행잡기] = useState("");
+  const [실패사진, 실패사진잡기] = useState<{ file: File; error: string }[]>([]);
+  const 사진계정 = useRef<string | null>(null);
   const [탈, 탈잡기] = useState("");
   const 파일 = useRef<HTMLInputElement | null>(null);
   const [인증, 인증잡기] = useState<인증도전 | null>(null);
@@ -80,9 +83,12 @@ export default function 인연내프로필() {
   /** 칸에 적히는 글자 — 누르기 전까지는 장부에 안 적는다 */
   const [이름초, 이름초잡기] = useState("");
   useEffect(() => {
-    const n = loadMe()?.name ?? "";
-    법명잡기(n);
-    이름초잡기(n);
+    const timer = window.setTimeout(() => {
+      const n = loadMe()?.name ?? "";
+      법명잡기(n);
+      이름초잡기(n);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   /** 법명이 인연 프로필에 없으면 한 번 적어 준다.
@@ -100,11 +106,13 @@ export default function 인연내프로필() {
   }, []);
 
   const 다시읽기 = useCallback(async () => {
+    const owner = 사진계정.current;
     // **반드시 잡는다.** 규칙이 막거나 그물이 끊기면 여기서 던져지는데,
     // 부르는 쪽이 `void 다시읽기()` 라 아무도 안 받는다 — 삼켜지지 않은
     // 넘어짐이 되어 판 밖으로 나간다.
     try {
       const p = await 내프로필();
+      if (사진계정.current !== owner) return;
       setMe(p);
       읽힘잡기(true);
       if (p?.photos?.length && p.photos.every(photo => !photo.url)) {
@@ -113,6 +121,7 @@ export default function 인연내프로필() {
       if (p?.name) 법명잡기(p.name);
       else void 법명맞추기(p);
     } catch (e) {
+      if (사진계정.current !== owner) return;
       읽힘잡기(true);
       탈잡기(e instanceof Error ? e.message : "프로필을 읽지 못했습니다");
     }
@@ -120,6 +129,12 @@ export default function 인연내프로필() {
 
   useEffect(() => {
     return watchAuth((u) => {
+      if (사진계정.current !== (u?.uid ?? null)) {
+        실패사진잡기([]);
+        setMe(null);
+        읽힘잡기(false);
+      }
+      사진계정.current = u?.uid ?? null;
       있나잡기(!!u);
       if (u) void 다시읽기();
     });
@@ -177,7 +192,7 @@ export default function 인연내프로필() {
     저장중잡기(true);
     저장됨잡기(false);
     try {
-      if (await 고치기({})) { 저장됨잡기(true); router.push("/gathering/me/view"); }
+      if (await 고치기({})) { flowEvent("profile_saved"); 저장됨잡기(true); router.push("/gathering/me/view"); }
     } finally {
       저장중잡기(false);
     }
@@ -190,18 +205,27 @@ export default function 인연내프로필() {
   const 민다 = useRef<number | null>(null);
   const 장수 = me?.photos?.length ?? 0;
 
-  const 사진고르기 = async (fs: FileList | null) => {
+  const 사진고르기 = async (fs: FileList | File[] | null) => {
     if (!fs?.length || 사진잠금.current) return;
     사진잠금.current = true;
     탈잡기("");
     올리는중잡기(true);
+    const owner = 사진계정.current;
+    const failed = 실패사진.filter(x => !Array.from(fs).includes(x.file));
     try {
       const 이미 = me?.photos ?? [];
       const 받을 = Array.from(fs).slice(0, Math.max(0, 사진칸 - 이미.length));
-      const 새것 = [];
+      for (const file of Array.from(fs).slice(받을.length)) failed.push({ file, error: "사진 다섯 장이 찼어요. 기존 사진을 지운 뒤 다시 시도해 주세요" });
       for (const [index, f] of 받을.entries()) {
+        if (사진계정.current !== owner) break;
         사진진행잡기(`${index + 1}/${받을.length}장 · 사진 준비 중`);
-        새것.push(await 사진올리기(f, percent => 사진진행잡기(`${index + 1}/${받을.length}장 · ${percent === 100 ? "등록 확인 중" : `${percent}%`}`)));
+        try {
+          await 사진올리기(f, percent => 사진진행잡기(`${index + 1}/${받을.length}장 · ${percent === 100 ? "등록 확인 중" : `${percent}%`}`));
+          flowEvent("photo_registered");
+        } catch (e) {
+          flowEvent("photo_failed");
+          failed.push({ file: f, error: e instanceof Error ? e.message : "등록하지 못했어요" });
+        }
         // **한 장 굽고 한 번 쉰다.**
         // 잇달아 구우면 앞엣것이 아직 안 치워졌는데 다음 것을 편다 —
         // 폰에서 판 그리는 일꾼이 거기서 죽는다(형이 본 그 창).
@@ -216,6 +240,7 @@ export default function 인연내프로필() {
     } finally {
       // Earlier successful photos must appear even if a later file failed.
       await 다시읽기();
+      if (사진계정.current === owner) 실패사진잡기(failed);
       사진잠금.current = false;
       사진진행잡기("");
       올리는중잡기(false);
@@ -241,6 +266,7 @@ export default function 인연내프로필() {
     finally { 사진잠금.current = false; 사진진행잡기(""); 올리는중잡기(false); }
   };
 
+  if (있나 !== false && !읽힘) return <HipRoom here="/gathering/me" lanes={false} rail="/gathering"><p role="status" className="p-6 text-center text-sm text-hanji-faint">불러오는 중…</p></HipRoom>;
   if (있나 === false)
     return (
       <HipRoom here="/gathering/me" lanes={false} rail="/gathering">
@@ -311,7 +337,7 @@ export default function 인연내프로필() {
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={f.url} alt="" draggable={false} />
-                  {d === 0 && f.state === "no" && <u>다시</u>}
+                  {d === 0 && <u>{f.state === "ok" ? "승인됨" : f.state === "no" ? "재등록" : "심사 중"}</u>}
                 </span>
               );
             })}
@@ -346,6 +372,16 @@ export default function 인연내프로필() {
           </label>
 
           {사진진행 && <p role="status" aria-live="polite" className="mt-3 text-center text-xs text-hanji-dim">{사진진행}</p>}
+          {실패사진.length > 0 && (
+            <div className="mt-3 rounded-2xl border border-rose-200 bg-white/60 p-3 text-xs" role="status">
+              <p>{실패사진.length}장 등록 실패</p>
+              <ul className="mt-2 space-y-1">{실패사진.map(({ file, error }, i) => <li key={i} className="break-words">{file.name} · {error}</li>)}</ul>
+              <div className="mt-3 flex justify-center gap-5">
+                <button type="button" disabled={올리는중} onClick={() => { flowEvent("photo_retry"); void 사진고르기(실패사진.map(x => x.file)); }}>실패한 사진만 재시도</button>
+                <button type="button" disabled={올리는중} onClick={() => 실패사진잡기([])}>닫기</button>
+              </div>
+            </div>
+          )}
           <input
             ref={파일}
             type="file"
@@ -655,13 +691,13 @@ export default function 인연내프로필() {
         <하나 이름="흡연" 목록={흡연들} 값={me?.smoke} 고치기={(v) => 고치기({ smoke: v })} />
         <하나 이름="음주" 목록={음주들} 값={me?.drink} 고치기={(v) => 고치기({ drink: v })} />
 
-        {/* ── 여럿 고르는 것들 — 없는 것은 ＋ 로 ── */}
+        {/* ── MultiSelect 고르는 것들 — 없는 것은 ＋ 로 ── */}
         {/* 형: 「이거 선택은 각각 총 5개까지」 — 스물을 다 고르면 그건
             성격이 아니라 목록이다. 넷 다 다섯까지. */}
-        <여럿 이름="성격" 목록={성격들} 값={me?.vibe} 최대={5} 고치기={(v) => 고치기({ vibe: v })} />
-        <여럿 이름="취향" 목록={취향들} 값={me?.like} 최대={5} 고치기={(v) => 고치기({ like: v })} />
-        <여럿 이름="관심" 목록={관심들} 값={me?.care} 최대={5} 고치기={(v) => 고치기({ care: v })} />
-        <여럿 이름="데이트" 목록={데이트들} 값={me?.date} 최대={5} 고치기={(v) => 고치기({ date: v })} />
+        <MultiSelect 이름="성격" 목록={성격들} 값={me?.vibe} 최대={5} 고치기={(v) => 고치기({ vibe: v })} />
+        <MultiSelect 이름="취향" 목록={취향들} 값={me?.like} 최대={5} 고치기={(v) => 고치기({ like: v })} />
+        <MultiSelect 이름="관심" 목록={관심들} 값={me?.care} 최대={5} 고치기={(v) => 고치기({ care: v })} />
+        <MultiSelect 이름="데이트" 목록={데이트들} 값={me?.date} 최대={5} 고치기={(v) => 고치기({ date: v })} />
 
         {/* ── 절 ── 여기부터는 **따로 동의**를 받는다.
             개인정보보호법 23조가 종교를 민감정보로 묶고, 다른 동의와
@@ -783,13 +819,13 @@ function 하나({
 }
 
 /**
- * 여럿 고르는 줄 — 끝의 ＋ 로 직접 적는다.
+ * MultiSelect 고르는 줄 — 끝의 ＋ 로 직접 적는다.
  *
  * 형: 「대부분 버튼 식으로 클릭하면 올라가게 하되 주관식도 가능하게」
  * 적은 것은 고른 것과 **같은 칸**에 들어간다. 나중에 보는 쪽에서는
  * 무엇이 목록에 있던 것이고 무엇이 손으로 적은 것인지 알 필요가 없다.
  */
-function 여럿({
+function MultiSelect({
   이름,
   목록,
   값,

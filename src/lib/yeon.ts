@@ -415,6 +415,10 @@ async function 다시굽기(file: File): Promise<{ 짐: Blob; 종류: string; �
   }
 }
 
+// Retrying the same File resumes registration at the same storage path.
+// Keep these checkpoints in memory only; never persist personal photo bytes.
+const photoCheckpoints = new WeakMap<File, { uid: string; path: string; uploaded: boolean; blob: Blob; contentType: string }>();
+
 /** 사진을 올린다 — 저장소에 두고, 프로필에는 pending 으로 적는다 */
 export async function 사진올리기(file: File, progress?: PhotoProgress): Promise<사진> {
   const u = auth.currentUser;
@@ -424,19 +428,29 @@ export async function 사진올리기(file: File, progress?: PhotoProgress): Pro
     throw new Error("사진 파일만 올릴 수 있습니다");
   if (file.size > 40 * 1024 * 1024) throw new Error("사진이 너무 큽니다 (40MB 까지)");
 
+  let job = photoCheckpoints.get(file);
+  if (job && job.uid !== u.uid) throw new Error("계정이 바뀌었어요. 사진을 다시 선택해 주세요.");
+  if (!job) {
   const { 짐, 종류, 끝 } = await 다시굽기(file);
   if (!/^image\/(jpeg|png|webp)$/.test(종류))
     throw new Error(`이 사진은 다루지 못합니다 (${종류 || "갈래 모름"})`);
   if (짐.size >= 8 * 1024 * 1024) throw new Error("사진이 너무 큽니다");
 
-  const path = `yeon/${u.uid}/${crypto.randomUUID()}.${끝}`;
+    job = { uid: u.uid, path: `yeon/${u.uid}/${crypto.randomUUID()}.${끝}`, uploaded: false, blob: 짐, contentType: 종류 };
+    photoCheckpoints.set(file, job);
+  }
+  const { path } = job;
   try {
     if (auth.currentUser?.uid !== u.uid) throw new Error("계정이 바뀌었어요. 다시 로그인해 주세요.");
-    await uploadPhotoBytes(path, 짐, 종류, progress);
+    if (!job.uploaded) {
+      await uploadPhotoBytes(path, job.blob, job.contentType, progress);
+      job.uploaded = true;
+    } else progress?.(100);
     // 사진 배열은 Firestore에서 브라우저가 직접 고치지 않는다. 그 길을
     // 열어 두면 콘솔에서 pending을 ok로 바꿔 승인제를 통째로 건널 수 있다.
     const at = Date.now();
     await registerPhoto("/api/yeon/photo", u.uid, { path });
+    photoCheckpoints.delete(file);
     return { path, url: "", state: "pending", at };
   } catch (e) {
     // 「사진을 올리지 못했습니다」 한 줄로 삼키면 다음 사람이 또 처음부터

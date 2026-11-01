@@ -23,8 +23,10 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
+  getAdditionalUserInfo,
   signOut,
   type User,
+  type UserCredential,
 } from "firebase/auth";
 import {
   doc,
@@ -34,6 +36,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { flowEvent } from "./flow-events";
 import { mergeSavedSentences, normalizeSavedSentences } from "./savedSentences";
 import {
   applyRemoteStore,
@@ -585,6 +588,10 @@ function 앱다리(): 인증다리 | null {
   return cap?.isNativePlatform?.() ? cap.Plugins?.FirebaseAuthentication ?? null : null;
 }
 
+function recordSignIn(result: UserCredential | null) {
+  if (!result) return;
+  try { flowEvent(getAdditionalUserInfo(result)?.isNewUser ? "sign_up" : "login"); } catch { /* Authentication remains independent of metrics. */ }
+}
 export async function loginWithGoogle() {
   const provider = new GoogleAuthProvider();
 
@@ -595,7 +602,7 @@ export async function loginWithGoogle() {
     const r = await 다리.signInWithGoogle({ skipNativeAuth: true });
     const idToken = r.credential?.idToken;
     if (!idToken) throw new Error("구글 계정 고르기가 끝나지 않았어요");
-    await signInWithCredential(auth, GoogleAuthProvider.credential(idToken, r.credential?.accessToken ?? undefined));
+    recordSignIn(await signInWithCredential(auth, GoogleAuthProvider.credential(idToken, r.credential?.accessToken ?? undefined)));
     return;
   }
 
@@ -614,7 +621,7 @@ export async function loginWithGoogle() {
   // 순서를 뒤집는다 — 팝업을 먼저 열어 보고, **정말로 못 열 때만**
   // 리다이렉트로 간다. 안드로이드 홈 화면 앱은 이걸로 바로 풀린다.
   try {
-    await signInWithPopup(auth, provider);
+    recordSignIn(await signInWithPopup(auth, provider));
   } catch (e) {
     const code = (e as { code?: string })?.code ?? "";
     // 막혔거나(popup-blocked) 브라우저가 팝업을 아예 안 쓰는 판이면 넘긴다.
@@ -636,7 +643,7 @@ export async function loginWithGoogle() {
 /** 구글에 다녀온 뒤 — 앱이 처음 뜰 때 한 번 물어본다.
     실패해도 조용히 지나간다(다녀온 적이 없으면 null 이 온다) */
 export function resumeRedirectLogin() {
-  getRedirectResult(auth).catch(() => {
+  getRedirectResult(auth).then(recordSignIn).catch(() => {
     /* 돌아온 길이 없으면 그만이다 */
   });
 }

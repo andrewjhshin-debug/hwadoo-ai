@@ -1,0 +1,21 @@
+.hip-lanes-wrap:has(> .hip-lanes-more) {
+  padding-right: 58px;
+  box-sizing: border-box;
+}
+.hip-lanes-wrap:has(> .hip-lanes-more) > .hip-lane-arrow-r {
+  right: 59px;
+}
+.hip-lanes-more {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 54px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .65);
+  color: #81756f;
+  font-size: 12px;
+  cursor: pointer;
+}

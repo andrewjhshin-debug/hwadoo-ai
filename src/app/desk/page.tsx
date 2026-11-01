@@ -25,11 +25,12 @@ type 상황 = {
   } | null;
   사람: { 계정: number; 오늘: number; 이레: number; 서른: number };
   도량: { 공양: number; 공개공양: number; 기와: number; 인연: number; 인연활동: number; 인연심사: number; 글: number };
+  흐름?: { 사진통과: number; 호감: number; 매칭: number; 첫대화: number };
   돈: { 누적: number; 건수: number; 기다림: number; 달별: { 달: string; 원: number }[] };
   주문: { id: string; n: number; price: number; status: string; depositor: string; email: string | null; at: number }[];
 };
 
-const 원 = (n: number) => n.toLocaleString("ko-KR") + "원";
+const 원 = (n: number) => n < 0 ? "—" : n.toLocaleString("ko-KR") + "원";
 const 수 = (n: number) => (n < 0 ? "—" : n.toLocaleString("ko-KR"));
 
 export default function DeskPage() {
@@ -73,7 +74,7 @@ export default function DeskPage() {
           <p className="desk-k">누적 매출</p>
           <p className="desk-big">{원(d.돈.누적)}</p>
           <p className="desk-s">
-            입금 {d.돈.건수}건
+            입금 {수(d.돈.건수)}건
             {d.돈.기다림 > 0 && <> · 대기 {d.돈.기다림}건</>}
           </p>
         </div>
@@ -93,9 +94,16 @@ export default function DeskPage() {
         </div>
       </section>
 
+      {d.흐름 && <section className="desk-card desk-wide">
+        <p className="desk-k">인연 흐름</p>
+        <div className="desk-row">
+          {[["프로필", d.도량.인연, "명"], ["사진 통과", d.흐름.사진통과, "명"], ["활동 중", d.도량.인연활동, "명"], ["호감", d.흐름.호감, "건"], ["매칭", d.흐름.매칭, "쌍"], ["대화 시작", d.흐름.첫대화, "방"]].map(([label, n, unit]) => <div key={String(label)}><p className="desk-s">{label}</p><p className="desk-big">{수(Number(n))}<small style={{fontSize:12}}>{unit}</small></p></div>)}
+        </div>
+        <p className="desk-s">현재 처리 건수입니다. 사용자별 전환율은 GA4의 단계별 이벤트로 확인합니다.</p>
+      </section>}
       {/* ── 달별 매출 ── */}
       <section className="desk-card desk-wide">
-        <p className="desk-k">달별 매출</p>
+        <p className="desk-k">최근 주문 40건 · 월별 입금액</p>
         {d.돈.달별.length === 0 ? (
           <p className="desk-s">아직 입금된 주문이 없습니다.</p>
         ) : (

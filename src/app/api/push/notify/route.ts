@@ -216,7 +216,7 @@ export async function POST(request: Request) {
   const data = {
     title: notice.title,
     body: notice.body,
-    url: SITE_URL + notice.path,
+    url: SITE_URL + ((kind === "dm" || kind === "dm-request") && typeof payload.threadId === "string" ? `/letters?thread=${encodeURIComponent(payload.threadId)}` : notice.path),
   };
   const messages: TokenMessage[] = tokens.map((token) => ({
     token,

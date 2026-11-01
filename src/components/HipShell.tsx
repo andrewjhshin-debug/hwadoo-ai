@@ -23,6 +23,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { BEADS, beadOf } from "./HipMala";
+import { practiceDestination } from "@/lib/recent-practice";
 
 /** 손가락이 이만큼은 가야 넘긴다 — 세로로 읽다가 살짝 흔들린 것과 가른다.
     56 에 1.6배는 너무 빡빡했다(가로 60·세로 40 이면 거부). 형: 「쓸어서
@@ -85,7 +86,7 @@ export default function HipShell({
     } catch {
       /* 지나간다 */
     }
-    router.push(to.href);
+    router.push(practiceDestination(to.href));
   };
 
   return (

@@ -7,11 +7,12 @@
 // ─────────────────────────────────────────────────────────────
 
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
   getDocs,
+  getDoc,
+  setDoc,
   orderBy,
   query,
   serverTimestamp,
@@ -38,10 +39,11 @@ export async function createOrder(input: {
   n: number;
   price: number;
   depositor: string;
-}) {
+}, requestId?: string) {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
-  await addDoc(collection(db, "orders"), {
+  const orderRef = requestId ? doc(db, "orders", requestId) : doc(collection(db, "orders"));
+  const order = {
     uid: u.uid,
     email: u.email ?? null,
     productId: input.productId,
@@ -50,7 +52,16 @@ export async function createOrder(input: {
     depositor: input.depositor.trim().slice(0, 30),
     status: "pending" as const,
     createdAt: serverTimestamp(),
-  });
+  };
+  try { await setDoc(orderRef, order); }
+  catch (error) {
+    // A committed order whose response was lost is still the same purchase.
+    // Never overwrite it: ordinary users cannot update order documents.
+    const previous = await getDoc(orderRef).catch(() => null);
+    const saved = previous?.data();
+    if (saved?.uid !== u.uid || saved?.productId !== input.productId || saved?.n !== input.n || saved?.price !== input.price || saved?.depositor !== order.depositor) throw error;
+    return orderRef.id;
+  }
   // 관리자에게 메일 한 통 — 실패해도 주문 자체는 이미 접수됐다
   try {
     const idToken = await u.getIdToken();
@@ -69,6 +80,7 @@ export async function createOrder(input: {
   } catch {
     // 조용히
   }
+  return orderRef.id;
 }
 
 // 뒷방 — 주문 전부 (최신순)

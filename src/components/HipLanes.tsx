@@ -20,6 +20,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { rememberPractice } from "@/lib/recent-practice";
+import { flowEvent } from "@/lib/flow-events";
+import "./hip-lanes-more.css";
 
 /** 판 안에서 갈리는 물건 넷 */
 // 형: 「싱잉볼을 맨 앞으로, 메인으로」
@@ -68,6 +71,11 @@ export default function HipLanes({
   //      없으면 사라진다 — 있는데 눌러도 안 되는 화살표가 제일 나쁘다
   const 띠 = useRef<HTMLDivElement | null>(null);
   const [끝, 끝잡기] = useState({ 왼: false, 오: false });
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    rememberPractice(room && room !== "/moktak" ? room : `/moktak?lane=${tab ?? "bowl"}`);
+    flowEvent("practice_started");
+  }, [room, tab]);
 
   const 살피기 = useCallback(() => {
     const el = 띠.current;
@@ -99,7 +107,7 @@ export default function HipLanes({
       el.removeEventListener("scroll", 살피기);
       window.removeEventListener("resize", 살피기);
     };
-  }, [살피기, tab, room]);
+  }, [살피기, tab, room, more]);
 
   const 밀기 = (쪽: -1 | 1) => {
     const el = 띠.current;
@@ -146,7 +154,7 @@ export default function HipLanes({
           </Link>
         )
       )}
-      {ROOM_LANES.map(({ href, label }) =>
+      {ROOM_LANES.filter(({ href }) => more || href === "/tower" || href === room).map(({ href, label }) =>
         room === href ? (
           <span key={href} className="hip-lane-room" data-on="1" aria-current="page">
             {label}
@@ -158,6 +166,7 @@ export default function HipLanes({
         )
       )}
     </div>
+    <button className="hip-lanes-more" type="button" aria-expanded={more} onClick={() => setMore(v => !v)}>{more ? "접기" : "더보기"}</button>
     </div>
   );
 }

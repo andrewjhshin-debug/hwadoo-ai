@@ -15,7 +15,7 @@
 import Link from "next/link";
 import LotusCount from "@/components/LotusCount";
 import AlertBell from "@/components/AlertBell";
-import LikesCount from "@/components/LikesCount";
+import InyeonNav from "@/components/InyeonNav";
 import HipShell from "@/components/HipShell";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -59,16 +59,12 @@ function GatheringInner() {
             <div className="hip-yh-top">
               <h1>因緣<small> · 손잡고 절로</small></h1>
               <span className="hip-yh-right">
-                <LikesCount />
+                <Link href="/gathering/me" className="text-[11px] text-hanji-faint">내 프로필</Link>
                 <AlertBell />
                 <Link href="/lotus" className="hip-yh-lotus" aria-label="연꽃"><LotusCount look="line" /></Link>
               </span>
             </div>
-            <nav className="hip-yh-doors" aria-label="인연">
-              {/* 형: 「원래 이뻤는데? 한자로 해봐」 */}
-              <Link href="/gathering/yeon" data-main="1"><b>緣</b>새 인연</Link>
-              <Link href="/gathering/me"><b>我</b>내 프로필</Link>
-            </nav>
+            <InyeonNav secondary={false} />
           </header>
 
         </>

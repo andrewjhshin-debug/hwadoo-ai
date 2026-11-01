@@ -13,6 +13,8 @@ import { 방열기 } from "@/lib/yeonLike";
 import { ROOM } from "@/lib/dmLadder";
 import { Yeonkkot } from "@/components/icons";
 import { pingLotus } from "@/components/LotusCount";
+import { letterHref } from "@/lib/letter-navigation";
+import { flowEvent } from "@/lib/flow-events";
 
 type G = "m" | "f" | "" | null | undefined;
 
@@ -27,17 +29,19 @@ export default function MatchScreen({ pair, myName, mySex, name, sex, thread, on
   const [탈, 탈잡기] = useState(false);
   useEffect(() => watchAuth(setUser), []);
   const 방 = async () => {
-    if (thread) { router.push("/letters"); return; }
+    if (thread) { router.push(letterHref(thread)); return; }
     if (바쁨) return;
     바쁨잡기(true);
     탈잡기(false);
-    const r = await 방열기(pair);
+    let r: Awaited<ReturnType<typeof 방열기>>;
+    try { r = await 방열기(pair); } catch { r = null; }
     바쁨잡기(false);
     if (r === "need-lotus") { 모자람잡기(true); return; }
     // 눌렀는데 아무 일 없는 것처럼 두지 않는다
     if (!r) { 탈잡기(true); return; }
     pingLotus();
-    router.push("/letters");
+    flowEvent("conversation_opened");
+    router.push(letterHref(r));
   };
   return (
     <div className="hip-match">

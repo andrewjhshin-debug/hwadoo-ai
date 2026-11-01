@@ -1,6 +1,7 @@
 {
   "//": "복합 색인. 없으면 해당 질의가 FAILED_PRECONDITION 으로 죽고 화면은 조용히 빈 목록이 된다 — 인연 글이 안 올라가 보이던 원인이 이것이었다. 고쳤으면 npm run rules:deploy 로 규칙과 함께 올린다.",
   "indexes": [
+    { "collectionGroup": "orders", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "price", "order": "ASCENDING" }] },
     {
       "//": "법당 공개 공양 — 비공개 사연을 질의 단계에서 제외하고 최신순으로 건다.",
       "collectionGroup": "candles",

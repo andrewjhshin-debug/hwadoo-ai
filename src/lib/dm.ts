@@ -166,11 +166,11 @@ export async function fetchMessages(threadId: string): Promise<DmMessage[]> {
   const snap = await getDocs(
     query(
       collection(db, "dm-threads", threadId, "messages"),
-      orderBy("createdAt", "asc"),
+      orderBy("createdAt", "desc"),
       limit(200)
     )
   );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as DmMessage);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as DmMessage).reverse();
 }
 
 // 보낸다 — 방이 열려 있으면 무제한 무료(형: 「쪽지 보낼 때마다는 과금 안 한다」)

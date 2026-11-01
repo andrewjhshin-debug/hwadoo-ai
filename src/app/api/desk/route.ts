@@ -12,7 +12,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore, Timestamp, type Query } from "firebase-admin/firestore";
+import { AggregateField, getFirestore, Timestamp, type Query } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { ADMIN_UID, isAdminAccount } from "@/lib/config";
 
@@ -95,6 +95,14 @@ export async function GET(req: Request) {
   if (!뒷방) return Response.json({ error: "not-admin" }, { status: 403 });
 
   const db = getFirestore(app);
+  const [사진통과, 호감, 매칭, 첫대화, 입금대기, 매출] = await Promise.all([
+    셈(db.collection("yeon-profiles").where("approvedPhotoCount", ">", 0)),
+    셈(db.collection("yeon-likes")),
+    셈(db.collection("yeon-pairs")),
+    셈(db.collection("dm-threads").where("msgCount", ">", 0)),
+    셈(db.collection("orders").where("status", "==", "pending")),
+    db.collection("orders").where("status", "==", "paid").aggregate({ total: AggregateField.sum("price"), count: AggregateField.count() }).get().then(s => s.data()).catch(() => null),
+  ]);
   const 오늘 = Timestamp.fromDate(자정());
   const 이레 = Timestamp.fromDate(자정(-7));
   const 서른 = Timestamp.fromDate(자정(-30));
@@ -164,10 +172,11 @@ export async function GET(req: Request) {
     블로그,
     사람: { 계정, 오늘: 오늘움직임, 이레: 이레움직임, 서른: 서른움직임 },
     도량: { 공양, 공개공양, 기와, 인연, 인연활동, 인연심사, 글 },
+    흐름: { 사진통과, 호감, 매칭, 첫대화 },
     돈: {
-      누적: 받은것.reduce((s, o) => s + o.price, 0),
-      건수: 받은것.length,
-      기다림: 주문들.filter((o) => o.status === "pending").length,
+      누적: 매출?.total ?? -1,
+      건수: 매출?.count ?? -1,
+      기다림: 입금대기,
       달별: [...달력.entries()].sort().map(([달, 원]) => ({ 달, 원 })),
     },
     주문: 주문들.slice(0, 12),

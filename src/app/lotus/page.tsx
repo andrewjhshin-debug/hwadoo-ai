@@ -26,7 +26,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { 지갑 } from "@/lib/wallet";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { flowEvent } from "@/lib/flow-events";
+import { LIKE, ROOM } from "@/lib/dmLadder";
 import Link from "next/link";
 import { LOTUS_OPEN } from "@/lib/config";
 import { YeonkkotGold } from "@/components/icons";
@@ -97,6 +99,7 @@ const won = (n: number) => n.toLocaleString("ko-KR") + "원";
  * 사실은 '아직 모른다'이다.
  */
 function MyLotus() {
+  const [now] = useState(() => Date.now());
   // 형: 「내 연꽃이 몇 개인지도 표기하는 란 만들어. 공덕으로 받은 연꽃은
   //      내가 산 연꽃이랑 구분해서 나오게」
   const [w, setW] = useState<지갑 | null>(null);
@@ -114,7 +117,7 @@ function MyLotus() {
   /** 무상분이 며칠 남았나 — 0 이면 기한이 없는 옛 무상분 */
   const 남은날 =
     w.free > 0 && w.freeUntil > 0
-      ? Math.max(0, Math.ceil((w.freeUntil - Date.now()) / 86_400_000))
+      ? Math.max(0, Math.ceil((w.freeUntil - now) / 86_400_000))
       : 0;
   return (
     <div className="relative mt-6 w-full max-w-[19rem] overflow-hidden rounded-[18px] border border-gold/25 bg-ink-2/60 px-5 py-4">
@@ -159,10 +162,10 @@ function MyLotus() {
       )}
       <p className="relative mt-3 border-t border-ink-3 pt-2.5 text-[11px] leading-5 text-hanji-faint">
         {n > 0
-          ? "쪽지 · 등 · 인연 한 손길에 한 송이. 받은 것부터 나갑니다"
+          ? `호감 ${LIKE}송이 · 쪽지방 ${ROOM}송이. 받은 것부터 씁니다`
           : "공덕을 모아 바꾸거나, 아래에서 구매할 수 있습니다"}
       </p>
-      <자취판 />
+      <LotusHistory />
     </div>
   );
 }
@@ -176,7 +179,7 @@ function MyLotus() {
  * 거래기록 열람은 뒤쪽이다.
  * 평소엔 접혀 있다. 잔고를 보러 온 사람에게 장부부터 들이밀 일은 없다.
  */
-function 자취판() {
+function LotusHistory() {
   const [열림, 열림잡기] = useState(false);
   const [줄, 줄잡기] = useState<자취[] | null>(null);
   useEffect(() => {
@@ -221,6 +224,7 @@ function 자취판() {
 }
 
 export default function LotusPage() {
+  useEffect(() => { flowEvent("lotus_viewed"); }, []);
   // ── 문이 잠겼으면 여기서 멎는다 ──
   // 형이 「일 커지기 전에 연꽃 공양은 일단 닫아」라 했다. 들머리를
   // 여기저기 지우는 대신 **문 하나만** 잠근다 — 열 때 빠뜨릴 데가 없다.
@@ -315,7 +319,7 @@ function LotusClosed() {
           <dl className="grid grid-cols-[4.2rem_1fr] gap-x-3 gap-y-2 break-keep text-[12px] leading-6">
             <dt className="text-hanji-faint">산 연꽃</dt>
             <dd className="text-hanji-dim">
-              결제 즉시 지급 · 5년 · <span className="text-hanji">7일 내 전액 환불</span>
+              입금 확인 후 지급 · 5년 · <span className="text-hanji">7일 내 전액 환불</span>
               (쓴 만큼 빼고)
             </dd>
             <dt className="text-hanji-faint">받은 연꽃</dt>
@@ -367,6 +371,9 @@ function LotusInner() {
   // 입금자명 — 통장에서 이 이름으로 찾는다
   const [depositor, setDepositor] = useState("");
   const [orderBusy, setOrderBusy] = useState(false);
+  const orderLock = useRef(false);
+  const orderRequest = useRef<{ key: string; id: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => watchAuth(setUser), []);
 
@@ -394,12 +401,16 @@ function LotusInner() {
       setError("만 19세 미만은 결제할 수 없습니다.");
       return;
     }
+    flowEvent("checkout_started");
     setStep("pay");
   };
 
   // 입금했습니다 — 주문을 접수하고 뒷방(관리자)에게 알린다
   const submitOrder = async () => {
-    if (!depositor.trim()) return;
+    if (!depositor.trim() || orderLock.current) return;
+    orderLock.current = true;
+    const key = `${user?.uid}:${picked.id}:${depositor.trim()}`;
+    if (orderRequest.current?.key !== key) orderRequest.current = { key, id: crypto.randomUUID() };
     setError("");
     setOrderBusy(true);
     try {
@@ -408,12 +419,14 @@ function LotusInner() {
         n: picked.n,
         price: picked.price,
         depositor,
-      });
+      }, orderRequest.current.id);
+      flowEvent("order_submitted");
       setStep("done");
     } catch {
       setError("접수하지 못했습니다 — 잠시 뒤 다시 시도해 주세요.");
     } finally {
       setOrderBusy(false);
+      orderLock.current = false;
     }
   };
 
@@ -489,14 +502,14 @@ function LotusInner() {
             </p>
             <p className="mt-2 text-[11.5px] tracking-wide text-hanji-faint">
               송이당 {won(picked.each)}
-              {picked.best ? " · 인기" : ""}
+              {picked.best ? " · 추천" : ""}
             </p>
           </div>
 
           {/* ── 쓰임 한 줄 요약 — 자세한 원문은 아래 접힌 자리에 그대로 있다 ── */}
           <div className="rise rise-d2 mt-7 flex flex-wrap justify-center gap-2 text-[11.5px]">
             <span className="rounded-full border border-ink-3 px-3 py-1 text-hanji-dim">
-              쪽지 한 번 청할 때 한 송이
+              호감 1송이 · 쪽지방 3송이
             </span>
             <span className="rounded-full border border-gold/40 px-3 py-1 text-gold-soft">
               첫 계정 {FIRST_GRANT}송이 무료
@@ -536,7 +549,7 @@ function LotusInner() {
               </li>
             </ul>
             <ul className="mt-4 space-y-1.5 border-t border-ink-3/60 pt-4 break-keep text-[12px] leading-6 text-hanji-faint">
-              <li>· 제공 시점 — 결제 완료 즉시 수취 계정에 지급됩니다.</li>
+              <li>· 제공 시점 — 계좌이체 입금 확인 후 수취 계정에 지급됩니다.</li>
               <li>· 유효기간 — 제한 없음 (소진 시까지 계정에 남습니다).</li>
               <li>
                 · 환불 — 사용하지 않은 연꽃은 결제일로부터 7일 이내 전액
@@ -600,7 +613,7 @@ function LotusInner() {
               onClick={handlePay}
               className="btn-obang mt-5 w-full rounded-full py-3.5 text-[13px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-90"
             >
-              결제하기 — {won(picked.price)}
+              입금 안내 · {won(picked.price)}
             </button>
           </section>
         </>
@@ -631,7 +644,12 @@ function LotusInner() {
                   예금주 {BANK_INFO.holder}
                 </p>
               </div>
+              <button type="button" className="mt-3 text-xs underline underline-offset-4" onClick={async () => {
+                try { if (!BANK_INFO) return; await navigator.clipboard.writeText(BANK_INFO.account); setCopied(true); }
+                catch { setError("계좌번호를 길게 눌러 복사해 주세요"); }
+              }}>{copied ? "계좌 복사됨" : "계좌 복사"}</button>
               <input
+                aria-label="입금자명"
                 value={depositor}
                 onChange={(e) => setDepositor(e.target.value.slice(0, 30))}
                 placeholder="입금자명 — 보낸 분 이름 그대로"
@@ -663,14 +681,13 @@ function LotusInner() {
           <button
             onClick={() => {
               setStep("pick");
-              setPicked(DEFAULT_PRODUCT);
               setAgree(false);
               setDepositor("");
               setError("");
             }}
             className="mt-5 text-[12px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim"
           >
-            처음으로
+            수량 변경
           </button>
         </section>
       ) : (

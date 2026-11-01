@@ -37,6 +37,9 @@ import { DM_READ_PASS } from "@/lib/dmLadder";
 import HandInHand from "@/components/HandInHand";
 import ContactSwap from "@/components/ContactSwap";
 import { pingLotus } from "@/components/LotusCount";
+import InyeonNav from "@/components/InyeonNav";
+import { letterHref, requestedLetter } from "@/lib/letter-navigation";
+import { flowEvent } from "@/lib/flow-events";
 
 // "8.25" — 서버 시각이 아직이면 빈 문자열
 function dstr(t?: { seconds: number }): string {
@@ -50,6 +53,8 @@ export default function LettersPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [threads, setThreads] = useState<DmThread[] | null>(null);
   const [lotus, setLotus] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(timer); }, []);
 
   // 열린 대화 — 화면이 통째로 바뀐다
   const [openId, setOpenId] = useState<string | null>(null);
@@ -61,21 +66,33 @@ export default function LettersPage() {
   // 눌렀는데 안 된 것 — 조용히 삼키지 않고 대화 아래 한 줄로 말한다
   const [탈, 탈잡기] = useState("");
   const endRef = useRef<HTMLDivElement | null>(null);
+  const requested = useRef<{ thread: string | null; say: string } | null>(null);
+  const messageRequest = useRef(0);
+  const accountId = useRef<string | null>(null);
 
-  useEffect(() => watchAuth(setUser), []);
+  useEffect(() => watchAuth(u => {
+    if (accountId.current !== (u?.uid ?? null)) {
+      messageRequest.current++;
+      setThreads(null); setOpenId(null); setMsgs(null); setDraft("");
+    }
+    accountId.current = u?.uid ?? null;
+    setUser(u);
+  }), []);
   // 인연이 닿은 자리에서 고른 첫 말이 ?say= 로 온다 — 쪽지 칸에 미리 적어 둔다
   useEffect(() => {
     try {
-      const say = new URLSearchParams(window.location.search).get("say");
-      if (say) { setDraft(say.slice(0, 200)); window.history.replaceState(null, "", "/letters"); }
+      requested.current = requestedLetter(window.location.search);
+      if (!requested.current.thread && requested.current.say) setDraft(requested.current.say);
     } catch { /* 주소를 못 읽으면 빈 칸 */ }
   }, []);
 
   const refresh = useCallback(() => {
+    const owner = accountId.current;
+    if (!owner) return;
     fetchMyThreads()
-      .then(setThreads)
-      .catch(() => setThreads([]));
-    getLotus().then(setLotus).catch(() => {});
+      .then(value => { if (accountId.current === owner) { setThreads(value); 탈잡기(""); } })
+      .catch(() => { if (accountId.current === owner) { setThreads(previous => previous ?? []); 탈잡기("쪽지함을 불러오지 못했어요. 새로고침해 주세요"); } });
+    getLotus().then(value => { if (accountId.current === owner) setLotus(value); }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -94,10 +111,11 @@ export default function LettersPage() {
 
   // ── 뒤로가기 — 대화 층을 쌓고, popstate 가 접는다 ──────────
   const openRef = useRef<string | null>(null);
-  openRef.current = openId;
+  useEffect(() => { openRef.current = openId; }, [openId]);
   useEffect(() => {
     const onPop = () => {
       if (openRef.current) {
+        messageRequest.current++;
         setOpenId(null);
         setMenuOpen(false);
       }
@@ -107,26 +125,39 @@ export default function LettersPage() {
   }, []);
   const goBack = () => window.history.back();
 
-  const openThread = async (t: DmThread) => {
+  const openThread = useCallback(async (t: DmThread, initialDraft = "") => {
+    const request = ++messageRequest.current;
     setOpenId(t.id);
     setMenuOpen(false);
     setMsgs(null);
-    setDraft("");
+    setDraft(initialDraft);
     탈잡기("");
     // 읽음 — 봉투 위 붉은 점이 꺼진다
     if (user) markDmSeen(user.uid, t.id, t.lastAt?.seconds);
     void markRead(t.id); // 상대가 읽음 확인을 샀다면 「읽음」이 뜬다
     try {
-      window.history.pushState({ hwadooLayer: true }, "");
+      window.history.replaceState(window.history.state, "", "/letters");
+      window.history.pushState({ ...window.history.state, hwadooLayer: true }, "", letterHref(t.id));
     } catch {
       // 못 쌓아도 화면은 열린다
     }
     try {
-      setMsgs(await fetchMessages(t.id));
+      const messages = await fetchMessages(t.id);
+      if (request === messageRequest.current) setMsgs(messages);
     } catch {
-      setMsgs([]);
+      if (request === messageRequest.current) { setMsgs([]); 탈잡기("대화를 불러오지 못했어요. 다시 열어 주세요"); }
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !threads || !requested.current?.thread) return;
+    const target = requested.current;
+    requested.current = null;
+    // Only open rooms returned by the authenticated membership query.
+    const thread = threads.find(t => t.id === target.thread && t.status === "accepted");
+    if (thread) void openThread(thread, target.say);
+    else 탈잡기("이 대화를 열 수 없어요. 목록을 확인해 주세요");
+  }, [user, threads, openThread]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "nearest" });
@@ -136,7 +167,7 @@ export default function LettersPage() {
   const 고칠방 = (id: string, patch: Partial<DmThread>) =>
     setThreads((ts) => ts?.map((x) => (x.id === id ? { ...x, ...patch } : x)) ?? ts);
   // ── 읽음 확인 ──
-  const 읽음켬 = (t: DmThread) => isAdminAccount(user) || (t.readPassUntil?.[user?.uid ?? ""] ?? 0) > Date.now();
+  const 읽음켬 = (t: DmThread) => isAdminAccount(user) || (t.readPassUntil?.[user?.uid ?? ""] ?? 0) > now;
   const 상대읽은때 = (t: DmThread) => Math.max(0, ...Object.entries(t.lastRead ?? {}).filter(([k]) => k !== user?.uid).map(([, v]) => v));
   const 읽혔나 = (t: DmThread, m: DmMessage) => ((m.createdAt as { seconds?: number } | undefined)?.seconds ?? Infinity) * 1000 <= 상대읽은때(t);
   const 내마지막 = (ms: DmMessage[]) => ms.map((m) => m.uid).lastIndexOf(user?.uid ?? "");
@@ -155,16 +186,20 @@ export default function LettersPage() {
     const body = draft.trim();
     // 엔터를 빨리 두 번 치면 같은 쪽지가 두 번 갔다 — 보내는 동안은 받지 않는다
     if (!body || !user || busy) return;
+    const request = messageRequest.current;
     setBusy(true);
     탈잡기("");
     try {
       await sendMessage(t.id, body);
+      flowEvent((t.msgCount ?? 0) === 0 ? "first_message_sent" : "message_sent");
+      if (request !== messageRequest.current || accountId.current !== user.uid) return;
       setDraft("");
       고칠방(t.id, { msgCount: (t.msgCount ?? 0) + 1 });
-      setMsgs(await fetchMessages(t.id));
+      const messages = await fetchMessages(t.id);
+      if (request === messageRequest.current) setMsgs(messages);
     } catch {
       // 연결 문제 — 입력은 남기고, 안 갔다고 말한다
-      탈잡기("쪽지를 보내지 못했어요. 다시 눌러 주세요");
+      if (request === messageRequest.current) 탈잡기("쪽지를 보내지 못했어요. 다시 눌러 주세요");
     } finally {
       setBusy(false);
     }
@@ -211,6 +246,7 @@ export default function LettersPage() {
   if (!visible || !user) {
     return (
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-6 py-14 text-center">
+        <InyeonNav active="letters" />
         <p className="text-sm tracking-[0.5em] text-gold-soft">쪽지</p>
         <p className="mt-6 break-keep text-[14px] leading-7 text-hanji-dim">
           {!visible
@@ -282,6 +318,8 @@ export default function LettersPage() {
         {opened.pair && <HandInHand pair={opened.pair} />}
 
         {/* 연락처 열기 — 둘 다 열어야 서로 보인다 */}
+        <details className="mt-3 rounded-xl border border-ink-3 px-3 py-2 text-xs text-hanji-faint">
+          <summary className="cursor-pointer">연락처 · 읽음 확인</summary>
         <ContactSwap threadId={opened.id} pair={opened.pair} user={user} />
 
         {/* 읽음 확인 — 🪷2, 이레. 산 사람만 제 쪽지 밑에 「읽음」을 본다 */}
@@ -290,6 +328,8 @@ export default function LettersPage() {
             읽음 확인 7일 · 🪷{DM_READ_PASS.n}
           </button>
         )}
+
+        </details>
 
         {/* 말풍선 */}
         <div className="mt-5 flex flex-1 flex-col gap-2.5 overflow-y-auto">
@@ -344,6 +384,8 @@ export default function LettersPage() {
   // ── 목록 화면 ────────────────────────────────────────────
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pb-16 pt-4 sm:px-6 md:pt-7">
+      <InyeonNav active="letters" />
+      {탈 && <p role="status" className="mb-3 text-xs text-vermilion">{탈}</p>}
       {/* 머리 — 제목과 연꽃·새로고침, 말은 없다 */}
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-[15px] font-medium tracking-[0.18em] text-hanji">

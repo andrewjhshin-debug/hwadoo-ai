@@ -12,6 +12,7 @@ for (const hostname of ['www.hwa-du.com','hwa-du.com','localhost',null]) {
     'firebase/firestore': {getFirestore:()=>({})},
     'firebase/database': {getDatabase:()=>({})},
     'firebase/storage': {getStorage:()=>({})},
+    './storageConfig': {PHOTO_BUCKET:'hwadu-9dc7b.firebasestorage.app'},
   };
   vm.runInNewContext(compiled,{exports:{},require:name=>modules[name],...(hostname?{window:{location:{hostname}}}:{})});
   assert.equal(config.authDomain,'hwadu-9dc7b.firebaseapp.com');

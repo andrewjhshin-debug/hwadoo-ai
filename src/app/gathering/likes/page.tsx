@@ -2,6 +2,7 @@
 // 받은 호감 + 이어진 인연 — 형: 「호감 보내기 → 상대가 ㅇㅋ → 청실홍실 → 쪽지·번호」
 // 몇 개 왔는지는 그냥, 누군지는 「누군지 보기 🪷1」(그날 하루). 진심은 처음부터 보인다.
 import Link from "next/link";
+import InyeonNav from "@/components/InyeonNav";
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import HipRoom from "@/components/HipRoom";
@@ -49,6 +50,7 @@ export default function LikesPage() {
   return (
     <HipRoom here="/gathering/likes" lanes={false} rail="/gathering" scroll>
       <div className="hip-likes">
+        <InyeonNav active="likes" />
         <h1>호감</h1>
         {user === null && <p className="hip-likes-empty">들어온 뒤에 열립니다</p>}
         {user && !판 && <p className="hip-likes-empty">{탈 || "…"}</p>}
