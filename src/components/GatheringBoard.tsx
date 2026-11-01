@@ -19,6 +19,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { User } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { anonName } from "@/lib/anonName";
 import {
   addComment,
   categoryLabel,
@@ -160,6 +162,54 @@ function PostFace({ p, className = "h-9 w-9" }: { p: Pick<Post, "avatar" | "auth
     // eslint-disable-next-line @next/next/no-img-element
     <img src={`/api/avatar/${p.authorUid}`} alt="" draggable={false} onError={() => 안됨잡기(true)} onContextMenu={(e) => e.preventDefault()} className={`hip-post-face ${className}`} />
   );
+}
+
+/** 「같이 가요」 글 박스 — 같이 가는 사람 얼굴을 줄 세우고, 단추 하나로 손을 든다 */
+type 가는사람 = { name: string; at: number };
+const 요일 = ["일", "월", "화", "수", "목", "금", "토"];
+function GoPostBox({ p, open }: { p: Post; open: () => void }) {
+  const 열쇠 = `p_${p.id}`;
+  const [people, setPeople] = useState<Record<string, 가는사람> | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/go?date=${열쇠}`, { cache: "no-store" }).then((r) => r.json()).then((j: { people?: Record<string, 가는사람> }) => { if (alive) setPeople(j.people ?? {}); }).catch(() => { if (alive) setPeople({}); });
+    return () => { alive = false; };
+  }, [열쇠]);
+  const uid = auth.currentUser?.uid ?? "";
+  const 나 = !!(uid && people?.[uid]);
+  const 줄 = Object.entries(people ?? {}).sort((a, b) => a[1].at - b[1].at);
+  const 날 = p.meetDate ? (() => { const [y, m, d] = p.meetDate!.split("-").map(Number); return `${요일[new Date(y, m - 1, d).getDay()]} ${m}.${d}`; })() : "";
+  const 손 = async () => {
+    const u = auth.currentUser;
+    if (!u) { open(); return; }
+    if (busy) return;
+    setBusy(true);
+    try {
+      const r = await fetch("/api/go", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ date: 열쇠, eventName: p.title, on: !나, name: anonName() }) });
+      const j = (await r.json().catch(() => ({}))) as { people?: Record<string, 가는사람> };
+      if (r.ok && j.people) setPeople(j.people);
+    } finally { setBusy(false); }
+  };
+  return (
+    <div className="hip-go-box">
+      <button type="button" className="hip-go-box-main" onClick={open}>
+        <span className="hip-go-box-when">{[날, p.templeName].filter(Boolean).join(" · ")}</span>
+        <span className="hip-go-box-title">{p.title}</span>
+        <span className="hip-go-box-faces">
+          {(줄.length ? 줄 : [[p.authorUid, { name: p.authorName, at: 0 }] as [string, 가는사람]]).slice(0, 3).map(([id, x]) => <GoFace key={id} uid={id} name={x.name} />)}
+          <small>{Math.max(1, 줄.length)}명</small>
+        </span>
+      </button>
+      <button type="button" className="hip-go-box-btn" data-on={나 ? "1" : undefined} disabled={busy || people === null} onClick={손}>{나 ? "가요 ✓" : "같이 가요"}</button>
+    </div>
+  );
+}
+function GoFace({ uid, name }: { uid: string; name: string }) {
+  const [안됨, 안됨잡기] = useState(false);
+  if (안됨) return <i className="hip-go-face">{(name || "行").slice(0, 1)}</i>;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img className="hip-go-face" src={`/api/avatar/${uid}`} alt="" draggable={false} onError={() => 안됨잡기(true)} />;
 }
 
 function YinYang({ className = "h-5 w-5" }: { className?: string }) {
@@ -1531,10 +1581,15 @@ export default function GatheringBoard({
           </li>
         ) : (
           sorted.map((p) => {
-            // 「같이 가요」 글은 한 단 크게 — 날짜·절이 먼저 읽힌다. 형: 「게시글 사이에 같이 가요 약간 크게」
+            // 「같이 가요」 글은 박스 — 날짜(작게) · 제목 · 같이 가는 얼굴 · 단추. 형이 고른 그 모양
             const 같이 = !p.deleted && (p.category ?? "together") === "together" && !!(p.templeName || p.meetDate);
+            if (같이) return (
+              <li key={p.id} className="hip-go-post">
+                <GoPostBox p={p} open={() => { setSelectedId(p.id); pushLayer(); }} />
+              </li>
+            );
             return (
-            <li key={p.id} className={같이 ? "hip-go-post" : undefined}>
+            <li key={p.id}>
               <button
                 onClick={() => {
                   setSelectedId(p.id);
@@ -1545,11 +1600,6 @@ export default function GatheringBoard({
                 {/* 프로필 — 사진을 켠 사람은 작은 얼굴, 아니면 음양 */}
                 <PostFace p={p} />
                 <span className="min-w-0 flex-1">
-                  {같이 && (
-                    <span className="hip-go-post-when">
-                      {[p.meetDate ? legacyDate(p.meetDate) : null, p.templeName].filter(Boolean).join(" · ")}
-                    </span>
-                  )}
                   <span className="flex min-w-0 items-center gap-1.5">
                     {!p.deleted && p.category && p.category !== "together" && (
                       <span className="shrink-0 rounded-full border border-gold/30 px-1.5 py-px text-[9.5px] leading-tight tracking-wide text-gold-soft">
@@ -1574,7 +1624,7 @@ export default function GatheringBoard({
                       <CommentIcon />
                       {p.commentCount}
                     </span>
-                    {!같이 && (p.templeName || p.meetDate) && (
+                    {(p.templeName || p.meetDate) && (
                       <span className="truncate text-gold-soft">
                         {[
                           p.templeName,
@@ -1587,7 +1637,6 @@ export default function GatheringBoard({
                     )}
                   </span>
                 </span>
-                {같이 && <span className="hip-go-post-pill">같이 가요</span>}
               </button>
             </li>
             );

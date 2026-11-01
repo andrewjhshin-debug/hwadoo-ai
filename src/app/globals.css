@@ -1106,8 +1106,9 @@ body:has(.hip-hall) .hip-daybar, body:has(.hip-gather-page) .hip-daybar { displa
 }
 
 /* 법당 기와 처마 — 누가 opacity:0 으로 숨겨 두었다(형: 「처마 왜 지우냐, 깔아」). 장면 맨 위에 다시 건다 */
-.hip-hall-sky .hip-hall-roof { opacity: 1 !important; height: 64px !important; z-index: 15 !important; }
-.hip-hall-sky .hip-hall-roof img { object-fit: cover; object-position: center top; filter: saturate(.8) brightness(.9); }
+.hip-hall-sky .hip-hall-roof { opacity: 1 !important; height: auto !important; aspect-ratio: 1200 / 188; z-index: 15 !important; margin: 0 -2% !important; }
+/* 처마는 우리 그림 그대로 — 양끝 들린 처마·연꽃 막새·단청 띠. 형: 「원래대로 구여운 우리 버전」 */
+.hip-hall-sky .hip-hall-roof img { object-fit: fill; filter: none; opacity: 1; }
 
 /* 공덕 줄 끝 연꽃 — 크게, 누를 수 있게, 찬 만큼 벌어진다 */
 .hip-daybar { pointer-events: none; }
@@ -1168,3 +1169,17 @@ body:has(.hip-hall) .hip-daybar, body:has(.hip-gather-page) .hip-daybar { displa
 .hip-post-face { flex: none; border-radius: 50%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; user-select: none; filter: saturate(.92); }
 .hip-yeon-avatar-on { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 4px; padding: 14px 16px; border-radius: 16px; background: #fff; font-size: 14px; }
 .hip-yeon-avatar-on input { width: 20px; height: 20px; accent-color: #f2789f; }
+
+/* 「같이 가요」 박스 — 형이 고른 모양: 날짜(작게) · 제목 · 얼굴 셋 + 사람 수 · 검은 알약 */
+.hip-go-post { list-style: none; padding: 6px 12px; }
+.hip-go-box { display: flex; align-items: center; gap: 12px; padding: 16px 16px 16px 20px; border-radius: 22px; background: #fff; box-shadow: 0 4px 18px rgba(26,23,20,.06); }
+.hip-go-box-main { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.hip-go-box-when { font-size: 12px; color: #9aa0a8; }
+.hip-go-box-title { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px; color: #1a1a1c; }
+.hip-go-box-faces { display: flex; align-items: center; margin-top: 8px; }
+.hip-go-box-faces small { margin-left: 8px; font-size: 12px; color: #9aa0a8; }
+.hip-go-face { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; margin-left: -8px; object-fit: cover; display: grid; place-items: center; background: #e9dfe4; color: #6f665c; font-style: normal; font-size: 11px; font-family: var(--font-serif); box-sizing: content-box; }
+.hip-go-face:first-child { margin-left: 0; }
+.hip-go-box-btn { flex: none; padding: 13px 18px; border-radius: 999px; background: #1a1a1c; color: #fff; font-size: 13.5px; }
+.hip-go-box-btn[data-on="1"] { background: #f2789f; }
+.hip-go-box-btn:disabled { opacity: .5; }

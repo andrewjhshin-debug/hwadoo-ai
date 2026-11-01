@@ -15,6 +15,9 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+/** 「같이 가요」 글 하나의 장부 — gogo/p_{글 id}. 형: 「게시글 사이에 같이 가요 박스」 */
+const 글열쇠 = /^p_[A-Za-z0-9]{6,64}$/;
+const 열쇠 = (v: unknown) => (typeof v === "string" && (DATE.test(v) || 글열쇠.test(v)) ? v : "");
 const 이름 = (v: unknown) => (typeof v === "string" ? v.trim().replace(/[^가-힣一-龥A-Za-z0-9 ]/g, "").slice(0, 8) : "");
 
 export type 가는사람 = { name: string; sex?: "m" | "f"; rank?: string; at: number };
@@ -23,8 +26,8 @@ export type 가는사람 = { name: string; sex?: "m" | "f"; rank?: string; at: n
 export async function GET(req: Request) {
   const app = adminApp();
   if (!app) return Response.json({ error: "server-not-ready" }, { status: 503 });
-  const date = new URL(req.url).searchParams.get("date") ?? "";
-  if (!DATE.test(date)) return Response.json({ error: "bad-date" }, { status: 400 });
+  const date = 열쇠(new URL(req.url).searchParams.get("date"));
+  if (!date) return Response.json({ error: "bad-date" }, { status: 400 });
   const d = (await getFirestore(app).doc(`gogo/${date}`).get()).data() as { name?: string; people?: Record<string, 가는사람> } | undefined;
   return Response.json({ date, name: d?.name ?? "", people: d?.people ?? {} }, { headers: { "cache-control": "no-store" } });
 }
@@ -38,11 +41,11 @@ export async function POST(req: Request) {
   let uid = "";
   try { uid = (await getAuth(app).verifyIdToken(token)).uid; } catch { return Response.json({ error: "bad-token" }, { status: 401 }); }
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
-  const date = typeof b?.date === "string" ? b.date : "";
-  if (!DATE.test(date)) return Response.json({ error: "bad-date" }, { status: 400 });
-  // 지난 날엔 손 못 든다
+  const date = 열쇠(b?.date);
+  if (!date) return Response.json({ error: "bad-date" }, { status: 400 });
+  // 지난 날엔 손 못 든다(날짜 장부만 — 글 장부는 글이 날짜를 쥔다)
   const 오늘 = new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
-  if (date < 오늘) return Response.json({ error: "past" }, { status: 400 });
+  if (DATE.test(date) && date < 오늘) return Response.json({ error: "past" }, { status: 400 });
   const on = b?.on !== false;
   const name = 이름(b?.name) || "수행자";
   const sex = b?.sex === "m" || b?.sex === "f" ? b.sex : undefined;
