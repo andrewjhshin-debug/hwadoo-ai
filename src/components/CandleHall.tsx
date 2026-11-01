@@ -737,7 +737,8 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
           role={c.visibility === "public" ? "button" : undefined}
           onClick={async () => {
             if (c.visibility !== "public" || !me || busy) return;
-            const ok = await 묻기(mine ? "등을 더 밝힐까요?" : "이 등을 함께 밝힐까요?", `연꽃 한 송이로 ${EXTEND_DAYS}일 더 켜져요.`, { confirm: "함께 밝히기", cancel: "두기" });
+            // 형: 「공양 더하기 뭐 이런 느낌으로」
+            const ok = await 묻기("공양을 더할까요?", `연꽃 한 송이로 ${EXTEND_DAYS}일 더 밝혀져요.`, { confirm: "공양 더하기", cancel: "두기" });
             if (ok) void extend();
           }}
         >
@@ -848,7 +849,7 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
           <div className="hip-say-drawer">
             {c.visibility === "public" && (
               <button onClick={() => { 서랍잡기(false); void extend(); }} disabled={busy}>
-                등 더 밝히기 · {EXTEND_DAYS}일
+                공양 더하기 · {EXTEND_DAYS}일
               </button>
             )}
             <button onClick={() => { 서랍잡기(false); 고침잡기(true); }}>사연 고치기</button>

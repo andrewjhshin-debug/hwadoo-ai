@@ -1358,7 +1358,7 @@ h1:has(.hip-hall-n) { letter-spacing: .02em !important; font-size: 14px !importa
 .hip-room-leave { padding: 8px 0 12px; font-size: 12px; color: #a19c9e; }
 
 /* 법당 연등 — 다섯까지는 처마 아래 한 가닥 줄에 꿴다. 형: 「어우러지게 다시 배치」 */
-.hip-deung-sky[data-few="1"] { margin-top: calc(10.4% - 40px); justify-content: space-evenly; overflow: visible; }
+.hip-deung-sky[data-few="1"] { margin-top: calc(10.4% - 20px); justify-content: space-evenly; overflow: visible; }
 .hip-deung-cord { position: absolute; top: 0; left: 0; width: 100%; height: 28px; overflow: visible; pointer-events: none; }
 .hip-deung-cord path { fill: none; stroke: #b98a4e; stroke-width: 1.4; vector-effect: non-scaling-stroke; opacity: .85; }
 .hip-deung-sky[data-few="1"] .hip-deung { position: absolute; top: 0; left: calc(var(--kx, 50) * 1%); width: 12%; max-width: none; margin: 0; padding-top: calc(var(--kkwen, 0px) - 3px); transform: translateX(-50%); }
@@ -1486,9 +1486,7 @@ body:has(.hip-yh) :is(.doryang-fab, .wheel-fab), body:has(.hip-cmt-bar) :is(.dor
 /* 같은 까닭 — 판 아래 182px 이 빈 띠로 남아 「여기서 끝」처럼 보였다. 내 프로필에선 굴림 띠를 바닥까지 */
 /* 형: 「잘린다, 밑부분 오류」 — 판 아래 182px 이 빈 띠로 남아 굴림 통이 화면 중간에서 끝났다(내 프로필·만다라·삼귀의…).
    내 프로필에서만 걷었던 것을 모든 방에서 걷는다. 아래 염주 자리는 굴림 통 안쪽 여백(104px)이 이미 비운다 */
-@media (max-width: 767px) {
-  html body .hip-screen.hip-room.hip-room { padding-bottom: 0 !important; }
-}
+html body .hip-screen.hip-room.hip-room { padding-bottom: 0 !important; }
 /* 남이 보는 나 — 카드를 한 화면에 욱여넣던 틀(짧은 얼굴·겹치는 손)을 풀고 위에서 아래로 그냥 흐르게 */
 .hip-yeon-view { height: auto !important; min-height: 0 !important; display: block !important; }
 .hip-yeon-view .hip-yeon-card { flex: none !important; max-height: none !important; overflow: visible !important; }
@@ -1672,3 +1670,10 @@ body:has(.hip-likes) .hip-bloom { display: none !important; }
 
 /* 화두만 보기 — 오늘의 공덕 띠·법륜 걷기. 형: 「화두만 보기에서 저 부분 없애고」 */
 html[data-focus="1"] :is(.hip-daybar, .wheel-fab, .doryang-fab) { display: none !important; }
+/* 내 도량 — 「설정」 줄을 「알림」 줄과 같은 결로(들여쓰기·글자·한자 빛깔), 관리자 두 단추는 흰 알약 · 먹 글자로. 형: 「왜 어슷이냐, 우리 앱 톤에 맞춰」 */
+.hip-folds .hip-preferences-entry { padding: 17px 2px !important; gap: 10px !important; font-size: 13px !important; letter-spacing: .14em; color: #6e6455 !important; border-bottom: 1px solid rgba(26,23,20,.1) !important; }
+.hip-folds .hip-preferences-entry > span:first-child { font-size: 15px; color: #ef7ba4 !important; letter-spacing: 0; }
+.hip-folds .hip-preferences-entry > span:last-child { color: #b5ada4 !important; font-size: 16px; }
+.hip-me-back { display: flex; justify-content: center; gap: 8px; }
+.hip-me-back .hip-me-desk { background: #fff !important; border: 1px solid rgba(26,23,20,.12) !important; color: #3a3632 !important; border-radius: 999px !important; padding: 9px 18px !important; box-shadow: 0 2px 8px rgba(26,23,20,.05); letter-spacing: .1em; }
+.hip-me-back .hip-me-desk span { margin-left: 6px; padding: 0 6px; border-radius: 999px; background: #1a1a1c; color: #fff !important; font-size: 11px; }
