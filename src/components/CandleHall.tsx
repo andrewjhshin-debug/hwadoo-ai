@@ -120,7 +120,7 @@ function 법당인원() {
     return () => { ro.disconnect(); img.removeEventListener("load", 재기); };
   }, [n > 0]);
   // 형: 「위에 그냥 텍스트로만, 숫자만 파란 계열로」
-  return n > 0 ? <p ref={판} className="hip-hall-many" style={top === null ? undefined : { top }}>법당에 <b>{n}</b>명 있습니다</p> : null;
+  return n > 0 ? <p ref={판} className="hip-hall-many" style={top === null ? undefined : { top }}><span>법당에 <b>{n}</b>명</span></p> : null;
 }
 
 function 법당중앙({ children }: { children?: React.ReactNode }) {
@@ -147,11 +147,12 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
 // 두 줄, 줄마다 같은 크기·같은 간격, 기울기 0. 뒷줄 다섯, 앞줄 넷은 뒷줄 틈에 엇갈려 앉고
 // 위로 조금 겹친다(불단 쪽으로 바짝). [줄 위치(마루 높이 %), 크기(마루 폭 %), 개수, 양끝 여백 %]
 // 형: 「지금 좌복 훌륭. 맨 아래도 3개 정도 — 3줄로」. 뒤에서부터 다섯·넷·셋
+// 형: 「좌복이랑 오른쪽 기능 디자인은 1번(덜어내기)」 — 두 줄에 다섯씩, 열 자리
 const 좌복줄: [number, number, number, number][] = [
-  [2, 19, 5, 0],
-  [26, 23, 4, 3],
-  [54, 27, 3, 7],
+  [22, 17, 5, 2],
+  [54, 19, 5, 1],
 ];
+const 좌복수 = 좌복줄.reduce((n, [, , k]) => n + k, 0);
 /** 좌복에 앉은 넋 — hall-seats/{자리} = { uid, name, hue, at }. 앱을 나가면 저절로 비운다 */
 type 앉은이 = { uid: string; name: string; hue: number; at: number };
 /** 앉아 있는 시간 — 형: 「나가도 로그인 상태로 둘까? 그래야 쪽지 보내면 인식하니까」
@@ -200,7 +201,7 @@ function 법당마루() {
       });
     })}
     {/* 형: 「많이 좌복 위에 모였을 때 어떻게 할지」 — 열둘이 다 차면 만석. 열두 시간 지난 자리는 빈자리로 쳐서 곧 돈다 */}
-    {Object.keys(자리).length >= 12 && !내자리 && <p className="hip-soul-full">자리가 다 찼어요</p>}
+    {Object.keys(자리).length >= 좌복수 && !내자리 && <p className="hip-soul-full">자리가 다 찼어요</p>}
     {본이 && <좌복카드 이={본이} 닫기={() => 본이잡기(null)} />}
   </div>;
 }

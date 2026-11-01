@@ -23,6 +23,7 @@ const 알: { href: string; mark: string; name: string }[] = [
   { href: "/try", mark: "✨", name: "체험하기" },
   { href: "/draw", mark: "🍃", name: "오늘의 운세" },
   { href: "/sutra", mark: "📖", name: "외우기" },
+  { href: "/empty", mark: "🥣", name: "비움" },
   { href: "/ganhwaseon", mark: "🧘", name: "간화선" },
   { href: "/masters", mark: "📜", name: "선지식" },
 ];
