@@ -135,7 +135,7 @@ function Picker({
                   onClick={() => onPick(s.id, "memo")}
                   className="flex-1 rounded-full border border-gold/50 py-2 text-[12.5px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
                 >
-                  외워 치기
+                  안 보고 치기
                 </button>
               </div>
             </li>
@@ -144,7 +144,7 @@ function Picker({
       </ul>
 
       <p className="rise rise-d3 mt-6 break-keep text-center text-[11.5px] leading-5 text-hanji-faint">
-        외워 치기를 도움 없이 마치면 연꽃 한 송이를 드려요 — 경전마다 한 번만.
+        안 보고 끝까지 치면 연꽃 한 송이 — 경전마다 한 번만.
       </p>
     </>
   );
@@ -279,7 +279,7 @@ function Board({
             <p className="mt-3 break-keep text-[12.5px] leading-6 text-hanji-dim">
               {mode === "memo"
                 ? "보기를 쓰셨네요. 다음엔 보지 않고 해 보세요 — 그때 연꽃이 옵니다."
-                : "이제 외워 치기로 가 보세요."}
+                : "이제 안 보고 치기로 가 보세요."}
             </p>
           )}
         </div>
@@ -381,7 +381,8 @@ function Board({
             disabled={peeked}
             className="rounded-full border border-ink-3 px-4 py-2 text-[12px] tracking-[0.15em] text-hanji-faint transition-colors hover:text-hanji-dim disabled:opacity-40"
           >
-            {peeked ? "봤어요" : "보기"}
+            {/* 형: 「봤어요 → 안 보고 치기 뭐 이런 식으로」 */}
+            {peeked ? "한 번 봤어요" : "살짝 보기"}
           </button>
         )}
         <button
@@ -399,9 +400,8 @@ function Board({
           연꽃이 걸린 상태만 외워 치기에 남긴다. 빈 태그도 여백도 안 남게 통째로 가른다 */}
       {mode === "memo" && (
         <p className="mt-5 break-keep text-center text-[11.5px] leading-5 text-hanji-faint">
-          {helped
-            ? "이 판은 도움을 받았어요 — 공덕은 그대로 쌓입니다."
-            : "아직 한 번도 보지 않았어요. 이대로 끝내면 연꽃이 옵니다."}
+          {/* 「도움을 받았어요」 줄은 걷었다 — 형 */}
+          {helped ? null : "안 보고 끝내면 연꽃이 옵니다."}
         </p>
       )}
     </>

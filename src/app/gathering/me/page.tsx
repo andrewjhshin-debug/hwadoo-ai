@@ -253,13 +253,7 @@ export default function 인연내프로필() {
       <div className="hip-yeon">
         <p className="hip-yeon-head">因緣 · 내 프로필</p>
 
-        {빠진.length > 0 && (
-          <div className="hip-yeon-need">
-            {빠진.map((x) => (
-              <span key={x}>{x}</span>
-            ))}
-          </div>
-        )}
+        {/* 빠진 칸 알약은 걷었다 — 형: 「이딴 말 지우고」 */}
 
         {/* ── 사진 ── **가운데 한 장.**
             형: 「사진은 가운데 하나만 두고 ＋랑 돋보기 넣어서
@@ -335,7 +329,7 @@ export default function 인연내프로필() {
           )}
 
           {/* 형: 「돋보기 말고 최종본 내 프로필 보기」 — 누르면 남이 보는 카드가 그대로 뜬다 */}
-          <button type="button" className="hip-mepic-view" onClick={() => 크게잡기(true)} disabled={장수 === 0}>남이 보는 나</button>
+          {/* 「남이 보는 나」 단추는 걷었다 — 형: 「이딴 말 지우고」 */}
           {/* 형: 「대표 사진 프로필사진으로 설정 이런 식으로」 */}
           <label className="hip-yeon-avatar-on">
             <span>대표 사진을 프로필 사진으로</span>

@@ -1588,3 +1588,14 @@ body:has(.hip-yh) :is(.doryang-fab, .wheel-fab), body:has(.hip-cmt-bar) :is(.dor
 .hip-board-bar { top: calc(env(safe-area-inset-top) + 86px) !important; padding: 4px 14px !important; }
 .hip-cat-btn { font-size: 13px !important; height: 28px !important; }
 .hip-write-btn { height: 28px !important; font-size: 12.5px !important; padding: 0 11px !important; }
+
+/* 법당 사연 — 위를 띄우고 뒤로가기, 법륜은 걷는다(남기기와 겹쳤다) */
+body:has(.hip-say) :is(.wheel-fab, .doryang-fab) { display: none !important; }
+.hip-say-box { padding-top: calc(env(safe-area-inset-top, 0px) + 10px) !important; }
+.hip-say-top-back { display: grid !important; grid-template-columns: 40px 1fr 40px; align-items: center; height: 44px; margin: 0 -4px 10px !important; }
+.hip-say-top-back > button { font-size: 20px; color: #1a1a1c; width: 40px; height: 40px; }
+.hip-say-top-back > p { margin: 0; text-align: center; font-size: 15px; font-weight: 600; color: #1a1a1c; }
+.hip-say-left[role="button"] { cursor: pointer; }
+/* 대표 사진 스위치 — 사진 바로 밑, 작게. 형: 「대표 사진으로 설정은 사진 밑에 바로, 글자 좀 더 작게」 */
+.hip-mepic .hip-yeon-avatar-on { margin: 8px auto 0 !important; padding: 0 !important; background: none !important; gap: 6px; justify-content: center !important; font-size: 12px !important; color: #6e6862; }
+.hip-mepic .hip-yeon-avatar-on input { width: 15px !important; height: 15px !important; }

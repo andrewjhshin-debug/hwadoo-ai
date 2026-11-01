@@ -137,10 +137,7 @@ export default function EmptyPage() {
           })}
         </div>
 
-        <p className="emp-count">
-          <strong>{filled}</strong>일
-          {streak > 1 && <span> · {streak}일째</span>}
-        </p>
+        {/* 「N일 · N일째」 줄은 걷었다 — 형: 「이딴 말 지우고」 */}
       </section>
 
     </div>

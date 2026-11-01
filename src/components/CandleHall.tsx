@@ -21,6 +21,7 @@ import { giveMerit } from "@/lib/merit";
 import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
 import { LANTERN_COLORS, type LanternColor } from "@/lib/lanternSpec";
 import "./offering-sheet.css";
+import { useConfirm } from "@/components/Confirm";
 
 type Comment = { id: string; by?: string; body?: string; to?: string | null; likes?: number };
 
@@ -147,10 +148,11 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
 // 두 줄, 줄마다 같은 크기·같은 간격, 기울기 0. 뒷줄 다섯, 앞줄 넷은 뒷줄 틈에 엇갈려 앉고
 // 위로 조금 겹친다(불단 쪽으로 바짝). [줄 위치(마루 높이 %), 크기(마루 폭 %), 개수, 양끝 여백 %]
 // 형: 「지금 좌복 훌륭. 맨 아래도 3개 정도 — 3줄로」. 뒤에서부터 다섯·넷·셋
-// 형: 「좌복이랑 오른쪽 기능 디자인은 1번(덜어내기)」 — 두 줄에 다섯씩, 열 자리
+// 형: 「법당에 좌복 3줄 가」 — 다섯·넷·셋, 열두 자리(실시간 DB 규칙이 0~11 칸까지 받는다)
 const 좌복줄: [number, number, number, number][] = [
-  [22, 17, 5, 2],
-  [54, 19, 5, 1],
+  [6, 17, 5, 2],
+  [34, 19, 4, 6],
+  [62, 21, 3, 12],
 ];
 const 좌복수 = 좌복줄.reduce((n, [, , k]) => n + k, 0);
 /** 좌복에 앉은 넋 — hall-seats/{자리} = { uid, name, hue, at }. 앱을 나가면 저절로 비운다 */
@@ -446,6 +448,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
  * 서른 바퀴가 차면 하루가 는다(candleSpec POUR_PER_DAY).
  */
 function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onClose: () => void; onChanged: () => void }) {
+  const 묻기 = useConfirm();
   const [comments, setComments] = useState<Comment[]>([]);
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
@@ -622,12 +625,23 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
       <div className="hip-say-box" onClick={(e) => e.stopPropagation()}>
         {/* 남은 기간은 머리에서 한 번, 막대 위에서 또 한 번 말하지 않는다.
             줄자 안에만 얹어야 사연을 열자마자 기간과 진행을 같이 읽는다. */}
-        <div className="hip-say-top">
-          <button onClick={onClose}>닫기</button>
+        <div className="hip-say-top hip-say-top-back">
+          {/* 형: 「너무 위에 붙었어, 골스처럼 뒤로가기든 뭐든 해서 공간 좀 띄우고」 */}
+          <button onClick={onClose} aria-label="뒤로">←</button>
+          <p>사연</p>
+          <span aria-hidden />
         </div>
 
-        {/* 남은 날 — 줄자 안에서 함께 읽는다. */}
-        <div className="hip-say-left">
+        {/* 남은 날 — 줄자 안에서 함께 읽는다. 형: 「줄어들었을 때 거길 누르면 함께 공양할지 묻고」 */}
+        <div
+          className="hip-say-left"
+          role={c.visibility === "public" ? "button" : undefined}
+          onClick={async () => {
+            if (c.visibility !== "public" || !me || busy) return;
+            const ok = await 묻기(mine ? "등을 더 밝힐까요?" : "이 등을 함께 밝힐까요?", `연꽃 한 송이로 ${EXTEND_DAYS}일 더 켜져요.`, { confirm: "함께 밝히기", cancel: "두기" });
+            if (ok) void extend();
+          }}
+        >
           <i style={{ width: `${Math.max(2, Math.min(100, (남은 / 처음) * 100))}%` }} />
           <b data-day={남은 <= 1 ? "1" : undefined}>{남은}일 남음</b>
         </div>
@@ -735,7 +749,7 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
           <div className="hip-say-drawer">
             {c.visibility === "public" && (
               <button onClick={() => { 서랍잡기(false); void extend(); }} disabled={busy}>
-                연꽃 1송이로 {EXTEND_DAYS}일 더
+                등 더 밝히기 · {EXTEND_DAYS}일
               </button>
             )}
             <button onClick={() => { 서랍잡기(false); 고침잡기(true); }}>사연 고치기</button>

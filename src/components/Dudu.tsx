@@ -44,7 +44,13 @@ type Props = {
  */
 const OFF_ON_PHONE = "max-md:hidden";
 
-export default function Dudu({ stage, mood = "default", uid, className, face }: Props) {
+// 형: 「저딴 캐릭터 지우라고, 없애 아예 이 앱에서」 — 부르는 자리를 다 쫓아다니지 않고 여기서 그리지 않는다
+export default function Dudu(props: Props) {
+  void props;
+  return null;
+}
+
+export function DuduOld({ stage, mood = "default", uid, className, face }: Props) {
   const [art, setArt] = useState<string | null>(null);
   // 밖에서 얼굴을 주지 않으면 내 얼굴을 쓴다. 서랍은 붙고 난 뒤에 읽는다.
   const [mine, setMine] = useState<FaceId | null>(null);
