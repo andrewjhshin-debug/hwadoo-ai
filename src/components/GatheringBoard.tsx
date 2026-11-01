@@ -1059,6 +1059,8 @@ export default function GatheringBoard({
         <div className="flex items-center gap-2">
           {profileFor(p, c.authorUid, c.authorName, c.gender, "h-7 w-7")}
           <span className="text-[13px] text-hanji-dim">{c.authorName}</span>
+          {/* 형: 「음양 옆에 작게나마 글쓴 사람이라는 표기」 */}
+          {!c.deleted && c.authorUid === p.authorUid && <span className="hip-cmt-op">글쓴이</span>}
           <RankBadge hanja={c.rankHanja} />
           <span className="text-[10.5px] tracking-wide text-hanji-faint">
             {stamp(c.createdAt)}
@@ -1268,7 +1270,7 @@ export default function GatheringBoard({
           <button
             onClick={() => like(p)}
             aria-pressed={liked}
-            aria-label="공감"
+            aria-label="합장"
             className={`flex h-10 w-10 items-center justify-center rounded-full border text-[16px] transition-all active:scale-90 ${
               liked
                 ? "border-gold/60 bg-gold/10"
@@ -1282,7 +1284,7 @@ export default function GatheringBoard({
               liked ? "text-gold" : "text-hanji-faint"
             }`}
           >
-            공감{p.hapjang > 0 ? ` ${p.hapjang}` : ""}
+            합장{p.hapjang > 0 ? ` ${p.hapjang}` : ""}
           </span>
           {likeHint && !user && (
             <span className="text-[10.5px] text-hanji-faint">

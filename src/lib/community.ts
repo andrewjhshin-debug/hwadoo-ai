@@ -44,7 +44,7 @@ export const GATHERING_CATEGORIES: {
   // 형: 「도반 찾기 울력봉사 셀소 자유 … 맨 뒤에 같이 가요」
   { key: "companion", label: "도반 찾기", hint: "사경·예불 등 함께할 수행" },
   { key: "service", label: "울력·봉사", hint: "절 일손을 모읍니다" },
-  { key: "intro", label: "셀프소개", hint: "나를 소개합니다" },
+  { key: "intro", label: "셀프 소개", hint: "나를 소개합니다" },
   { key: "worry", label: "마음 고민", hint: "연애·사람·일 — 털어놓기" },
   { key: "free", label: "자유", hint: "" },
   { key: "together", label: "같이 가요", hint: "절에 함께 갈 이" },
