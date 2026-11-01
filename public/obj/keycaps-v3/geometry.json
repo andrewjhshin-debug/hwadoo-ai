@@ -1,0 +1,59 @@
+[
+  {
+    "id": "dongja",
+    "canvas": {
+      "width": 1000,
+      "height": 1400
+    },
+    "cupBox": {
+      "left": 20,
+      "top": 820,
+      "width": 960,
+      "height": 560
+    },
+    "bodyBox": {
+      "left": 188,
+      "top": 50,
+      "width": 625,
+      "height": 1060
+    }
+  },
+  {
+    "id": "podae",
+    "canvas": {
+      "width": 1000,
+      "height": 1400
+    },
+    "cupBox": {
+      "left": 20,
+      "top": 820,
+      "width": 960,
+      "height": 560
+    },
+    "bodyBox": {
+      "left": 30,
+      "top": 110,
+      "width": 941,
+      "height": 1000
+    }
+  },
+  {
+    "id": "mireuk",
+    "canvas": {
+      "width": 1000,
+      "height": 1400
+    },
+    "cupBox": {
+      "left": 20,
+      "top": 820,
+      "width": 960,
+      "height": 560
+    },
+    "bodyBox": {
+      "left": 68,
+      "top": 50,
+      "width": 865,
+      "height": 1060
+    }
+  }
+]
