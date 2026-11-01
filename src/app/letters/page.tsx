@@ -214,7 +214,7 @@ export default function LettersPage() {
         <p className="mt-6 break-keep text-[14px] leading-7 text-hanji-dim">
           {!visible
             ? "아직 열리지 않은 방입니다."
-            : "로그인하면 쪽지를 주고받을 수 있습니다 — 왼쪽 아래(모바일은 내 도량)에서."}
+            : "로그인하면 쪽지를 주고받을 수 있어요"}
         </p>
       </div>
     );

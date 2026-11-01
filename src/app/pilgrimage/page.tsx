@@ -239,9 +239,6 @@ export default function PilgrimagePage() {
         因緣 · 인연 보러 가기
         <Arrow className="h-4 w-4" />
       </Link>
-      <p className="rise rise-d1 mt-3.5 break-keep text-center text-[12.5px] leading-6 text-hanji-faint">
-        산문은 누구에게나 열려 있습니다.
-      </p>
 
       {/* ── 우리 절 — 같은 절 다니는 사람끼리 알아본다 ── */}
       <MyTemplePicker className="rise rise-d1 mt-6" />
