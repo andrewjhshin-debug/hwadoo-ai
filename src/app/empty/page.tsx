@@ -31,7 +31,7 @@ import {
 } from "@/lib/emptiness";
 
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
-type Tab = EmptyKind | "all";
+type Tab = EmptyKind;
 
 export default function EmptyPage() {
   // 서랍은 붙고 난 뒤에 연다 — 서버 그림과 어긋나면 하이드레이션이 깨진다
@@ -65,7 +65,7 @@ export default function EmptyPage() {
     return <div className="emp" aria-hidden />;
   }
 
-  const kind = tab === "all" ? undefined : tab;
+  const kind: EmptyKind | undefined = tab;
   const full = kind ? 1 : EMPTINESSES.length; // 이만큼 차야 진한 칸
   const marks = monthlyEmptiness(view.y, view.m, kind, log);
   const lead = new Date(view.y, view.m - 1, 1).getDay(); // 1일 앞의 빈 칸
@@ -73,7 +73,6 @@ export default function EmptyPage() {
     today.slice(0, 7) === `${view.y}-${String(view.m).padStart(2, "0")}`;
   const filled = marks.filter((d) => d.count >= full).length;
   const streak = kind ? streakOf(kind, log) : 0;
-  const on = kind ? hasStamp(kind, today, log) : false;
 
   const move = (step: number) => {
     const t = new Date(view.y, view.m - 1 + step, 1);
@@ -85,7 +84,7 @@ export default function EmptyPage() {
       <p className="emp-mark rise">空</p>
 
       <div className="emp-tabs rise rise-d1" role="tablist">
-        {[...EMPTINESSES.map((e) => e.id), "all" as const].map((t) => (
+        {EMPTINESSES.map((e) => e.id).map((t) => (
           <button
             key={t}
             role="tab"
@@ -93,7 +92,7 @@ export default function EmptyPage() {
             className="emp-tab"
             onClick={() => setTab(t)}
           >
-            {t === "all" ? "모두" : EMPTY_BY_ID[t].name}
+            {EMPTY_BY_ID[t].name}
           </button>
         ))}
       </div>
@@ -124,7 +123,8 @@ export default function EmptyPage() {
               <button
                 key={key}
                 onClick={kind ? () => stamp(kind, key) : undefined}
-                disabled={key > today || !kind}
+                // 형: 「달력에 표기만, 하루 지나면 못 고침」 — 오늘 칸만 눌린다
+                disabled={key !== today || !kind}
                 aria-label={`${view.m}월 ${day}일${c > 0 ? " 비움" : ""}`}
                 className="emp-cell"
                 data-level={level}
@@ -143,15 +143,6 @@ export default function EmptyPage() {
         </p>
       </section>
 
-      {kind && thisMonth && (
-        <button
-          className="emp-today rise rise-d3"
-          aria-pressed={on}
-          onClick={() => stamp(kind, today)}
-        >
-          {on ? EMPTY_BY_ID[kind].done : EMPTY_BY_ID[kind].act}
-        </button>
-      )}
     </div>
   );
 }

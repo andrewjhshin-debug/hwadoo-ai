@@ -33,7 +33,6 @@ import {
   type Thought,
 } from "@/lib/thoughts";
 import { Banga } from "./icons";
-import ReflectionPractice from "./ReflectionPractice";
 
 // 화두가 없을 때 쓴 글을 잠시 맡아 두는 자리 — 어떤 경우에도 글이 사라지지 않게
 const DRAFT_KEY = "hwadoo-notes-draft";
@@ -83,6 +82,14 @@ export default function ThoughtRoom({
   useEffect(() => {
     fetch("/api/zen").then((r) => r.json()).then((j: { ok?: boolean }) => setZenOn(!!j.ok)).catch(() => setZenOn(false));
   }, []);
+  const 옛선문답 = [
+    "조주가 말했다. 「차나 한잔 하게.」 — 그대, 지금 그 물음을 든 채로 차는 식었는가.",
+    "「부처가 무엇입니까.」 「마른 똥막대기.」 — 운문은 답을 준 게 아니라 묻는 입을 막았다.",
+    "「개에게도 불성이 있습니까.」 「무(無).」 — 있다 없다를 고르는 그 마음이 먼저 보인다.",
+    "달마가 서쪽에서 온 뜻은? 「뜰 앞의 잣나무.」 — 뜻을 찾는 눈이 잣나무를 못 본다.",
+    "「한 손으로 치는 손뼉 소리를 들어 보라.」 — 소리를 찾지 말고, 찾는 놈을 보라.",
+    "혜능이 말했다. 「바람도 깃발도 아니다. 그대 마음이 움직인다.」",
+  ];
   const askZen = async () => {
     const last = list.at(-1)?.text?.trim();
     const mine = draft.trim() || last || "";
@@ -93,10 +100,11 @@ export default function ThoughtRoom({
     try {
       const r = await fetch("/api/zen", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ question, answer: mine, day }) });
       const j = (await r.json().catch(() => ({}))) as { say?: string; left?: number; error?: string };
-      if (r.status === 429) setZenErr("오늘은 세 번 다 물었어요. 내일 다시.");
-      else if (!r.ok || !j.say) setZenErr("선지식이 잠시 자리를 비웠어요");
+      // 형: 「자리를 비웠어요 이 말 없애고」 — 답이 못 오면 옛 선문답 한 줄로 받는다. 빈손으로 돌려보내지 않는다
+      if (r.status === 429) setZenErr("오늘 세 번 다 물었어요. 나머진 내 생각으로.");
+      else if (!r.ok || !j.say) setZen({ say: 옛선문답[Math.floor(Math.random() * 옛선문답.length)], left: j.left ?? 0 });
       else setZen({ say: j.say, left: j.left ?? 0 });
-    } catch { setZenErr("선지식이 잠시 자리를 비웠어요"); }
+    } catch { setZen({ say: 옛선문답[Math.floor(Math.random() * 옛선문답.length)], left: 0 }); }
     finally { setZenBusy(false); }
   };
 
@@ -377,13 +385,6 @@ export default function ThoughtRoom({
           </div>
         ))}
 
-        {hasHwadu && list.length > 0 && (
-          <ReflectionPractice key={sessionKey} onReflect={(text) => {
-            const s = loadStore();
-            if (!s.current || !text.trim()) return false;
-            return write(appendThought(s.current.notes, text));
-          }} />
-        )}
         {zen && (
           <div className="tr-say flex justify-start">
             <div className="max-w-[85%]">
@@ -439,7 +440,7 @@ export default function ThoughtRoom({
               aria-label="선지식에게 묻기"
               className="mb-0.5 shrink-0 rounded-full border border-gold/35 px-3 py-1.5 text-[11.5px] tracking-wide text-gold-soft transition-colors hover:bg-gold/10 disabled:opacity-40"
             >
-              {zenBusy ? "…" : "막히면 묻기"}
+              {zenBusy ? "…" : "묻기"}
             </button>
           )}
           <button
