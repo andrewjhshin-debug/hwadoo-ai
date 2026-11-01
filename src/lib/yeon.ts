@@ -117,6 +117,8 @@ export type 인연프로필 = {
   about?: string;
   /** 물음 답 — 물음 id → 답. 셋 이상 써야 카드가 선다(인터뷰처럼). */
   qa?: Record<string, string>;
+  /** 게시판 글 옆에 심사 통과한 첫 사진을 작게 보인다(본인이 켤 때만) */
+  avatarOn?: boolean;
   photos: 사진[];
   /** 서버가 승인한 사진 수. 브라우저는 이 숫자를 만들거나 고칠 수 없다. */
   approvedPhotoCount?: number;

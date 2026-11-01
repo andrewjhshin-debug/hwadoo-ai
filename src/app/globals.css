@@ -1155,3 +1155,16 @@ body:has(.hip-hall) .hip-daybar, body:has(.hip-gather-page) .hip-daybar { displa
 .hip-yeon-qa-edit label b { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
 .hip-yeon-qa-edit textarea { width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 14px; border: 1px solid #ece4df; background: #fff; font: inherit; font-size: 14.5px; line-height: 1.6; resize: vertical; }
 .hip-yeon-qa-edit textarea:focus { outline: none; border-color: #f2a7c0; }
+
+/* 인연 문 둘 — 한 줄 두 칸, 스크롤해도 위에 붙는다 */
+.hip-yeon-doors { position: sticky; top: 0; z-index: 20; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 16px 10px; padding: 8px 0; background: linear-gradient(180deg, #fbf8f6 70%, rgba(251,248,246,0)); }
+.hip-yeon-doors a { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 16px; background: #fff; box-shadow: 0 2px 10px rgba(26,23,20,.06); text-decoration: none; color: #1a1a1c; font-size: 14px; }
+.hip-yeon-doors a b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #fde7ef; color: #c0457a; font-family: var(--font-serif); font-weight: 400; font-size: 14px; }
+/* 「같이 가요」 글 — 한 단 크게 */
+.hip-go-post > button { padding-top: 14px !important; padding-bottom: 14px !important; margin: 6px 12px; width: calc(100% - 24px) !important; background: #fff; border-radius: 18px; box-shadow: 0 2px 12px rgba(26,23,20,.06); }
+.hip-go-post-when { display: block; font-family: var(--font-serif); font-size: 17px; letter-spacing: -.01em; color: #1a1a1c; margin-bottom: 2px; }
+.hip-go-post-pill { flex: none; padding: 8px 12px; border-radius: 999px; background: #1a1a1c; color: #fff; font-size: 12px; }
+/* 글쓴이 작은 얼굴 — 키울 수 없다 */
+.hip-post-face { flex: none; border-radius: 50%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; user-select: none; filter: saturate(.92); }
+.hip-yeon-avatar-on { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 4px; padding: 14px 16px; border-radius: 16px; background: #fff; font-size: 14px; }
+.hip-yeon-avatar-on input { width: 20px; height: 20px; accent-color: #f2789f; }

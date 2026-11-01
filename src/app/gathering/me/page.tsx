@@ -640,6 +640,12 @@ export default function 인연내프로필() {
         </div>
 
 
+        {/* 글에 내 사진 — 게시판 글 옆에 심사 통과한 첫 사진이 작게. 형: 「상상력을 자극하고 쪽지 보내지」 */}
+        <label className="hip-yeon-avatar-on">
+          <span>게시판 글에 내 사진</span>
+          <input type="checkbox" defaultChecked={!!me?.avatarOn} onChange={(e) => 고치기({ avatarOn: e.target.checked })} />
+        </label>
+
         {/* ── 물음 — 인터뷰처럼. 셋 이상 써야 판에 선다 ──
             형: 「사람들이 글을 쓰도록 유도하려면 인터뷰나 물음별로 상세히, 써야지만 표출되도록」 */}
         <div className="hip-yeon-qa-edit">

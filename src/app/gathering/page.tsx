@@ -49,20 +49,11 @@ function GatheringInner() {
           {/* 문은 둘. 설명은 안 붙인다 — 형: 「개 같은 멘트 넣지 말라고 했다」
               형: 「인연에서 내 프로필처럼 새 인연 찾기 이렇게 탭 주고,
                    매일매일 카드 눌리면 보이게」 */}
-          <Link href="/gathering/yeon" className="rise rise-d1 hip-yeon-door">
-            <b>緣</b>
-            <span>새 인연 찾기</span>
-            <u>›</u>
-          </Link>
-          <Link
-            href="/gathering/me"
-            className="rise rise-d1 hip-yeon-door"
-            data-thin="1"
-          >
-            <b>我</b>
-            <span>내 프로필</span>
-            <u>›</u>
-          </Link>
+          {/* 문 둘 — 한 줄 두 칸, 스크롤해도 위에 붙어 있다. 형: 「공간을 많이 잡아먹어, 고정되도록」 */}
+          <nav className="hip-yeon-doors" aria-label="인연">
+            <Link href="/gathering/yeon"><b>緣</b><span>새 인연</span></Link>
+            <Link href="/gathering/me"><b>我</b><span>내 프로필</span></Link>
+          </nav>
 
         </>
       )}

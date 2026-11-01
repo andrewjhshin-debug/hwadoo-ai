@@ -18,7 +18,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import GoStrip from "./GoStrip";
 import type { User } from "firebase/auth";
 import {
   addComment,
@@ -153,6 +152,16 @@ function RankBadge({ hanja }: { hanja?: string | null }) {
 
 // 음양(陰陽) — 쪽지 단추. 남녀는 음양이라, 서로 다른 기운이 만나는 문양.
 // 금빛 반쪽이 차오르고 반쪽은 비어 있다 — 채움과 비움이 한 원 안에.
+/** 글쓴이 얼굴 — 사진을 켠 사람은 작게(누르거나 키울 수 없다), 아니면 음양 문양 */
+function PostFace({ p, className = "h-9 w-9" }: { p: Pick<Post, "avatar" | "authorUid" | "gender">; className?: string }) {
+  const [안됨, 안됨잡기] = useState(false);
+  if (!p.avatar || 안됨) return <GenderMark g={p.gender} className={className} />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={`/api/avatar/${p.authorUid}`} alt="" draggable={false} onError={() => 안됨잡기(true)} onContextMenu={(e) => e.preventDefault()} className={`hip-post-face ${className}`} />
+  );
+}
+
 function YinYang({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
@@ -796,7 +805,8 @@ export default function GatheringBoard({
     g: "m" | "f" | null | undefined,
     cls: string
   ) => {
-    if (!dmVisible(user?.uid)) return <GenderMark g={g} className={cls} />;
+    const face = { avatar: uid === p.authorUid ? p.avatar : false, authorUid: uid, gender: g };
+    if (!dmVisible(user?.uid)) return <PostFace p={face} className={cls} />;
     const has = !!threadByKey[`${p.id}|${uid}`];
     return (
       <button
@@ -805,7 +815,7 @@ export default function GatheringBoard({
         aria-label={`${name}에게 쪽지 보내기`}
         className="relative shrink-0 rounded-full transition-transform active:scale-90"
       >
-        <GenderMark g={g} className={cls} />
+        <PostFace p={face} className={cls} />
         {has && (
           <span
             aria-hidden
@@ -1469,9 +1479,6 @@ export default function GatheringBoard({
         </div>
       </div>
 
-      {/* 같이 가요 — 가까운 절 가는 날 셋. 형: 「인연에서 같이 가요 기능 추가해 둬」 */}
-      <GoStrip />
-
       <ul className="divide-y divide-ink-3/60 border-y border-ink-3/60">
         {/* ★ 못 읽어 온 것을 먼저 본다.
             앞서는 posts === null 을 먼저 보느라, 읽기가 엎어지면
@@ -1523,8 +1530,11 @@ export default function GatheringBoard({
             </p>
           </li>
         ) : (
-          sorted.map((p) => (
-            <li key={p.id}>
+          sorted.map((p) => {
+            // 「같이 가요」 글은 한 단 크게 — 날짜·절이 먼저 읽힌다. 형: 「게시글 사이에 같이 가요 약간 크게」
+            const 같이 = !p.deleted && (p.category ?? "together") === "together" && !!(p.templeName || p.meetDate);
+            return (
+            <li key={p.id} className={같이 ? "hip-go-post" : undefined}>
               <button
                 onClick={() => {
                   setSelectedId(p.id);
@@ -1532,9 +1542,14 @@ export default function GatheringBoard({
                 }}
                 className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gold/5 sm:px-2"
               >
-                {/* 음양 프로필 — 왼쪽, 오른쪽 위는 제목·아래는 시간/조회/댓글 */}
-                <GenderMark g={p.gender} />
+                {/* 프로필 — 사진을 켠 사람은 작은 얼굴, 아니면 음양 */}
+                <PostFace p={p} />
                 <span className="min-w-0 flex-1">
+                  {같이 && (
+                    <span className="hip-go-post-when">
+                      {[p.meetDate ? legacyDate(p.meetDate) : null, p.templeName].filter(Boolean).join(" · ")}
+                    </span>
+                  )}
                   <span className="flex min-w-0 items-center gap-1.5">
                     {!p.deleted && p.category && p.category !== "together" && (
                       <span className="shrink-0 rounded-full border border-gold/30 px-1.5 py-px text-[9.5px] leading-tight tracking-wide text-gold-soft">
@@ -1559,8 +1574,7 @@ export default function GatheringBoard({
                       <CommentIcon />
                       {p.commentCount}
                     </span>
-                    {/* 약속 — 어느 절, 언제 가고 싶은지 (적은 것만) */}
-                    {(p.templeName || p.meetDate) && (
+                    {!같이 && (p.templeName || p.meetDate) && (
                       <span className="truncate text-gold-soft">
                         {[
                           p.templeName,
@@ -1573,9 +1587,11 @@ export default function GatheringBoard({
                     )}
                   </span>
                 </span>
+                {같이 && <span className="hip-go-post-pill">같이 가요</span>}
               </button>
             </li>
-          ))
+            );
+          })
         )}
       </ul>
     </div>

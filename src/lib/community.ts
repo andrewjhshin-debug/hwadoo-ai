@@ -24,6 +24,7 @@ import { anonName } from "./anonName";
 import { loadStore } from "./store";
 import { pingPush } from "./dm";
 import { rankHanjaFor } from "./badges";
+import { 내프로필 } from "./yeon";
 
 // 게시판 종류 — 연지원(community, 기본) / 차담회(gathering)
 export type Board = "community" | "gathering";
@@ -37,13 +38,13 @@ export const GATHERING_CATEGORIES: {
   label: string;
   hint: string;
 }[] = [
-  { key: "together", label: "동행", hint: "절에 함께 갈 이" },
+  { key: "together", label: "같이 가요", hint: "절에 함께 갈 이" },
   { key: "companion", label: "도반 찾기", hint: "사경·예불 등 함께할 수행" },
   { key: "service", label: "울력·봉사", hint: "절 일손을 모읍니다" },
 ];
 
 export function categoryLabel(c?: GatheringCategory | null): string {
-  return GATHERING_CATEGORIES.find((g) => g.key === c)?.label ?? "동행";
+  return GATHERING_CATEGORIES.find((g) => g.key === c)?.label ?? "같이 가요";
 }
 
 export type Post = {
@@ -67,6 +68,7 @@ export type Post = {
   meetTime?: string | null; // 몇 시에 — "10:30" 꼴
   openChatUrl?: string | null; // 오픈채팅 링크 — open.kakao.com 만 허용
   lantern?: boolean; // 연등 — 연꽃 한 송이로 목록 맨 위에 밝힌 글
+  avatar?: boolean; // 글쓴이가 「글에 내 사진」을 켰다 — /api/avatar/{uid}
 };
 
 export type Comment = {
@@ -250,7 +252,11 @@ export async function createGathering(input: {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   const g = refineGathering(input);
+  // 「글에 내 사진」을 켠 사람이면 글에 표를 단다(사진은 서버가 확인해 보여 준다)
+  let avatar = false;
+  try { avatar = !!(await 내프로필())?.avatarOn; } catch { /* 없으면 문양 */ }
   return addDoc(collection(db, "posts"), {
+    avatar,
     title: g.title,
     body: g.body,
     authorName: anonName(),
