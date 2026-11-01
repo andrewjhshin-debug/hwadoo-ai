@@ -15,9 +15,9 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { EXTEND_DAYS, POUR_PER_DAY, POUR_UNIT, PRIVATE_BURN_DAYS, PRIVATE_CANDLE_PRICE, PUBLIC_BURN_DAYS, PUBLIC_CANDLE_PRICE, 자리, 향꽂이 } from "@/lib/candleSpec";
 import { giveMerit } from "@/lib/merit";
 import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
-
 import { LANTERN_COLORS, type LanternColor } from "@/lib/lanternSpec";
 import "./offering-sheet.css";
+
 type Comment = { id: string; by?: string; body?: string; to?: string | null; likes?: number };
 
 /** 게시판의 작은 그림 둘 — 글자와 같은 키로 선다 */
@@ -177,6 +177,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
   const gift = 갈래;
   // 법당에서 여는 공양은 기본이 공개다. 나만 보기는 의식적으로 고른다.
   const [visibility, setVisibility] = useState<"private" | "public">("public");
+  const [lanternColor, setLanternColor] = useState<LanternColor>("pink");
   const [forName, setForName] = useState(""); const [wish, setWish] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const key = useRef("");
   const publicCandle = visibility === "public"; const cost = publicCandle ? PUBLIC_CANDLE_PRICE : PRIVATE_CANDLE_PRICE;
   const submit = async () => {
@@ -186,13 +187,13 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
       const r = await lightCandle({ forName, wish, visibility, gift, lanternColor }, key.current);
       if (!r) { setError("연꽃이 모자랍니다"); return; }
       // Firestore 목록 재조회가 늦거나 일시적으로 실패해도, 방금 올린 공양은
-  const [lanternColor, setLanternColor] = useState<LanternColor>("pink");
       // 성공 응답과 동시에 법당에 선다. 다음 재조회가 서버 값으로 맞춘다.
       const u = auth.currentUser;
       if (u) {
         const me = loadMe();
         onDone({
           id: r.id, uid: u.uid, tier: "candle", gift,
+          ...(gift === "deung" ? { lanternColor: r.lanternColor ?? lanternColor } : {}),
           by: me?.name || "이름 없는 이", byHanja: null,
           forName: forName.trim().slice(0, 20) || "이름 없는 기원",
           born: "", kind: "peace", wish: wish.trim().slice(0, 120), visibility,
@@ -201,7 +202,6 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
       }
       // 법당에는 소리가 한 줄도 없었다 — 공양을 올려도 아무 일도 안
       // 일어난 것처럼 조용했다. 올라선 그 순간에만 경쇠 한 번.
-          ...(gift === "deung" ? { lanternColor: r.lanternColor ?? lanternColor } : {}),
       strikeBell(0.5);
       pingLotus();
     }
@@ -234,59 +234,59 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
         <details className="hip-offering-name"><summary>{갈래 === "giwa" ? "새길 이름" : "이름"} <span>선택</span></summary>
         <label className="sr-only" htmlFor="offering-name">이름</label>
         <input
+          id="offering-name"
           value={forName}
           onChange={(e) => setForName(e.target.value.slice(0, 20))}
           placeholder={loadMe()?.name ?? "이름 없는 이"}
           className="hip-deung-in"
-        />
+          disabled={busy}
+        /></details>
 
         <label className="hip-deung-lab" htmlFor="offering-wish">
           <span className="sr-only">사연</span>
-          id="offering-name"
           <span>{wish.length} / 120</span>
         </label>
         <textarea
+          id="offering-wish"
           value={wish}
           onChange={(e) => setWish(e.target.value.slice(0, 120))}
           rows={4}
           placeholder={갈래 === "giwa" ? "기와에 새길 마음" : "오늘은 덜 불안했으면."}
           className="hip-deung-in hip-deung-area"
           disabled={busy}
-        /></details>
+        />
 
-          id="offering-wish"
         <div className="hip-deung-pick">
           <button
             onClick={() => setVisibility("private")}
             data-on={!publicCandle ? "1" : undefined}
-          disabled={busy}
+            aria-pressed={!publicCandle}
+            disabled={busy}
           >
             <b>나만</b>
             <i>연꽃 {PRIVATE_CANDLE_PRICE}송이 · {PRIVATE_BURN_DAYS}일</i>
           </button>
           <button
             onClick={() => setVisibility("public")}
-            aria-pressed={!publicCandle}
-            disabled={busy}
             data-on={publicCandle ? "1" : undefined}
+            aria-pressed={publicCandle}
+            disabled={busy}
           >
             <b>함께</b>
             <i>연꽃 {PUBLIC_CANDLE_PRICE}송이 · {PUBLIC_BURN_DAYS}일</i>
           </button>
         </div>
 
-            aria-pressed={publicCandle}
-            disabled={busy}
+        {gift === "deung" && <fieldset className="hip-lantern-colors"><legend>등 색상</legend><div>{LANTERN_COLORS.map(color => <button type="button" key={color.id} aria-label={`${color.name} 연등`} aria-pressed={lanternColor === color.id} disabled={busy} onClick={() => setLanternColor(color.id)}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={color.src} alt="" draggable={false} />
+        </button>)}</div></fieldset>}
+
         {error && (
           <p className="hip-deung-bad">
             {error} <Link href="/lotus">연꽃 공양</Link>
           </p>
         )}
-
-        {gift === "deung" && <fieldset className="hip-lantern-colors"><legend>등 색상</legend><div>{LANTERN_COLORS.map(color => <button type="button" key={color.id} aria-label={`${color.name} 연등`} aria-pressed={lanternColor === color.id} disabled={busy} onClick={() => setLanternColor(color.id)}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={color.src} alt="" draggable={false} />
-        </button>)}</div></fieldset>}
 
         <button
           onClick={submit}
