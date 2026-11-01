@@ -1,0 +1,47 @@
+[
+  {
+    "id": "dongja",
+    "canvas": {
+      "width": 1000,
+      "height": 1400
+    },
+    "cupBox": {
+      "left": 20,
+      "top": 720,
+      "width": 960,
+      "height": 660
+    },
+    "baseline": 1380,
+    "dip": 112
+  },
+  {
+    "id": "podae",
+    "canvas": {
+      "width": 1000,
+      "height": 1400
+    },
+    "cupBox": {
+      "left": 20,
+      "top": 720,
+      "width": 960,
+      "height": 660
+    },
+    "baseline": 1380,
+    "dip": 112
+  },
+  {
+    "id": "mireuk",
+    "canvas": {
+      "width": 1000,
+      "height": 1400
+    },
+    "cupBox": {
+      "left": 20,
+      "top": 720,
+      "width": 960,
+      "height": 660
+    },
+    "baseline": 1380,
+    "dip": 112
+  }
+]

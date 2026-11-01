@@ -5,8 +5,8 @@ export const KEYCAP_SKINS = [
   { id: "mireuk", name: "미륵", dot: "#cfa03c" },
 ].map(skin => ({
   ...skin,
-  cup: `/obj/keycaps-${skin.id === "podae" ? "v4" : "v3"}/${skin.id}-front.webp`,
-  back: `/obj/keycaps-${skin.id === "podae" ? "v4" : "v3"}/${skin.id}-back.webp`,
-  body: `/obj/keycaps-${skin.id === "podae" ? "v4" : "v3"}/${skin.id}-body.webp`,
+  cup: `/obj/keycaps-v5/${skin.id}-front.webp`,
+  back: `/obj/keycaps-v5/${skin.id}-back.webp`,
+  body: `/obj/keycaps-v5/${skin.id}-body.webp`,
   ar: 1000 / 1400, dip: "8%", bodyScale: 1, bowlFit: 1.1,
 }));
