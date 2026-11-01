@@ -27,7 +27,7 @@ const beadSkins=page.split('  bead: [')[1].split('  bowl: [')[0];assert.equal((b
 const sixth=beadSkins.match(/\{ id: "sandalwood"[^\n]+/)[0];assert(sixth.includes('wide: true')&&sixth.includes('lit: "/obj/bead-wood-one-gold-v3.png"'),'sixth plain wood uses shared horizontal ring with gold fill');
 assert(page.includes('if (got.bead === "neon") got.bead = "stone"'));
 for(const key of ['const RING_BEADS = 27;','const BEADS = 108;','const 고리폭 = 39;','const 물결 = (pos / (BEADS - 1)) * 360;','const 폭 = (사이(i) / 0.872) * 1.12;']){assert(page.includes(key));assert(before.includes(key));}
-const geometry=s=>s.slice(s.indexOf('const 자리 = Array.from'),s.indexOf('const 분홍결 ='));
+const geometry=s=>s.slice(s.indexOf('const 자리 = Array.from'),s.indexOf('const 분홍결 =')).replaceAll('\r\n','\n');
 assert.equal(geometry(page),geometry(before),'shared paw geometry and fill calculation must not change');
 assert.equal((page.match(/<StoneMalaBead/g)||[]).length,2,'main and full-screen renderers must both show motifs');
 assert(beadSkins.includes('name: "열두 띠 나무"')&&beadSkins.includes('/obj/bead-wood-one-v1.png'));

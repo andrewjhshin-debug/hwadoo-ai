@@ -17,6 +17,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MERIT_EVENT, todayRoom } from "@/lib/merit";
 import { DAILY_EVENT } from "@/lib/daily";
+import MeritLotus from "./MeritLotus";
 
 export default function HipDayBar() {
   const [찬만큼, 찬만큼잡기] = useState(0);
@@ -70,13 +71,7 @@ export default function HipDayBar() {
       </span>
       {/* 연꽃 — 찬 만큼 꽃잎이 벌어진다. 다 차면 활짝. 누르면 한 줄 */}
       <button type="button" className="hip-daybar-lotus" style={{ ["--open" as string]: 찬만큼 }} aria-label="오늘의 공덕이란" onClick={() => 말잡기((v) => !v)}>
-        <svg viewBox="0 0 30 34" aria-hidden="true">
-          <path d="M4 25q11 9 22 0-3 8-11 8T4 25" fill="#cfe6d5" />
-          <path className="pl pl-l" d="M15 30C3 29 2 19 6 12q7 3 9 18" fill="#f5b6cc" />
-          <path className="pl pl-r" d="M15 30C27 29 28 19 24 12q-7 3-9 18" fill="#ea93b6" />
-          <path d="M15 3C5 14 7 25 15 30c8-5 10-16 0-27" fill="#f39fbf" />
-          <path d="M15 6c-5 9-5 15 0 21" fill="none" stroke="#ffe4ee" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
+        <MeritLotus progress={찬만큼} />
       </button>
       </div>
       {말 && (

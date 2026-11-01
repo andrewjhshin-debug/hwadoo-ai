@@ -54,9 +54,13 @@ export default function SajuPage() {
   };
   return <HipRoom here="/saju" lanes={false} rail="/settings"><section className="saju">
     <header className="saju-head"><Link href="/settings" aria-label="내 공간으로">←</Link><span>山神閣</span>{reports.length > 0 && <a href="#saju-history">내 운세</a>}</header>
-    <div className="saju-entrance"><div className="saju-seal" aria-hidden="true">山</div><h1>산신각</h1><p>운세를 빌다</p></div>
+    <div className="saju-entrance saju-ink-entrance">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="saju-ink-pavilion" src="/obj/sanshingak-ink-v1.webp" width={960} height={410} alt="산신과 호랑이 그림을 모신 작은 수묵 산신각" />
+      <h1>산신각</h1>
+    </div>
     {error && <p role="alert" className="saju-error">{error}</p>}
-    {user === undefined ? <p role="status">불러오는 중…</p> : !user ? <div className="saju-start"><button type="button" className="saju-primary" disabled={!!busy} onClick={() => void run("login", async () => { await loginWithGoogle(); })}>{busy === "login" ? "들어가는 중…" : "로그인하고 운세 보기"}</button><small>무료</small></div> : <>
+    {user === undefined ? <p role="status">불러오는 중…</p> : !user ? <div className="saju-start"><button type="button" className="saju-primary" disabled={!!busy} onClick={() => void run("login", async () => { await loginWithGoogle(); })}>{busy === "login" ? "들어가는 중…" : "운세 보기"}</button></div> : <>
       {report && <div className="saju-toolbar"><button type="button" disabled={!!busy} onClick={() => { selection.current = ""; setSelected(""); setCheckout(false); setError(""); }}>다시 빌기</button></div>}
       {!report ? <form className="saju-form" onSubmit={e => { e.preventDefault(); void run("preview", async () => { const version = generation.current; const data = await api("POST", { action: "preview", input, consent }); if (version !== generation.current) return; selection.current = data.id; await refresh(); if (version === generation.current) { setSelected(data.id); setCheckout(false); } }); }}>
         <div className="saju-birth-head"><span>생년월일</span><div className="saju-pills">{(["solar", "lunar"] as const).map(mode => <button type="button" key={mode} aria-pressed={input.calendar === mode} onClick={() => setInput(v => ({ ...v, calendar: mode, leap: false }))}>{mode === "solar" ? "양력" : "음력"}</button>)}</div></div>

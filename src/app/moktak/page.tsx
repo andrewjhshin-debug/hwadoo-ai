@@ -167,7 +167,7 @@ const SKINS = {
     // 형: 「밑에 색상도 핑크로 바꾸고」 — 알이 분홍인데 점만 미색이었다
     { id: "paw", name: "발바닥", src: "/obj/bead-paw.png", dot: "#f08ba8", wide: true, one: "/obj/bead-paw-one.png", lit: "/obj/bead-paw-one-gold.png" },
     // Fourth slot replaces neon. Geometry, rotation and fill logic stay shared with paw.
-    { id: "stone", name: "백자", src: "/obj/mala-stone-v5/0.webp", dot: "#eadbca", wide: true, one: "/obj/mala-stone-v5/0.webp", lit: "/obj/mala-stone-v5/0.webp" },
+    { id: "stone", name: "청옥", src: "/obj/mala-stone-v6/0.webp", dot: "#9db9ac", wide: true, one: "/obj/mala-stone-v6/0.webp", lit: "/obj/mala-stone-v6/0.webp" },
     { id: "zodiac", name: "열두 띠 나무", src: "/obj/bead-wood-one-v1.png", dot: "#ae7946", wide: true, one: "/obj/bead-wood-one-v1.png", lit: "/obj/bead-wood-one-gold-v1.png" },
     { id: "sandalwood", name: "나뭇결", src: "/obj/bead-wood-one-v2.png", dot: "#87512f", wide: true, one: "/obj/bead-wood-one-v2.png", lit: "/obj/bead-wood-one-gold-v3.png" },
   ],
@@ -937,7 +937,7 @@ export default function MoktakPage() {
                     ? 0
                     : Math.max(0, Math.min(1, (물결 - (표시에서 - 칸)) / 칸));
                 const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})${beadHue(i)}`;
-                const 금결 = `brightness(${(1.0 + 0.07 * front).toFixed(2)})`; // 금은 알마다 같은 금 — 빛깔 돌림 없이
+                const 금결 = `brightness(${(stoneMala ? 1 + .04 * front : .84 + .04 * front).toFixed(2)})`;
                 return (
                   <span
                     key={i}
@@ -1057,7 +1057,7 @@ export default function MoktakPage() {
             style={{
               transform: `rotate(${angle}deg)`,
               filter:
-                "sepia(1) saturate(2.4) hue-rotate(-8deg) brightness(1.24) drop-shadow(0 0 12px rgba(217,180,91,0.35))",
+                "sepia(.9) saturate(1.5) hue-rotate(-8deg) brightness(.98) drop-shadow(0 0 4px rgba(181,143,73,.15))",
             }}
           />
         </div>
@@ -1851,9 +1851,9 @@ export default function MoktakPage() {
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: lit && skin.bead === "sandalwood"
-                            ? `brightness(${(1.03 + 0.12 * front).toFixed(2)}) drop-shadow(0 0 8px rgba(244,195,55,.3))`
+                            ? `brightness(${(.84 + .08 * front).toFixed(2)}) drop-shadow(0 0 3px rgba(181,143,73,.12))`
                             : lit
-                            ? `sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(${(1.06 + 0.22 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
+                            ? `sepia(.9) saturate(1.5) hue-rotate(-12deg) brightness(${(.84 + .10 * front).toFixed(2)}) drop-shadow(0 0 3px rgba(181,143,73,.15))`
                             : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))${beadHue(i)}`,
                         }}
                       />
@@ -1905,7 +1905,7 @@ export default function MoktakPage() {
                     transform: `rotate(${angle}deg)`,
                     transition: "transform 0.16s ease-out",
                     filter:
-                      "sepia(1) saturate(2.6) hue-rotate(-8deg) brightness(1.32) contrast(1.04) drop-shadow(0 0 16px rgba(217,180,91,0.45))",
+                      "sepia(.9) saturate(1.5) hue-rotate(-8deg) brightness(1.02) contrast(1.02) drop-shadow(0 0 4px rgba(181,143,73,.15))",
                   }}
                 />
               </div>

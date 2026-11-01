@@ -67,3 +67,7 @@
   .saju-form .saju-birth-date input { min-height:48px; }
 }
 @media print{body *{visibility:hidden}.saju-result,.saju-result *{visibility:visible}.saju-result{position:absolute;inset:0;color:#222;background:#fff}.saju-result button,.saju-questions form,.saju-offer{display:none!important}.saju-reading-section{break-inside:avoid;}}
+.saju-ink-entrance { display:block; padding:2px 0 22px; }
+.saju-ink-pavilion { display:block; width:100%; max-width:360px; height:auto; max-height:152px; object-fit:contain; margin:0 auto 8px; }
+.saju-ink-entrance h1 { font-size:25px; letter-spacing:.12em; }
+@media(max-height:740px) { .saju-ink-entrance { display:flex; align-items:center; gap:12px; padding:0 0 14px; } .saju-ink-pavilion { width:140px; max-height:78px; margin:0; } .saju-ink-entrance h1 { font-size:22px; } }
