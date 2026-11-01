@@ -52,10 +52,21 @@ export async function GET(req: Request) {
     db.collection("dm-threads").where("members", "array-contains", uid).limit(100).get(),
     me.주인 ? Promise.resolve(true) : 열렸나(db, uid),
   ]);
+  // 읽음 — 읽음 확인(readPassUntil)이 살아 있는 방만 상대가 읽은 때를 붙인다
+  const 지금 = Date.now();
+  const 읽음 = new Map<string, Record<string, number>>();
+  await Promise.all(snap.docs.map(async (d) => {
+    const t = d.data();
+    if (!(me.주인 || (t.readPassUntil?.[uid] ?? 0) > 지금)) return;
+    const r = (await db.doc(`dm-read/${d.id}`).get()).data() as Record<string, number> | undefined;
+    const 상대 = ((t.members ?? []) as string[]).find((m) => m !== uid);
+    if (r && 상대 && typeof r[상대] === "number") 읽음.set(d.id, { [상대]: r[상대] });
+  }));
   const threads = snap.docs.map((d) => {
     const t = d.data();
     const out: Record<string, unknown> = { id: d.id };
-    for (const [k, v] of Object.entries(t)) out[k] = 모양(v);
+    for (const [k, v] of Object.entries(t)) if (k !== "lastRead") out[k] = 모양(v);
+    if (읽음.has(d.id)) out.lastRead = 읽음.get(d.id);
     // 받은 청 · 아직 안 열었고 · 진심이 아니면 — 누군지와 한 마디를 뺀다
     if (t.status === "pending" && t.ownerUid === uid && !t.sincere && !봄) {
       out.requesterName = "";

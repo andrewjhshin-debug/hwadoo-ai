@@ -154,7 +154,7 @@ export default function LettersPage() {
   const 읽음사기 = async (t: DmThread) => {
     const r = await buyReadPass(t.id);
     if (r === "need-lotus") window.location.href = "/lotus";
-    else if (r) { 고칠방(t.id, { readPassUntil: r }); getLotus().then(setLotus); }
+    else if (r) { 고칠방(t.id, { readPassUntil: r }); refresh(); } // 상대가 읽은 때는 서버가 다시 줄 때 붙는다
   };
 
   const send = async (t: DmThread) => {

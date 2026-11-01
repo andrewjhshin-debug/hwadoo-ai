@@ -6,7 +6,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { isAdminAccount } from "@/lib/config";
 import { 연꽃쓰기 } from "@/lib/walletSpend";
-import { 추려서, type 프로필 } from "@/lib/yeonPick";
+import { today, 추려서, type 프로필 } from "@/lib/yeonPick";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -28,13 +28,27 @@ export async function POST(req: Request) {
   const target = typeof b?.target === "string" && /^[A-Za-z0-9]{6,64}$/.test(b.target) ? b.target : "";
   if (!target || target === uid) return Response.json({ error: "bad-target" }, { status: 400 });
   const db = getFirestore(app);
-  // 판에 선 사람만, 막은 사이는 안 된다(합장 길과 같은 문턱)
-  const [프, 내가막음, 쟤가막음] = await Promise.all([
+  // 판에 서는 문턱(firestore.rules isOpen · /api/avatar 와 같다) + 막은 사이는 안 된다
+  // + **실제로 내게 보인 사람만** — 오늘 카드(yeon-daily)에 뽑혔거나, 나를 합장해
+  //   기다리는 줄에 섰고 오늘 그 줄을 열었다. 아무 uid 나 넣어 사진을 사 가지 못하게.
+  const 날 = today();
+  const [프, 내가막음, 쟤가막음, 오늘칸, 기다림, 줄열림] = await Promise.all([
     db.doc(`yeon-profiles/${target}`).get(),
     db.doc(`yeon-blocks/${uid}/list/${target}`).get(),
     db.doc(`yeon-blocks/${target}/list/${uid}`).get(),
+    db.doc(`yeon-daily/${uid}_${날}`).get(),
+    db.collection("yeon-haps").where("from", "==", target).where("to", "==", uid).limit(1).get(),
+    db.doc(`yeon-waiting-open/${uid}_${날}`).get(),
   ]);
-  if (!프.exists || 프.data()?.state !== "활동" || 내가막음.exists || 쟤가막음.exists)
+  const p = 프.data() as { state?: string; approvedPhotoCount?: number; reportHold?: boolean; photoProofRequired?: boolean; photoProof?: { state?: string } } | undefined;
+  const 열림 =
+    p?.state === "활동" &&
+    (p.approvedPhotoCount ?? 0) > 0 &&
+    p.reportHold !== true &&
+    (p.photoProofRequired !== true || p.photoProof?.state === "ok");
+  const 칸 = 오늘칸.data() as { picks?: string[]; pin?: string[] } | undefined;
+  const 보였나 = 주인 || !!칸?.picks?.includes(target) || !!칸?.pin?.includes(target) || (!기다림.empty && 줄열림.exists);
+  if (!열림 || 내가막음.exists || 쟤가막음.exists || !보였나)
     return Response.json({ error: "bad-target" }, { status: 404 });
   const ref = db.doc(`photo-unlock/${uid}_${target}`);
   const ok = await db.runTransaction(async (tx) => {

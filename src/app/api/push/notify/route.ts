@@ -164,7 +164,8 @@ export async function POST(request: Request) {
     const other = members.find((m) => m !== callerUid);
     if (!other) return Response.json({ sent: 0 });
     uid = other;
-    requesterName = snap.data()?.requesterName as string | undefined;
+    // 메일에 이름은 진심 쪽지만 — 아니면 「누군가」(쪽지함 「다 보기」 🪷1 을 건너뛰지 못하게)
+    requesterName = snap.data()?.sincere === true ? (snap.data()?.requesterName as string | undefined) : undefined;
   } else {
     // 댓글 — 글을 읽어 글쓴이에게 보낸다 (내 글에 내가 단 것이면 안 보낸다)
     if (typeof payload.postId !== "string" || !payload.postId) {

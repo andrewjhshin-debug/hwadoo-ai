@@ -68,7 +68,9 @@ export async function POST(req: Request) {
   if (b?.seen === true) {
     const t = (await ref.get()).data() as 방 | undefined;
     if (!t?.members?.includes(uid)) return Response.json({ error: "not-member" }, { status: 403 });
-    await ref.update({ [`lastRead.${uid}`]: Date.now() });
+    // 방 문서가 아니라 dm-read/{방} 에 — 방 문서는 멤버가 읽을 수 있어 값 없이 새어 나간다.
+    // 이 문서엔 규칙 칸이 없다(손님은 못 읽는다). 읽음 확인을 산 사람에게만 /api/dm/threads 가 준다
+    await db.doc(`dm-read/${threadId}`).set({ [uid]: Date.now() }, { merge: true });
     return Response.json({ ok: true });
   }
 
