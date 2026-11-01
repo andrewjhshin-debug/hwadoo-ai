@@ -37,13 +37,12 @@ export default function LikeSheet({ to, name, sex, onClose, onDone }: { to: stri
     if (r.matched && r.pair) { 짝잡기(r.pair); 상태잡기(""); return; }
     상태잡기("sent");
   };
+  if (user?.uid === to) return null;
   return (
     <div className="hip-like-veil" role="dialog" aria-label={`${name}님에게 호감`} onClick={onClose}>
       <div className="hip-like" onClick={(e) => e.stopPropagation()}>
         {짝 ? (
           <MatchScreen pair={짝} myName={loadMe()?.name || "나"} name={name} sex={sex} onClose={onClose} />
-        ) : user && user.uid === to ? (
-          <p className="hip-like-say">내 얼굴이에요. 다른 분 얼굴을 눌러 보세요.</p>
         ) : 상태 === "sent" ? (
           <>
             <p className="hip-like-title">호감을 보냈어요</p>
