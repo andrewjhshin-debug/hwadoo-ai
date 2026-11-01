@@ -1,0 +1,38 @@
+.hip-offering-picker .hip-gift-box { max-width:440px; padding:18px 20px max(20px,env(safe-area-inset-bottom)); }
+.hip-offering-picker .hip-gift-top p { font-size:19px; letter-spacing:-.02em; font-weight:500; }
+.hip-offering-picker .hip-gift-grid { gap:8px; }
+.hip-offering-picker .hip-gift-grid button { background:transparent; border-color:transparent; box-shadow:none; padding:12px 8px; }
+.hip-offering-picker .hip-gift-grid button:hover { background:#f7eeed; }
+.hip-offering-picker .hip-gift-grid img { height:70px; margin-bottom:6px; }
+.hip-offering-picker .hip-gift-grid b { font-size:13px; font-weight:400; }
+.hip-offering-sheet { display:flex; align-items:flex-end; justify-content:center; padding:0; overflow:hidden; }
+.hip-offering-sheet .hip-deung-form-box { width:100%; max-width:440px; max-height:calc(100dvh - max(20px,env(safe-area-inset-top))); overflow-y:auto; overscroll-behavior:contain; margin:0; padding:24px 22px max(22px,env(safe-area-inset-bottom)); border-radius:25px 25px 0 0; background:#fffdfb; box-shadow:none; }
+.hip-offering-sheet .hip-deung-form-box::before { content:""; display:block; width:34px; height:4px; margin:-12px auto 22px; border-radius:4px; background:#ded9d4; }
+.hip-offering-sheet .hip-deung-form-top { gap:12px; margin-bottom:18px; }
+.hip-offering-sheet .hip-deung-form-top p { color:#302d2b; font-size:20px; letter-spacing:-.04em; font-weight:500; }
+.hip-offering-sheet .hip-deung-form-top button { min-height:36px; flex-shrink:0; }
+.hip-offering-sheet .hip-deung-preview { height:90px; margin:0 0 10px; background:none; }
+.hip-offering-sheet .hip-deung-preview .hip-gong-body { height:80px; }
+.hip-offering-name { margin:0 0 12px; }
+.hip-offering-name summary { display:flex; align-items:center; gap:8px; min-height:30px; font-size:11px; color:#89827c; cursor:pointer; }
+.hip-offering-name summary span { color:#b4ada7; }
+.hip-offering-sheet .hip-deung-lab { justify-content:flex-end; margin:0 0 5px; }
+.hip-offering-sheet .hip-deung-area { min-height:128px; font-size:16px; padding:15px; border-color:#e7e0da; background:transparent; }
+.hip-offering-sheet .hip-deung-pick { gap:0; padding:3px; border-radius:14px; background:#f4f0ed; margin-top:16px; }
+.hip-offering-sheet .hip-deung-pick button { border:0; border-radius:11px; text-align:center; background:transparent; padding:10px 6px; }
+.hip-offering-sheet .hip-deung-pick button[data-on="1"] { background:#f08cab; }
+.hip-offering-sheet .hip-deung-pick button[data-on="1"] :is(b,i) { color:#fff; }
+.hip-offering-sheet .hip-deung-pick b { font-size:13px; }
+.hip-offering-sheet .hip-deung-pick i { font-size:10px; }
+.hip-lantern-colors { border:0; min-width:0; margin:24px 0 0; padding:0; }
+.hip-lantern-colors legend { font-size:11px; color:#716b66; margin-bottom:12px; }
+.hip-lantern-colors > div { display:flex; gap:14px; }
+.hip-lantern-colors button { width:66px; height:66px; border:1.5px solid transparent; border-radius:50%; padding:6px; background:#f7f2ed; cursor:pointer; }
+.hip-lantern-colors button[aria-pressed="true"] { border-color:#ed78a0; background:#fff2f6; }
+.hip-lantern-colors button:focus-visible { outline:2px solid #c6547e; outline-offset:3px; }
+.hip-lantern-colors img { width:100%; height:100%; object-fit:contain; display:block; }
+.hip-offering-sheet .hip-deung-go { margin-top:22px; min-height:49px; border:0; border-radius:999px; background:#ed83a3; color:#fff; font-size:16px; letter-spacing:0; }
+.hip-offering-sheet button:disabled { opacity:.45; cursor:default; }
+.hip-lotus-lantern .hip-deung-sway { width:100%; }
+.hip-lotus-lantern .hip-deung-img { width:100%; height:auto; object-fit:contain; }
+@media(max-height:700px) { .hip-offering-sheet .hip-deung-form-box { padding-top:20px; padding-bottom:14px; } .hip-offering-sheet .hip-deung-form-top { margin-bottom:10px; } .hip-offering-sheet .hip-deung-area { min-height:100px; } .hip-offering-sheet .hip-deung-pick { margin-top:12px; } .hip-lantern-colors { margin-top:16px; } .hip-offering-sheet .hip-deung-go { margin-top:16px; } }

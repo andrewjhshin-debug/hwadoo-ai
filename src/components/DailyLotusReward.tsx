@@ -88,7 +88,9 @@ export default function DailyLotusReward() {
       <div className="daily-lotus-bloom" aria-hidden="true">
         <i className="daily-lotus-ring" /><i className="daily-lotus-ring daily-lotus-ring-late" />
         {Array.from({ length: 8 }, (_, i) => <span className="daily-lotus-spark" key={i} style={{ transform: `rotate(${i * 45}deg)` }}><i /></span>)}
-        <Yeonkkot className="daily-lotus-flower" />
+        {/* 형: 「연꽃 이미지 이쁜 거로, 전체 톤 맞게」 — 매트 금빛 연꽃 */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="daily-lotus-flower" src="/obj/lotus-reward.webp" alt="" draggable={false} />
         <b>+1</b>
       </div>
       <h2 id="daily-lotus-title">연꽃 1송이를 받았어요</h2>

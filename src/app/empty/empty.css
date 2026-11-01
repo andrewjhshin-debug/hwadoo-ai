@@ -1,0 +1,163 @@
+/* 비움 — 잔디 심기 판. 형: 「달력처럼 한눈에, 글은 빼고」 */
+
+.emp {
+  --emp-ink: #1a1a1c;
+  --emp-dim: #8a8a90;
+  --emp-pink: #f2789f;
+  --emp-pink-2: #f8b4c9;
+  --emp-pink-3: #fde3ec;
+  --emp-empty: #efeff1;
+  margin: 0 auto;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 420px;
+  min-height: 60vh;
+  padding: 32px 16px 64px;
+  color: var(--emp-ink);
+}
+
+.emp-mark {
+  font-family: var(--font-serif);
+  font-size: 44px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--emp-pink);
+}
+
+/* 갈래 알약 */
+.emp-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(26, 23, 20, 0.06);
+}
+.emp-tab {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--emp-dim);
+  transition: background 0.15s, color 0.15s;
+}
+.emp-tab[aria-selected="true"] {
+  background: var(--emp-pink);
+  color: #fff;
+}
+
+/* 판 */
+.emp-card {
+  width: 100%;
+  padding: 18px 18px 20px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(26, 23, 20, 0.06);
+}
+.emp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.emp-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+.emp-arrow {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--emp-dim);
+}
+.emp-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+.emp-arrow:disabled {
+  opacity: 0.3;
+}
+
+.emp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+.emp-week {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--emp-dim);
+}
+
+.emp-cell {
+  aspect-ratio: 1;
+  border-radius: 9px;
+  background: var(--emp-empty);
+  font-size: 11px;
+  line-height: 1;
+  color: #b4b4ba;
+  transition: background 0.15s, transform 0.1s;
+}
+.emp-cell:not(:disabled):active {
+  transform: scale(0.92);
+}
+.emp-cell[data-level="part"] {
+  background: var(--emp-pink-2);
+  color: #fff;
+}
+.emp-cell[data-level="full"] {
+  background: var(--emp-pink);
+  color: #fff;
+  font-weight: 600;
+}
+.emp-cell[data-today] {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--emp-pink);
+}
+/* 앞날은 흐리게 */
+.emp-cell[data-future] {
+  opacity: 0.45;
+}
+
+.emp-count {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--emp-dim);
+}
+.emp-count strong {
+  margin-right: 2px;
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--emp-pink);
+}
+
+/* 오늘 몫 큰 단추 */
+.emp-today {
+  width: 100%;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--emp-pink);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  box-shadow: 0 6px 18px rgba(242, 120, 159, 0.3);
+  transition: transform 0.1s;
+}
+.emp-today:active {
+  transform: scale(0.98);
+}
+.emp-today[aria-pressed="true"] {
+  background: var(--emp-pink-3);
+  color: var(--emp-pink);
+  box-shadow: none;
+}

@@ -1,49 +1,48 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────
-// 비움(空) — 무지출 · 무소유 · 무집착 · 무살생.
+// 비움(空) — 무지출 · 무살생.
 //
-// 소개만 하던 방을 기록하는 방으로 키웠다.
-// 손이 두 가지다 — 도장(예/아니오)과 한 줄(무엇을 놓았는가).
-// 그래서 화면도 두 가지다: 도장은 알약 단추와 점, 한 줄은 밑줄 친 칸.
+// 형: 「달력처럼 한눈에, 글은 빼고」 — 잔디 심기 판 하나로 줄였다.
+// 갈래는 위 알약으로 고르고, 칸을 누르면 그날이 찬다. 큰 단추는 오늘 몫.
+// 「모두」는 보기만 한다 — 둘 다 채운 날은 진하게, 하나면 옅게.
 //
 // 점수판이 아니라 일기다. 공덕을 주지 않는다(merit.ts 를 부르지 않는다) —
 // 덜어내는 자리에서 다시 모으게 하면 앞뒤가 안 맞는다.
 // 장부는 emptiness.ts 가 쥐고, 여기서는 그리기만 한다.
 // ─────────────────────────────────────────────────────────────
 
+import "./empty.css";
 import { useEffect, useState } from "react";
-import { buzz, clickBead, strikeMoktak } from "@/lib/sound";
+import { buzz, strikeMoktak } from "@/lib/sound";
 import {
   EMPTINESSES,
   EMPTY_BY_ID,
   EMPTY_EVENT,
   dayKeyOf,
-  daysTouchedInMonth,
   emptyDayKey,
-  entriesOf,
   hasStamp,
   loadEmpty,
   monthlyEmptiness,
-  recentDays,
   streakOf,
   toggleStamp,
-  type Emptiness,
   type EmptyEntry,
   type EmptyKind,
 } from "@/lib/emptiness";
 
-const DELAYS = ["rise-d1", "rise-d2", "rise-d3", "rise-d4"];
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
+type Tab = EmptyKind | "all";
 
 export default function EmptyPage() {
   // 서랍은 붙고 난 뒤에 연다 — 서버 그림과 어긋나면 하이드레이션이 깨진다
   const [log, setLog] = useState<EmptyEntry[] | null>(null);
   const [today, setToday] = useState("");
   const [view, setView] = useState<{ y: number; m: number } | null>(null);
+  const [tab, setTab] = useState<Tab>(EMPTINESSES[0].id);
 
   useEffect(() => {
     const now = new Date();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToday(emptyDayKey());
     setView({ y: now.getFullYear(), m: now.getMonth() + 1 });
     const read = () => setLog(loadEmpty());
@@ -62,312 +61,98 @@ export default function EmptyPage() {
     setLog(loadEmpty());
   };
 
-  return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-6 pb-16 pt-10 md:pt-14">
-      <p className="rise font-serif text-[68px] font-light leading-none text-gold-grad">
-        空
-      </p>
-      {/* 「비움 — 무한한 가능성」 지움 — 바로 위 空 이 이미 그 말이다.
-          형: 「의미 정보가 전달되도록만 하고 나머지 다 지우고」 */}
-      <p className="question-glow rise rise-d1 mt-7 text-center font-serif text-xl font-light leading-[1.9] text-hanji">
-        쥐고 있던 것 하나를 내려놓습니다.
-        <br />
-        <span className="text-gold-grad">덜어냄도 수행입니다.</span>
-      </p>
+  if (log === null || !view) {
+    return <div className="emp" aria-hidden />;
+  }
 
-      {log === null || !view ? (
-        <div className="h-[60vh]" aria-hidden />
-      ) : (
-        <>
-          <div className="mt-10 flex w-full flex-col gap-3">
-            {EMPTINESSES.map((e, i) => (
-              <Card
-                key={e.id}
-                e={e}
-                log={log}
-                today={today}
-                delay={DELAYS[i]}
-                view={view}
-                onView={setView}
-                onStamp={stamp}
-              />
-            ))}
-          </div>
-
-
-          <Past log={log} today={today} />
-        </>
-      )}
-    </div>
-  );
-}
-
-// ── 한 갈래 ─────────────────────────────────────────────────
-
-function Card({
-  e,
-  log,
-  today,
-  delay,
-  view,
-  onView,
-  onStamp,
-}: {
-  e: Emptiness;
-  log: EmptyEntry[];
-  today: string;
-  delay: string;
-  view: { y: number; m: number };
-  onView: (v: { y: number; m: number }) => void;
-  onStamp: (kind: EmptyKind, day: string) => void;
-}) {
-  const on = hasStamp(e.id, today, log);
-  const mine = entriesOf(e.id, today, log);
-  // 무지출은 이어 온 날, 한 줄 갈래는 이달에 놓은 가짓수, 무살생은 달력이 센다
-  const num =
-    e.id === "jichul"
-      ? streakOf(e.id, log)
-      : e.id === "salsaeng"
-        ? 0
-        : monthlyEmptiness(view.y, view.m, e.id, log).reduce(
-            (s, d) => s + d.count,
-            0
-          );
-
-  return (
-    <section
-      className={`rise ${delay} rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-5 text-left`}
-    >
-      <div className="flex items-center gap-4">
-        <Badge mark={e.mark} on={e.mode === "stamp" ? on : mine.length > 0} />
-        <div className="min-w-0 flex-1">
-          <p className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-            <span className="font-serif text-base font-light tracking-[0.2em] text-hanji">
-              {e.name}
-            </span>
-            <span className="text-[10px] tracking-[0.3em] text-hanji-faint">
-              {e.hanja}
-            </span>
-          </p>
-          <p className="mt-1.5 break-keep text-[13px] font-light leading-6 text-hanji-dim">
-            {e.ask}
-          </p>
-        </div>
-        {num > 0 && (
-          <p className="shrink-0 text-right">
-            <span className="font-serif text-[26px] font-light leading-none text-gold">
-              {num}
-            </span>
-            <span className="mt-1 block text-[10px] tracking-[0.15em] text-hanji-faint">
-              {e.unit}
-            </span>
-          </p>
-        )}
-      </div>
-
-      {e.mode === "stamp" ? (
-        <>
-          <button
-            onClick={() => onStamp(e.id, today)}
-            aria-pressed={on}
-            className={
-              on
-                ? "mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-gold/50 bg-gold/10 py-2.5 text-[12.5px] tracking-[0.2em] text-gold"
-                : "btn-obang mt-4 w-full py-2.5 text-[12.5px] tracking-[0.2em] text-hanji transition-opacity hover:opacity-80"
-            }
-          >
-            {on && <Check />}
-            {on ? e.done : e.act}
-          </button>
-
-          {/* 달력 — 접어 두고 볼 때만 편다. 지난 날도 눌러 채울 수 있다 */}
-          <details className="group mt-4">
-            <summary className="flex cursor-pointer list-none items-center justify-center gap-1.5 py-1 text-[11.5px] tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim [&::-webkit-details-marker]:hidden">
-              달력으로 보기
-              <span
-                aria-hidden
-                className="text-[12px] transition-transform duration-200 group-open:rotate-180"
-              >
-                ⌄
-              </span>
-            </summary>
-            <Calendar
-              kind={e.id}
-              log={log}
-              today={today}
-              view={view}
-              onView={onView}
-              onStamp={onStamp}
-            />
-          </details>
-        </>
-      ) : null}
-    </section>
-  );
-}
-
-function Calendar({
-  kind,
-  log,
-  today,
-  view,
-  onView,
-  onStamp,
-}: {
-  kind: EmptyKind;
-  log: EmptyEntry[];
-  today: string;
-  view: { y: number; m: number };
-  onView: (v: { y: number; m: number }) => void;
-  onStamp: (kind: EmptyKind, day: string) => void;
-}) {
+  const kind = tab === "all" ? undefined : tab;
+  const full = kind ? 1 : EMPTINESSES.length; // 이만큼 차야 진한 칸
   const marks = monthlyEmptiness(view.y, view.m, kind, log);
-  const count = marks.filter((d) => d.count > 0).length;
   const lead = new Date(view.y, view.m - 1, 1).getDay(); // 1일 앞의 빈 칸
-  const thisMonth = today.slice(0, 7) === `${view.y}-${String(view.m).padStart(2, "0")}`;
+  const thisMonth =
+    today.slice(0, 7) === `${view.y}-${String(view.m).padStart(2, "0")}`;
+  const filled = marks.filter((d) => d.count >= full).length;
+  const streak = kind ? streakOf(kind, log) : 0;
+  const on = kind ? hasStamp(kind, today, log) : false;
 
   const move = (step: number) => {
     const t = new Date(view.y, view.m - 1 + step, 1);
-    onView({ y: t.getFullYear(), m: t.getMonth() + 1 });
+    setView({ y: t.getFullYear(), m: t.getMonth() + 1 });
   };
 
   return (
-    <div className="mt-5 border-t border-ink-3 pt-4">
-      <div className="flex items-center justify-between">
-        <Arrow dir="prev" onClick={() => move(-1)} />
-        <p className="font-serif text-[13px] tracking-[0.25em] text-hanji-dim">
-          {view.y}년 {view.m}월
-        </p>
-        <Arrow dir="next" onClick={() => move(1)} disabled={thisMonth} />
-      </div>
+    <div className="emp">
+      <p className="emp-mark rise">空</p>
 
-      <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[10px] text-hanji-faint">
-        {WEEK.map((w) => (
-          <span key={w}>{w}</span>
+      <div className="emp-tabs rise rise-d1" role="tablist">
+        {[...EMPTINESSES.map((e) => e.id), "all" as const].map((t) => (
+          <button
+            key={t}
+            role="tab"
+            aria-selected={tab === t}
+            className="emp-tab"
+            onClick={() => setTab(t)}
+          >
+            {t === "all" ? "모두" : EMPTY_BY_ID[t].name}
+          </button>
         ))}
       </div>
 
-      <div className="mt-1.5 grid grid-cols-7 gap-1">
-        {Array.from({ length: lead }, (_, i) => (
-          <span key={`b${i}`} aria-hidden />
-        ))}
-        {marks.map(({ day, count: c }) => {
-          const key = dayKeyOf(view.y, view.m, day);
-          const future = key > today;
-          const isToday = key === today;
-          return (
-            <button
-              key={key}
-              onClick={() => onStamp(kind, key)}
-              disabled={future}
-              aria-label={`${view.m}월 ${day}일${c > 0 ? " 절밥" : ""}`}
-              className={`grid aspect-square place-items-center rounded-full text-[11px] leading-none transition-colors ${
-                c > 0
-                  ? "bg-gold font-medium text-ink"
-                  : future
-                    ? "text-hanji-faint/40"
-                    : "text-hanji-faint hover:bg-gold/10"
-              } ${isToday && c === 0 ? "ring-1 ring-gold/45" : ""}`}
-            >
-              {day}
-            </button>
-          );
-        })}
-      </div>
+      <section className="emp-card rise rise-d2">
+        <header className="emp-head">
+          <Arrow dir="prev" onClick={() => move(-1)} />
+          <h2 className="emp-title">
+            {view.y}. {view.m}
+          </h2>
+          <Arrow dir="next" onClick={() => move(1)} disabled={thisMonth} />
+        </header>
 
-      <p className="mt-4 flex items-baseline gap-2">
-        <span className="font-serif text-[34px] font-light leading-none text-gold-grad">
-          {count}
-        </span>
-        <span className="text-[11px] tracking-[0.25em] text-hanji-faint">
-          일 — 이번 달 절밥
-        </span>
-      </p>
-    </div>
-  );
-}
+        <div className="emp-grid emp-week" aria-hidden>
+          {WEEK.map((w) => (
+            <span key={w}>{w}</span>
+          ))}
+        </div>
 
-// ── 지난 것 ─────────────────────────────────────────────────
-
-function Past({
-  log,
-  today,
-}: {
-  log: EmptyEntry[];
-  today: string;
-}) {
-  const days = recentDays(10, log).filter((d) => d.day !== today);
-  if (log.length === 0) return null;
-
-  return (
-    <section className="mt-14 w-full">
-      {/* 형: 「지난 것 · 이달 비운 날 1 — 이런 말 다 쳐내」. 머리줄 없이 기록만 */}
-      {days.length === 0 ? null : (
-        <ul className="mt-5 flex flex-col gap-5">
-          {days.map(({ day, entries }) => {
-            const stamps = entries.filter((x) => !x.note);
+        <div className="emp-grid">
+          {Array.from({ length: lead }, (_, i) => (
+            <span key={`b${i}`} aria-hidden />
+          ))}
+          {marks.map(({ day, count: c }) => {
+            const key = dayKeyOf(view.y, view.m, day);
+            const level = c >= full ? "full" : c > 0 ? "part" : "none";
             return (
-              <li key={day} className="flex gap-4 border-t border-ink-3 pt-4">
-                <p className="w-[54px] shrink-0 font-serif text-[12px] leading-6 text-hanji-faint">
-                  {fmtDay(day)}
-                </p>
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  {stamps.length > 0 && (
-                    <p className="flex flex-wrap gap-1.5">
-                      {stamps.map((x, i) => (
-                        <span
-                          key={`${x.kind}-${i}`}
-                          className="rounded-full border border-gold/30 px-2.5 py-[3px] text-[11px] tracking-[0.1em] text-gold-soft"
-                        >
-                          {EMPTY_BY_ID[x.kind].name}
-                        </span>
-                      ))}
-                    </p>
-                  )}
-                </div>
-              </li>
+              <button
+                key={key}
+                onClick={kind ? () => stamp(kind, key) : undefined}
+                disabled={key > today || !kind}
+                aria-label={`${view.m}월 ${day}일${c > 0 ? " 비움" : ""}`}
+                className="emp-cell"
+                data-level={level}
+                data-today={key === today || undefined}
+                data-future={key > today || undefined}
+              >
+                {day}
+              </button>
             );
           })}
-        </ul>
+        </div>
+
+        <p className="emp-count">
+          <strong>{filled}</strong>일
+          {streak > 1 && <span> · {streak}일째</span>}
+        </p>
+      </section>
+
+      {kind && thisMonth && (
+        <button
+          className="emp-today rise rise-d3"
+          aria-pressed={on}
+          onClick={() => stamp(kind, today)}
+        >
+          {on ? EMPTY_BY_ID[kind].done : EMPTY_BY_ID[kind].act}
+        </button>
       )}
-    </section>
-  );
-}
-
-// ── 자잘한 것 ───────────────────────────────────────────────
-
-function fmtDay(day: string): string {
-  const [, m, d] = day.split("-");
-  return `${Number(m)}월 ${Number(d)}일`;
-}
-
-function Badge({ mark, on }: { mark: string; on: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-serif text-[17px] leading-none transition-colors ${
-        on ? "bg-gold text-ink" : "border border-gold/30 text-gold"
-      }`}
-    >
-      {mark}
-    </span>
-  );
-}
-
-function Check() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-3.5 w-3.5"
-      aria-hidden
-    >
-      <path d="M5 12.5 10 17.5 19 6.5" />
-    </svg>
+    </div>
   );
 }
 
@@ -385,16 +170,15 @@ function Arrow({
       onClick={onClick}
       disabled={disabled}
       aria-label={dir === "prev" ? "지난 달" : "다음 달"}
-      className="p-1.5 text-hanji-faint transition-colors hover:text-gold disabled:opacity-30 disabled:hover:text-hanji-faint"
+      className="emp-arrow"
     >
       <svg
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.6"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-3.5 w-3.5"
         aria-hidden
       >
         <path d={dir === "prev" ? "M14.5 6 8.5 12l6 6" : "M9.5 6l6 6-6 6"} />

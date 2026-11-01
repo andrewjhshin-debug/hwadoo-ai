@@ -20,6 +20,7 @@ import ScrollTop from "@/components/ScrollTop";
 import InstallBanner from "@/components/InstallBanner";
 import WalkingRuntime from "@/components/WalkingRuntime";
 import InvestmentShortcut from "@/components/InvestmentShortcut";
+import InviteCatch from "@/components/InviteCatch";
 import {
   BIZ_ADDRESS,
   BIZ_MAIL_ORDER_NO,
@@ -241,6 +242,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <InstallBanner />
         <WalkingRuntime />
         <InvestmentShortcut />
+        <InviteCatch />
         </ConfirmProvider>
         {/* ── 지표 둘 ────────────────────────────────────────
             베르셀은 「몇 명 왔나」, GA4 는 「어디서 나갔나」.

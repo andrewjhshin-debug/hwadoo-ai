@@ -16,6 +16,8 @@ import { EXTEND_DAYS, POUR_PER_DAY, POUR_UNIT, PRIVATE_BURN_DAYS, PRIVATE_CANDLE
 import { giveMerit } from "@/lib/merit";
 import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
 
+import { LANTERN_COLORS, type LanternColor } from "@/lib/lanternSpec";
+import "./offering-sheet.css";
 type Comment = { id: string; by?: string; body?: string; to?: string | null; likes?: number };
 
 /** 게시판의 작은 그림 둘 — 글자와 같은 키로 선다 */
@@ -67,7 +69,7 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onCli
   const seed = c.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
   // 옛 문서에는 갈래 칸이 없다 — 없으면 연등이다(여태 다 연등이었다)
   // 내 것인가 — 「내 것만」을 켜면 이 표를 보고 나머지가 희미해진다
-  return <span className="hip-hang" data-mine={mine ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
+  return <span className="hip-hang" data-mine={mine ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} lanternColor={c.lanternColor} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
 }
 
 /** 법당의 가운데는 공양 유무와 관계없이 한 장면이다.
@@ -121,7 +123,7 @@ function 법당마루() {
  *  먼저 고르고, 고른 다음에 쓴다.
  */
 const 공양들: { k: 공양갈래; 이름: string; 그림: string }[] = [
-  { k: "deung", 이름: "연등", 그림: "/obj/deung.png" },
+  { k: "deung", 이름: "연등", 그림: LANTERN_COLORS[0].src },
   { k: "ssal", 이름: "쌀", 그림: "/obj/gong-ssal.png" },
   { k: "cho", 이름: "초", 그림: "/obj/gong-cho.png" },
   { k: "hyang", 이름: "향", 그림: "/obj/gong-hyang.png" },
@@ -133,7 +135,7 @@ function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => voi
   // 맞다 — 손짓은 짝이 있어야 손에 붙는다. 올려서 열었으면 내려서 닫는다.
   const 내림 = useRef<number | null>(null);
   return (
-    <div className="hip-gift" role="dialog" aria-label="공양 고르기" onClick={onClose}>
+    <div className="hip-gift hip-offering-picker" role="dialog" aria-modal="true" aria-label="공양 고르기" onClick={onClose}>
       <div
         className="hip-gift-box"
         onClick={(e) => e.stopPropagation()}
@@ -159,10 +161,6 @@ function 공양고르기({ onPick, onClose }: { onPick: (k: 공양갈래) => voi
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={g.그림} alt="" draggable={false} />
                 <b>{g.이름}</b>
-                <em>
-                  <Yeonkkot className="h-[12px] w-[12px]" />
-                  {PRIVATE_CANDLE_PRICE}
-                </em>
               </button>
             </li>
           ))}
@@ -184,9 +182,11 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
   const submit = async () => {
     if (!wish.trim() || busy) return; if (!key.current) key.current = crypto.randomUUID().replaceAll("-", ""); setBusy(true); setError("");
     try {
-      const r = await lightCandle({ forName, wish, visibility, gift }, key.current);
+      if (!auth.currentUser) { await loginWithGoogle(); if (!auth.currentUser) return; }
+      const r = await lightCandle({ forName, wish, visibility, gift, lanternColor }, key.current);
       if (!r) { setError("연꽃이 모자랍니다"); return; }
       // Firestore 목록 재조회가 늦거나 일시적으로 실패해도, 방금 올린 공양은
+  const [lanternColor, setLanternColor] = useState<LanternColor>("pink");
       // 성공 응답과 동시에 법당에 선다. 다음 재조회가 서버 값으로 맞춘다.
       const u = auth.currentUser;
       if (u) {
@@ -201,6 +201,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
       }
       // 법당에는 소리가 한 줄도 없었다 — 공양을 올려도 아무 일도 안
       // 일어난 것처럼 조용했다. 올라선 그 순간에만 경쇠 한 번.
+          ...(gift === "deung" ? { lanternColor: r.lanternColor ?? lanternColor } : {}),
       strikeBell(0.5);
       pingLotus();
     }
@@ -214,23 +215,24 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
   const 씨 = 미리.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
 
   return (
-    <div className="hip-deung-form" role="dialog" aria-label="연등 달기">
+    <div className="hip-deung-form hip-offering-sheet" role="dialog" aria-modal="true" aria-label={`${공양들.find(g => g.k === gift)?.이름} 공양`} onKeyDown={e => { if (e.key === "Escape" && !busy) onClose(); }}>
       <div className="hip-deung-form-box">
         <div className="hip-deung-form-top">
           {/* 한자 「供養」은 뒤의 「공양」과 글자 그대로 같은 말이라 뗀다 */}
-          <p>공양 올리기</p>
-          <button onClick={onClose}>닫기</button>
+          <p>어떤 마음을 놓을까요?</p>
+          <button onClick={onClose} disabled={busy}>닫기</button>
         </div>
         {/* 형: 「저거 사이즈는 유지, 쌀로 될 때 너무 작아진다.
                  법명 나오게 하지 말고」
             미리보기 칸이 물건 크기를 안 잡고 있어서, 등은 크고 쌀은
             제 그림 비율대로 쪼그라들었다. 칸이 키를 쥔다 — 무엇을
             골라도 같은 자리에 같은 크기로 선다. */}
-        <div className="hip-deung-preview">
-          <Gongyang 갈래={gift} name={미리} seed={씨} drop={18} />
-        </div>
+        {gift !== "deung" && <div className="hip-deung-preview">
+          <Gongyang 갈래={gift} name={미리} seed={씨} drop={0} />
+        </div>}
 
-        <label className="hip-deung-lab">{갈래 === "giwa" ? "기와에 새길 이름" : "쪽지에 적을 이름"}</label>
+        <details className="hip-offering-name"><summary>{갈래 === "giwa" ? "새길 이름" : "이름"} <span>선택</span></summary>
+        <label className="sr-only" htmlFor="offering-name">이름</label>
         <input
           value={forName}
           onChange={(e) => setForName(e.target.value.slice(0, 20))}
@@ -238,48 +240,60 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
           className="hip-deung-in"
         />
 
-        <label className="hip-deung-lab">
-          사연
+        <label className="hip-deung-lab" htmlFor="offering-wish">
+          <span className="sr-only">사연</span>
+          id="offering-name"
           <span>{wish.length} / 120</span>
         </label>
         <textarea
           value={wish}
           onChange={(e) => setWish(e.target.value.slice(0, 120))}
           rows={4}
-          placeholder={갈래 === "giwa" ? "기와에 함께 새길 마음을 적어 보세요" : "사연이나 기원하는 내용을 적어 보세요"}
+          placeholder={갈래 === "giwa" ? "기와에 새길 마음" : "오늘은 덜 불안했으면."}
           className="hip-deung-in hip-deung-area"
-        />
+          disabled={busy}
+        /></details>
 
+          id="offering-wish"
         <div className="hip-deung-pick">
           <button
             onClick={() => setVisibility("private")}
             data-on={!publicCandle ? "1" : undefined}
+          disabled={busy}
           >
-            <b>연꽃 1송이</b>
-            <i>나만 보기 · {PRIVATE_BURN_DAYS}일</i>
+            <b>나만</b>
+            <i>연꽃 {PRIVATE_CANDLE_PRICE}송이 · {PRIVATE_BURN_DAYS}일</i>
           </button>
           <button
             onClick={() => setVisibility("public")}
+            aria-pressed={!publicCandle}
+            disabled={busy}
             data-on={publicCandle ? "1" : undefined}
           >
-            <b>연꽃 2송이</b>
-            <i>법당에 걸기 · {PUBLIC_BURN_DAYS}일</i>
+            <b>함께</b>
+            <i>연꽃 {PUBLIC_CANDLE_PRICE}송이 · {PUBLIC_BURN_DAYS}일</i>
           </button>
         </div>
 
+            aria-pressed={publicCandle}
+            disabled={busy}
         {error && (
           <p className="hip-deung-bad">
             {error} <Link href="/lotus">연꽃 공양</Link>
           </p>
         )}
 
+        {gift === "deung" && <fieldset className="hip-lantern-colors"><legend>등 색상</legend><div>{LANTERN_COLORS.map(color => <button type="button" key={color.id} aria-label={`${color.name} 연등`} aria-pressed={lanternColor === color.id} disabled={busy} onClick={() => setLanternColor(color.id)}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={color.src} alt="" draggable={false} />
+        </button>)}</div></fieldset>}
+
         <button
           onClick={submit}
           disabled={!wish.trim() || busy}
           className="hip-deung-go"
         >
-          <Yeonkkot className="h-4 w-4" />
-          {busy ? "다는 중" : `연꽃 ${cost}송이로 달기`}
+          {busy ? "올리는 중…" : gift === "deung" ? "등 달기" : "공양 올리기"}
         </button>
         {/* 「3일 동안 걸립니다」 — 뺀다. 바로 위 고르는 칸에 이미
             「나만 보기 · 3일」이라 적혀 있다. 같은 말을 두 번 하면
@@ -859,7 +873,7 @@ export default function CandleHall() {
   const 닫기 = () => window.history.back();
 
   /** 무엇을 올릴까 — 먼저 고르고, 고른 다음에 쓴다 */
-  const start = async () => { if (!me) { await loginWithGoogle(); return; } 층쌓기(); 고르기잡기(true); };
+  const start = () => { 층쌓기(); 고르기잡기(true); };
   const 열기 = (c: Candle) => { 층쌓기(); setOpen(c); };
   const activeMine = mine.filter((c) => c.until > Date.now());
   // 형: 「함께 건 연등 / 내 연등 구분 말고, 저 은은한 박스는 유지하고

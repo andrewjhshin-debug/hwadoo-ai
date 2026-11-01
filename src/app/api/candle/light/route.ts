@@ -33,6 +33,7 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { FIRST_GRANT, isAdminAccount } from "@/lib/config";
+import { isLanternColor } from "@/lib/lanternSpec";
 // 치수는 candleSpec 에서 — @/lib/candle 을 물면 서버에서
 // 브라우저용 Firebase(initializeApp)가 깨어난다
 import {
@@ -105,6 +106,9 @@ export async function POST(req: Request) {
   const giftRaw = str(body.gift);
   const gift =
     giftRaw === "ssal" || giftRaw === "cho" || giftRaw === "hyang" || giftRaw === "giwa" ? giftRaw : "deung";
+  if (gift === "deung" && body.lanternColor !== undefined && !isLanternColor(body.lanternColor))
+    return Response.json({ error: "bad-lantern-color" }, { status: 400 });
+  const lanternColor = isLanternColor(body.lanternColor) ? body.lanternColor : "pink";
   const publicCandle = body.visibility === "public";
   const lotusCost = publicCandle ? PUBLIC_CANDLE_PRICE : PRIVATE_CANDLE_PRICE;
   const burnDays = publicCandle ? PUBLIC_BURN_DAYS : PRIVATE_BURN_DAYS;
@@ -136,7 +140,7 @@ export async function POST(req: Request) {
       // 읽기는 모두 쓰기보다 앞서야 한다(Firestore 규약) —
       // 이미 선 초인지부터 본다
       const already = await tx.get(candle);
-      if (already.exists) return { ok: true as const, again: true };
+      if (already.exists) return { ok: true as const, again: true, lanternColor: already.data()?.lanternColor };
 
       if (!free) {
         const snap = await tx.get(wallet);
@@ -156,6 +160,7 @@ export async function POST(req: Request) {
       tx.set(candle, {
         tier: "candle",
         gift,
+        ...(gift === "deung" ? { lanternColor } : {}),
         uid,
         by: by || "이름 없는 이",
         byHanja,
@@ -169,11 +174,11 @@ export async function POST(req: Request) {
         until: Date.now() + burnDays * DAY,
         createdAt: FieldValue.serverTimestamp(),
       });
-      return { ok: true as const, again: false };
+      return { ok: true as const, again: false, lanternColor: gift === "deung" ? lanternColor : undefined };
     });
 
     if (!out.ok) return Response.json({ error: "no-lotus" }, { status: 402 });
-    return Response.json({ ok: true, id: candle.id, again: out.again });
+    return Response.json({ ok: true, id: candle.id, again: out.again, ...(isLanternColor(out.lanternColor) ? { lanternColor: out.lanternColor } : {}) });
   } catch {
     // 트랜잭션이 엎어지면 지갑도 초도 그대로다 — 되돌릴 것이 없다
     return Response.json({ error: "write-failed" }, { status: 500 });

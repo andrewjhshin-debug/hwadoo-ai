@@ -1229,3 +1229,20 @@ body:has(.hip-masters) .hip-daybar { display: none; }
 .hip-set-row i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s; }
 .hip-set-row i[data-on="1"] { background: #f2789f; }
 .hip-set-row i[data-on="1"]::after { transform: translateX(18px); }
+/* 법당 인원 — 제목 옆 작게 */
+.hip-hall-count { margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: #fde7ef; color: #e0567f; font-size: 11.5px; font-weight: 600; letter-spacing: 0; vertical-align: middle; }
+.hip-rail-offer i { background: linear-gradient(160deg, #f6a3bd, #e0567f) !important; }
+/* 기다리는 인연 — 수는 공짜, 얼굴은 연꽃 한 송이 */
+.hip-wait { margin: 0 0 14px; padding: 14px 16px; border-radius: 18px; background: #fff; box-shadow: 0 4px 18px rgba(26,23,20,.06); }
+.hip-wait-head { display: flex; align-items: baseline; justify-content: space-between; }
+.hip-wait-head b { font-size: 15px; color: #1a1a1c; }
+.hip-wait-head em { font-style: normal; color: #e0567f; margin-left: 4px; }
+.hip-wait-head small { font-size: 11.5px; color: #8e8a8c; }
+.hip-wait-open { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 12px; padding: 10px 12px 10px 10px; border-radius: 999px; background: #1a1a1c; color: #fff; font-size: 13.5px; font-weight: 600; }
+.hip-wait-blur { display: flex; }
+.hip-wait-blur i { width: 30px; height: 30px; margin-right: -8px; border-radius: 50%; border: 2px solid #1a1a1c; background: radial-gradient(circle at 40% 35%, #f8c9d7, #c98aa0); filter: blur(1.5px); }
+.hip-wait-list { display: flex; gap: 10px; margin-top: 12px; overflow-x: auto; }
+.hip-wait-list li { flex: none; width: 92px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: #1a1a1c; }
+.hip-wait-list img, .hip-wait-list i { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; background: #f1e6ea; }
+.hip-wait-list button, .hip-wait-list a { padding: 5px 14px; border-radius: 999px; background: #f2789f; color: #fff; font-size: 12px; font-weight: 600; text-decoration: none; }
+.hip-wait-need { display: block; margin-top: 8px; font-size: 12px; color: #e0567f; }

@@ -1,4 +1,5 @@
 "use client";
+import { lanternFor, type LanternColor } from "@/lib/lanternSpec";
 
 // ─────────────────────────────────────────────────────────────
 // 연등(蓮燈) — 천장에 걸리는 등 한 개와 그 아래 쪽지.
@@ -28,6 +29,7 @@ export default function Yeondeung({
   name,
   /** 등의 빛깔·흔들림을 가르는 씨. 같은 사람은 늘 같은 등을 단다 */
   seed = 0,
+  color,
   /** 줄 길이(px) — 층을 지어 걸리려면 저마다 달라야 한다 */
   drop = 24,
   /** 꺼진 등 — 다 탄 것은 빛이 죽는다 */
@@ -39,6 +41,7 @@ export default function Yeondeung({
 }: {
   name: string;
   seed?: number;
+  color?: LanternColor;
   drop?: number;
   dim?: boolean;
   깊이?: number;
@@ -47,7 +50,7 @@ export default function Yeondeung({
   const s = Math.abs(seed);
   // 빛깔 다섯 벌 — 원화가 연분홍·자주라 ±30도 안에서만 돌린다.
   // 더 돌리면 등이 파래지거나 누레져서 법당이 아니라 축제가 된다
-  const 돌림 = [0, -16, 14, -30, 26][s % 5];
+  const lantern = lanternFor(color, seed);
   // 흔들림은 저마다 다른 박자로 — 서로 나눌 수 없는 초로 두면 겹치는
   // 자리가 늘 달라져서, 스무 개가 한 몸처럼 흔들리는 일이 없다
   const 초 = 4.6 + ((s * 7) % 23) / 10;
@@ -57,7 +60,7 @@ export default function Yeondeung({
     <button
       type="button"
       onClick={onClick}
-      className="hip-deung"
+      className="hip-deung hip-lotus-lantern"
       /* 숫자를 그대로 넘기면 안 된다 — 리액트가 CSS 변수에 **px 를
          붙인다.** `--깊이: 0px` 이 되면 calc(22% − 0px × 5%) 가 깨지고,
          폭이 통째로 풀려 등 하나가 화면을 다 먹는다(형: 「하나 달았는데
@@ -78,17 +81,16 @@ export default function Yeondeung({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           className="hip-deung-img"
-          src="/obj/deung.png"
+          src={lantern.src}
           alt=""
           draggable={false}
           style={{
             filter: dim
-              ? `hue-rotate(${돌림}deg) saturate(0.28) brightness(1.06) opacity(0.65)`
-              : `hue-rotate(${돌림}deg)`,
+              ? "saturate(0.28) brightness(1.06) opacity(0.65)"
+              : undefined,
           }}
         />
         {/* 이름은 쪽지 위에 세로로 */}
-        <b className="hip-deung-tag">{name}</b>
       </span>
     </button>
   );

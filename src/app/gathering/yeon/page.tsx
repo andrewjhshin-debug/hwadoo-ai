@@ -19,6 +19,7 @@ import { Yeonkkot } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
+import YeonWaiting from "@/components/YeonWaiting";
 import InyeonThread from "@/components/InyeonThread";
 import { useConfirm } from "@/components/Confirm";
 import { watchAuth } from "@/lib/sync";
@@ -601,6 +602,7 @@ function 껍데기({ children, 몫 }: { children: React.ReactNode; 몫?: string 
             판에 몇이 남았는지가 보여야 「더 볼 수 있다」가 읽힌다.
             무료 둘, 연꽃으로 넷 — 하루 여섯이 이 방의 몫이다. */}
         {몫 && <p className="hip-yeon-quota">{몫}</p>}
+        <YeonWaiting />
         {children}
       </div>
     </HipRoom>

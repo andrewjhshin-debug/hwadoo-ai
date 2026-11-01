@@ -31,6 +31,7 @@ import { loadMe } from "./me";
 import { anonName } from "./anonName";
 import { loadStore } from "./store";
 import { rankHanjaFor } from "./badges";
+import type { LanternColor } from "./lanternSpec";
 import {
   NAME_MAX,
   PAGE,
@@ -72,6 +73,7 @@ export type Candle = {
    * 옛 문서에는 이 칸이 없다 — 없으면 연등으로 본다(여태 다 연등이었다).
    */
   gift?: "deung" | "ssal" | "cho" | "hyang" | "giwa";
+  lanternColor?: LanternColor;
   by: string; // 올린 사람 법명
   byHanja?: string | null; // 올린 사람 걸음 한 글자
   forName: string; // 누구를 위해
@@ -120,6 +122,7 @@ export async function lightCandle(
     wish: string;
     visibility: "private" | "public";
     gift: "deung" | "ssal" | "cho" | "hyang" | "giwa";
+    lanternColor?: LanternColor;
   },
   /**
    * 이 초 한 자루의 표. 같은 표로 두 번 보내면 서버가 두 번째를
@@ -127,7 +130,7 @@ export async function lightCandle(
    * 나간다. 화면이 창을 열 때 한 번 뽑아 두고 재시도에도 같은 것을 쓴다.
    */
   key: string
-): Promise<{ id: string } | null> {
+): Promise<{ id: string; lanternColor?: LanternColor } | null> {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
 
@@ -146,6 +149,7 @@ export async function lightCandle(
       forName,
       kind: "peace",
       gift: d.gift,
+      ...(d.gift === "deung" ? { lanternColor: d.lanternColor ?? "pink" } : {}),
       wish,
       visibility: d.visibility,
       // 보이기용 — 서버가 길이만 깎아 그대로 적는다
@@ -161,8 +165,8 @@ export async function lightCandle(
     const why = await res.json().catch(() => ({}));
     throw new Error(`초를 세우지 못했습니다 (${why?.error ?? res.status})`);
   }
-  const { id } = (await res.json()) as { id: string };
-  return { id };
+  const { id, lanternColor } = (await res.json()) as { id: string; lanternColor?: LanternColor };
+  return { id, lanternColor };
 }
 
 /**
