@@ -24,9 +24,9 @@ export type 공양갈래 = "deung" | "ssal" | "cho" | "hyang" | "giwa";
 
 /** 불단에 서는 것들 — 그림과 그 밑에 적는 이름 */
 const 선것 = {
-  ssal: { src: "/obj/gong-ssal.png", 말: "쌀 공양" },
-  cho: { src: "/obj/gong-cho.png", 말: "초 공양" },
-  hyang: { src: "/obj/gong-hyang.png", 말: "향 공양" },
+  ssal: { src: "/obj/gong-ssal-hall.webp", 말: "쌀 공양" },
+  cho: { src: "/obj/gong-cho-hall.webp", 말: "초 공양" },
+  hyang: { src: "/obj/gong-hyang-hall.webp", 말: "향 공양" },
   giwa: { src: "/obj/gong-giwa.webp", 말: "기와 불사" },
 } as const;
 

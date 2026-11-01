@@ -132,9 +132,9 @@ function 법당마루() {
  */
 const 공양들: { k: 공양갈래; 이름: string; 그림: string }[] = [
   { k: "deung", 이름: "연등", 그림: LANTERN_COLORS[0].src },
-  { k: "ssal", 이름: "쌀", 그림: "/obj/gong-ssal.png" },
-  { k: "cho", 이름: "초", 그림: "/obj/gong-cho.png" },
-  { k: "hyang", 이름: "향", 그림: "/obj/gong-hyang.png" },
+  { k: "ssal", 이름: "쌀", 그림: "/obj/gong-ssal-hall.webp" },
+  { k: "cho", 이름: "초", 그림: "/obj/gong-cho-hall.webp" },
+  { k: "hyang", 이름: "향", 그림: "/obj/gong-hyang-hall.webp" },
   { k: "giwa", 이름: "기와 불사", 그림: "/obj/gong-giwa.webp" },
 ];
 
@@ -1042,7 +1042,7 @@ export default function CandleHall() {
                       >
                         <span className="hip-gong-body">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img className="hip-gong-img" src="/obj/gong-hyang.png" alt="" draggable={false} />
+                          <img className="hip-gong-img" src="/obj/gong-hyang-hall.webp" alt="" draggable={false} />
                           {/* 형: 「향이랑 초는 타는 듯한 이펙트 줄 수 있나」
                               향은 **연기**다. 세 올이 서로 다른 박자로 올라가
                               흩어진다 — 박자가 같으면 그림이지 연기가 아니다 */}
