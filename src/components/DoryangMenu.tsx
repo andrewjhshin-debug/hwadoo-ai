@@ -109,7 +109,6 @@ const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
       // 법당이 여기 없어서 폰에서는 초를 켤 길이 아예 없었다.
       // 공덕이 가 닿는 끝자리라 「함께」의 맨 앞에 세운다.
       { href: "/candle", label: "법당 — 초 공양", say: "초 한 자루", Icon: Chotbul },
-      { href: "/community", label: "연지원 — 커뮤니티", say: "묻고 답하다", Icon: LotusPond },
       { href: "/moment", label: "시절인연", say: "절에 다녀온 한 장", Icon: Moment },
       { href: "/my-hwadu", label: "내가 던지는 화두", say: "물음을 놓다", Icon: Nohda },
       { href: "/letters", label: "쪽지함", say: "주고받은 말", Icon: Letter },

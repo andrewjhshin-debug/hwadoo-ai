@@ -957,7 +957,7 @@ export default function MoktakPage() {
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
                       transition:
-                        "left .16s ease-out, top .16s ease-out, width .16s ease-out",
+                        "left .16s linear, top .16s linear, width .16s linear",
                     }}
                   >
                     {stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>

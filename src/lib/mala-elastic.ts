@@ -5,7 +5,8 @@ export function pulseMalaElastic(state: MalaElastic, now: number) {
   const gap = state.lastHit === null ? Infinity : Math.max(0, now - state.lastHit);
   state.lastHit = now;
   state.idle = 0;
-  const intensity = Math.max(0, Math.min(1, (280 - gap) / 220));
+  // 형: 「하나하나 눌릴 땐 그대로 정속, 빠르게 굴렸을 때만 텐션」 — 0.16초보다 빠른 연타에만 걸린다
+  const intensity = Math.max(0, Math.min(1, (160 - gap) / 90));
   state.energy = Math.max(state.energy, intensity);
   state.velocity = Math.max(-.75, state.velocity - .08 * intensity);
   return state.energy > .001;

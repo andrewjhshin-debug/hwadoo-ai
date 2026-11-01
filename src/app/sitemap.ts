@@ -14,7 +14,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/try",
     "/tea",
     "/about",
-    "/community",
     "/archive",
     "/room",
     "/breath",

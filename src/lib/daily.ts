@@ -89,7 +89,7 @@ export const POOL: Mission[] = [
   { id: "bead", key: "bead", need: 108, label: "염주 백여덟 알", href: "/moktak" },
   { id: "breath", key: "breath", need: 1, label: "호흡 한 판", href: "/breath" },
   { id: "hwadu", key: "hwadu", need: 1, label: "화두 하나 회향", href: "/" },
-  { id: "gathering", key: "gathering", need: 1, label: "인연에 한 줄", href: "/community" },
+  { id: "gathering", key: "gathering", need: 1, label: "인연에 한 줄", href: "/gathering" },
   { id: "sutra", key: "sutra", need: 1, label: "경전 한 편 외우기", href: "/sutra" },
 ];
 

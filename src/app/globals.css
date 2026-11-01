@@ -1246,3 +1246,25 @@ body:has(.hip-masters) .hip-daybar { display: none; }
 .hip-wait-list img, .hip-wait-list i { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; background: #f1e6ea; }
 .hip-wait-list button, .hip-wait-list a { padding: 5px 14px; border-radius: 999px; background: #f2789f; color: #fff; font-size: 12px; font-weight: 600; text-decoration: none; }
 .hip-wait-need { display: block; margin-top: 8px; font-size: 12px; color: #e0567f; }
+/* 돌탑 — 넓은 화면에서 가운데로 */
+.hip-screen:has(.tower-game) > .hip-screen-mid { justify-self: center; }
+/* 글쓰기 규칙 안내 — 칸을 누르면 사라진다 */
+.hip-rules-ph::placeholder { font-size: 12.5px; line-height: 1.8; color: #a7a2a4; }
+.hip-rules-ph:focus::placeholder { color: transparent; }
+/* 인연 게시판 — 골스 라운지를 참고: 얼굴 / 한 줄 제목 / 이름·때·조회·댓글 작은 줄 */
+.hip-feed > button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 18px; text-align: left; background: none; }
+.hip-feed-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.hip-feed-title { font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #141414; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hip-feed-title em { font-style: normal; margin-right: 6px; font-size: 12px; font-weight: 600; color: #e0567f; }
+.hip-feed-title[data-gone="1"] { color: #b4b0b2; font-weight: 500; }
+.hip-feed-meta { display: flex; align-items: center; gap: 3px; font-size: 12px; color: #a19c9e; white-space: nowrap; overflow: hidden; }
+.hip-feed-meta svg { width: 12px; height: 12px; }
+.hip-feed-meta i { font-style: normal; color: #e0567f; overflow: hidden; text-overflow: ellipsis; }
+/* 갈래 — 글자 탭, 고른 것만 굵게 밑줄 */
+.hip-tab { flex: none; padding: 8px 4px 9px; margin-right: 10px; border: 0 !important; border-bottom: 2px solid transparent !important; border-radius: 0; background: none; font-size: 14.5px; font-weight: 500; color: #9a9597; }
+.hip-tab[aria-pressed="true"] { color: #141414; font-weight: 700; border-bottom-color: #141414 !important; }
+/* 글쓰기 — 화면에 떠 있는 단추. 줄 끝에 있다 잘리던 것을 뺐다 */
+.hip-write-fab { position: fixed; right: 18px; bottom: calc(env(safe-area-inset-bottom) + 108px); z-index: 70; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: #1a1a1c; color: #fff; box-shadow: 0 8px 22px rgba(0,0,0,.25); }
+.hip-write-fab svg { width: 22px; height: 22px; }
+/* 문 둘은 맨 위에서 띄운다 */
+.hip-yeon-doors { margin-top: 0 !important; padding-top: 22px !important; }

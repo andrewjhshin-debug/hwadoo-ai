@@ -24,9 +24,9 @@ async function 셈(app: App, db: Firestore, me: string, 열림: boolean) {
   ]);
   const 답함 = new Set(보낸.docs.map((d) => d.data().to as string));
   const 기다림 = 받은.docs.map((d) => d.data().from as string).filter((u) => !답함.has(u));
-  // 막은 사이는 뺀다
-  const 막힘 = await Promise.all(기다림.map((u) => db.doc(`yeon-blocks/${me}/list/${u}`).get()));
-  const 남은 = 기다림.filter((_, i) => !막힘[i].exists);
+  // 막은 사이는 뺀다 — 어느 쪽이 막았든(합장 길과 같은 문턱)
+  const 막힘 = await Promise.all(기다림.map((u) => Promise.all([db.doc(`yeon-blocks/${me}/list/${u}`).get(), db.doc(`yeon-blocks/${u}/list/${me}`).get()])));
+  const 남은 = 기다림.filter((_, i) => !막힘[i][0].exists && !막힘[i][1].exists);
   let people: unknown[] | undefined;
   if (열림) {
     const 문서 = await Promise.all(남은.slice(0, 12).map((u) => db.doc(`yeon-profiles/${u}`).get()));

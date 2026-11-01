@@ -313,7 +313,7 @@ export default function GatheringBoard({
   const [temple, setTemple] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [category, setCategory] = useState<GatheringCategory>("together");
+  const [category, setCategory] = useState<GatheringCategory>("companion");
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const formRef = useRef<HTMLDivElement | null>(null);
@@ -584,7 +584,7 @@ export default function GatheringBoard({
     setTemple("");
     setDate("");
     setTime("");
-    setCategory("together");
+    setCategory("companion");
     setFormError("");
   };
 
@@ -1357,8 +1357,8 @@ export default function GatheringBoard({
               onChange={(e) => setText(e.target.value)}
               rows={6}
               maxLength={1000}
-              placeholder="내용"
-              className="resize-none rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[15.5px] leading-8 text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+              placeholder={"내용을 입력해 주세요.\n\n· 욕설·비방은 삭제됩니다.\n· 비속어, 특정인·집단·타 종교를 비하하는 글은 계정 정리 대상입니다.\n· 불건전한 내용, 개인 신상·사진 등 사생활 침해는 삭제 및 제재됩니다."}
+              className="hip-rules-ph resize-none rounded-[10px] border border-ink-3 bg-transparent px-4 py-3 text-[15.5px] leading-8 text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
             />
             {/* 어느 절로, 언제 — 전부 선택 */}
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -1478,11 +1478,7 @@ export default function GatheringBoard({
               key={c.key}
               onClick={() => setCategoryFilter(c.key)}
               aria-pressed={categoryFilter === c.key}
-              className={`shrink-0 rounded-full border px-2 py-1 text-[11px] transition-colors ${
-                categoryFilter === c.key
-                  ? "border-gold/60 bg-gold/10 text-gold"
-                  : "border-ink-3 text-hanji-faint hover:text-hanji-dim"
-              }`}
+              className="hip-tab"
             >
               {c.label}
             </button>
@@ -1506,9 +1502,10 @@ export default function GatheringBoard({
             setOpen(true);
             pushLayer();
           }}
-          className="rounded-full bg-[#f2789f] px-3 py-1 text-[12px] font-semibold text-white"
+          className="hip-write-fab"
+          aria-label="글쓰기"
         >
-          글쓰기
+          <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" /></svg>
         </button>
         </div>
       </div>
@@ -1587,53 +1584,24 @@ export default function GatheringBoard({
                 <GoPostBox p={p} open={() => { setSelectedId(p.id); pushLayer(); }} />
               </li>
             );
+            // 골스 게시판처럼 — 얼굴·이름·때, 굵은 제목, 본문 두 줄, 아래 갈래·조회·댓글
             return (
-            <li key={p.id}>
+            <li key={p.id} className="hip-feed">
               <button
                 onClick={() => {
                   setSelectedId(p.id);
                   pushLayer();
                 }}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-gold/5 sm:px-2"
               >
-                {/* 프로필 — 사진을 켠 사람은 작은 얼굴, 아니면 음양 */}
-                <PostFace p={p} />
-                <span className="min-w-0 flex-1">
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    {!p.deleted && p.category && p.category !== "together" && (
-                      <span className="shrink-0 rounded-full border border-gold/30 px-1.5 py-px text-[9.5px] leading-tight tracking-wide text-gold-soft">
-                        {categoryLabel(p.category)}
-                      </span>
-                    )}
-                    <span
-                      className={`block truncate text-[16px] font-semibold leading-6 ${
-                        p.deleted ? "text-hanji-faint" : "text-[#1a1a1c]"
-                      }`}
-                    >
-                      {p.title}
-                    </span>
+                <PostFace p={p} className="h-9 w-9" />
+                <span className="hip-feed-main">
+                  <span className="hip-feed-title" data-gone={p.deleted ? "1" : undefined}>
+                    {!p.deleted && p.category && p.category !== "free" && <em>{categoryLabel(p.category)}</em>}
+                    {p.title}
                   </span>
-                  <span className="mt-0.5 flex min-w-0 items-center gap-2.5 text-[12px] text-[#6e6a6c]">
-                    <span className="shrink-0">{stamp(p.createdAt)}</span>
-                    <span className="flex shrink-0 items-center gap-1">
-                      <EyeIcon />
-                      {p.views ?? 0}
-                    </span>
-                    <span className="flex shrink-0 items-center gap-1">
-                      <CommentIcon />
-                      {p.commentCount}
-                    </span>
-                    {(p.templeName || p.meetDate) && (
-                      <span className="truncate text-gold-soft">
-                        {[
-                          p.templeName,
-                          p.meetDate ? legacyDate(p.meetDate) : null,
-                          p.meetTime ? timeLabel(p.meetTime) : null,
-                        ]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </span>
-                    )}
+                  <span className="hip-feed-meta">
+                    {p.authorName || "이름 없는 이"} · {stamp(p.createdAt)} · <EyeIcon />{p.views ?? 0} · <CommentIcon />{p.commentCount}
+                    {(p.templeName || p.meetDate) && <i> · {[p.templeName, p.meetDate ? legacyDate(p.meetDate) : null].filter(Boolean).join(" ")}</i>}
                   </span>
                 </span>
               </button>

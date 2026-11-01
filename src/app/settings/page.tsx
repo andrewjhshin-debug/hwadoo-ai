@@ -240,7 +240,6 @@ const SERVICES: ServiceItem[] = [
   { href: "/empty", label: "비움", Icon: Baru },
   { href: "/candle", label: "법당", Icon: Chotbul },
   { href: "/lotus", label: "연꽃", Icon: Yeonkkot },
-  { href: "/community", label: "연지원", Icon: LotusPond },
   { href: "/archive", label: "지난 화두", Icon: Seogo },
   { href: "/sutra", label: "외우기", Icon: Book },
   { href: "/draw", label: "오늘의 운세", Icon: Enso },

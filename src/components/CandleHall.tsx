@@ -8,6 +8,7 @@ import Gongyang, { type 공양갈래 } from "@/components/Gongyang";
 import { 신고보내기 } from "@/lib/dm";
 import { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
+import { watchOnlineCount } from "@/lib/presence";
 import { strikeBell } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
 import { auth, db } from "@/lib/firebase";
@@ -74,6 +75,13 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onCli
 
 /** 법당의 가운데는 공양 유무와 관계없이 한 장면이다.
  *  실제 등만 이 장면 위에 차고, 불단의 기본 공양은 늘 제자리에 있다. */
+/** 지금 법당에 있는 사람 — 형: 「법당에 n명 이런 식으로 표기」 */
+function 법당인원() {
+  const [n, setN] = useState(0);
+  useEffect(() => watchOnlineCount(setN), []);
+  return n > 0 ? <small className="hip-hall-count">{n}명</small> : null;
+}
+
 function 법당중앙({ children }: { children?: React.ReactNode }) {
   return <div className="hip-hall-shrine">
     {/* 불단은 무대(stage) 위에 — 장면 속 공양물 손가락 자리(%)가 그림과 같이 움직이게 한 통에 담는다 */}
@@ -237,7 +245,6 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
           id="offering-name"
           value={forName}
           onChange={(e) => setForName(e.target.value.slice(0, 20))}
-          placeholder={loadMe()?.name ?? "이름 없는 이"}
           className="hip-deung-in"
           disabled={busy}
         /></details>
@@ -251,7 +258,6 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
           value={wish}
           onChange={(e) => setWish(e.target.value.slice(0, 120))}
           rows={4}
-          placeholder={갈래 === "giwa" ? "기와에 새길 마음" : "오늘은 덜 불안했으면."}
           className="hip-deung-in hip-deung-area"
           disabled={busy}
         />
@@ -272,7 +278,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
             aria-pressed={publicCandle}
             disabled={busy}
           >
-            <b>함께</b>
+            <b>내 사연 함께 보기</b>
             <i>연꽃 {PUBLIC_CANDLE_PRICE}송이 · {PUBLIC_BURN_DAYS}일</i>
           </button>
         </div>
@@ -293,7 +299,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
           disabled={!wish.trim() || busy}
           className="hip-deung-go"
         >
-          {busy ? "올리는 중…" : gift === "deung" ? "등 달기" : "공양 올리기"}
+          {busy ? "올리는 중…" : "공양"}
         </button>
         {/* 「3일 동안 걸립니다」 — 뺀다. 바로 위 고르는 칸에 이미
             「나만 보기 · 3일」이라 적혀 있다. 같은 말을 두 번 하면
@@ -508,13 +514,11 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
             <input
               value={이름글}
               onChange={(e) => 이름글잡기(e.target.value.slice(0, 20))}
-              placeholder="쪽지에 적을 이름"
             />
             <textarea
               value={사연글}
               onChange={(e) => 사연글잡기(e.target.value.slice(0, 120))}
               rows={4}
-              placeholder="사연이나 기원하는 내용"
             />
             <div>
               <span>{사연글.length} / 120</span>
@@ -857,11 +861,13 @@ export default function CandleHall() {
   };
   /** popstate 가 지금 무엇이 떠 있는지 읽도록 — 효과는 한 번만 건다 */
   const 층 = useRef({ form: false, 고르기: false, open: false, 사연판: false });
+  const 다올림 = useRef(false);
   층.current = { form, 고르기, open: !!open, 사연판 };
   useEffect(() => {
     const onPop = () => {
       const l = 층.current;
-      if (l.form) return void setForm(false);
+      // 형: 「공양 올리기 팝업 닫으면 다시 공양물 고르는 화면으로」 — 다 올린 뒤엔 그냥 닫는다
+      if (l.form) { setForm(false); if (!다올림.current) { 고르기잡기(true); 층쌓기(); } 다올림.current = false; return; }
       if (l.고르기) return void 고르기잡기(false);
       if (l.open) return void setOpen(null);
       if (l.사연판) return void 사연판잡기(false);
@@ -957,7 +963,7 @@ export default function CandleHall() {
         내 공양
       </button>
       {/* 한자 「法堂」은 뒤의 「법당」과 같은 말이라 뗀다 */}
-      <h1>법당</h1>
+      <h1>법당 <법당인원 /></h1>
       <span aria-hidden />
     </div>
     {/* 형: 「위는 연등, 아래는 초 쌀 등등 뭐 이런 식으로 가자」
@@ -1111,7 +1117,13 @@ export default function CandleHall() {
                 사이에서 혼자 스티커처럼 떴다. 머리 오른쪽이 이미 쓰는
                 연꽃으로 맞춘다 — 두 자리가 같은 꽃이어야 「연꽃」이
                 한 번만 설명된다. */}
-            <span className="hip-rail-lotus" aria-hidden>🪷</span>
+            {/* 형: 「공양을 떠올릴 수 있도록」 — 향로에 향 세 대, 연기 한 줄. 옆 두 단추와 같은 흰 선 */}
+            <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4.5 14.5h15c-.4 3.1-3.6 5.5-7.5 5.5s-7.1-2.4-7.5-5.5Z" />
+              <path d="M8.5 20.6 7.6 22M15.5 20.6l.9 1.4" />
+              <path d="M9.5 14.5V9M12 14.5V7.5M14.5 14.5V9" />
+              <path d="M12 5.5c-1-.9-.2-1.8.4-2.4.6-.7.4-1.4-.2-1.8" />
+            </svg>
           </i>
           <b>공양</b>
         </button>
@@ -1134,7 +1146,7 @@ export default function CandleHall() {
     {form && <CandleForm 갈래={고른것} onClose={닫기} onDone={(c) => {
       setMine((before) => [c, ...before.filter((x) => x.id !== c.id)]);
       if (c.visibility === "public") setPublicCandles((before) => [c, ...(before ?? []).filter((x) => x.id !== c.id)]);
-      setForm(false);
+      다올림.current = true;
       닫기();
     }}/>} {open && <Story c={open} me={me} onClose={닫기} onChanged={load}/>}</div>;
 }

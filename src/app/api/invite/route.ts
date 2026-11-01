@@ -17,7 +17,8 @@ export async function POST(req: Request) {
   if (!app) return Response.json({ error: "server-not-ready" }, { status: 503 });
   const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/, "");
   let me = "";
-  try { me = (await getAuth(app).verifyIdToken(token)).uid; } catch { return Response.json({ error: "bad-token" }, { status: 401 }); }
+  // 메일이 확인된 계정만(구글 로그인은 늘 확인됨) — 익명·가짜 계정으로 연꽃을 찍어 내지 못하게
+  try { const t = await getAuth(app).verifyIdToken(token); if (!t.email_verified) throw 0; me = t.uid; } catch { return Response.json({ error: "bad-token" }, { status: 401 }); }
   const b = (await req.json().catch(() => null)) as { ref?: unknown } | null;
   const ref = typeof b?.ref === "string" && /^[A-Za-z0-9]{6,64}$/.test(b.ref) ? b.ref : "";
   if (!ref || ref === me) return Response.json({ error: "bad-ref" }, { status: 400 });
