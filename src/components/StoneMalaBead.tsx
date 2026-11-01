@@ -15,6 +15,6 @@ export default function StoneMalaBead({ fill, index, baseFilter, goldFilter, zod
     <img src={symbol.src} width={920} height={920} alt="" draggable={false} decoding="async" className="block w-full" style={{ filter: baseFilter }} />
     {/* The same pixels prevent engraving jumps during partial gold fill. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={symbol.src} width={920} height={920} alt="" aria-hidden draggable={false} decoding="async" className="absolute inset-0 block w-full" style={{ filter: `grayscale(1) sepia(.9) saturate(1.6) brightness(.82) contrast(1.02) ${goldFilter ?? ""}`, opacity: amount, transition: "opacity .16s ease-out" }} />
+    <img src={symbol.src} width={920} height={920} alt="" aria-hidden draggable={false} decoding="async" className="absolute inset-0 block w-full" style={{ filter: `${zodiac ? "grayscale(1) sepia(1) saturate(2.5) brightness(1.12)" : "grayscale(1) sepia(.9) saturate(1.6) brightness(.82) contrast(1.02)"} ${goldFilter ?? ""}`, opacity: amount, transition: "opacity .16s ease-out" }} />
   </>;
 }

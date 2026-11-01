@@ -232,7 +232,7 @@ function 좌복카드({ 이, 닫기 }: { 이: 앉은이; 닫기: () => void }) {
       ) : (
         <div className="hip-seat-dm">
           <input value={말} maxLength={80} placeholder="한 마디" onChange={(e) => 말잡기(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void 보내기(); }} />
-          <button type="button" disabled={!말.trim() || 상태 === "busy"} onClick={() => void 보내기()}>쪽지 🪷3</button>
+          <button type="button" disabled={!말.trim() || 상태 === "busy"} onClick={() => void 보내기()}>쪽지 <Yeonkkot className="inline-block h-4 w-4 align-middle" />3</button>
         </div>
       )}
       {상태 === "fail" && <p className="hip-seat-fail">보내지 못했어요</p>}

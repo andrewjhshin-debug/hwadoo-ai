@@ -325,7 +325,7 @@ export default function LettersPage() {
                     onClick={() => void 사기(opened, k)}
                     className={`rounded-[12px] border px-3 py-2.5 text-[13px] disabled:opacity-40 ${k === "both" || k === "reopen" ? "col-span-2 border-[#1a1a1c] bg-[#1a1a1c] text-white" : "border-ink-3 text-hanji"}`}
                   >
-                    {DM_PASSES[k].label} · 🪷{DM_PASSES[k].n}
+                    {DM_PASSES[k].label} · <Yeonkkot className="inline-block h-4 w-4 align-middle" />{DM_PASSES[k].n}
                   </button>
                 ))}
               </div>
@@ -551,11 +551,11 @@ function ContactSwap({ threadId, user }: { threadId: string; user: User }) {
         <form onSubmit={(e) => { e.preventDefault(); if (값.trim()) void 걸기(값); }}>
           <div className="flex items-center gap-2">
             <input autoFocus value={값} onChange={(e) => set값(e.target.value)} maxLength={40} placeholder="카톡 아이디 또는 번호" className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3 py-2 text-hanji outline-none" />
-            <button disabled={!값.trim()} className="shrink-0 rounded-[10px] border border-gold/50 px-3 py-2 text-gold disabled:opacity-40">{공짜 ? "열기" : `열기 · 🪷${DM_CONTACT}`}</button>
+            <button disabled={!값.trim()} className="shrink-0 rounded-[10px] border border-gold/50 px-3 py-2 text-gold disabled:opacity-40">{공짜 ? "열기" : <>열기 · <Yeonkkot className="inline-block h-4 w-4 align-middle" />{DM_CONTACT}</>}</button>
           </div>
           {!공짜 && !st.paidTheirs && (
             <button type="button" disabled={!값.trim()} onClick={() => void 걸기(값, true)} className="mt-2 w-full rounded-[10px] bg-[#1a1a1c] px-3 py-2 text-white disabled:opacity-40">
-              둘 다 내가 낼게 · 🪷{DM_CONTACT_BOTH}
+              둘 다 내가 낼게 · <Yeonkkot className="inline-block h-4 w-4 align-middle" />{DM_CONTACT_BOTH}
             </button>
           )}
           {모자람 && <Link href="/lotus" className="mt-2 block text-center text-[12px] text-[#a8804a] underline underline-offset-4">연꽃이 모자라요 · 채우기</Link>}

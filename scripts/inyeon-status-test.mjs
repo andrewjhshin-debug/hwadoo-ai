@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+const exports={};new Function('exports',ts.transpileModule(fs.readFileSync('src/lib/inyeon-status.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(exports);
+const owners={one:'owner',two:'author'};
+assert.deepEqual(exports.acceptedPostIds(owners,[{postId:'one',status:'pending',members:['owner','a']},{postId:'two',status:'rejected',members:['author','b']},{postId:'one',status:'accepted',members:['other','a']},{postId:'deleted',status:'accepted',members:['owner','a']}]),[]);
+assert.deepEqual(exports.acceptedPostIds(owners,[{postId:'one',status:'accepted',members:['owner','a']},{postId:'one',status:'accepted',members:['owner','b']}]),['one']);
+console.log('PASS: badge requires acceptance, post author membership, visible post, no duplicate matches');
+let ready=true, calls=0;
+const fakePosts=[{id:'one',exists:true,data:()=>({authorUid:'owner',board:'gathering',category:'intro'})},{id:'gone',exists:true,data:()=>({authorUid:'owner',board:'gathering',deleted:true})}];
+const fakeDb={doc:p=>p,getAll:async()=>fakePosts,collection:()=>({where:(field,op,ids)=>{assert.equal(field,'postId');assert.equal(op,'in');assert.deepEqual(ids,['one']);return {select:(...fields)=>{assert.deepEqual(fields,['postId','status','members']);return {limit:n=>{assert.equal(n,1000);return {get:async()=>{calls++;return {docs:[{data:()=>({postId:'one',status:'accepted',members:['owner','private-user']})},{data:()=>({postId:'gone',status:'accepted',members:['owner','private-user']})}]}}}}}}}}})};
+const route={};new Function('require','exports',ts.transpileModule(fs.readFileSync('src/app/api/inyeon/status/route.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(name=>name==='@/lib/inyeon-status'?exports:name==='@/lib/firebaseAdmin'?{adminApp:()=>ready?{}:null}:name==='firebase-admin/firestore'?{getFirestore:()=>fakeDb}:null,route);
+let response=await route.GET(new Request('https://example.test/api/inyeon/status?ids=one,gone'));
+assert.equal(response.status,200);assert.deepEqual(await response.json(),{matched:['one']});assert.equal(calls,1);
+response=await route.GET(new Request('https://example.test/api/inyeon/status?ids=one,gone'));assert.equal(response.status,200);assert.equal(calls,1,'repeat list uses short server cache');
+response=await route.GET(new Request('https://example.test/api/inyeon/status?ids=bad/path'));assert.equal(response.status,400);
+ready=false;response=await route.GET(new Request('https://example.test/api/inyeon/status?ids=other'));assert.equal(response.status,503);
+console.log('PASS: public response omits identities, deleted posts excluded, queries batched/capped/cached, invalid/unavailable requests handled');
+
+assert.deepEqual(exports.approvedGoPostIds({one:'owner'},[{postId:'one',people:{owner:{}}}]),[]);
+assert.deepEqual(exports.approvedGoPostIds({one:'owner'},[{postId:'one',people:{owner:{},guest:{}}}]),['one']);
+console.log('PASS: together badge requires an approved participant, not just the author or waiting applications');

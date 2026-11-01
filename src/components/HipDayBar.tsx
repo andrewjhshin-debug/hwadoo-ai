@@ -76,7 +76,7 @@ export default function HipDayBar() {
       </div>
       {말 && (
         <p className="hip-daybar-tip" role="status">
-          {찬만큼 >= 1 ? "오늘 한 송이 피었어요 🪷" : `다 차면 연꽃 한 송이 · ${Math.round(찬만큼 * 100)}%`}
+          {찬만큼 >= 1 ? "오늘 한 송이 피었어요" : `다 차면 연꽃 한 송이 · ${Math.round(찬만큼 * 100)}%`}
         </p>
       )}
     </div>

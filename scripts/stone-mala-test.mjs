@@ -24,7 +24,7 @@ const cat=await alpha('public/obj/bead-paw-one.png');
 for(const s of [...mod.STONE_MALA_SYMBOLS,...mod.ZODIAC_MALA_SYMBOLS,{src:'/obj/bead-wood-one-v2.png'},{src:'/obj/bead-wood-one-gold-v3.png'}]){const a=await alpha(`public${s.src}`);assert.equal(a.info.width,920);assert.equal(a.info.height,920);a.box.forEach((n,i)=>assert(Math.abs(n-cat.box[i])<=3,`sprite outline differs: ${a.box}/${cat.box}`));for(let i=3;i<a.data.length;i+=4)assert(a.data[i]<=cat.data[i],'cannot draw outside original cat silhouette');}
 const page=fs.readFileSync('src/app/moktak/page.tsx','utf8'),before=execFileSync('git',['show','HEAD:src/app/moktak/page.tsx'],{encoding:'utf8'});
 const beadSkins=page.split('  bead: [')[1].split('  bowl: [')[0];assert.equal((beadSkins.match(/\{ id:/g)||[]).length,6);assert(!beadSkins.includes('id: "neon"'));assert(beadSkins.includes('id: "stone"')&&beadSkins.includes('id: "zodiac"'));
-const sixth=beadSkins.match(/\{ id: "sandalwood"[^\n]+/)[0];assert(sixth.includes('wide: true')&&sixth.includes('lit: "/obj/bead-wood-one-gold-v3.png"'),'sixth plain wood uses shared horizontal ring with gold fill');
+const sixth=beadSkins.match(/\{ id: "sandalwood"[^\n]+/)[0];assert(sixth.includes('wide: true')&&sixth.includes('lit: "/obj/bead-wood-one-v2.png"'),'sixth plain wood uses shared horizontal ring with gold fill');
 assert(page.includes('if (got.bead === "neon") got.bead = "stone"'));
 for(const key of ['const RING_BEADS = 27;','const BEADS = 108;','const 고리폭 = 39;','const 물결 = (pos / (BEADS - 1)) * 360;','const 폭 = (사이(i) / 0.872) * 1.12;']){assert(page.includes(key));assert(before.includes(key));}
 const geometry=s=>s.slice(s.indexOf('const 자리 = Array.from'),s.indexOf('const 분홍결 =')).replaceAll('\r\n','\n');

@@ -131,7 +131,7 @@ export default function LotusCount({
           좁은 화면에서는 「공덕」 글자를 접는다 — 알약이 넓어지면 머리줄 제목과 겹친다. */}
       {n !== null && (
         <>
-          <span aria-hidden className="text-[11px]">🪷</span>
+          <Yeonkkot className="h-3 w-3" />
           <span className="tabular-nums">{n.toLocaleString("ko-KR")}</span>
         </>
       )}

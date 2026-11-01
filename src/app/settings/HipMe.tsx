@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import { isAdminAccount } from "@/lib/config";
 import { watchAuth } from "@/lib/sync";
 import Link from "next/link";
+import "./preferences/preferences.css";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
 import HipHeader from "@/components/HipHeader";
@@ -93,7 +94,6 @@ export default function HipMe({
   law,
   charms,
   bells,
-  settings,
   services,
   account,
   pendingCount = null,
@@ -410,12 +410,7 @@ export default function HipMe({
             </summary>
             <div>{bells}</div>
           </details>
-          <details>
-            <summary>
-              <b>設</b> 설정
-            </summary>
-            <div>{settings}</div>
-          </details>
+          <Link href="/settings/preferences" className="hip-preferences-entry"><span>⚙</span> 설정 <span aria-hidden>›</span></Link>
         </div>
 
         {/* 관리자 전용: 대시보드는 매출, 뒷도량은 화두·승인 관리. */}

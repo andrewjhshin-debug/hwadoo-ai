@@ -42,7 +42,7 @@ import {
   type GatheringCategory,
   type Post,
 } from "@/lib/community";
-import InyeonThread from "@/components/InyeonThread";
+import InyeonThread, { InyeonThreadBadge } from "@/components/InyeonThread";
 import { loadStore } from "@/lib/store";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { isAdminAccount } from "@/lib/config";
@@ -230,7 +230,7 @@ function useGo(postId: string) {
   };
   return { 판, 보내기 };
 }
-function GoPostBox({ p, open }: { p: Post; open: () => void }) {
+function GoPostBox({ p, open, matched = false }: { p: Post; open: () => void; matched?: boolean }) {
   const { 판 } = useGo(p.id);
   const 줄 = Object.entries(판?.people ?? {}).sort((a, b) => a[1].at - b[1].at);
   const 수 = Math.max(1, 줄.length);
@@ -239,7 +239,7 @@ function GoPostBox({ p, open }: { p: Post; open: () => void }) {
       {/* 형: 「같이 가요 버튼도 없애, 그냥 클릭하면 게시물 들어가지는 거로」 */}
       <button type="button" className="hip-go-box-main" onClick={open}>
         <span className="hip-go-box-when">{[날말(p.meetDate), p.meetTime ? timeLabel(p.meetTime) : "", p.templeName].filter(Boolean).join(" · ")}</span>
-        <span className="hip-go-box-title">{p.title}</span>
+        <span className="hip-go-box-title">{p.title}{matched && <InyeonThreadBadge />}</span>
         <span className="hip-go-box-faces">
           {(줄.length ? 줄 : [[p.authorUid, { name: p.authorName, at: 0 }] as [string, 가는사람]]).slice(0, 3).map(([id, x]) => <GoFace key={id} uid={id} name={x.name} />)}
           <small>{p.capacity ? `${수}/${p.capacity}명` : `${수}명`}</small>
@@ -459,6 +459,31 @@ export default function GatheringBoard({
   // 화면 — 글쓰기(open) > 글 읽기(selectedId) > 목록
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [matchedPosts, setMatchedPosts] = useState<string[]>([]);
+  const matchIds = (posts ?? []).filter(p => !p.deleted).map(p => p.id).sort().join(",");
+  useEffect(() => {
+    if (!matchIds) return;
+    const controller = new AbortController();
+    const read = async () => {
+      if (document.hidden) return;
+      try {
+        const ids = matchIds.split(","), batches = [];
+        for (let start = 0; start < ids.length; start += 60) batches.push(ids.slice(start, start + 60).join(","));
+        const matches: string[] = [];
+        for (const batch of batches) {
+          const res = await fetch(`/api/inyeon/status?ids=${encodeURIComponent(batch)}`, { signal: controller.signal });
+          if (!res.ok) { if (!controller.signal.aborted) setMatchedPosts([]); return; }
+          const data = await res.json();
+          if (Array.isArray(data.matched)) matches.push(...data.matched.filter((id: unknown): id is string => typeof id === "string"));
+        }
+        if (!controller.signal.aborted) setMatchedPosts(matches);
+      } catch { if (!controller.signal.aborted) setMatchedPosts([]); }
+    };
+    void read();
+    const interval = setInterval(() => void read(), 60000);
+    document.addEventListener("visibilitychange", read);
+    return () => { controller.abort(); clearInterval(interval); document.removeEventListener("visibilitychange", read); };
+  }, [matchIds, selectedId]);
   // 형: 「게시글 눌렀을 때 왜 댓글이 보이냐 — 제목부터」. 목록에서 내려온 자리 그대로 글이 열려
   // 아랫부분(댓글)이 먼저 보였다. 글을 열면 맨 위로, 닫으면 목록 보던 자리로 돌아간다
   const 목록자리 = useRef(0);
@@ -1299,7 +1324,7 @@ export default function GatheringBoard({
     const tops = all.filter((c) => !c.parentId || !ids.has(c.parentId));
     const childrenOf = (id: string) => all.filter((c) => c.parentId === id);
     // 청실홍실 — 글을 올린 이와 처음 붙은 다른 사람. 그 둘이 이어진 자리다.
-    const tied = all.find((c) => c.authorUid && c.authorUid !== p.authorUid);
+    const tied = all.find((c) => !c.deleted && c.authorUid && c.authorUid !== p.authorUid);
 
     return (
       <div className="px-4 pb-28 sm:px-0 md:pb-0">
@@ -1787,7 +1812,7 @@ export default function GatheringBoard({
             const 같이 = !p.deleted && (p.category ?? "together") === "together" && !!(p.templeName || p.meetDate);
             if (같이) return (
               <li key={p.id} className="hip-go-post">
-                <GoPostBox p={p} open={() => { 목록자리.current = document.getElementById("scroll-box")?.scrollTop ?? 0; setSelectedId(p.id); pushLayer(); }} />
+                <GoPostBox p={p} matched={matchedPosts.includes(p.id)} open={() => { 목록자리.current = document.getElementById("scroll-box")?.scrollTop ?? 0; setSelectedId(p.id); pushLayer(); }} />
               </li>
             );
             // 골스 게시판처럼 — 얼굴·이름·때, 굵은 제목, 본문 두 줄, 아래 갈래·조회·댓글
@@ -1805,6 +1830,7 @@ export default function GatheringBoard({
                   <span className="hip-feed-title" data-gone={p.deleted ? "1" : undefined}>
                     {!p.deleted && p.category && p.category !== "free" && <em>{categoryLabel(p.category)}</em>}
                     {p.title}
+                    {matchedPosts.includes(p.id) && !p.deleted && <InyeonThreadBadge />}
                   </span>
                   <span className="hip-feed-meta">
                     {p.authorName || "이름 없는 이"} · {stamp(p.createdAt)} · <EyeIcon />{p.views ?? 0} · <CommentIcon />{p.commentCount}

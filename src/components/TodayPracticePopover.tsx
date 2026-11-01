@@ -3,6 +3,7 @@
 // 머리 한켠의 작은 수행 장부. 메인에 새 판을 얹지 않고, 궁금할 때만 펼친다.
 
 import Link from "next/link";
+import { Yeonkkot } from "@/components/icons";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -52,7 +53,7 @@ export default function TodayPracticePopover() {
         className="hip-top-ico hip-today-trigger"
         onClick={() => setOpen((value) => !value)}
       >
-        <span aria-hidden>🪷</span>
+        <Yeonkkot className="h-6 w-6" />
         {!finished && <i className="hip-today-badge" aria-hidden />}
       </button>
 

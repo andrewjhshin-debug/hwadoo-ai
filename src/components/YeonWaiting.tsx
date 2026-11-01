@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Yeonkkot } from "@/components/icons";
 import { auth } from "@/lib/firebase";
 import { watchAuth } from "@/lib/sync";
 import { 합장, type 오늘사람 } from "@/lib/yeonToday";
@@ -51,7 +52,7 @@ export default function YeonWaiting() {
       ) : 판.got > 0 ? (
         <button className="hip-wait-open" onClick={() => void 부르기("POST")}>
           <span className="hip-wait-blur" aria-hidden>{Array.from({ length: Math.min(판.got, 4) }, (_, i) => <i key={i} />)}</span>
-          🪷 1송이로 보기
+          <Yeonkkot className="inline-block h-4 w-4 align-middle" /> 1송이로 보기
         </button>
       ) : null}
       {탈 === "lotus" && <Link className="hip-wait-need" href="/lotus">연꽃이 모자라요 · 채우기</Link>}

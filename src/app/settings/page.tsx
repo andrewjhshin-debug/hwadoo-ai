@@ -1886,7 +1886,7 @@ function SetRows() {
       {줄("소리", 소리, () => { setSoundMuted(소리); if (!소리) wakeSound(); })}
       {줄("진동", 진동, () => { setVibeOff(진동); 진동잡기(!진동); })}
       {줄("포행", 걸음.on, () => toggleWalking())}
-      {auth.currentUser && <button type="button" className="hip-set-row" onClick={() => void 초대하기(auth.currentUser!.uid)}><span>친구 초대 · 둘 다 🪷+1</span><b>›</b></button>}
+      {auth.currentUser && <button type="button" className="hip-set-row" onClick={() => void 초대하기(auth.currentUser!.uid)}><span>친구 초대 · 둘 다 <Yeonkkot className="inline-block h-4 w-4 align-middle" />+1</span><b>›</b></button>}
       <a href={`mailto:${CONTACT_EMAIL}`} className="hip-set-row"><span>문의</span><b>›</b></a>
       <Link href="/about" className="hip-set-row"><span>이용안내</span><b>›</b></Link>
     </div>
