@@ -23,6 +23,7 @@ import Info from "@/components/Info";
 import ShareButton from "@/components/ShareButton";
 import { MOKTAK_SVG } from "./moktakSvg";
 import HipMoktak from "./HipMoktak";
+import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
 import useMalaElastic from "@/components/useMalaElastic";
@@ -185,59 +186,8 @@ const SKINS = {
   // 이번 셋은 다르다. 셋 다 **연꽃 위에 앉은 한 분**이라 누르는 결이 같다.
   // 살갗을 갈아 끼우는 것이지 물건이 바뀌는 게 아니다.
   //
-  // 장마다 두 겹이다 — 받침(cup)은 앞에 가만히, 몸(buddha)은 뒤에서
-  // 내려간다. 그래야 손끝이 「키를 눌렀다」로 읽는다.
-  // 키캡 셋 — **한 장씩.**
-  //
-  // 형: 「아예 오브제가 뒤 연꽃을 덮도록 해서 그냥 바로 쑥 내려가도록 해.
-  //      그것도 키캡이잖나」 「굳이 이격을 둬서 비는 공간이 나오게 할
-  //      필요가 없어 보이는데」
-  //
-  // 이 말을 「뒤에 연꽃을 한 장 더 깔라」로 잘못 읽고 그릇을 뒤에 세웠다가
-  // 형한테 제대로 들었다. 그 말이 아니었다 — **가르지 말라**는 말이다.
-  // 물건 하나가 통째로 내려가면 그게 키캡이다. 자른 데가 없으니 이격도,
-  // 빈 데도, 겹쳐서 낀 자리도 없다.
-  // 키캡 셋 — 형이 **몸과 받침을 따로 구워 준** 그림.
-  //
-  // 형: 「키캡 몸이랑 받침 분리한 이미지 줬으니까, 그거 활용해서 키캡처럼
-  //      눌리면 본체만 내려가고 받침은 그대로 있도록」
-  //
-  // 여태 한 장을 갈라 쓰느라 애를 먹었다 — 자른 선이 곧 이격이었다.
-  // 이제 처음부터 두 물건이라 자를 일이 없다. 받침이 앞(z 2), 몸이 뒤(z 1).
-  // 몸은 온몸이 다 있으니 그릇 속으로 내려가도 빈 데가 안 생긴다.
-  // ── 세 겹 ───────────────────────────────────────────────
-  // 형: 「이게 있으면 자연스럽게 더 만들 수 있나?」 — 아가리가 뚫려
-  //      **안쪽 벽이 보이는** 그릇. 그게 그동안 없던 한 조각이었다.
-  //
-  // 앞에서만 본 그릇에는 뒤쪽이 아예 안 그려져 있어서, 자르고 오리고
-  // 합성해도 매번 지저분했다. 이 그릇은 아가리가 보이니 **한 번만
-  // 가르면** 된다 — 아가리 아래턱 곡선(타원의 하반부)을 따라.
-  //   뒤(back)  = 그릇 통째 — 뒤 테두리와 안벽
-  //   몸(body)  = 상 — 이것만 내려간다
-  //   앞(front) = 아래턱 밑 — 앞 테두리와 앞꽃잎
-  // 몸이 그 사이에 앉으니 **진짜로 그릇 안**이고, 내려가면 안벽 속으로
-  // 들어간다. 자를 일도 오릴 일도 없다.
-  //
-  // 그릇은 **한 장을 셋이 나눠 쓴다**(모양·카메라가 같아야 하니까).
-  // 포대·미륵은 그 한 장을 금 사다리로 다시 구웠다.
-  keycap: [
-    { id: "dongja", name: "동자", cup: "/obj/kc-dongja-front-soft.png",
-      back: "/obj/kc-dongja-back.png", body: "/obj/kc-dongja-body.png",
-      // 형이 눈으로 고른 값(0.88 → 1.0). 「사알짝만 더 크게」.
-      // 1.12 로 가면 어깨와 팔이 꽃잎 밖으로 나온다 — 여기가 한계선이다.
-      ar: 928 / 1420, dip: "12%", bodyScale: 1.0, bowlFit: 1.117, dot: "#ef86b0" },
-    { id: "podae", name: "포대", cup: "/obj/kc-podae-front-soft.png",
-      back: "/obj/kc-podae-back.png", body: "/obj/kc-podae-body.png",
-      // 1.55 는 몸만 재서 맞춘 값이었다 — 화면에서는 배만 남고 머리가
-      // 판 밖으로 나갔다. 셋을 **같은 수로 맞추지 않는다.**
-      // 그릇이 저마다 다른 높이에 그려져 있어, 눈으로 본 것이 자다.
-      ar: 928 / 1205, dip: "13%", bodyScale: 0.88, bowlFit: 0.948, dot: "#e0b354" },
-    // 앞꽃잎·몸·뒤판은 반드시 같은 928×1160 판을 쓴다. v2 앞꽃잎은
-    // 별도 비율(1122×1402)이라 세 장을 포갤 때 밑 그림자가 튀어나왔다.
-    { id: "mireuk", name: "미륵", cup: "/obj/kc-mireuk-front-soft.png",
-      back: "/obj/kc-mireuk-back.png", body: "/obj/kc-mireuk-body.png",
-      ar: 928 / 1160, dip: "13%", bodyScale: 1.0, bowlFit: 0.913, dot: "#cfa03c" },
-  ],
+  // Aligned three-layer keycaps: fixed lotus cup, moving character.
+  keycap: KEYCAP_SKINS,
 } as const;
 
 type SkinKind = keyof typeof SKINS;
@@ -324,6 +274,7 @@ export default function MoktakPage() {
   const keySrc = (() => {
     const k = SKINS.keycap.find((x) => x.id === skin.keycap) ?? SKINS.keycap[0];
     return {
+      id: k.id,
       cup: 그림(k.cup),
       back: 그림(k.back),
       body: 그림(k.body),

@@ -1,4 +1,5 @@
 "use client";
+import "./keycaps.css";
 
 import HipLanes, { type LaneTab } from "@/components/HipLanes";
 
@@ -72,7 +73,7 @@ export type HipMoktakProps = {
   /** 지금 고른 목탁 살갗 그림 */
   mokSrc: string;
   /** 지금 고른 키캡 — 통짜 한 장 */
-  keySrc: { cup: string; back: string; body: string; ar: number; dip: string; bodyScale: number; bowlFit: number };
+  keySrc: { id: string; cup: string; back: string; body: string; ar: number; dip: string; bodyScale: number; bowlFit: number };
   /** 키캡 갈래에서 무엇을 누르나 — 동자인가 목탁인가 */
   bead: React.ReactNode;
   bowl: React.ReactNode;
@@ -238,6 +239,7 @@ export default function HipMoktak({
           {tab === "keycap" && (
             <button
               className={`hip-keycap${keyDown ? " on" : ""}`}
+              data-keycap-skin={keySrc.id}
               aria-label="눌러서 한 번"
               onPointerDown={onKeyDown}
               onPointerUp={onKeyUp}
@@ -259,7 +261,7 @@ export default function HipMoktak({
                     비는 공간이 나오게 할 필요가 없어 보이는데」).
                     가른 데가 없으니 이격도 빈 데도 없다. */}
                 <span
-                  className="hip-keycap-stack"
+                  className="hip-keycap-stack keycap-v3"
                   /* 숫자를 그대로 넘기면 리액트가 CSS 변수에 px 를 붙인다 —
                      `aspect-ratio: 0.7px` 는 무효라 판이 통째로 풀린다 */
                   style={
