@@ -7,6 +7,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { isAdminAccount } from "@/lib/config";
 import { 지갑열기 } from "@/lib/wallet";
+import { 알림쓰기 } from "@/lib/alertsServer";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -69,5 +70,7 @@ export async function POST(req: Request) {
   });
   if ("needLotus" in result) return Response.json({ error: "need-lotus" }, { status: 402 });
   if ("limited" in result) return Response.json({ error: "daily-limit" }, { status: 429 });
+  // 받는 이에게 쪽지 알림(인연판 종)
+  if (!result.exists) await 알림쓰기(db, targetUid, `dm_${id}`, { kind: "dm", text: `${requesterName || "누군가"}님이 쪽지를 청했어요`, threadId: id, by: requesterName });
   return Response.json({ ok: true, already: result.exists, thread: result.thread });
 }

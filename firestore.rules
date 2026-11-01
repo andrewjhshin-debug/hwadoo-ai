@@ -726,5 +726,21 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // 인연판 알림 — 적기는 서버(/api/alerts/notify)만. 나는 내 것을 읽고 「읽음」만 켠다
+    match /alerts/{uid}/list/{id} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+        && request.resource.data.read == true;
+    }
+    // 알림 키워드 — 열 개까지. 낱말 길이(12자)는 서버가 읽을 때 자른다
+    match /alert-keywords/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['words'])
+        && request.resource.data.words is list
+        && request.resource.data.words.size() <= 10;
+    }
   }
 }

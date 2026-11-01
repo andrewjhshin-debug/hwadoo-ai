@@ -27,6 +27,7 @@ import { loadStore } from "./store";
 import { pingPush } from "./dm";
 import { rankHanjaFor } from "./badges";
 import { 내프로필 } from "./yeon";
+import { 알림울리기 } from "./alerts";
 
 // 게시판 종류 — 연지원(community, 기본) / 차담회(gathering)
 export type Board = "community" | "gathering";
@@ -286,7 +287,7 @@ export async function createGathering(input: {
   // 「글에 내 사진」을 켠 사람이면 글에 표를 단다(사진은 서버가 확인해 보여 준다)
   let avatar = false;
   try { avatar = !!(await 내프로필())?.avatarOn; } catch { /* 없으면 문양 */ }
-  return addDoc(collection(db, "posts"), {
+  const 새글 = await addDoc(collection(db, "posts"), {
     avatar,
     title: g.title,
     body: g.body,
@@ -305,6 +306,9 @@ export async function createGathering(input: {
     meetPlace: g.meetPlace,
     createdAt: serverTimestamp(),
   });
+  // 키워드 건 사람들에게 — 형: 「진관사 걸어 두면 누가 진관사 쓰면 알림」
+  알림울리기({ kind: "post", postId: 새글.id });
+  return 새글;
 }
 
 // 인연 글을 고친다 — 작성자(또는 뒷방)만. 권한의 최종 잣대는 Firestore 규칙.
@@ -360,6 +364,7 @@ export async function likePost(postId: string): Promise<boolean> {
   if (snap.exists()) return false;
   await setDoc(ref, { createdAt: serverTimestamp() });
   await updateDoc(doc(db, "posts", postId), { hapjang: increment(1) });
+  알림울리기({ kind: "like", postId }); // 인연판 호감 알림
   return true;
 }
 
@@ -438,7 +443,7 @@ export async function addComment(
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   const kept = await nameInPost(postId, u.uid);
-  await addDoc(collection(db, "posts", postId, "comments"), {
+  const 새댓글 = await addDoc(collection(db, "posts", postId, "comments"), {
     body,
     authorName: kept ?? anonName(), // 이 글에서 처음이면 무작위 새 이름
     authorUid: u.uid,
@@ -451,6 +456,7 @@ export async function addComment(
   });
   await updateDoc(doc(db, "posts", postId), { commentCount: increment(1) });
   void pingPush({ kind: "comment", postId }); // 글쓴이에게 알림
+  알림울리기({ kind: "comment", postId, commentId: 새댓글.id }); // 인연판 활동 알림
 }
 
 // 댓글 좋아요/싫어요 — 오르내림을 함께 받는다 (좋아요↔싫어요 갈아타기,
