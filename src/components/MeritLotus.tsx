@@ -1,20 +1,19 @@
 "use client";
-import { useId } from "react";
 import { meritLotusPose } from "@/lib/merit-lotus";
 import "./merit-lotus.css";
 
+// 형: 「개화 안 했다가 퍼센티지 차면서 연꽃으로 펼쳐지는 거, 비율마다 몇 개 더 만들어서」
+// 봉오리에서 만개까지 여섯 장(public/obj/lotus-stage-1~6.webp). 오늘 공덕이 차는 만큼 한 장씩 핀다.
+// 다 차면(1) 만개. 앱 곳곳의 연꽃 표시(LotusBloom)는 꽃만 따로 뜬 lotus-icon 을 쓴다.
 export default function MeritLotus({ progress, className = "" }: { progress: number; className?: string }) {
-  const pose = meritLotusPose(progress), id = useId().replaceAll(":", "");
-  const petal = "M22 33C9 26 12 15 22 6c10 9 13 20 0 27Z";
-  return <svg className={`merit-lotus ${className}`.trim()} viewBox="0 0 44 42" aria-hidden="true" data-open={pose.progress}>
-    <defs>
-      <linearGradient id={`${id}-back`} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#fbd4df" /><stop offset="1" stopColor="#e893b2" /></linearGradient>
-      <linearGradient id={`${id}-front`} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#fff1f5" /><stop offset=".45" stopColor="#f4afc7" /><stop offset="1" stopColor="#e48eae" /></linearGradient>
-    </defs>
-    <path d="M8 33q14 10 28 0-4 9-14 8T8 33" fill="#bad9c6" />
-    {[-1, 1].map(side => <g className="merit-lotus-petal" key={`outer${side}`} style={{ transform: `rotate(${side * pose.outer}deg)` }}><path d={petal} fill={`url(#${id}-back)`} /><path d="M22 10q-5 12 0 21" fill="none" stroke="#ffe8ef" strokeWidth="1" opacity=".65" /></g>)}
-    {[-1, 1].map(side => <g className="merit-lotus-petal" key={`middle${side}`} style={{ transform: `rotate(${side * pose.middle}deg) scale(.96)` }}><path d={petal} fill={`url(#${id}-back)`} stroke="#ffe8ef" strokeWidth=".45" /></g>)}
-    {[-1, 1].map(side => <g className="merit-lotus-petal" key={`inner${side}`} style={{ transform: `rotate(${side * pose.inner}deg) scale(.94)` }}><path d={petal} fill={`url(#${id}-front)`} /></g>)}
-    <g className="merit-lotus-petal" style={{ transform: `scale(1,${pose.centerY})` }}><path d={petal} fill={`url(#${id}-front)`} /><path d="M22 10c-5 9-5 16 0 20" fill="none" stroke="#ffeaf1" strokeWidth="1.8" strokeLinecap="round" /></g>
-  </svg>;
+  const pose = meritLotusPose(progress);
+  const 장 = pose.progress >= 1 ? 6 : Math.min(5, 1 + Math.floor(pose.progress * 5));
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={`/obj/lotus-stage-${장}.webp`} alt="" aria-hidden="true" draggable={false} className={`merit-lotus merit-lotus-img ${className}`.trim()} data-open={pose.progress} />;
+}
+
+/** 작은 자리용 연꽃 — 만개한 꽃만(줄기 없이) */
+export function LotusIcon({ className = "" }: { className?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src="/obj/lotus-icon.webp" alt="" aria-hidden="true" draggable={false} className={`merit-lotus merit-lotus-img ${className}`.trim()} />;
 }

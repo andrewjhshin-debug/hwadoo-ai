@@ -4,3 +4,5 @@
 .merit-lotus { overflow:visible; }
 .merit-lotus .merit-lotus-petal { transform-box:view-box; transform-origin:22px 33px; transition:transform .65s cubic-bezier(.2,.8,.3,1); }
 @media(prefers-reduced-motion:reduce) { .merit-lotus .merit-lotus-petal { transition:none; } }
+
+.merit-lotus-img { object-fit: contain; display: inline-block; }

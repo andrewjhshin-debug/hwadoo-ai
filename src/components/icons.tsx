@@ -1,5 +1,5 @@
 import { useId } from "react";
-import MeritLotus from "@/components/MeritLotus";
+import { LotusIcon } from "@/components/MeritLotus";
 
 // 도량의 문양들 — 전부 불교적 상징으로.
 // 법륜·연꽃·목탁·반가사유상·죽비·연등·찻잔·일주문
@@ -111,7 +111,7 @@ export function LotusMark({ className = "w-5 h-5", stroke = "currentColor" }: Ic
 // 연꽃 — 연꽃 공양과 머리띠에 쓰는 색칠 문장.
 // 24px에서도 읽히게 단순한 꽃잎 다섯·잎 둘만 남긴 PNG 원본이다.
 function LotusBloom({ className = "w-5 h-5" }: IconProps) {
-  return <MeritLotus progress={1} className={className} />;
+  return <LotusIcon className={className} />;
 }
 
 export function Yeonkkot({ className = "w-5 h-5" }: IconProps) {
