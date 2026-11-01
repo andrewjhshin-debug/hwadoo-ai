@@ -1,6 +1,6 @@
 const stoneNames = ["연꽃", "코끼리", "초", "연등", "보리잎", "좌불", "합장", "범종", "법륜"] as const;
 const zodiacNames = ["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"] as const;
-export const STONE_MALA_SYMBOLS = stoneNames.map((name, i) => ({ name, src: `/obj/mala-stone-v4/${i}.webp` }));
+export const STONE_MALA_SYMBOLS = stoneNames.map((name, i) => ({ name, src: `/obj/mala-stone-v5/${i}.webp` }));
 export const ZODIAC_MALA_SYMBOLS = zodiacNames.map((name, i) => ({ name, src: `/obj/mala-zodiac-v4/${i}.webp` }));
 
 /** Shared artwork keeps every engraved groove registered as gold fills. */
