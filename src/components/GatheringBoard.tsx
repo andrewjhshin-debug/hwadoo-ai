@@ -42,7 +42,7 @@ import {
   type GatheringCategory,
   type Post,
 } from "@/lib/community";
-import { InyeonThreadBadge } from "@/components/InyeonThread";
+import InyeonThread, { InyeonThreadBadge } from "@/components/InyeonThread";
 import LikeSheet from "@/components/LikeSheet";
 import { loadStore } from "@/lib/store";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
@@ -460,6 +460,7 @@ export default function GatheringBoard({
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [matchedPosts, setMatchedPosts] = useState<string[]>([]);
+  const [짝들, 짝들잡기] = useState<Record<string, { name: string; sex: string }>>({});
   const matchIds = (posts ?? []).filter(p => !p.deleted).map(p => p.id).sort().join(",");
   useEffect(() => {
     if (!matchIds) return;
@@ -475,6 +476,7 @@ export default function GatheringBoard({
           if (!res.ok) { if (!controller.signal.aborted) setMatchedPosts([]); return; }
           const data = await res.json();
           if (Array.isArray(data.matched)) matches.push(...data.matched.filter((id: unknown): id is string => typeof id === "string"));
+          if (data.partner && typeof data.partner === "object") 짝들잡기((m) => ({ ...m, ...data.partner }));
         }
         if (!controller.signal.aborted) setMatchedPosts(matches);
       } catch { if (!controller.signal.aborted) setMatchedPosts([]); }
@@ -1232,6 +1234,13 @@ export default function GatheringBoard({
             <span>{stamp(p.createdAt)}</span>
           </span>
         </div>
+
+        {/* 청실홍실 — 이 글쓴이와 이어진 사람. 형: 「이런 거 매칭됐다 생각하고 청실홍실 적용해」 */}
+        {짝들[p.id] && p.category !== "together" && !p.deleted && (
+          <div className="mt-3">
+            <InyeonThread leftName={p.authorName} leftGender={p.gender} rightName={짝들[p.id].name} rightGender={짝들[p.id].sex === "m" || 짝들[p.id].sex === "f" ? (짝들[p.id].sex as "m" | "f") : undefined} 낮 />
+          </div>
+        )}
 
         {/* 내용 */}
         <p
