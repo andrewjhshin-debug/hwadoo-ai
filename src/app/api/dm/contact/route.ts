@@ -39,11 +39,22 @@ async function 펴기(req: Request, threadId: unknown, pairKey?: unknown) {
     const p = (await db.doc(`yeon-pairs/${pairKey}`).get()).data() as { pair?: string[] } | undefined;
     멤버 = p?.pair ?? [];
     열쇠 = pairKey;
+    // 서로 막은 사이면 번호도 안 연다
+    const 저 = 멤버.find((m) => m !== uid);
+    if (저) {
+      const [a, b2] = await Promise.all([db.doc(`yeon-blocks/${uid}/list/${저}`).get(), db.doc(`yeon-blocks/${저}/list/${uid}`).get()]);
+      if (a.exists || b2.exists) return { error: Response.json({ error: "blocked" }, { status: 409 }) };
+    }
   } else if (typeof threadId === "string" && ID.test(threadId)) {
     const t = (await db.doc(`dm-threads/${threadId}`).get()).data() as { members?: string[]; status?: string; pair?: string } | undefined;
     멤버 = t?.status === "accepted" ? (t.members ?? []) : [];
-    // 청실홍실에서 열린 방은 짝과 같은 연락처 문서를 쓴다 — 매칭 화면에서 연 번호가 방에서도 보인다
-    열쇠 = t?.pair && PAIR.test(t.pair) ? t.pair : threadId;
+    // 청실홍실에서 열린 방은 짝과 같은 연락처 문서를 쓴다 — 매칭 화면에서 연 번호가 방에서도 보인다.
+    // 방에 적힌 짝 열쇠를 그대로 믿지 않는다: 그 짝의 두 사람이 이 방 두 사람과 같을 때만
+    열쇠 = threadId;
+    if (t?.pair && PAIR.test(t.pair)) {
+      const 짝 = ((await db.doc(`yeon-pairs/${t.pair}`).get()).data() as { pair?: string[] } | undefined)?.pair ?? [];
+      if (짝.length === 2 && 멤버.length === 2 && 짝.every((m) => 멤버.includes(m))) 열쇠 = t.pair;
+    }
   } else return { error: Response.json({ error: "bad-thread" }, { status: 400 }) };
   if (!멤버.includes(uid)) return { error: Response.json({ error: "not-member" }, { status: 403 }) };
   const 상대 = 멤버.find((m) => m !== uid) ?? "";

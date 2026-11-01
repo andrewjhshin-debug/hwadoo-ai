@@ -35,8 +35,11 @@ export async function POST(req: Request) {
     const p = (await tx.get(짝)).data();
     if (!p || !(p.pair as string[]).includes(uid)) return { error: "not-member", status: 403 };
     if (p.thread) return { thread: p.thread as string };
-    if (!주인 && !(await 연꽃쓰기(tx, db, uid, ROOM, "dm-room"))) return { error: "need-lotus", status: 402 };
     const 저 = (p.pair as string[]).find((m) => m !== uid)!;
+    // 서로 막은 사이면 방을 안 연다(막은 뒤에 남은 짝 문서로 우회 금지) — 읽기는 쓰기보다 먼저
+    const [내막음, 쟤막음] = await Promise.all([tx.get(db.doc(`yeon-blocks/${uid}/list/${저}`)), tx.get(db.doc(`yeon-blocks/${저}/list/${uid}`))]);
+    if (내막음.exists || 쟤막음.exists) return { error: "blocked", status: 409 };
+    if (!주인 && !(await 연꽃쓰기(tx, db, uid, ROOM, "dm-room"))) return { error: "need-lotus", status: 402 };
     const 방 = db.collection("dm-threads").doc();
     const 때 = FieldValue.serverTimestamp();
     // 쪽지함(/letters)이 읽는 칸을 다 채운다 — 이름 칸이 비면 목록이 터진다
