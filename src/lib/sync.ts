@@ -34,6 +34,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { mergeSavedSentences, normalizeSavedSentences } from "./savedSentences";
 import {
   applyRemoteStore,
   cleanupHistory,
@@ -114,6 +115,7 @@ function normalize(raw: Store | null | undefined): Store | null {
     current: raw.current ?? null,
     history: Array.isArray(raw.history) ? raw.history : [],
     received: typeof raw.received === "number" ? raw.received : 0,
+    savedSentences: normalizeSavedSentences(raw.savedSentences),
   };
 }
 
@@ -132,6 +134,7 @@ function mergeStores(local: Store, cloud: Store | null): Store {
   return {
     current: local.current ?? cloud.current ?? null,
     history,
+    savedSentences: mergeSavedSentences(local.savedSentences, cloud.savedSentences),
     received: Math.max(local.received, cloud.received, history.length),
     defaultDays: local.defaultDays ?? cloud.defaultDays,
     audience: local.audience ?? cloud.audience,
@@ -147,6 +150,7 @@ function adoptRemote(remote: Store, local: Store): Store {
   const next: Store = {
     ...remote,
     history: cleanupHistory(remote.history),
+    savedSentences: mergeSavedSentences(local.savedSentences, remote.savedSentences),
   };
   const r = remote.current;
   const l = local.current;
@@ -169,6 +173,7 @@ function isBlank(s: Store): boolean {
   return (
     !s.current &&
     s.history.length === 0 &&
+    !s.savedSentences?.length &&
     s.received === 0 &&
     s.ownerUid === undefined
   );

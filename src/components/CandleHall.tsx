@@ -9,6 +9,7 @@ import { 신고보내기 } from "@/lib/dm";
 import { pingLotus } from "@/components/LotusCount";
 import HipTop from "@/components/HipTop";
 import HipHeader from "@/components/HipHeader";
+import HwaduBrand from "@/components/HwaduBrand";
 import { Yeonkkot } from "@/components/icons";
 import { strikeBell } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
@@ -903,14 +904,7 @@ export default function CandleHall() {
   return <div className="hip-hall">
     {/* 형: 「법당이랑 인연만 오른쪽 위가 달라 — 다 통일해」 */}
     <HipHeader>
-      <a href="/" aria-label="화두 홈" className="hip-home">
-        <svg viewBox="0 0 24 24" aria-hidden>
-      <path d="M12 4.2c1.7 2.4 2.4 4.4 2.4 6.3s-1.1 3.7-2.4 4.9c-1.3-1.2-2.4-3-2.4-4.9s.7-3.9 2.4-6.3z" />
-      <path d="M12 15.4c-1.9-1.6-4.6-2.3-7.4-2.2.3 2.6 2.4 4.6 5 5 .9.1 1.7 0 2.4-.3" />
-      <path d="M12 15.4c1.9-1.6 4.6-2.3 7.4-2.2-.3 2.6-2.4 4.6-5 5-.9.1-1.7 0-2.4-.3" />
-        </svg>
-        <b>화두</b>
-      </a>
+      <HwaduBrand />
       <HipTop />
     </HipHeader>
     <div className="hip-hall-top">

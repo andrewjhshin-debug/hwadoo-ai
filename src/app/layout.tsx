@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import SoundOffNote from "@/components/SoundOffNote";
 import { Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
@@ -149,8 +148,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* 묵은 조각 되살리기 — 배포가 지나간 뒤 열려 있던 판을 다시 연다.
             형: 「인연 프로필 채우려면 계속 이렇게 뜸」 */}
         <FreshChunks />
-        {/* 꺼 놓고 「안 난다」 하는 길을 막는다. 평소엔 아무것도 안 그린다 */}
-        <SoundOffNote />
         {/* 발자국 장부 — 화면에 아무것도 그리지 않고, 다녀간 날만 적는다 */}
         <VisitLedger />
         {/* 방을 옮기면 맨 위부터 — 스크롤 통이 창이 아니라 안쪽 div 라 직접 되돌린다 */}

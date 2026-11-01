@@ -27,7 +27,8 @@
 
 import { useEffect, useRef } from "react";
 import { strikeBell } from "@/lib/sound";
-import Link from "next/link";
+import HwaduBrand from "@/components/HwaduBrand";
+import { KeepSentence } from "@/components/SavedSentences";
 import HipShell from "@/components/HipShell";
 import HipTop from "@/components/HipTop";
 import HipHeader from "@/components/HipHeader";
@@ -156,9 +157,11 @@ export function HipGardenEmpty({
         <Mark />
 
         <HipHeader>
+          <HwaduBrand />
           <HipTop />
+        </HipHeader>
           {/* 누구의 물음인가 — 알약 하나로 말 없이 */}
-          <div className="hip-seg" role="group" aria-label="누구의 화두">
+          <div className="hip-seg hip-audience" role="group" aria-label="누구의 화두">
             {(
               [
                 ["adult", "성인"],
@@ -175,7 +178,6 @@ export function HipGardenEmpty({
               </button>
             ))}
           </div>
-        </HipHeader>
 
         <div className="hip-screen-mid">
           {/* ── 큰 것 하나 — 연꽃 ──
@@ -311,6 +313,7 @@ export function HipGardenOnly({
 /** 화두를 들고 있는 뜰 — 물음이 곧 화면이다 */
 export function HipGardenHolding({
   question,
+  saveText,
   source,
   day,
   unlocked,
@@ -325,6 +328,7 @@ export function HipGardenHolding({
   onDays,
 }: {
   question: string;
+  saveText?: string;
   source?: string | null;
   day: number;
   unlocked: boolean;
@@ -356,7 +360,7 @@ export function HipGardenHolding({
             며칠째인지는 바닥이 이미 말한다 — 같은 말을 두 번 하면
             둘 다 안 읽힌다. */}
         <HipHeader>
-          <span />
+          <HwaduBrand />
           <HipTop />
         </HipHeader>
 
@@ -374,6 +378,7 @@ export function HipGardenHolding({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="hip-only-enso" src="/images/hwadu-focus-enso.png" alt="" />
           </button>
+          <KeepSentence text={saveText ?? question} source={source} />
         </div>
 
         {/* ── 바닥 ──
@@ -471,14 +476,5 @@ export function HipGardenHolding({
 
 /** 홈으로 — 다른 판들이 머리에 다는 로고. 여기(뜰)는 이미 홈이라 안 단다 */
 export function HipHome() {
-  return (
-    <Link href="/" aria-label="화두 홈" className="hip-home">
-      <svg viewBox="0 0 24 24" aria-hidden>
-        <path d="M12 4.2c1.7 2.4 2.4 4.4 2.4 6.3s-1.1 3.7-2.4 4.9c-1.3-1.2-2.4-3-2.4-4.9s.7-3.9 2.4-6.3z" />
-        <path d="M12 15.4c-1.9-1.6-4.6-2.3-7.4-2.2.3 2.6 2.4 4.6 5 5 .9.1 1.7 0 2.4-.3" />
-        <path d="M12 15.4c1.9-1.6 4.6-2.3 7.4-2.2-.3 2.6-2.4 4.6-5 5-.9.1-1.7 0-2.4-.3" />
-      </svg>
-      <b>화두</b>
-    </Link>
-  );
+  return <HwaduBrand />;
 }

@@ -14,6 +14,7 @@ import {
   type Session,
 } from "@/lib/store";
 import { useConfirm } from "@/components/Confirm";
+import { SavedSentenceList } from "@/components/SavedSentences";
 
 const MAX_ANSWER = 500;
 
@@ -98,6 +99,7 @@ export default function ArchivePage() {
 
   return (
     <div className="mx-auto w-full max-w-xl flex-1 px-6 py-14">
+      <SavedSentenceList />
       {/* 머리는 두 겹까지 — 한자 눈금과 큰 숫자. 설명문은 두지 않는다 */}
       <header className="rise">
         <p className="text-[11px] tracking-[0.5em] text-gold-soft">書庫</p>

@@ -4,6 +4,8 @@
 // 나중에 Firebase 로그인 + 동기화를 붙일 때 이 파일만 확장하면 된다.
 // ─────────────────────────────────────────────────────────────
 
+import { normalizeSavedSentences, type SavedSentence } from "./savedSentences";
+
 export type Session = {
   hwaduId: string; // 화두 은행의 id. 서버 화두면 "thrown:문서id"
   customQuestion?: string; // 서버 화두의 물음 본문
@@ -18,6 +20,7 @@ export type Session = {
 export type Store = {
   current: Session | null; // 지금 들고 있는 화두
   history: Session[]; // 회향을 마친 화두들
+  savedSentences?: SavedSentence[];
   received: number; // 지금까지 받은 화두 수
   defaultDays?: number; // 설정 — 참구 기간 기본값 (없으면 3)
   audience?: "adult" | "student"; // 설정 — 누구의 화두인가 (없으면 어른)
@@ -81,6 +84,7 @@ export function loadStore(): Store {
     return {
       current: parsed.current ?? null,
       history,
+      savedSentences: normalizeSavedSentences(parsed.savedSentences),
       received: typeof parsed.received === "number" ? parsed.received : 0,
       defaultDays:
         typeof parsed.defaultDays === "number" ? parsed.defaultDays : undefined,

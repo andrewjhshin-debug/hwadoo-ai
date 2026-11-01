@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { wakeSound } from "@/lib/sound";
 import {
   isSoundMuted,
   setSoundMuted,
@@ -28,7 +29,11 @@ export default function SoundMuteToggle({ compact = false }: Props) {
   return (
     <button
       type="button"
-      onClick={() => setSoundMuted(!muted)}
+      onClick={() => {
+        const next = !isSoundMuted();
+        setSoundMuted(next);
+        if (!next) wakeSound();
+      }}
       aria-pressed={muted}
       aria-label={label}
       title={label}

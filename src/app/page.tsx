@@ -22,6 +22,7 @@ import {
   sessionQuestion,
 } from "@/lib/hwadu";
 import Question from "@/components/Question";
+import { KeepSentence } from "@/components/SavedSentences";
 import { HipGardenEmpty, HipGardenHolding, HipGardenOnly } from "./HipGarden";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import { fetchPublicHwadu, markSeen, type PublicHwadu } from "@/lib/thrown";
@@ -916,6 +917,7 @@ export default function Home() {
         핸들러는 새로 짜지 않는다. 부모가 쥔 것을 그대로 준다. */}
     <HipGardenHolding
       question={sessionBrief(current)}
+      saveText={sessionQuestion(current)}
       source={current.customSource ?? hwadu?.context ?? null}
       day={dayCount(current)}
       unlocked={unlocked}
@@ -975,6 +977,7 @@ export default function Home() {
             누를 수 있는 것만 알약으로 남기고, 숫자는 흐린 한 줄로 내린다.
             같은 무게의 알약 셋이 화두 바로 밑에서 눈을 뺏던 것을 막는다. */}
         <div className="mt-8 flex flex-col items-center gap-3">
+          <KeepSentence text={sessionQuestion(current)} source={current.customSource ?? hwadu?.context} />
           <button
             onClick={() => {
               setSeenOnce(true);

@@ -46,18 +46,29 @@ export default function HipDayBar() {
   }, []);
 
   return (
-    <span
-      aria-hidden
+    <div
       className="hip-daybar"
       data-full={찬만큼 >= 1 ? "1" : undefined}
       data-tick={막쌓임 ? "1" : undefined}
     >
+      <span className="hip-daybar-label">오늘의 공덕</span>
+      <div className="hip-daybar-row">
+      <span className="hip-daybar-track" role="progressbar" aria-label="오늘의 공덕" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(찬만큼 * 100)} aria-valuetext={찬만큼 >= 1 ? "오늘의 공덕을 모두 채웠어요" : `${Math.round(찬만큼 * 100)}%`}>
       {/* 하루 천장이 32,400(= 연꽃 한 송이)이라 목탁 한 타는 0.003% 다.
           그대로 그리면 하루 종일 쳐도 줄이 안 움직이는 것처럼 보인다 —
           형: 「왜 안 해」. 안 한 게 아니라 **안 보였다.**
           한 톨이라도 쌓였으면 최소한 한 뼘은 보이게 두고, 쌓인 순간에는
           잠깐 밝아진다. 그래야 「지금 내 것이 붙었다」가 손끝에 읽힌다. */}
       <i style={{ transform: `scaleX(${찬만큼 > 0 ? Math.max(0.018, 찬만큼) : 0})` }} />
-    </span>
+      </span>
+      <svg className="hip-daybar-lotus" viewBox="0 0 30 34" aria-hidden="true">
+        <path d="M4 25q11 9 22 0-3 8-11 8T4 25" fill="#d6e9da" />
+        <path d="M15 30C3 29 2 19 6 12q7 3 9 18" fill="#f5c1d4" />
+        <path d="M15 30C27 29 28 19 24 12q-7 3-9 18" fill="#eea2c1" />
+        <path d="M15 3C5 14 7 25 15 30c8-5 10-16 0-27" fill="#f7b4ce" />
+        <path d="M15 6c-5 9-5 15 0 21" fill="none" stroke="#ffe4ee" strokeWidth="2.5" strokeLinecap="round" />
+      </svg>
+      </div>
+    </div>
   );
 }
