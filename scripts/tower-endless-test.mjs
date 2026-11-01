@@ -88,7 +88,8 @@ const nav = { canShare: () => true, share: async data => { shareCalls.push(data)
 const sharing = load("src/lib/tower-share.ts", { "./tower-game": game }, { navigator: nav });
 const file = { name: "hwadu-tower.png", type: "image/png" };
 assert.equal(await sharing.shareTowerRecord(file, "https://example.test/tower?seed=17", 31), "shared");
-assert.equal(shareCalls[0].files[0], file);
+assert.equal(shareCalls[0].files, undefined, "records share the challenge link so recipients can return to the game");
+assert.equal(shareCalls[0].url, "https://example.test/tower?seed=17");
 nav.canShare = () => false;
 await sharing.shareTowerRecord(file, "https://example.test/tower", 31);
 assert.equal(shareCalls[1].files, undefined, "no file support shares the challenge link");

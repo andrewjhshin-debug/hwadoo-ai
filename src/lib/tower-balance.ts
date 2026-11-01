@@ -1,19 +1,19 @@
 /** Individual river-rock silhouettes. Crop coordinates refer to the original alpha atlas. */
-export const STONE_ATLAS = "/obj/stone-cairn-atlas-v5.png";
+export const STONE_ATLAS = "/obj/stone-cairn-atlas-v6.png";
 export const ATLAS_SIZE = 1254;
 export const TOWER_WIDTH = 360;
 export const TOWER_HEIGHT = 640;
 export const GROUND_Y = 618;
 export const TOWER_STONES = [
-  { name: "각진 바닥돌", crop: [17,192,427,228], width: 220, height: 118, tilt: 0, top: .005, bottom: .991, offset: 0, support: .29, massOffset: -.010 },
-  { name: "긴 층판돌", crop: [459,288,437,117], width: 198, height: 53, tilt: -2, top: .056, bottom: .936, offset: -.06, support: .23, massOffset: -.045 },
-  { name: "콩 모양 강돌", crop: [907,196,334,226], width: 151, height: 102, tilt: 3, top: .010, bottom: .995, offset: .10, support: .18, massOffset: .007 },
-  { name: "비정형 쐐기돌", crop: [16,561,432,251], width: 146, height: 85, tilt: -3, top: .015, bottom: .954, offset: -.16, support: .21, massOffset: -.048 },
-  { name: "깨진 어깨 타원돌", crop: [467,615,431,194], width: 125, height: 55, tilt: 2, top: .055, bottom: .988, offset: .08, support: .18, massOffset: -.009 },
-  { name: "기울어진 조약돌", crop: [926,580,312,227], width: 88, height: 64, tilt: -8, top: .153, bottom: .968, offset: .14, support: .15, massOffset: -.017 },
-  { name: "겹겹이 층돌", crop: [17,969,451,201], width: 104, height: 46, tilt: 3, top: .023, bottom: .983, offset: -.08, support: .14, massOffset: -.004 },
-  { name: "닳은 봉우리돌", crop: [479,941,349,225], width: 61, height: 39, tilt: -4, top: .005, bottom: .981, offset: .04, support: .18, massOffset: .002 },
-  { name: "휘어진 마무리돌", crop: [841,1034,399,122], width: 56, height: 17, tilt: 1, top: .009, bottom: .983, offset: 0, support: .18, massOffset: -.001 },
+  { name: "각진 바닥돌", crop: [38,204,415,208], width: 220, height: 118, tilt: 0, top: .005, bottom: .991, offset: 0, support: .29, massOffset: -.010 },
+  { name: "긴 층판돌", crop: [488,223,335,191], width: 198, height: 53, tilt: -2, top: .056, bottom: .936, offset: -.06, support: .23, massOffset: -.045 },
+  { name: "콩 모양 강돌", crop: [876,210,339,203], width: 151, height: 102, tilt: 3, top: .010, bottom: .995, offset: .10, support: .18, massOffset: .007 },
+  { name: "비정형 쐐기돌", crop: [47,544,355,232], width: 146, height: 85, tilt: -3, top: .015, bottom: .954, offset: -.16, support: .21, massOffset: -.048 },
+  { name: "깨진 어깨 타원돌", crop: [452,570,397,198], width: 125, height: 55, tilt: 2, top: .055, bottom: .988, offset: .08, support: .18, massOffset: -.009 },
+  { name: "기울어진 조약돌", crop: [896,572,321,195], width: 88, height: 64, tilt: -8, top: .153, bottom: .968, offset: .14, support: .15, massOffset: -.017 },
+  { name: "겹겹이 층돌", crop: [37,964,404,173], width: 104, height: 46, tilt: 3, top: .023, bottom: .983, offset: -.08, support: .14, massOffset: -.004 },
+  { name: "닳은 봉우리돌", crop: [518,989,253,146], width: 61, height: 39, tilt: -4, top: .005, bottom: .981, offset: .04, support: .18, massOffset: .002 },
+  { name: "휘어진 마무리돌", crop: [868,930,353,208], width: 56, height: 17, tilt: 1, top: .009, bottom: .983, offset: 0, support: .18, massOffset: -.001 },
 ] as const;
 export type PlacedStone = { index: number; x: number; y: number };
 export type Balance = { stable: boolean; risk: number; joint: number; direction: -1 | 1 };

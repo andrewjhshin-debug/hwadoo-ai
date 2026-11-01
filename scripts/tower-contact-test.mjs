@@ -34,11 +34,11 @@ async function color(file) {
   for (let i = 0; i < data.length; i += 4) if (data[i + 3] > 240) { count++; r += data[i]; g += data[i + 1]; b += data[i + 2]; }
   return [r / count, g / count, b / count];
 }
-const before = await color('public/obj/stone-cairn-atlas-v4.png');
-const after = await color('public/obj/stone-cairn-atlas-v5.png');
-assert(after.reduce((a, b) => a + b) > before.reduce((a, b) => a + b) + 30, 'new stones are brighter');
+const before = await color('public/obj/stone-cairn-atlas-v5.png');
+const after = await color(`public${balance.STONE_ATLAS}`);
+assert(after.reduce((a, b) => a + b) < before.reduce((a, b) => a + b) - 30, 'rounded stones are a darker grey');
 assert(Math.max(...after) - Math.min(...after) < 12, 'neutral grey rather than brown');
-console.log(`PASS: ${checked} stone/rotation contacts, brighter neutral grey`, { before, after });
+console.log(`PASS: ${checked} stone/rotation contacts, darker neutral grey`, { before, after });
 if (process.argv.includes('--preview')) {
   const stones = [];
   for (let depth = 0; depth < 9; depth++) {
@@ -52,10 +52,10 @@ if (process.argv.includes('--preview')) {
   }
   const top = Math.min(...stones.map(s => s.y + Math.min(...geometry.stoneEnvelope(s).top.filter(Number.isFinite))));
   const bottom = Math.max(...stones.map(s => s.y + Math.max(...geometry.stoneEnvelope(s).bottom.filter(Number.isFinite))));
-  const atlas = fs.readFileSync('public/obj/stone-cairn-atlas-v5.png').toString('base64');
+  const atlas = fs.readFileSync(`public${balance.STONE_ATLAS}`).toString('base64');
   const rocks = stones.map(s => {
     const crop = balance.TOWER_STONES[s.art].crop;
-    return `<g transform="translate(${s.x},${s.y + s.height * s.bottom}) rotate(${s.angle})"><svg x="${-s.width / 2}" y="${-s.height * s.bottom}" width="${s.width}" height="${s.height}" viewBox="${crop.join(' ')}"><image href="data:image/png;base64,${atlas}" width="1254" height="1254"/></svg></g>`;
+    return `<g transform="translate(${s.x},${s.y + s.height * s.bottom}) rotate(${s.angle})"><svg x="${-s.width / 2}" y="${-s.height * s.bottom}" width="${s.width}" height="${s.height}" viewBox="${crop.join(' ')}"><image href="data:image/png;base64,${atlas}" width="${balance.ATLAS_SIZE}" height="${balance.ATLAS_SIZE}"/></svg></g>`;
   }).join('');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="440" height="780" viewBox="-150 ${top - 20} 300 ${bottom - top + 40}"><rect x="-150" y="${top - 20}" width="300" height="${bottom - top + 40}" fill="#faf8f6"/>${rocks}</svg>`;
   await sharp(Buffer.from(svg)).png().toFile('C:/Users/user/Downloads/tower-grey-contact-preview.png');

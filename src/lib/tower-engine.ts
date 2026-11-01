@@ -50,7 +50,7 @@ export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageEle
       }
     }
     frame = { stones, camera, fallFrom, fall, direction, swing, height: towerHeight(stones), drop };
-    paintTower(ctx, atlas, frame, phase === "ready" ? preview() : null, drop);
+    paintTower(ctx, atlas, frame, phase === "ready" ? preview() : null, drop, false);
     if (now - recorded >= 125 && phase !== "paused") {
       recorded = now; history.push({ ...frame });
       if (history.length > 64) history.shift();
@@ -78,7 +78,7 @@ export function createTowerEngine(canvas: HTMLCanvasElement, atlas: HTMLImageEle
       fallFrom = balance.stable && !(stones.length > 5 && risk > .97) ? Infinity : Math.max(1, balance.joint);
       targetCamera = cameraFor(stones); phase = "busy"; mode = "settle"; start = performance.now();
       frame = { stones, camera, fallFrom, fall: 0, direction, swing: 0, height: towerHeight(stones), drop: 0 };
-      paintTower(ctx, atlas, frame);
+      paintTower(ctx, atlas, frame, null, 0, false);
       onHit(stones.length - 1, fallFrom !== Infinity); emit();
     },
     resume() { if (phase === "paused") { phase = "ready"; emit(); } },

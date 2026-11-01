@@ -100,10 +100,11 @@ export default function TowerPage() {
   return <HipRoom here="/tower" scroll={false}>
     <section className="tower-game" aria-label="돌탑 높이 도전">
       <header className="tower-score">
-        <h1>石塔 · 돌탑</h1>
+        <h1>돌탑</h1>
+        <button type="button" className="tower-pause" aria-label={game.phase === "paused" ? "이어서 쌓기" : "잠시 멈춤"} disabled={!ready || game.phase === "busy"} onClick={() => game.phase === "paused" ? engine.current?.resume() : engine.current?.pause()}>{game.phase === "paused" ? "▷" : "Ⅱ"}</button>
         <TowerRanking engine={engine} peak={game.peak} seed={seed} phase={game.phase} />
         <p><b>{game.height.toFixed(1)}</b><span>cm</span></p>
-        <small>최고 {best.toFixed(1)} cm{target > 0 ? ` / 도전 ${target.toFixed(1)} cm` : ""}</small>
+        <small className="sr-only">최고 {best.toFixed(1)} cm{target > 0 ? ` / 도전 ${target.toFixed(1)} cm` : ""}</small>
       </header>
       <canvas ref={canvas} width={720} height={1040} className="tower-canvas" tabIndex={0} role="button" aria-label="원하는 위치를 누르면 바로 쌓입니다. 키보드는 방향키와 스페이스로 조작합니다."
         aria-disabled={!ready || game.phase !== "ready"}
@@ -112,9 +113,9 @@ export default function TowerPage() {
         onKeyDown={event => { if (["ArrowLeft", "ArrowRight", " ", "Enter"].includes(event.key)) { event.preventDefault(); if (event.key === "ArrowLeft") engine.current?.nudge(-4); else if (event.key === "ArrowRight") engine.current?.nudge(4); else if (!event.repeat) engine.current?.drop(); } }}
       >돌탑 쌓기는 캔버스를 지원하는 브라우저에서 이용할 수 있어요.</canvas>
       <div className="tower-actions">
-        <p role="status">{!ready ? "돌을 준비하고 있어요" : game.phase === "busy" ? "" : game.phase === "paused" ? "잠시 쉬는 중" : game.count >= 3 ? "흔들림을 보고, 타이밍 맞춰 누르세요" : "원하는 위치를 누르면 바로 쌓여요"}</p>
-        {game.phase === "paused" ? <button className="tower-primary" onClick={() => engine.current?.resume()}>이어서 쌓기</button> : <button disabled={!ready || game.phase === "busy"} onClick={() => engine.current?.pause()}>잠시 멈춤</button>}
-        <button disabled={!game.count || game.phase === "busy"} onClick={openShare}>기록 공유</button>
+        <p role="status" className="sr-only">{!ready ? "돌을 준비하고 있어요" : game.phase === "busy" ? "" : game.phase === "paused" ? "잠시 쉬는 중" : "원하는 위치를 누르면 바로 쌓여요"}</p>
+        {game.phase === "paused" ? <button className="tower-primary" onClick={() => engine.current?.resume()}>이어서 쌓기</button> : <button className="tower-primary" disabled={!ready || game.phase === "busy"} onClick={() => engine.current?.drop()}>쌓기</button>}
+        <button className="tower-share-link" disabled={!game.count || game.phase === "busy"} onClick={openShare}>↑ 기록 나누기</button>
         {game.phase === "paused" && <button onClick={async () => { if (await ask("새로 쌓을까요?", "현재 돌탑은 사라지고 최고 기록은 남아요.")) { engine.current?.dispose(); setReady(false); setReward(0); setRun(v => v + 1); } }}>새로 쌓기</button>}
         <small aria-live="polite">{reward > 0 ? `오늘 새 높이 공덕 +${reward.toLocaleString()}` : ""}</small>
       </div>

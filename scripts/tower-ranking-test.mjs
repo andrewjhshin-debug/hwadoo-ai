@@ -53,7 +53,7 @@ assert.equal((await post({height:999999,name:'fake'})).status,400);
 assert.equal((await post({...proof,seed:'x'.repeat(25000)})).status,413);
 assert.equal((await post({...proof,week:'9999-01-01'})).status,400);
 assert.equal((await post({...proof,height:999999,name:'fake'})).status,200);
-assert.equal(docs.get('u1').all,score); assert.notEqual(docs.get('u1').name,'fake');
+assert.equal(docs.get('u1').all,score); assert.equal(docs.get('u1').name,'fake', 'a display nickname must not change the server-replayed height');
 const first = {...docs.get('u1')}; await post({seed:'test',positions:[0],week:proof.week}); assert.deepEqual(docs.get('u1'),first,'lower records cannot overwrite best');
 await post({...proof,week:'2026-01-05'},'old'); assert.equal(docs.get('old')[`week_${proof.week}`],undefined,'offline prior-week record must not enter this week');
 const field=`week_${proof.week}`;

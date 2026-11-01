@@ -1,4 +1,6 @@
 /* Preserve the app shell, brand palette and navigation. */
+.hip-screen.hip-room:has(.tower-game) { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:78px auto minmax(0,1fr); overflow:clip; }
+.hip-room .hip-room-body:has(> .tower-game) { width:100%; margin:10px 0 0; min-height:0; }
 .hip-room-body:has(> .tower-game) { overflow: hidden; padding-bottom: 6px; }
 .tower-game { --tower-text: #343831; --tower-muted: #73756c; --tower-paper: #fbfaf8; --tower-line: #d7d7ce; width: min(100%, 460px); flex: 1; min-height: 0; margin: 0 auto; display: flex; flex-direction: column; position: relative; color: var(--tower-text); }
 .tower-score { position: relative; flex-shrink: 0; padding: 2px 14px 0; text-align: left; }
@@ -7,7 +9,14 @@
 .tower-score b { font-family: var(--font-serif), serif; font-size: clamp(38px, 7vh, 60px); font-weight: 400; letter-spacing: -.04em; }
 .tower-score p span { margin-left: 7px; font-size: 22px; }
 .tower-score small { color: var(--tower-muted); font-size: 11px; }
-.tower-canvas { display: block; width: 100%; flex: 1 1 0; min-height: 100px; height: 0; object-fit: contain; touch-action: none; cursor: grab; border: 0; background: var(--tower-paper); border-radius: 14px; }
+.tower-score { text-align:center; padding:0 50px 6px; }
+.tower-score h1 { color:var(--tower-text); font-size:20px; font-weight:500; margin-bottom:12px; }
+.tower-score b { font-family:inherit; font-size:18px; letter-spacing:0; color:var(--tower-muted); }
+.tower-score p span { font-size:12px; margin-left:4px; color:var(--tower-muted); }
+.tower-pause { position:absolute; left:12px; top:6px; width:36px; height:36px; border:0; border-radius:50%; color:var(--tower-muted); background:#fff8; cursor:pointer; }
+.tower-pause:disabled { opacity:.4; }
+.tower-score .tower-rank-open { right:12px; top:0; flex-direction:column; gap:2px; width:44px; height:44px; padding:7px 4px; border:0; border-radius:50%; background:#fff9; color:var(--tower-muted); font-size:9px; }
+.tower-canvas { display: block; width: 100%; flex: 1 1 0; min-height: 100px; height: 0; object-fit: contain; touch-action: none; cursor: grab; border: 0; background: transparent; }
 .tower-canvas:active { cursor: grabbing; }
 .tower-canvas:focus-visible { outline: 2px solid #b84b76; outline-offset: 2px; }
 .tower-actions { flex-shrink: 0; min-height: 91px; text-align: center; padding: 4px 0 0; }
@@ -18,6 +27,9 @@
 .tower-actions button:focus-visible, .tower-share-panel button:focus-visible { outline: 2px solid #b84b76; outline-offset: 2px; }
 .tower-actions small { display: block; min-height: 17px; color: var(--tower-muted); font-size: 10px; }
 .tower-actions .tower-primary, .tower-share-buttons .tower-primary { border-color: #c95883; color: #9d325b; background: #fceaf1; }
+.tower-actions { min-height:99px; padding-top:5px; }
+.tower-actions .tower-primary { display:block; width:min(86%,300px); min-height:44px; margin:0 auto 5px; background:#ed81a2; border:0; color:#fff; font-size:15px; }
+.tower-actions .tower-share-link { display:block; margin:0 auto; border:0; min-height:36px; padding:6px 12px; font-size:12px; }
 .tower-error { font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; text-align: center; color: #a0375b; }
 .tower-share-veil { position: fixed; inset: 0; z-index: 60; background: #1e221ec2; display: grid; place-items: center; padding: 18px; }
 .tower-share-panel { width: min(100%, 420px); max-height: 88dvh; overflow-y: auto; padding: 20px; border-radius: 22px; background: var(--tower-paper); color: var(--tower-text); }
@@ -27,6 +39,6 @@
 .tower-share-poster { display: block; width: 100%; height: 36dvh; object-fit: contain; margin-top: 10px; border-radius: 12px; }
 .tower-share-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 18px 0 0; }
 .tower-share-panel small { display: block; font-size: 10px; line-height: 1.8; color: var(--tower-muted); }
-@media (max-height: 650px) { .tower-score b { font-size: 36px; } .tower-actions { min-height: 75px; } .tower-actions p { font-size: 10px; } }
+@media (max-height: 650px) { .tower-score h1 { font-size:17px; margin-bottom:6px; } .tower-score b { font-size:16px; } .tower-actions { min-height:88px; } .tower-actions .tower-primary { min-height:40px; } }
 @media (prefers-color-scheme: dark) { .tower-share-panel { --tower-text: #e3e5df; --tower-muted: #b7bab0; --tower-line: #73786a; --tower-paper: #20251f; } }
 @media (prefers-reduced-motion: reduce) { .tower-actions button:active, .tower-share-buttons button:active { transform: none; } }

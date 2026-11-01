@@ -30,8 +30,11 @@ export function stoneSpec(depth: number, seed: number): Omit<GameStone, "x" | "y
   const r = random(seed ^ Math.imul(depth + 1, 2654435761));
   const art = depth === 0 ? 0 : depth < 3 ? [1, 2][depth - 1] : 1 + Math.floor(r * 8);
   const source = TOWER_STONES[art];
-  const width = depth === 0 ? 210 : depth < 3 ? 180 - depth * 12 : 110 + Math.round(random(seed ^ (depth + 71) * 829) * 48);
-  return { depth, art, width, height: source.crop[3] / source.crop[2] * width,
+  // Broad foundation tapering to the smaller rounded stones in the approved mockup.
+  const widths = [210, 190, 174, 158, 144, 132, 122, 114, 108];
+  const width = widths[depth] ?? 108 + Math.round(random(seed ^ (depth + 71) * 829) * 24);
+  const proportions = [.48, .38, .42, .40, .40, .44, .36, .44, .42];
+  return { depth, art, width, height: proportions[art] * width,
     angle: depth === 0 ? 0 : depth < 3 ? source.tilt * .4 : source.tilt * .65 + (r - .5) * 5,
     support: depth < 3 ? .34 : Math.max(.135, source.support + .02 - Math.min(.055, (depth - 3) * .004)),
     offset: source.offset * .65, massOffset: source.massOffset,
@@ -78,27 +81,19 @@ export function towerHeight(stones: readonly GameStone[]) {
   return stones.length ? Math.max(0, (FLOOR - stones.reduce((top, s) => Math.min(top, s.y + s.height * s.top), FLOOR)) / PX_PER_CM) : 0;
 }
 export function cameraFor(stones: readonly GameStone[]) {
-  return stones.length ? Math.max(0, 140 - stones.reduce((top, s) => Math.min(top, s.y), FLOOR)) : 0;
+  return stones.length ? Math.max(0, 70 - stones.reduce((top, s) => Math.min(top, s.y), FLOOR)) : 0;
 }
 export function remainingStones(stones: readonly GameStone[], joint: number) {
   return stones.slice(0, Math.max(1, joint));
 }
 export function rewardTier(height: number) { return Math.max(0, Math.floor(height / 10)); }
 
-export function paintTower(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, frame: ReplayFrame, preview?: GameStone | null, drop = frame.drop ?? 0) {
+export function paintTower(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, frame: ReplayFrame, preview?: GameStone | null, drop = frame.drop ?? 0, backdrop = true) {
   const width = ctx.canvas.width, height = ctx.canvas.height;
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = "#fbfaf8"; ctx.fillRect(0, 0, width, height);
+  if (backdrop) { ctx.fillStyle = "#fbfaf8"; ctx.fillRect(0, 0, width, height); }
   const scale = Math.min(width / GAME_WIDTH, height / GAME_HEIGHT);
   ctx.save(); ctx.translate(width / 2, height - GAME_HEIGHT * scale); ctx.scale(scale, scale);
-  ctx.fillStyle = "#77786f"; ctx.font = "11px sans-serif"; ctx.textAlign = "right";
-  const startCm = Math.max(0, Math.floor((frame.camera - 20) / PX_PER_CM / 10) * 10);
-  for (let cm = startCm; cm < startCm + 60; cm += 5) {
-    const y = FLOOR - cm * PX_PER_CM + frame.camera;
-    if (y < 40 || y > GAME_HEIGHT) continue;
-    ctx.strokeStyle = "#d7d7cf"; ctx.beginPath(); ctx.moveTo(166, y); ctx.lineTo(173, y); ctx.stroke();
-    if (cm % 10 === 0) ctx.fillText(String(cm), 160, y + 4);
-  }
   if (frame.camera < 40) {
     ctx.fillStyle = "#d9d8d0"; ctx.beginPath(); ctx.ellipse(0, FLOOR + frame.camera + 4, 106, 3, 0, 0, Math.PI * 2); ctx.fill();
   }

@@ -1,0 +1,11 @@
+# Rounded stone design
+
+Replace the old angular/crystalline artwork with nine rounded water-worn stones based on the approved tower concept. The follow-up request darkens the material to neutral medium grey. Built-in ImageGen generated a transparent 3×3 atlas, then performed a material-only darkening edit. Final atlas/source is `public/obj/stone-cairn-atlas-v6.png`.
+
+Prompt specification: nine separate horizontal rounded river pebbles, gently domed tops and bottoms, broad oval foundation and smaller cap, fine pores and subtle speckles, no triangular wedges, thin broken slabs, crystalline veins, floor or exterior shadows. Same upper-left lighting. Final edit preserves silhouettes and grid and changes the pale beige material to medium neutral grey with subtle fine speckles. The approved reference is the tower screen from the full redesign board; no other app redesign is applied.
+
+The first nine stone widths taper from 210 to 108 world units. Low oval height proportions match the reference; the camera's top allowance reduces to 70 so the short initial stack remains visible longer. Image contours are re-derived for actual contact, so changing appearance does not reintroduce floating joints. The same new atlas/crops also feed the OG card. Existing scores stay stored; subsequent placements/replay scoring use the new shared dimensions.
+
+UI: small centered title and height, compact ranking/pause, pink stack button and quiet share link. Hide ruler and instructional prose visually, keep accessible instructions. The stack button aliases the existing placement action. Canvas tap, keyboard, sway, stability, partial collapse, survivors, rewards, replay and ranking verification remain in place. Scoped grid avoids header/lanes overlap and the board background is transparent; share images retain their solid backdrop.
+
+Validation: 243 pair/rotation contact combinations; 35-stone playable paths; immediate placement, unchanged survivors, partial collapse, pause, rewards and ranking replay tests; TypeScript and targeted lint. Two old test assertions were stale against existing link-only sharing and nickname support, and were aligned with that current behavior. Browser tested six placements at390×844 and controls at360×640; no physical device claim.
