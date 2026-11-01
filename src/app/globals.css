@@ -1075,3 +1075,32 @@ html[data-focus="1"] #scroll-box {
 /* 손대기 */
 
 /* 손대기 */
+
+/* 인연판 「같이 가요」 띠 — 옆으로 셋, 글자 최소 (GoStrip) */
+.hip-gostrip { display: flex; gap: 10px; overflow-x: auto; padding: 4px 16px 14px; scrollbar-width: none; scroll-snap-type: x mandatory; }
+.hip-gostrip::-webkit-scrollbar { display: none; }
+.hip-gostrip-card { flex: 0 0 78%; max-width: 300px; scroll-snap-align: start; padding: 14px 16px 12px; border-radius: 20px; background: #fff; box-shadow: 0 4px 16px rgba(26,23,20,.07); }
+.hip-gostrip-day { margin: 0; font-family: var(--font-serif); font-size: 22px; letter-spacing: -0.02em; color: #1a1a1c; }
+.hip-gostrip-day span { margin-left: 8px; font-family: var(--font-sans); font-size: 11.5px; letter-spacing: .1em; color: #9aa0a8; }
+.hip-gostrip-name { margin: 2px 0 10px; font-size: 13.5px; color: #5a6068; }
+
+/* 법당 — 불단은 위 무대에, 아래 마루에 좌복 (CandleHall 법당중앙·법당마루) */
+.hip-hall-stage { position: absolute; left: 0; right: 0; top: 0; bottom: 24%; }
+.hip-hall-stage > .hip-hall-scene { object-position: center 78%; }
+.hip-hall-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; pointer-events: none; background: linear-gradient(180deg, rgba(236,224,208,0) 0%, #ece0d0 22%, #e2d3be 100%); }
+.hip-hall-floor span { position: absolute; aspect-ratio: 920 / 591; background: url(/obj/cushion.webp) center / contain no-repeat; filter: drop-shadow(0 3px 4px rgba(60,40,20,.16)); }
+
+/* 머리띠 없는 방(법당·인연) — 「오늘의 공덕」 띠도 위에서 걷는다. 머리띠 밑에 붙는 띠라 혼자 뜨면 내용을 덮는다 */
+body:has(.hip-hall) .hip-daybar, body:has(.hip-gather-page) .hip-daybar { display: none !important; }
+
+/* 법륜 단추 — 아래 띠(話堂功緣我) 오른쪽 옆으로. 형: 「내려놓기랑 겹친다. 아래 바는 그대로 두되 그 오른쪽에」
+   띠 폭 308px 의 오른쪽 끝 + 6px. 좁은 폰(400px 아래)은 띠 옆 자리가 모자라 띠를 오른쪽 몫만큼 줄인다 */
+.wheel-fab { right: max(4px, calc(50vw - 154px - 6px - 34px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 27px); }
+.wheel-fab .investment-shortcut { width: 34px; height: 34px; }
+.wheel-fab .wheel-ico { width: 20px; height: 20px; }
+@media (max-width: 400px) {
+  .hip-mala-track { gap: 2px; padding: 6px; }
+  .hip-mala button { width: 48px; }
+  .hip-mala { justify-content: flex-start; padding-left: max(10px, calc(50vw - 150px - 20px)); }
+  .wheel-fab { right: 8px; }
+}

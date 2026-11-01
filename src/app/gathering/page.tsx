@@ -14,9 +14,6 @@
 
 import Link from "next/link";
 import HipShell from "@/components/HipShell";
-import HipTop from "@/components/HipTop";
-import HipHeader from "@/components/HipHeader";
-import HwaduBrand from "@/components/HwaduBrand";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import GatheringBoard from "@/components/GatheringBoard";
@@ -45,12 +42,8 @@ function GatheringInner() {
   };
 
   const 알맹이 = (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-0 pb-16 pt-0 sm:px-6 md:pt-6">
-      {/* 형: 「법당이랑 인연만 오른쪽 위가 달라 — 다 통일해」. 다른 방과 같은 머리띠 */}
-        <HipHeader>
-          <HwaduBrand />
-          <HipTop />
-        </HipHeader>
+    <div className="hip-gather-page mx-auto flex w-full max-w-2xl flex-1 flex-col px-0 pb-16 pt-3 sm:px-6 md:pt-6">
+      {/* 머리띠 없음 — 형: 「법당이랑 인연에는 위에 메뉴바 없어도 되겠다」 */}
       {view === "list" && (
         <>
           {/* 문은 둘. 설명은 안 붙인다 — 형: 「개 같은 멘트 넣지 말라고 했다」

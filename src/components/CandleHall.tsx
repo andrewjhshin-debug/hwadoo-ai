@@ -7,9 +7,6 @@ import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import Gongyang, { type 공양갈래 } from "@/components/Gongyang";
 import { 신고보내기 } from "@/lib/dm";
 import { pingLotus } from "@/components/LotusCount";
-import HipTop from "@/components/HipTop";
-import HipHeader from "@/components/HipHeader";
-import HwaduBrand from "@/components/HwaduBrand";
 import { Yeonkkot } from "@/components/icons";
 import { strikeBell } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
@@ -77,9 +74,39 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onCli
  *  실제 등만 이 장면 위에 차고, 불단의 기본 공양은 늘 제자리에 있다. */
 function 법당중앙({ children }: { children?: React.ReactNode }) {
   return <div className="hip-hall-shrine">
-    {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img className="hip-hall-scene" src="/obj/hall-scene-v1.webp" alt="" draggable={false} />
-    {children}
+    {/* 불단은 무대(stage) 위에 — 장면 속 공양물 손가락 자리(%)가 그림과 같이 움직이게 한 통에 담는다 */}
+    <div className="hip-hall-stage">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="hip-hall-scene" src="/obj/hall-scene-v1.webp" alt="" draggable={false} />
+      {children}
+    </div>
+    <법당마루 />
+  </div>;
+}
+
+/**
+ * 법당 마루의 좌복(방석) — 형: 「방석 살짝 틀어지거나 겹쳐도 되니까 자연스럽게,
+ * 원근감 배치는 좋고」. 같은 그림 한 장(/obj/cushion.webp)을 뒤로 갈수록 작게,
+ * 가운데로 모이게, 줄마다 조금씩 어긋나게 놓는다. 색은 없다.
+ * [줄 위치(마루 높이 %), 크기(마루 폭 %), 개수, 줄 어긋남]
+ */
+const 좌복줄: [number, number, number, number][] = [
+  [4, 11.5, 7, 0.4],
+  [26, 15, 6, -0.5],
+  [52, 19.5, 5, 0.3],
+];
+function 법당마루() {
+  return <div className="hip-hall-floor" aria-hidden>
+    {좌복줄.flatMap(([top, w, n, shift], r) => {
+      const 양끝 = 4 + r * -1.5; // 앞줄일수록 넓게 퍼진다
+      const 폭 = 100 - 양끝 * 2;
+      return Array.from({ length: n }, (_, i) => {
+        // 손으로 놓은 듯 — 각도·높낮이·좌우가 자리마다 조금씩 다르다(같은 판이면 늘 같게)
+        const 흔들 = ((i * 37 + r * 17) % 9) - 4;
+        const left = 양끝 + (폭 / n) * (i + 0.5 + shift * 0.25) - w / 2 + 흔들 * 0.25;
+        return <span key={`${r}-${i}`} style={{ left: `${left}%`, top: `${top + ((i * 13 + r * 7) % 5) * 0.6}%`, width: `${w}%`, transform: `rotate(${(흔들 * 0.9).toFixed(1)}deg)`, zIndex: r * 10 + i }} />;
+      });
+    })}
   </div>;
 }
 
@@ -902,11 +929,7 @@ export default function CandleHall() {
   const 공양대표색 = 다걸린것[0]?.gift ?? "deung";
 
   return <div className="hip-hall">
-    {/* 형: 「법당이랑 인연만 오른쪽 위가 달라 — 다 통일해」 */}
-    <HipHeader>
-      <HwaduBrand />
-      <HipTop />
-    </HipHeader>
+    {/* 머리띠 없음 — 형: 「법당이랑 인연에는 위에 메뉴바 없어도 되겠다」. 그 자리를 법당이 쓴다 */}
     <div className="hip-hall-top">
       {/* 「내 것만」 — 누르면 남의 것이 희미해지고 내 것만 밝아진다.
           거르지 않는다(사라지면 법당이 빈다) — **밝기로 가른다.**

@@ -18,6 +18,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import GoStrip from "./GoStrip";
 import type { User } from "firebase/auth";
 import {
   addComment,
@@ -1467,6 +1468,9 @@ export default function GatheringBoard({
         </button>
         </div>
       </div>
+
+      {/* 같이 가요 — 가까운 절 가는 날 셋. 형: 「인연에서 같이 가요 기능 추가해 둬」 */}
+      <GoStrip />
 
       <ul className="divide-y divide-ink-3/60 border-y border-ink-3/60">
         {/* ★ 못 읽어 온 것을 먼저 본다.
