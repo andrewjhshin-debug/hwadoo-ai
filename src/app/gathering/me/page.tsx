@@ -47,6 +47,7 @@ import {
   내프로필,
   물음들,
   물음최소,
+  답최소,
   답한수,
 } from "@/lib/yeon";
 
@@ -250,7 +251,10 @@ export default function 인연내프로필() {
 
   return (
     <HipRoom here="/gathering/me" lanes={false} rail="/gathering">
-      <div className="hip-yeon">
+      {/* 형: 「백 번을 눌러도 저장 안 된다」 — 저장은 됐는데 칸들이 프로필을 읽기 **전**에 그려져
+          빈 값으로 굳어 있었다(다시 열면 꺼져 보이고, 빈 답칸을 벗어나면 빈 값으로 덮어썼다).
+          프로필이 읽힌 순간 한 번 새로 세운다 */}
+      <div className="hip-yeon" key={me ? "loaded" : "empty"}>
         <p className="hip-yeon-head">因緣 · 내 프로필</p>
 
         {/* 빠진 칸 알약은 걷었다 — 형: 「이딴 말 지우고」 */}
@@ -333,7 +337,7 @@ export default function 인연내프로필() {
           {/* 형: 「대표 사진 프로필사진으로 설정 이런 식으로」 */}
           <label className="hip-yeon-avatar-on">
             <span>대표 사진을 프로필 사진으로</span>
-            <input type="checkbox" defaultChecked={!!me?.avatarOn} onChange={(e) => 고치기({ avatarOn: e.target.checked })} />
+            <input type="checkbox" checked={!!me?.avatarOn} onChange={(e) => void 고치기({ avatarOn: e.target.checked })} />
           </label>
 
           {사진진행 && <p role="status" aria-live="polite" className="mt-3 text-center text-xs text-hanji-dim">{사진진행}</p>}
@@ -532,20 +536,7 @@ export default function 인연내프로필() {
         {이름탈 && <p className="hip-yeon-bad">{이름탈}</p>}
 
         {/* ── 한 낱말로 끝나는 것들 ── */}
-        <div className="hip-yeon-row">
-          <b>성별</b>
-          <span className="hip-chips">
-            {([["m", "남"], ["f", "여"]] as const).map(([k, t]) => (
-              <button
-                key={k}
-                data-on={me?.sex === k ? "1" : undefined}
-                onClick={() => 고치기({ sex: k })}
-              >
-                {t}
-              </button>
-            ))}
-          </span>
-        </div>
+        {/* 성별 칸은 걷었다 — 형: 「나중에 인증할 거니까 이건 없어야지」. 본인 인증에서 받아 적는다 */}
 
         <div className="hip-yeon-row">
           <b>나이</b>
@@ -633,7 +624,7 @@ export default function 인연내프로필() {
         {/* ── 물음 — 인터뷰처럼. 셋 이상 써야 판에 선다 ──
             형: 「사람들이 글을 쓰도록 유도하려면 인터뷰나 물음별로 상세히, 써야지만 표출되도록」 */}
         <div className="hip-yeon-qa-edit">
-          <p className="hip-yeon-qa-count">물음 <b>{답한수(me)}</b> / {물음최소}</p>
+          <p className="hip-yeon-qa-count"><b>{답한수(me)}</b> / {물음최소}</p>
           {물음들.map((m) => (
             <label key={m.id}>
               <b>Q. {m.q}</b>
@@ -642,12 +633,15 @@ export default function 인연내프로필() {
                 maxLength={300}
                 placeholder={m.hint}
                 defaultValue={me?.qa?.[m.id] ?? ""}
+                onInput={(e) => { const n = e.currentTarget.value.trim().length; e.currentTarget.dataset.short = n > 0 && n < 답최소 ? "1" : ""; }}
                 onBlur={(e) => {
                   const v = e.target.value.trim().slice(0, 300);
                   if ((me?.qa?.[m.id] ?? "") === v) return;
                   고치기({ qa: { ...(me?.qa ?? {}), [m.id]: v } });
                 }}
               />
+              {/* 형: 「최소 글자 수 둬라」 — 스무 자 넘어야 답으로 센다 */}
+              <small className="hip-qa-min">{답최소}자 이상</small>
             </label>
           ))}
         </div>

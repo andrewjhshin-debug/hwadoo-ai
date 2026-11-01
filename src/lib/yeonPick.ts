@@ -128,7 +128,7 @@ export async function 추려서(app: App, p: 프로필, 붙박이 = false, viewe
     care: p.care ?? [],
     date: p.date ?? [],
     line: p.line ?? "",
-    qa: Object.fromEntries(Object.entries(p.qa ?? {}).filter(([, v]) => typeof v === "string" && v.trim().length >= 10).map(([k, v]) => [k, (v as string).trim().slice(0, 300)])),
+    qa: Object.fromEntries(Object.entries(p.qa ?? {}).filter(([, v]) => typeof v === "string" && v.trim().length >= 20).map(([k, v]) => [k, (v as string).trim().slice(0, 300)])),
     rank: p.merit?.rank ?? "",
     // 승인된 사진만. pending은 관리자 심사 줄 밖으로 절대 나가지 않는다.
     photos,

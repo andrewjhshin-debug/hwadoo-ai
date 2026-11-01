@@ -1643,3 +1643,5 @@ body:has(.hip-say) :is(.wheel-fab, .doryang-fab) { display: none !important; }
 .hip-soul-heart { margin-left: 2px; padding: 0; border: 0; background: none; font-size: 10px; line-height: 1; color: #c47a92; cursor: pointer; }
 /* 아래에서 올라오는 판이 열려 있으면 염주 줄을 걷는다 — 형: 「겹치잖아, 이런 디테일 놓치지 마」 */
 body:has([role="dialog"], [aria-modal="true"], .hip-seat-card, .hip-yeon-big) :is(.hip-mala, .wheel-fab, .doryang-fab) { display: none !important; }
+.hip-qa-min { display: none; margin-top: 4px; font-size: 11px; color: #c0457a; }
+textarea[data-short="1"] + .hip-qa-min { display: block; }
