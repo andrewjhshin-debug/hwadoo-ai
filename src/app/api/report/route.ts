@@ -111,6 +111,8 @@ export async function POST(req: Request) {
   const report = db.collection("reports").doc();
   const outcome = await db.runTransaction(async (tx) => {
     const prior = await tx.get(guard);
+    // 읽기는 쓰기보다 먼저(트랜잭션 규칙)
+    const 원문 = kind === "comment" ? (await tx.get(db.doc(`posts/${postId}/comments/${commentId}`))).data()?.body : undefined;
     const old = prior.data() ?? {};
     const fresh = typeof old.from === "number" && now - old.from < WINDOW;
     const reporters = fresh && Array.isArray(old.reporters)
@@ -158,6 +160,8 @@ export async function POST(req: Request) {
     // 게시판 댓글은 **한 번만 신고돼도** 곧장 가린다 — 형: 「신고하자마자 아묻따 신고된 댓글입니다, 골스처럼」.
     // 지우지는 않는다(원문은 reports 에 남고, 뒷방이 되돌릴 수 있다)
     if (kind === "comment") {
+      // 원문은 신고 문서에 고스란히 남긴다 — 뒷방이 보고 되돌릴 수 있게
+      if (typeof 원문 === "string") tx.set(report, { original: 원문.slice(0, 1000) }, { merge: true });
       tx.set(db.doc(`posts/${postId}/comments/${commentId}`), {
         deleted: true,
         reported: true,

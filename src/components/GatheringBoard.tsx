@@ -31,6 +31,7 @@ import {
   fetchMyLike,
   cachedPosts,
   fetchPosts,
+  fetchMorePosts,
   GATHERING_CATEGORIES,
   likePost,
   unlikePost,
@@ -737,7 +738,7 @@ export default function GatheringBoard({
       (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
     );
     return list;
-  }, [posts, categoryFilter]);
+  }, [posts, categoryFilter, 찾을말]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -749,9 +750,30 @@ export default function GatheringBoard({
     setCapacity(4);
     setMeetPlace("");
     setCategory("companion");
+  // 검색 — 형: 「글 검색 기능」. 불러온 글 안에서 제목·본문·이름을 찾는다
+  // ponytail: 받아 둔 글(60개씩)만 뒤진다. 더 오래된 글까지 찾으려면 「더 보기」로 넓히거나 서버 색인(Algolia 등)이 필요하다
+  const [찾기열림, 찾기열기] = useState(false);
+  const [찾을말, 찾을말잡기] = useState("");
+  const [더있음, 더있음잡기] = useState(true);
+  const [더부름, 더부름잡기] = useState(false);
+  const 더보기 = async () => {
+    const 끝 = posts?.reduce((m, p) => Math.min(m, p.createdAt?.seconds ?? m), Infinity);
+    if (!끝 || 끝 === Infinity || 더부름) return;
+    더부름잡기(true);
+    try {
+      const more = await fetchMorePosts("gathering", 끝);
+      if (more.length < 60) 더있음잡기(false);
+      setPosts((now) => {
+        const ids = new Set((now ?? []).map((p) => p.id));
+        return [...(now ?? []), ...more.filter((p) => !ids.has(p.id))];
+      });
+    } catch { /* 조용히 */ } finally { 더부름잡기(false); }
+  };
     setFormError("");
+    const q = 찾을말.trim().toLowerCase();
   };
 
+        (!q || `${p.title} ${p.body} ${p.authorName} ${p.templeName ?? ""}`.toLowerCase().includes(q)) &&
   const submit = async () => {
     setFormError("");
     setBusy(true);
@@ -1684,7 +1706,13 @@ export default function GatheringBoard({
               className="shrink-0 rounded-full border border-gold/45 px-2.5 py-1 text-[11px] text-gold transition-colors hover:bg-gold/10"
             >
               다시
+        {찾기열림 && (
+          <input className="hip-find" autoFocus value={찾을말} onChange={(e) => 찾을말잡기(e.target.value)} placeholder="제목·내용·절 이름" enterKeyHint="search" />
+        )}
             </button>
+        <button type="button" className="hip-find-btn" aria-label="검색" aria-pressed={찾기열림} onClick={() => { 찾기열기(!찾기열림); if (찾기열림) 찾을말잡기(""); }}>
+          <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
+        </button>
           </p>
         )}
       </div>
@@ -1778,3 +1806,7 @@ export default function GatheringBoard({
     </div>
   );
 }
+      {찾을말.trim() && sorted.length === 0 && <p className="hip-find-none">「{찾을말.trim()}」 글이 없어요{더있음 ? " · 더 오래된 글에서 찾으려면 아래 「더 보기」" : ""}</p>}
+      {더있음 && (posts?.length ?? 0) >= 60 && (
+        <button type="button" className="hip-more" disabled={더부름} onClick={() => void 더보기()}>{더부름 ? "불러오는 중…" : "더 보기"}</button>
+      )}

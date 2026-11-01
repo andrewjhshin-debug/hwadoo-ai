@@ -156,9 +156,14 @@ service cloud.firestore {
         allow update: if (request.auth != null
             && request.resource.data.diff(resource.data)
                  .affectedKeys().hasOnly(['up', 'down']))
-          || ((isAdmin()
-               || (request.auth != null
-                   && request.auth.uid == resource.data.authorUid))
+          // 작성자는 지우기(deleted=true)만 — 되살리기는 못 한다. 신고로 가려진 글은 손도 못 댄다
+          || (isAdmin()
+              && request.resource.data.diff(resource.data)
+                   .affectedKeys().hasOnly(['deleted', 'body', 'reported']))
+          || (request.auth != null
+              && request.auth.uid == resource.data.authorUid
+              && resource.data.get('reported', false) != true
+              && request.resource.data.deleted == true
               && request.resource.data.diff(resource.data)
                    .affectedKeys().hasOnly(['deleted', 'body']));
         allow delete: if isAdmin();

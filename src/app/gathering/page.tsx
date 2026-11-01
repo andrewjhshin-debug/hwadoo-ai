@@ -55,7 +55,7 @@ function GatheringInner() {
           {/* 형: 「검게 하란 말이 아니야, 구성을 제대로」 — 윗단 한 덩이: 제목·연꽃 / 문 둘 반반 */}
           <header className="hip-yh">
             <div className="hip-yh-top">
-              <h1>인연</h1>
+              <h1>因緣</h1>
               <Link href="/lotus" className="hip-yh-lotus" aria-label="연꽃"><LotusCount look="line" /></Link>
             </div>
             <nav className="hip-yh-doors" aria-label="인연">

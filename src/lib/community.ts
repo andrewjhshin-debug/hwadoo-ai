@@ -16,6 +16,8 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  startAfter,
+  Timestamp,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -129,6 +131,20 @@ export function cachedPosts(board: Board = "community"): Post[] {
   } catch {
     return [];
   }
+}
+
+/** 다음 장 — 형: 「게시물이 만 개 쌓이면?」 지우지 않는다. 처음엔 최신 60, 내리면 60씩 더 */
+export async function fetchMorePosts(board: Board, afterSeconds: number): Promise<Post[]> {
+  const snap = await getDocs(
+    query(
+      collection(db, "posts"),
+      where("board", "==", board),
+      orderBy("createdAt", "desc"),
+      startAfter(new Timestamp(afterSeconds, 0)),
+      limit(PAGE)
+    )
+  );
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Post);
 }
 
 export async function fetchPosts(board: Board = "community"): Promise<Post[]> {
