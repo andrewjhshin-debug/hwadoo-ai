@@ -1677,3 +1677,5 @@ html[data-focus="1"] :is(.hip-daybar, .wheel-fab, .doryang-fab) { display: none 
 .hip-me-back { display: flex; justify-content: center; gap: 8px; }
 .hip-me-back .hip-me-desk { background: #fff !important; border: 1px solid rgba(26,23,20,.12) !important; color: #3a3632 !important; border-radius: 999px !important; padding: 9px 18px !important; box-shadow: 0 2px 8px rgba(26,23,20,.05); letter-spacing: .1em; }
 .hip-me-back .hip-me-desk span { margin-left: 6px; padding: 0 6px; border-radius: 999px; background: #1a1a1c; color: #fff !important; font-size: 11px; }
+/* 글 보기 — 넓은 화면에서도 아래 염주 줄이 본문·댓글을 덮었다. 글을 읽는 동안엔 폭과 상관없이 걷는다 */
+body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab) { display: none !important; }
