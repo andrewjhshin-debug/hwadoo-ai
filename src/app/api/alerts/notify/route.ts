@@ -71,6 +71,8 @@ export async function POST(req: Request) {
     if (글.authorUid !== uid) return Response.json({ error: "not-author" }, { status: 403 });
     // ponytail: 키워드 문서를 통째로 훑는다 — 수천 명까지는 한 번 읽기로 충분.
     //           넘치면 낱말별 색인(alert-words/{낱말}.uids)으로 바꾼다.
+    // 글 하나에 한 번만 훑는다 — 같은 글로 몇 번을 불러도 두 번째부턴 바로 끝(읽기 값 폭주 막기)
+    try { await db.doc(`alert-fanout/${postId}`).create({ at: Date.now() }); } catch { return Response.json({ ok: true, again: true }); }
     const 판 = `${글.title ?? ""} ${글.body ?? ""}`;
     const 모두 = await db.collection("alert-keywords").get();
     await Promise.all(

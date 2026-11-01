@@ -516,6 +516,7 @@ export default function GatheringBoard({
     name: string;
   } | null>(null);
   const [dmIntro, setDmIntro] = useState("");
+  const [진심, 진심잡기] = useState(false);
   const [dmBusy, setDmBusy] = useState(false);
   const [dmNeed, setDmNeed] = useState(false);
   const [dmLotus, setDmLotus] = useState<number | null>(null);
@@ -922,7 +923,8 @@ export default function GatheringBoard({
       const t = await requestThread(
         p,
         { uid: dmTarget.uid, name: dmTarget.name },
-        dmIntro
+        dmIntro,
+        진심
       );
       if (t === "need-lotus") {
         setDmNeed(true);
@@ -1144,6 +1146,13 @@ export default function GatheringBoard({
                 placeholder="한 마디와 함께"
                 className="mt-3 w-full resize-none rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-3 text-[15px] leading-7 text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
               />
+              {/* 진심 쪽지 — 🪷5. 받는 쪽 맨 위, 금테 */}
+              {!isAdminAccount(user) && (
+                <label className="hip-sincere">
+                  <input type="checkbox" checked={진심} onChange={(e) => 진심잡기(e.target.checked)} />
+                  <span><b>진심 쪽지</b> · 상대 쪽지함 맨 위에 금테로</span>
+                </label>
+              )}
               <button
                 onClick={() => submitDmRequest(p)}
                 disabled={dmBusy || !dmIntro.trim()}
@@ -1153,7 +1162,7 @@ export default function GatheringBoard({
                   ? "보내는 중…"
                   : isAdminAccount(user)
                     ? "쪽지 청하기"
-                    : "쪽지 청하기 — 연꽃 3송이"}
+                    : `쪽지 청하기 — 연꽃 ${진심 ? 5 : 3}송이`}
               </button>
               {isAdminAccount(user) ? null : (
                 /* 첫 선물·「수락되면 무료」는 뗐다 — 위 단추가 값을 이미

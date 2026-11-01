@@ -1467,3 +1467,6 @@ body:has(.hip-yh, .hip-yeon-deck, .hip-yeon-head) .hip-bloom { display: none !im
 .hip-more:disabled { opacity: .5; }
 
 .hip-soul-full { position: absolute; left: 0; right: 0; bottom: 3%; margin: 0; text-align: center; font-size: 11.5px; color: #8b7a72; pointer-events: none; }
+.hip-sincere { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(201,162,104,.55); background: #fffaf0; font-size: 12.5px; color: #6e5a3e; }
+.hip-sincere input { width: 16px; height: 16px; accent-color: #a8804a; }
+.hip-sincere b { font-weight: 600; color: #8a6a3e; }
