@@ -54,7 +54,19 @@ function 폭(n: number) {
   return 100 / 한줄에(n) + 3.2;
 }
 
-function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onClick: () => void; i: number; 열: number; 줄수?: number; mine?: boolean }) {
+/** 등이 적을 때(다섯까지) — 처마 끝에서 끝으로 늘어진 **한 가닥 줄**에 꿴다.
+ *  형: 「밤티처럼하지 말고 어우러지게 다시 배치」
+ *  하나 덩그러니 떠 있으면 허전하다. 줄이 있으면 하나여도 「걸렸다」로 읽힌다.
+ *  줄은 포물선 y = 4·처짐·x(1−x), 등은 space-evenly 로 선 자리 x 에서 그 높이만큼 내려온다. */
+const 줄처짐 = 26; // px
+const 꿴폭 = 0.17; // 등 하나 폭(줄 폭에 대한 몫) — CSS 의 17% 와 같다
+function 줄높이(i: number, n: number) {
+  const 틈 = (1 - n * 꿴폭) / (n + 1);
+  const x = 틈 * (i + 1) + 꿴폭 * (i + 0.5);
+  return 4 * 줄처짐 * x * (1 - x);
+}
+
+function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine, 꿴 }: { c: Candle; onClick: () => void; i: number; 열: number; 줄수?: number; mine?: boolean; 꿴?: number }) {
   // ── 원근 — **맨 아랫줄이 앞이다** ─────────────────────────
   // 형: 「이건 내가 말한 원근법 느낌이 아닌데? 겹치더라도 내가 준
   //      레퍼런스처럼 하고, 위에 다는 선은 없어도 되겠다」
@@ -72,7 +84,7 @@ function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine }: { c: Candle; onCli
   const seed = c.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
   // 옛 문서에는 갈래 칸이 없다 — 없으면 연등이다(여태 다 연등이었다)
   // 내 것인가 — 「내 것만」을 켜면 이 표를 보고 나머지가 희미해진다
-  return <span className="hip-hang" data-mine={mine ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} lanternColor={c.lanternColor} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
+  return <span className="hip-hang" data-mine={mine ? "1" : undefined} style={꿴 === undefined ? undefined : ({ "--kkwen": `${꿴.toFixed(1)}px` } as React.CSSProperties)}><Gongyang 갈래={c.gift ?? "deung"} lanternColor={c.lanternColor} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
 }
 
 /** 법당의 가운데는 공양 유무와 관계없이 한 장면이다.
@@ -1032,6 +1044,7 @@ export default function CandleHall() {
           <div className="hip-hall-ceil">
             <div
               className="hip-deung-sky"
+              data-few={등들.length <= 5 ? "1" : undefined}
               /* 폭 = 한 자리 몫 + 겹치는 몫. 옆 여백이 -1.6% 씩이라
                  **차지하는 폭은 정확히 100/열** 이 된다 — 그래야 눈에
                  보이는 줄과 위에서 센 줄(깊이)이 어긋나지 않는다.
@@ -1049,8 +1062,14 @@ export default function CandleHall() {
                 } as React.CSSProperties
               }
             >
+              {등들.length <= 5 && (
+                <svg className="hip-deung-cord" viewBox={`0 0 100 ${줄처짐 + 2}`} preserveAspectRatio="none" aria-hidden>
+                  <path d={`M0 1 Q50 ${줄처짐 * 2 + 1} 100 1`} />
+                </svg>
+              )}
               {등들.map((c, i) => (
                 <CandleMark
+                  꿴={등들.length <= 5 ? 줄높이(i, 등들.length) : undefined}
                   key={c.id}
                   c={c}
                   i={i}
