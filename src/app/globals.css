@@ -1085,9 +1085,9 @@ html[data-focus="1"] #scroll-box {
 .hip-gostrip-name { margin: 2px 0 10px; font-size: 13.5px; color: #5a6068; }
 
 /* 법당 — 불단은 위 무대에, 아래 마루에 좌복 (CandleHall 법당중앙·법당마루) */
-.hip-hall-stage { position: absolute; left: 0; right: 0; top: 0; bottom: 21%; }
+.hip-hall-stage { position: absolute; left: 0; right: 0; top: 0; bottom: 25%; }
 .hip-hall-stage > .hip-hall-scene { object-position: center 78%; }
-.hip-hall-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 27%; pointer-events: none; background: linear-gradient(180deg, rgba(236,224,208,0) 0%, #ece0d0 18%, #e2d3be 100%); }
+.hip-hall-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 31%; pointer-events: none; background: linear-gradient(180deg, rgba(236,224,208,0) 0%, #ece0d0 18%, #e2d3be 100%); }
 .hip-hall-floor span { position: absolute; aspect-ratio: 920 / 591; background: url(/obj/cushion.webp) center / contain no-repeat; filter: drop-shadow(0 3px 4px rgba(60,40,20,.16)); }
 
 /* 머리띠 없는 방(법당·인연) — 「오늘의 공덕」 띠도 위에서 걷는다. 머리띠 밑에 붙는 띠라 혼자 뜨면 내용을 덮는다 */
