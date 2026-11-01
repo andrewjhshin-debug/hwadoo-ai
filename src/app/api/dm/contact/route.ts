@@ -39,12 +39,6 @@ async function 펴기(req: Request, threadId: unknown, pairKey?: unknown) {
     const p = (await db.doc(`yeon-pairs/${pairKey}`).get()).data() as { pair?: string[] } | undefined;
     멤버 = p?.pair ?? [];
     열쇠 = pairKey;
-    // 서로 막은 사이면 번호도 안 연다
-    const 저 = 멤버.find((m) => m !== uid);
-    if (저) {
-      const [a, b2] = await Promise.all([db.doc(`yeon-blocks/${uid}/list/${저}`).get(), db.doc(`yeon-blocks/${저}/list/${uid}`).get()]);
-      if (a.exists || b2.exists) return { error: Response.json({ error: "blocked" }, { status: 409 }) };
-    }
   } else if (typeof threadId === "string" && ID.test(threadId)) {
     const t = (await db.doc(`dm-threads/${threadId}`).get()).data() as { members?: string[]; status?: string; pair?: string } | undefined;
     멤버 = t?.status === "accepted" ? (t.members ?? []) : [];
@@ -58,6 +52,11 @@ async function 펴기(req: Request, threadId: unknown, pairKey?: unknown) {
   } else return { error: Response.json({ error: "bad-thread" }, { status: 400 }) };
   if (!멤버.includes(uid)) return { error: Response.json({ error: "not-member" }, { status: 403 }) };
   const 상대 = 멤버.find((m) => m !== uid) ?? "";
+  // 서로 막은 사이면 번호도 안 연다 — 짝으로 오든 방으로 오든 같은 문
+  if (상대) {
+    const [a, b2] = await Promise.all([db.doc(`yeon-blocks/${uid}/list/${상대}`).get(), db.doc(`yeon-blocks/${상대}/list/${uid}`).get()]);
+    if (a.exists || b2.exists) return { error: Response.json({ error: "blocked" }, { status: 409 }) };
+  }
   return { uid, 상대, db, 주인: isAdminAccount({ uid, email, emailVerified: !!email }), ref: db.doc(`dm-contacts/${열쇠}`) };
 }
 

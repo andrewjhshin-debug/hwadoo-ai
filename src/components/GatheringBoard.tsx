@@ -1210,7 +1210,7 @@ export default function GatheringBoard({
 
         {/* 제목 — 바로 붙여 위로 당긴다 (내려진 글은 흐리게) */}
         <h2
-          className={`mt-2 break-keep font-serif text-[21px] font-medium leading-8 ${
+          className={`mt-2 break-keep text-[17px] font-semibold leading-7 ${
             p.deleted ? "text-hanji-faint" : "text-hanji"
           }`}
         >
@@ -1235,7 +1235,7 @@ export default function GatheringBoard({
 
         {/* 내용 */}
         <p
-          className={`mt-3 whitespace-pre-line break-keep text-[15.5px] font-light leading-[1.85] ${
+          className={`mt-2.5 whitespace-pre-line break-keep text-[14px] leading-[1.75] ${
             p.deleted ? "text-hanji-faint" : "text-hanji"
           }`}
         >
@@ -1260,7 +1260,7 @@ export default function GatheringBoard({
             onClick={() => like(p)}
             aria-pressed={liked}
             aria-label="공감"
-            className={`flex h-12 w-12 items-center justify-center rounded-full border text-[19px] transition-all active:scale-90 ${
+            className={`flex h-10 w-10 items-center justify-center rounded-full border text-[16px] transition-all active:scale-90 ${
               liked
                 ? "border-gold/60 bg-gold/10"
                 : "border-ink-3 hover:border-gold/40"

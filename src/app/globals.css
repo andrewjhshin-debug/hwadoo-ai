@@ -1567,3 +1567,24 @@ body:has(.hip-yh) :is(.doryang-fab, .wheel-fab), body:has(.hip-cmt-bar) :is(.dor
 .hip-yh-likes { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 999px; background: #f4f1ec; font-size: 12.5px; color: #1a1a1c; text-decoration: none; }
 .hip-yh-likes b { margin-left: 3px; color: #3d7be0; font-weight: 600; }
 .hip-seat-like { display: block; width: 100%; margin-top: 12px; height: 42px; border-radius: 999px; background: #1a1a1c; color: #fff; font-size: 13.5px; font-weight: 600; }
+
+/* 인연판 — 골스 크기로 한 단 더. 형: 「폰트 좀 더 줄여, 여백 많이 두지 말고」 */
+.hip-feed > button { padding: 8px 14px !important; gap: 9px !important; }
+.hip-feed-title { font-size: 13.5px !important; line-height: 1.4 !important; }
+.hip-feed-title em { font-size: 11.5px !important; }
+.hip-feed-meta { font-size: 10.5px !important; margin-top: 1px !important; }
+.hip-feed .h-9 { width: 30px !important; height: 30px !important; }
+.hip-go-post { padding: 4px 10px !important; }
+.hip-go-box { padding: 11px 14px !important; border-radius: 14px !important; gap: 8px !important; }
+.hip-go-box-title { font-size: 13.5px !important; }
+.hip-go-box-when { font-size: 11px !important; }
+.hip-go-face { width: 22px !important; height: 22px !important; }
+.hip-go-box-faces { margin-top: 5px !important; }
+.hip-yh { height: calc(env(safe-area-inset-top) + 86px) !important; padding: calc(env(safe-area-inset-top) + 8px) 14px 8px !important; }
+.hip-yh-top { height: 28px !important; }
+.hip-yh-top h1 { font-size: 18px !important; }
+.hip-yh-doors { margin-top: 6px !important; gap: 6px !important; }
+.hip-yh-doors a { height: 34px !important; font-size: 13px !important; border-radius: 10px !important; }
+.hip-board-bar { top: calc(env(safe-area-inset-top) + 86px) !important; padding: 4px 14px !important; }
+.hip-cat-btn { font-size: 13px !important; height: 28px !important; }
+.hip-write-btn { height: 28px !important; font-size: 12.5px !important; padding: 0 11px !important; }
