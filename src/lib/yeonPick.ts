@@ -77,10 +77,22 @@ export type 프로필 = {
 };
 
 /** 남에게 내보낼 만큼만 — 프로필을 통째로 넘기지 않는다 */
-export async function 추려서(app: App, p: 프로필, 붙박이 = false) {
-  const approved = (p.photos ?? []).filter((f): f is { path: string; state: string } =>
+/** 그냥 보이는 사진 수 — 나머지는 「사진 더 보기」 🪷1(이레) */
+export const 무료사진 = 2;
+
+/** viewer 가 오면 사진을 무료사진까지만 준다 — photo-unlock/{viewer}_{대상} 이 살아 있으면 다 준다.
+ *  viewer 를 안 넘기면(관리자·연 뒤 다시 줄 때) 다 준다 */
+export async function 추려서(app: App, p: 프로필, 붙박이 = false, viewer?: string) {
+  const approved0 = (p.photos ?? []).filter((f): f is { path: string; state: string } =>
     f.state === "ok" && isYeonPhotoPath(p.uid, f.path)
   );
+  let 열림 = !viewer || approved0.length <= 무료사진;
+  if (!열림) {
+    const u = (await getFirestore(app).doc(`photo-unlock/${viewer}_${p.uid}`).get()).data()?.until;
+    열림 = typeof u === "number" && u > Date.now();
+  }
+  const approved = 열림 ? approved0 : approved0.slice(0, 무료사진);
+  const morePhotos = approved0.length - approved.length;
   const photos = (await Promise.all(approved.map((f) => shortPhotoUrl(app, f.path)))).filter((url): url is string => !!url);
   // 인증 뱃지 — 우리식. 신분증 대신 우리가 실제로 확인한 것만 단다.
   // 형: 「왜 뺐지 이거 우리식으로 할수 있나」
@@ -120,6 +132,8 @@ export async function 추려서(app: App, p: 프로필, 붙박이 = false) {
     rank: p.merit?.rank ?? "",
     // 승인된 사진만. pending은 관리자 심사 줄 밖으로 절대 나가지 않는다.
     photos,
+    // 잠긴 사진 수 — 주소는 안 보낸다(연 뒤에만 서버가 준다)
+    morePhotos,
   };
   // 흡연·음주는 **안 보낸다.** 카드에서 먼저 물을 것이 아니다 —
   // 알약이 열두 개면 사람이 안 읽힌다(형: 「심플리시티가 핵심」).

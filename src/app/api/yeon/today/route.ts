@@ -26,7 +26,7 @@ import { adminApp } from "@/lib/firebaseAdmin";
 // 내보내는데, 연꽃으로 한 사람 더 받는 길(api/yeon/more)도 같은 뽑기를
 // 써야 한다 — 두 군데에 베껴 두면 쿨다운·차단·점수 셈이 갈린다.
 import { FREE_PICKS, MAX_PICKS, today, 뽑기, 추려서 } from "@/lib/yeonPick";
-import { ADMIN_UID } from "@/lib/config";
+import { ADMIN_UID, isAdminAccount } from "@/lib/config";
 import type { 프로필 } from "@/lib/yeonPick";
 
 export const dynamic = "force-dynamic";
@@ -40,8 +40,11 @@ export async function GET(req: Request) {
   const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/, "");
   if (!token) return Response.json({ error: "no-token" }, { status: 401 });
   let uid: string;
+  let 보는이: string | undefined; // 사진 더 보기 — 관리자는 안 잠근다
   try {
-    uid = (await getAuth(app).verifyIdToken(token)).uid;
+    const d = await getAuth(app).verifyIdToken(token);
+    uid = d.uid;
+    보는이 = isAdminAccount({ uid, email: d.email, emailVerified: d.email_verified }) ? undefined : uid;
   } catch {
     return Response.json({ error: "bad-token" }, { status: 401 });
   }
@@ -97,12 +100,12 @@ export async function GET(req: Request) {
   const 사람 = await Promise.all(
     picks.map(async (id) => {
       const d = await db.doc(`yeon-profiles/${id}`).get();
-      return d.exists ? 추려서(app, { uid: id, ...d.data() }) : null;
+      return d.exists ? 추려서(app, { uid: id, ...d.data() }, false, 보는이) : null;
     })
   );
   const 운카드 = 붙박이
     ? await db.doc(`yeon-profiles/${붙박이}`).get().then((d) =>
-        d.exists ? 추려서(app, { uid: 붙박이, ...d.data() }, true) : null
+        d.exists ? 추려서(app, { uid: 붙박이, ...d.data() }, true, 보는이) : null
       )
     : null;
 

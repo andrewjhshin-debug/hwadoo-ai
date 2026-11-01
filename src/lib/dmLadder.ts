@@ -12,6 +12,8 @@ export const DM_PASSES = {
 export type DmPass = keyof typeof DM_PASSES;
 export const DM_CONTACT = 5; // 연락처 열기 — 각자
 export const DM_CONTACT_BOTH = 9; // 둘 다 내가
+export const DM_READ_PASS = { n: 2, days: 7 } as const; // 읽음 확인
+export const DM_REVEAL = 1; // 쪽지함 — 누가 청했나 다 보기(하루)
 
 /** 이 방에서 지금 쪽지를 보낼 수 있나 */
 export function 보낼수있나(t: { msgCount?: number; passUntil?: Record<string, number> }, uid: string, now = Date.now()) {

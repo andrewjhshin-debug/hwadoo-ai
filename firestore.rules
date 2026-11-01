@@ -112,7 +112,9 @@ service cloud.firestore {
         && request.resource.data.get('body', '') is string
         && request.resource.data.get('body', '').size() <= 4000
         && request.resource.data.get('templeName', '') is string
-        && request.resource.data.get('templeName', '').size() <= 80;
+        && request.resource.data.get('templeName', '').size() <= 80
+        // 끌어올림은 값을 치르고 서버만 단다(/api/post-bump)
+        && !('bumpUntil' in request.resource.data);
       allow update: if isAdmin()
         // 조회수 — 비로그인 포함, 정확히 +1 만
         || (request.resource.data.diff(resource.data)
@@ -276,11 +278,16 @@ service cloud.firestore {
     // ── 쪽지 대화 ──
     match /dm-threads/{threadId} {
       // 읽기 — 내 대화만(청한 이·받는 이·멤버). 뒷방은 신고 처리를 위해 전부.
+      // 단, **받은 청(pending)은 진심 쪽지가 아니면 받는 이가 직접 못 읽는다** —
+      // 「누가 청했나 다 보기」(🪷1)를 낸 날에만 서버(/api/dm/threads)가 이름·한 마디를 준다.
       allow read: if dmIsAdmin()
         || (dmOn() && request.auth != null
             && (request.auth.uid == resource.data.requesterUid
-                || request.auth.uid == resource.data.ownerUid
-                || request.auth.uid in resource.data.members));
+                || ((request.auth.uid == resource.data.ownerUid
+                     || request.auth.uid in resource.data.members)
+                    && !(request.auth.uid == resource.data.ownerUid
+                         && resource.data.status == "pending"
+                         && resource.data.get('sincere', false) != true))));
       // 청 넣기 — 내가 requester, 멤버는 [나, 받는 이] 둘, 시작은 pending.
       // 값: 같은 batch 에서 내 지갑의 연꽃이 정확히 1 줄어야 한다(getAfter).
       // 뒷방은 연꽃 없이(도량을 살피는 손길).

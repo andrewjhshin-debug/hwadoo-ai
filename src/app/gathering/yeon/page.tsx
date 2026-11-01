@@ -26,6 +26,7 @@ import { watchAuth } from "@/lib/sync";
 import { 나이, 내프로필, 물음들, type 인연프로필 } from "@/lib/yeon";
 import {
   오늘뽑기,
+  사진더보기,
   외상챙기기,
   한사람더,
   합장,
@@ -475,6 +476,22 @@ export default function 오늘의인연() {
           {사진[장] ? <img src={사진[장]} alt="" draggable={false} /> : <em />}
           {사진[장] && 이.photoMark && (
             <span className="hip-yeon-watermark" aria-hidden>{이.photoMark}</span>
+          )}
+
+          {/* 잠긴 사진 — 「사진 N장 더 · 🪷1」 (이레 동안). 주소는 연 뒤에만 온다 */}
+          {(이.morePhotos ?? 0) > 0 && (
+            <button
+              type="button"
+              className="absolute right-3 top-3 z-[3] rounded-full bg-[#1a1a1c]/80 px-3 py-1.5 text-[12px] text-white backdrop-blur"
+              onClick={async (e) => {
+                e.stopPropagation();
+                const r = await 사진더보기(이.uid);
+                if (r === "need-lotus") { 탈잡기("need-lotus"); return; }
+                if (r) 사람들잡기((ps) => ps?.map((x) => (x.uid === 이.uid ? { ...x, photos: r, morePhotos: 0 } : x)) ?? ps);
+              }}
+            >
+              사진 {이.morePhotos}장 더 · 🪷1
+            </button>
           )}
 
           {/* 이름은 사진 위에 얹는다 — 카드가 한 덩이로 읽힌다 */}

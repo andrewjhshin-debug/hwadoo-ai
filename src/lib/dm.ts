@@ -86,6 +86,9 @@ export type DmThread = {
   createdAt?: { seconds: number };
   passUntil?: Record<string, number>; // 사람마다 이용권 끝나는 때(ms)
   sincere?: boolean; // 진심 쪽지 — 받는 쪽 맨 위, 금테
+  hidden?: boolean; // 받은 청인데 아직 「다 보기」를 안 냈다 — 이름·한 마디가 비어 온다
+  lastRead?: Record<string, number>; // 사람마다 마지막으로 방을 연 때(ms)
+  readPassUntil?: Record<string, number>; // 읽음 확인 이용권 끝나는 때(ms)
 };
 
 export type DmMessage = {
@@ -147,17 +150,54 @@ export async function requestThread(
 
 // ── 내 서신함 ────────────────────────────────────────────
 
+/** 오늘 「누가 청했나 다 보기」를 냈나 — fetchMyThreads 가 채운다 */
+export let dmRevealed = false;
+
+/** 누가 청했나 다 보기 — 🪷1, 그날 하루 */
+export async function revealRequests(): Promise<"ok" | "need-lotus" | null> {
+  const u = auth.currentUser;
+  if (!u) return null;
+  const r = await fetch("/api/dm/threads", { method: "POST", headers: { authorization: `Bearer ${await u.getIdToken()}` } }).catch(() => null);
+  if (!r) return null;
+  if (r.status === 402) return "need-lotus";
+  return r.ok ? "ok" : null;
+}
+
+/** 방을 열었다 — 읽음 확인을 산 상대가 「읽음」을 본다(값 없음) */
+export async function markRead(threadId: string) {
+  const u = auth.currentUser;
+  if (!u) return;
+  await fetch("/api/dm/send", {
+    method: "POST",
+    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+    body: JSON.stringify({ thread: threadId, seen: true }),
+  }).catch(() => null);
+}
+
+/** 읽음 확인 — 🪷2, 이레 */
+export async function buyReadPass(threadId: string): Promise<Record<string, number> | "need-lotus" | null> {
+  const u = auth.currentUser;
+  if (!u) return null;
+  const r = await fetch("/api/dm/send", {
+    method: "POST",
+    headers: { authorization: `Bearer ${await u.getIdToken()}`, "content-type": "application/json" },
+    body: JSON.stringify({ thread: threadId, buyRead: true }),
+  }).catch(() => null);
+  if (!r) return null;
+  if (r.status === 402) return "need-lotus";
+  const j = (await r.json().catch(() => null)) as { readPassUntil?: Record<string, number> } | null;
+  return r.ok && j?.readPassUntil ? j.readPassUntil : null;
+}
+
 export async function fetchMyThreads(): Promise<DmThread[]> {
   const u = auth.currentUser;
   if (!u) return [];
-  const snap = await getDocs(
-    query(
-      collection(db, "dm-threads"),
-      where("members", "array-contains", u.uid),
-      limit(100)
-    )
-  );
-  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as DmThread);
+  // 서버가 준다 — 받은 청은 「다 보기」를 내기 전엔 이름·한 마디가 빠져 온다
+  const r = await fetch("/api/dm/threads", { headers: { authorization: `Bearer ${await u.getIdToken()}` }, cache: "no-store" });
+  if (!r.ok) throw new Error("쪽지함을 읽지 못했습니다");
+  const j = (await r.json()) as { threads: DmThread[]; revealed?: boolean };
+  dmRevealed = !!j.revealed;
+  const list = j.threads;
   // 막은 사람과의 방은 쪽지함에서 사라진다.
   // 여태 인연 판에서 막아도 쪽지함에는 줄이 그대로 남아 있었다 —
   // 막았는데 말이 계속 오는 꼴이었다.

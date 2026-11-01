@@ -12,7 +12,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { adminApp } from "@/lib/firebaseAdmin";
 import { isAdminAccount } from "@/lib/config";
 import { 연꽃쓰기 } from "@/lib/walletSpend";
-import { DM_PASSES, type DmPass, 보낼수있나, 끝난이용권 } from "@/lib/dmLadder";
+import { DM_PASSES, DM_READ_PASS, type DmPass, 보낼수있나, 끝난이용권 } from "@/lib/dmLadder";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -62,6 +62,29 @@ export async function POST(req: Request) {
     });
     if ("error" in out) return Response.json({ error: out.error }, { status: out.status });
     return Response.json({ ok: true, passUntil: out.passUntil });
+  }
+
+  // ── 읽었다 — 방을 열면 적는다(값 없음). 읽음 확인을 산 상대만 이걸 본다 ──
+  if (b?.seen === true) {
+    const t = (await ref.get()).data() as 방 | undefined;
+    if (!t?.members?.includes(uid)) return Response.json({ error: "not-member" }, { status: 403 });
+    await ref.update({ [`lastRead.${uid}`]: Date.now() });
+    return Response.json({ ok: true });
+  }
+
+  // ── 읽음 확인 사기 — 🪷2, 이레. 내 쪽지를 상대가 읽었나 보인다 ──
+  if (b?.buyRead === true) {
+    const out = await db.runTransaction(async (tx) => {
+      const t = (await tx.get(ref)).data() as (방 & { readPassUntil?: Record<string, number> }) | undefined;
+      if (!t?.members?.includes(uid) || t.status !== "accepted") return { error: "not-member", status: 403 };
+      if (!주인 && !(await 연꽃쓰기(tx, db, uid, DM_READ_PASS.n, "dm-read-pass"))) return { error: "need-lotus", status: 402 };
+      const readPassUntil = { ...(t.readPassUntil ?? {}) };
+      readPassUntil[uid] = Math.max(Date.now(), readPassUntil[uid] ?? 0) + DM_READ_PASS.days * DAY;
+      tx.update(ref, { readPassUntil });
+      return { readPassUntil };
+    });
+    if ("error" in out) return Response.json({ error: out.error }, { status: out.status });
+    return Response.json({ ok: true, readPassUntil: out.readPassUntil });
   }
 
   // ── 보내기 ──
