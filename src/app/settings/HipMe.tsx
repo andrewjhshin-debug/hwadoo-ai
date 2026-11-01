@@ -285,6 +285,66 @@ export default function HipMe({
 
         {/* 공덕 ⓘ 서랍은 걷었다 — 형: 「공덕 숫자 밑에 이거 지워, 필요 없다」 */}
 
+
+        {/* 무엇을 몇 번 — 형: 「공덕 쌓은 거 라벨 이런 식으로 넣어.
+            모든 기능 중 공덕 주는 건 다. 대신 한 횟수를 표기」.
+            넉 장짜리 격자를 알약 줄로 바꿨다. 칸이 정해져 있지 않으니
+            여덟이든 열둘이든 줄을 바꿔 가며 다 담긴다 — 「다」 라는 말은
+            개수를 모른다는 뜻이고, 격자는 개수를 알아야 짜인다. */}
+        {/* 형: 「동그라미들 접었다 펼치기 기능 둬」 + 왼쪽으로 붙이고.
+            갈래 전부를 깔았더니 열일곱 알이 화면 절반을 먹었다.
+            **접었을 때는 한 번이라도 한 것**만 — 그게 내 살림이다.
+            나머지는 「+12」 알 하나 뒤에 접어 둔다. 눌러 보면 무엇을
+            더 하면 공덕이 붙는지 그 자리에서 펼쳐진다. 설명은 없다. */}
+        {/* 오색실 — 머리 오른쪽(SilTop)에도 있지만 여기도 둔다.
+            형: 「오색실 위치 원래대로 내 도량에도 오색실 넣어라」 */}
+        <Osaeksil />
+        <div className="hip-me-hits" data-open={openHits ? "1" : undefined}>
+          {(openHits ? hits : foldedHits).map((h) => (
+            <span key={h.label}>
+              {h.label} <b>{h.n.toLocaleString("ko-KR")}</b>번
+            </span>
+          ))}
+          {hits.length > foldedHits.length && (
+            <button
+              type="button"
+              className="hip-hits-more"
+              onClick={() => setOpenHits((v) => !v)}
+              aria-expanded={openHits}
+              aria-label={openHits ? "접기" : `나머지 ${hits.length - foldedHits.length}가지 펼치기`}
+            >
+              {openHits ? "－" : `＋${hits.length - foldedHits.length}`}
+            </button>
+          )}
+        </div>
+
+        {/* ── 서비스 전부 — 동그란 버튼으로 ──
+            형: 「정직하게 막 탭에 메뉴판에 다 두려고 하지 말고, 동영상
+            레퍼처럼 귀엽게 아기자기하게 동그란 버튼을 두든, 여러 메뉴는
+            내 도량에서 보든」 「서비스 다 넣어주고」.
+            여섯만 두었더니 나머지로 가는 길이 아예 없었다 — 옛 머리띠를
+            끄면서 ☰ 서랍까지 사라졌으니 여기가 유일한 문이다.
+            글자는 한 줄, 그림은 한자 한 글자. */}
+        <div className="hip-rooms">
+          {services.map((r) => (
+            <Link key={r.href} href={r.href} aria-label={r.label}>
+              <i>{r.mark}</i>
+              <span>{r.label}</span>
+            </Link>
+          ))}
+        </div>
+
+        {/* ── 계정 ──
+            형: 「왜 로그인 기능이 없냐 어디서 로그인해」 「로그인 기능
+            빵났다」. 폰에서 이 칸이 영구히 숨겨져 있었다(meMore 를 켜는
+            곳이 파일 어디에도 없었다). 옛 머리띠를 끄면서 ☰ 서랍이라는
+            마지막 길까지 막혔다. **접지 않고** 여기 둔다. */}
+        {!guest && <div className="hip-account">{account}</div>}
+
+        {/* ── 접었다 펼치는 둘 ──
+            형: 「부적 기능 접었다 펼쳤다. 알림도 접었다 펼쳤다」.
+            늘 펴 두면 화면이 길어지고, 아주 지우면 찾을 길이 없다 */}
+
         <div className="hip-folds">
           {/* 부적은 걷었다 — 형: 「부적 기능도 일단은 삭제」 */}
           <details>
