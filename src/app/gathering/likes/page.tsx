@@ -12,18 +12,27 @@ import { revealRequests } from "@/lib/dm";
 import { LIKE_REVEAL } from "@/lib/dmLadder";
 import { 호감함, 호감답, type 받은호감, type 이어진짝 } from "@/lib/yeonLike";
 import { Yeonkkot } from "@/components/icons";
+import { pingLotus } from "@/components/LotusCount";
 
 export default function LikesPage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [판, 판잡기] = useState<{ got: 받은호감[]; revealed: boolean; pairs: 이어진짝[] } | null>(null);
   const [본짝, 본짝잡기] = useState<이어진짝 | null>(null);
   const [모자람, 모자람잡기] = useState(false);
+  const [탈, 탈잡기] = useState("");
+  const [바쁜, 바쁜잡기] = useState<string | null>(null);
   useEffect(() => watchAuth(setUser), []);
-  const 읽기 = useCallback(() => { void 호감함().then(판잡기); }, []);
+  // 못 읽어 오면 판이 null 로 남아 「…」에 영영 갇혔다 — 말해 준다
+  const 읽기 = useCallback(() => { void 호감함().then((j) => { if (j) { 판잡기(j); 탈잡기(""); } else 탈잡기("불러오지 못했어요. 잠시 뒤 다시 열어 주세요"); }); }, []);
   useEffect(() => { if (user) 읽기(); }, [user, 읽기]);
 
   const 답 = async (x: 받은호감, act: "yes" | "pass") => {
-    if (!(await 호감답(x.key, act))) return;
+    if (바쁜) return;
+    바쁜잡기(x.key);
+    const ok = await 호감답(x.key, act);
+    바쁜잡기(null);
+    if (!ok) { 탈잡기(act === "yes" ? "잇지 못했어요. 잠시 뒤 다시 눌러 주세요" : "넘기지 못했어요"); return; }
+    탈잡기("");
     const 새 = await 호감함();
     판잡기(새);
     // 「나도」 — 방금 이어진 짝을 그 자리에서 보여 준다
@@ -32,7 +41,8 @@ export default function LikesPage() {
   const 보기 = async () => {
     const r = await revealRequests();
     if (r === "need-lotus") 모자람잡기(true);
-    else if (r) 읽기();
+    else if (r) { pingLotus(); 읽기(); }
+    else 탈잡기("열지 못했어요. 잠시 뒤 다시 눌러 주세요");
   };
 
   const 가린수 = 판?.got.filter((x) => x.hidden).length ?? 0;
@@ -41,7 +51,8 @@ export default function LikesPage() {
       <div className="hip-likes">
         <h1>호감</h1>
         {user === null && <p className="hip-likes-empty">들어온 뒤에 열립니다</p>}
-        {user && !판 && <p className="hip-likes-empty">…</p>}
+        {user && !판 && <p className="hip-likes-empty">{탈 || "…"}</p>}
+        {판 && 탈 && <p className="hip-likes-empty">{탈}</p>}
         {판 && (
           <>
             {판.pairs.length > 0 && (
@@ -81,8 +92,8 @@ export default function LikesPage() {
                       </div>
                       {x.hidden ? <i aria-hidden className="hip-likes-blur hip-likes-blur-line" /> : x.line && <p>{x.line}</p>}
                       <div className="hip-likes-acts">
-                        <button onClick={() => void 답(x, "pass")}>넘기기</button>
-                        <button data-main="1" onClick={() => void 답(x, "yes")}>나도</button>
+                        <button disabled={바쁜 === x.key} onClick={() => void 답(x, "pass")}>넘기기</button>
+                        <button data-main="1" disabled={바쁜 === x.key} onClick={() => void 답(x, "yes")}>나도</button>
                       </div>
                     </li>
                   ))}

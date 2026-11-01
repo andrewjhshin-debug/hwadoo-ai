@@ -35,6 +35,7 @@ import {
 import { isAdminAccount } from "@/lib/config";
 import { DM_READ_PASS } from "@/lib/dmLadder";
 import ContactSwap from "@/components/ContactSwap";
+import { pingLotus } from "@/components/LotusCount";
 
 // "8.25" — 서버 시각이 아직이면 빈 문자열
 function dstr(t?: { seconds: number }): string {
@@ -56,6 +57,8 @@ export default function LettersPage() {
   const [busy, setBusy] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [reported, setReported] = useState<Set<string>>(new Set());
+  // 눌렀는데 안 된 것 — 조용히 삼키지 않고 대화 아래 한 줄로 말한다
+  const [탈, 탈잡기] = useState("");
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => watchAuth(setUser), []);
@@ -71,7 +74,7 @@ export default function LettersPage() {
     fetchMyThreads()
       .then(setThreads)
       .catch(() => setThreads([]));
-    getLotus().then(setLotus);
+    getLotus().then(setLotus).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -108,6 +111,7 @@ export default function LettersPage() {
     setMenuOpen(false);
     setMsgs(null);
     setDraft("");
+    탈잡기("");
     // 읽음 — 봉투 위 붉은 점이 꺼진다
     if (user) markDmSeen(user.uid, t.id, t.lastAt?.seconds);
     void markRead(t.id); // 상대가 읽음 확인을 샀다면 「읽음」이 뜬다
@@ -136,22 +140,30 @@ export default function LettersPage() {
   const 읽혔나 = (t: DmThread, m: DmMessage) => ((m.createdAt as { seconds?: number } | undefined)?.seconds ?? Infinity) * 1000 <= 상대읽은때(t);
   const 내마지막 = (ms: DmMessage[]) => ms.map((m) => m.uid).lastIndexOf(user?.uid ?? "");
   const 읽음사기 = async (t: DmThread) => {
+    // 두 번 누르면 두 번 낸다(이레가 이어 붙는다) — 사는 동안은 막는다
+    if (busy) return;
+    setBusy(true);
     const r = await buyReadPass(t.id);
+    setBusy(false);
     if (r === "need-lotus") window.location.href = "/lotus";
-    else if (r) { 고칠방(t.id, { readPassUntil: r }); refresh(); } // 상대가 읽은 때는 서버가 다시 줄 때 붙는다
+    else if (r) { 고칠방(t.id, { readPassUntil: r }); refresh(); pingLotus(); } // 상대가 읽은 때는 서버가 다시 줄 때 붙는다
+    else 탈잡기("읽음 확인을 열지 못했어요");
   };
 
   const send = async (t: DmThread) => {
     const body = draft.trim();
-    if (!body || !user) return;
+    // 엔터를 빨리 두 번 치면 같은 쪽지가 두 번 갔다 — 보내는 동안은 받지 않는다
+    if (!body || !user || busy) return;
     setBusy(true);
+    탈잡기("");
     try {
       await sendMessage(t.id, body);
       setDraft("");
       고칠방(t.id, { msgCount: (t.msgCount ?? 0) + 1 });
       setMsgs(await fetchMessages(t.id));
     } catch {
-      // 연결 문제 — 입력은 남긴다
+      // 연결 문제 — 입력은 남기고, 안 갔다고 말한다
+      탈잡기("쪽지를 보내지 못했어요. 다시 눌러 주세요");
     } finally {
       setBusy(false);
     }
@@ -170,7 +182,7 @@ export default function LettersPage() {
       await reportThread(t, "쪽지 대화 신고");
       setReported((s) => new Set(s).add(t.id));
     } catch {
-      // 조용히
+      탈잡기("신고를 보내지 못했어요");
     }
   };
 
@@ -188,7 +200,7 @@ export default function LettersPage() {
       refresh();
       goBack();
     } catch {
-      // 조용히
+      탈잡기("차단하지 못했어요");
     }
   };
 
@@ -296,6 +308,7 @@ export default function LettersPage() {
           )}
           <div ref={endRef} />
         </div>
+        {탈 && <p className="mt-2 text-center text-[12px] text-vermilion">{탈}</p>}
 
         {/* 입력 — 모바일은 탭 바로 위 고정 */}
         <div className="fixed inset-x-0 bottom-[76px] z-[45] border-t border-ink-3 bg-ink-2/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:mt-4 md:border-0 md:bg-transparent md:p-0">

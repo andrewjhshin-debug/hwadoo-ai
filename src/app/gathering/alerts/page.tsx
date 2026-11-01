@@ -53,8 +53,10 @@ export default function AlertsPage() {
 
   const 말저장 = async (next: string[]) => {
     if (!uid) return;
+    const 앞 = 말들;
     set말들(next);
-    await setDoc(doc(db, "alert-keywords", uid), { words: next }).catch(() => {});
+    // 못 적었으면 되돌린다 — 화면엔 걸린 것처럼 보이는데 알림이 안 오는 게 제일 나쁘다
+    await setDoc(doc(db, "alert-keywords", uid), { words: next }).catch(() => set말들(앞));
   };
   const 말더하기 = () => {
     const w = 새말.trim().slice(0, 12);

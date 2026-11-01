@@ -58,6 +58,9 @@ const 사진칸 = 5;
 export default function 인연내프로필() {
   const [me, setMe] = useState<인연프로필 | null>(null);
   const [있나, 있나잡기] = useState<boolean | null>(null);
+  // 첫 읽기가 끝났나 — 판을 한 번 새로 세우는 잣대. me 로 가르면 프로필 없는 새 사람은
+  // 첫 저장 순간(null→값) 판이 통째로 다시 서서 쓰던 칸이 날아간다
+  const [읽힘, 읽힘잡기] = useState(false);
   const [올리는중, 올리는중잡기] = useState(false);
   const 사진잠금 = useRef(false);
   const [사진진행, 사진진행잡기] = useState("");
@@ -103,12 +106,14 @@ export default function 인연내프로필() {
     try {
       const p = await 내프로필();
       setMe(p);
+      읽힘잡기(true);
       if (p?.photos?.length && p.photos.every(photo => !photo.url)) {
         탈잡기(prior => prior || "등록된 사진의 미리보기를 불러오지 못했어요. 새로고침 후에도 같으면 문의해 주세요.");
       }
       if (p?.name) 법명잡기(p.name);
       else void 법명맞추기(p);
     } catch (e) {
+      읽힘잡기(true);
       탈잡기(e instanceof Error ? e.message : "프로필을 읽지 못했습니다");
     }
   }, []);
@@ -254,7 +259,7 @@ export default function 인연내프로필() {
       {/* 형: 「백 번을 눌러도 저장 안 된다」 — 저장은 됐는데 칸들이 프로필을 읽기 **전**에 그려져
           빈 값으로 굳어 있었다(다시 열면 꺼져 보이고, 빈 답칸을 벗어나면 빈 값으로 덮어썼다).
           프로필이 읽힌 순간 한 번 새로 세운다 */}
-      <div className="hip-yeon" key={me ? "loaded" : "empty"}>
+      <div className="hip-yeon" key={읽힘 ? "loaded" : "empty"}>
         <p className="hip-yeon-head">因緣 · 내 프로필</p>
 
         {/* 빠진 칸 알약은 걷었다 — 형: 「이딴 말 지우고」 */}

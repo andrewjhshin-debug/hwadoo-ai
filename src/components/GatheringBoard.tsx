@@ -46,6 +46,7 @@ import InyeonThread, { InyeonThreadBadge } from "@/components/InyeonThread";
 import LikeSheet from "@/components/LikeSheet";
 import { loadStore } from "@/lib/store";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
+import { pingLotus } from "@/components/LotusCount";
 import { bumpPost } from "@/lib/community";
 import { isAdminAccount } from "@/lib/config";
 import {
@@ -222,7 +223,8 @@ function useGo(postId: string) {
   const 보내기 = async (body: Record<string, unknown>) => {
     const u = auth.currentUser;
     if (!u) return "login" as const;
-    const r = await fetch("/api/go", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ date: 열쇠, name: anonName(), ...body }) });
+    const r = await fetch("/api/go", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${await u.getIdToken()}` }, body: JSON.stringify({ date: 열쇠, name: anonName(), ...body }) }).catch(() => null);
+    if (!r) return "net";
     const j = (await r.json().catch(() => ({}))) as { people?: Record<string, 가는사람>; wait?: Record<string, 가는사람>; error?: string };
     if (r.ok && j.people) 판잡기({ people: j.people, wait: j.wait ?? {} });
     return j.error ?? "ok";
@@ -254,7 +256,9 @@ function GoPanel({ p }: { p: Post }) {
   const { 판, 보내기 } = useGo(p.id);
   const [방, 방잡기] = useState(false);
   const [말, 말잡기] = useState("");
-  const uid = auth.currentUser?.uid ?? "";
+  const [uid, uid잡기] = useState(auth.currentUser?.uid ?? "");
+  useEffect(() => watchAuth((u) => uid잡기(u?.uid ?? "")), []);
+  const [바쁨, 바쁨잡기] = useState(false);
   const 글쓴이 = uid === p.authorUid;
   const 들어감 = 글쓴이 || !!(uid && 판?.people[uid]);
   const 기다림 = !!(uid && 판?.wait[uid]);
@@ -263,9 +267,13 @@ function GoPanel({ p }: { p: Post }) {
   const 수 = Math.max(1, 사람.length);
   const 참 = !!p.capacity && 수 >= p.capacity;
   const 누름 = async (body: Record<string, unknown>) => {
+    if (바쁨) return;
+    바쁨잡기(true);
     const r = await 보내기(body);
+    바쁨잡기(false);
     if (r === "login") { await loginWithGoogle(); return; }
     if (r === "full") 말잡기("인원이 다 찼어요");
+    else if (r !== "ok") 말잡기("안 됐어요. 잠시 뒤 다시 눌러 주세요");
     else 말잡기("");
   };
   return (
@@ -531,6 +539,8 @@ export default function GatheringBoard({
   );
   const [cBody, setCBody] = useState("");
   const [cBusy, setCBusy] = useState(false);
+  // 댓글·지우기·신고가 안 됐을 때 — 조용히 삼키지 않고 댓글 칸 위에 한 줄
+  const [c탈, c탈잡기] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [rBody, setRBody] = useState("");
   const [votes, setVotes] = useState<Record<string, VoteDir>>({});
@@ -917,8 +927,9 @@ export default function GatheringBoard({
   // 댓글·답글 남기기
   const submitComment = async (p: Post, body: string, parentId?: string) => {
     const textBody = body.trim();
-    if (!textBody) return;
+    if (!textBody || cBusy) return;
     setCBusy(true);
+    c탈잡기("");
     try {
       await addComment(p.id, textBody.slice(0, 300), parentId);
       if (parentId) {
@@ -936,7 +947,8 @@ export default function GatheringBoard({
           ) ?? null
       );
     } catch {
-      // 연결·권한 문제 — 입력은 남겨 둔다
+      // 연결·권한 문제 — 입력은 남겨 두고, 안 달렸다고 말한다
+      c탈잡기("댓글을 남기지 못했어요. 다시 눌러 주세요");
     } finally {
       setCBusy(false);
     }
@@ -945,20 +957,13 @@ export default function GatheringBoard({
   const removeComment = async (p: Post, c: Comment) => {
     try {
       await deleteComment(p.id, c.id);
+      // 형: 「지우기 해도 삭제된 댓글입니다는 뜨지만 아예 없애진 마」 — 자리는 남긴다(서버와 같은 모양, 수는 그대로)
       setCommentsMap((m) => ({
         ...m,
-        [p.id]: (m[p.id] ?? []).filter((x) => x.id !== c.id),
+        [p.id]: (m[p.id] ?? []).map((x) => (x.id === c.id ? { ...x, deleted: true, body: "삭제된 댓글입니다" } : x)),
       }));
-      setPosts(
-        (ps) =>
-          ps?.map((x) =>
-            x.id === p.id
-              ? { ...x, commentCount: Math.max(0, x.commentCount - 1) }
-              : x
-          ) ?? null
-      );
     } catch {
-      // 조용히
+      c탈잡기("댓글을 지우지 못했어요");
     }
   };
 
@@ -1017,7 +1022,7 @@ export default function GatheringBoard({
       // 바로 가린다 — 서버도 같은 글로 바꿔 둔다
       setCommentsMap((m) => ({ ...m, [p.id]: (m[p.id] ?? []).map((x) => (x.id === c.id ? { ...x, deleted: true, body: "신고된 댓글입니다" } : x)) }));
     } catch {
-      // 조용히
+      c탈잡기("신고를 보내지 못했어요");
     }
   };
 
@@ -1188,7 +1193,7 @@ export default function GatheringBoard({
                     고치기
                   </button>
                   <button
-                    onClick={async () => { setMenuOpen(false); const r = await bumpPost(p.id); if (r === "need-lotus") window.location.href = "/lotus"; else if (r) refresh(); }}
+                    onClick={async () => { setMenuOpen(false); const r = await bumpPost(p.id); if (r === "need-lotus") window.location.href = "/lotus"; else if (r) { refresh(); pingLotus(); c탈잡기("24시간 맨 위에 걸렸어요"); } else c탈잡기("끌어올리지 못했어요"); }}
                     className="block w-full border-t border-ink-3/60 px-4 py-2.5 text-left text-[12.5px] text-hanji-dim transition-colors hover:bg-gold/10 hover:text-hanji"
                   >
                     끌어올리기 🪷3
@@ -1323,6 +1328,7 @@ export default function GatheringBoard({
             오른쪽을 비운다(단추 48 + 좌우 여유). 넓은 화면에서는 단추가
             바닥 구석에 있으니 그대로 둔다. */}
         <div className="hip-cmt-bar fixed inset-x-0 bottom-[76px] z-[45] border-t border-ink-3 bg-ink-2/95 py-2.5 pl-4 pr-[74px] backdrop-blur md:static md:z-auto md:mt-5 md:border-0 md:bg-transparent md:p-0">
+          {c탈 && <p className="mb-1.5 text-center text-[12px] text-vermilion" role="status">{c탈}</p>}
           {p.deleted ? (
             <p className="break-keep text-center text-[11px] leading-5 text-hanji-faint md:text-left">
               내려진 글에는 새 댓글을 달 수 없습니다.

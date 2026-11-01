@@ -180,16 +180,26 @@ function 법당마루() {
   }), []);
   const [본이, 본이잡기] = useState<앉은이 | null>(null);
   const [줄판, 줄판잡기] = useState(false);
+  const [자리말, 자리말잡기] = useState("");
   const 내자리 = Object.entries(자리).find(([, v]) => v.uid === 나)?.[0];
   const 남수 = Object.values(자리).filter((v) => v.uid !== 나).length;
   const 누름 = async (k: string) => {
     if (!나) { await loginWithGoogle(); return; }
     if (자리[k] && 자리[k].uid !== 나) { 본이잡기(자리[k]); return; } // 남의 자리 — 누군지 본다
-    if (내자리) await remove(ref(rtdb, `hall-seats/${내자리}`)).catch(() => {});
-    if (내자리 === k) return; // 일어선다
+    if (내자리 === k) { await remove(ref(rtdb, `hall-seats/${k}`)).catch(() => {}); return; } // 일어선다
+    // 새 자리를 **먼저** 잡고, 잡혔을 때만 옛 자리를 비운다.
+    // 거꾸로 하면 — 둘이 같은 빈자리를 동시에 누를 때 진 쪽은 옛 자리까지 잃고 아무 데도 없게 된다
     const r = ref(rtdb, `hall-seats/${k}`);
     const 음양 = loadStore().gender;
-    await set(r, { uid: 나, name: (loadMe()?.name ?? "수행자").slice(0, 12), hue: Math.floor(Math.random() * 360), at: serverTimestamp(), ...(음양 ? { sex: 음양 } : {}) }).catch(() => {});
+    자리말잡기("");
+    try {
+      await set(r, { uid: 나, name: (loadMe()?.name ?? "수행자").slice(0, 12), hue: Math.floor(Math.random() * 360), at: serverTimestamp(), ...(음양 ? { sex: 음양 } : {}) });
+    } catch {
+      자리말잡기("방금 다른 분이 앉았어요");
+      setTimeout(() => 자리말잡기(""), 2500);
+      return;
+    }
+    if (내자리) await remove(ref(rtdb, `hall-seats/${내자리}`)).catch(() => {});
   };
   let 번 = 0;
   return <div className="hip-hall-floor">
@@ -211,7 +221,7 @@ function 법당마루() {
             {이 && 이.uid !== 나 && (
               <i className="hip-soul hip-soul-other" style={{ "--h": 이.hue } as React.CSSProperties}>
                 <em />
-                <small>{이.name}<button type="button" className="hip-soul-heart" aria-label={`${이.name}에게 좋아요`} onClick={(e) => { e.stopPropagation(); void 좋아요(이.uid); }}>♡</button></small>
+                <small>{이.name}<button type="button" className="hip-soul-heart" aria-label={`${이.name}에게 좋아요`} onClick={(e) => { e.stopPropagation(); void 좋아요(이.uid).then((ok) => { 자리말잡기(ok ? `${이.name}님께 ♡ 보냈어요` : "♡를 보내지 못했어요"); setTimeout(() => 자리말잡기(""), 2200); }); }}>♡</button></small>
               </i>
             )}
           </span>
@@ -225,6 +235,7 @@ function 법당마루() {
       </button>
     )}
     {줄판 && <앉은줄 닫기={() => 줄판잡기(false)} 열기={(x) => { 줄판잡기(false); 본이잡기(x); }} />}
+    {자리말 && <p className="hip-soul-full" role="status">{자리말}</p>}
     {본이 && <좌복카드 이={본이} 닫기={() => 본이잡기(null)} />}
   </div>;
 }
@@ -677,7 +688,7 @@ function Story({ c, me, onClose, onChanged }: { c: Candle; me: User | null; onCl
         headers: { "content-type": "application/json", authorization: `Bearer ${await me.getIdToken()}` },
         body: JSON.stringify({ id: c.id }),
       });
-      if (r.ok) { pingLotus(); 나눔말잡기(mine ? "" : `${EXTEND_DAYS}일 보탰습니다`); onChanged(); return; }
+      if (r.ok) { pingLotus(); 나눔말잡기(mine ? `${EXTEND_DAYS}일 더 밝혔습니다` : `${EXTEND_DAYS}일 보탰습니다`); onChanged(); return; }
       // **조용히 실패하지 않는다.** 연꽃이 모자라면 402 가 오는데 화면은
       // 아무 말도 안 했다 — 눌러도 아무 일이 없으니 고장으로 읽힌다.
       // (관리자는 값을 안 치러 늘 성공하니 형 계정으로는 안 보였다)

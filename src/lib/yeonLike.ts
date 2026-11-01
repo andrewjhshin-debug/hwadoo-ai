@@ -12,13 +12,15 @@ async function 부르기(path: string, init?: { method?: string; body?: unknown 
   }).catch(() => null);
 }
 
-export type 호감결과 = { matched: boolean; pair?: string; already?: boolean } | "need-lotus" | "login" | "fail";
+export type 호감결과 = { matched: boolean; pair?: string; already?: boolean } | "need-lotus" | "login" | "fail" | "nope";
 
 export async function 호감보내기(to: string, line: string, sincere: boolean): Promise<호감결과> {
   if (!auth.currentUser) return "login";
   const r = await 부르기("/api/yeon/like", { method: "POST", body: { to, line, sincere } });
   if (!r) return "fail";
   if (r.status === 402) return "need-lotus";
+  // 샘플 계정·서로 막은 사이·잘못된 상대 — 다시 눌러도 안 되는 것은 「실패」와 갈라 말한다
+  if (r.status === 409 || r.status === 400) return "nope";
   if (!r.ok) return "fail";
   return (await r.json()) as { matched: boolean; pair?: string; already?: boolean };
 }
