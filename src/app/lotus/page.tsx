@@ -299,8 +299,8 @@ function LotusClosed() {
       <div className="mt-3 rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4">
         <ul className="space-y-2 break-keep text-[13px] leading-7 text-hanji-dim">
           <li>
-            · <span className="text-hanji">쓰임</span> — 쪽지 청하기 · 공양
-            올리기 · 인연 한 사람 더. 쪽지 청하기 3송이(진심 쪽지 5). 열린 대화는 열 마디까지 무료.
+            · <span className="text-hanji">쓰임</span> — 호감 1송이(진심 3) · 쪽지방 열기 3송이(한 번, 그 뒤 무제한) ·
+            번호·카톡 열기 각자 5 · 공양 올리기 · 인연 한 사람 더.
           </li>
           <li>
             · <span className="text-hanji">처음 오신 분께</span> — 연꽃{" "}
@@ -525,10 +525,10 @@ function LotusInner() {
             </p>
             <ul className="mt-3 space-y-2 break-keep text-[13px] leading-7 text-hanji-dim">
               <li>
-                · <span className="text-hanji">쪽지 청하기</span> — 인연
-                게시판에서 글쓴이·댓글 단 이 곁의 음양 문양을 눌러 1:1 쪽지를
-                청할 때 연꽃 3송이(진심 쪽지 5송이)가 쓰입니다. 열린 대화는 둘이 합쳐
-                열 마디까지 무료, 그다음은 이용권(하루 2 · 7일 8송이). 연락처 열기는 각자 5송이.
+                · <span className="text-hanji">호감</span> — 인연 게시판·오늘의 인연·법당에서
+                얼굴을 눌러 호감을 보낼 때 1송이(진심 3송이). 상대가 「나도」를 누르면 청실홍실이
+                이어지고, 쪽지방은 먼저 여는 쪽이 3송이를 한 번 내면 그 뒤 무제한 무료입니다.
+                번호·카톡 열기는 각자 5송이(둘 다 내면 9송이), 둘 다 열어야 보입니다.
               </li>
               <li>
                 · <span className="text-hanji">처음 오신 분께</span> — 첫 계정에

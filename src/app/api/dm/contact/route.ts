@@ -20,7 +20,10 @@ export const runtime = "nodejs";
 const ID = /^[A-Za-z0-9]{6,64}$/;
 type 문서 = { [uid: string]: unknown; paid?: Record<string, boolean> };
 
-async function 펴기(req: Request, threadId: unknown) {
+const PAIR = /^[A-Za-z0-9]{6,64}_[A-Za-z0-9]{6,64}$/;
+
+/** 쪽지방(thread) 또는 청실홍실 짝(pair) — 짝이면 쪽지방 없이도 번호를 연다(형: 「호감 받으면 번호나 카톡 아이디 열기」) */
+async function 펴기(req: Request, threadId: unknown, pairKey?: unknown) {
   const app = adminApp();
   if (!app) return { error: Response.json({ error: "server-not-ready" }, { status: 503 }) };
   const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/, "");
@@ -30,12 +33,21 @@ async function 펴기(req: Request, threadId: unknown) {
     uid = d.uid;
     email = d.email_verified ? d.email : undefined;
   } catch { return { error: Response.json({ error: "bad-token" }, { status: 401 }) }; }
-  if (typeof threadId !== "string" || !ID.test(threadId)) return { error: Response.json({ error: "bad-thread" }, { status: 400 }) };
   const db = getFirestore(app);
-  const t = (await db.doc(`dm-threads/${threadId}`).get()).data() as { members?: string[]; status?: string } | undefined;
-  if (!t?.members?.includes(uid) || t.status !== "accepted") return { error: Response.json({ error: "not-member" }, { status: 403 }) };
-  const 상대 = t.members.find((m) => m !== uid) ?? "";
-  return { uid, 상대, db, 주인: isAdminAccount({ uid, email, emailVerified: !!email }), ref: db.doc(`dm-contacts/${threadId}`) };
+  let 멤버: string[] = [], 열쇠 = "";
+  if (typeof pairKey === "string" && PAIR.test(pairKey)) {
+    const p = (await db.doc(`yeon-pairs/${pairKey}`).get()).data() as { pair?: string[] } | undefined;
+    멤버 = p?.pair ?? [];
+    열쇠 = pairKey;
+  } else if (typeof threadId === "string" && ID.test(threadId)) {
+    const t = (await db.doc(`dm-threads/${threadId}`).get()).data() as { members?: string[]; status?: string; pair?: string } | undefined;
+    멤버 = t?.status === "accepted" ? (t.members ?? []) : [];
+    // 청실홍실에서 열린 방은 짝과 같은 연락처 문서를 쓴다 — 매칭 화면에서 연 번호가 방에서도 보인다
+    열쇠 = t?.pair && PAIR.test(t.pair) ? t.pair : threadId;
+  } else return { error: Response.json({ error: "bad-thread" }, { status: 400 }) };
+  if (!멤버.includes(uid)) return { error: Response.json({ error: "not-member" }, { status: 403 }) };
+  const 상대 = 멤버.find((m) => m !== uid) ?? "";
+  return { uid, 상대, db, 주인: isAdminAccount({ uid, email, emailVerified: !!email }), ref: db.doc(`dm-contacts/${열쇠}`) };
 }
 
 function 답(d: 문서 | undefined, uid: string, 상대: string) {
@@ -47,17 +59,18 @@ function 답(d: 문서 | undefined, uid: string, 상대: string) {
   );
 }
 
-/** GET ?thread= — 내가 열었나 · 상대가 열었나 · 냈나 · 둘 다면 상대 연락처 */
+/** GET ?thread= | ?pair= — 내가 열었나 · 상대가 열었나 · 냈나 · 둘 다면 상대 연락처 */
 export async function GET(req: Request) {
-  const p = await 펴기(req, new URL(req.url).searchParams.get("thread"));
+  const q = new URL(req.url).searchParams;
+  const p = await 펴기(req, q.get("thread"), q.get("pair"));
   if ("error" in p) return p.error;
   return 답((await p.ref.get()).data() as 문서 | undefined, p.uid, p.상대);
 }
 
-/** POST { thread, contact, both? } — 내 연락처를 건다(처음이면 값을 낸다). 빈 값이면 거둔다 */
+/** POST { thread | pair, contact, both? } — 내 연락처를 건다(처음이면 값을 낸다). 빈 값이면 거둔다 */
 export async function POST(req: Request) {
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
-  const p = await 펴기(req, b?.thread);
+  const p = await 펴기(req, b?.thread, b?.pair);
   if ("error" in p) return p.error;
   const contact = typeof b?.contact === "string" ? b.contact.trim().replace(/[<>]/g, "").slice(0, 40) : "";
   const both = b?.both === true;

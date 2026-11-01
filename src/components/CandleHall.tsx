@@ -5,8 +5,8 @@ import Link from "next/link";
 import type { User } from "firebase/auth";
 import { loginWithGoogle, watchAuth } from "@/lib/sync";
 import Gongyang, { type 공양갈래 } from "@/components/Gongyang";
-import { requestThread, 신고보내기 } from "@/lib/dm";
-import type { Post } from "@/lib/community";
+import { 신고보내기 } from "@/lib/dm";
+import LikeSheet from "@/components/LikeSheet";
 import { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
 import { watchOnlineCount } from "@/lib/presence";
@@ -206,11 +206,10 @@ function 법당마루() {
   </div>;
 }
 
-/** 앉은 이 작은 카드 — 얼굴·나이·지역·절을 대강, 그리고 바로 쪽지(연꽃 한 송이) */
+/** 앉은 이 작은 카드 — 얼굴·나이·지역·절을 대강, 그리고 바로 호감(인연의 하나뿐인 입구) */
 function 좌복카드({ 이, 닫기 }: { 이: 앉은이; 닫기: () => void }) {
   const [보임, 보임잡기] = useState<{ sex?: string; age?: number; area?: string; temple?: string; photo?: boolean } | null>(null);
-  const [말, 말잡기] = useState("");
-  const [상태, 상태잡기] = useState<"" | "busy" | "sent" | "lotus" | "fail">("");
+  const [호감판, 호감판잡기] = useState(false);
   useEffect(() => {
     let alive = true;
     void (async () => {
@@ -222,15 +221,6 @@ function 좌복카드({ 이, 닫기 }: { 이: 앉은이; 닫기: () => void }) {
     })();
     return () => { alive = false; };
   }, [이.uid]);
-  const 보내기 = async () => {
-    if (상태 === "busy" || !말.trim()) return;
-    상태잡기("busy");
-    try {
-      // 법당에서 건 쪽지 — 글이 아니라 「법당」 한 곳에 묶인다
-      const t = await requestThread({ id: "hall", title: "법당", templeName: "법당", meetDate: null } as unknown as Post, { uid: 이.uid, name: 이.name }, 말.trim());
-      상태잡기(t === "need-lotus" ? "lotus" : "sent");
-    } catch { 상태잡기("fail"); }
-  };
   const 줄 = [보임?.age ? `${보임.age}세` : "", 보임?.area ?? "", 보임?.temple ?? ""].filter(Boolean).join(" · ");
   return (
     <div className="hip-seat-card" role="dialog" aria-label={이.name} onClick={(e) => e.stopPropagation()}>
@@ -247,17 +237,8 @@ function 좌복카드({ 이, 닫기 }: { 이: 앉은이; 닫기: () => void }) {
           {줄 && <small>{줄}</small>}
         </span>
       </div>
-      {상태 === "sent" ? (
-        <Link href="/letters" className="hip-seat-go">쪽지 보냈어요 · 쪽지함</Link>
-      ) : 상태 === "lotus" ? (
-        <Link href="/lotus" className="hip-seat-go">연꽃이 모자라요 · 채우기</Link>
-      ) : (
-        <div className="hip-seat-dm">
-          <input value={말} maxLength={80} placeholder="한 마디" onChange={(e) => 말잡기(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void 보내기(); }} />
-          <button type="button" disabled={!말.trim() || 상태 === "busy"} onClick={() => void 보내기()}>쪽지 <Yeonkkot className="inline-block h-4 w-4 align-middle" />3</button>
-        </div>
-      )}
-      {상태 === "fail" && <p className="hip-seat-fail">보내지 못했어요</p>}
+      <button type="button" className="hip-seat-like" onClick={() => 호감판잡기(true)}>호감 보내기</button>
+      {호감판 && <LikeSheet to={이.uid} name={이.name} sex={보임?.sex === "m" || 보임?.sex === "f" ? 보임.sex : null} onClose={() => 호감판잡기(false)} />}
     </div>
   );
 }

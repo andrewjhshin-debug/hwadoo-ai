@@ -2,7 +2,8 @@
 
 // ─────────────────────────────────────────────────────────────
 // 쪽지 — 1:1 대화 하나에만 집중한 메신저.
-// · 목록: 새로운 청(수락/거절) → 대화 줄(상대·마지막 말·날짜) → 기다리는 청.
+// · 목록: 대화 줄(상대·마지막 말·날짜). 대화는 청실홍실로 이어진 둘이 쪽지방을 열어야 생긴다
+//   (호감 → 나도 → 쪽지방 열기 🪷3 한 번). 그 뒤 쪽지는 무제한 무료.
 // · 대화를 누르면 화면이 통째로 대화로 바뀐다 — ← 뒤로, 말풍선,
 //   아래 고정 입력칸(모바일은 탭 바로 위). ⋯ 메뉴에 신고.
 // · 뒤로가기 — 대화가 열릴 때 history 층을 쌓아, 폰 뒤로가기가 목록으로 접는다.
@@ -16,11 +17,8 @@ import type { User } from "firebase/auth";
 import { watchAuth } from "@/lib/sync";
 import { useConfirm } from "@/components/Confirm";
 import { Yeonkkot } from "@/components/icons";
-import { LotusMark } from "@/components/icons";
 import {
-  acceptThread,
   blockThread,
-  declineThread,
   dmVisible,
   fetchMessages,
   fetchMyThreads,
@@ -29,16 +27,14 @@ import {
   markDmSeen,
   reportThread,
   sendMessage,
-  buyDmPass,
   buyReadPass,
   markRead,
-  revealRequests,
-  DM_SEEN_EVENT,
   type DmMessage,
   type DmThread,
 } from "@/lib/dm";
 import { isAdminAccount } from "@/lib/config";
-import { DM_CONTACT, DM_CONTACT_BOTH, DM_FREE_MSGS, DM_PASSES, DM_READ_PASS, DM_REVEAL, type DmPass, 끝난이용권, 보낼수있나 } from "@/lib/dmLadder";
+import { DM_READ_PASS } from "@/lib/dmLadder";
+import ContactSwap from "@/components/ContactSwap";
 
 // "8.25" — 서버 시각이 아직이면 빈 문자열
 function dstr(t?: { seconds: number }): string {
@@ -134,18 +130,6 @@ export default function LettersPage() {
   // 방 하나만 고친다 — 쪽지 수·이용권이 바뀌면 판(잠김)이 곧장 따라온다
   const 고칠방 = (id: string, patch: Partial<DmThread>) =>
     setThreads((ts) => ts?.map((x) => (x.id === id ? { ...x, ...patch } : x)) ?? ts);
-  const [사는중, 사는중잡기] = useState(false);
-  const [모자람, 모자람잡기] = useState(false);
-  const 사기 = async (t: DmThread, kind: DmPass) => {
-    if (사는중) return;
-    사는중잡기(true);
-    try {
-      const r = await buyDmPass(t.id, kind);
-      if (r === "need-lotus") 모자람잡기(true);
-      else { 모자람잡기(false); 고칠방(t.id, { passUntil: r }); getLotus().then(setLotus); }
-    } catch { /* 연결 문제 — 판은 그대로 */ } finally { 사는중잡기(false); }
-  };
-
   // ── 읽음 확인 ──
   const 읽음켬 = (t: DmThread) => isAdminAccount(user) || (t.readPassUntil?.[user?.uid ?? ""] ?? 0) > Date.now();
   const 상대읽은때 = (t: DmThread) => Math.max(0, ...Object.entries(t.lastRead ?? {}).filter(([k]) => k !== user?.uid).map(([, v]) => v));
@@ -162,7 +146,7 @@ export default function LettersPage() {
     if (!body || !user) return;
     setBusy(true);
     try {
-      if ((await sendMessage(t.id, body)) === "need-pass") { 고칠방(t.id, { msgCount: Math.max(t.msgCount ?? 0, DM_FREE_MSGS) }); return; }
+      await sendMessage(t.id, body);
       setDraft("");
       고칠방(t.id, { msgCount: (t.msgCount ?? 0) + 1 });
       setMsgs(await fetchMessages(t.id));
@@ -208,18 +192,6 @@ export default function LettersPage() {
     }
   };
 
-  const decide = async (t: DmThread, yes: boolean) => {
-    try {
-      if (yes) await acceptThread(t.id);
-      else await declineThread(t.id);
-      refresh();
-      // 청을 처리했다 — 봉투 위 점도 다시 세게 한다
-      window.dispatchEvent(new CustomEvent(DM_SEEN_EVENT));
-    } catch {
-      // 조용히
-    }
-  };
-
   // ── 문 앞 ──────────────────────────────────────────────
   const visible = dmVisible(user?.uid);
   if (user === undefined) return null;
@@ -237,13 +209,6 @@ export default function LettersPage() {
   }
 
   const mine = threads ?? [];
-  // 진심 쪽지가 맨 위 — 값을 더 낸 청이 먼저 보인다
-  const incoming = mine
-    .filter((t) => t.status === "pending" && t.ownerUid === user.uid)
-    .sort((a, b) => Number(!!b.sincere) - Number(!!a.sincere));
-  const waiting = mine.filter(
-    (t) => t.status === "pending" && t.requesterUid === user.uid
-  );
   const talks = mine.filter((t) => t.status === "accepted");
   const other = (t: DmThread) =>
     t.ownerUid === user.uid ? t.requesterName : t.ownerName;
@@ -301,7 +266,7 @@ export default function LettersPage() {
         </div>
 
         {/* 연락처 열기 — 둘 다 열어야 서로 보인다 */}
-        <ContactSwap threadId={opened.id} user={user} />
+        <ContactSwap threadId={opened.id} pair={opened.pair} user={user} />
 
         {/* 읽음 확인 — 🪷2, 이레. 산 사람만 제 쪽지 밑에 「읽음」을 본다 */}
         {!읽음켬(opened) && !isAdminAccount(user) && (
@@ -334,31 +299,6 @@ export default function LettersPage() {
 
         {/* 입력 — 모바일은 탭 바로 위 고정 */}
         <div className="fixed inset-x-0 bottom-[76px] z-[45] border-t border-ink-3 bg-ink-2/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:mt-4 md:border-0 md:bg-transparent md:p-0">
-          {!isAdminAccount(user) && !보낼수있나(opened, user.uid) ? (
-            // 열 마디가 넘었고 이용권이 없다 — 형: 「쪽지하고 받고 그러다가 번호 공개, 거기서 돈 벌 궁리」
-            <div className="mx-auto max-w-2xl">
-              <p className="mb-2 text-center text-[12.5px] text-hanji-faint">
-                {끝난이용권(opened, user.uid) ? "이용권이 끝났어요" : `${DM_FREE_MSGS}마디가 지났어요 · 이어서 쓰려면`}
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {(끝난이용권(opened, user.uid) ? (["reopen", "day", "week", "both"] as const) : (["day", "week", "both"] as const)).map((k) => (
-                  <button
-                    key={k}
-                    disabled={사는중}
-                    onClick={() => void 사기(opened, k)}
-                    className={`rounded-[12px] border px-3 py-2.5 text-[13px] disabled:opacity-40 ${k === "both" || k === "reopen" ? "col-span-2 border-[#1a1a1c] bg-[#1a1a1c] text-white" : "border-ink-3 text-hanji"}`}
-                  >
-                    {DM_PASSES[k].label} · <Yeonkkot className="inline-block h-4 w-4 align-middle" />{DM_PASSES[k].n}
-                  </button>
-                ))}
-              </div>
-              {모자람 && (
-                <Link href="/lotus" className="mt-2 block text-center text-[12.5px] text-[#a8804a] underline underline-offset-4">
-                  연꽃이 모자라요 · 채우기
-                </Link>
-              )}
-            </div>
-          ) : (
           <div className="mx-auto flex max-w-2xl items-center gap-2">
             <input
               value={draft}
@@ -379,7 +319,6 @@ export default function LettersPage() {
               {busy ? "…" : "보내기"}
             </button>
           </div>
-          )}
         </div>
       </div>
     );
@@ -415,65 +354,11 @@ export default function LettersPage() {
         </div>
       </div>
 
-      {/* 누가 청했나 다 보기 — 🪷1, 그날 하루. 진심 쪽지는 처음부터 보인다 */}
-      {incoming.some((t) => t.hidden) && (
-        <button
-          onClick={async () => { const r = await revealRequests(); if (r === "need-lotus") window.location.href = "/lotus"; else if (r) refresh(); }}
-          className="mt-5 flex w-full items-center justify-between rounded-[14px] bg-[#1a1a1c] px-4 py-3 text-[13.5px] text-white"
-        >
-          <span>{incoming.filter((t) => t.hidden).length}명이 쪽지를 청했어요</span>
-          <span className="text-[#d9b97a]">누군지 보기 · 🪷{DM_REVEAL}</span>
-        </button>
-      )}
-
-      {/* 새로운 청 — 수락해야 대화가 열린다 */}
-      {incoming.length > 0 && (
-        <ul className="mt-5 flex flex-col gap-3">
-          {incoming.map((t) => (
-            <li
-              key={t.id}
-              className={`rounded-[16px] border bg-gold/5 px-5 py-4 ${t.sincere ? "border-[#b98a4e] shadow-[0_0_0_1px_#b98a4e]" : "border-gold/30"}`}
-            >
-              {t.sincere && <p className="mb-1 text-[11px] tracking-wide text-[#a8804a]">진심 쪽지</p>}
-              <p className="break-keep text-[15px] leading-7 text-hanji">
-                {t.hidden
-                  ? <span aria-label="가려진 이름" className="inline-block h-[14px] w-16 translate-y-[2px] rounded bg-[#b98a4e]/35 blur-[3px]" />
-                  : <span className="text-gold">{t.requesterName}</span>}
-                <span className="text-[12.5px] text-hanji-faint">
-                  {" "}
-                  · {t.postTitle}
-                </span>
-              </p>
-              {t.hidden && <p aria-hidden className="mt-2 h-[13px] w-4/5 rounded bg-hanji-faint/25 blur-[3px]" />}
-              {t.intro && (
-                <p className="mt-1 break-keep text-[14px] leading-7 text-hanji-dim">
-                  &ldquo;{t.intro}&rdquo;
-                </p>
-              )}
-              <div className="mt-3 flex items-center gap-2">
-                <button
-                  onClick={() => decide(t, true)}
-                  className="flex-1 rounded-[12px] border border-gold/50 py-2.5 text-[13.5px] tracking-[0.12em] text-gold transition-colors hover:bg-gold/10"
-                >
-                  수락
-                </button>
-                <button
-                  onClick={() => decide(t, false)}
-                  className="flex-1 rounded-[12px] border border-ink-3 py-2.5 text-[13.5px] tracking-[0.12em] text-hanji-dim transition-colors hover:text-hanji"
-                >
-                  거절
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
       {/* 대화 목록 */}
       <ul className="mt-3.5 divide-y divide-ink-3/60 border-y border-ink-3/60">
         {threads === null ? (
           <li className="px-1 py-4 text-[14px] text-hanji-faint">여는 중…</li>
-        ) : talks.length === 0 && waiting.length === 0 ? (
+        ) : talks.length === 0 ? (
           <li className="break-keep px-1 py-5 text-[14px] leading-7 text-hanji-faint">
             <span className="flex flex-col items-center gap-3 py-10">
               <Dudu stage={0} mood="rest" uid="letters" className="h-[112px] w-[112px] opacity-90" />
@@ -486,7 +371,7 @@ export default function LettersPage() {
                 >
                   인연
                 </Link>
-                의 글에서 음양 문양을 누르면 청할 수 있어요.
+                글에서 얼굴을 눌러 호감을 보내 보세요.
               </span>
             </span>
           </li>
@@ -531,80 +416,9 @@ export default function LettersPage() {
                 </li>
               );
             })}
-            {/* 기다리는 청 — 흐리게 한 줄씩 */}
-            {waiting.map((t) => (
-              <li
-                key={t.id}
-                className="flex items-center gap-2.5 px-1 py-2.5 opacity-60"
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ink-3 font-serif text-[14px] text-hanji-faint">
-                  {t.ownerName.slice(0, 1)}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13.5px] text-hanji-dim">
-                    {t.ownerName}
-                  </span>
-                  <span className="mt-px block text-[11.5px] text-hanji-faint">
-                    답을 기다리는 중
-                  </span>
-                </span>
-              </li>
-            ))}
           </>
         )}
       </ul>
-    </div>
-  );
-}
-
-/** 연락처 열기 — 내 카톡 아이디(또는 번호)를 걸면, 상대도 걸었을 때만 서로 보인다 */
-function ContactSwap({ threadId, user }: { threadId: string; user: User }) {
-  const [st, setSt] = useState<{ mine: boolean; theirs: boolean; paidMine: boolean; paidTheirs: boolean; contact: string | null } | null>(null);
-  const [쓰기, set쓰기] = useState(false);
-  const [값, set값] = useState("");
-  const [모자람, 모자람잡기] = useState(false);
-  const 부르기 = useCallback(async (init?: RequestInit) => {
-    const r = await fetch(init ? "/api/dm/contact" : `/api/dm/contact?thread=${threadId}`, {
-      ...init,
-      headers: { "content-type": "application/json", authorization: `Bearer ${await user.getIdToken()}` },
-    });
-    if (r.status === 402) { 모자람잡기(true); return false; }
-    if (r.ok) { 모자람잡기(false); setSt(await r.json()); }
-    return r.ok;
-  }, [threadId, user]);
-  useEffect(() => { setSt(null); void 부르기(); }, [부르기]);
-  if (!st) return null;
-  // 처음 열 때 값을 낸다 — 각자 🪷5, 또는 둘 몫 🪷9. 한 번 낸 사람은 다시 안 낸다(서버가 센다)
-  const 공짜 = st.paidMine || isAdminAccount(user);
-  const 걸기 = async (contact: string, both = false) => { if (await 부르기({ method: "POST", body: JSON.stringify({ thread: threadId, contact, both }) })) set쓰기(false); };
-  return (
-    <div className="mt-4 rounded-[14px] border border-gold/25 bg-gold/5 px-4 py-3 text-[13px] text-hanji-dim">
-      {st.contact ? (
-        <p className="flex items-center justify-between gap-2">
-          <span>상대 연락처</span>
-          <b className="select-all font-medium text-hanji">{st.contact}</b>
-        </p>
-      ) : 쓰기 ? (
-        <form onSubmit={(e) => { e.preventDefault(); if (값.trim()) void 걸기(값); }}>
-          <div className="flex items-center gap-2">
-            <input autoFocus value={값} onChange={(e) => set값(e.target.value)} maxLength={40} placeholder="카톡 아이디 또는 번호" className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3 py-2 text-hanji outline-none" />
-            <button disabled={!값.trim()} className="shrink-0 rounded-[10px] border border-gold/50 px-3 py-2 text-gold disabled:opacity-40">{공짜 ? "열기" : <>열기 · <Yeonkkot className="inline-block h-4 w-4 align-middle" />{DM_CONTACT}</>}</button>
-          </div>
-          {!공짜 && !st.paidTheirs && (
-            <button type="button" disabled={!값.trim()} onClick={() => void 걸기(값, true)} className="mt-2 w-full rounded-[10px] bg-[#1a1a1c] px-3 py-2 text-white disabled:opacity-40">
-              둘 다 내가 낼게 · <Yeonkkot className="inline-block h-4 w-4 align-middle" />{DM_CONTACT_BOTH}
-            </button>
-          )}
-          {모자람 && <Link href="/lotus" className="mt-2 block text-center text-[12px] text-[#a8804a] underline underline-offset-4">연꽃이 모자라요 · 채우기</Link>}
-        </form>
-      ) : (
-        <p className="flex items-center justify-between gap-2">
-          <span>{st.mine ? "상대가 열면 보여요" : st.theirs ? "상대가 연락처를 열었어요" : "둘 다 열면 연락처가 보여요"}</span>
-          {st.mine
-            ? <button onClick={() => void 걸기("")} className="text-hanji-faint underline underline-offset-4">거두기</button>
-            : <button onClick={() => set쓰기(true)} className="rounded-full border border-gold/50 px-3 py-1 text-gold">연락처 열기</button>}
-        </p>
-      )}
     </div>
   );
 }

@@ -1,8 +1,4 @@
-/** A reply or an unanswered request is never presented as an accepted match. */
-export function acceptedPostIds(owners: Record<string, string>, threads: { postId?: unknown; status?: unknown; members?: unknown }[]): string[] {
-  return [...new Set(threads.filter(t => typeof t.postId === "string" && !!owners[t.postId] && t.status === "accepted" && Array.isArray(t.members) && t.members.includes(owners[t.postId])).map(t => t.postId as string))];
-}
-
-export function approvedGoPostIds(owners: Record<string, string>, gatherings: { postId: string; people?: Record<string, unknown> }[]): string[] {
-  return gatherings.filter(g => !!owners[g.postId] && !!g.people?.[owners[g.postId]] && Object.keys(g.people).some(uid => uid !== owners[g.postId])).map(g => g.postId);
+/** 청실홍실로 이어진 사람이 쓴 글 — 같이 가요 글은 빼고, 이어진 짝(matched·room)만 친다 */
+export function pairedPostIds(owners: Record<string, string>, together: Set<string>, paired: Set<string>): string[] {
+  return Object.entries(owners).filter(([id, uid]) => !together.has(id) && paired.has(uid)).map(([id]) => id);
 }

@@ -21,6 +21,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import HipRoom from "@/components/HipRoom";
 import YeonWaiting from "@/components/YeonWaiting";
 import InyeonThread from "@/components/InyeonThread";
+import LikeSheet from "@/components/LikeSheet";
 import { useConfirm } from "@/components/Confirm";
 import { watchAuth } from "@/lib/sync";
 import { 나이, 내프로필, 물음들, type 인연프로필 } from "@/lib/yeon";
@@ -242,8 +243,11 @@ export default function 오늘의인연() {
     }
   };
 
+  // 형: 「호감 보내기가 하나뿐인 입구」 — 카드의 마음 보내기도 같은 호감 판을 연다
+  const [호감대상, 호감대상잡기] = useState<{ uid: string; name: string; sex?: "m" | "f" | "" } | null>(null);
   const 누름 = async (act: "hap" | "pass") => {
     if (!이 || 바쁨) return;
+    if (act === "hap" && !가안인가) { 호감대상잡기({ uid: 이.uid, name: 이.name || "도반", sex: 이.sex || "" }); return; }
     // 가안은 서버에 없는 사람이다. 물으면 not-today 가 돌아온다
     if (가안인가) {
       닿은이잡기(이);
@@ -583,9 +587,18 @@ export default function 오늘의인연() {
           다음에
         </button>
         <button className="hip-yeon-hap" disabled={바쁨} onClick={() => 누름("hap")}>
-          합장
+          호감
         </button>
       </div>
+      {호감대상 && (
+        <LikeSheet
+          to={호감대상.uid}
+          name={호감대상.name}
+          sex={호감대상.sex}
+          onDone={() => 치우기(호감대상.uid)}
+          onClose={() => 호감대상잡기(null)}
+        />
+      )}
 
       {탈 && <p className="hip-yeon-bad">{말로(탈)}</p>}
 

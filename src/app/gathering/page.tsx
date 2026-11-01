@@ -15,6 +15,7 @@
 import Link from "next/link";
 import LotusCount from "@/components/LotusCount";
 import AlertBell from "@/components/AlertBell";
+import LikesCount from "@/components/LikesCount";
 import HipShell from "@/components/HipShell";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -58,6 +59,7 @@ function GatheringInner() {
             <div className="hip-yh-top">
               <h1>因緣</h1>
               <span className="hip-yh-right">
+                <LikesCount />
                 <AlertBell />
                 <Link href="/lotus" className="hip-yh-lotus" aria-label="연꽃"><LotusCount look="line" /></Link>
               </span>
