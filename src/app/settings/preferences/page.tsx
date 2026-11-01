@@ -2,7 +2,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import HipRoom from "@/components/HipRoom";
-import HwaduBrand from "@/components/HwaduBrand";
 import { isSoundMuted, setSoundMuted, SOUND_MUTE_EVENT, isVibeOff, setVibeOff } from "@/lib/soundPreference";
 import { wakeSound } from "@/lib/sound";
 import { getWalking, subscribeWalking, toggleWalking, WALKING_EMPTY } from "@/lib/walking";
@@ -41,8 +40,8 @@ export default function PreferencesPage() {
     finally { setBusy(false); }
   };
   return <HipRoom here="/settings/preferences" lanes={false} rail="/settings"><main className="preferences-page">
-    <header><Link href="/settings" aria-label="내 도량으로">‹</Link><HwaduBrand/><span/></header>
-    <h1>설정</h1>
+    {/* 형: 「내 도량 설정, 우리 톤에 맞춰」 — 머리는 판(HipRoom)이 이미 그린다. 여기선 제목 한 줄 */}
+    <h1><Link href="/settings" aria-label="내 도량으로">‹</Link>設 설정</h1>
     <section aria-label="기기 설정" className="preference-card">
       <Toggle icon="sound" label="소리" on={sound} click={() => { setSoundMuted(sound); setSound(!sound); if (!sound) void wakeSound(); }}/>
       <Toggle icon="vibe" label="진동" on={vibe} click={() => { setVibeOff(vibe); setVibe(!vibe); }}/>
@@ -50,6 +49,6 @@ export default function PreferencesPage() {
     </section>
     <section aria-label="알림 설정" className="preference-card preference-separated"><Toggle icon="bell" label="알림" on={push === "on"} disabled={busy || push === "loading" || push === "unsupported"} click={() => void notification()}/></section>
     {(notice || push === "unsupported") && <p role="status" className="preference-notice">{notice || "이 기기에서는 알림을 지원하지 않아요."}</p>}
-    <nav aria-label="이용 안내" className="preference-card preference-separated"><a className="preference-row" href="mailto:admin@ibod.co.kr"><span className="preference-icon" aria-hidden>?</span>문의<span className="preference-chevron">›</span></a><Link className="preference-row" href="/about"><span className="preference-icon" aria-hidden>ⓘ</span>이용 안내<span className="preference-chevron">›</span></Link></nav>
+    <nav aria-label="이용 안내" className="preference-card preference-separated"><a className="preference-row" href="mailto:admin@ibod.co.kr"><span className="preference-icon preference-han" aria-hidden>問</span>문의<span className="preference-chevron">›</span></a><Link className="preference-row" href="/about"><span className="preference-icon preference-han" aria-hidden>案</span>이용 안내<span className="preference-chevron">›</span></Link></nav>
   </main></HipRoom>;
 }

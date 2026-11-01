@@ -293,7 +293,7 @@ export default function HipMe({
             </summary>
             <div>{bells}</div>
           </details>
-          <Link href="/settings/preferences" className="hip-preferences-entry"><span>⚙</span> 설정 <span aria-hidden>›</span></Link>
+          <Link href="/settings/preferences" className="hip-preferences-entry"><span>設</span> 설정 <span aria-hidden>›</span></Link>
         </div>
 
         {/* 관리자 전용: 대시보드는 매출, 뒷도량은 화두·승인 관리. */}
