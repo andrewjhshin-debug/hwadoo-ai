@@ -8409,6 +8409,62 @@ html[data-theme="light"] {
   .hip-app-header .hip-top-right { height: 36px; }
 }
 
+/* The bowl gets the remaining height after header/progress, lanes and bottom navigation.
+   Reserve controls first; let object-contain fit every bowl skin into the middle row. */
+@media (min-width: 0px) {
+  .hip-screen.hip-screen-scroll[data-lane="bowl"] .hip-screen-mid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: stretch;
+    justify-items: center;
+    gap: clamp(6px, 1.2dvh, 12px);
+    min-height: 0;
+    overflow: visible;
+    padding: clamp(4px, 1dvh, 10px) 0 4px;
+  }
+  .hip-screen[data-lane="bowl"] .hip-screen-mid > .hip-big {
+    margin: 0;
+    font-size: clamp(44px, min(18vw, 10dvh), 80px);
+    line-height: .92;
+  }
+  .hip-screen[data-lane="bowl"] .hip-bowl-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) 40px;
+    align-items: stretch;
+    justify-items: center;
+    gap: clamp(6px, 1.2dvh, 12px);
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+  }
+  .hip-screen[data-lane="bowl"] .hip-bowl-wrap > .hip-chips-tight {
+    margin: 0;
+    gap: 6px;
+    align-self: center;
+    flex-wrap: nowrap;
+  }
+  .hip-screen[data-lane="bowl"] .hip-chips-tight button {
+    padding: 7px 10px;
+    min-height: 34px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .hip-screen[data-lane="bowl"] .hip-bowl-wrap > .hip-bowl-object {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-width: 420px;
+    margin: 0;
+  }
+  .hip-screen[data-lane="bowl"] .hip-bowl-wrap > .hip-obj-foot {
+    align-self: center;
+    margin: 0;
+  }
+}
+
 /* Selected details only: open-lotus wordmark and compact daily progress below the header. */
 @media (min-width: 0px) {
   .hwadu-brand { gap: 6px; color: #ed99a7; white-space: nowrap; }

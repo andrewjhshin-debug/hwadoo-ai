@@ -1089,7 +1089,7 @@ export default function MoktakPage() {
   );
 
   const hipBowl = (
-    <div className="hip-bead-wrap">
+    <div className="hip-bead-wrap hip-bowl-wrap">
       {/* 그릇 고르기 — 클수록 낮게 운다 */}
       <div className="hip-chips hip-chips-tight">
         {BOWL_TONES.map((b) => (
@@ -1107,7 +1107,7 @@ export default function MoktakPage() {
       <button
         onClick={ringBowl}
         aria-label="싱잉볼 치기"
-        className="hip-obj-sq relative flex items-center justify-center outline-none"
+        className="hip-bowl-object relative flex items-center justify-center outline-none"
       >
         {ringing && (
           <>
