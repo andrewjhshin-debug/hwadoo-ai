@@ -4,6 +4,7 @@ import sharp from 'sharp';
 const input=process.argv[2];
 const material=process.argv[3] === 'wood' ? 'wood' : 'stone';
 const version=process.argv[4] || 'v1';
+const goldOnly=process.argv[5] === 'gold-only';
 if(!/^v\d+$/.test(version))throw Error('Version must be v followed by digits');
 if(!input)throw Error('Pass the ImageGen two-cell source PNG path');
 fs.copyFileSync(input,`public/obj/bead-${material}-source-${version}.png`);
@@ -13,7 +14,7 @@ const template=await sharp('public/obj/bead-paw-one.png').ensureAlpha().raw().to
 const mask=Buffer.alloc(920*920*4);
 for(let i=0;i<920*920;i++){mask[i*4]=mask[i*4+1]=mask[i*4+2]=255;mask[i*4+3]=template.data[i*4+3];}
 const maskPng=await sharp(mask,{raw:{width:920,height:920,channels:4}}).png().toBuffer();
-for(let half=0;half<2;half++){
+for(let half=goldOnly?1:0;half<2;half++){
  const seen=new Uint8Array(info.width*info.height),queue=new Int32Array(cell*info.height);let best=[];
  const startX=half*cell,endX=(half+1)*cell;
  for(let y=0;y<info.height;y++)for(let x=startX;x<endX;x++){

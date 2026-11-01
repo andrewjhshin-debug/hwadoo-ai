@@ -169,7 +169,7 @@ const SKINS = {
     // Fourth slot replaces neon. Geometry, rotation and fill logic stay shared with paw.
     { id: "stone", name: "회색 문양", src: "/obj/mala-stone-v4/0.webp", dot: "#adb2b8", wide: true, one: "/obj/mala-stone-v4/0.webp", lit: "/obj/mala-stone-v4/0.webp" },
     { id: "zodiac", name: "열두 띠 나무", src: "/obj/bead-wood-one-v1.png", dot: "#ae7946", wide: true, one: "/obj/bead-wood-one-v1.png", lit: "/obj/bead-wood-one-gold-v1.png" },
-    { id: "sandalwood", name: "나뭇결", src: "/obj/bead-wood-one-v2.png", dot: "#87512f", wide: true, one: "/obj/bead-wood-one-v2.png", lit: "/obj/bead-wood-one-gold-v2.png" },
+    { id: "sandalwood", name: "나뭇결", src: "/obj/bead-wood-one-v2.png", dot: "#87512f", wide: true, one: "/obj/bead-wood-one-v2.png", lit: "/obj/bead-wood-one-gold-v3.png" },
   ],
   bowl: [
     { id: "brass", name: "놋쇠", src: "/obj/bowl.png", dot: "#c69c43" },
@@ -1836,7 +1836,7 @@ export default function MoktakPage() {
                       <img
                         // eslint-disable-next-line @next/next/no-img-element
                         key={i}
-                        src={beadOneSrc}
+                        src={skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc}
                         alt=""
                         draggable={false}
                         className="absolute block"
@@ -1850,7 +1850,9 @@ export default function MoktakPage() {
                           transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
-                          filter: lit
+                          filter: lit && skin.bead === "sandalwood"
+                            ? `brightness(${(1.03 + 0.12 * front).toFixed(2)}) drop-shadow(0 0 8px rgba(244,195,55,.3))`
+                            : lit
                             ? `sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(${(1.06 + 0.22 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
                             : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))${beadHue(i)}`,
                         }}
