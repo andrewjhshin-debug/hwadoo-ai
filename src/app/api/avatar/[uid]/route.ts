@@ -19,9 +19,21 @@ export async function GET(_req: Request, { params }: { params: Promise<{ uid: st
   const app = adminApp();
   if (!app) return new Response(null, { status: 503 });
   const d = (await getFirestore(app).doc(`yeon-profiles/${uid}`).get()).data() as
-    | { avatarOn?: boolean; state?: string; reportHold?: boolean; photos?: { path?: string; state?: string }[] }
+    | {
+        avatarOn?: boolean; state?: string; reportHold?: boolean; approvedPhotoCount?: number;
+        photoProofRequired?: boolean; photoProof?: { state?: string };
+        photos?: { path?: string; state?: string }[];
+      }
     | undefined;
-  if (!d?.avatarOn || d.state === "정지" || d.reportHold) return new Response(null, { status: 404 });
+  // 인연판에 서는 문턱(firestore.rules 의 isOpen · yeonPick)과 **같은 문턱**을 지나야 보인다.
+  // 거기에 본인이 켠 avatarOn 하나를 더 얹는다. 로그인은 묻지 않는다 — <img> 는 열쇠를
+  // 못 싣고, 글 옆 얼굴은 본인이 「게시판에 보이겠다」고 켠 것이다.
+  const 열림 =
+    d?.state === "활동" &&
+    (d.approvedPhotoCount ?? 0) > 0 &&
+    d.reportHold !== true &&
+    (d.photoProofRequired !== true || d.photoProof?.state === "ok");
+  if (!d?.avatarOn || !열림) return new Response(null, { status: 404 });
   const first = (d.photos ?? []).find((p) => p.state === "ok" && isYeonPhotoPath(uid, p.path));
   if (!first?.path) return new Response(null, { status: 404 });
   const url = await shortPhotoUrl(app, first.path);
