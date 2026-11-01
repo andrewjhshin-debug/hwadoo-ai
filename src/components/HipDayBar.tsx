@@ -23,6 +23,13 @@ export default function HipDayBar() {
   // 방금 쌓였다 — 잠깐 밝아진다. 한 타에 0.003% 라 색만으로는 안 보인다
   const [막쌓임, 막쌓임잡기] = useState(false);
   const 앞값 = useRef(0);
+  // 연꽃을 누르면 한 줄 — 형: 「i 마냥, 찼든 안 찼든 간략히」
+  const [말, 말잡기] = useState(false);
+  useEffect(() => {
+    if (!말) return;
+    const t = window.setTimeout(() => 말잡기(false), 2600);
+    return () => window.clearTimeout(t);
+  }, [말]);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -61,14 +68,22 @@ export default function HipDayBar() {
           잠깐 밝아진다. 그래야 「지금 내 것이 붙었다」가 손끝에 읽힌다. */}
       <i style={{ transform: `scaleX(${찬만큼 > 0 ? Math.max(0.018, 찬만큼) : 0})` }} />
       </span>
-      <svg className="hip-daybar-lotus" viewBox="0 0 30 34" aria-hidden="true">
-        <path d="M4 25q11 9 22 0-3 8-11 8T4 25" fill="#d6e9da" />
-        <path d="M15 30C3 29 2 19 6 12q7 3 9 18" fill="#f5c1d4" />
-        <path d="M15 30C27 29 28 19 24 12q-7 3-9 18" fill="#eea2c1" />
-        <path d="M15 3C5 14 7 25 15 30c8-5 10-16 0-27" fill="#f7b4ce" />
-        <path d="M15 6c-5 9-5 15 0 21" fill="none" stroke="#ffe4ee" strokeWidth="2.5" strokeLinecap="round" />
-      </svg>
+      {/* 연꽃 — 찬 만큼 꽃잎이 벌어진다. 다 차면 활짝. 누르면 한 줄 */}
+      <button type="button" className="hip-daybar-lotus" style={{ ["--open" as string]: 찬만큼 }} aria-label="오늘의 공덕이란" onClick={() => 말잡기((v) => !v)}>
+        <svg viewBox="0 0 30 34" aria-hidden="true">
+          <path d="M4 25q11 9 22 0-3 8-11 8T4 25" fill="#cfe6d5" />
+          <path className="pl pl-l" d="M15 30C3 29 2 19 6 12q7 3 9 18" fill="#f5b6cc" />
+          <path className="pl pl-r" d="M15 30C27 29 28 19 24 12q-7 3-9 18" fill="#ea93b6" />
+          <path d="M15 3C5 14 7 25 15 30c8-5 10-16 0-27" fill="#f39fbf" />
+          <path d="M15 6c-5 9-5 15 0 21" fill="none" stroke="#ffe4ee" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+      </button>
       </div>
+      {말 && (
+        <p className="hip-daybar-tip" role="status">
+          {찬만큼 >= 1 ? "오늘 한 송이 피었어요 🪷" : `다 차면 연꽃 한 송이 · ${Math.round(찬만큼 * 100)}%`}
+        </p>
+      )}
     </div>
   );
 }

@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Dharmachakra } from "./icons";
+import { DAILY_EVENT, doneOf, loadDaily, missionsOf, type DailyBook } from "@/lib/daily";
 
 /** 잘 안 보이고 숨어 있던 것 — 형이 동그라미 친 다섯. 아래가 먼저 튀어 오른다 */
 const 알: { href: string; mark: string; name: string }[] = [
@@ -37,6 +38,17 @@ export default function InvestmentShortcut() {
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, [열림]);
+  // 오늘의 수행 — 법륜을 열면 맨 위에 튀어나온다(하루 세 가지, 날마다 바뀐다).
+  // 형: 「법륜 눌렸을 때 오늘의 수행하고 튀어나오도록, 3개 정도 랜덤으로」
+  const [장부, 장부잡기] = useState<DailyBook | null>(null);
+  useEffect(() => {
+    const 읽기 = () => 장부잡기(loadDaily());
+    읽기();
+    window.addEventListener(DAILY_EVENT, 읽기);
+    window.addEventListener("storage", 읽기);
+    return () => { window.removeEventListener(DAILY_EVENT, 읽기); window.removeEventListener("storage", 읽기); };
+  }, [열림]);
+  const 오늘셋 = missionsOf(장부?.day);
   if (path?.startsWith("/admin")) return null;
   return (
     <>
@@ -54,6 +66,20 @@ export default function InvestmentShortcut() {
             </li>
           ))}
         </ul>
+        <section className="wheel-today" aria-label="오늘의 수행">
+          <p>오늘의 수행</p>
+          {오늘셋.map((m) => {
+            const 한것 = 장부 ? doneOf(m, 장부) : 0;
+            const 끝 = 한것 >= m.need;
+            return (
+              <Link key={m.id} href={m.href} data-done={끝 ? "1" : undefined} tabIndex={열림 ? 0 : -1}>
+                <i aria-hidden>{끝 ? "✓" : ""}</i>
+                <span>{m.label}</span>
+                {!끝 && m.need > 1 && <small>{한것}/{m.need}</small>}
+              </Link>
+            );
+          })}
+        </section>
       </nav>
     </>
   );

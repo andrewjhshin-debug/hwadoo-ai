@@ -115,6 +115,8 @@ export type 인연프로필 = {
   wantTemple?: string;
   line?: string;
   about?: string;
+  /** 물음 답 — 물음 id → 답. 셋 이상 써야 카드가 선다(인터뷰처럼). */
+  qa?: Record<string, string>;
   photos: 사진[];
   /** 서버가 승인한 사진 수. 브라우저는 이 숫자를 만들거나 고칠 수 없다. */
   approvedPhotoCount?: number;
@@ -138,6 +140,27 @@ export type 인연프로필 = {
 };
 
 export const YEON = "yeon-profiles";
+
+/**
+ * 인연 물음 — 골드스푼의 일곱 물음을 그대로 빌리고(형: 「골스 참고하라고」),
+ * 우리 것 둘(화두·절)을 얹었다. **다 써야 판에 선다.**
+ */
+export const 물음들: { id: string; q: string; hint: string }[] = [
+  { id: "me", q: "저는 이런 사람이에요", hint: "MBTI, 성격, 사람들이 나를 뭐라고 하는지" },
+  { id: "taste", q: "제 취향은", hint: "좋아하는 것들 — 음식, 음악, 운동…" },
+  { id: "ideal", q: "이상형이 어떻게 되나요?", hint: "결이 비슷한 사람의 모습" },
+  { id: "date", q: "연인이 생기면 어떤 데이트를 하고 싶나요?", hint: "산책, 맛집, 템플스테이…" },
+  { id: "trip", q: "평소 가고 싶은 여행지가 있나요?", hint: "나라·도시·절 어디든" },
+  { id: "care", q: "요즘 어떤 것에 관심이 있으세요?", hint: "배우는 것, 빠져 있는 것" },
+  { id: "rest", q: "휴일을 어떻게 보내세요?", hint: "집콕? 등산? 카페?" },
+  { id: "hwadu", q: "요즘 품고 있는 물음", hint: "답 말고 물음만" },
+  { id: "temple", q: "같이 가 보고 싶은 절", hint: "이름과 까닭 한 줄" },
+];
+export const 물음최소 = 물음들.length;
+/** 열 자 넘게 쓴 답만 센다 — 한 글자로 칸을 채우지 못하게 */
+export function 답한수(p: Pick<인연프로필, "qa"> | null | undefined): number {
+  return Object.values(p?.qa ?? {}).filter((v) => (v ?? "").trim().length >= 10).length;
+}
 
 /**
  * 휴대폰 본인확인을 **문턱으로 세울까** — 한 칸 스위치.
@@ -198,6 +221,8 @@ export function 모자란것(p: 인연프로필 | null): string[] {
   if (!p?.area) 빠진.push("거주");
   // 형: 「사진이랑 프로필 넣어야 가입」 — 한 마디가 그 프로필이다
   if (!p?.line?.trim()) 빠진.push("한 마디");
+  // 형: 「물음별로 상세히 쓰도록, 써야지만 표출되도록」
+  if (답한수(p) < 물음최소) 빠진.push(`물음 ${물음최소 - 답한수(p)}개 더`);
   if (본인확인_켬 && !p?.verified) 빠진.push("본인확인");
   return 빠진;
 }

@@ -35,6 +35,8 @@ export type 오늘사람 = {
   care: string[];
   date: string[];
   line: string;
+  /** 물음 답 — 열 자 넘게 쓴 것만 온다 */
+  qa?: Record<string, string>;
   rank: string;
   /** 통과된 사진만 */
   photos: string[];

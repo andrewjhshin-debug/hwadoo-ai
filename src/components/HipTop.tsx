@@ -22,7 +22,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SilTop from "@/components/SilTop";
 import SoundMuteToggle from "@/components/SoundMuteToggle";
-import TodayPracticePopover from "@/components/TodayPracticePopover";
 import { useWalking } from "@/components/WalkingRuntime";
 import { toggleWalking } from "@/lib/walking";
 
@@ -54,7 +53,7 @@ export default function HipTop({
       </button>
       {/* 형: 「포행 OFF 랑 연잎 사이」 — 출석할수록 헤지는 오색실. 눌리면 팝업 */}
       <SilTop />
-      <TodayPracticePopover />
+      {/* 머리 연꽃(오늘의 수행)은 걷었다 — 형: 「밤티다, 없애. 법륜 누르면 튀어나오게」 */}
       <Link href="/letters" aria-label="쪽지함" className="hip-top-ico">
         <svg viewBox="0 0 24 24" aria-hidden>
           <rect x="3" y="5.5" width="18" height="13" rx="2.5" />

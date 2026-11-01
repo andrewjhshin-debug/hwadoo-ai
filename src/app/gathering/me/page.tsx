@@ -45,6 +45,9 @@ import {
   type 인증도전,
   프로필저장,
   내프로필,
+  물음들,
+  물음최소,
+  답한수,
 } from "@/lib/yeon";
 
 /** 사진은 다섯 장까지 — 형: 「한 5개 정도만 서버에 저장되도록 일단」
@@ -534,7 +537,7 @@ export default function 인연내프로필() {
           <p className="hip-yeon-name-say">
             {이름잠김
               ? "이미 한 번 고쳤습니다. 더 고치려면 문의로 알려 주세요 — 승인 뒤에 바뀝니다."
-              : "법명은 스스로 한 번만 고칠 수 있습니다. 그 뒤에는 승인을 거칩니다."}
+              : "법명은 한 번만 고칠 수 있습니다."}
           </p>
         )}
         {이름탈 && <p className="hip-yeon-bad">{이름탈}</p>}
@@ -636,6 +639,28 @@ export default function 인연내프로필() {
           />
         </div>
 
+
+        {/* ── 물음 — 인터뷰처럼. 셋 이상 써야 판에 선다 ──
+            형: 「사람들이 글을 쓰도록 유도하려면 인터뷰나 물음별로 상세히, 써야지만 표출되도록」 */}
+        <div className="hip-yeon-qa-edit">
+          <p className="hip-yeon-qa-count">물음 <b>{답한수(me)}</b> / {물음최소}</p>
+          {물음들.map((m) => (
+            <label key={m.id}>
+              <b>Q. {m.q}</b>
+              <textarea
+                rows={2}
+                maxLength={300}
+                placeholder={m.hint}
+                defaultValue={me?.qa?.[m.id] ?? ""}
+                onBlur={(e) => {
+                  const v = e.target.value.trim().slice(0, 300);
+                  if ((me?.qa?.[m.id] ?? "") === v) return;
+                  고치기({ qa: { ...(me?.qa ?? {}), [m.id]: v } });
+                }}
+              />
+            </label>
+          ))}
+        </div>
 
         <하나 이름="MBTI" 목록={MBTI들} 값={me?.mbti} 고치기={(v) => 고치기({ mbti: v })} />
         <하나 이름="흡연" 목록={흡연들} 값={me?.smoke} 고치기={(v) => 고치기({ smoke: v })} />

@@ -90,22 +90,20 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
  * 가운데로 모이게, 줄마다 조금씩 어긋나게 놓는다. 색은 없다.
  * [줄 위치(마루 높이 %), 크기(마루 폭 %), 개수, 줄 어긋남]
  */
+// 형: 「좌복 꼴보기 싫네, 다시 정돈해서 맞춰서 깔아줘」 — 흔들림을 다 뺐다.
+// 두 줄, 줄마다 같은 크기·같은 간격, 기울기 0. 뒷줄 다섯, 앞줄 넷은 뒷줄 틈에 엇갈려 앉고
+// 위로 조금 겹친다(불단 쪽으로 바짝). [줄 위치(마루 높이 %), 크기(마루 폭 %), 개수, 양끝 여백 %]
 const 좌복줄: [number, number, number, number][] = [
-  [4, 11.5, 7, 0.4],
-  [26, 15, 6, -0.5],
-  [52, 19.5, 5, 0.3],
+  [-8, 18, 5, 4],
+  [20, 22, 4, 9],
 ];
 function 법당마루() {
   return <div className="hip-hall-floor" aria-hidden>
-    {좌복줄.flatMap(([top, w, n, shift], r) => {
-      const 양끝 = 4 + r * -1.5; // 앞줄일수록 넓게 퍼진다
-      const 폭 = 100 - 양끝 * 2;
-      return Array.from({ length: n }, (_, i) => {
-        // 손으로 놓은 듯 — 각도·높낮이·좌우가 자리마다 조금씩 다르다(같은 판이면 늘 같게)
-        const 흔들 = ((i * 37 + r * 17) % 9) - 4;
-        const left = 양끝 + (폭 / n) * (i + 0.5 + shift * 0.25) - w / 2 + 흔들 * 0.25;
-        return <span key={`${r}-${i}`} style={{ left: `${left}%`, top: `${top + ((i * 13 + r * 7) % 5) * 0.6}%`, width: `${w}%`, transform: `rotate(${(흔들 * 0.9).toFixed(1)}deg)`, zIndex: r * 10 + i }} />;
-      });
+    {좌복줄.flatMap(([top, w, n, 끝], r) => {
+      const 칸 = (100 - 끝 * 2) / n;
+      return Array.from({ length: n }, (_, i) => (
+        <span key={`${r}-${i}`} style={{ left: `${끝 + 칸 * (i + 0.5) - w / 2}%`, top: `${top}%`, width: `${w}%`, zIndex: r * 10 + i }} />
+      ));
     })}
   </div>;
 }

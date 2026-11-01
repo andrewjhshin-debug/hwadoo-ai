@@ -20,6 +20,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
+import { KeepSentence } from "./SavedSentences";
 import { useConfirm } from "./Confirm";
 import { dayCount, loadStore, saveStore } from "@/lib/store";
 import { sessionQuestion } from "@/lib/hwadu";
@@ -390,6 +391,7 @@ export default function ThoughtRoom({
               <div className="rounded-[16px] rounded-tl-[4px] border border-gold/35 bg-gold/[0.06] px-4 py-3">
                 <p className="break-keep font-serif text-[14.5px] leading-7 text-hanji">{zen.say}</p>
               </div>
+              <KeepSentence text={zen.say} source="선지식" />
               <p className="mt-1 pl-1 text-[10.5px] text-hanji-faint">오늘 {zen.left}번 더</p>
             </div>
           </div>

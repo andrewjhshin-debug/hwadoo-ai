@@ -1085,9 +1085,9 @@ html[data-focus="1"] #scroll-box {
 .hip-gostrip-name { margin: 2px 0 10px; font-size: 13.5px; color: #5a6068; }
 
 /* 법당 — 불단은 위 무대에, 아래 마루에 좌복 (CandleHall 법당중앙·법당마루) */
-.hip-hall-stage { position: absolute; left: 0; right: 0; top: 0; bottom: 24%; }
+.hip-hall-stage { position: absolute; left: 0; right: 0; top: 0; bottom: 21%; }
 .hip-hall-stage > .hip-hall-scene { object-position: center 78%; }
-.hip-hall-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; pointer-events: none; background: linear-gradient(180deg, rgba(236,224,208,0) 0%, #ece0d0 22%, #e2d3be 100%); }
+.hip-hall-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 27%; pointer-events: none; background: linear-gradient(180deg, rgba(236,224,208,0) 0%, #ece0d0 18%, #e2d3be 100%); }
 .hip-hall-floor span { position: absolute; aspect-ratio: 920 / 591; background: url(/obj/cushion.webp) center / contain no-repeat; filter: drop-shadow(0 3px 4px rgba(60,40,20,.16)); }
 
 /* 머리띠 없는 방(법당·인연) — 「오늘의 공덕」 띠도 위에서 걷는다. 머리띠 밑에 붙는 띠라 혼자 뜨면 내용을 덮는다 */
@@ -1104,3 +1104,54 @@ body:has(.hip-hall) .hip-daybar, body:has(.hip-gather-page) .hip-daybar { displa
   .hip-mala { justify-content: flex-start; padding-left: max(10px, calc(50vw - 150px - 20px)); }
   .wheel-fab { right: 8px; }
 }
+
+/* 법당 기와 처마 — 누가 opacity:0 으로 숨겨 두었다(형: 「처마 왜 지우냐, 깔아」). 장면 맨 위에 다시 건다 */
+.hip-hall-sky .hip-hall-roof { opacity: 1 !important; height: 64px !important; z-index: 15 !important; }
+.hip-hall-sky .hip-hall-roof img { object-fit: cover; object-position: center top; filter: saturate(.8) brightness(.9); }
+
+/* 공덕 줄 끝 연꽃 — 크게, 누를 수 있게, 찬 만큼 벌어진다 */
+.hip-daybar { pointer-events: none; }
+.hip-daybar .hip-daybar-lotus { pointer-events: auto; display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 34px; margin: -4px -4px -4px 0; padding: 0; border: 0; background: transparent; cursor: pointer; filter: drop-shadow(0 2px 4px rgba(211,146,167,.35)); }
+.hip-daybar .hip-daybar-lotus svg { width: 30px; height: 34px; overflow: visible; }
+.hip-daybar .hip-daybar-lotus .pl { transform-box: fill-box; transition: transform .6s cubic-bezier(.2,.8,.3,1); }
+.hip-daybar .hip-daybar-lotus .pl-l { transform-origin: 100% 100%; transform: rotate(calc(28deg - var(--open, 0) * 28deg)); }
+.hip-daybar .hip-daybar-lotus .pl-r { transform-origin: 0% 100%; transform: rotate(calc(-28deg + var(--open, 0) * 28deg)); }
+.hip-daybar[data-full="1"] .hip-daybar-lotus { filter: drop-shadow(0 0 8px rgba(235,120,165,.75)); animation: hip-lotus-glow 2.4s ease-in-out infinite; }
+@keyframes hip-lotus-glow { 50% { filter: drop-shadow(0 0 12px rgba(235,120,165,.95)); } }
+.hip-daybar-tip { pointer-events: none; position: absolute; right: 0; top: 34px; margin: 0; padding: 8px 12px; border-radius: 14px; background: #1a1a1c; color: #fff; font-size: 12px; white-space: nowrap; box-shadow: 0 6px 18px rgba(26,23,20,.18); z-index: 70; }
+@media (prefers-reduced-motion: reduce) { .hip-daybar[data-full="1"] .hip-daybar-lotus { animation: none; } }
+
+/* 법륜을 열면 맨 위에 「오늘의 수행」 세 가지 (InvestmentShortcut) */
+.wheel-today { width: 220px; padding: 12px 12px 10px; border-radius: 20px; background: #fff; box-shadow: 0 8px 26px rgba(26,23,20,.16); transform: translateY(18px) scale(.6); transform-origin: bottom right; opacity: 0; transition: transform .34s cubic-bezier(.34,1.56,.64,1) .18s, opacity .2s .18s; pointer-events: none; }
+.wheel-fab[data-open="1"] .wheel-today { transform: none; opacity: 1; pointer-events: auto; }
+.wheel-today p { margin: 0 4px 8px; font-size: 10.5px; letter-spacing: .3em; color: #b53b6c; }
+.wheel-today a { display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-radius: 12px; text-decoration: none; color: #1a1a1c; font-size: 14px; }
+.wheel-today a:active { background: #f6f3ef; }
+.wheel-today a i { width: 20px; height: 20px; flex: none; border-radius: 50%; border: 1.5px solid #e2dcd6; display: grid; place-items: center; font-style: normal; font-size: 11px; color: #fff; }
+.wheel-today a[data-done="1"] i { background: #f2789f; border-color: #f2789f; }
+.wheel-today a[data-done="1"] span { color: #9aa0a8; text-decoration: line-through; }
+.wheel-today a small { margin-left: auto; font-size: 11.5px; color: #9aa0a8; }
+
+/* 아래 띠(.hip-mala)는 화면 폭 전체를 덮는 틀이라, 띠 밖 빈 자리가 법륜 단추를 가렸다(형: 「법륜 눌러도 아무 일 안 일어남」).
+   틀은 손길을 안 받고, 띠 알맹이만 받는다 */
+.hip-mala { pointer-events: none; }
+.hip-mala > * { pointer-events: auto; }
+.wheel-fab { z-index: 75; }
+.wheel-scrim { z-index: 74; }
+
+/* 간직하기 — 글자 없이 책갈피 하나, 옆에 붙는다 */
+.sentence-keep { justify-content: flex-end; gap: 0; margin-top: 2px; }
+.sentence-keep > button { padding: 6px; border-radius: 50%; color: #b9b0a8; }
+.sentence-keep > button svg { width: 15px !important; height: 18px !important; flex-basis: 15px !important; }
+
+/* 인연 물음(인터뷰) — 카드에서 길게 읽고, 고치는 판에서 칸마다 쓴다 */
+.hip-yeon-qa { margin-top: 14px; }
+.hip-yeon-qa b { display: block; font-size: 13px; font-weight: 600; color: #1a1a1c; }
+.hip-yeon-qa p { margin: 6px 0 0; font-size: 14px; line-height: 1.75; color: #3d3a36; word-break: keep-all; }
+.hip-yeon-qa-edit { display: flex; flex-direction: column; gap: 14px; margin: 18px 0; }
+.hip-yeon-qa-count { margin: 0; font-size: 12px; color: #9aa0a8; letter-spacing: .1em; }
+.hip-yeon-qa-count b { color: #c0457a; font-weight: 500; }
+.hip-yeon-qa-edit label { display: block; }
+.hip-yeon-qa-edit label b { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.hip-yeon-qa-edit textarea { width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 14px; border: 1px solid #ece4df; background: #fff; font: inherit; font-size: 14.5px; line-height: 1.6; resize: vertical; }
+.hip-yeon-qa-edit textarea:focus { outline: none; border-color: #f2a7c0; }

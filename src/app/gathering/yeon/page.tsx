@@ -22,7 +22,7 @@ import HipRoom from "@/components/HipRoom";
 import InyeonThread from "@/components/InyeonThread";
 import { useConfirm } from "@/components/Confirm";
 import { watchAuth } from "@/lib/sync";
-import { 나이, 내프로필, type 인연프로필 } from "@/lib/yeon";
+import { 나이, 내프로필, 물음들, type 인연프로필 } from "@/lib/yeon";
 import {
   오늘뽑기,
   외상챙기기,
@@ -522,6 +522,14 @@ export default function 오늘의인연() {
         </div>
 
         {이.line && <p className="hip-yeon-line">{이.line}</p>}
+
+        {/* 물음 답 — 골드스푼처럼 길게 내려 읽는다. 써야 보인다 */}
+        {물음들.filter((m) => 이.qa?.[m.id]).map((m) => (
+          <div key={m.id} className="hip-yeon-qa">
+            <b>Q. {m.q}</b>
+            <p>{이.qa![m.id]}</p>
+          </div>
+        ))}
 
         {/* ⋯ — 막기·신고. **사진 밖에 둔다.**
             사진 칸은 모서리를 둥글리느라 overflow:hidden 이라, 그 안에

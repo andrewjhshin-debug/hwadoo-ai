@@ -400,12 +400,7 @@ export default function HipMe({
             형: 「부적 기능 접었다 펼쳤다. 알림도 접었다 펼쳤다」.
             늘 펴 두면 화면이 길어지고, 아주 지우면 찾을 길이 없다 */}
         <div className="hip-folds">
-          <details>
-            <summary>
-              <b>符</b> 부적
-            </summary>
-            <div>{charms}</div>
-          </details>
+          {/* 부적은 걷었다 — 형: 「부적 기능도 일단은 삭제」 */}
           <details>
             <summary>
               <b>鐘</b> 알림

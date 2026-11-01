@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { loadStore, saveStore } from "@/lib/store";
 import { changeSavedSentence, normalizeSavedSentences, sentenceKey } from "@/lib/savedSentences";
@@ -31,8 +30,7 @@ export function KeepSentence({ text, source }: { text: string; source?: string |
       const current = loadStore();
       const ok = saveStore({ ...current, savedSentences: changeSavedSentence(current.savedSentences, text, source) });
       setError(ok ? "" : "저장하지 못했어요. 다시 눌러주세요.");
-    }}><Bookmark filled={saved} /><span>{saved ? "간직한 문장" : "이 문장 간직하기"}</span></button>
-    <Link href="/archive#saved-sentences">모아보기</Link>
+    }} aria-label={saved ? "간직한 문장 — 다시 누르면 취소" : "이 문장 간직하기"}><Bookmark filled={saved} /></button>
     {error && <span role="status" className="sentence-error">{error}</span>}
   </div>;
 }

@@ -240,7 +240,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/archive", label: "지난 화두", Icon: Seogo },
   { href: "/sutra", label: "외우기", Icon: Book },
   { href: "/draw", label: "오늘의 운세", Icon: Enso },
-  { href: "/rank", label: "오늘의 정진", Icon: Moment },
+  { href: "/rank", label: "랭킹", Icon: Moment },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
   { href: "/goods", label: "굿즈", Icon: Bojagi },
   { href: "/tamjinchi", label: "불심 투자", Icon: Jeoul },
@@ -758,7 +758,7 @@ export default function SettingsPage() {
     "/moktak": "功", "/sambae": "歸", "/bae": "拜", "/breath": "息",
     "/mung": "無", "/empty": "空", "/candle": "燈", "/lotus": "蓮",
     "/community": "池", "/archive": "庫", "/sutra": "經", "/draw": "占",
-    "/rank": "進", "/tea": "茶", "/goods": "物", "/tamjinchi": "投", "/saju": "山",
+    "/rank": "進", "/tea": "茶", "/goods": "物", "/tamjinchi": "投", "/saju": "山", "/archive#saved-sentences": "藏",
     "/hasim": "下", "/letters": "信", "/moment": "時", "/try": "試",
   };
   const meServices = [
@@ -772,6 +772,8 @@ export default function SettingsPage() {
     { href: "/try", label: "체험하기" },
     // 형: 「산신각 이상한 형태 말고 그냥 버튼식으로」 — 다른 방과 같은 알 하나
     { href: "/saju", label: "산신각" },
+    // 간직한 문장 — 화두·선지식에서 북마크한 것. 형: 「내 도량 어딘가에서 볼 수 있도록」
+    { href: "/archive#saved-sentences", label: "간직한 문장" },
   ]
     .filter((v, i, a) => a.findIndex((w) => w.href === v.href) === i)
     .map((v) => ({ ...v, mark: ME_MARK[v.href] ?? "·" }));
@@ -1343,34 +1345,6 @@ export default function SettingsPage() {
 
       {/* ── 우리 절 — 부적보다 앞이다. 매일 보는 것은 이쪽이다 ── */}
       <MyTemplePicker className={sectionGap} />
-
-      {/* ── 부적 — 수행하다 얻는 노란 종이. 도량 벽에 건다 ── */}
-      <section className={`rise rise-d1 ${sectionGap}`}>
-        <p className="text-[11px] tracking-[0.3em] text-hanji-faint">
-          부적 — 도량에 건 것
-        </p>
-        <div className="mt-4 grid grid-cols-3 gap-3 border-t border-ink-3 pt-5">
-          {CHARMS.map((c) => {
-            const got = !!charms[c.id];
-            return (
-              <div key={c.id} className="text-center">
-                <span
-                  className={`mx-auto block w-full max-w-[92px] transition-opacity ${
-                    got ? "" : "opacity-20 grayscale"
-                  }`}
-                  dangerouslySetInnerHTML={{ __html: charmSvg(c.id, "s" + c.id) }}
-                />
-                <p className="mt-1.5 text-[11.5px] text-hanji">
-                  {got ? c.name : "―"}
-                </p>
-                <p className="mt-0.5 break-keep text-[10.5px] leading-4 text-hanji-faint">
-                  {got ? c.wish : c.how}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
 
       {/* ── 서비스 — 걸음 바로 아래, 멀리 내리지 않아도 닿게 ── */}
       <section className={`rise rise-d1 ${sectionGap}`}>
