@@ -7,7 +7,7 @@
 //   조회 수 · 쓴 날짜 → 내용 → (있으면) 약속 절·날짜·시간 →
 //   합장(공감, 토글)·[함께하기] → 댓글들 → 댓글 쓰기(모바일: 아래 탭 바로 위 고정).
 // · 음양 문양 — 글쓴이·댓글 단 이 이름 곁 (남녀는 음양). 누르면 쪽지 팝업:
-//   청하기 1건 = 연꽃 1송이(1,000원), 수락된 대화는 무료.
+//   청하기 1건 = 연꽃 3송이, 수락된 대화는 열 마디까지 무료(lib/dmLadder).
 //   첫 계정엔 연꽃 3송이 무료.
 // · 합장은 계정당 하나(토글 — 다시 누르면 거둔다).
 //   댓글 좋아요/싫어요는 계정당 하나 — 갈아탈 수 있고, 다시 누르면 거둔다.
@@ -730,9 +730,30 @@ export default function GatheringBoard({
     setCategoryFilter("all");
   };
 
+  // 검색 — 형: 「글 검색 기능」. 불러온 글 안에서 제목·본문·이름을 찾는다
+  // ponytail: 받아 둔 글(60개씩)만 뒤진다. 더 오래된 글까지 찾으려면 「더 보기」로 넓히거나 서버 색인(Algolia 등)이 필요하다
+  const [찾기열림, 찾기열기] = useState(false);
+  const [찾을말, 찾을말잡기] = useState("");
+  const [더있음, 더있음잡기] = useState(true);
+  const [더부름, 더부름잡기] = useState(false);
+  const 더보기 = async () => {
+    const 끝 = posts?.reduce((m, p) => Math.min(m, p.createdAt?.seconds ?? m), Infinity);
+    if (!끝 || 끝 === Infinity || 더부름) return;
+    더부름잡기(true);
+    try {
+      const more = await fetchMorePosts("gathering", 끝);
+      if (more.length < 60) 더있음잡기(false);
+      setPosts((now) => {
+        const ids = new Set((now ?? []).map((p) => p.id));
+        return [...(now ?? []), ...more.filter((p) => !ids.has(p.id))];
+      });
+    } catch { /* 조용히 */ } finally { 더부름잡기(false); }
+  };
   const sorted = useMemo(() => {
+    const q = 찾을말.trim().toLowerCase();
     const list = (posts ?? []).filter(
       (p) =>
+        (!q || `${p.title} ${p.body} ${p.authorName} ${p.templeName ?? ""}`.toLowerCase().includes(q)) &&
         // 내려진 글은 목록에서 아예 뺀다 — 첫 화면이 '삭제된 글입니다'로
         // 도배되면 갓 온 사람에게 버려진 판으로 보인다 (댓글·자리는 남아
         // 있으니, 링크로 직접 열면 여전히 닿는다)
@@ -755,30 +776,9 @@ export default function GatheringBoard({
     setCapacity(4);
     setMeetPlace("");
     setCategory("companion");
-  // 검색 — 형: 「글 검색 기능」. 불러온 글 안에서 제목·본문·이름을 찾는다
-  // ponytail: 받아 둔 글(60개씩)만 뒤진다. 더 오래된 글까지 찾으려면 「더 보기」로 넓히거나 서버 색인(Algolia 등)이 필요하다
-  const [찾기열림, 찾기열기] = useState(false);
-  const [찾을말, 찾을말잡기] = useState("");
-  const [더있음, 더있음잡기] = useState(true);
-  const [더부름, 더부름잡기] = useState(false);
-  const 더보기 = async () => {
-    const 끝 = posts?.reduce((m, p) => Math.min(m, p.createdAt?.seconds ?? m), Infinity);
-    if (!끝 || 끝 === Infinity || 더부름) return;
-    더부름잡기(true);
-    try {
-      const more = await fetchMorePosts("gathering", 끝);
-      if (more.length < 60) 더있음잡기(false);
-      setPosts((now) => {
-        const ids = new Set((now ?? []).map((p) => p.id));
-        return [...(now ?? []), ...more.filter((p) => !ids.has(p.id))];
-      });
-    } catch { /* 조용히 */ } finally { 더부름잡기(false); }
-  };
     setFormError("");
-    const q = 찾을말.trim().toLowerCase();
   };
 
-        (!q || `${p.title} ${p.body} ${p.authorName} ${p.templeName ?? ""}`.toLowerCase().includes(q)) &&
   const submit = async () => {
     setFormError("");
     setBusy(true);
@@ -1153,7 +1153,7 @@ export default function GatheringBoard({
                   ? "보내는 중…"
                   : isAdminAccount(user)
                     ? "쪽지 청하기"
-                    : "쪽지 청하기 — 연꽃 1송이"}
+                    : "쪽지 청하기 — 연꽃 3송이"}
               </button>
               {isAdminAccount(user) ? null : (
                 /* 첫 선물·「수락되면 무료」는 뗐다 — 위 단추가 값을 이미
@@ -1685,7 +1685,13 @@ export default function GatheringBoard({
         {/* 골스처럼 — 「전체 ∨」 작게 하나. 갈래 줄이 자리를 너무 먹었다 */}
         {/* 형: 「엑셀이냐 ㅡㅡ」 — 기본 select 를 걷고 작은 판으로 */}
         <CatPick value={categoryFilter} onChange={(k) => setCategoryFilter(k as typeof categoryFilter)} />
+        {찾기열림 && (
+          <input className="hip-find" autoFocus value={찾을말} onChange={(e) => 찾을말잡기(e.target.value)} placeholder="제목·내용·절 이름" enterKeyHint="search" />
+        )}
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
+        <button type="button" className="hip-find-btn" aria-label="검색" aria-pressed={찾기열림} onClick={() => { 찾기열기(!찾기열림); if (찾기열림) 찾을말잡기(""); }}>
+          <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
+        </button>
         <button
           onClick={() => {
             resetForm();
@@ -1711,13 +1717,7 @@ export default function GatheringBoard({
               className="shrink-0 rounded-full border border-gold/45 px-2.5 py-1 text-[11px] text-gold transition-colors hover:bg-gold/10"
             >
               다시
-        {찾기열림 && (
-          <input className="hip-find" autoFocus value={찾을말} onChange={(e) => 찾을말잡기(e.target.value)} placeholder="제목·내용·절 이름" enterKeyHint="search" />
-        )}
             </button>
-        <button type="button" className="hip-find-btn" aria-label="검색" aria-pressed={찾기열림} onClick={() => { 찾기열기(!찾기열림); if (찾기열림) 찾을말잡기(""); }}>
-          <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
-        </button>
           </p>
         )}
       </div>
@@ -1808,10 +1808,10 @@ export default function GatheringBoard({
           })
         )}
       </ul>
-    </div>
-  );
-}
       {찾을말.trim() && sorted.length === 0 && <p className="hip-find-none">「{찾을말.trim()}」 글이 없어요{더있음 ? " · 더 오래된 글에서 찾으려면 아래 「더 보기」" : ""}</p>}
       {더있음 && (posts?.length ?? 0) >= 60 && (
         <button type="button" className="hip-more" disabled={더부름} onClick={() => void 더보기()}>{더부름 ? "불러오는 중…" : "더 보기"}</button>
       )}
+    </div>
+  );
+}

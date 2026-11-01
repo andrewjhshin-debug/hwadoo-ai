@@ -295,9 +295,12 @@ service cloud.firestore {
                 && getAfter(/databases/$(database)/documents/wallets/$(request.auth.uid)).data.lotus
                    == get(/databases/$(database)/documents/wallets/$(request.auth.uid)).data.lotus - 1));
       // 고치기 — 멤버만. 멤버·역할은 못 바꾸고, 수락/거절(status)은 받는 이만.
+      // 쪽지 수(msgCount)·이용권(passUntil)·진심(sincere)은 서버만 —
+      // 브라우저는 수락/거절/차단(status) 한 칸만 고친다(/api/dm/send 가 나머지).
       allow update: if dmIsAdmin()
         || (dmOn() && request.auth != null
             && request.auth.uid in resource.data.members
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
             && request.resource.data.members == resource.data.members
             && request.resource.data.requesterUid == resource.data.requesterUid
             && request.resource.data.ownerUid == resource.data.ownerUid
@@ -311,10 +314,9 @@ service cloud.firestore {
         allow read: if dmIsAdmin()
           || (dmOn() && request.auth != null
               && request.auth.uid in get(/databases/$(database)/documents/dm-threads/$(threadId)).data.members);
-        allow create: if dmOn() && request.auth != null
-          && request.auth.uid == request.resource.data.uid
-          && request.auth.uid in get(/databases/$(database)/documents/dm-threads/$(threadId)).data.members
-          && get(/databases/$(database)/documents/dm-threads/$(threadId)).data.status == "accepted";
+        // 보내기는 서버(/api/dm/send)만 — 열 마디 넘으면 이용권을 봐야 해서
+        // 브라우저가 직접 쌓으면 값을 건너뛴다
+        allow create: if dmIsAdmin();
         allow update, delete: if dmIsAdmin();
       }
     }
