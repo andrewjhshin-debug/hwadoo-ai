@@ -2,6 +2,11 @@
 .hip-keycap .hip-keycap-stack.keycap-v3 {aspect-ratio:5 / 7;filter:none;isolation:isolate}
 .hip-keycap .keycap-v3 .hip-keycap-back,
 .hip-keycap .keycap-v3 .hip-keycap-cup {transform:none!important;filter:none;pointer-events:none}
+/* Broader lotus seats cradle the wider golden figures; both cup layers stay registered. */
+.hip-keycap:is([data-keycap-skin="podae"],[data-keycap-skin="mireuk"]) .keycap-v3 :is(.hip-keycap-back,.hip-keycap-cup) {
+  transform:scale(1.22,1.10)!important;
+  transform-origin:50% 98.5714286%;
+}
 .hip-keycap .keycap-v3 .hip-keycap-buddha {transform:translateY(0);transform-origin:50% 100%;filter:brightness(1.18) saturate(1.1) contrast(.96);pointer-events:none;transition:transform .3s cubic-bezier(.2,1.45,.3,1)}
 .hip-keycap.on .keycap-v3 .hip-keycap-buddha {transform:translateY(var(--keycap-dip,8%));transition:transform .07s ease-out}
 @media(prefers-reduced-motion:reduce){.hip-keycap .keycap-v3 .hip-keycap-buddha {transition:none}}
