@@ -229,9 +229,10 @@ function 법당마루() {
       });
     })}
     {/* 형: 「1만 명 들어왔다 쳐, 그래도 눌리면 쭉 리스트」 — 앉은 사람이 있으면 알약 하나. 다 차면 「자리가 다 찼어요」도 같은 알약이 */}
-    {남수 > 0 && (
-      <button type="button" className="hip-people-pill" onClick={() => 줄판잡기(true)}>
-        {Object.keys(자리).length >= 좌복수 && !내자리 ? "자리가 다 찼어요 · " : ""}앉은 사람 {남수}
+    {/* 형: 「1명이라도 뜨도록, 나를 포함」 — 수는 나까지 센다. 목록은 남이 있을 때만 열린다 */}
+    {Object.keys(자리).length > 0 && (
+      <button type="button" className="hip-people-pill" onClick={() => { if (남수 > 0) 줄판잡기(true); }}>
+        {Object.keys(자리).length >= 좌복수 && !내자리 ? "자리가 다 찼어요 · " : ""}앉은 사람 {Object.keys(자리).length}
       </button>
     )}
     {줄판 && <앉은줄 닫기={() => 줄판잡기(false)} 열기={(x) => { 줄판잡기(false); 본이잡기(x); }} />}
