@@ -1694,3 +1694,5 @@ body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab) 
 .hip-hand-on { color: #8a6a3e; font-weight: 500; }
 .hip-hand-say { font-size: 12px; color: #c0457a; }
 .hip-hand button:disabled { opacity: .5; }
+/* 인연 글 보기 — 윗단(因緣 머리)이 걷히면 「← 목록」이 폰 상단 바에 붙어 겹쳤다. 안전 영역만큼 내린다 */
+.hip-post-detail { padding-top: calc(env(safe-area-inset-top, 0px) + 14px); }

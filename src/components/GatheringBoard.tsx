@@ -1165,7 +1165,7 @@ export default function GatheringBoard({
     const childrenOf = (id: string) => all.filter((c) => c.parentId === id);
 
     return (
-      <div className="px-4 pb-28 sm:px-0 md:pb-0">
+      <div className="hip-post-detail px-4 pb-28 sm:px-0 md:pb-0">
         <div className="flex items-start justify-between gap-3">
           <button
             onClick={goBack}

@@ -25,3 +25,5 @@
 @keyframes silk-say { to { opacity:1; } }
 @media (prefers-reduced-motion: reduce) { .inyeon-silk-draw { clip-path:none; animation:none; } .inyeon-silk-glow { opacity:.7; animation:none; transform:translate(-50%,-50%); } .inyeon-silk-mote { display:none; } .inyeon-silk-say { opacity:1; animation:none; } }
 .inyeon-silk-sky .inyeon-silk-names { margin-top:2px; }
+/* 끈은 카드 양 끝까지 — 형: 「여백을 두지 말고」 (카드 안쪽 여백 20px 만큼 밖으로) */
+.inyeon-silk-card .inyeon-silk-draw{margin:0 -20px}
