@@ -1,0 +1,90 @@
+/* One coordinate plane keeps the artwork, live seats and offering targets aligned. */
+.hip-hall-sky.hip-hall-interior {
+  container-type: size;
+  background: #b77d49;
+}
+.hip-hall-interior .hip-hall-ceil {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+}
+.hip-hall-interior .hip-hall-shrine {
+  position: absolute;
+  inset: 0;
+  display: block;
+  container-type: size;
+  background: url('/obj/hall-interior-v2.webp') center / cover no-repeat;
+}
+.hip-hall-interior .hip-hall-artboard {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, calc(100cqh * 857 / 1836));
+  aspect-ratio: 857 / 1836;
+}
+.hip-hall-interior .hip-hall-stage {
+  position: absolute;
+  inset: 0;
+}
+.hip-hall-interior .hip-hall-stage > .hip-hall-scene {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  background: none;
+}
+.hip-hall-interior .hip-hall-floor {
+  height: 30%;
+  z-index: 13;
+  background: none;
+  pointer-events: none !important;
+}
+.hip-hall-interior .hip-hall-floor > span,
+.hip-hall-interior .hip-hall-floor > button {
+  pointer-events: auto;
+}
+.hip-hall-interior .hip-hall-item-link[data-kind='cho'] { left: 16%; top: 50%; bottom: auto; width: 15%; height: 10%; }
+.hip-hall-interior .hip-hall-item-link[data-kind='ssal'] { left: 31%; top: 54%; bottom: auto; width: 17%; height: 6%; }
+.hip-hall-interior .hip-hall-item-link[data-kind='hyang'] { left: 49%; right: auto; top: 50%; bottom: auto; width: 18%; height: 10%; }
+.hip-hall-interior .hip-hall-item-link[data-kind='plate'] { left: 68%; right: auto; top: 56%; bottom: auto; width: 17%; height: 5%; }
+/* Tile dedications remain on the interior beam; the exterior eave is replaced. */
+.hip-hall-sky.hip-hall-interior .hip-hall-roof {
+  top: 9.5%;
+  left: 50%;
+  right: auto;
+  width: min(100%, calc(100cqh * 857 / 1836));
+  height: 4.5% !important;
+  aspect-ratio: auto !important;
+  transform: translateX(-50%);
+  z-index: 5 !important;
+}
+.hip-hall-interior .hip-hall-roof img { display: none; }
+.hip-hall-interior .hip-hall-roof button { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hip-hall-interior .hip-hall-roof b { top: 0; right: 10px; bottom: auto; }
+.hip-hall-interior .hip-deung-sky {
+  top: 2%;
+  left: 50%;
+  right: auto;
+  width: min(100%, calc(100cqh * 857 / 1836));
+  height: 24%;
+  margin-top: 0;
+  transform: translateX(-50%);
+}
+.hip-hall-interior .hip-deung-sky[data-few='1'] { margin-top: 0; }
+.hip-hall-interior .hip-deung-sky[data-few='1'] .hip-deung { width: 15%; }
+.hip-hall-sky.hip-hall-interior .hip-hall-acts { top: 40% !important; }
+.hip-hall-interior .hip-rail-btn b { color: #fff7e9 !important; text-shadow: 0 1px 4px #5e382d; }
+.hip-hall-interior .hip-people-pill { background: rgba(255, 249, 238, .94); color: #655043; }
+.hip-hall-interior .hip-hall-say {
+  position: absolute;
+  top: 16%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: rgba(255, 249, 238, .88);
+  color: #715744;
+  font-size: 11px;
+}

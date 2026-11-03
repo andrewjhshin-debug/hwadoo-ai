@@ -23,6 +23,7 @@ import { giveMerit } from "@/lib/merit";
 import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
 import { LANTERN_COLORS, type LanternColor } from "@/lib/lanternSpec";
 import "./offering-sheet.css";
+import "./hall-interior.css";
 import { useConfirm } from "@/components/Confirm";
 
 type Comment = { id: string; by?: string; body?: string; to?: string | null; likes?: number };
@@ -132,15 +133,15 @@ function 법당인원() {
 
 function 법당중앙({ children }: { children?: React.ReactNode }) {
   return <div className="hip-hall-shrine">
-    {/* 불단은 무대(stage) 위에 — 장면 속 공양물 손가락 자리(%)가 그림과 같이 움직이게 한 통에 담는다 */}
-    <div className="hip-hall-stage">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="hip-hall-scene" src="/obj/hall-scene-v1.webp" alt="" draggable={false} />
-      {/* 형: 「부처 머리 바로 위에 법당에 n명 있습니다, 검은 글씨에 숫자만 파랑」 */}
-      {/* 머리 위 「법당에 N명」은 걷었다 — 형: 「앉은 사람 N명 저렇게 두고 위에 저 부분은 지워라」 */}
-      {children}
+    <div className="hip-hall-artboard">
+      {/* 그림·공양 터치 영역·좌복을 같은 비율의 좌표계에 둔다. */}
+      <div className="hip-hall-stage">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="hip-hall-scene" src="/obj/hall-interior-v2.webp" width={857} height={1836} alt="" draggable={false} fetchPriority="high" />
+        {children}
+      </div>
+      <법당마루 />
     </div>
-    <법당마루 />
   </div>;
 }
 
@@ -1193,9 +1194,8 @@ export default function CandleHall() {
     {/* 형: 「위는 연등, 아래는 초 쌀 등등 뭐 이런 식으로 가자」
         절이 그렇다 — 등은 천장에 매달리고 공양물은 불단 위에 놓인다.
         한 칸 안에서 위아래로만 가른다(칸을 또 쪼개지 않는다). */}
-    <div className="hip-hall-sky" data-mine-only={내것만 ? "1" : undefined}>
-      {/* 기와 불사는 불단에 놓지 않는다. 지붕 한 장으로 남는다.
-          완성된 처마를 누르면 가장 최근에 올린 기와의 이름과 마음을 읽는다. */}
+    <div className="hip-hall-sky hip-hall-interior" data-mine-only={내것만 ? "1" : undefined}>
+      {/* 기와 불사 사연은 실내 대들보에서 연다. */}
       <div className="hip-hall-roof" data-on={기와들.length ? "1" : undefined}>
         <button
           type="button"
@@ -1209,7 +1209,10 @@ export default function CandleHall() {
         </button>
       </div>
       {publicCandles === null ? (
-        <p className="hip-hall-say">등을 살피는 중</p>
+        <div className="hip-hall-ceil">
+          <법당중앙>{불단사연자리}</법당중앙>
+          <p className="hip-hall-say" role="status">등을 살피는 중</p>
+        </div>
       ) : 다걸린것.length ? (
         <>
           {/* 천장 — 법당의 **윗부분**. 형: 「법당은 윗부분만 연등으로」
