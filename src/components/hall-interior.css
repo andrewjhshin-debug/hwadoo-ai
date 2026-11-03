@@ -45,8 +45,8 @@
   pointer-events: auto;
 }
 .hip-hall-interior .hip-hall-floor > span[role='button'] {
-  background-image: url('/obj/cushion.webp');
-  aspect-ratio: 920 / 591;
+  background-image: url('/obj/hall-cushion-square-light-v3.webp');
+  aspect-ratio: 920 / 594;
   rotate: none;
   transform: none;
 }
