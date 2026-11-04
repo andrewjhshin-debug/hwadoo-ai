@@ -1,7 +1,8 @@
 /* One coordinate plane keeps the artwork, live seats and offering targets aligned. */
 .hip-hall-sky.hip-hall-interior {
   container-type: size;
-  background: #b77d49;
+  background: transparent;
+  border-color: transparent;
 }
 .hip-hall-interior .hip-hall-ceil {
   position: absolute;
@@ -13,7 +14,7 @@
   inset: 0;
   display: block;
   container-type: size;
-  background: url('/obj/hall-interior-v2.webp') center / cover no-repeat;
+  background: none;
 }
 .hip-hall-interior .hip-hall-artboard {
   position: absolute;
@@ -33,6 +34,7 @@
   object-fit: contain;
   object-position: center;
   background: none;
+  border-radius: 18px;
 }
 .hip-hall-interior .hip-hall-floor {
   height: 30%;
@@ -79,7 +81,10 @@
 }
 .hip-hall-interior .hip-deung-sky[data-few='1'] { margin-top: 0; }
 .hip-hall-interior .hip-deung-sky[data-few='1'] .hip-deung { width: 15%; }
-.hip-hall-sky.hip-hall-interior .hip-hall-acts { top: 40% !important; }
+.hip-hall-sky.hip-hall-interior .hip-hall-acts {
+  top: 40% !important;
+  right: max(10px, calc((100% - 100cqh * 857 / 1836) / 2 + 10px));
+}
 .hip-hall-interior .hip-rail-btn b { color: #fff7e9 !important; text-shadow: 0 1px 4px #5e382d; }
 .hip-hall-interior .hip-people-pill { background: rgba(255, 249, 238, .94); color: #655043; }
 .hip-hall-interior .hip-hall-say {
