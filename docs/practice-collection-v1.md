@@ -1,6 +1,6 @@
 # Approved practice collection
 
-Four new horizontal mala skins: ebony with a square lotus master bead, carved sandalwood, black/gold lotus inlay, and the approved upright carved wooden lotus alternating with small wood spacers. Existing skins remain selectable.
+Four new horizontal mala skins: ebony with a square lotus master bead, carved sandalwood, black/gold lotus inlay, and the approved upright carved wooden lotus repeated for every bead. Existing skins remain selectable.
 
 The pastel four-key cluster is the fourth keycap skin. It uses the existing key press/release, sound, count and merit handlers. Its image moves down on press; no character/cup layers are duplicated.
 

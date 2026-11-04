@@ -905,7 +905,7 @@ export default function MoktakPage() {
                       // 형: 「염주 원래 모양대로 해. 알 더 줄이고」
                       // 알이 서로 닿아 도넛처럼 보였다. 염주는 **알과
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
-                      width: `${폭 * (skin.bead === 'lotuswood' ? (i % 2 ? .7 : 1.1) : 1)}%`,
+                      width: `${폭}%`,
                       transform: "translate(-50%, -50%)",
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다

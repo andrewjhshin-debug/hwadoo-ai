@@ -8,6 +8,5 @@ export const NEW_MALA_SKINS = [
 export const isNewMala = (id: string) => NEW_MALA_SKINS.some(s => s.id === id);
 export function malaBeadImage(id: string, index: number, fallback: string) {
   if (id === 'ebony' && index === 0) return `${root}/ebony-master.webp`;
-  if (id === 'lotuswood' && index % 2 === 1) return `${root}/wood-spacer.webp`;
   return fallback;
 }
