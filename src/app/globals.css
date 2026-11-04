@@ -1696,3 +1696,5 @@ body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab) 
 .hip-hand button:disabled { opacity: .5; }
 /* 인연 글 보기 — 윗단(因緣 머리)이 걷히면 「← 목록」이 폰 상단 바에 붙어 겹쳤다. 안전 영역만큼 내린다 */
 .hip-post-detail { padding-top: calc(env(safe-area-inset-top, 0px) + 14px); }
+/* 숨은 고양이 — 화면 위 아무 데나 올라와 걷는다. 판을 가리지 않게 작고, 눌리는 건 고양이 몸뿐 */
+.hidden-cat { position: fixed; left: 0; top: 0; z-index: 45; height: auto; opacity: 0; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; will-change: transform; }

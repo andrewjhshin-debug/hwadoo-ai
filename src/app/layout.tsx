@@ -21,6 +21,7 @@ import InstallBanner from "@/components/InstallBanner";
 import WalkingRuntime from "@/components/WalkingRuntime";
 import InvestmentShortcut from "@/components/InvestmentShortcut";
 import InviteCatch from "@/components/InviteCatch";
+import HiddenCat from "@/components/HiddenCat";
 import {
   BIZ_ADDRESS,
   BIZ_MAIL_ORDER_NO,
@@ -242,6 +243,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <InstallBanner />
         <WalkingRuntime />
         <InvestmentShortcut />
+        <HiddenCat />
         <InviteCatch />
         </ConfirmProvider>
         {/* ── 지표 둘 ────────────────────────────────────────

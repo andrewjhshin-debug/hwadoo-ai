@@ -1,20 +1,17 @@
 "use client";
+import { useId } from "react";
 import "./inyeon-thread.css";
+import { SILK_HOOK } from "./silkHook";
 type G = "m" | "f" | null | undefined;
 const silk = (g: G) => g === "m" ? "#3b4a8f" : g === "f" ? "#b0233f" : "#a08550";
 const label = (g: G, other: G) => g && g === other ? "도반" : g === "m" ? "청실" : g === "f" ? "홍실" : "실";
 
-// 형이 고른 끈 — 왼쪽 청실·오른쪽 홍실이 가운데서 느슨하게 꼬인다. 끝은 둥근 매듭 + 술(「너의 이름은」 끈).
-// 형: 「탄성 있는 느낌보다 납작이 더 나아, 애니처럼」 — 미츠하 머리끈 같은 납작한 띠(public/obj/silk-ribbon-v11.webp, 1008×123 — 꼬임은 한 번 반, 양옆은 길게 흐르게, 바탕 투명)
-export function SilkKnot({ compact = false }: { compact?: boolean; left?: string; right?: string }) {
-  if (compact) {
-    // 목록·글 머리의 작은 표 — 같은 끈의 가운데 꼬인 자리만
-    return <svg viewBox="416 30 176 60" className="silk-knot-small" aria-hidden="true">
-      <image href="/obj/silk-ribbon-v11.webp" width="1008" height="123" />
-    </svg>;
-  }
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src="/obj/silk-ribbon-v11.webp" alt="" className="silk-knot" draggable={false} />;
+// 형이 고른 끈 — 청실은 왼쪽 매듭에서 한 번 솟았다 길게 흘러와, 홍실과 가운데서 네모난 끝을 닿을 듯 말 듯 마주 댄다.
+// 두 끝이 숨 쉬듯 다가갔다 멀어지고, 가장 가까울 때 빛이 한 번 번진다(inyeon-thread.css 의 .silk-hook)
+export function SilkKnot() {
+  const id = useId().replaceAll(":", "");
+  return <svg viewBox="0 0 1000 150" className="silk-knot silk-hook" aria-hidden="true"
+    dangerouslySetInnerHTML={{ __html: SILK_HOOK.replaceAll("__ID__", id) }} />;
 }
 // 목록·글 머리의 작은 표 — 끈을 줄이면 얼룩이 된다(형: 「존나 별로네」). 청·홍 두 점이 겹친 알약 + 「이어짐」
 export function InyeonThreadBadge() {

@@ -1526,3 +1526,8 @@ export function clickKeycap(vol: number, phase: "down" | "up" = "down") {
   o2.start(t);
   o2.stop(t + 0.05);
 }
+
+/** 숨은 고양이를 눌렀을 때 — 「야옹」 한 번 (public/sfx/meow.wav, .cmp/cat/meow.cjs 로 구웠다) */
+export function meow(vol = 0.55) {
+  엘리먼트치기("/sfx/meow.wav", vol);
+}

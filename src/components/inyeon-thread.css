@@ -27,3 +27,19 @@
 .inyeon-silk-sky .inyeon-silk-names { margin-top:2px; }
 /* 끈은 카드 양 끝까지 — 형: 「여백을 두지 말고」 (카드 안쪽 여백 20px 만큼 밖으로) */
 .inyeon-silk-card .inyeon-silk-draw{margin:0 -20px}
+/* 청실홍실 — 닿을 듯 말 듯(SilkKnot). 색은 끈마다 변수로, 숨 쉬듯 다가갔다 멀어지고 가장 가까울 때 빛이 번진다 */
+.silk-hook{overflow:visible}
+.silk-hook .sk-blue{--o:#1c255c;--f:#34459a;--h:#a9b5f0;--d:#141b47}
+.silk-hook .sk-red{--o:#651122;--f:#ad2440;--h:#f6b3bd;--d:#4a0c18}
+.silk-hook .sk-sway{animation:sk-near 3.6s ease-in-out 1.6s infinite}
+.silk-hook .sk-sway2{animation:sk-near2 3.6s ease-in-out 1.6s infinite}
+.silk-hook .sk-spark{opacity:0;transform-origin:500px 73px;animation:sk-spark 3.6s ease-in-out 1.6s infinite}
+@keyframes sk-near{50%{transform:translate(4px,-1.5px)}}
+@keyframes sk-near2{50%{transform:translate(-4px,1.5px)}}
+@keyframes sk-spark{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.95;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.silk-hook .sk-sway,.silk-hook .sk-sway2,.silk-hook .sk-spark{animation:none}}
+.silk-hook .sk-blue{--b:#24306f}
+.silk-hook .sk-red{--b:#7d1729}
+.silk-hook .sk-star{opacity:0;transform-origin:500px 72px;animation:sk-star 3.6s ease-in-out 1.6s infinite}
+@keyframes sk-star{0%,35%,65%,100%{opacity:0;transform:scale(.3) rotate(0)}50%{opacity:1;transform:scale(1) rotate(45deg)}}
+@media (prefers-reduced-motion:reduce){.silk-hook .sk-star{animation:none}}
