@@ -1,17 +1,14 @@
 "use client";
-import { useId } from "react";
 import "./inyeon-thread.css";
-import { SILK_HOOK } from "./silkHook";
 type G = "m" | "f" | null | undefined;
 const silk = (g: G) => g === "m" ? "#3b4a8f" : g === "f" ? "#b0233f" : "#a08550";
 const label = (g: G, other: G) => g && g === other ? "도반" : g === "m" ? "청실" : g === "f" ? "홍실" : "실";
 
-// 형이 고른 끈 — 청실은 왼쪽 매듭에서 한 번 솟았다 길게 흘러와, 홍실과 가운데서 네모난 끝을 닿을 듯 말 듯 마주 댄다.
-// 두 끝이 숨 쉬듯 다가갔다 멀어지고, 가장 가까울 때 빛이 한 번 번진다(inyeon-thread.css 의 .silk-hook)
+// Approved continuous weave: preserve the exact crossings and the two open cut ends.
 export function SilkKnot() {
-  const id = useId().replaceAll(":", "");
-  return <svg viewBox="0 0 1000 150" className="silk-knot silk-hook" aria-hidden="true"
-    dangerouslySetInnerHTML={{ __html: SILK_HOOK.replaceAll("__ID__", id) }} />;
+  // The approved artwork has red on the left; the card's established base is blue-left.
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src="/obj/silk-approved-weave-v1.webp" className="silk-knot silk-reference" alt="" aria-hidden="true" draggable={false} />;
 }
 // 목록·글 머리의 작은 표 — 끈을 줄이면 얼룩이 된다(형: 「존나 별로네」). 청·홍 두 점이 겹친 알약 + 「이어짐」
 export function InyeonThreadBadge() {
