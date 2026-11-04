@@ -1,4 +1,5 @@
 "use client";
+import SquareKeycaps from '@/components/SquareKeycaps';
 import "./keycaps.css";
 
 import HipLanes, { type LaneTab } from "@/components/HipLanes";
@@ -236,7 +237,8 @@ export default function HipMoktak({
               눌림: 한 덩이라 아래로 내려가며 **살짝 찌그러진다.**
               바닥을 축으로 세로가 줄고 가로가 늘면, 손끝은 그것을
               「말랑한 것을 눌렀다」로 읽는다. */}
-          {tab === "keycap" && (
+          {tab === 'keycap' && keySrc.id === 'square' && <SquareKeycaps src={keySrc.body} press={onKeyDown} release={onKeyUp} />}
+          {tab === "keycap" && keySrc.id !== 'square' && (
             <button
               className={`hip-keycap${keyDown ? " on" : ""}`}
               data-keycap-skin={keySrc.id}
