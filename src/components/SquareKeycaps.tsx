@@ -23,6 +23,9 @@ export default function SquareKeycaps({ src, press, release }: {
   };
   return <div className="hip-keycap square-keycaps" role="group" aria-label="사각 키캡 네 개">
     <div className="square-keycaps-art">
+      {/* A fixed body stays under the moving key faces, including every seam. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="square-keycaps-body" src={src} alt="" draggable={false} />
       {keys.map((name, i) => <button key={name} type="button"
         className="square-key" data-part={i} data-down={down.includes(i) ? '1' : '0'}
         aria-label={`${name} 키캡 누르기`}
