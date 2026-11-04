@@ -4,7 +4,7 @@ Four new horizontal mala skins: ebony with a square lotus master bead, carved sa
 
 The pastel four-key cluster is the fourth keycap skin. It uses the existing key press/release, sound, count and merit handlers. Its image moves down on press; no character/cup layers are duplicated.
 
-The separate proposed “공덕 변화” design is excluded. New malas preserve their base material while counting; existing skin progress remains unchanged.
+The separate proposed “공덕 변화” design is excluded. Ebony now gains a progressive gold coating using the exact base pixels and alpha, including its square master bead. Other new malas preserve their base materials while counting.
 
 Built-in image generation produced transparent sprite atlases from the approved board and final single lotus bead. Prompts requested isolated ebony, engraved sandalwood, black/gold inlay and exact upright honey lotus bead, plus matching square master/spacer and the four-key cluster. Converted/cropped WebP sprites live in `public/obj/practice-collection-v1/`. The preparation script records source paths and packing geometry.
 

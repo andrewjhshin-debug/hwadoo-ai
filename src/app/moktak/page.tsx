@@ -752,6 +752,15 @@ export default function MoktakPage() {
               황금색으로 가자」. 알이 갈색·금빛인데 둘레만 분홍이라 물건과
               따로 놀았다. 금으로 두르면 염주 한 벌이 된다. */}
           <defs>
+            {/* Same pixels and alpha: gold coats the wood without moving its grain or highlights. */}
+            <filter id="hip-ebony-gold" colorInterpolationFilters="sRGB">
+              <feColorMatrix type="saturate" values="0" />
+              <feComponentTransfer>
+                <feFuncR type="linear" slope="1" intercept="0.5" />
+                <feFuncG type="linear" slope="0.9" intercept="0.34" />
+                <feFuncB type="linear" slope="0.55" intercept="0.08" />
+              </feComponentTransfer>
+            </filter>
             <linearGradient id="hip-arc-gold" x1="0" y1="0" x2="1" y2="1">
               {/* 형: 「염주 돌아가는 그 원 지금 너무 누런 노란색이야.
                   아예 밝은 금색으로 가」 — 놋쇠빛(#C9A063)이 섞여 있어
@@ -890,7 +899,7 @@ export default function MoktakPage() {
                     ? 0
                     : Math.max(0, Math.min(1, (물결 - (표시에서 - 칸)) / 칸));
                 const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})${beadHue(i)}`;
-                const 금결 = `${skin.bead === "sandalwood" ? "grayscale(1) sepia(1) saturate(2.8) " : ""}brightness(${(skin.bead === "sandalwood" ? 1.30 + .12 * front : 1 + .07 * front).toFixed(2)})`;
+                const 금결 = `${skin.bead === 'ebony' ? 'url(#hip-ebony-gold) ' : skin.bead === "sandalwood" ? "grayscale(1) sepia(1) saturate(2.8) " : ""}brightness(${(skin.bead === "sandalwood" ? 1.30 + .12 * front : 1 + .07 * front).toFixed(2)})`;
                 return (
                   <span
                     key={i}
@@ -925,10 +934,10 @@ export default function MoktakPage() {
                          밝기로 준다 */
                       style={{ filter: 분홍결 }}
                     />
-                    {채움 > 0 && !isNewMala(skin.bead) && (
+                    {채움 > 0 && (!isNewMala(skin.bead) || skin.bead === 'ebony') && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={beadLitSrc}
+                        src={skin.bead === 'ebony' ? malaBeadImage(skin.bead, i, beadOneSrc) : beadLitSrc}
                         alt=""
                         aria-hidden
                         draggable={false}
@@ -1803,7 +1812,9 @@ export default function MoktakPage() {
                           transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
-                          filter: isNewMala(skin.bead)
+                          filter: skin.bead === 'ebony' && lit
+                            ? `url(#hip-ebony-gold) brightness(${(0.94 + .13 * front).toFixed(2)})`
+                            : isNewMala(skin.bead)
                             ? `brightness(${(0.84 + .16 * front).toFixed(2)})`
                             : lit && skin.bead === "sandalwood"
                             ? `grayscale(1) sepia(1) saturate(2.8) brightness(${(1.30 + .12 * front).toFixed(2)})`
