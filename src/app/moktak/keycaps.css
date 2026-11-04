@@ -15,7 +15,7 @@
   background:none;touch-action:none;-webkit-tap-highlight-color:transparent;
   cursor:pointer;
 }
-.square-key img {position:absolute;top:0;left:0;display:block;width:200%;height:178.571429%;max-width:none;max-height:none;pointer-events:none;transform-origin:50% 100%;transition:transform .16s ease-out}
+.square-key img {position:absolute;top:0;left:0;display:block;width:200%;height:178.571429%;max-width:none;max-height:none;pointer-events:none;transform-origin:50% 100%;transition:transform .2s cubic-bezier(.18,1.5,.35,1),filter .15s ease-out}
 .square-key-face {position:absolute;inset:0;display:block;pointer-events:none;opacity:0;mask-image:radial-gradient(ellipse 49% 48% at 50% 43%,#000 58%,transparent 95%);transition:opacity .12s ease-out}
 .square-key[data-part='0'] {z-index:1;clip-path:polygon(0 0,100% 0,100% 96.429%,94% 87.5%,88% 83.929%,82% 82.143%,40% 82.143%,30% 83.929%,24% 87.5%,18% 94.643%,0 100%)}
 .square-key[data-part='1'] {left:50%;z-index:1;clip-path:polygon(0 0,100% 0,100% 100%,82% 94.643%,76% 87.5%,70% 83.929%,60% 82.143%,20% 82.143%,12% 83.929%,6% 87.5%,0 96.429%)}
@@ -25,6 +25,8 @@
 .square-key[data-part='2'] {clip-path:polygon(0 18.519%,18% 12.963%,24% 5.556%,30% 1.852%,40% 0,82% 0,88% 1.852%,94% 5.556%,100% 14.815%,100% 100%,0 100%)}
 .square-key[data-part='3'] {left:50%;clip-path:polygon(0 14.815%,6% 5.556%,12% 1.852%,20% 0,60% 0,70% 1.852%,76% 5.556%,82% 12.963%,100% 18.519%,100% 100%,0 100%)}
 .square-key[data-down='1'] .square-key-face {opacity:1;transition:opacity .045s ease-out}
-.square-key[data-down='1'] img {transform:translateY(.55%) scaleY(.992);filter:brightness(.97);transition:transform .055s ease-out}
+.square-key[data-down='1'] img {transform:translateY(2.2%) scaleY(.965);filter:brightness(.9) saturate(1.04);transition:transform .055s ease-out,filter .055s ease-out}
+.square-key::after {content:'';position:absolute;inset:8% 5% 10%;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 45%,transparent 32%,rgba(77,42,40,.2) 67%,transparent 85%);mask-image:radial-gradient(ellipse at 50% 43%,#000 45%,transparent 76%);transition:opacity .15s ease-out}
+.square-key[data-down='1']::after {opacity:1;transition:opacity .055s ease-out}
 .square-key:focus-visible {filter:drop-shadow(0 0 3px #ef86b0);outline:none}
 @media(prefers-reduced-motion:reduce){.square-key img,.square-key-face{transition:none}}
