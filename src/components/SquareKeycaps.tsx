@@ -40,8 +40,10 @@ export default function SquareKeycaps({ src, press, release }: {
         onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); start(i); } }}
         onKeyUp={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); stop(i); } }}
         onClick={e => { if (e.detail === 0 && !held.current.has(i)) { start(i); stop(i); } }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt="" draggable={false} />
+        <span className="square-key-face" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt="" draggable={false} />
+        </span>
       </button>)}
     </div>
   </div>;
