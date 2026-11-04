@@ -5,3 +5,5 @@
 .hip-keycap .keycap-v3 .hip-keycap-buddha {transform:translateY(0);transform-origin:50% 100%;filter:brightness(1.18) saturate(1.1) contrast(.96);pointer-events:none;transition:transform .3s cubic-bezier(.2,1.45,.3,1)}
 .hip-keycap.on .keycap-v3 .hip-keycap-buddha {transform:translateY(var(--keycap-dip,8%));transition:transform .07s ease-out}
 @media(prefers-reduced-motion:reduce){.hip-keycap .keycap-v3 .hip-keycap-buddha {transition:none}}
+.hip-keycap[data-keycap-skin='square'] .hip-keycap-stack.keycap-v3 {aspect-ratio:1;max-width:calc(100vw - 48px)}
+.hip-keycap[data-keycap-skin='square'] .keycap-v3 .hip-keycap-buddha {filter:none}

@@ -26,6 +26,7 @@ import HipMoktak from "./HipMoktak";
 import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
+import { NEW_MALA_SKINS, isNewMala, malaBeadImage } from '@/lib/practice-collection';
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -170,6 +171,7 @@ const SKINS = {
     // 넷째 청옥은 걷었다 — 형: 「4번째 염주 표출하지 말고 지우라니까」. 그림은 public/obj/mala-stone-v6 에 남아 있다
     { id: "zodiac", name: "열두 띠 나무", src: "/obj/bead-wood-one-v1.png", dot: "#ae7946", wide: true, one: "/obj/bead-wood-one-v1.png", lit: "/obj/bead-wood-one-gold-v1.png" },
     { id: "sandalwood", name: "나뭇결", src: "/obj/bead-wood-one-v2.png", dot: "#87512f", wide: true, one: "/obj/bead-wood-one-v2.png", lit: "/obj/bead-wood-one-v2.png" },
+    ...NEW_MALA_SKINS,
   ],
   bowl: [
     // 형: 「얘를 맨 왼쪽으로, 디폴트로 — 처음 쓰는 사람이 더 간지나는 거 보게」
@@ -903,7 +905,7 @@ export default function MoktakPage() {
                       // 형: 「염주 원래 모양대로 해. 알 더 줄이고」
                       // 알이 서로 닿아 도넛처럼 보였다. 염주는 **알과
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
-                      width: `${폭}%`,
+                      width: `${폭 * (skin.bead === 'lotuswood' ? (i % 2 ? .7 : 1.1) : 1)}%`,
                       transform: "translate(-50%, -50%)",
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
@@ -914,7 +916,7 @@ export default function MoktakPage() {
                     {stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={beadOneSrc}
+                      src={malaBeadImage(skin.bead, i, beadOneSrc)}
                       alt=""
                       draggable={false}
                       className="block w-full"
@@ -923,7 +925,7 @@ export default function MoktakPage() {
                          밝기로 준다 */
                       style={{ filter: 분홍결 }}
                     />
-                    {채움 > 0 && (
+                    {채움 > 0 && !isNewMala(skin.bead) && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={beadLitSrc}
@@ -1787,7 +1789,7 @@ export default function MoktakPage() {
                       <img
                         // eslint-disable-next-line @next/next/no-img-element
                         key={i}
-                        src={skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc}
+                        src={malaBeadImage(skin.bead, i, skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc)}
                         alt=""
                         draggable={false}
                         className="absolute block"
@@ -1801,7 +1803,9 @@ export default function MoktakPage() {
                           transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
-                          filter: lit && skin.bead === "sandalwood"
+                          filter: isNewMala(skin.bead)
+                            ? `brightness(${(0.84 + .16 * front).toFixed(2)})`
+                            : lit && skin.bead === "sandalwood"
                             ? `grayscale(1) sepia(1) saturate(2.8) brightness(${(1.30 + .12 * front).toFixed(2)})`
                             : lit
                             ? `sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(${(1.06 + .22 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
