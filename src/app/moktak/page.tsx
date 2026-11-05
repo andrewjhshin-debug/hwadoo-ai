@@ -149,7 +149,7 @@ const SKINS = {
     // 색만 갈아 끼운 것이었으니, 원래 것 하나만 남기면 된다.
     // 세 그림(분홍·금·옥)은 public/obj 에 그대로 둔다. 되살릴 때
     // 세 줄만 다시 세우면 된다.
-    { id: "wood", name: "나무", src: "/obj/moktak.png", dot: "#c98f5e" },
+    { id: "wood", name: "나무", src: "/obj/moktak-carved-fish-v1.webp", dot: "#c98f5e" },
   ],
   bead: [
     // 앞의 둘은 **세로**(고리를 정면에서 본 그림), 뒤의 넷은 **가로**
