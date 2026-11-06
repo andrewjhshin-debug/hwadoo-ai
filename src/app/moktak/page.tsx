@@ -26,7 +26,7 @@ import HipMoktak from "./HipMoktak";
 import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
-import { NEW_MALA_SKINS, isNewMala, malaBeadImage } from '@/lib/practice-collection';
+import { NEW_MALA_SKINS, isNewMala, malaBeadImage, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -761,6 +761,14 @@ export default function MoktakPage() {
                 <feFuncB type="linear" slope="0.55" intercept="0.08" />
               </feComponentTransfer>
             </filter>
+            <filter id="hip-jade-gold" colorInterpolationFilters="sRGB">
+              <feColorMatrix type="saturate" values="0" />
+              <feComponentTransfer>
+                <feFuncR type="linear" slope="0.86" intercept="0.1" />
+                <feFuncG type="linear" slope="0.62" intercept="0.08" />
+                <feFuncB type="linear" slope="0.2" intercept="0.04" />
+              </feComponentTransfer>
+            </filter>
             <filter id="hip-wood-gold" colorInterpolationFilters="sRGB">
               <feColorMatrix type="saturate" values="0" />
               <feComponentTransfer>
@@ -907,7 +915,7 @@ export default function MoktakPage() {
                     ? 0
                     : Math.max(0, Math.min(1, (물결 - (표시에서 - 칸)) / 칸));
                 const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})${beadHue(i)}`;
-                const 금결 = `${isNewMala(skin.bead) ? `url(#${skin.bead === 'ebony' || skin.bead === 'blackgold' ? 'hip-ebony-gold' : 'hip-wood-gold'}) ` : skin.bead === "sandalwood" ? "grayscale(1) sepia(1) saturate(2.8) " : ""}brightness(${(skin.bead === "sandalwood" ? 1.30 + .12 * front : 1 + .07 * front).toFixed(2)})`;
+                const 금결 = `${isNewMala(skin.bead) ? `url(#${malaGoldFilter(skin.bead)}) ` : skin.bead === "sandalwood" ? "grayscale(1) sepia(1) saturate(2.8) " : ""}brightness(${(skin.bead === "sandalwood" ? 1.30 + .12 * front : 1 + .07 * front).toFixed(2)})`;
                 return (
                   <span
                     key={i}
@@ -957,6 +965,11 @@ export default function MoktakPage() {
                         }}
                       />
                     )}
+                    {malaCharmImage(skin.bead, i) && <span aria-hidden style={{position:'absolute',top:'72%',left:'20%',width:'60%',pointerEvents:'none'}}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={malaCharmImage(skin.bead, i)!} alt="" draggable={false} className="block w-full" style={{filter:분홍결}} />
+                      {채움 > 0 && <img src={malaCharmImage(skin.bead, i)!} alt="" draggable={false} className="absolute inset-0 block w-full" style={{filter:금결,opacity:채움}} />}
+                    </span>}
                     </>}
                   </span>
                 );
@@ -1803,12 +1816,9 @@ export default function MoktakPage() {
                       filter: `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))`,
                     }}><StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={lit ? 1 : 0} index={i} zodiac={skin.bead === "zodiac"} /></span>;
                     return (
-                      <img
+                      <span
                         // eslint-disable-next-line @next/next/no-img-element
                         key={i}
-                        src={malaBeadImage(skin.bead, i, skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc)}
-                        alt=""
-                        draggable={false}
                         className="absolute block"
                         style={{
                           left: `${50 + (고리폭 - 2) * Math.sin(t)}%`,
@@ -1821,7 +1831,7 @@ export default function MoktakPage() {
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: isNewMala(skin.bead) && lit
-                            ? `url(#${skin.bead === 'ebony' || skin.bead === 'blackgold' ? 'hip-ebony-gold' : 'hip-wood-gold'}) brightness(${(0.94 + .13 * front).toFixed(2)})`
+                            ? `url(#${malaGoldFilter(skin.bead)}) brightness(${(0.94 + .13 * front).toFixed(2)})`
                             : isNewMala(skin.bead)
                             ? `brightness(${(0.84 + .16 * front).toFixed(2)})`
                             : lit && skin.bead === "sandalwood"
@@ -1830,7 +1840,11 @@ export default function MoktakPage() {
                             ? `sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(${(1.06 + .22 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
                             : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))${beadHue(i)}`,
                         }}
-                      />
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={malaBeadImage(skin.bead, i, skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc)} alt="" draggable={false} className="block w-full" />
+                        {malaCharmImage(skin.bead, i) && <img src={malaCharmImage(skin.bead, i)!} alt="" aria-hidden draggable={false} style={{position:'absolute',top:'72%',left:'20%',width:'60%',pointerEvents:'none'}} />}
+                      </span>
                     );
                   })}
                 </div>
