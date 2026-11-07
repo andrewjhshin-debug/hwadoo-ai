@@ -137,7 +137,7 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
       {/* 그림·공양 터치 영역·좌복을 같은 비율의 좌표계에 둔다. */}
       <div className="hip-hall-stage">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="hip-hall-scene" src="/obj/hall-interior-v2.webp" width={857} height={1836} alt="" draggable={false} fetchPriority="high" />
+        <img className="hip-hall-scene" src="/obj/hall-interior-lanterns-v3.webp" width={857} height={1836} alt="" draggable={false} fetchPriority="high" />
         {children}
       </div>
       <법당마루 />
