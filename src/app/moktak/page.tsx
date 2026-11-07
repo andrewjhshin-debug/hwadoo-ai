@@ -299,6 +299,9 @@ export default function MoktakPage() {
   const beadOneSrc = 그림(beadOne?.one ?? "/obj/bead-paw-one.png");
   const beadLitSrc = 그림(beadOne?.lit ?? "/obj/bead-paw-one-gold.png");
   const stoneMala = skin.bead === "stone" || skin.bead === "zodiac";
+  const goldTint = isNewMala(skin.bead) || skin.bead === "sandalwood"
+    ? `url(#${malaGoldFilter(skin.bead)}) `
+    : "";
   useEffect(() => {
     if (!stoneMala) return;
     const symbols = skin.bead === "zodiac" ? ZODIAC_MALA_SYMBOLS : STONE_MALA_SYMBOLS;
@@ -335,9 +338,6 @@ export default function MoktakPage() {
   };
   const geun = JEONGGEUN.find((g) => g.id === geunId) ?? JEONGGEUN[0];
   const geunRef = useRef(geun);
-  const goldTint = isNewMala(skin.bead) || skin.bead === "sandalwood"
-    ? `url(#${malaGoldFilter(skin.bead)}) `
-    : "";
   geunRef.current = geun;
   const [vol, setVol] = useState(0.8);
 
@@ -1201,6 +1201,34 @@ export default function MoktakPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
+      <svg aria-hidden width="0" height="0" className="absolute">
+        <defs>
+          <filter id="hip-ebony-gold" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="saturate" values="0" />
+            <feComponentTransfer>
+              <feFuncR type="table" tableValues=".57 .83 .94 .99 1 1 1" />
+              <feFuncG type="table" tableValues=".28 .48 .63 .73 .81 .89 .98" />
+              <feFuncB type="table" tableValues=".035 .055 .10 .18 .34 .58 .90" />
+            </feComponentTransfer>
+          </filter>
+          <filter id="hip-jade-gold" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="saturate" values="0" />
+            <feComponentTransfer>
+              <feFuncR type="table" tableValues=".26 .46 .66 .84 .95 .99 1" />
+              <feFuncG type="table" tableValues=".10 .20 .33 .47 .59 .71 .95" />
+              <feFuncB type="table" tableValues=".015 .025 .045 .07 .12 .22 .77" />
+            </feComponentTransfer>
+          </filter>
+          <filter id="hip-wood-gold" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="saturate" values="0" />
+            <feComponentTransfer>
+              <feFuncR type="table" tableValues=".24 .45 .66 .84 .96 1 1" />
+              <feFuncG type="table" tableValues=".09 .20 .32 .46 .59 .72 .97" />
+              <feFuncB type="table" tableValues=".015 .03 .045 .07 .12 .24 .80" />
+            </feComponentTransfer>
+          </filter>
+        </defs>
+      </svg>
       {/* ── 폰 판 (刻) ──
           화면을 통째로 덮는다. 껍데기와 겹칠 일이 없고, 판을 처음부터
           우리가 짠다. 셈·소리·공덕은 전부 이 파일이 쥐고 있고 저기는
@@ -1237,34 +1265,6 @@ export default function MoktakPage() {
       <style>{`
         @keyframes mk-hit {
           0% { transform: scale(1); filter: brightness(1); }
-      <svg aria-hidden width="0" height="0" className="absolute">
-        <defs>
-          <filter id="hip-ebony-gold" colorInterpolationFilters="sRGB">
-            <feColorMatrix type="saturate" values="0" />
-            <feComponentTransfer>
-              <feFuncR type="table" tableValues=".57 .83 .94 .99 1 1 1" />
-              <feFuncG type="table" tableValues=".28 .48 .63 .73 .81 .89 .98" />
-              <feFuncB type="table" tableValues=".035 .055 .10 .18 .34 .58 .90" />
-            </feComponentTransfer>
-          </filter>
-          <filter id="hip-jade-gold" colorInterpolationFilters="sRGB">
-            <feColorMatrix type="saturate" values="0" />
-            <feComponentTransfer>
-              <feFuncR type="table" tableValues=".26 .46 .66 .84 .95 .99 1" />
-              <feFuncG type="table" tableValues=".10 .20 .33 .47 .59 .71 .95" />
-              <feFuncB type="table" tableValues=".015 .025 .045 .07 .12 .22 .77" />
-            </feComponentTransfer>
-          </filter>
-          <filter id="hip-wood-gold" colorInterpolationFilters="sRGB">
-            <feColorMatrix type="saturate" values="0" />
-            <feComponentTransfer>
-              <feFuncR type="table" tableValues=".24 .45 .66 .84 .96 1 1" />
-              <feFuncG type="table" tableValues=".09 .20 .32 .46 .59 .72 .97" />
-              <feFuncB type="table" tableValues=".015 .03 .045 .07 .12 .24 .80" />
-            </feComponentTransfer>
-          </filter>
-        </defs>
-      </svg>
           18% { transform: scale(0.955) translateY(3px); filter: brightness(1.3); }
           100% { transform: scale(1); filter: brightness(1); }
         }
