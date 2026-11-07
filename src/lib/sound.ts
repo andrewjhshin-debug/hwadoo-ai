@@ -537,8 +537,9 @@ function 엘리먼트치기(src: string, vol: number): boolean {
 // 형: 「징·북 다 B 좋다」 — 징은 더 낮게(62Hz, 우웅 떨림), 북은 채가 테 맞는 「딱 쿵」(소리북). 이름을 바꿔 옛 캐시를 비켜 간다.
 // 북 v3 — 형: 「F(장구 북편 덩) 인데 좀만 더 중후하고 묵직하게」 — 112Hz 몸통, 울림 길게
 // 징 v3 — 형: 「치고 나서 틱틱틱」. 62Hz 바닥음을 폰 스피커가 못 받아 떨던 것 — 바닥음을 0.3 으로 줄이고 배음으로 낮음을 들린다
+// v4 keeps the attack and adds filtered room resonance to the decay.
 export function strikePercussion(kind: "jing" | "drum", volume: number) {
-  엘리먼트치기(kind === "jing" ? "/sfx/jing-v3.wav" : "/sfx/drum-v3.wav", volume);
+  엘리먼트치기(kind === "jing" ? "/sfx/jing-v4.wav" : "/sfx/drum-v4.wav", volume);
 }
 
 export type MoktakVoice = "gongyu" | "hyung";
