@@ -86,6 +86,8 @@ export type MeritSource =
   | "mung" // 멍 — 아무것도 안 하고 가만히
   | "hasim" // 하심 — 획을 끝까지 내려감
   | "keycap" // 키캡 — 한 번 누름. 형: 「목탁 염주 싱잉볼 옆에 키캡도 하나」
+  | "jing"
+  | "drum"
   | "tower" // 돌탑 — 아홉 자연석을 균형 잡아 완성
   | "walking" // 포행 — 실제로 걸은 100m
   // 인연이 닿음 — 서로 합장해서 쪽지방이 열린 그 한 번.
@@ -153,6 +155,8 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   moktak: 10, // 1타 0.8초 → 분당 375
   bead: 12, // 한 알 1초 → 분당 360
   keycap: 10, // 1회 1초 → 분당 300
+  jing: 10,
+  drum: 10,
 
   // 아무것도 안 하는 것 — 한 시간 십오 분
   mung: 576, // 1분 → 분당 288
@@ -234,6 +238,8 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   moktak: DAILY_TOTAL_CAP,
   bead: DAILY_TOTAL_CAP,
   keycap: DAILY_TOTAL_CAP,
+  jing: DAILY_TOTAL_CAP,
+  drum: DAILY_TOTAL_CAP,
   mung: DAILY_TOTAL_CAP,
 
   // ── 곁다리는 막는다 ── 하루에 몇 번 없는 일이고, 열어 두면
@@ -879,6 +885,8 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   mung: "멍",
   hasim: "하심",
   keycap: "키캡",
+  jing: "징",
+  drum: "북",
   tower: "돌탑",
   walking: "포행",
   daily: "오늘의 세 가지",

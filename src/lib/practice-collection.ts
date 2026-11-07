@@ -1,7 +1,7 @@
 const root = '/obj/practice-collection-v1';
 const solid = '/obj/practice-collection-v2';
 const round = '/obj/round-mala-v1';
-const seed = '/obj/seedwood-mala-v1';
+const seed = '/obj/seedwood-mala-v2';
 const seedTones = ['honey', 'chestnut', 'amber'];
 export const NEW_MALA_SKINS = [
   { id: 'ebony', name: '흑단', dot: '#30231f' },

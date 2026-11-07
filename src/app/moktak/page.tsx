@@ -30,6 +30,7 @@ import { NEW_MALA_SKINS, isNewMala, malaBeadImage, malaBeadScale, malaCharmImage
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
+import { OBJ_LANES, type LaneTab } from "@/components/HipLanes";
 import {
   BOWL_TONES,
   buzz,
@@ -39,6 +40,7 @@ import {
   strikeBowl,
   setMoktakVoice,
   strikeMoktak,
+  strikePercussion,
   warmMoktak,
   type BowlTone,
   type MoktakVoice,
@@ -123,8 +125,7 @@ const MOKTAK_VOICES: { id: MoktakVoice; name: string; say: string }[] = [
 ];
 /** 마지막으로 하던 수행 — 공덕으로 다시 들어와도 그 자리에서 잇는다. */
 const PRACTICE_TAB_KEY = "hwadu.moktak-tab.v1";
-type PracticeTab = "moktak" | "yeomju" | "bowl" | "keycap";
-const PRACTICE_TABS: readonly PracticeTab[] = ["moktak", "yeomju", "bowl", "keycap"];
+type PracticeTab = LaneTab;
 
 /**
  * 살갗 — 같은 물건, 다른 결.
@@ -242,10 +243,6 @@ export default function MoktakPage() {
   // 방(백팔배·멍·호흡…)에서 물건 알약을 누르면 ?lane=… 을 달고 돌아온다.
   // useSearchParams 는 이 판을 통째로 동적으로 만들어 버리니 쓰지 않는다 —
   // 들어온 뒤 한 번 읽으면 족한 일이다.
-  useEffect(() => {
-    const v = new URLSearchParams(window.location.search).get("lane");
-    if (v === "moktak" || v === "yeomju" || v === "bowl" || v === "keycap") setTab(v);
-  }, []);
   // 탭을 고른 순간 저장한다. 새로 들어올 때 처음 탭이 잠깐 덮어쓰는 일을
   // 막기 위해, 탭 변화 전체를 감시하는 effect 대신 이 길 하나에서만 적는다.
   const chooseTab = (next: PracticeTab) => {
@@ -345,7 +342,7 @@ export default function MoktakPage() {
   // 공덕
   const [merit, setMerit] = useState(0);
   const [round, setRound] = useState<number | null>(null);
-  const earn = (src: "moktak" | "bead" | "bowl" | "keycap") => {
+  const earn = (src: "moktak" | "bead" | "bowl" | "keycap" | "jing" | "drum") => {
     const r = addMerit(src);
     setMerit(r.total);
     if (r.crossed) {
@@ -370,6 +367,13 @@ export default function MoktakPage() {
   // ── 싱잉볼 ────────────────────────────────────────────────
   const [tone, setTone] = useState<BowlTone>("mid");
   const [bowlHits, setBowlHits] = useState(0);
+  const [percussionHits, setPercussionHits] = useState({ jing: 0, drum: 0 });
+  const hitPercussion = (kind: "jing" | "drum") => {
+    strikePercussion(kind, vol);
+    buzz(kind === "jing" ? 16 : 24);
+    earn(kind);
+    setPercussionHits(previous => ({ ...previous, [kind]: previous[kind] + 1 }));
+  };
 
   // ── 키캡 ──────────────────────────────────────────────────
   // 형: 「공양에 목탁 염주 싱잉볼 옆에 키캡도 하나 넣어라.
@@ -470,10 +474,10 @@ export default function MoktakPage() {
     setMerit(loadMerit().total);
     setHits(b.by.moktak ?? 0);
     try {
-      const savedTab = window.localStorage.getItem(PRACTICE_TAB_KEY);
-      if (savedTab && PRACTICE_TABS.includes(savedTab as PracticeTab)) {
-        setTab(savedTab as PracticeTab);
-      }
+      const fromUrl = new URLSearchParams(window.location.search).get("lane");
+      const requested = OBJ_LANES.find(([id]) => id === fromUrl);
+      const saved = requested ?? OBJ_LANES.find(([id]) => id === window.localStorage.getItem(PRACTICE_TAB_KEY));
+      if (saved) setTab(saved[0]);
     } catch {
       /* 못 읽으면 목탁에서 시작한다 */
     }
@@ -508,6 +512,7 @@ export default function MoktakPage() {
     }
     setTotal(b.by.bead ?? 0);
     setBowlHits(b.by.bowl ?? 0);
+    setPercussionHits({ jing: b.by.jing ?? 0, drum: b.by.drum ?? 0 });
     setKeyHits(b.by.keycap ?? 0);
 
     // 살갗 그림을 미리 다 받아 둔다.
@@ -710,11 +715,14 @@ export default function MoktakPage() {
       ? "linear-gradient(#0000, #0000)"
       : `conic-gradient(at 50% 50%, #0000 0turn ${1 - f}turn, #000 ${1 - f}turn 1turn), ${알띠}`;
   const phrases = Math.floor(hits / geun.ch.length); // 몇 편 왔나
+  const percussionLabel = tab === "jing" ? "징" : tab === "drum" ? "북" : null;
   const shareText =
     tab === "moktak"
       ? `오늘 목탁 ${hits.toLocaleString("ko-KR")}번 · 화두`
       : tab === "yeomju"
         ? `오늘 염주 ${total.toLocaleString("ko-KR")}번 · 이번 바퀴 ${pos}/108 · 화두`
+        : tab === "jing" || tab === "drum"
+          ? `오늘 ${percussionLabel} ${percussionHits[tab].toLocaleString("ko-KR")}번 · 화두`
         : `오늘 싱잉볼 ${bowlHits.toLocaleString("ko-KR")}번 · 화두`;
 
   // ── 염주 · 싱잉볼 — **원본 그대로** 폰 판으로 ──
@@ -1242,6 +1250,8 @@ export default function MoktakPage() {
           merit={merit}
           beadHits={total}
           bowlHits={bowlHits}
+          percussionHits={percussionHits}
+          onPercussionHit={hitPercussion}
           mokSrc={skinSrc("moktak")}
           keySrc={keySrc}
           combo={tab === "keycap" ? keyCombo : combo}
@@ -1429,7 +1439,7 @@ export default function MoktakPage() {
           </button>
         ))}
       </div>
-      <ShareButton title={`${tab === "yeomju" ? "염주" : tab === "moktak" ? "목탁" : "싱잉볼"} 기록 공유`} text={shareText} />
+      <ShareButton title={`${percussionLabel ?? (tab === "yeomju" ? "염주" : tab === "moktak" ? "목탁" : "싱잉볼")} 기록 공유`} text={shareText} />
       </div>
 
       {tab === "moktak" ? (

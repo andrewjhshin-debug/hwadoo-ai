@@ -54,6 +54,8 @@ export type HipMoktakProps = {
   merit: number;
   beadHits: number;
   bowlHits: number;
+  percussionHits: { jing: number; drum: number };
+  onPercussionHit: (kind: "jing" | "drum") => void;
   combo: number;
   /** 염주 — 이번 바퀴에서 몇 알째인가 (0~107) */
   pos: number;
@@ -100,6 +102,8 @@ export default function HipMoktak({
   merit,
   beadHits,
   bowlHits,
+  percussionHits,
+  onPercussionHit,
   combo,
   pos,
   ringing,
@@ -119,11 +123,12 @@ export default function HipMoktak({
   pops,
 }: HipMoktakProps) {
   // 갈래마다 세는 것이 다르다 — 큰 숫자 하나가 그 갈래의 오늘이다
+  const percussion = tab === "jing" || tab === "drum" ? tab : null;
   const n =
     tab === "moktak" ? hits
     : tab === "yeomju" ? beadHits
     : tab === "keycap" ? keyHits
-    : bowlHits;
+    : percussion ? percussionHits[percussion] : bowlHits;
   const inRound = (tab === "yeomju" ? pos : hits) % ROUND;
   const left = ROUND - inRound;
 
@@ -221,6 +226,28 @@ export default function HipMoktak({
               onPointerUp 이 이미 처리한다(8px 미만이면 한 알). */}
           {tab === "yeomju" && bead}
           {tab === "bowl" && bowl}
+          {percussion && (
+            <button
+              type="button"
+              className="hip-obj-sq mx-auto grid touch-manipulation place-items-center rounded-xl"
+              aria-label={percussion === "jing" ? "징 치기" : "북 치기"}
+              onClick={event => {
+                const art = event.currentTarget.firstElementChild;
+                if (art && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                  art.getAnimations().forEach(animation => animation.cancel());
+                  art.animate([
+                    { transform: "scale(1)" },
+                    { transform: "translateY(2px) scale(.975)", offset: .28 },
+                    { transform: "scale(1)" },
+                  ], { duration: 220, easing: "ease-out" });
+                }
+                onPercussionHit(percussion);
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/obj/practice-percussion-v1/${percussion}.webp`} alt="" draggable={false} className="pointer-events-none h-full w-full object-contain" />
+            </button>
+          )}
 
           {/* ── 키캡 ──
               형: 「키캡 이 느낌으로 불상이나 캐릭터 불교로 넣어서 위아래

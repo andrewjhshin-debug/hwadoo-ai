@@ -30,6 +30,8 @@ export const OBJ_LANES = [
   ["moktak", "목탁"],
   ["yeomju", "염주"],
   ["keycap", "키캡"],
+  ["jing", "징"],
+  ["drum", "북"],
 ] as const;
 
 export type LaneTab = (typeof OBJ_LANES)[number][0];

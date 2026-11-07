@@ -534,6 +534,10 @@ function 엘리먼트치기(src: string, vol: number): boolean {
   }
 }
 
+export function strikePercussion(kind: "jing" | "drum", volume: number) {
+  엘리먼트치기(`/sfx/${kind}-v1.wav`, volume);
+}
+
 export type MoktakVoice = "gongyu" | "hyung";
 const MOKTAK_URL: Record<MoktakVoice, string> = {
   gongyu: "/sfx/moktak.wav",
