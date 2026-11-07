@@ -198,7 +198,8 @@ export default function TryPage() {
     "cursor-default rounded-full border border-ink-3 px-4 py-1.5 text-[11px] tracking-[0.12em] text-hanji-faint opacity-60";
 
   return (
-    <div className="relative flex flex-1 flex-col items-center px-6 pb-16 pt-5 text-center md:pb-10 md:pt-10">
+    <div className="try-page relative flex flex-1 flex-col items-center px-6 pb-16 pt-5 text-center md:pb-10 md:pt-10">
+      {/* 형: 「여기엔 공덕 바 필요 없고, 스크롤 없이 한 화면에」 — try-page 가 있으면 공덕 바를 걷는다(globals.css) */}
       {/* ── 늘 위에 있는 진행 고리 — 네 걸음 중 몇째인지 한눈에 ── */}
       <header className="w-full max-w-md">
         <div className="flex items-center justify-center gap-3.5">
@@ -258,19 +259,19 @@ export default function TryPage() {
 
       {/* ── 1. 화두 받기 전 — 홈과 같은 화면 ── */}
       {step === "choose" && (
-        <section className="rise mt-12 flex flex-col items-center">
-          <Enso size={136} />
-          <h1 className="text-obang rise rise-d1 mt-7 font-serif text-[46px] font-semibold leading-none tracking-[0.5em] [text-indent:0.5em]">
+        <section className="rise mt-6 flex flex-col items-center">
+          <Enso size={104} />
+          <h1 className="text-obang rise rise-d1 mt-5 font-serif text-[40px] font-semibold leading-none tracking-[0.5em] [text-indent:0.5em]">
             화두
           </h1>
           <p className="rise rise-d1 mt-3 text-[10px] tracking-[0.6em] text-gold-soft">
             HWADU
           </p>
-          <p className="rise rise-d1 mt-7 max-w-xs break-keep text-[13.5px] font-light leading-7 tracking-[0.06em] text-hanji-dim">
+          <p className="rise rise-d1 mt-4 max-w-xs break-keep text-[13.5px] font-light leading-7 tracking-[0.06em] text-hanji-dim">
             &ldquo;{SLOGAN}&rdquo;
           </p>
 
-          <div className="rise rise-d2 my-9 flex items-center gap-3.5 opacity-80">
+          <div className="rise rise-d2 my-5 flex items-center gap-3.5 opacity-80">
             <div className="h-px w-[90px] bg-gradient-to-r from-transparent to-gold/45" />
             <Dharmachakra className="h-[18px] w-[18px]" stroke="#B99A54" />
             <div className="h-px w-[90px] bg-gradient-to-r from-gold/45 to-transparent" />
@@ -305,7 +306,7 @@ export default function TryPage() {
 
           <button
             onClick={receive}
-            className="btn-obang rise rise-d3 mt-6 inline-flex items-center gap-2.5 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
+            className="btn-obang rise rise-d3 mt-4 inline-flex items-center gap-2.5 px-12 py-4 font-serif text-base tracking-[0.3em] text-hanji transition-opacity hover:opacity-90"
           >
             <Lotus className="h-[18px] w-[18px]" stroke="#D9B45B" />
             <span>새 화두 받기</span>

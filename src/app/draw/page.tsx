@@ -76,6 +76,19 @@ const DRAW_CSS = `
   );
   animation: draw-spread 1300ms 340ms ease-out both;
 }
+/* 법당 빛깔 — 형: 「운세니까 핑크 민트 빼고 법당처럼」. 바탕은 등불 받은 한지, 패 뒷면은 단청 옻칠, 앞면은 한지에 주홍 도장 */
+html:has(.draw-hall), body:has(.draw-hall), body:has(.draw-hall) .hip-screen, body:has(.draw-hall) #scroll-box { background: radial-gradient(120% 60% at 50% 0%, #fdf6e8, #f1e3c9 58%, #e6d2ae) !important; }
+body:has(.draw-hall) .hip-bloom, body:has(.draw-hall) #scroll-box::before { display: none !important; }
+.draw-hall { --color-gold: #a8771f; --color-gold-soft: #8a6328; --color-hanji: #2b1d13; --color-hanji-dim: #5b4532; --color-hanji-faint: #8c7458; --color-ink-3: rgba(138, 99, 40, 0.22); color: var(--color-hanji); }
+.draw-hall .draw-saeil { background: rgba(160, 52, 36, 0.08); color: #8e2e20; box-shadow: inset 0 0 0 1px rgba(160, 52, 36, 0.22); }
+.draw-hall .draw-back { background: radial-gradient(90% 70% at 50% 40%, #8a3424, #5a1d14 70%, #3f130d); border: 1.5px solid #c99a3e; box-shadow: inset 0 0 0 6px #4a160f, inset 0 0 0 7px rgba(217, 176, 98, 0.55), 0 14px 34px rgba(74, 30, 14, 0.28); }
+.draw-hall .draw-back svg { color: #d9b062; }
+.draw-hall .draw-back .draw-seal { color: #f0cf86; text-shadow: 0 0 18px rgba(240, 207, 134, 0.45); }
+.draw-hall .draw-back .draw-sub { color: rgba(240, 207, 134, 0.7); }
+.draw-hall .draw-paper { background: linear-gradient(180deg, #fffbf2, #f8eedc); border: 1px solid rgba(168, 119, 31, 0.35); box-shadow: inset 0 0 0 6px #fffbf2, inset 0 0 0 7px rgba(168, 119, 31, 0.28), 0 14px 34px rgba(74, 30, 14, 0.16); }
+.draw-hall .draw-dojang { background: #a8321f; color: #fff6e6; border-radius: 6px; box-shadow: 0 2px 0 #7d2215; }
+.draw-hall .draw-label { color: #8a6328 !important; }
+.draw-hall .draw-note { background: rgba(255, 251, 242, 0.72); border: 1px solid rgba(138, 99, 40, 0.2); }
 @media (prefers-reduced-motion: reduce) {
   .draw-card { transition-duration: 1ms; }
   .draw-glow { animation: none; opacity: 0.4; }
@@ -150,7 +163,7 @@ export default function DrawPage() {
   const trail = (book.today ? book.log.slice(1) : book.log).slice(0, 5);
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
+    <div className="draw-hall mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-6 pb-16 pt-6 md:pt-10">
       <style>{DRAW_CSS}</style>
 
       {/* 머리에 얼굴을 올리지 않는다 — 이 화면의 주인공은 뒤집는 한 장이다 */}
@@ -161,7 +174,7 @@ export default function DrawPage() {
         {날.절기 ? ` · ${날.절기}` : 날.다음절기 ? ` · ${날.다음절기.name} ${날.다음절기.days}일 전` : ""}
       </p>
       {날.재일 && (
-        <p className="rise rise-d1 mt-2 rounded-full bg-gold/15 px-3.5 py-1 text-[12px] tracking-[0.08em] text-gold">
+        <p className="rise rise-d1 mt-2 draw-saeil rounded-full px-3.5 py-1 text-[12px] tracking-[0.08em]">
           {날.재일.name} · {날.재일.say}
         </p>
       )}
@@ -194,10 +207,10 @@ export default function DrawPage() {
           aria-label={flipped ? "오늘의 운세" : "오늘의 운세 뒤집기"}
           className={`draw-card ${flipped ? "is-flipped" : ""}`}
         >
-          <span className="draw-face border border-ink-3 bg-ink-2">
+          <span className="draw-face draw-back">
             <Back />
           </span>
-          <span className="draw-front draw-face border border-ink-3 bg-ink-2">
+          <span className="draw-front draw-face draw-paper">
             {got && p && <Face sign={got.sign} poison={p} />}
           </span>
         </button>
@@ -215,7 +228,7 @@ export default function DrawPage() {
               한 장 뽑고 나면 읽을 것이 셋이라 정작 카드가 안 읽혔다. */}
 
           {/* ── 오늘의 말문 — 절에서 건넬 첫 마디 ── */}
-          <div className="mt-9 w-full max-w-[284px] rounded-[14px] border border-ink-3 bg-ink-2/50 p-4">
+          <div className="mt-9 w-full max-w-[284px] draw-note rounded-[14px] p-4">
             <p className="text-[11px] tracking-[0.25em] text-hanji-faint">言 · 오늘의 말문</p>
             <p className="mt-2 break-keep font-serif text-[14px] leading-7 text-hanji">
               {got.opener}
@@ -225,7 +238,7 @@ export default function DrawPage() {
           </div>
 
           {/* ── 오늘의 법구 — 날짜로 정해져 전국이 같은 구절 ── */}
-          <div className="mt-4 w-full max-w-[284px] rounded-[14px] border border-ink-3 bg-ink-2/50 p-4">
+          <div className="mt-4 w-full max-w-[284px] draw-note rounded-[14px] p-4">
             <p className="text-[11px] tracking-[0.25em] text-hanji-faint">法句 · 오늘의 법구 {법구.n}</p>
             <p className="mt-2 break-keep font-serif text-[14px] leading-7 text-hanji">{법구.text}</p>
           </div>
@@ -259,7 +272,7 @@ function Back() {
   return (
     <>
       {/* 빛깔은 토큰에서 — currentColor 라야 저절로 따라온다 */}
-      <svg viewBox="0 0 120 120" className="h-[132px] w-[132px] text-gold-soft" aria-hidden>
+      <svg viewBox="0 0 120 120" className="h-[132px] w-[132px]" aria-hidden>
         <g fill="none" stroke="currentColor">
           <circle cx="60" cy="60" r="46" strokeWidth="0.8" opacity="0.55" />
           <circle cx="60" cy="60" r="34" strokeWidth="0.6" opacity="0.35" />
@@ -277,8 +290,8 @@ function Back() {
           ))}
         </g>
       </svg>
-      <span className="absolute font-serif text-[30px] leading-none text-gold">心</span>
-      <span className="absolute bottom-6 text-[11px] tracking-[0.3em] text-hanji-faint">運勢</span>
+      <span className="draw-seal absolute font-serif text-[30px] leading-none">心</span>
+      <span className="draw-sub absolute bottom-6 text-[11px] tracking-[0.3em]">運勢</span>
     </>
   );
 }
@@ -289,13 +302,13 @@ function Face({ sign, poison }: { sign: string; poison: PoisonCard }) {
   return (
     <>
       <span className="draw-glow" aria-hidden />
-      <span className="relative grid h-[38px] w-[38px] place-items-center rounded-full bg-gold font-serif text-[18px] leading-none text-ink">
+      <span className="relative grid h-[38px] w-[38px] place-items-center draw-dojang font-serif text-[18px] leading-none">
         {poison.hanja}
       </span>
       <span className="relative mt-3.5 break-keep font-serif text-[21px] leading-none text-hanji">
         {poison.verdict}
       </span>
-      <span className="relative mt-2 text-[11px] tracking-[0.25em] text-gold-soft">
+      <span className="draw-label relative mt-2 text-[11px] tracking-[0.25em]">
         三毒 · 오늘의 독
       </span>
       <span className="relative mt-4 h-px w-9 bg-ink-3" aria-hidden />

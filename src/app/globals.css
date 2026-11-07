@@ -1706,3 +1706,4 @@ body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab) 
 .share-sheet-box .share-sheet-x { grid-column: 1 / -1; min-height: 46px; background: transparent; color: #9aa0a8; }
 @keyframes share-up { from { transform: translateY(100%); } to { transform: none; } }
 .hip-top-ico.hip-bulsim svg { width: 23px; height: 23px; }
+body:has(.try-page) .hip-daybar { display: none !important; }
