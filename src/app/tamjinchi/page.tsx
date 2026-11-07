@@ -48,7 +48,8 @@ function 말(want: 쪽, left: number, 급함: boolean) {
 
 export default function InvestmentPage() {
   const [판, 판잡기] = useState<판>({ want: "buy", left: 목탁수 });
-  const [hit, hitSet] = useState(0);
+  // 친 순간의 쪽을 같이 적어 둔다 — 산다·판다만 바꿨을 때 ▲▼ 가 다시 튀지 않게(형: 「목탁 쳤을 때만 보여줘」)
+  const [hit, hitSet] = useState<{ n: number; want: 쪽 }>({ n: 0, want: "buy" });
   const [급함, 급함잡기] = useState(false);
   const last = useRef(0);
 
@@ -61,7 +62,7 @@ export default function InvestmentPage() {
     strikeMoktak(0.8);
     addMerit("moktak"); // 형: 「위 연꽃 게이지랑 연동해서 치면 공덕 차도록」 — 목탁 화면과 같은 몫
     buzz(left === 0 ? 30 : 6);
-    hitSet((h) => h + 1);
+    hitSet((h) => ({ n: h.n + 1, want: 판.want }));
     판잡기({ ...판, left });
   };
 
@@ -93,9 +94,9 @@ export default function InvestmentPage() {
             </div>
             {/* 형: 「목탁 가운데로 더 크게, 칠 때 효과 더」 — 눌리고, 물결이 퍼지고, 값이 한 칸 튄다 */}
             <button type="button" className={`cool-mok${판.left === 0 ? " is-done" : ""}`} aria-label="목탁 치기" onPointerDown={(e) => { if (e.isPrimary) { e.preventDefault(); 목탁(); } }} onContextMenu={(e) => e.preventDefault()}>
-              {hit > 0 && <span key={hit} className="cool-hit" aria-hidden><i /><b className={`is-${판.want}`}>{판.want === "buy" ? "▼" : "▲"}{(상한 / 목탁수).toFixed(2)}%</b></span>}
+              {hit.n > 0 && <span key={hit.n} className="cool-hit" aria-hidden><i /><b className={`is-${hit.want}`}>{hit.want === "buy" ? "▼" : "▲"}{(상한 / 목탁수).toFixed(2)}%</b></span>}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img key={`m${hit}`} className={hit > 0 ? "is-struck" : undefined} src="/obj/moktak-carved-fish-v1.webp" alt="" draggable={false} />
+              <img key={`m${hit.n}`} className={hit.n > 0 ? "is-struck" : undefined} src="/obj/moktak-carved-fish-v1.webp" alt="" draggable={false} />
             </button>
           {/* 형: 「목탁 108번 친다는 것도 어디 표기해」「목탁 108번 없이 그 분수만」 */}
           <p className="cool-rule"><b>{목탁수 - 판.left}</b>/108</p>
