@@ -8,25 +8,21 @@
 // 들어오면 두두가 「뭐 하려고요?」 묻는다. 사고 싶다 → 貪 체온계가 끓고
 // 「산다」 단추는 땀 흘리며 안 눌린다. 목탁을 108번 치면 식는다 —
 // 급하게 치면 안 쳐진다. 다 식고도 사겠다면 산다. 다만 적는다.
-// 셈은 lib/invest-cool.ts, 옛 판단 기록은 /tamjinchi/records 에 그대로.
+// 셈은 lib/invest-cool.ts.
+// 형: 「안 산다는 차트 봉처럼 — 눌릴수록 파란색으로 위에서 밑으로 음봉, 반대로 양봉, 한자는 지우고」
+// 사고 싶다 = 파란 음봉이 위에서 내려온다 · 팔고 싶다 = 빨간 양봉이 밑에서 오른다.
+// 「그냥 보기만」은 걷었다(형: 「없애, 산다 안 산다로 가자」).
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import HipRoom from "@/components/HipRoom";
 import { buzz, strikeMoktak, wakeSound } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
 import { loadMerit, stageOf } from "@/lib/merit";
-import { 독, 목탁수, 식음, 업보, 욕심말, 읽기, 적기, 치기, 한마디, type 결말, type 기록, type 욕심 } from "@/lib/invest-cool";
+import { 목탁수, 식음, 업보, 욕심말, 읽기, 적기, 치기, 한마디, type 결말, type 기록, type 욕심 } from "@/lib/invest-cool";
 import "./cool.css";
 
 type 판 = { k: "pick" } | { k: "cool"; want: 욕심; left: number } | { k: "done"; row: 기록; say: string };
-
-/** 끓음(분홍)→금→옥빛 — 식을수록 */
-function 액체색(t: number) {
-  if (t < 0.5) { const u = t / 0.5; return `color-mix(in srgb, #f2789f ${(1 - u) * 100}%, #dda01c)`; }
-  const u = (t - 0.5) / 0.5; return `color-mix(in srgb, #dda01c ${(1 - u) * 100}%, #5fae8f)`;
-}
 
 export default function InvestmentPage() {
   const [판, 판잡기] = useState<판>({ k: "pick" });
@@ -45,7 +41,6 @@ export default function InvestmentPage() {
 
   const 고르기 = (want: 욕심) => {
     wakeSound();
-    if (want === "look") return 끝내기(want, "kept", 0);
     taps.current = 0;
     판잡기({ k: "cool", want, left: 목탁수 });
   };
@@ -75,8 +70,12 @@ export default function InvestmentPage() {
 
   return (
     <HipRoom here="/tamjinchi" lanes={false} rail="/settings" scroll={false}>
-      <section className="cool" aria-label="불심투자" style={판.k === "cool" ? ({ "--heat": 1 - 식음(판.left), "--liq": 액체색(식음(판.left)) } as React.CSSProperties) : undefined}>
-        <header className="cool-head"><h1>불심투자</h1><Link href="/tamjinchi/records">이전 기록</Link></header>
+      <section className="cool" aria-label="불심투자" style={판.k === "cool" ? ({ "--fill": 식음(판.left) } as React.CSSProperties) : undefined}>
+        {/* 형: 「뒤로가기 버튼 하나 둬」 — 치던 중이면 고르기로, 고르기면 앞 화면으로. 「이전 기록」은 걷었다 */}
+        <header className="cool-head">
+          <button type="button" className="cool-back" aria-label="뒤로" onClick={() => (판.k === "pick" ? history.back() : 판잡기({ k: "pick" }))}>‹</button>
+          <h1>불심투자</h1>
+        </header>
 
         <div className="cool-dudu">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -90,8 +89,8 @@ export default function InvestmentPage() {
 
         {판.k === "pick" && (
           <div className="cool-pick">
-            {(Object.keys(욕심말) as 욕심[]).map((w) => (
-              <button key={w} type="button" onClick={() => 고르기(w)}>{욕심말[w]}<b>{독[w]}</b></button>
+            {(["buy", "sell"] as 욕심[]).map((w) => (
+              <button key={w} type="button" onClick={() => 고르기(w)}>{욕심말[w]}</button>
             ))}
           </div>
         )}
@@ -99,15 +98,12 @@ export default function InvestmentPage() {
         {판.k === "cool" && (
           <>
             <div className="cool-therm">
-              <div className={`cool-tube${판.left > 80 ? " is-boil" : ""}`} aria-hidden>
-                <span className="cool-liq" />
-                <span className="cool-bulb">{독[판.want]}</span>
-              </div>
+              <div className={`cool-candle is-${판.want}`} aria-hidden><span className="cool-wick" /><span className="cool-body" /></div>
               <div className="cool-side">
                 <div className="cool-count" aria-label={`목탁 ${판.left}번 남음`}>{판.left}<small>번</small></div>
                 <button type="button" className={`cool-mok${hit ? " is-hit" : ""}${판.left === 0 ? " is-done" : ""}`} aria-label="목탁 치기" onPointerDown={(e) => { if (e.isPrimary) { e.preventDefault(); 목탁(); } }} onContextMenu={(e) => e.preventDefault()}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/obj/moktak.png" alt="" draggable={false} />
+                  <img src="/obj/moktak-carved-fish-v1.webp" alt="" draggable={false} />
                 </button>
               </div>
             </div>
