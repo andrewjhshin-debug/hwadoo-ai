@@ -71,7 +71,7 @@ export default function Cool({ first = "buy", firstName = "" }: { first?: 쪽; f
         <div className="cool-stock">
           <label>
             <span>종목</span>
-            <input value={이름} onChange={(e) => 이름잡기(이름다듬기(e.target.value))} placeholder="안 적어도 돼" maxLength={8} enterKeyHint="done" onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }} />
+            <input value={이름} onChange={(e) => 이름잡기(이름다듬기(e.target.value))} maxLength={8} enterKeyHint="done" onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }} />
           </label>
           {최근.filter((n) => n !== 이름).map((n) => (
             <button key={n} type="button" onClick={() => 이름잡기(n)}>{n}</button>

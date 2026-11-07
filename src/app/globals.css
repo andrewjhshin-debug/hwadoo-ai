@@ -1700,10 +1700,17 @@ body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab) 
 /* 공유판 — 앱 공유창이 없을 때 아래에서 올라온다(NativeShare) */
 .share-sheet { position: fixed; inset: 0; z-index: 90; display: flex; align-items: flex-end; justify-content: center; }
 .share-sheet-scrim { position: absolute; inset: 0; background: rgba(20, 16, 14, 0.35); border: 0; }
-.share-sheet-box { position: relative; width: min(100%, 420px); padding: 18px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); border-radius: 22px 22px 0 0; background: #fffcf8; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; animation: share-up 0.22s ease-out; }
-.share-sheet-box p { grid-column: 1 / -1; margin: 0 0 6px; text-align: center; font-size: 14px; color: #5a6068; }
-.share-sheet-box a, .share-sheet-box button { display: grid; place-items: center; min-height: 52px; border-radius: 16px; background: #f4f1ec; color: #1a1a1c; font-size: 14px; text-decoration: none; border: 0; }
-.share-sheet-box .share-sheet-x { grid-column: 1 / -1; min-height: 46px; background: transparent; color: #9aa0a8; }
+.share-sheet-box { position: relative; width: min(100% - 16px, 420px); margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); padding: 26px 12px 18px; border-radius: 26px; background: #fffcf8; box-shadow: 0 10px 40px rgba(20, 16, 14, 0.2); display: grid; grid-template-columns: repeat(4, 1fr); row-gap: 18px; animation: share-up 0.22s ease-out; }
+.share-sheet-grip { position: absolute; top: 9px; left: 50%; width: 38px; height: 4px; margin-left: -19px; border-radius: 2px; background: #ddd8d0; }
+.share-sheet-box button { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0; border: 0; background: transparent; color: #1a1a1c; font-size: 13px; }
+.share-ico { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; }
+.share-ico svg { width: 28px; height: 28px; }
+.share-copy { background: #3b82f6; }
+.share-insta { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
+.share-fb { background: #1877f2; }
+.share-x { background: #1a1a1c; }
+.share-more { background: #eeebe6; }
+.share-sheet-box button:active .share-ico { transform: scale(0.92); }
 @keyframes share-up { from { transform: translateY(100%); } to { transform: none; } }
 .hip-top-ico.hip-bulsim img { width: 30px; height: 30px; object-fit: contain; filter: saturate(1.1) contrast(1.05); }
 body:has(.try-page) .hip-daybar { display: none !important; }
