@@ -299,6 +299,7 @@ export default function MoktakPage() {
   const beadOneSrc = 그림(beadOne?.one ?? "/obj/bead-paw-one.png");
   const beadLitSrc = 그림(beadOne?.lit ?? "/obj/bead-paw-one-gold.png");
   const stoneMala = skin.bead === "stone" || skin.bead === "zodiac";
+  const ringBeadCount = skin.bead === "seedwood" ? 20 : RING_BEADS;
   const goldTint = isNewMala(skin.bead) || skin.bead === "sandalwood"
     ? `url(#${malaGoldFilter(skin.bead)}) `
     : "";
@@ -821,7 +822,7 @@ export default function MoktakPage() {
               // 고리는 원래대로 한 타에 백여덟분의 일씩 **그냥 돈다.**
               // 금은 아래 한가운데(표시점)에서 물결처럼 번져 나간다 —
               // 알의 자리와 상관없이 지나간 만큼 든다.
-              const 칸 = 360 / RING_BEADS;
+              const 칸 = 360 / ringBeadCount;
               // 형: 「첫 염주 저기만 나머지와 같은 황금이 아니야」 — 백여덟째
               // 타에서 셈이 0 으로 돌아가니 **다 물든 고리를 볼 틈이 없었다.**
               // 표시점 바로 앞 알이 늘 덜 찬 채로 남는다. 백일곱째에 한 바퀴가
@@ -836,8 +837,8 @@ export default function MoktakPage() {
               // **재서 맞춘다** — 먼저 스물일곱 자리를 다 잡고, 알마다
               // 옆 알까지의 거리를 재서 그만큼을 폭으로 준다.
               // 그러면 원근이 어떻든, 알이 몇이든, 틈이 안 생긴다.
-              const 자리 = Array.from({ length: RING_BEADS }, (_, i) => {
-                const deg = (i / RING_BEADS) * 360 + angle;
+              const 자리 = Array.from({ length: ringBeadCount }, (_, i) => {
+                const deg = (i / ringBeadCount) * 360 + angle;
                 const t = deg * (Math.PI / 180);
                 const 멂 = 3.5;
                 const 가까움 = 멂 / (멂 + Math.cos(t));
@@ -855,17 +856,16 @@ export default function MoktakPage() {
                   (형: 「알끼리 좀 겹쳐도 되니까 이격 넘 벌어지지 않게」) */
               const 사이 = (i: number) => {
                 const a = 자리[i];
-                const b = 자리[(i + 1) % RING_BEADS];
-                const c = 자리[(i - 1 + RING_BEADS) % RING_BEADS];
+                const b = 자리[(i + 1) % ringBeadCount];
+                const c = 자리[(i - 1 + ringBeadCount) % ringBeadCount];
                 return Math.max(
                   Math.hypot(a.x - b.x, a.y - b.y),
                   Math.hypot(a.x - c.x, a.y - c.y)
                 );
               };
 
-              return Array.from({ length: RING_BEADS }, (_, i) => {
-                const { t, x, y } = 자리[i];
-                const deg = (i / RING_BEADS) * 360 + angle;
+              return 자리.map(({ t, x, y }, i) => {
+                const deg = (i / ringBeadCount) * 360 + angle;
                 const front = (1 - Math.cos(t)) / 2;
                 // ── 뒤가 벌어지던 까닭 ──────────────────────
                 // 형: 「염주 뒤가 너무 벌어지는 거 이거 고칠 수 있냐」
@@ -1796,9 +1796,9 @@ export default function MoktakPage() {
                   넘긴 만큼 금빛으로 물든다. 세로형이 하던 그 일을 그대로. */}
               {beadWide && (
                 <div ref={malaElastic.expandedRef} aria-hidden className="pointer-events-none absolute inset-0">
-                  {Array.from({ length: RING_BEADS }, (_, i) => {
+                  {Array.from({ length: ringBeadCount }, (_, i) => {
                     // 0 = 맨 위(뒤) · 180 = 맨 아래(앞)
-                    const t = ((i / RING_BEADS) * 360 + angle) * (Math.PI / 180);
+                    const t = ((i / ringBeadCount) * 360 + angle) * (Math.PI / 180);
                     const front = (1 - Math.cos(t)) / 2; // 0 뒤 · 1 앞
                     const sc = 0.62 + 0.52 * front;
                     // 금빛은 위 가운데의 표시점에서 시작해 바깥 고리와 같은
@@ -1806,7 +1806,7 @@ export default function MoktakPage() {
                     // 염주가 돌 때마다 금빛 덩어리도 아래쪽으로 미끄러져 보였다.
                     const degrees = ((t * 180) / Math.PI + 360) % 360;
                     const fromMarker = (360 - degrees) % 360;
-                    const lit = pos > 0 && fromMarker <= f * 360 + 360 / RING_BEADS / 2;
+                    const lit = pos > 0 && fromMarker <= f * 360 + 360 / ringBeadCount / 2;
                     // 위 표시점 아래의 한 알이 지금 손에 걸린 알이다. 한 번씩
                     // 아주 조금 움직이므로, 스물일곱 알 그림이어도 백여덟 번을
                     // 실제로 세고 있다는 감각이 남는다.
