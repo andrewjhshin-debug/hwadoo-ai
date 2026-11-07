@@ -335,6 +335,9 @@ export default function MoktakPage() {
   };
   const geun = JEONGGEUN.find((g) => g.id === geunId) ?? JEONGGEUN[0];
   const geunRef = useRef(geun);
+  const goldTint = isNewMala(skin.bead) || skin.bead === "sandalwood"
+    ? `url(#${malaGoldFilter(skin.bead)}) `
+    : "";
   geunRef.current = geun;
   const [vol, setVol] = useState(0.8);
 
@@ -752,31 +755,6 @@ export default function MoktakPage() {
               황금색으로 가자」. 알이 갈색·금빛인데 둘레만 분홍이라 물건과
               따로 놀았다. 금으로 두르면 염주 한 벌이 된다. */}
           <defs>
-            {/* Same pixels and alpha: gold coats the wood without moving its grain or highlights. */}
-            <filter id="hip-ebony-gold" colorInterpolationFilters="sRGB">
-              <feColorMatrix type="saturate" values="0" />
-              <feComponentTransfer>
-                <feFuncR type="linear" slope="1" intercept="0.5" />
-                <feFuncG type="linear" slope="0.9" intercept="0.34" />
-                <feFuncB type="linear" slope="0.55" intercept="0.08" />
-              </feComponentTransfer>
-            </filter>
-            <filter id="hip-jade-gold" colorInterpolationFilters="sRGB">
-              <feColorMatrix type="saturate" values="0" />
-              <feComponentTransfer>
-                <feFuncR type="table" tableValues="0.28 0.52 0.77 0.94 1 1 1" />
-                <feFuncG type="table" tableValues="0.11 0.25 0.43 0.61 0.74 0.85 0.99" />
-                <feFuncB type="table" tableValues="0.02 0.04 0.08 0.16 0.29 0.55 0.94" />
-              </feComponentTransfer>
-            </filter>
-            <filter id="hip-wood-gold" colorInterpolationFilters="sRGB">
-              <feColorMatrix type="saturate" values="0" />
-              <feComponentTransfer>
-                <feFuncR type="linear" slope="1.05" intercept="0.35" />
-                <feFuncG type="linear" slope="0.95" intercept="0.24" />
-                <feFuncB type="linear" slope="0.45" intercept="0.02" />
-              </feComponentTransfer>
-            </filter>
             <linearGradient id="hip-arc-gold" x1="0" y1="0" x2="1" y2="1">
               {/* 형: 「염주 돌아가는 그 원 지금 너무 누런 노란색이야.
                   아예 밝은 금색으로 가」 — 놋쇠빛(#C9A063)이 섞여 있어
@@ -916,7 +894,7 @@ export default function MoktakPage() {
                     ? 0
                     : Math.max(0, Math.min(1, (물결 - (표시에서 - 칸)) / 칸));
                 const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})${beadHue(i)}`;
-                const 금결 = `${isNewMala(skin.bead) ? `url(#${malaGoldFilter(skin.bead)}) ` : skin.bead === "sandalwood" ? "grayscale(1) sepia(1) saturate(2.8) " : ""}brightness(${(skin.bead === "sandalwood" ? 1.30 + .12 * front : 1 + .07 * front).toFixed(2)})`;
+                const 금결 = `${goldTint}brightness(${(1 + .07 * front).toFixed(2)})`;
                 return (
                   <span
                     key={i}
@@ -1259,6 +1237,34 @@ export default function MoktakPage() {
       <style>{`
         @keyframes mk-hit {
           0% { transform: scale(1); filter: brightness(1); }
+      <svg aria-hidden width="0" height="0" className="absolute">
+        <defs>
+          <filter id="hip-ebony-gold" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="saturate" values="0" />
+            <feComponentTransfer>
+              <feFuncR type="table" tableValues=".57 .83 .94 .99 1 1 1" />
+              <feFuncG type="table" tableValues=".28 .48 .63 .73 .81 .89 .98" />
+              <feFuncB type="table" tableValues=".035 .055 .10 .18 .34 .58 .90" />
+            </feComponentTransfer>
+          </filter>
+          <filter id="hip-jade-gold" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="saturate" values="0" />
+            <feComponentTransfer>
+              <feFuncR type="table" tableValues=".26 .46 .66 .84 .95 .99 1" />
+              <feFuncG type="table" tableValues=".10 .20 .33 .47 .59 .71 .95" />
+              <feFuncB type="table" tableValues=".015 .025 .045 .07 .12 .22 .77" />
+            </feComponentTransfer>
+          </filter>
+          <filter id="hip-wood-gold" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="saturate" values="0" />
+            <feComponentTransfer>
+              <feFuncR type="table" tableValues=".24 .45 .66 .84 .96 1 1" />
+              <feFuncG type="table" tableValues=".09 .20 .32 .46 .59 .72 .97" />
+              <feFuncB type="table" tableValues=".015 .03 .045 .07 .12 .24 .80" />
+            </feComponentTransfer>
+          </filter>
+        </defs>
+      </svg>
           18% { transform: scale(0.955) translateY(3px); filter: brightness(1.3); }
           100% { transform: scale(1); filter: brightness(1); }
         }
@@ -1830,12 +1836,10 @@ export default function MoktakPage() {
                           transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
-                          filter: isNewMala(skin.bead) && lit
-                            ? `url(#${malaGoldFilter(skin.bead)}) brightness(${(0.94 + .13 * front).toFixed(2)})`
+                          filter: goldTint && lit
+                            ? `${goldTint}brightness(${(0.94 + .10 * front).toFixed(2)})`
                             : isNewMala(skin.bead)
                             ? `brightness(${(0.84 + .16 * front).toFixed(2)})`
-                            : lit && skin.bead === "sandalwood"
-                            ? `grayscale(1) sepia(1) saturate(2.8) brightness(${(1.30 + .12 * front).toFixed(2)})`
                             : lit
                             ? `sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(${(1.06 + .22 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
                             : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))${beadHue(i)}`,
