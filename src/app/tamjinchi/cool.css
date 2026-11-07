@@ -64,3 +64,38 @@
 .cool :is(button, a):focus-visible { outline: 2px solid var(--cool-pink); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .cool-do:disabled { animation: none; } }
 @media (max-height: 700px) { .cool-candle { height: 180px; } .cool-count { font-size: 52px; } .cool-mok { width: 100px; height: 100px; } .cool-mok img { width: 70px; height: 70px; } }
+
+/* 산다 ↔ 판다 — 형: 「넘나들게」. 고른 쪽은 그 봉 빛깔로 */
+.cool-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 4px 0 10px; border-radius: 22px; background: #fff; box-shadow: 0 2px 10px rgba(26, 23, 20, 0.08); }
+.cool-mode button { min-height: 38px; border-radius: 18px; font-size: 14px; color: var(--cool-dim); transition: background 0.2s, color 0.2s; }
+.cool-mode button[aria-selected="true"].is-buy { background: #2f6bd8; color: #fff; }
+.cool-mode button[aria-selected="true"].is-sell { background: #e0344a; color: #fff; }
+.cool > .cool-say { margin: 0 0 6px; }
+.cool-say.is-hurry { color: #e0344a; }
+
+/* 값 — 칠수록 산다 쪽은 싸지고, 판다 쪽은 오른다 */
+.cool-side { align-items: center; padding: 0; justify-content: center; gap: 16px; }
+.cool-price { text-align: center; font-family: var(--font-serif); font-size: 44px; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.cool-price.is-buy { color: #2f6bd8; }
+.cool-price.is-sell { color: #e0344a; }
+.cool-price small { display: block; margin-top: 8px; font-family: var(--font-sans), sans-serif; font-size: 12px; letter-spacing: 0; color: var(--cool-faint); }
+
+/* 목탁 — 가운데, 크게. 칠 때: 몸이 눌리고 물결이 퍼지고 값 한 칸이 튀어 오른다 */
+.cool .cool-mok { position: relative; width: 190px; height: 190px; align-self: center; overflow: visible; }
+.cool .cool-mok img { width: 140px; height: 140px; }
+.cool-mok img.is-struck { animation: cool-strike 0.22s ease-out; }
+@keyframes cool-strike { 0% { transform: scale(0.86) rotate(-4deg); } 60% { transform: scale(1.04) rotate(1deg); } 100% { transform: scale(1); } }
+.cool-hit { position: absolute; inset: 0; pointer-events: none; }
+.cool-hit i { position: absolute; inset: 0; border-radius: 50%; border: 3px solid #dda01c; animation: cool-ripple 0.55s ease-out forwards; }
+.cool-hit b { position: absolute; left: 50%; top: 8%; transform: translateX(-50%); font: 600 15px/1 var(--font-sans), sans-serif; animation: cool-tick 0.7s ease-out forwards; white-space: nowrap; }
+.cool-hit b.is-buy { color: #2f6bd8; }
+.cool-hit b.is-sell { color: #e0344a; }
+@keyframes cool-ripple { from { transform: scale(0.9); opacity: 0.8; } to { transform: scale(1.45); opacity: 0; } }
+@keyframes cool-tick { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, -46px); } }
+.cool-hit b.is-buy { animation-name: cool-tick-down; }
+@keyframes cool-tick-down { from { opacity: 1; transform: translate(-50%, -30px); } to { opacity: 0; transform: translate(-50%, 16px); } }
+@media (prefers-reduced-motion: reduce) { .cool-mok img.is-struck, .cool-hit i, .cool-hit b { animation: none; opacity: 0; } }
+@media (max-height: 700px) { .cool .cool-mok { width: 150px; height: 150px; } .cool .cool-mok img { width: 110px; height: 110px; } .cool-price { font-size: 36px; } }
+
+/* 끝 — 공유하기 */
+.cool-again .cool-share { flex: 1; background: #fff; color: var(--cool-ink); font-size: 15px; }
