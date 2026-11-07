@@ -1,10 +1,11 @@
 const root = '/obj/practice-collection-v1';
+const solid = '/obj/practice-collection-v2';
 const round = '/obj/round-mala-v1';
 export const NEW_MALA_SKINS = [
   { id: 'ebony', name: '흑단', dot: '#30231f' },
-  { id: 'carved', name: '목각', dot: '#c78a52' },
+  { id: 'carved', name: '목각', dot: '#c78a52', image: `${solid}/carved-solid.webp` },
   { id: 'blackgold', name: '흑금', dot: '#312c23' },
-  { id: 'lotuswood', name: '연화목', dot: '#b66c31' },
+  { id: 'lotuswood', name: '연화목', dot: '#b66c31', image: `${solid}/lotuswood-solid.webp` },
   { id: 'whitejade', name: '백옥', dot: '#eee6d5', image: `${round}/jade.webp` },
   { id: 'flowerwood', name: '꽃목', dot: '#e3bd86', image: `${round}/wood.webp` },
 ].map(s => {
@@ -14,7 +15,7 @@ export const NEW_MALA_SKINS = [
 });
 export const isNewMala = (id: string) => NEW_MALA_SKINS.some(s => s.id === id);
 export function malaBeadImage(id: string, index: number, fallback: string) {
-  if (id === 'ebony' && index === 0) return `${root}/ebony-master.webp`;
+  if (id === 'ebony' && index === 0) return `${solid}/ebony-master-solid.webp`;
   if (id === 'whitejade' && index >= 14 && index <= 16) return `${round}/taupe.webp`;
   if (id === 'flowerwood' && index === 15) return `${round}/flower.webp`;
   if (id === 'flowerwood' && index === 12) return `${round}/celadon.webp`;

@@ -21,7 +21,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { EXTEND_DAYS, POUR_PER_DAY, POUR_UNIT, PRIVATE_BURN_DAYS, PRIVATE_CANDLE_PRICE, PUBLIC_BURN_DAYS, PUBLIC_CANDLE_PRICE, 자리, 향꽂이 } from "@/lib/candleSpec";
 import { giveMerit } from "@/lib/merit";
 import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
-import { LANTERN_COLORS, type LanternColor } from "@/lib/lanternSpec";
+import { LANTERN_COLORS, lanternFor, type LanternColor } from "@/lib/lanternSpec";
 import "./offering-sheet.css";
 import "./hall-interior.css";
 import { useConfirm } from "@/components/Confirm";
@@ -40,60 +40,32 @@ const 말풍선 = () => (
   </svg>
 );
 
-/** 한 줄에 몇 개나 — **많이 걸릴수록 촘촘해진다.**
- *
- *  형: 「연등은 많이 걸릴수록 크기? 원근? 조절해서 이렇게 보이도록」
- *      (김부따처럼 천장이 등으로 꽉 차는 그림)
- *
- *  등 크기를 상수로 두면 열 개까지는 예쁜데 백 개가 되면 스무 줄이
- *  되어 천장이 아니라 목록이 된다. 진짜 법당은 등이 늘면 **줄 수가
- *  아니라 밀도**가 는다 — 한 줄에 더 많이, 더 작게, 더 겹쳐서.
- *  그래서 한 줄에 서는 수를 수에서 끌어낸다(√). 셋에서 아홉까지.
- */
-function 한줄에(n: number) {
-  return Math.min(9, Math.max(3, Math.round(Math.sqrt(n * 1.7))));
-}
+// Centers measured on the 857 × 1836 hall artwork, starting with the front row.
+const ceilingLanternSlots = [
+  ...[140, 187, 235, 284, 333, 380, 478, 528, 578, 627, 675, 723].map(x => ({ x, y: 169, width: 48 })),
+  ...[128, 179, 230, 280, 330, 381, 479, 531, 582, 633, 684, 735].map(x => ({ x, y: 146, width: 50 })),
+];
 
-/** 등 하나가 차지하는 폭(%) — 옆 여백 -1.6% 를 얹은 값 */
-function 폭(n: number) {
-  return 100 / 한줄에(n) + 3.2;
-}
-
-/** 등이 적을 때(다섯까지) — 처마 끝에서 끝으로 늘어진 **한 가닥 줄**에 꿴다.
- *  형: 「밤티처럼하지 말고 어우러지게」 「부처 머리 바로 위에 몇 명」
- *  가운데(부처 머리 위)는 글자 자리라 비운다 — 등은 왼쪽·오른쪽 둘로 갈라 건다.
- *  오른쪽은 단추 줄이 있어 덜 나간다. 줄은 포물선 y = 4·처짐·x(1−x),
- *  등은 그 높이에서 하나 건너 조금 더 길게 내려온다(층이 져야 걸린 것 같다). */
-const 줄처짐 = 14; // px
-function 꿴자리(i: number, n: number) {
-  const 왼수 = Math.ceil(n / 2);
-  const 왼 = i < 왼수;
-  const k = 왼 ? 왼수 : n - 왼수;
-  const j = 왼 ? i : i - 왼수;
-  const [a, b] = 왼 ? [0.03, 0.3] : [0.66, 0.86];
-  const x = a + ((b - a) * (j + 0.5)) / k;
-  return { x, y: 4 * 줄처짐 * x * (1 - x) + (j % 2 ? 14 : 0) };
-}
-
-function CandleMark({ c, onClick, i, 열, 줄수 = 1, mine, 꿴 }: { c: Candle; onClick: () => void; i: number; 열: number; 줄수?: number; mine?: boolean; 꿴?: { x: number; y: number } }) {
-  // ── 원근 — **맨 아랫줄이 앞이다** ─────────────────────────
-  // 형: 「이건 내가 말한 원근법 느낌이 아닌데? 겹치더라도 내가 준
-  //      레퍼런스처럼 하고, 위에 다는 선은 없어도 되겠다」
-  //
-  // 여태 **첫 줄(맨 위)을 앞**으로 두었다. 그러니 위엣것이 크고 아랫것이
-  // 작아, 천장이 아니라 벽에 붙은 포스터로 보였다.
-  // 진짜 천장은 눈에 가까운 쪽 — **아래쪽 줄이 크고 앞**이고, 뒤로
-  // 갈수록 위로 올라가며 작아지고 옅어진다. 뒤집는다.
-  const 줄번호 = Math.floor(i / 열);
-  const 뒤로 = 줄수 > 1 ? (줄수 - 1 - 줄번호) / (줄수 - 1) : 0; // 0 앞(맨 아래) ~ 1 뒤(맨 위)
-  const 깊이 = 뒤로 * 0.88;
-  // 줄(실)은 이제 안 그린다 — 띄우는 몫만 조금. 뒤엣것일수록 바짝
-  const 줄 = (4 + (i % 3) * 3) * (1 - 뒤로 * 0.6);
-  // 씨는 **사람마다 고정** — 같은 이가 오면 늘 같은 빛깔의 등이 걸린다
-  const seed = c.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
-  // 옛 문서에는 갈래 칸이 없다 — 없으면 연등이다(여태 다 연등이었다)
-  // 내 것인가 — 「내 것만」을 켜면 이 표를 보고 나머지가 희미해진다
-  return <span className="hip-hang" data-mine={mine ? "1" : undefined} style={꿴 === undefined ? undefined : ({ "--kkwen": `${꿴.y.toFixed(1)}px`, "--kx": (꿴.x * 100).toFixed(1) } as React.CSSProperties)}><Gongyang wish={c.wish} 갈래={c.gift ?? "deung"} lanternColor={c.lanternColor} name={c.forName || c.by || "이름 없는 이"} seed={seed} drop={줄} 깊이={깊이} dim={!burning(c)} onClick={onClick} /></span>;
+function CeilingLanterns({ candles, uid, onOpen }: { candles: Candle[]; uid?: string; onOpen: (c: Candle) => void }) {
+  return <div className="hip-ceiling-lanterns">
+    {candles.map((c, i) => {
+      const { x, y, width } = ceilingLanternSlots[i];
+      const seed = Array.from(c.id).reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+      const lantern = lanternFor(c.lanternColor, seed);
+      return <button
+        key={c.id}
+        type="button"
+        className="hip-ceiling-lantern"
+        data-mine={uid === c.uid ? "1" : undefined}
+        aria-label={`${c.forName || c.by || "이름 없는 이"} 연등`}
+        style={{ left: `${x / 857 * 100}%`, top: `${y / 1836 * 100}%`, width: `${width / 857 * 100}%` }}
+        onClick={() => onOpen(c)}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={lantern.src} alt="" draggable={false} />
+      </button>;
+    })}
+  </div>;
 }
 
 /** 법당의 가운데는 공양 유무와 관계없이 한 장면이다.
@@ -421,6 +393,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
           ...(gift === "deung" ? { lanternColor: r.lanternColor ?? lanternColor } : {}),
           by: me?.name || "이름 없는 이", byHanja: null,
           forName: forName.trim().slice(0, 20) || "이름 없는 기원",
+          createdAt: { seconds: Date.now() / 1000 },
           born: "", kind: "peace", wish: wish.trim().slice(0, 120), visibility,
           lotusCost: cost, until: Date.now() + (publicCandle ? PUBLIC_BURN_DAYS : PRIVATE_BURN_DAYS) * 86_400_000,
         });
@@ -1131,8 +1104,11 @@ export default function CandleHall() {
   const 갈래로 = (k: string) => 다걸린것.filter((c) => (c.gift ?? "deung") === k);
   // 법당 천장에는 가장 최근 스물넷만 직접 보인다. 그 뒤의 등은 사연판에
   // 그대로 남고, 이곳에서는 빛의 밀도로만 느껴져야 목록처럼 길어지지 않는다.
-  const 등보이는자리 = 24;
-  const 등들 = 갈래로("deung").slice(0, 등보이는자리);
+  const 등보이는자리 = ceilingLanternSlots.length;
+  const 등들 = 갈래로("deung")
+    .sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0))
+    .slice(0, 등보이는자리)
+    .reverse();
   const 초들 = 갈래로("cho").slice(0, 자리.cho);
   const 쌀들 = 갈래로("ssal").slice(0, 자리.ssal);
   const 향들 = 갈래로("hyang");
@@ -1206,45 +1182,13 @@ export default function CandleHall() {
         </div>
       ) : 다걸린것.length ? (
         <>
-          {/* 천장 — 법당의 **윗부분**. 형: 「법당은 윗부분만 연등으로」
-              등이 아무리 많아도 여기까지만 쓰고, 넘치면 안에서 굴린다.
-              그래야 아래 불단이 늘 제자리에 있다 */}
           <div className="hip-hall-ceil">
-            <div
-              className="hip-deung-sky"
-              data-few={등들.length <= 5 ? "1" : undefined}
-              /* 폭 = 한 자리 몫 + 겹치는 몫. 옆 여백이 -1.6% 씩이라
-                 **차지하는 폭은 정확히 100/열** 이 된다 — 그래야 눈에
-                 보이는 줄과 위에서 센 줄(깊이)이 어긋나지 않는다.
-                 남는 3.2% 가 서로 겹치는 몫이다(띄엄띄엄 걸면 격자가
-                 되고, 겹쳐야 천장이 찬다) */
-              style={
-                {
-                  "--deung-w": String(폭(등들.length)),
-                  // 켜끼리 얼마나 물리나. **%로 준 세로 여백은 폭을 기준으로
-                  // 잰다**(CSS 가 그렇다). 천장 등 그림의 높이/너비는 156/192다.
-                  "--deung-lap": String(-폭(등들.length) * (156 / 192) * 0.32),
-                } as React.CSSProperties
-              }
-            >
-              {등들.map((c, i) => (
-                <CandleMark
-                  꿴={등들.length <= 5 ? 꿴자리(i, 등들.length) : undefined}
-                  key={c.id}
-                  c={c}
-                  i={i}
-                  열={한줄에(등들.length)}
-                  줄수={Math.ceil(등들.length / 한줄에(등들.length))}
-                  mine={c.uid === me?.uid}
-                  onClick={() => 열기(c)}
-                />
-              ))}
-            </div>
             <법당중앙>
+              {등들.length > 0 && <CeilingLanterns candles={등들} uid={me?.uid} onOpen={열기} />}
               {불단사연자리}
               {(물들.length > 0 || 향로) && (
                 <div className="hip-hall-altar">
-                  {물들.map((c, i) => <CandleMark key={c.id} c={c} i={i} 열={99} mine={c.uid === me?.uid} onClick={() => 열기(c)}/>)}
+                  {물들.map(c => <span key={c.id} className="hip-hang" data-mine={c.uid === me?.uid ? "1" : undefined}><Gongyang 갈래={c.gift ?? "deung"} name={c.forName || c.by || "이름 없는 이"} wish={c.wish} dim={!burning(c)} onClick={() => 열기(c)} /></span>)}
                   {/* 향로는 한 채뿐 — 올린 수만큼 향이 꽂힌다(아홉까지) */}
                   {향로 && (
                     <span

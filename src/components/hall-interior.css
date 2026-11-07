@@ -71,17 +71,22 @@
 .hip-hall-interior .hip-hall-roof img { display: none; }
 .hip-hall-interior .hip-hall-roof button { position: absolute; inset: 0; width: 100%; height: 100%; }
 .hip-hall-interior .hip-hall-roof b { top: 0; right: 10px; bottom: auto; }
-.hip-hall-interior .hip-deung-sky {
-  top: 2%;
-  left: 50%;
-  right: auto;
-  width: min(100%, calc(100cqh * 857 / 1836));
-  height: 24%;
-  margin-top: 0;
-  transform: translateX(-50%);
+.hip-ceiling-lanterns {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
 }
-.hip-hall-interior .hip-deung-sky[data-few='1'] { margin-top: 0; }
-.hip-hall-interior .hip-deung-sky[data-few='1'] .hip-deung { width: 15%; }
+.hip-ceiling-lantern {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+}
+.hip-ceiling-lantern img { display: block; width: 100%; height: auto; }
+.hip-ceiling-lantern[data-mine='1'] img { filter: drop-shadow(0 0 4px #ffe6a8); }
 .hip-hall-sky.hip-hall-interior .hip-hall-acts {
   top: 40% !important;
   right: max(10px, calc((100% - 100cqh * 857 / 1836) / 2 + 10px));
