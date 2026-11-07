@@ -21,7 +21,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { EXTEND_DAYS, POUR_PER_DAY, POUR_UNIT, PRIVATE_BURN_DAYS, PRIVATE_CANDLE_PRICE, PUBLIC_BURN_DAYS, PUBLIC_CANDLE_PRICE, 자리, 향꽂이 } from "@/lib/candleSpec";
 import { giveMerit } from "@/lib/merit";
 import { daysLeft, fetchCandles, fetchMyCandles, lightCandle, removeCandle, type Candle, burning } from "@/lib/candle";
-import { LANTERN_COLORS, lanternFor, type LanternColor } from "@/lib/lanternSpec";
+import { LANTERN_COLORS, type LanternColor } from "@/lib/lanternSpec";
 import "./offering-sheet.css";
 import "./hall-interior.css";
 import { useConfirm } from "@/components/Confirm";
@@ -40,29 +40,28 @@ const 말풍선 = () => (
   </svg>
 );
 
-// Centers measured on the 857 × 1836 hall artwork, starting with the front row.
+// Bottom centers of the ceiling lanterns on the 857 × 1836 artwork.
 const ceilingLanternSlots = [
-  ...[140, 187, 235, 284, 333, 380, 478, 528, 578, 627, 675, 723].map(x => ({ x, y: 169, width: 48 })),
-  ...[128, 179, 230, 280, 330, 381, 479, 531, 582, 633, 684, 735].map(x => ({ x, y: 146, width: 50 })),
+  ...[140, 187, 235, 284, 333, 380, 478, 528, 578, 627, 675, 723].map(x => ({ x, y: 180 })),
+  ...[128, 179, 230, 280, 330, 381, 479, 531, 582, 633, 684, 735].map(x => ({ x, y: 158 })),
 ];
 
 function CeilingLanterns({ candles, uid, onOpen }: { candles: Candle[]; uid?: string; onOpen: (c: Candle) => void }) {
   return <div className="hip-ceiling-lanterns">
     {candles.map((c, i) => {
-      const { x, y, width } = ceilingLanternSlots[i];
-      const seed = Array.from(c.id).reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-      const lantern = lanternFor(c.lanternColor, seed);
+      const { x, y } = ceilingLanternSlots[i];
+      const name = c.forName || c.by || "이름 없는 이";
+      const paper = Array.from((c.wish?.trim() || name).replace(/\s+/g, "")).slice(0, 4).join("");
       return <button
         key={c.id}
         type="button"
         className="hip-ceiling-lantern"
         data-mine={uid === c.uid ? "1" : undefined}
-        aria-label={`${c.forName || c.by || "이름 없는 이"} 연등`}
-        style={{ left: `${x / 857 * 100}%`, top: `${y / 1836 * 100}%`, width: `${width / 857 * 100}%` }}
+        aria-label={`${name} 연등`}
+        style={{ left: `${x / 857 * 100}%`, top: `${y / 1836 * 100}%`, zIndex: ceilingLanternSlots.length - i }}
         onClick={() => onOpen(c)}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={lantern.src} alt="" draggable={false} />
+        <span aria-hidden>{paper}</span>
       </button>;
     })}
   </div>;
@@ -110,6 +109,8 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
       <div className="hip-hall-stage">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="hip-hall-scene" src="/obj/hall-interior-lanterns-v3.webp" width={857} height={1836} alt="" draggable={false} fetchPriority="high" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="hip-hall-cushion-art" src="/obj/hall-cushion-floor-v1.webp" width={764} height={482} alt="" draggable={false} />
         {children}
       </div>
       <법당마루 />
@@ -117,14 +118,14 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
   </div>;
 }
 
-/** 백팔배 좌복 5열 × 4줄. 뒤쪽은 작고 모이게, 앞쪽은 크게 배치한다. */
-const 좌복줄: [number, number, number, number][] = [
-  [3, 15, 5, 9],
-  [22, 16, 5, 7],
-  [42, 17, 5, 5],
-  [64, 18.2, 5, 3],
+/** Bounds of the four cushion rows on the 764 × 1618 reference hall. */
+const 좌복줄 = [
+  { y: 1148, w: 110, h: 65, xs: [134, 265, 393, 522, 650] },
+  { y: 1230, w: 125, h: 78, xs: [112, 252, 389, 525, 660] },
+  { y: 1324, w: 135, h: 91, xs: [92, 240, 386, 529, 675] },
+  { y: 1430, w: 146, h: 108, xs: [74, 228, 382, 536, 681] },
 ];
-const 좌복수 = 좌복줄.reduce((n, [, , k]) => n + k, 0);
+const 좌복수 = 좌복줄.reduce((n, row) => n + row.xs.length, 0);
 /** 좌복에 앉은 넋 — hall-seats/{자리} = { uid, name, hue, at }. 앱을 나가면 저절로 비운다 */
 type 앉은이 = { uid: string; name: string; hue: number; at: number; sex?: string };
 /** 앉아 있는 시간 — 형: 「나가도 로그인 상태로 둘까? 그래야 쪽지 보내면 인식하니까」
@@ -167,14 +168,13 @@ function 법당마루() {
   };
   let 번 = 0;
   return <div className="hip-hall-floor">
-    {좌복줄.flatMap(([top, w, n, 끝], r) => {
-      const 칸 = (100 - 끝 * 2) / n;
-      return Array.from({ length: n }, (_, i) => {
+    {좌복줄.flatMap(({ y, w, h, xs }, r) => {
+      return xs.map((x, i) => {
         const k = String(번++);
         const 이 = 자리[k];
         return (
           <span key={k} role="button" tabIndex={0} aria-label={이 ? `${이.name} 앉아 있음` : "좌복에 앉기"} onClick={() => void 누름(k)}
-            style={{ left: `${끝 + 칸 * (i + 0.5) - w / 2}%`, top: `${top}%`, width: `${w}%`, zIndex: r * 10 + i }}>
+            style={{ left: `${(x - 66) / 764 * 100}%`, top: `${(y / 1618 - .7) / .3 * 100}%`, width: `${w / 764 * 100}%`, height: `${h / (1618 * .3) * 100}%`, zIndex: r * 10 + i }}>
             {이 && 이.uid === 나 && (
               <i className="hip-soul" data-me="1" style={{ "--h": 이.hue } as React.CSSProperties}>
                 <em />

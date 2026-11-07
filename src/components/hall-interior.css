@@ -36,6 +36,14 @@
   background: none;
   border-radius: 18px;
 }
+.hip-hall-cushion-art {
+  position: absolute;
+  top: 67.862%;
+  left: 0;
+  width: 100%;
+  height: 29.79%;
+  pointer-events: none;
+}
 .hip-hall-interior .hip-hall-floor {
   height: 30%;
   z-index: 13;
@@ -47,9 +55,8 @@
   pointer-events: auto;
 }
 .hip-hall-interior .hip-hall-floor > span[role='button'] {
-  background-image: url('/obj/cushion.webp');
-  aspect-ratio: 920 / 591;
-  filter: drop-shadow(0 2px 2px rgb(78 42 21 / 28%));
+  background: none;
+  filter: none;
   rotate: none;
   transform: none;
 }
@@ -79,14 +86,27 @@
 }
 .hip-ceiling-lantern {
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   padding: 0;
   border: 0;
   background: none;
   pointer-events: auto;
 }
-.hip-ceiling-lantern img { display: block; width: 100%; height: auto; }
-.hip-ceiling-lantern[data-mine='1'] img { filter: drop-shadow(0 0 4px #ffe6a8); }
+.hip-ceiling-lantern span {
+  display: block;
+  padding: 2px 1px;
+  min-height: 12px;
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+  font-family: var(--font-serif);
+  font-size: clamp(5px, 1.65cqw, 8px);
+  line-height: 1.12;
+  color: #65482e;
+  background: linear-gradient(100deg, #f7e9cf, #fff5df 60%, #ead6b3);
+  box-shadow: 0 1px 2px #4c291a66;
+  border-radius: 0 0 1px 1px;
+}
+.hip-ceiling-lantern[data-mine='1'] span { box-shadow: 0 0 3px #ffebbb; }
 .hip-hall-sky.hip-hall-interior .hip-hall-acts {
   top: 40% !important;
   right: max(10px, calc((100% - 100cqh * 857 / 1836) / 2 + 10px));

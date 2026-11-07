@@ -6,8 +6,6 @@ export const NEW_MALA_SKINS = [
   { id: 'carved', name: '목각', dot: '#c78a52', image: `${solid}/carved-solid.webp` },
   { id: 'blackgold', name: '흑금', dot: '#312c23' },
   { id: 'lotuswood', name: '연화목', dot: '#b66c31', image: `${solid}/lotuswood-solid.webp` },
-  { id: 'whitejade', name: '백옥', dot: '#eee6d5', image: `${round}/jade.webp` },
-  { id: 'flowerwood', name: '꽃목', dot: '#e3bd86', image: `${round}/wood.webp` },
 ].map(s => {
   const folder = s.id === 'blackgold' ? '/obj/practice-collection-v2' : root;
   const image = s.image ?? (s.id === 'ebony' ? '/obj/practice-collection-v2/ebony-smooth.webp' : `${folder}/${s.id}.webp`);
