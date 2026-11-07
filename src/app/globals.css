@@ -1705,5 +1705,5 @@ body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab) 
 .share-sheet-box a, .share-sheet-box button { display: grid; place-items: center; min-height: 52px; border-radius: 16px; background: #f4f1ec; color: #1a1a1c; font-size: 14px; text-decoration: none; border: 0; }
 .share-sheet-box .share-sheet-x { grid-column: 1 / -1; min-height: 46px; background: transparent; color: #9aa0a8; }
 @keyframes share-up { from { transform: translateY(100%); } to { transform: none; } }
-.hip-top-ico.hip-bulsim svg { width: 23px; height: 23px; }
+.hip-top-ico.hip-bulsim img { width: 30px; height: 30px; object-fit: contain; filter: saturate(1.1) contrast(1.05); }
 body:has(.try-page) .hip-daybar { display: none !important; }
