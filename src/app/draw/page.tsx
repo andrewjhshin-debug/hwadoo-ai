@@ -87,6 +87,7 @@ body:has(.draw-hall) .hip-bloom, body:has(.draw-hall) #scroll-box::before { disp
 .draw-hall .draw-back .draw-sub { color: rgba(240, 207, 134, 0.7); }
 .draw-hall .draw-paper { background: linear-gradient(180deg, #fffbf2, #f8eedc); border: 1px solid rgba(168, 119, 31, 0.35); box-shadow: inset 0 0 0 6px #fffbf2, inset 0 0 0 7px rgba(168, 119, 31, 0.28), 0 14px 34px rgba(74, 30, 14, 0.16); }
 .draw-hall .draw-dojang { background: #a8321f; color: #fff6e6; border-radius: 6px; box-shadow: 0 2px 0 #7d2215; }
+.draw-hall .draw-sign, .draw-hall .draw-note p { text-wrap: balance; }
 .draw-hall .draw-label { color: #8a6328 !important; }
 .draw-hall .draw-note { background: rgba(255, 251, 242, 0.72); border: 1px solid rgba(138, 99, 40, 0.2); }
 @media (prefers-reduced-motion: reduce) {
@@ -174,8 +175,9 @@ export default function DrawPage() {
         {날.절기 ? ` · ${날.절기}` : 날.다음절기 ? ` · ${날.다음절기.name} ${날.다음절기.days}일 전` : ""}
       </p>
       {날.재일 && (
-        <p className="rise rise-d1 mt-2 draw-saeil rounded-full px-3.5 py-1 text-[12px] tracking-[0.08em]">
-          {날.재일.name} · {날.재일.say}
+        // 형: 「한 줄로 쓰다 꺾이지 말고 차라리 두 줄로」 — 첫 문장과 나머지를 두 줄로 나눠 박는다
+        <p className="draw-saeil rise rise-d1 mt-2.5 rounded-[14px] px-4 py-2 text-center text-[13px] leading-[1.6] tracking-[0.04em]">
+          {(() => { const [첫, ...남] = 날.재일.say.split(/(?<=\.)\s+/); return <>{날.재일.name} · {첫}{남.length > 0 && <><br />{남.join(" ")}</>}</>; })()}
         </p>
       )}
 
@@ -312,7 +314,7 @@ function Face({ sign, poison }: { sign: string; poison: PoisonCard }) {
         三毒 · 오늘의 독
       </span>
       <span className="relative mt-4 h-px w-9 bg-ink-3" aria-hidden />
-      <span className="relative mt-4 break-keep px-1 text-center font-serif text-[15px] leading-7 text-hanji">
+      <span className="draw-sign relative mt-4 break-keep px-1 text-center font-serif text-[16px] leading-7 text-hanji">
         {sign}
       </span>
     </>
