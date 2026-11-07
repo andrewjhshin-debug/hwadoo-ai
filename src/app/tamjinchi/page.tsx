@@ -116,13 +116,7 @@ export default function InvestmentPage() {
 
         {판.k === "done" && (
           <>
-            <div className="cool-karma">
-              <div className="cool-nums">
-                <div><b>{업.kept}</b><span>참음</span></div>
-                <div><b>{업.did}</b><span>그래도 함</span></div>
-                <div><b>{업.taps}</b><span>식힌 목탁</span></div>
-              </div>
-            </div>
+            {/* 참음·그래도 함·식힌 목탁 숫자 칸은 걷었다(형: 「이딴 거 없애」). 셈은 공유 글에만 남는다 */}
             <div className="cool-again">
               <button type="button" onClick={() => 판잡기({ k: "pick" })}>다시</button>
               <button type="button" className="cool-share" aria-label="업보 공유" onClick={async () => {
