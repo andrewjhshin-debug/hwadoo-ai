@@ -1697,3 +1697,12 @@ body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab) 
 .hip-post-detail { padding-top: calc(env(safe-area-inset-top, 0px) + 14px); }
 /* 숨은 고양이 — 화면 위 아무 데나 올라와 걷는다. 판을 가리지 않게 작고, 눌리는 건 고양이 몸뿐 */
 .hidden-cat { position: fixed; left: 0; top: 0; z-index: 45; height: auto; opacity: 0; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; will-change: transform; }
+/* 공유판 — 앱 공유창이 없을 때 아래에서 올라온다(NativeShare) */
+.share-sheet { position: fixed; inset: 0; z-index: 90; display: flex; align-items: flex-end; justify-content: center; }
+.share-sheet-scrim { position: absolute; inset: 0; background: rgba(20, 16, 14, 0.35); border: 0; }
+.share-sheet-box { position: relative; width: min(100%, 420px); padding: 18px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); border-radius: 22px 22px 0 0; background: #fffcf8; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; animation: share-up 0.22s ease-out; }
+.share-sheet-box p { grid-column: 1 / -1; margin: 0 0 6px; text-align: center; font-size: 14px; color: #5a6068; }
+.share-sheet-box a, .share-sheet-box button { display: grid; place-items: center; min-height: 52px; border-radius: 16px; background: #f4f1ec; color: #1a1a1c; font-size: 14px; text-decoration: none; border: 0; }
+.share-sheet-box .share-sheet-x { grid-column: 1 / -1; min-height: 46px; background: transparent; color: #9aa0a8; }
+@keyframes share-up { from { transform: translateY(100%); } to { transform: none; } }
+.hip-top-ico.hip-bulsim svg { width: 23px; height: 23px; }

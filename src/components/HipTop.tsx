@@ -51,6 +51,16 @@ export default function HipTop({
       <button type="button" className="hip-top-ico hip-walking-toggle" aria-label={walking.on ? "포행 끄기" : "포행 켜기"} aria-pressed={walking.on} onClick={toggleWalking} title={walking.on ? `포행 켜짐 · ${walking.steps}걸음` : "포행 켜기"}>
         <span>포행</span><small>{walking.on ? "ON" : "OFF"}</small>
       </button>
+      {/* 불심투자 — 형: 「법륜 말고 포행이랑 오색실 사이에, 불심투자가 확 느껴질 아이콘」. 목탁 위로 시세가 치솟는다 */}
+      <Link href="/tamjinchi" aria-label="불심투자" className="hip-top-ico hip-bulsim">
+        <svg viewBox="0 0 24 24" aria-hidden>
+          <ellipse cx="10.5" cy="14" rx="7.8" ry="7" style={{ fill: "#c98a4e", stroke: "none" }} />
+          <ellipse cx="8.4" cy="11.2" rx="3" ry="1.8" style={{ fill: "#e8b886", stroke: "none", opacity: 0.8 }} />
+          <path d="M3.4 15.2 Q10.5 18.4 17.6 15.2" style={{ stroke: "#5b3416", strokeWidth: 1.5 }} />
+          <circle cx="14.6" cy="11.2" r="1" style={{ fill: "#5b3416", stroke: "none" }} />
+          <path d="M2.5 9.5 L7.5 6 L11 8 L19.5 2.8M15.6 2.3 L20.2 2.4 L19.4 6.8" style={{ stroke: "#e0344a", strokeWidth: 2.1 }} />
+        </svg>
+      </Link>
       {/* 형: 「포행 OFF 랑 연잎 사이」 — 출석할수록 헤지는 오색실. 눌리면 팝업 */}
       <SilTop />
       {/* 머리 연꽃(오늘의 수행)은 걷었다 — 형: 「밤티다, 없애. 법륜 누르면 튀어나오게」 */}

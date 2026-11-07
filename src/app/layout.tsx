@@ -22,6 +22,7 @@ import WalkingRuntime from "@/components/WalkingRuntime";
 import InvestmentShortcut from "@/components/InvestmentShortcut";
 import InviteCatch from "@/components/InviteCatch";
 import HiddenCat from "@/components/HiddenCat";
+import NativeShare from "@/components/NativeShare";
 import {
   BIZ_ADDRESS,
   BIZ_MAIL_ORDER_NO,
@@ -244,6 +245,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <WalkingRuntime />
         <InvestmentShortcut />
         <HiddenCat />
+        <NativeShare />
         <InviteCatch />
         </ConfirmProvider>
         {/* ── 지표 둘 ────────────────────────────────────────
