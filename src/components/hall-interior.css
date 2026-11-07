@@ -66,17 +66,18 @@
 .hip-hall-interior .hip-hall-item-link[data-kind='plate'] { left: 68%; right: auto; top: 56%; bottom: auto; width: 17%; height: 5%; }
 /* Tile dedications remain on the interior beam; the exterior eave is replaced. */
 .hip-hall-sky.hip-hall-interior .hip-hall-roof {
-  top: 9.5%;
+  top: 13.4%;
   left: 50%;
   right: auto;
   width: min(100%, calc(100cqh * 857 / 1836));
-  height: 4.5% !important;
+  height: 1.6% !important;
   aspect-ratio: auto !important;
   transform: translateX(-50%);
   z-index: 5 !important;
 }
 .hip-hall-interior .hip-hall-roof img { display: none; }
 .hip-hall-interior .hip-hall-roof button { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hip-hall-interior .hip-hall-roof button:disabled { pointer-events: none; }
 .hip-hall-interior .hip-hall-roof b { top: 0; right: 10px; bottom: auto; }
 .hip-ceiling-lanterns {
   position: absolute;
