@@ -1,12 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { meow } from "@/lib/sound";
 
 // ─────────────────────────────────────────────────────────────
 // 숨은 고양이 — 형: 「랜덤으로 고양이 한 마리를 앱 전반에 히든으로. 나왔다가 좀 걸어 다니다가 다양한 모습」
 // 화면을 열 때 자주(셋 중 하나꼴, 하루 많아야 여덟 번) 버튼·카드 윗변에 올라와 걷고, 앉고, 하품하고, 그루밍하고 사라진다.
-// 누르면 「야옹」(형: 「그냥 야옹 소리만」). 화면을 옮기면 사라지고, 스크롤하면 올라선 자리와 함께 움직인다.
+// 누르면 소리 없이 깜짝 놀라 다른 자리로 총총 옮겨 간다(형: 「야옹 소리 지우고 눌리면 그냥 움직이는 걸로」). 화면을 옮기면 사라지고, 스크롤하면 올라선 자리와 함께 움직인다.
 // 그림: public/obj/cat/*.webp (제미나이 한 장에서 오린 여덟 자세, 모두 오른쪽을 본다)
 // 시험: 주소 뒤에 ?cat=1 이면 확률·하루 횟수 없이 곧바로 나온다
 // ─────────────────────────────────────────────────────────────
@@ -66,8 +65,9 @@ function 각본(l: number, r: number): Step[] {
 
 export default function HiddenCat() {
   const path = usePathname();
-  const [run, setRun] = useState<{ el: HTMLElement; steps: Step[]; key: number } | null>(null);
+  const [run, setRun] = useState<{ el: HTMLElement; l: number; r: number; steps: Step[]; key: number; 이어서?: boolean } | null>(null);
   const img = useRef<HTMLImageElement>(null);
+  const 지금x = useRef(0);
 
   // 화면이 바뀔 때마다 가끔 부른다
   useEffect(() => {
@@ -81,7 +81,7 @@ export default function HiddenCat() {
       const 자리 = 자리찾기();
       if (!자리 || 자리.r - 자리.l < 110) { if (--남은 > 0) t = window.setTimeout(둘러보기, 3000); return; }
       if (!시험) 횟수더하기();
-      setRun({ el: 자리.el, steps: 각본(자리.l, 자리.r), key: Date.now() });
+      setRun({ el: 자리.el, l: 자리.l, r: 자리.r, steps: 각본(자리.l, 자리.r), key: Date.now() });
     };
     t = window.setTimeout(둘러보기, 시험 ? 1200 : 4000 + Math.random() * 8000);
     return () => clearTimeout(t);
@@ -102,6 +102,7 @@ export default function HiddenCat() {
       for (const q of run.steps) { if (t < 앞 + q.dur) { s = q; break; } 앞 += q.dur; }
       const k = (t - 앞) / s.dur;
       const x = s.x0 + (s.x1 - s.x0) * k;
+      지금x.current = x;
       const 걷는중 = s.pose === "walk";
       const pose: Pose = 걷는중 ? (Math.floor(t / 0.22) % 2 ? "walk2" : "walk1") : (s.pose as Pose);
       const [w, h] = SIZE[pose];
@@ -112,17 +113,27 @@ export default function HiddenCat() {
       if (!el.src.endsWith(src)) el.src = src;
       el.style.width = `${w * SCALE}px`;
       el.style.transform = `translate(${x - (w * SCALE) / 2}px, ${자리.top - h * SCALE - 들썩 + 1}px) scaleX(${왼쪽봄 ? -1 : 1})`;
-      el.style.opacity = String(Math.min(1, t / 0.4, (전체 - t) / 0.4));
+      el.style.opacity = String(Math.min(1, run.이어서 ? 1 : t / 0.4, (전체 - t) / 0.4));
       raf = requestAnimationFrame(그리기);
     };
     raf = requestAnimationFrame(그리기);
     return () => cancelAnimationFrame(raf);
   }, [run]);
 
+  // 누르면 — 지금 자리에서 멀찍이 떨어진 곳으로 빠르게 걸어가 잠깐 쉬다가 가장자리로 나간다
+  const 놀람 = () => {
+    if (!run) return;
+    const x = 지금x.current, { l, r } = run;
+    const 갈곳 = x - l > r - x ? l + (x - l) * 0.25 : r - (r - x) * 0.25;
+    const 뛰기: Step = { pose: "walk", dur: Math.max(0.35, Math.abs(갈곳 - x) / (SPEED * 3)), x0: x, x1: 갈곳 };
+    const 나머지 = 각본(l, r).slice(-2).map((s, i) => (i === 0 ? { ...s, x0: 갈곳, x1: 갈곳 } : { ...s, x0: 갈곳, dur: Math.max(0.6, Math.abs(s.x1 - 갈곳) / SPEED) }));
+    setRun({ ...run, steps: [뛰기, ...나머지], 이어서: true });
+  };
+
   if (!run) return null;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img key={run.key} ref={img} alt="" draggable={false} className="hidden-cat"
-      onClick={(e) => { e.stopPropagation(); meow(); }} />
+      onClick={(e) => { e.stopPropagation(); 놀람(); }} />
   );
 }
