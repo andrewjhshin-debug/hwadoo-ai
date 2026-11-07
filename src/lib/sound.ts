@@ -534,8 +534,9 @@ function 엘리먼트치기(src: string, vol: number): boolean {
   }
 }
 
+// 형: 「징·북 다 B 좋다」 — 징은 더 낮게(62Hz, 우웅 떨림), 북은 채가 테 맞는 「딱 쿵」(소리북). 이름을 v2 로 바꿔 옛 캐시를 비켜 간다
 export function strikePercussion(kind: "jing" | "drum", volume: number) {
-  엘리먼트치기(`/sfx/${kind}-v1.wav`, volume);
+  엘리먼트치기(`/sfx/${kind}-v2.wav`, volume);
 }
 
 export type MoktakVoice = "gongyu" | "hyung";
