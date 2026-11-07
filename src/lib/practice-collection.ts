@@ -26,6 +26,11 @@ export function malaCharmImage(id: string, index: number) {
   if (id === 'flowerwood' && index === 12) return `${round}/white-charm.webp`;
   return null;
 }
+export function malaBeadScale(id: string, index: number) {
+  if (id === 'ebony' && index === 0) return 1.2;
+  if (id === 'flowerwood' && index === 15) return 1.48;
+  return 1;
+}
 export function malaGoldFilter(id: string) {
   if (['ebony', 'blackgold', 'silverom'].includes(id)) return 'hip-ebony-gold';
   if (['whitejade', 'flowerwood'].includes(id)) return 'hip-jade-gold';

@@ -26,7 +26,7 @@ import HipMoktak from "./HipMoktak";
 import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
-import { NEW_MALA_SKINS, isNewMala, malaBeadImage, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
+import { NEW_MALA_SKINS, isNewMala, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -764,9 +764,9 @@ export default function MoktakPage() {
             <filter id="hip-jade-gold" colorInterpolationFilters="sRGB">
               <feColorMatrix type="saturate" values="0" />
               <feComponentTransfer>
-                <feFuncR type="linear" slope="0.86" intercept="0.1" />
-                <feFuncG type="linear" slope="0.62" intercept="0.08" />
-                <feFuncB type="linear" slope="0.2" intercept="0.04" />
+                <feFuncR type="table" tableValues="0.28 0.52 0.77 0.94 1 1 1" />
+                <feFuncG type="table" tableValues="0.11 0.25 0.43 0.61 0.74 0.85 0.99" />
+                <feFuncB type="table" tableValues="0.02 0.04 0.08 0.16 0.29 0.55 0.94" />
               </feComponentTransfer>
             </filter>
             <filter id="hip-wood-gold" colorInterpolationFilters="sRGB">
@@ -904,7 +904,8 @@ export default function MoktakPage() {
                 // 알이다. 그걸 안 세니 폭을 이웃 거리에 맞춰도 눈에는
                 // 13% 가 늘 비었다 — 형: 「간격이 넘 넓어」.
                 // 테두리를 되돌린 뒤(÷0.872) 한 뼘 더 겹친다.
-                const 폭 = (사이(i) / 0.872) * 1.12;
+                const 폭 = (사이(i) / 0.872) * 1.12 * malaBeadScale(skin.bead, i);
+                const charm = malaCharmImage(skin.bead, i);
                 const 각 = ((deg % 360) + 360) % 360;
                 // 표시점 바로 밑의 알은 각이 0 근처인데, 조금만 지나면 359 로
                 // 읽혀 **맨 마지막에 물드는 알**이 됐다 — 형: 「저기만 황금이 아니야」.
@@ -965,11 +966,10 @@ export default function MoktakPage() {
                         }}
                       />
                     )}
-                    {malaCharmImage(skin.bead, i) && <span aria-hidden style={{position:'absolute',top:'72%',left:'20%',width:'60%',pointerEvents:'none'}}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={malaCharmImage(skin.bead, i)!} alt="" draggable={false} className="block w-full" style={{filter:분홍결}} />
-                      {채움 > 0 && <img src={malaCharmImage(skin.bead, i)!} alt="" draggable={false} className="absolute inset-0 block w-full" style={{filter:금결,opacity:채움}} />}
-                    </span>}
+                    {charm && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={charm} alt="" draggable={false} className="pointer-events-none absolute left-[5%] top-[72%] w-[90%]" style={{filter:분홍결}} />
+                    )}
                     </>}
                   </span>
                 );
@@ -1826,7 +1826,7 @@ export default function MoktakPage() {
                           // 뒤쪽 알은 원근 탓에 그림 안의 여백까지 같이 작아져
                           // 서로 멀어 보였다. 앞쪽 크기는 그대로 두고, 뒤쪽만
                           // 조금 키워 고리의 간격이 끊기지 않게 한다.
-                          width: `${17 * sc + (1 - front) * 3}%`,
+                          width: `${(17 * sc + (1 - front) * 3) * malaBeadScale(skin.bead, i)}%`,
                           transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
@@ -1843,7 +1843,7 @@ export default function MoktakPage() {
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={malaBeadImage(skin.bead, i, skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc)} alt="" draggable={false} className="block w-full" />
-                        {malaCharmImage(skin.bead, i) && <img src={malaCharmImage(skin.bead, i)!} alt="" aria-hidden draggable={false} style={{position:'absolute',top:'72%',left:'20%',width:'60%',pointerEvents:'none'}} />}
+                        {malaCharmImage(skin.bead, i) && <img src={malaCharmImage(skin.bead, i)!} alt="" draggable={false} className="pointer-events-none absolute left-[5%] top-[72%] w-[90%]" />}
                       </span>
                     );
                   })}
