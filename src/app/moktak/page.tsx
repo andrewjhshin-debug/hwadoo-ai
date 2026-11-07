@@ -1206,25 +1206,25 @@ export default function MoktakPage() {
           <filter id="hip-ebony-gold" colorInterpolationFilters="sRGB">
             <feColorMatrix type="saturate" values="0" />
             <feComponentTransfer>
-              <feFuncR type="table" tableValues=".57 .83 .94 .99 1 1 1" />
-              <feFuncG type="table" tableValues=".28 .48 .63 .73 .81 .89 .98" />
-              <feFuncB type="table" tableValues=".035 .055 .10 .18 .34 .58 .90" />
+              <feFuncR type="table" tableValues=".77 .90 .94 .96 .98 .99 1" />
+              <feFuncG type="table" tableValues=".64 .81 .87 .91 .94 .97 .99" />
+              <feFuncB type="table" tableValues=".28 .49 .59 .69 .78 .87 .95" />
             </feComponentTransfer>
           </filter>
           <filter id="hip-jade-gold" colorInterpolationFilters="sRGB">
             <feColorMatrix type="saturate" values="0" />
             <feComponentTransfer>
-              <feFuncR type="table" tableValues=".26 .46 .66 .84 .95 .99 1" />
-              <feFuncG type="table" tableValues=".10 .20 .33 .47 .59 .71 .95" />
-              <feFuncB type="table" tableValues=".015 .025 .045 .07 .12 .22 .77" />
+              <feFuncR type="table" tableValues=".52 .72 .86 .89 .91 .93 1" />
+              <feFuncG type="table" tableValues=".38 .58 .74 .80 .82 .86 .99" />
+              <feFuncB type="table" tableValues=".14 .25 .40 .47 .50 .55 .94" />
             </feComponentTransfer>
           </filter>
           <filter id="hip-wood-gold" colorInterpolationFilters="sRGB">
             <feColorMatrix type="saturate" values="0" />
             <feComponentTransfer>
-              <feFuncR type="table" tableValues=".24 .45 .66 .84 .96 1 1" />
-              <feFuncG type="table" tableValues=".09 .20 .32 .46 .59 .72 .97" />
-              <feFuncB type="table" tableValues=".015 .03 .045 .07 .12 .24 .80" />
+              <feFuncR type="table" tableValues=".48 .72 .85 .91 .94 .97 1" />
+              <feFuncG type="table" tableValues=".34 .57 .73 .82 .87 .92 .99" />
+              <feFuncB type="table" tableValues=".11 .24 .39 .51 .59 .70 .94" />
             </feComponentTransfer>
           </filter>
         </defs>

@@ -1,7 +1,7 @@
 export const LANTERN_COLORS = [
-  { id: "pink", name: "분홍", src: "/obj/lotus-lantern-v1/pink.webp" },
-  { id: "gold", name: "금빛", src: "/obj/lotus-lantern-v1/gold.webp" },
-  { id: "mint", name: "민트", src: "/obj/lotus-lantern-v1/mint.webp" },
+  { id: "pink", name: "분홍", src: "/obj/ceiling-lantern-v1/pink.webp" },
+  { id: "gold", name: "금빛", src: "/obj/ceiling-lantern-v1/gold.webp" },
+  { id: "mint", name: "민트", src: "/obj/ceiling-lantern-v1/mint.webp" },
 ] as const;
 export type LanternColor = typeof LANTERN_COLORS[number]["id"];
 export function isLanternColor(value: unknown): value is LanternColor {

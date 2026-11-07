@@ -6597,8 +6597,7 @@ html[data-theme="light"] {
   @media (prefers-reduced-motion: reduce) {
     .hip-deung-sway { animation: none; }
   }
-  /* 형이 구운 연등 그림. 쪽지까지 한 장에 들어 있다 */
-  .hip-deung-sway { position: relative; }
+  .hip-deung-sway { position: relative; width: min(100%, 34px); }
   .hip-deung-img {
     display: block;
     width: 100%;

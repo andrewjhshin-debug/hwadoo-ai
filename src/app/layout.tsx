@@ -69,12 +69,12 @@ export const metadata: Metadata = {
   // 형이 고른 빛나는 연꽃(먹 바탕). 판 이름을 바꿔 옛 아이콘 캐시를 피한다
   icons: {
     icon: [
-      { url: "/brand/lotus-glow-v1/icon.svg", type: "image/svg+xml", sizes: "any" },
-      { url: "/brand/lotus-glow-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/brand/lotus-glow-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/brand/lotus-glow-v2/icon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/brand/lotus-glow-v2/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/lotus-glow-v2/favicon-32.png", type: "image/png", sizes: "32x32" },
     ],
-    shortcut: "/brand/lotus-glow-v1/favicon.ico",
-    apple: "/brand/lotus-glow-v1/apple-touch-icon.png",
+    shortcut: "/brand/lotus-glow-v2/favicon.ico",
+    apple: "/brand/lotus-glow-v2/apple-touch-icon.png",
   },
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",

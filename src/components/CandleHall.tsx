@@ -1222,19 +1222,11 @@ export default function CandleHall() {
                 {
                   "--deung-w": String(폭(등들.length)),
                   // 켜끼리 얼마나 물리나. **%로 준 세로 여백은 폭을 기준으로
-                  // 잰다**(CSS 가 그렇다) — 그걸 모르고 -34% 를 줬더니 여섯
-                  // 켜가 한 켜로 포개졌다. 그림 비율(663/920 = 0.721)로
-                  // 키를 되돌려 계산한다: 한 켜 키 = 폭 ÷ 0.721.
-                  // 그 키의 **44%** 만큼 물린다 — 앞 켜가 뒤 켜의 아랫배까지 먹는다
-                  "--deung-lap": String(-(폭(등들.length) / 0.721) * 0.44),
+                  // 잰다**(CSS 가 그렇다). 천장 등 그림의 높이/너비는 156/192다.
+                  "--deung-lap": String(-폭(등들.length) * (156 / 192) * 0.32),
                 } as React.CSSProperties
               }
             >
-              {등들.length <= 5 && (
-                <svg className="hip-deung-cord" viewBox={`0 0 100 ${줄처짐 + 2}`} preserveAspectRatio="none" aria-hidden>
-                  <path d={`M0 1 Q50 ${줄처짐 * 2 + 1} 100 1`} />
-                </svg>
-              )}
               {등들.map((c, i) => (
                 <CandleMark
                   꿴={등들.length <= 5 ? 꿴자리(i, 등들.length) : undefined}

@@ -1359,9 +1359,7 @@ h1:has(.hip-hall-n) { letter-spacing: .02em !important; font-size: 14px !importa
 
 /* 법당 연등 — 다섯까지는 처마 아래 한 가닥 줄에 꿴다. 형: 「어우러지게 다시 배치」 */
 .hip-deung-sky[data-few="1"] { margin-top: calc(10.4% - 20px); justify-content: space-evenly; overflow: visible; }
-.hip-deung-cord { position: absolute; top: 0; left: 0; width: 100%; height: 28px; overflow: visible; pointer-events: none; }
-.hip-deung-cord path { fill: none; stroke: #b98a4e; stroke-width: 1.4; vector-effect: non-scaling-stroke; opacity: .85; }
-.hip-deung-sky[data-few="1"] .hip-deung { position: absolute; top: 0; left: calc(var(--kx, 50) * 1%); width: 12%; max-width: none; margin: 0; padding-top: calc(var(--kkwen, 0px) - 3px); transform: translateX(-50%); }
+.hip-deung-sky[data-few="1"] .hip-deung { position: absolute; top: 0; left: calc(var(--kx, 50) * 1%); width: 7%; max-width: none; margin: 0; padding-top: calc(var(--kkwen, 0px) - 3px); transform: translateX(-50%); }
 /* 기원 쪼가리 — 등 밑 한지. 등과 같이 흔들린다 */
 .hip-deung-wish { position: relative; display: block; width: 14px; max-height: 58px; margin: 5px auto 0; padding: 5px 0; overflow: hidden; writing-mode: vertical-rl; font-family: var(--font-serif); font-size: 9px; line-height: 15px; letter-spacing: .06em; color: #6b4a2e; background: #fffaf0; border: .5px solid rgba(185,138,78,.35); border-radius: 1px; box-shadow: 0 2px 5px rgba(120,80,40,.12); white-space: nowrap; }
 .hip-deung-wish::before { content: ""; position: absolute; top: -6px; left: 50%; width: 1px; height: 6px; background: #b98a4e; }
