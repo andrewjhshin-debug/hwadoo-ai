@@ -56,6 +56,7 @@ export type HipMoktakProps = {
   bowlHits: number;
   percussionHits: { jing: number; drum: number };
   onPercussionHit: (kind: "jing" | "drum") => void;
+  jingSrc: string;
   combo: number;
   /** 염주 — 이번 바퀴에서 몇 알째인가 (0~107) */
   pos: number;
@@ -104,6 +105,7 @@ export default function HipMoktak({
   bowlHits,
   percussionHits,
   onPercussionHit,
+  jingSrc,
   combo,
   pos,
   ringing,
@@ -245,9 +247,10 @@ export default function HipMoktak({
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/obj/practice-percussion-v1/${percussion}.webp`} alt="" draggable={false} className="pointer-events-none h-full w-full object-contain" />
+              <img src={percussion === "jing" ? jingSrc : "/obj/practice-percussion-v1/drum.webp"} alt="" draggable={false} className="pointer-events-none h-full w-full object-contain" />
             </button>
           )}
+          {tab === "jing" && <div className="hip-obj-foot">{dots}</div>}
 
           {/* ── 키캡 ──
               형: 「키캡 이 느낌으로 불상이나 캐릭터 불교로 넣어서 위아래

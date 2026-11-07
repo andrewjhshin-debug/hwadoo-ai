@@ -182,6 +182,11 @@ const SKINS = {
     { id: "verdigris", name: "청동녹", src: "/obj/bowl-verdigris.png", dot: "#5f9a93" },
     { id: "ivory", name: "크림빛", src: "/obj/bowl-ivory-v2.webp", dot: "#e9dfbe" },
   ],
+  jing: [
+    { id: "hammered", name: "두드린 놋쇠 징", src: "/obj/practice-percussion-v1/jing.webp", dot: "#ac8148" },
+    { id: "satin", name: "황금빛 징", src: "/obj/practice-percussion-v1/jing-satin.webp", dot: "#e1b759" },
+    { id: "aged", name: "짙은 동빛 징", src: "/obj/practice-percussion-v1/jing-aged.webp", dot: "#74503b" },
+  ],
   // 키캡 셋 — 형: 「그럼 저기서 포대랑 미륵으로도 키캡 만들어라 딱 됐네 ㅋ」
   //
   // 한동안 동자 하나만 두었다(형: 「키캡도 동자만 둬라」). 그때 지운 건
@@ -261,6 +266,7 @@ export default function MoktakPage() {
     // 처음 들어온 사람에게 보이는 것이 곧 이 앱의 얼굴이다 — 발바닥을 기본으로
     bead: "paw",
     bowl: SKINS.bowl[0].id,
+    jing: SKINS.jing[0].id,
     keycap: SKINS.keycap[0].id, // 동자
   });
   const skinSrc = (kind: SkinKind) =>
@@ -501,6 +507,8 @@ export default function MoktakPage() {
             SKINS.bead.some((k) => k.id === got.bead) && got.bead ? got.bead : s.bead,
           bowl:
             SKINS.bowl.some((k) => k.id === got.bowl) && got.bowl ? got.bowl : s.bowl,
+          jing:
+            SKINS.jing.some((k) => k.id === got.jing) && got.jing ? got.jing : s.jing,
           keycap:
             SKINS.keycap.some((k) => k.id === got.keycap) && got.keycap
               ? got.keycap
@@ -521,7 +529,7 @@ export default function MoktakPage() {
     // 그때서야 삼백 몇 KB 짜리 PNG 를 받으러 갔다. 받아 그리는 동안
     // 자리가 비어 깜빡였다. 아홉 장 다 합쳐 5MB 남짓이니 방에 들어설 때
     // 한꺼번에 받아 둔다. 그 뒤로는 점을 눌러도 곧바로 바뀐다.
-    for (const kind of ["moktak", "bead", "bowl", "keycap"] as const) {
+    for (const kind of ["moktak", "bead", "bowl", "keycap", "jing"] as const) {
       // 키캡은 세 겹이라 갈래가 여럿이다 — 있는 것만 다 받아 둔다.
       // 점을 눌렀을 때 몸만 먼저 오면 한 판 동안 그릇 없이 떠 있다
       for (const k of SKINS[kind] as readonly Record<string, unknown>[]) {
@@ -1199,11 +1207,12 @@ export default function MoktakPage() {
   // 살갗 점 — 오브제 바로 밑에 붙는다. 형: 「목탁 밑에 작은 색상 버튼
   // 동그라미로 기존 오리지날처럼」
   // 키캡 갈래에서는 키캡 살갗을 고른다 — 고르는 자리는 늘 물건 바로 밑
-  const moktakDots = (
+  const dotsKind = tab === "keycap" || tab === "jing" ? tab : "moktak";
+  const instrumentDots = (
     <SkinDots
-      kind={tab === "keycap" ? "keycap" : "moktak"}
-      pick={tab === "keycap" ? skin.keycap : skin.moktak}
-      onPick={pickSkin(tab === "keycap" ? "keycap" : "moktak")}
+      kind={dotsKind}
+      pick={skin[dotsKind]}
+      onPick={pickSkin(dotsKind)}
     />
   );
 
@@ -1252,6 +1261,7 @@ export default function MoktakPage() {
           bowlHits={bowlHits}
           percussionHits={percussionHits}
           onPercussionHit={hitPercussion}
+          jingSrc={skinSrc("jing")}
           mokSrc={skinSrc("moktak")}
           keySrc={keySrc}
           combo={tab === "keycap" ? keyCombo : combo}
@@ -1268,7 +1278,7 @@ export default function MoktakPage() {
           bead={hipBead}
           bowl={hipBowl}
           options={meOptions}
-          dots={moktakDots}
+          dots={instrumentDots}
         />
       )}
 
