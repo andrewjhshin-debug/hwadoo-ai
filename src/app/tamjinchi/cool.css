@@ -103,3 +103,22 @@
 .cool > .cool-say { white-space: pre-line; height: calc(1.55em * 2 + 24px); overflow: hidden; font-size: clamp(13px, 3.7vw, 14.5px); }
 .cool-rule { margin: -4px 0 0; text-align: center; font-size: 12px; color: var(--cool-faint); font-variant-numeric: tabular-nums; }
 .cool-rule b { font-weight: 500; color: var(--cool-dim); }
+
+/* 종목 한 칸 — 최근 셋은 옆 칩 */
+.cool-stock { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; overflow: hidden; }
+.cool-stock label { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; border-radius: 16px; background: #fff; box-shadow: 0 2px 10px rgba(26, 23, 20, 0.08); }
+.cool-stock label span { flex: none; font-size: 12.5px; color: var(--cool-faint); }
+.cool-stock input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 600 15px var(--font-sans), sans-serif; color: var(--cool-ink); }
+.cool-stock input::placeholder { font-weight: 400; color: #c3c7cc; }
+.cool-stock button { flex: none; height: 32px; padding: 0 11px; border-radius: 16px; background: #fff; box-shadow: 0 1px 4px rgba(26, 23, 20, 0.07); font-size: 12.5px; color: var(--cool-dim); }
+
+/* 108번째 — 도장이 쾅, 화면이 한 번 흔들린다 */
+.cool-side { position: relative; }
+.cool-stamp { position: absolute; left: 50%; top: 38%; z-index: 2; display: flex; flex-direction: column; align-items: center; padding: 2px 14px 6px; border: 5px double var(--c); border-radius: 8px; color: var(--c); background: rgba(255, 255, 255, 0.65); font: 900 40px/1.1 "Batang", "Noto Serif KR", serif; letter-spacing: 4px; white-space: nowrap; pointer-events: none; transform: translate(-50%, -50%) rotate(-12deg); animation: cool-stamp 0.32s cubic-bezier(.2, 1.6, .4, 1) both; }
+.cool-stamp small { font: 700 12.5px/1.2 var(--font-sans), sans-serif; letter-spacing: 1px; }
+.cool-stamp.is-sell { --c: #d4232f; }
+.cool-stamp.is-buy { --c: #2f6bd8; }
+@keyframes cool-stamp { from { opacity: 0; transform: translate(-50%, -50%) rotate(-20deg) scale(2.2); } to { opacity: 1; transform: translate(-50%, -50%) rotate(-12deg) scale(1); } }
+.cool.is-limit { animation: cool-quake 0.36s 0.18s ease-out; }
+@keyframes cool-quake { 20% { transform: translate(-5px, 2px); } 40% { transform: translate(4px, -3px); } 60% { transform: translate(-3px, 1px); } 80% { transform: translate(2px, -1px); } }
+@media (prefers-reduced-motion: reduce) { .cool.is-limit, .cool-stamp { animation: none; } }

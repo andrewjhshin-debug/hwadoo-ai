@@ -232,7 +232,7 @@ export default function HasimPage() {
           버그). 0 으로 못박아 두면 키가 내용을 안 따라간다. */}
       <div
         ref={boxRef}
-        className="relative min-h-0 w-full flex-1 overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden"
+        className="hasim-solo relative min-h-0 w-full flex-1 overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden"
         style={{ background: skin.paper, transition: "background .35s", scrollbarWidth: "none" }}
       >
         {/* 나가는 문 하나. 빛깔 고르는 단추는 **걷었다** —

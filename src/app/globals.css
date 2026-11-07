@@ -1707,3 +1707,10 @@ body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab) 
 @keyframes share-up { from { transform: translateY(100%); } to { transform: none; } }
 .hip-top-ico.hip-bulsim img { width: 30px; height: 30px; object-fit: contain; filter: saturate(1.1) contrast(1.05); }
 body:has(.try-page) .hip-daybar { display: none !important; }
+
+/* 형: 「하심 때 다 안 뜨고 하심만 뜨게」 — 머리띠·공덕 띠·위 탭·아래 띠·법륜 다 걷고 종이와 나가기만 */
+body:has(.hasim-solo) :is(.hip-app-header, .hip-header-slot, .hip-daybar, .hip-lanes-wrap, .hip-mala, .wheel-fab) { display: none !important; }
+body:has(.hasim-solo) .hip-screen { position: fixed !important; inset: 0 !important; height: auto !important; padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px) !important; }
+body:has(.hasim-solo) .hip-room-body { padding: 0 !important; }
+/* 멍 앉은 자리(까만 화면) — 공덕 띠와 법륜이 위에 떠 있었다 */
+body:has(.mung-sit) :is(.hip-daybar, .wheel-fab) { display: none !important; }

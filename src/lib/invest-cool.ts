@@ -67,3 +67,40 @@ export function 한마디(want: 욕심, did: 결말, n: number): string {
   const pool = want === "look" ? 봄 : did === "kept" ? 참음 : 했음;
   return pool[n % pool.length];
 }
+
+/** 위에 뜨는 한 마디 — 늘 두 줄, 끊는 자리는 여기서 정한다(형: 「이상하게 끊기게 하지 마」).
+ *  주식갤 말맛으로 짧고 세게(형: 「DC 갤러리든 뭐든 재밌는 거 가져와, 함축적으로」) — 놀리는 대상은 늘 시장이지 사람이 아니다 */
+export const 말들: Record<쪽, { 급함: string[]; 끝: string[]; 단계: [number, string[]][] }> = {
+  // 형: 「반말로, 뭐 하는 중이냐 말고 뭐뭐 중 — 깔끔하게, 서술할 필요 없다」
+  buy: {
+    급함: ["손가락이 가즈아.", "한 번에 한 번씩."],
+    끝: ["108번 존버한 평단.", "이제 가즈아."],
+    단계: [[90, ["지금 사면 구조대 1번.", "일단 쳐."]], [60, ["떡락 중. 좋은 쪽으로.", "줍줍 각 잡는 중."]], [30, ["아까 샀으면 「안 살껄」.", "껄무새 탈출."]], [0, ["바닥 냄새.", "인간지표 졸업 직전."]]],
+  },
+  sell: {
+    급함: ["손절 버튼에서 손 떼.", "한 번에 한 번씩."],
+    끝: ["108번 존버한 익절가.", "이제 웃으며 매도."],
+    단계: [[90, ["지금 던지면 개미털기 당첨.", "일단 쳐."]], [60, ["떡상 중. 들고 있는 쪽이.", "설거지는 남이."]], [30, ["아까 던졌으면 배 아플 자리.", "존버 승리."]], [0, ["고점 냄새.", "인간지표 졸업 직전."]]],
+  },
+};
+/** 종목 이름을 적었으면 첫 줄 앞에 붙는다 — 「엔비디아, 지금 사면 구조대 1번.」 */
+export function 말(want: 쪽, left: number, 급함: boolean, 이름 = "") {
+  const m = 말들[want];
+  const 줄 = 급함 ? m.급함 : left === 0 ? m.끝 : m.단계.find(([n]) => left > n)![1];
+  return (이름 && !급함 ? [`${이름}, ${줄[0]}`, 줄[1]] : 줄).join("\n");
+}
+
+export type 쪽 = "buy" | "sell";
+
+/** 종목 이름 — 짧게(두 줄 말풍선이 안 넘치게) */
+export const 이름다듬기 = (v: string | null | undefined) => (v ?? "").replace(/[\n\r,]/g, " ").trim().slice(0, 8);
+
+/** 최근 적은 종목 셋 — 다음엔 눌러서 고른다 */
+const NAMES_KEY = "hwadu.bulsim.names.v1";
+export function 최근종목(): string[] {
+  try { const p: unknown = JSON.parse(localStorage.getItem(NAMES_KEY) ?? "[]"); return Array.isArray(p) ? p.filter((x): x is string => typeof x === "string").slice(0, 3) : []; } catch { return []; }
+}
+export function 종목적기(n: string) {
+  if (!n) return;
+  try { localStorage.setItem(NAMES_KEY, JSON.stringify([n, ...최근종목().filter((x) => x !== n)].slice(0, 3))); } catch { /* 저장 막힘 */ }
+}
