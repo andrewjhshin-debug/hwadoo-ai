@@ -9,7 +9,8 @@ export const NEW_MALA_SKINS = [
   { id: 'silverom', name: '흑옥', dot: '#484748' },
 ].map(s => {
   const folder = ['blackgold', 'whitejade', 'flowerwood', 'silverom'].includes(s.id) ? '/obj/practice-collection-v2' : root;
-  return { ...s, src: `${folder}/${s.id}.webp`, one: `${folder}/${s.id}.webp`, lit: `${folder}/${s.id}.webp`, wide: true as const };
+  const image = s.id === 'ebony' ? '/obj/practice-collection-v2/ebony-smooth.webp' : `${folder}/${s.id}.webp`;
+  return { ...s, src: image, one: image, lit: image, wide: true as const };
 });
 export const isNewMala = (id: string) => NEW_MALA_SKINS.some(s => s.id === id);
 export function malaBeadImage(id: string, index: number, fallback: string) {
