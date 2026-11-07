@@ -37,8 +37,7 @@ export type Bead = { mark: string; name: string; href: string; also: string[] };
 export const BEADS: Bead[] = [
   { mark: "話", name: "화두", href: "/", also: ["/my-hwadu", "/archive", "/room", "/ganhwaseon", "/masters"] },
   { mark: "堂", name: "법당", href: "/candle", also: [] },
-  // 형: 「호흡은 왜 我로 표기되지」 — 功 줄(HipLanes)의 방은 전부 功 안이다. 목록을 손으로 따로 적지 않고 그 줄에서 읽는다
-  { mark: "功", name: "공덕", href: "/moktak", also: [...ROOM_LANES.map((r) => r.href), "/tower/challenge"] },
+  // 형: 「밑에 바에서 공덕이랑 인연 위치 바꿔, 인연을 가운데로」 — 話 堂 緣 功 我 (쓸기 순서도 따라간다)
   // 형: 「메인 아래 탭은 화두, 손잡고 절로(게시판)」
   // 인연 세 방(오늘의 인연 · 내 프로필 · 프로필 보기)도 緣 안이다
   {
@@ -47,6 +46,8 @@ export const BEADS: Bead[] = [
     href: "/gathering",
     also: ["/pilgrimage", "/gathering/yeon", "/gathering/me", "/gathering/me/view", "/gathering/alerts", "/gathering/likes", "/letters", "/go", "/moment"],
   },
+  // 형: 「호흡은 왜 我로 표기되지」 — 功 줄(HipLanes)의 방은 전부 功 안이다. 목록을 손으로 따로 적지 않고 그 줄에서 읽는다
+  { mark: "功", name: "공덕", href: "/moktak", also: [...ROOM_LANES.map((r) => r.href), "/tower/challenge"] },
   {
     mark: "我",
     // 형: 「아래탭 맨 오른쪽 앱은 연꽃공양 말고 내 도량으로」.
