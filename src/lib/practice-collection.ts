@@ -5,7 +5,6 @@ const seed = '/obj/seedwood-mala-v1';
 const seedTones = ['honey', 'chestnut', 'amber'];
 export const NEW_MALA_SKINS = [
   { id: 'ebony', name: '흑단', dot: '#30231f' },
-  { id: 'carved', name: '목각', dot: '#c78a52', image: `${solid}/carved-solid.webp` },
   { id: 'blackgold', name: '흑금', dot: '#312c23' },
   { id: 'lotuswood', name: '연화목', dot: '#b66c31', image: `${solid}/lotuswood-solid.webp` },
 ].map(s => {
