@@ -1452,7 +1452,8 @@ body:has(.hip-yh, .hip-yeon-deck, .hip-yeon-head) .hip-bloom { display: none !im
 .hip-cat-menu button svg { display: none; }
 /* 형: 「인연 게시판에선 바 메뉴를 치웠다가 눌리면 튀어나오든」 — 판 아래 염주 줄을 걷는다. 오른쪽 아래 법륜 단추가 모든 방을 연다 */
 /* 형: 「법륜은 인연에선 안 뜨게」 「메뉴바 위까지로 게시물을 끊든」 — 인연에선 법륜을 걷고, 아래 염주 줄은 두되 그 뒤로 글이 비치지 않게 바닥을 깐다 */
-body:has(.hip-yh) :is(.doryang-fab, .wheel-fab), body:has(.hip-cmt-bar) :is(.doryang-fab, .wheel-fab) { display: none !important; }
+/* 형: 「바퀴륜(법륜) 인연에 다시 넣어 줘」 — 인연에서도 법륜을 띄운다. 댓글 줄이 열렸을 때만 걷는다(겹친다) */
+body:has(.hip-cmt-bar) :is(.doryang-fab, .wheel-fab) { display: none !important; }
 @media (max-width: 767px) {
   body:has(.hip-yh) .hip-mala::before { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: calc(env(safe-area-inset-bottom) + 96px); background: linear-gradient(180deg, rgba(250,248,245,0), #faf8f5 26%); z-index: -1; pointer-events: none; }
 }
