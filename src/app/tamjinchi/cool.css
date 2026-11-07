@@ -57,19 +57,19 @@
 .cool-nums div { padding: 8px 0; border-radius: 12px; background: #f6f5f2; }
 .cool-nums b { display: block; font-family: var(--font-serif); font-weight: 400; font-size: 22px; letter-spacing: -0.04em; }
 .cool-nums span { font-size: 10.5px; color: var(--cool-dim); }
-.cool-again { display: flex; gap: 10px; margin-top: 14px; }
-.cool-again button { flex: 1; min-height: 52px; border-radius: 26px; background: var(--cool-ink); color: #fff; font-size: 15px; }
+.cool-again { display: flex; gap: 10px; margin-top: 8px; height: 54px; }
+.cool-again button { flex: 1; border-radius: 27px; background: var(--cool-ink); color: #fff; font-size: 15px; }
 .cool-again .cool-share { flex: 0 0 52px; background: #fff; color: var(--cool-pink); box-shadow: 0 2px 10px rgba(26, 23, 20, 0.08); font-size: 20px; }
 
 .cool :is(button, a):focus-visible { outline: 2px solid var(--cool-pink); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .cool-do:disabled { animation: none; } }
 @media (max-height: 700px) { .cool-candle { height: 180px; } .cool-count { font-size: 52px; } .cool-mok { width: 100px; height: 100px; } .cool-mok img { width: 70px; height: 70px; } }
 
-/* 산다 ↔ 판다 — 형: 「넘나들게」. 고른 쪽은 그 봉 빛깔로 */
-.cool-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 4px 0 10px; border-radius: 22px; background: #fff; box-shadow: 0 2px 10px rgba(26, 23, 20, 0.08); }
-.cool-mode button { min-height: 38px; border-radius: 18px; font-size: 14px; color: var(--cool-dim); transition: background 0.2s, color 0.2s; }
-.cool-mode button[aria-selected="true"].is-buy { background: #2f6bd8; color: #fff; }
-.cool-mode button[aria-selected="true"].is-sell { background: #e0344a; color: #fff; }
+/* 산다 ↔ 판다 — 형: 「넘나들게」「눌렀을 때 산다는 빨강, 판다는 파랑」. 목탁 밑, 다시·공유하기와 같은 자리·같은 높이 */
+.cool-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 8px 0 0; height: 54px; border-radius: 27px; background: #fff; box-shadow: 0 2px 10px rgba(26, 23, 20, 0.08); }
+.cool-mode button { border-radius: 23px; font-size: 15px; color: var(--cool-dim); transition: background 0.2s, color 0.2s; }
+.cool-mode button[aria-selected="true"].is-buy { background: #e0344a; color: #fff; }
+.cool-mode button[aria-selected="true"].is-sell { background: #2f6bd8; color: #fff; }
 .cool > .cool-say { margin: 0 0 6px; }
 .cool-say.is-hurry { color: #e0344a; }
 
@@ -99,3 +99,7 @@
 
 /* 끝 — 공유하기 */
 .cool-again .cool-share { flex: 1; background: #fff; color: var(--cool-ink); font-size: 15px; }
+/* 말은 늘 두 줄 — 끊는 자리는 글에 박힌 줄바꿈만. 폭이 좁아도 중간에 꺾이지 않게 */
+.cool > .cool-say { white-space: pre-line; height: calc(1.55em * 2 + 24px); overflow: hidden; font-size: clamp(13px, 3.7vw, 14.5px); }
+.cool-rule { margin: -4px 0 0; text-align: center; font-size: 12px; color: var(--cool-faint); font-variant-numeric: tabular-nums; }
+.cool-rule b { font-weight: 500; color: var(--cool-dim); }
