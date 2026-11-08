@@ -1722,3 +1722,27 @@ body:has(.hasim-solo) .hip-screen { position: fixed !important; inset: 0 !import
 body:has(.hasim-solo) .hip-room-body { padding: 0 !important; }
 /* 멍 앉은 자리(까만 화면) — 공덕 띠와 법륜이 위에 떠 있었다 */
 body:has(.mung-sit) :is(.hip-daybar, .wheel-fab) { display: none !important; }
+
+/* ── 아래 띠 「C · 가운데 솟은 단추」 ──
+   형: 「C로 하되 다 한자·한글로, 지금처럼 가운데는 인연」.
+   떠 있던 알약 대신 바닥에 붙은 흰 띠. 한자 밑에 한글 이름, 지금 칸은 먹색·나머지는 회색.
+   가운데 緣 은 띠 위로 솟은 분홍 동그라미 — 켜져 있든 아니든 늘 분홍이고, 켜지면 이름이 진해진다 */
+nav.hip-mala { left: 0; right: 0; bottom: 0; height: auto; padding: 0; justify-content: stretch; }
+nav.hip-mala .hip-mala-track { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; padding: 6px 4px calc(env(safe-area-inset-bottom, 0px) + 6px); border-radius: 0; background: rgba(255, 255, 255, 0.97); box-shadow: 0 -4px 20px rgba(26, 23, 20, 0.06); max-width: none; }
+nav.hip-mala button, nav.hip-mala button[data-on="1"] { width: auto; min-width: 0; height: 50px; border-radius: 12px; background: transparent; box-shadow: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #b3b0aa; }
+nav.hip-mala button b, nav.hip-mala button[data-on="1"] b { font-family: var(--font-serif); font-size: 20px; line-height: 1; color: #b3b0aa; }
+nav.hip-mala button span { font-size: 10.5px; line-height: 1; letter-spacing: -0.02em; color: #b3b0aa; }
+nav.hip-mala button[data-on="1"] b, nav.hip-mala button[data-on="1"] span { color: #1a1a1c; }
+nav.hip-mala button[data-on="1"] span { font-weight: 700; }
+nav.hip-mala button:active, nav.hip-mala button[data-on="1"]:active { background: rgba(26, 23, 20, 0.04); }
+/* 가운데 緣 — 솟은 분홍 단추 */
+nav.hip-mala button[data-mid="1"] { position: relative; justify-content: flex-end; }
+nav.hip-mala button[data-mid="1"]:active { background: transparent; }
+nav.hip-mala button[data-mid="1"] b { position: absolute; top: -26px; left: 50%; width: 56px; height: 56px; margin-left: -28px; border-radius: 50%; display: grid; place-items: center; font-size: 23px; color: #fff; background: linear-gradient(160deg, #f6a9c2, #e57399); border: 4px solid #fff; box-shadow: 0 6px 16px rgba(229, 115, 153, 0.42); transition: transform 0.15s; }
+nav.hip-mala button[data-mid="1"]:active b { transform: scale(0.94); }
+nav.hip-mala button[data-mid="1"] span { color: #d6537f; }
+nav.hip-mala button[data-mid="1"][data-on="1"] span { color: #d6537f; }
+@media (max-width: 400px) { nav.hip-mala { padding-left: 0; } }
+/* 법륜은 띠 오른쪽 위로 올린다 — 띠가 바닥 폭 전체를 쓰니 옆자리가 없다 */
+.wheel-fab { right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 76px); }
+@media (max-width: 400px) { .wheel-fab { right: 12px; } }

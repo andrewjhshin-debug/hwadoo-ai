@@ -42,7 +42,7 @@ export const BEADS: Bead[] = [
   // 인연 세 방(오늘의 인연 · 내 프로필 · 프로필 보기)도 緣 안이다
   {
     mark: "緣",
-    name: "절로",
+    name: "인연",
     href: "/gathering",
     also: ["/pilgrimage", "/gathering/yeon", "/gathering/me", "/gathering/me/view", "/gathering/alerts", "/gathering/likes", "/letters", "/go", "/moment"],
   },
@@ -53,7 +53,7 @@ export const BEADS: Bead[] = [
     // 형: 「아래탭 맨 오른쪽 앱은 연꽃공양 말고 내 도량으로」.
     // 길(href)은 처음부터 내 도량이 맞았다 — 쓸기가 딴 목록을 보고 있었을 뿐.
     // 읽어 주는 이름만 바로잡는다
-    name: "내 도량",
+    name: "나",
     href: "/settings",
     also: ["/rank", "/empty", "/tamjinchi", "/tamjinchi/records", "/lotus", "/settings/preferences", "/about", "/terms", "/privacy", "/youth"],
   },
@@ -119,8 +119,11 @@ export default function HipMala() {
           aria-label={b.name}
           aria-current={k === here ? "page" : undefined}
           data-on={k === here ? "1" : undefined}
+          data-mid={k === 2 ? "1" : undefined}
         >
           <b>{b.mark}</b>
+          {/* 형: 「C로 하되 다 한자·한글로, 가운데는 인연」 — 한자 밑에 이름, 가운데(緣)는 솟은 분홍 단추 */}
+          <span>{b.name}</span>
         </button>
       ))}
       </span>
