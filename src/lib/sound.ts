@@ -540,8 +540,10 @@ function 엘리먼트치기(src: string, vol: number): boolean {
 // v4 keeps the attack and adds filtered room resonance to the decay.
 // 북 v5 — 형: 「북소리 더 크게 웅장하고 공명 있게」. 104Hz 몸통 울림 0.55초 + 통 공명 + 법당 잔향 3초, 꼭대기는 둥글게 눌러 키웠다.
 // 북만 볼륨을 한 칸(×1.25) 더 연다
+// 징 v5 — 형: 「징소리 넘 이상, 다시」. v4 의 잔향 덧칠을 걷고 징 본래 소리만 — 132Hz(폰이 내는 높이) 몸통,
+// 붙은 짝 배음이 초당 세 번 「우웅우웅」 맥놀이, 친 뒤 음이 살짝 내려앉는다. 5초
 export function strikePercussion(kind: "jing" | "drum", volume: number) {
-  엘리먼트치기(kind === "jing" ? "/sfx/jing-v4.wav" : "/sfx/drum-v5.wav", kind === "drum" ? volume * 1.25 : volume);
+  엘리먼트치기(kind === "jing" ? "/sfx/jing-v5.wav" : "/sfx/drum-v5.wav", kind === "drum" ? volume * 1.25 : volume);
 }
 
 export type MoktakVoice = "gongyu" | "hyung";
