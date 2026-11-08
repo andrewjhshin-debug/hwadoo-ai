@@ -203,7 +203,8 @@ export default function HipMoktak({
           {/* 형: 「키캡도 눌렸을 때 합이 맞으면 목탁처럼 그 기능 넣어,
               계속 누르도록 유도하게」 — 치는 물건 둘(목탁·키캡)에만 둔다.
               염주는 굴리는 것이고 싱잉볼은 여운을 듣는 것이라 박자가 없다. */}
-          {(tab === "moktak" || tab === "keycap") && (
+          {/* 형: 「징이랑 북에도 목탁처럼 박자가 맞고 있어요 그거」 — 징·북도 치는 물건이다 */}
+          {(tab === "moktak" || tab === "keycap" || tab === "jing" || tab === "drum") && (
             <p className={`hip-beat${combo >= 2 ? " on" : ""}`} aria-live="polite">
               <b>合</b>
               <span>박자가 맞고 있어요 · {combo}번째</span>

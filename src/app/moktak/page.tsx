@@ -379,7 +379,28 @@ export default function MoktakPage() {
     buzz(kind === "jing" ? 16 : 24);
     earn(kind);
     setPercussionHits(previous => ({ ...previous, [kind]: previous[kind] + 1 }));
+
+    // 형: 「징이랑 북에도 목탁처럼 박자가 맞고 있어요 그거 넣어 줘」 — 키캡처럼 제 통을 따로 둔다.
+    // 징은 여운이 길어 느리게 쳐도 박자로 친다(4초까지)
+    const now = performance.now();
+    const gap = now - percLastAt.current;
+    if (percKind.current === kind && percLastAt.current && gap > 120 && gap < (kind === "jing" ? 4000 : 2400)) {
+      const list = [...percBeats.current, gap].slice(-3);
+      percBeats.current = list;
+      const avg = list.reduce((s, x) => s + x, 0) / list.length;
+      const even = list.every((x) => Math.abs(x - avg) / avg < 0.16);
+      setPercCombo((c) => (list.length >= 2 && even ? c + 1 : 0));
+    } else {
+      percBeats.current = [];
+      setPercCombo(0);
+    }
+    percKind.current = kind;
+    percLastAt.current = now;
   };
+  const [percCombo, setPercCombo] = useState(0);
+  const percBeats = useRef<number[]>([]);
+  const percLastAt = useRef(0);
+  const percKind = useRef<"jing" | "drum" | null>(null);
 
   // ── 키캡 ──────────────────────────────────────────────────
   // 형: 「공양에 목탁 염주 싱잉볼 옆에 키캡도 하나 넣어라.
@@ -1264,7 +1285,7 @@ export default function MoktakPage() {
           jingSrc={skinSrc("jing")}
           mokSrc={skinSrc("moktak")}
           keySrc={keySrc}
-          combo={tab === "keycap" ? keyCombo : combo}
+          combo={tab === "keycap" ? keyCombo : tab === "jing" || tab === "drum" ? percCombo : combo}
           pos={pos}
           ringing={ringing}
           pops={pops}
