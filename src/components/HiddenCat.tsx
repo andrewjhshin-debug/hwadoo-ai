@@ -4,24 +4,29 @@ import { usePathname } from "next/navigation";
 
 // ─────────────────────────────────────────────────────────────
 // 숨은 고양이 — 형: 「랜덤으로 고양이 한 마리를 앱 전반에 히든으로. 나왔다가 좀 걸어 다니다가 다양한 모습」
-// 화면을 열 때 자주(셋 중 하나꼴, 하루 많아야 여덟 번) 버튼·카드 윗변에 올라와 걷고, 앉고, 하품하고, 그루밍하고 사라진다.
+// 화면을 열면 가끔 바로 찾아오고, 앱을 보고 있는 동안 2~4분마다 다시 기회를 잡는다. 하루 최대 여덟 번.
 // 누르면 소리 없이 깜짝 놀라 다른 자리로 총총 옮겨 간다(형: 「야옹 소리 지우고 눌리면 그냥 움직이는 걸로」). 화면을 옮기면 사라지고, 스크롤하면 올라선 자리와 함께 움직인다.
-// 그림: public/obj/cat/*.webp (제미나이 한 장에서 오린 여덟 자세, 모두 오른쪽을 본다)
+// 그림: motions-v2.webp. 윗줄은 왼쪽을 향해 걷는 여섯 장, 아랫줄은 휴식 동작 여섯 장.
 // 시험: 주소 뒤에 ?cat=1 이면 확률·하루 횟수 없이 곧바로 나온다
 // ─────────────────────────────────────────────────────────────
 
-type Pose = "walk1" | "walk2" | "sit" | "loaf" | "sleep" | "stretch" | "groom" | "yawn";
-const SIZE: Record<Pose, [number, number]> = {
-  walk1: [216, 182], walk2: [210, 179], sit: [152, 212], loaf: [186, 137],
-  sleep: [204, 119], stretch: [213, 221], groom: [184, 207], yawn: [178, 211],
+type Pose = "sit" | "groom" | "stretch" | "sleep";
+const SPRITE_SIZE = 60;
+const SPRITE_COLUMNS = 6;
+const MOTIONS: Record<Pose, readonly number[]> = {
+  sit: [6, 7, 6, 6],
+  groom: [8, 9, 8, 9, 6],
+  stretch: [10],
+  sleep: [11],
 };
-const SCALE = 0.27; // 걷는 키가 약 49px
 const SPEED = 42; // px/초
 const CHANCE = 0.35; // 화면 하나 열 때 나올 확률 — 형: 「좀 자주 나오게」
 const PER_DAY = 8;
 const DAY_KEY = "hwadu.cat.day.v1";
+const 다음간격 = () => (2 + Math.random() * 2) * 60_000;
 
 type Step = { pose: Pose | "walk"; dur: number; x0: number; x1: number };
+type Perch = { el: HTMLElement; l: number; r: number; counter?: true };
 
 const 오늘 = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
 function 오늘횟수(): number {
@@ -32,8 +37,14 @@ function 횟수더하기() {
 }
 
 // 올라설 자리 — 화면 안에 다 보이고 폭이 넉넉한 버튼·카드의 윗변
-function 자리찾기(): { el: HTMLElement; l: number; r: number } | null {
+function 자리찾기(): Perch | null {
   const H = innerHeight, W = innerWidth;
+  const counter = document.querySelector<HTMLElement>("[data-cat-counter]");
+  const 숫자 = counter?.querySelector(".hip-big")?.getBoundingClientRect();
+  if (counter && 숫자 && 숫자.width > 0 && 숫자.top > 90 && 숫자.bottom < H - 100) {
+    const 가운데 = 숫자.left + 숫자.width / 2;
+    return { el: counter, l: Math.max(34, 가운데 - 105), r: Math.min(W - 34, 가운데 + 105), counter: true };
+  }
   const 후보 = [...document.querySelectorAll<HTMLElement>("button, a, [class*='card'], [class*='box']")]
     .map((el) => ({ el, b: el.getBoundingClientRect() }))
     .filter(({ el, b }) => {
@@ -48,7 +59,7 @@ function 자리찾기(): { el: HTMLElement; l: number; r: number } | null {
 
 // 걷다 — 쉬다 — 걷다 … 끝은 다시 가장자리로 걸어 나간다
 function 각본(l: number, r: number): Step[] {
-  const 쉼: [Pose, number][] = [["sit", 2.2], ["yawn", 1.3], ["groom", 2.6], ["stretch", 1.7], ["loaf", 4], ["sleep", 6]];
+  const 쉼: [Pose, number][] = [["sit", 2.2], ["groom", 2.6], ["stretch", 1.7], ["sleep", 4]];
   const 시작왼쪽 = Math.random() < 0.5;
   let x = 시작왼쪽 ? l : r;
   const steps: Step[] = [];
@@ -56,7 +67,7 @@ function 각본(l: number, r: number): Step[] {
   const 몇번 = 2 + Math.floor(Math.random() * 2);
   for (let i = 0; i < 몇번; i++) {
     걷기(l + (r - l) * (0.2 + Math.random() * 0.6));
-    const [pose, dur] = 쉼[Math.floor(Math.random() * 쉼.length)];
+    const [[pose, dur]] = 쉼.splice(Math.floor(Math.random() * 쉼.length), 1);
     steps.push({ pose, dur: dur * (0.8 + Math.random() * 0.4), x0: x, x1: x });
   }
   걷기(시작왼쪽 ? r : l);
@@ -65,54 +76,75 @@ function 각본(l: number, r: number): Step[] {
 
 export default function HiddenCat() {
   const path = usePathname();
-  const [run, setRun] = useState<{ el: HTMLElement; l: number; r: number; steps: Step[]; key: number; 이어서?: boolean } | null>(null);
-  const img = useRef<HTMLImageElement>(null);
+  const 다음등장 = useRef<number | null>(null);
+
+  return <CatScene key={path} 다음등장={다음등장} />;
+}
+
+function CatScene({ 다음등장 }: { 다음등장: { current: number | null } }) {
+  const [run, setRun] = useState<(Perch & { steps: Step[]; 이어서?: boolean }) | null>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const sprite = useRef<HTMLSpanElement>(null);
   const 지금x = useRef(0);
 
-  // 화면이 바뀔 때마다 가끔 부른다
+  // 화면을 옮겨도 다음 등장 시각은 이어진다.
   useEffect(() => {
-    setRun(null);
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const 시험 = new URLSearchParams(location.search).get("cat") === "1";
-    if (!시험 && (오늘횟수() >= PER_DAY || Math.random() > CHANCE)) return;
-    // 화면이 막 열려 자리가 아직 안 잡혔으면 3초 뒤 두 번 더 둘러본다
+    const 첫간격 = () => Math.random() < CHANCE ? 4000 + Math.random() * 8000 : 다음간격();
+    다음등장.current ??= Date.now() + 첫간격();
     let t = 0, 남은 = 3;
     const 둘러보기 = () => {
-      const 자리 = 자리찾기();
-      if (!자리 || 자리.r - 자리.l < 110) { if (--남은 > 0) t = window.setTimeout(둘러보기, 3000); return; }
-      if (!시험) 횟수더하기();
-      setRun({ el: 자리.el, l: 자리.l, r: 자리.r, steps: 각본(자리.l, 자리.r), key: Date.now() });
+      if (document.visibilityState === "visible" && (시험 || 오늘횟수() < PER_DAY)) {
+        const 자리 = 자리찾기();
+        if (자리 && 자리.r - 자리.l >= 110) {
+          지금x.current = 자리.l;
+          if (!시험) 횟수더하기();
+          setRun({ ...자리, steps: 각본(자리.l, 자리.r) });
+        } else if (--남은 > 0) {
+          t = window.setTimeout(둘러보기, 3000);
+          return;
+        }
+      }
+      if (!시험) {
+        남은 = 3;
+        const 간격 = 다음간격();
+        다음등장.current = Date.now() + 간격;
+        t = window.setTimeout(둘러보기, 간격);
+      }
     };
-    t = window.setTimeout(둘러보기, 시험 ? 1200 : 4000 + Math.random() * 8000);
+    t = window.setTimeout(둘러보기, 시험 ? 1200 : Math.max(1200, 다음등장.current - Date.now()));
     return () => clearTimeout(t);
-  }, [path]);
+  }, [다음등장]);
 
   // 움직임 — 올라선 자리를 매 장면 다시 재서 함께 스크롤된다. 자리가 사라지거나 화면 밖으로 나가면 고양이도 간다
   useEffect(() => {
-    if (!run) return;
-    const el = img.current!;
+    const el = button.current, 그림 = sprite.current;
+    if (!run || !el || !그림) return;
     const 전체 = run.steps.reduce((a, s) => a + s.dur, 0);
     const 시작 = performance.now();
     let raf = 0;
     const 그리기 = (now: number) => {
-      const t = (now - 시작) / 1000;
-      const 자리 = run.el.getBoundingClientRect();
-      if (t >= 전체 || !run.el.isConnected || 자리.top < 60 || 자리.top > innerHeight - 60) { setRun(null); return; }
+      const t = Math.max(0, (now - 시작) / 1000);
+      const 자리 = (run.counter ? run.el.querySelector(".hip-big") : run.el)?.getBoundingClientRect();
+      if (t >= 전체 || !run.el.isConnected || !자리 || 자리.top < 60 || 자리.top > innerHeight - 60) { setRun(null); return; }
       let 앞 = 0, s = run.steps[run.steps.length - 1];
       for (const q of run.steps) { if (t < 앞 + q.dur) { s = q; break; } 앞 += q.dur; }
       const k = (t - 앞) / s.dur;
       const x = s.x0 + (s.x1 - s.x0) * k;
       지금x.current = x;
       const 걷는중 = s.pose === "walk";
-      const pose: Pose = 걷는중 ? (Math.floor(t / 0.22) % 2 ? "walk2" : "walk1") : (s.pose as Pose);
-      const [w, h] = SIZE[pose];
+      const 동작시간 = t - 앞;
+      const frames = s.pose === "walk" ? null : MOTIONS[s.pose];
+      const frame = frames
+        ? frames[Math.floor(동작시간 / 0.28) % frames.length]
+        : Math.floor(동작시간 / (run.이어서 && 앞 === 0 ? 0.07 : 0.12)) % SPRITE_COLUMNS;
       const 왼쪽봄 = 걷는중 ? s.x1 < s.x0 : (el.dataset.left === "1");
       el.dataset.left = 왼쪽봄 ? "1" : "0";
-      const 들썩 = 걷는중 ? Math.abs(Math.sin((t * Math.PI) / 0.22)) * 1.5 : 0;
-      const src = `/obj/cat/${pose}.webp`;
-      if (!el.src.endsWith(src)) el.src = src;
-      el.style.width = `${w * SCALE}px`;
-      el.style.transform = `translate(${x - (w * SCALE) / 2}px, ${자리.top - h * SCALE - 들썩 + 1}px) scaleX(${왼쪽봄 ? -1 : 1})`;
+      그림.style.backgroundPosition = `-${frame % SPRITE_COLUMNS * SPRITE_SIZE}px -${Math.floor(frame / SPRITE_COLUMNS) * SPRITE_SIZE}px`;
+      const 화면x = run.counter ? x : 자리.left + 18 + (x - run.l) / (run.r - run.l) * (자리.width - 36);
+      const 바닥 = run.counter ? 자리.bottom - 자리.height * 0.08 : 자리.top + 1;
+      el.style.transform = `translate(${화면x - SPRITE_SIZE / 2}px, ${바닥 - SPRITE_SIZE}px) scaleX(${왼쪽봄 ? 1 : -1})`;
       el.style.opacity = String(Math.min(1, run.이어서 ? 1 : t / 0.4, (전체 - t) / 0.4));
       raf = requestAnimationFrame(그리기);
     };
@@ -132,8 +164,9 @@ export default function HiddenCat() {
 
   if (!run) return null;
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img key={run.key} ref={img} alt="" draggable={false} className="hidden-cat"
-      onClick={(e) => { e.stopPropagation(); 놀람(); }} />
+    <button ref={button} type="button" aria-label="고양이 움직이기" className="hidden-cat"
+      onClick={(e) => { e.stopPropagation(); 놀람(); }}>
+      <span ref={sprite} aria-hidden="true" />
+    </button>
   );
 }

@@ -185,7 +185,7 @@ export default function HipMoktak({
             한 번 내렸다가 다시 올린다 — **오브제가 위, 백팔 격자가 아래.**
             치는 물건이 눈에 먼저 들어오고, 얼마나 찼는지는 그 아래서
             받는다. 격자는 보는 것이지 누르는 것이 아니니 밑이 맞다. */}
-        <div className="hip-screen-mid">
+        <div className="hip-screen-mid" data-cat-counter>
           {/* ③ 숫자가 톡 — key 를 갈아 끼워 칠 때마다 다시 난다 */}
           <p key={`n${tab}${n}`} className="hip-big" aria-label={`오늘 ${n}번`}>
             {String(n).padStart(3, "0")}
