@@ -1734,9 +1734,9 @@ nav.hip-mala[data-sheet="1"] button[data-mid="1"] b { font-family: inherit; font
 .dharma-today a[data-done="1"] i { background: #f2789f; border-color: #f2789f; }
 .dharma-today a span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .dharma-today a small { font-size: 10.5px; color: #9aa0a8; }
-.dharma-rooms { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
-.dharma-rooms a { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: #5a6068; text-decoration: none; letter-spacing: -0.03em; white-space: nowrap; }
-.dharma-rooms a span { width: 46px; height: 46px; border-radius: 15px; background: #faf6ee; box-shadow: inset 0 0 0 1px #f0e6d2; display: grid; place-items: center; }
+.dharma-rooms { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.dharma-rooms a { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 10.5px; color: #5a6068; text-decoration: none; letter-spacing: -0.03em; white-space: nowrap; }
+.dharma-rooms a span { width: 44px; height: 44px; border-radius: 15px; background: #faf6ee; box-shadow: inset 0 0 0 1px #f0e6d2; display: grid; place-items: center; }
 .dharma-rooms a:active span { transform: scale(0.94); }
 .dharma-rooms svg { width: 24px; height: 24px; }
 @media (prefers-reduced-motion: reduce) { .dharma-sheet, .dharma-scrim { transition: none; } }

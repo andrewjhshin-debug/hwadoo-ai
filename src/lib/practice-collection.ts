@@ -13,7 +13,7 @@ export const NEW_MALA_SKINS = [
   { id: 'ebony', name: '흑단', dot: '#30231f' },
   { id: 'blackgold', name: '흑금', dot: '#312c23' },
   { id: 'lotuswood', name: '연화목', dot: '#b66c31', image: `${solid}/lotuswood-solid.webp` },
-  { id: 'seedwood', name: '연꽃나무', dot: '#9f6339', image: `${seed}/honey.webp` },
+  // 연꽃나무(seedwood) 걷음 — 형: 「청룡 왼쪽 아티초크 같은 거 지우라고」
   { id: JADE_DRAGON.id, name: '청옥 금룡', dot: '#2c8b82', image: JADE_DRAGON.bead },
 ].map(s => {
   const folder = s.id === 'blackgold' ? '/obj/practice-collection-v2' : root;

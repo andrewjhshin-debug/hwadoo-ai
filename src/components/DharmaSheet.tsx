@@ -23,6 +23,8 @@ const 선 = {
   bowl: <><path d="M3 11h18c0 4.6-4 8-9 8s-9-3.4-9-8Z" /><path d="M9 19.5h6" /></>,
   // 운세 — 산가지 셋이 꽂힌 통(곧게 세우면 손바닥처럼 보인다 — 가지를 부채로 벌린다)
   lots: <><path d="M6.5 11h11l-1.2 9a1.2 1.2 0 0 1-1.2 1H8.9a1.2 1.2 0 0 1-1.2-1Z" /><path d="M9.6 11 7.6 3.6M12 11V3M14.4 11l2-7.4" /></>,
+  // 불심투자 — 오르는 선 하나. 형: 「위 말고 요기 넣자, 어울리게」
+  stock: <><path d="M3.5 20h17" /><path d="m4 15.5 5-5 4 3 6.5-6.5" /><path d="M14.5 7h5v5" /></>,
   sprout: <><path d="M12 21v-9" /><path d="M12 12C12 7.5 9 5 4.5 5c0 4.5 3 7 7.5 7Z" /><path d="M12 14c0-3.6 2.4-5.6 6.5-5.6 0 3.6-2.4 5.6-6.5 5.6Z" /></>,
 };
 const 방: { href: string; name: string; ico: keyof typeof 선 }[] = [
@@ -31,6 +33,7 @@ const 방: { href: string; name: string; ico: keyof typeof 선 }[] = [
   { href: "/sutra", name: "외우기", ico: "sutra" },
   { href: "/empty", name: "비움", ico: "bowl" },
   { href: "/draw", name: "운세", ico: "lots" },
+  { href: "/tamjinchi", name: "불심투자", ico: "stock" },
   { href: "/try", name: "체험하기", ico: "sprout" },
 ];
 
