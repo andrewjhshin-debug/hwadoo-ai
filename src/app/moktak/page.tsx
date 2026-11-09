@@ -41,6 +41,7 @@ import {
   setMoktakVoice,
   strikeMoktak,
   strikePercussion,
+  warmPercussion,
   warmMoktak,
   type BowlTone,
   type MoktakVoice,
@@ -397,6 +398,10 @@ export default function MoktakPage() {
     percKind.current = kind;
     percLastAt.current = now;
   };
+  // 징·북 탭에 들어서면 음원을 미리 받아 둔다 — 첫 타부터 바로 운다
+  useEffect(() => {
+    if (tab === "jing" || tab === "drum") warmPercussion(tab);
+  }, [tab]);
   const [percCombo, setPercCombo] = useState(0);
   const percBeats = useRef<number[]>([]);
   const percLastAt = useRef(0);

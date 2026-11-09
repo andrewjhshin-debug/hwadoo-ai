@@ -234,7 +234,10 @@ export default function HipMoktak({
               type="button"
               className="hip-obj-sq mx-auto grid touch-manipulation place-items-center rounded-xl"
               aria-label={percussion === "jing" ? "징 치기" : "북 치기"}
-              onClick={event => {
+              // 형: 「칠 때마다 반응하게, 반응성 좋게」 — 손을 뗄 때(click)가 아니라 닿는 순간 친다. 자판(Enter)은 click 으로
+              onPointerDown={event => {
+                if (!event.isPrimary || event.button > 0) return;
+                event.preventDefault();
                 const art = event.currentTarget.firstElementChild;
                 if (art && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
                   art.getAnimations().forEach(animation => animation.cancel());
@@ -246,6 +249,8 @@ export default function HipMoktak({
                 }
                 onPercussionHit(percussion);
               }}
+              onClick={event => { if (event.detail === 0) onPercussionHit(percussion); }}
+              onContextMenu={event => event.preventDefault()}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={percussion === "jing" ? jingSrc : "/obj/practice-percussion-v1/drum.webp"} alt="" draggable={false} className="pointer-events-none h-full w-full object-contain" />

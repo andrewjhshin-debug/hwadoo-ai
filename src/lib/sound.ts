@@ -502,23 +502,29 @@ export function set소리길(v: 소리길 | null) {
 /** 음원마다 넷을 돌려 쓴다 — 연타가 앞 소리를 끊지 않게 */
 const 엘리먼트들 = new Map<string, HTMLAudioElement[]>();
 const 엘리먼트수 = 4;
-function 엘리먼트치기(src: string, vol: number): boolean {
-  if (typeof window === "undefined") return false;
-  if (isSoundMuted()) {
-    음소거알림();
-    return false;
-  }
+function 엘리먼트묶음(src: string): HTMLAudioElement[] {
   let 묶음 = 엘리먼트들.get(src);
   if (!묶음) {
     묶음 = Array.from({ length: 엘리먼트수 }, () => {
       const a = new Audio(src);
       a.preload = "auto";
       (a as HTMLAudioElement & { playsInline?: boolean }).playsInline = true;
+      a.load();
       return a;
     });
     엘리먼트들.set(src, 묶음);
   }
-  const a = 묶음.find((x) => x.paused || x.ended) ?? 묶음[0];
+  return 묶음;
+}
+function 엘리먼트치기(src: string, vol: number): boolean {
+  if (typeof window === "undefined") return false;
+  if (isSoundMuted()) {
+    음소거알림();
+    return false;
+  }
+  const 묶음 = 엘리먼트묶음(src);
+  // 다 울고 있으면 가장 많이 운(꼬리 끝인) 것을 거둔다 — [0]을 늘 끊으면 방금 친 소리가 잘린다
+  const a = 묶음.find((x) => x.paused || x.ended) ?? 묶음.reduce((m, x) => (x.currentTime > m.currentTime ? x : m));
   try {
     a.volume = Math.max(0, Math.min(1, vol));
     a.currentTime = 0;
@@ -542,8 +548,13 @@ function 엘리먼트치기(src: string, vol: number): boolean {
 // 북만 볼륨을 한 칸(×1.25) 더 연다
 // 징 v5 — 형: 「징소리 넘 이상, 다시」. v4 의 잔향 덧칠을 걷고 징 본래 소리만 — 132Hz(폰이 내는 높이) 몸통,
 // 붙은 짝 배음이 초당 세 번 「우웅우웅」 맥놀이, 친 뒤 음이 살짝 내려앉는다. 5초
+const 타악 = { jing: "/sfx/jing-v5.wav", drum: "/sfx/drum-v5.wav" } as const;
 export function strikePercussion(kind: "jing" | "drum", volume: number) {
-  엘리먼트치기(kind === "jing" ? "/sfx/jing-v5.wav" : "/sfx/drum-v5.wav", kind === "drum" ? volume * 1.25 : volume);
+  엘리먼트치기(타악[kind], kind === "drum" ? volume * 1.25 : volume);
+}
+/** 형: 「칠 때마다 반응하게, 반응성 좋게」 — 첫 타에 음원을 받기 시작하면 첫 소리가 늦는다. 탭에 들어서면 미리 받아 둔다 */
+export function warmPercussion(kind: "jing" | "drum") {
+  if (typeof window !== "undefined") 엘리먼트묶음(타악[kind]);
 }
 
 export type MoktakVoice = "gongyu" | "hyung";
