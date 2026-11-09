@@ -5,7 +5,7 @@ const seed = '/obj/seedwood-mala-v2';
 const seedTones = ['honey', 'chestnut', 'amber'];
 export const JADE_DRAGON = {
   id: 'jade-dragon',
-  count: 20,
+  count: 21,
   bead: '/obj/jade-dragon-mala-v1/jade-lotus.webp',
   master: '/obj/jade-dragon-mala-v1/gold-dragon.webp',
 };
@@ -22,7 +22,6 @@ export const NEW_MALA_SKINS = [
 });
 export const isNewMala = (id: string) => NEW_MALA_SKINS.some(s => s.id === id);
 export function malaBeadImage(id: string, index: number, fallback: string) {
-  if (id === JADE_DRAGON.id && index === 0) return JADE_DRAGON.master;
   if (id === 'seedwood') {
     const tone = index % 2 === 0 ? seedTones[Math.floor(index / 2) % seedTones.length] : 'spacer';
     return `${seed}/${tone}.webp`;
@@ -40,7 +39,6 @@ export function malaCharmImage(id: string, index: number) {
   return null;
 }
 export function malaBeadScale(id: string, index: number) {
-  if (id === JADE_DRAGON.id && index === 0) return 1.92;
   if (id === 'seedwood') return index % 2 === 0 ? 1.32 : 0.64;
   if (id === 'ebony' && index === 0) return 1.2;
   if (id === 'flowerwood' && index === 15) return 1.48;
@@ -52,11 +50,8 @@ export function malaGoldFilter(id: string) {
   return 'hip-wood-gold';
 }
 
-// 금룡을 앞에 놓고, 좌우에 반 알씩 자리를 더 내준다.
-export function jadeDragonBeadAngle(index: number) {
-  return 180 + (index === 0 ? 0 : (index + 0.5) * 360 / (JADE_DRAGON.count + 1));
-}
-
-export function jadeDragonTurn(radians: number) {
-  return ` rotate(${(-42 * Math.sin(radians)).toFixed(2)}deg) scaleX(${(0.64 + 0.36 * Math.abs(Math.cos(radians))).toFixed(3)})`;
+// 옥알이 금룡 뒤를 지나갈 때만 실루엣 속으로 사라진다.
+export function jadeDragonBeadOpacity(degrees: number) {
+  const distanceFromDragon = Math.abs(((degrees % 360) + 360) % 360 - 180);
+  return Math.max(0, Math.min(1, (distanceFromDragon - 7) / 10));
 }
