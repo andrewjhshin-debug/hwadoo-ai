@@ -26,7 +26,8 @@ import HipMoktak from "./HipMoktak";
 import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
-import { JADE_DRAGON, NEW_MALA_SKINS, isNewMala, jadeDragonBeadPose, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
+import { JADE_DRAGON, NEW_MALA_SKINS, isNewMala, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
+import JadeDragonTurntable from "./JadeDragonTurntable";
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -572,7 +573,7 @@ export default function MoktakPage() {
       }
     }
     const dragonImage = new window.Image();
-    dragonImage.src = JADE_DRAGON.master;
+    dragonImage.src = JADE_DRAGON.turntable;
   }, []);
 
   // 한 타 — 소리 · 글자 · 박자
@@ -712,6 +713,12 @@ export default function MoktakPage() {
     if (!jadeDragon) return index * 360 / ringBeadCount + angle;
     const slot = index === 0 ? 0 : index + 0.5;
     return 180 + slot * 360 / JADE_DRAGON.count + angle;
+  };
+  const dragonWidth = (beadWidth: number, x: number, t: number) => {
+    const silhouette = 0.44 + 0.48 * Math.abs(Math.cos(t));
+    // 옆에서는 투영된 알 간격이 짧아져도 금룡의 높이까지 작아지지 않게 한다.
+    const scale = 2.14 + 0.35 * Math.sin(t) ** 2;
+    return Math.min(beadWidth * scale, 2 * Math.min(x, 100 - x) / silhouette);
   };
   // 물든 만큼만 금빛 겹을 보여 준다 — 위 가운데의 표시점에서 반시계로.
   // 바깥 고리와 같은 출발점·방향이어야, 금빛이 갑자기 아래쪽에 덧칠된 듯 보이지 않는다.
@@ -964,25 +971,18 @@ export default function MoktakPage() {
                       // 형: 「염주 원래 모양대로 해. 알 더 줄이고」
                       // 알이 서로 닿아 도넛처럼 보였다. 염주는 **알과
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
-                      width: `${폭}%`,
+                      width: `${dragonMaster ? dragonWidth(폭, x, t) : 폭}%`,
                       transform: "translate(-50%, -50%)",
-                      // 금룡은 제 자리 간격(반 칸 벌어진)으로 재면 옆에서 옥알보다 작아졌다 — 이웃 옥알 중 큰 쪽 키에 맞춘다
-                      ...(dragonMaster ? (() => {
-                        const 이웃 = [1, ringBeadCount - 1].map((o) => ({ ...자리[o], w: (사이(o) / 0.872) * 1.12 }));
-                        // 양옆 옥알 사이 빈 길이 — 알 그림의 실제 알(87%) 반지름씩 뺀다
-                        const 틈 = Math.hypot(이웃[0].x - 이웃[1].x, 이웃[0].y - 이웃[1].y) - (이웃[0].w + 이웃[1].w) * 0.872 / 2;
-                        return jadeDragonBeadPose(deg, x, Math.max(폭, 이웃[0].w, 이웃[1].w), 고리폭, 고리높이, 염주원근, Math.max(0, 틈) * 1.1);
-                      })() : {}),
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
                       transition:
                         "left .16s linear, top .16s linear, width .16s linear, transform .16s linear",
                     }}
                   >
-                    {stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
+                    {dragonMaster ? <JadeDragonTurntable angle={180 - deg} /> : stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={dragonMaster ? JADE_DRAGON.master : malaBeadImage(skin.bead, i, beadOneSrc)}
+                      src={malaBeadImage(skin.bead, i, beadOneSrc)}
                       alt=""
                       draggable={false}
                       className="block w-full"
@@ -991,7 +991,7 @@ export default function MoktakPage() {
                          밝기로 준다 */
                       style={{ filter: 분홍결 }}
                     />
-                    {채움 > 0 && !dragonMaster && (
+                    {채움 > 0 && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={isNewMala(skin.bead) ? malaBeadImage(skin.bead, i, beadOneSrc) : beadLitSrc}
@@ -1902,17 +1902,8 @@ export default function MoktakPage() {
                           // 뒤쪽 알은 원근 탓에 그림 안의 여백까지 같이 작아져
                           // 서로 멀어 보였다. 앞쪽 크기는 그대로 두고, 뒤쪽만
                           // 조금 키워 고리의 간격이 끊기지 않게 한다.
-                          width: `${width}%`,
+                          width: `${dragonMaster ? dragonWidth(width, x, t) : width}%`,
                           transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
-                          ...(dragonMaster ? (() => {
-                            // 양옆 옥알 사이 빈 길이 — 짧아진 용이 그 틈은 메우게(위 세로형과 같은 셈)
-                            const 이웃 = [1, ringBeadCount - 1].map((o) => {
-                              const tt = beadDegrees(o) * (Math.PI / 180), fr = (1 - Math.cos(tt)) / 2;
-                              return { x: 50 + (고리폭 - 2) * Math.sin(tt), y: 50 - 고리높이 * Math.cos(tt), w: (13 * (0.62 + 0.52 * fr) + (1 - fr) * 3) * malaBeadScale(skin.bead, o) };
-                            });
-                            const 틈 = Math.hypot(이웃[0].x - 이웃[1].x, 이웃[0].y - 이웃[1].y) - (이웃[0].w + 이웃[1].w) / 2;
-                            return jadeDragonBeadPose(deg, x, Math.max(width, 이웃[0].w, 이웃[1].w), 고리폭 - 2, 고리높이, 0, Math.max(0, 틈) * 1.1);
-                          })() : {}),
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: goldTint && lit && !dragonMaster
@@ -1924,8 +1915,10 @@ export default function MoktakPage() {
                             : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))${beadHue(i)}`,
                         }}
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={dragonMaster ? JADE_DRAGON.master : malaBeadImage(skin.bead, i, skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc)} alt="" draggable={false} className="block w-full" />
+                        {dragonMaster
+                          ? <JadeDragonTurntable angle={180 - deg} duration={140} />
+                          // eslint-disable-next-line @next/next/no-img-element
+                          : <img src={malaBeadImage(skin.bead, i, skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc)} alt="" draggable={false} className="block w-full" />}
                         {malaCharmImage(skin.bead, i) && <img src={malaCharmImage(skin.bead, i)!} alt="" draggable={false} className="pointer-events-none absolute left-[5%] top-[72%] w-[90%]" />}
                       </span>
                     );
