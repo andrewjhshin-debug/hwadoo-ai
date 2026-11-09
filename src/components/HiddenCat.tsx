@@ -20,13 +20,14 @@ const MOTIONS: Record<Pose, readonly number[]> = {
   sleep: [11],
 };
 const SPEED = 42; // px/초
-const CHANCE = 0.35; // 화면 하나 열 때 나올 확률 — 형: 「좀 자주 나오게」
+const CHANCE = 0.35; // 앱을 열었을 때 첫 방문이 빨리 올 확률
 const PER_DAY = 8;
 const DAY_KEY = "hwadu.cat.day.v1";
 const 다음간격 = () => (2 + Math.random() * 2) * 60_000;
 
 type Step = { pose: Pose | "walk"; dur: number; x0: number; x1: number };
-type Perch = { el: HTMLElement; l: number; r: number; counter?: true };
+type Perch = { el: HTMLElement; kind: "counter" | "ledge" | "open"; height?: number };
+type Track = { l: number; r: number; floor: number };
 
 const 오늘 = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
 function 오늘횟수(): number {
@@ -36,25 +37,52 @@ function 횟수더하기() {
   try { localStorage.setItem(DAY_KEY, JSON.stringify({ d: 오늘(), n: 오늘횟수() + 1 })); } catch {}
 }
 
-// 올라설 자리 — 화면 안에 다 보이고 폭이 넉넉한 버튼·카드의 윗변
-function 자리찾기(): Perch | null {
-  const H = innerHeight, W = innerWidth;
-  const counter = document.querySelector<HTMLElement>("[data-cat-counter]");
-  const 숫자 = counter?.querySelector(".hip-big")?.getBoundingClientRect();
-  if (counter && 숫자 && 숫자.width > 0 && 숫자.top > 90 && 숫자.bottom < H - 100) {
-    const 가운데 = 숫자.left + 숫자.width / 2;
-    return { el: counter, l: Math.max(34, 가운데 - 105), r: Math.min(W - 34, 가운데 + 105), counter: true };
+function 걸을자리({ el, kind, height }: Perch): Track | null {
+  if (!el.isConnected) return null;
+  const b = (kind === "counter" ? el.querySelector(".hip-big") : el)?.getBoundingClientRect();
+  if (!b || b.width <= 0) return null;
+
+  let l = b.left + 18, r = b.right - 18, floor = b.top + 1;
+  if (kind === "counter") {
+    const center = b.left + b.width / 2;
+    l = center - 105;
+    r = center + 105;
+    floor = b.bottom - b.height * 0.08;
+  } else if (kind === "open") {
+    // 카드가 없는 법당 같은 화면에서도 본문 한쪽을 지나갈 수 있다.
+    const left = Math.max(0, b.left), right = Math.min(innerWidth, b.right);
+    const span = Math.min(right - left, 440);
+    l = (left + right - span) / 2 + 20;
+    r = (left + right + span) / 2 - 20;
+    const top = Math.max(0, b.top), bottom = Math.min(innerHeight, b.bottom);
+    floor = top + (bottom - top) * (height ?? 0.5);
   }
-  const 후보 = [...document.querySelectorAll<HTMLElement>("button, a, [class*='card'], [class*='box']")]
-    .map((el) => ({ el, b: el.getBoundingClientRect() }))
-    .filter(({ el, b }) => {
-      if (b.width < 150 || b.top < 120 || b.top > H - 150 || b.left < 0 || b.right > W) return false;
-      const 위 = document.elementFromPoint(b.left + b.width / 2, b.top + 3);
-      return !!위 && (위 === el || el.contains(위));
-    });
-  if (!후보.length) return null;
-  const { el, b } = 후보[Math.floor(Math.random() * 후보.length)];
-  return { el, l: b.left + 18, r: b.right - 18 };
+  l = Math.max(SPRITE_SIZE / 2 + 4, l);
+  r = Math.min(innerWidth - SPRITE_SIZE / 2 - 4, r);
+  return floor >= 115 && floor <= innerHeight - 110 && r - l >= 110 ? { l, r, floor } : null;
+}
+
+// 먼저 보이는 본문 안의 카드와 버튼을 살핀다. 숫자 앞도 여러 자리 중 하나다.
+function 자리찾기(): (Perch & Track) | null {
+  const main = document.querySelector<HTMLElement>("#scroll-box main");
+  if (!main) return null;
+  const 후보: (Perch & Track)[] = [];
+  const 추가 = (perch: Perch) => {
+    const track = 걸을자리(perch);
+    if (!track) return;
+    const y = track.floor + (perch.kind === "ledge" ? 2 : -12);
+    const hit = document.elementFromPoint((track.l + track.r) / 2, y);
+    if (hit && perch.el.contains(hit)) 후보.push({ ...perch, ...track });
+  };
+  for (const el of main.querySelectorAll<HTMLElement>("button, a, article, [class*='card'], [class*='box']")) {
+    추가({ el, kind: "ledge" });
+  }
+  const counter = main.querySelector<HTMLElement>("[data-cat-counter]");
+  if (counter) 추가({ el: counter, kind: "counter" });
+  // 카드가 없는 화면에도 여유 있는 높이 두 곳을 후보로 둔다.
+  추가({ el: main, kind: "open", height: 0.32 });
+  추가({ el: main, kind: "open", height: 0.68 });
+  return 후보[Math.floor(Math.random() * 후보.length)] ?? null;
 }
 
 // 걷다 — 쉬다 — 걷다 … 끝은 다시 가장자리로 걸어 나간다
@@ -82,7 +110,7 @@ export default function HiddenCat() {
 }
 
 function CatScene({ 다음등장 }: { 다음등장: { current: number | null } }) {
-  const [run, setRun] = useState<(Perch & { steps: Step[]; 이어서?: boolean }) | null>(null);
+  const [run, setRun] = useState<(Perch & Track & { steps: Step[]; 이어서?: boolean }) | null>(null);
   const button = useRef<HTMLButtonElement>(null);
   const sprite = useRef<HTMLSpanElement>(null);
   const 지금x = useRef(0);
@@ -97,7 +125,7 @@ function CatScene({ 다음등장 }: { 다음등장: { current: number | null } }
     const 둘러보기 = () => {
       if (document.visibilityState === "visible" && (시험 || 오늘횟수() < PER_DAY)) {
         const 자리 = 자리찾기();
-        if (자리 && 자리.r - 자리.l >= 110) {
+        if (자리) {
           지금x.current = 자리.l;
           if (!시험) 횟수더하기();
           setRun({ ...자리, steps: 각본(자리.l, 자리.r) });
@@ -126,8 +154,8 @@ function CatScene({ 다음등장 }: { 다음등장: { current: number | null } }
     let raf = 0;
     const 그리기 = (now: number) => {
       const t = Math.max(0, (now - 시작) / 1000);
-      const 자리 = (run.counter ? run.el.querySelector(".hip-big") : run.el)?.getBoundingClientRect();
-      if (t >= 전체 || !run.el.isConnected || !자리 || 자리.top < 60 || 자리.top > innerHeight - 60) { setRun(null); return; }
+      const 자리 = 걸을자리(run);
+      if (t >= 전체 || !자리) { setRun(null); return; }
       let 앞 = 0, s = run.steps[run.steps.length - 1];
       for (const q of run.steps) { if (t < 앞 + q.dur) { s = q; break; } 앞 += q.dur; }
       const k = (t - 앞) / s.dur;
@@ -142,9 +170,8 @@ function CatScene({ 다음등장 }: { 다음등장: { current: number | null } }
       const 왼쪽봄 = 걷는중 ? s.x1 < s.x0 : (el.dataset.left === "1");
       el.dataset.left = 왼쪽봄 ? "1" : "0";
       그림.style.backgroundPosition = `-${frame % SPRITE_COLUMNS * SPRITE_SIZE}px -${Math.floor(frame / SPRITE_COLUMNS) * SPRITE_SIZE}px`;
-      const 화면x = run.counter ? x : 자리.left + 18 + (x - run.l) / (run.r - run.l) * (자리.width - 36);
-      const 바닥 = run.counter ? 자리.bottom - 자리.height * 0.08 : 자리.top + 1;
-      el.style.transform = `translate(${화면x - SPRITE_SIZE / 2}px, ${바닥 - SPRITE_SIZE}px) scaleX(${왼쪽봄 ? 1 : -1})`;
+      const 화면x = 자리.l + (x - run.l) / (run.r - run.l) * (자리.r - 자리.l);
+      el.style.transform = `translate(${화면x - SPRITE_SIZE / 2}px, ${자리.floor - SPRITE_SIZE}px) scaleX(${왼쪽봄 ? 1 : -1})`;
       el.style.opacity = String(Math.min(1, run.이어서 ? 1 : t / 0.4, (전체 - t) / 0.4));
       raf = requestAnimationFrame(그리기);
     };
