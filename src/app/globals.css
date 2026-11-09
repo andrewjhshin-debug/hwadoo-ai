@@ -1741,3 +1741,13 @@ nav.hip-mala[data-sheet="1"] button[data-mid="1"] b { font-family: inherit; font
 .dharma-rooms a:active span { transform: scale(0.94); }
 .dharma-rooms svg { width: 24px; height: 24px; }
 @media (prefers-reduced-motion: reduce) { .dharma-sheet, .dharma-scrim { transition: none; } }
+
+/* 징·북 — 목탁처럼 「박자가 맞고 있어요」 한 줄을 이면서, 같은 셈으로는 살갗 점이 판 밖으로 밀려 잘렸다(형: 「짤리자나」).
+   싱잉볼처럼 그 한 줄 몫을 물건에서 덜어 낸다 */
+@media (min-width: 0px) {
+  .hip-screen:is([data-lane="jing"], [data-lane="drum"]) { --hip-obj-w: max(190px, min(calc(100vw - 22px), calc(100svh - 500px), 420px)); }
+}
+/* 염주 — 살갗 점이 판 아래로 스무 px 남짓 밀려 잘렸다. 그 몫만 덜어 낸다 */
+@media (min-width: 0px) {
+  .hip-screen[data-lane="yeomju"] { --hip-obj-w: max(190px, min(calc(100vw - 22px), calc(100svh - 476px), 420px)); }
+}
