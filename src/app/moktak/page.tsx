@@ -26,7 +26,7 @@ import HipMoktak from "./HipMoktak";
 import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
-import { NEW_MALA_SKINS, isNewMala, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
+import { JADE_DRAGON, NEW_MALA_SKINS, isNewMala, jadeDragonBeadAngle, jadeDragonTurn, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -303,7 +303,8 @@ export default function MoktakPage() {
   const beadOneSrc = 그림(beadOne?.one ?? "/obj/bead-paw-one.png");
   const beadLitSrc = 그림(beadOne?.lit ?? "/obj/bead-paw-one-gold.png");
   const stoneMala = skin.bead === "stone" || skin.bead === "zodiac";
-  const ringBeadCount = skin.bead === "seedwood" ? 20 : RING_BEADS;
+  const jadeDragon = skin.bead === JADE_DRAGON.id;
+  const ringBeadCount = jadeDragon ? JADE_DRAGON.count : skin.bead === "seedwood" ? 20 : RING_BEADS;
   const goldTint = isNewMala(skin.bead) || skin.bead === "sandalwood"
     ? `url(#${malaGoldFilter(skin.bead)}) `
     : "";
@@ -567,6 +568,8 @@ export default function MoktakPage() {
         }
       }
     }
+    const dragonImage = new window.Image();
+    dragonImage.src = JADE_DRAGON.master;
   }, []);
 
   // 한 타 — 소리 · 글자 · 박자
@@ -702,6 +705,7 @@ export default function MoktakPage() {
   const pos = total % BEADS;
   const rounds = Math.floor(total / BEADS);
   const angle = -total * STEP;
+  const beadDegrees = (index: number) => (jadeDragon ? jadeDragonBeadAngle(index) : index * 360 / ringBeadCount) + angle;
   // 물든 만큼만 금빛 겹을 보여 준다 — 위 가운데의 표시점에서 반시계로.
   // 바깥 고리와 같은 출발점·방향이어야, 금빛이 갑자기 아래쪽에 덧칠된 듯 보이지 않는다.
   const f = pos / BEADS;
@@ -880,7 +884,7 @@ export default function MoktakPage() {
               // 옆 알까지의 거리를 재서 그만큼을 폭으로 준다.
               // 그러면 원근이 어떻든, 알이 몇이든, 틈이 안 생긴다.
               const 자리 = Array.from({ length: ringBeadCount }, (_, i) => {
-                const deg = (i / ringBeadCount) * 360 + angle;
+                const deg = beadDegrees(i);
                 const t = deg * (Math.PI / 180);
                 const 멂 = 3.5;
                 const 가까움 = 멂 / (멂 + Math.cos(t));
@@ -898,17 +902,20 @@ export default function MoktakPage() {
                   (형: 「알끼리 좀 겹쳐도 되니까 이격 넘 벌어지지 않게」) */
               const 사이 = (i: number) => {
                 const a = 자리[i];
-                const b = 자리[(i + 1) % ringBeadCount];
-                const c = 자리[(i - 1 + ringBeadCount) % ringBeadCount];
-                return Math.max(
-                  Math.hypot(a.x - b.x, a.y - b.y),
-                  Math.hypot(a.x - c.x, a.y - c.y)
-                );
+                const 거리 = (offset: number) => {
+                  const j = (i + offset + ringBeadCount) % ringBeadCount;
+                  const b = 자리[j];
+                  // 금룡 옆의 여유 칸은 알 크기 계산에서만 빼 준다.
+                  const 여유 = jadeDragon && (i === 0 || j === 0) ? 1.5 : 1;
+                  return Math.hypot(a.x - b.x, a.y - b.y) / 여유;
+                };
+                return Math.max(거리(1), 거리(-1));
               };
 
               return 자리.map(({ t, x, y }, i) => {
-                const deg = (i / ringBeadCount) * 360 + angle;
+                const deg = beadDegrees(i);
                 const front = (1 - Math.cos(t)) / 2;
+                const dragonMaster = jadeDragon && i === 0;
                 // ── 뒤가 벌어지던 까닭 ──────────────────────
                 // 형: 「염주 뒤가 너무 벌어지는 거 이거 고칠 수 있냐」
                 //
@@ -935,7 +942,8 @@ export default function MoktakPage() {
                   pos === 0
                     ? 0
                     : Math.max(0, Math.min(1, (물결 - (표시에서 - 칸)) / 칸));
-                const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})${beadHue(i)}`;
+                const 용빛 = dragonMaster ? 0.13 * 채움 : 0;
+                const 분홍결 = `brightness(${(1.0 + 0.06 * front + 용빛).toFixed(2)})${beadHue(i)}`;
                 const 금결 = `${goldTint}brightness(${(1 + .07 * front).toFixed(2)})`;
                 return (
                   <span
@@ -952,11 +960,11 @@ export default function MoktakPage() {
                       // 알이 서로 닿아 도넛처럼 보였다. 염주는 **알과
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
                       width: `${폭}%`,
-                      transform: "translate(-50%, -50%)",
+                      transform: `translate(-50%, -50%)${dragonMaster ? jadeDragonTurn(t) : ""}`,
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
                       transition:
-                        "left .16s linear, top .16s linear, width .16s linear",
+                        "left .16s linear, top .16s linear, width .16s linear, transform .16s linear",
                     }}
                   >
                     {stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
@@ -971,7 +979,7 @@ export default function MoktakPage() {
                          밝기로 준다 */
                       style={{ filter: 분홍결 }}
                     />
-                    {채움 > 0 && (
+                    {채움 > 0 && !dragonMaster && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={isNewMala(skin.bead) ? malaBeadImage(skin.bead, i, beadOneSrc) : beadLitSrc}
@@ -1844,8 +1852,9 @@ export default function MoktakPage() {
                 <div ref={malaElastic.expandedRef} aria-hidden className="pointer-events-none absolute inset-0">
                   {Array.from({ length: ringBeadCount }, (_, i) => {
                     // 0 = 맨 위(뒤) · 180 = 맨 아래(앞)
-                    const t = ((i / ringBeadCount) * 360 + angle) * (Math.PI / 180);
+                    const t = beadDegrees(i) * (Math.PI / 180);
                     const front = (1 - Math.cos(t)) / 2; // 0 뒤 · 1 앞
+                    const dragonMaster = jadeDragon && i === 0;
                     const sc = 0.62 + 0.52 * front;
                     // 금빛은 위 가운데의 표시점에서 시작해 바깥 고리와 같은
                     // 반시계 방향으로 돈다. 전에는 알의 번호만 기준으로 잡아
@@ -1878,14 +1887,14 @@ export default function MoktakPage() {
                           // 뒤쪽 알은 원근 탓에 그림 안의 여백까지 같이 작아져
                           // 서로 멀어 보였다. 앞쪽 크기는 그대로 두고, 뒤쪽만
                           // 조금 키워 고리의 간격이 끊기지 않게 한다.
-                          width: `${(17 * sc + (1 - front) * 3) * malaBeadScale(skin.bead, i)}%`,
-                          transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
+                          width: `${((jadeDragon ? 13 : 17) * sc + (1 - front) * 3) * malaBeadScale(skin.bead, i)}%`,
+                          transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})${dragonMaster ? jadeDragonTurn(t) : ""}`,
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
-                          filter: goldTint && lit
+                          filter: goldTint && lit && !dragonMaster
                             ? `${goldTint}brightness(${(0.94 + .10 * front).toFixed(2)})`
                             : isNewMala(skin.bead)
-                            ? `brightness(${(0.84 + .16 * front).toFixed(2)})`
+                            ? `brightness(${(0.84 + .16 * front + (dragonMaster && lit ? 0.13 : 0)).toFixed(2)})`
                             : lit
                             ? `sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(${(1.06 + .22 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
                             : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))${beadHue(i)}`,
