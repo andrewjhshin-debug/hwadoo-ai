@@ -8,11 +8,39 @@ const FRAME_HEIGHT = 192;
 const COLUMNS = 4;
 const VIEWS = 12;
 
-// Blend the two nearest views while the same 108-step angle moves the strand.
+type Point = { x: number; y: number };
+
+// Gold links sit underneath the dragon and its neighbors, covering only the
+// exposed part of the joint. Their endpoints follow the same bead transitions.
+export function JadeDragonLinks({
+  head, neighbors, transition = ".16s linear",
+}: { head: Point; neighbors: readonly [Point, Point]; transition?: string }) {
+  return neighbors.map((bead, side) => {
+    const length = Math.hypot(bead.x - head.x, bead.y - head.y);
+    const dx = (bead.y - head.y) * 0.68 / length;
+    const dy = (head.x - bead.x) * 0.68 / length;
+    return (
+      <span
+        key={side}
+        aria-hidden
+        data-dragon-link
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(145deg, #deb668, #a56d2a)",
+          clipPath: `polygon(${head.x + dx}% ${head.y + dy}%, ${bead.x + dx}% ${bead.y + dy}%, ${bead.x - dx}% ${bead.y - dy}%, ${head.x - dx}% ${head.y - dy}%)`,
+          transition: `clip-path ${transition}`,
+        }}
+      />
+    );
+  });
+}
+
+// Show one crisp view at a time while the same 108-step angle moves the strand.
 export default function JadeDragonTurntable({ angle, duration = 160 }: { angle: number; duration?: number }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const atlas = useRef<HTMLImageElement | null>(null);
   const shown = useRef(angle);
+  const drawn = useRef(-1);
 
   const paint = useCallback((degrees: number) => {
     const surface = canvas.current;
@@ -21,22 +49,13 @@ export default function JadeDragonTurntable({ angle, duration = 160 }: { angle: 
     if (!surface || !ctx || !sheet) return;
 
     const index = (((degrees % 360) + 360) % 360) * VIEWS / 360;
-    const lower = Math.floor(index);
-    const mix = index - lower;
-    const draw = (frame: number, opacity: number) => {
-      ctx.globalAlpha = opacity;
+    const frame = Math.round(index) % VIEWS;
+    if (frame !== drawn.current) {
+      ctx.clearRect(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
       ctx.drawImage(sheet, frame % COLUMNS * FRAME_WIDTH, Math.floor(frame / COLUMNS) * FRAME_HEIGHT,
         FRAME_WIDTH, FRAME_HEIGHT, 0, 0, FRAME_WIDTH, FRAME_HEIGHT);
-    };
-    ctx.clearRect(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
-    ctx.globalCompositeOperation = "source-over";
-    draw(lower, 1 - mix);
-    if (mix > 0) {
-      ctx.globalCompositeOperation = "lighter";
-      draw((lower + 1) % VIEWS, mix);
+      drawn.current = frame;
     }
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = "source-over";
     surface.dataset.view = index.toFixed(3);
   }, []);
 
@@ -44,6 +63,7 @@ export default function JadeDragonTurntable({ angle, duration = 160 }: { angle: 
     const image = new Image();
     image.onload = () => {
       atlas.current = image;
+      drawn.current = -1;
       paint(shown.current);
     };
     image.src = JADE_DRAGON.turntable;
