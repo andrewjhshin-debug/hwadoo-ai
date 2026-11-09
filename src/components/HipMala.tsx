@@ -26,7 +26,9 @@
 // 연꽃 공양도 오른쪽 위에 이미 있으니 알로 두지 않는다.
 // ─────────────────────────────────────────────────────────────
 
+import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import DharmaSheet from "./DharmaSheet";
 import { ROOM_LANES } from "./HipLanes";
 import { practiceDestination } from "@/lib/recent-practice";
 
@@ -68,9 +70,15 @@ export default function HipMala() {
   const path = usePathname() ?? "/";
   const router = useRouter();
   const here = beadOf(path);
+  // 형: 「가운데 눌리면 여러 메뉴」 — 가운데 緣 은 길이 아니라 법륜 판을 연다(DharmaSheet). 길이 바뀌면 접힌다
+  const [판, 판잡기] = useState(false);
+  const 닫기 = useCallback(() => 판잡기(false), []);
+  useEffect(() => 판잡기(false), [path]);
 
   return (
-    <nav className="hip-mala" aria-label="네 자리">
+    <>
+    <DharmaSheet open={판} onClose={닫기} />
+    <nav className="hip-mala" aria-label="네 자리" data-sheet={판 ? "1" : undefined}>
       {/* 형이 시안 일곱 중 「라 · 뜬 알약」을 골랐다.
           실에 꿴 알 넷은 꺼진 알이 흰 바탕에 흰 알이라 **어디를 눌러야
           하는지**가 약했고, 한자가 켜진 알에만 있어 나머지 셋은 제가
@@ -81,6 +89,7 @@ export default function HipMala() {
         <button
           key={b.href}
           onClick={() => {
+            if (k === 2) { 판잡기((v) => !v); return; }
             // 형: 「연꽃에서 한자 我 눌렀는데 안 가잖아」.
             // 「이 알이 켜져 있으면 갈 데가 없다」고 보고 있었다. 그런데
             // 我 알은 연꽃·하심·법당… 여덟 방을 **품는다** — 그 방에
@@ -116,17 +125,19 @@ export default function HipMala() {
             }
             router.push(k === here ? b.href : practiceDestination(b.href));
           }}
-          aria-label={b.name}
+          aria-label={k === 2 ? (판 ? "닫기" : "법륜 판 열기") : b.name}
+          aria-expanded={k === 2 ? 판 : undefined}
           aria-current={k === here ? "page" : undefined}
           data-on={k === here ? "1" : undefined}
           data-mid={k === 2 ? "1" : undefined}
         >
-          <b>{b.mark}</b>
-          {/* 형: 「C로 하되 다 한자·한글로, 가운데는 인연」 — 한자 밑에 이름, 가운데(緣)는 솟은 분홍 단추 */}
-          <span>{b.name}</span>
+          <b>{k === 2 && 판 ? "✕" : b.mark}</b>
+          {/* 형: 「C로 하되 다 한자·한글로, 가운데는 인연」 — 한자 밑에 이름, 가운데(緣)는 솟은 단추 */}
+          <span>{k === 2 && 판 ? "닫기" : b.name}</span>
         </button>
       ))}
       </span>
     </nav>
+    </>
   );
 }

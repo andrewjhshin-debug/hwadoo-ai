@@ -73,23 +73,9 @@ html[data-theme="light"] body {
 .hip-top-right .hip-sound-toggle svg { width: 19px; height: 19px; }
 /* 법륜 단추 — 아래 띠 오른쪽 위. 누르면 위로 알이 차례로 튀어 오른다 */
 /* 틀은 손길을 안 받는다 — 접힌 알들이 차지한 자리가 그 밑 단추(염주 살갗 점)를 가로챘다(형: 「넷째 거 왜 클릭이 안 되냐」) */
-.wheel-fab { position: fixed; z-index: 45; right: max(14px, calc(50vw - 184px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 86px); display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 10px; pointer-events: none; }
-.wheel-fab > .wheel-hub { pointer-events: auto; }
 .investment-shortcut { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #dce7df; border-radius: 50%; color: #658e7e; background: #fffcf8; box-shadow: 0 2px 8px #658e7e10; }
-.wheel-ico { width: 23px; height: 23px; transition: transform .45s cubic-bezier(.2,.8,.3,1); }
-.wheel-fab[data-open="1"] .wheel-ico { transform: rotate(135deg); color: #b53b6c; }
-.wheel-beads { display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 10px; margin: 0; padding: 0; list-style: none; pointer-events: none; }
-.wheel-beads li { transform: translateY(18px) scale(.4); opacity: 0; transition: transform .32s cubic-bezier(.34,1.56,.64,1) calc(var(--i) * 45ms), opacity .2s calc(var(--i) * 45ms); }
-.wheel-fab[data-open="1"] .wheel-beads { pointer-events: auto; }
-.wheel-fab[data-open="1"] .wheel-beads li { transform: none; opacity: 1; }
-.wheel-beads a { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-.wheel-beads a b { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #fff; box-shadow: inset -3px -4px 7px rgba(26,23,20,.1), inset 3px 3px 6px rgba(255,255,255,.9), 0 2px 6px rgba(26,23,20,.14); font-size: 19px; line-height: 1; }
-.wheel-beads a span { padding: 5px 11px; border-radius: 14px; background: #fff; box-shadow: 0 2px 6px rgba(26,23,20,.12); font-size: 12.5px; color: #4a443d; white-space: nowrap; }
-.wheel-beads a[data-on="1"] span { background: var(--hip-pink, #ef7ba4); color: #fff; }
-.wheel-scrim { position: fixed; inset: 0; z-index: 44; background: rgba(255,255,255,.45); backdrop-filter: blur(2px); }
 .investment-shortcut:focus-visible { outline: 2px solid #b94b76; outline-offset: 3px; }
 /* 사유의 방(notes-panel)이 열리면 「내려놓기」 단추 위에 법륜이 얹혔다 — 그동안은 숨는다 */
-body:has([role="dialog"][aria-modal="true"]) .wheel-fab, body:has(.notes-panel[aria-hidden="false"]) .wheel-fab, html[data-drawer] .wheel-fab { visibility: hidden; pointer-events: none; }
 .walking-merit-toggle {
   display: inline-flex;
   min-height: 29px;
@@ -1095,14 +1081,10 @@ body:has(.hip-hall) .hip-daybar, body:has(.hip-gather-page) .hip-daybar { displa
 
 /* 법륜 단추 — 아래 띠(話堂功緣我) 오른쪽 옆으로. 형: 「내려놓기랑 겹친다. 아래 바는 그대로 두되 그 오른쪽에」
    띠 폭 308px 의 오른쪽 끝 + 6px. 좁은 폰(400px 아래)은 띠 옆 자리가 모자라 띠를 오른쪽 몫만큼 줄인다 */
-.wheel-fab { right: max(4px, calc(50vw - 154px - 6px - 34px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 27px); }
-.wheel-fab .investment-shortcut { width: 34px; height: 34px; }
-.wheel-fab .wheel-ico { width: 20px; height: 20px; }
 @media (max-width: 400px) {
   .hip-mala-track { gap: 2px; padding: 6px; }
   .hip-mala button { width: 48px; }
   .hip-mala { justify-content: flex-start; padding-left: max(10px, calc(50vw - 150px - 20px)); }
-  .wheel-fab { right: 8px; }
 }
 
 /* 법당 기와 처마 — 누가 opacity:0 으로 숨겨 두었다(형: 「처마 왜 지우냐, 깔아」). 장면 맨 위에 다시 건다 */
@@ -1123,22 +1105,11 @@ body:has(.hip-hall) .hip-daybar, body:has(.hip-gather-page) .hip-daybar { displa
 @media (prefers-reduced-motion: reduce) { .hip-daybar[data-full="1"] .hip-daybar-lotus { animation: none; } }
 
 /* 법륜을 열면 맨 위에 「오늘의 수행」 세 가지 (InvestmentShortcut) */
-.wheel-today { width: 220px; padding: 12px 12px 10px; border-radius: 20px; background: #fff; box-shadow: 0 8px 26px rgba(26,23,20,.16); transform: translateY(18px) scale(.6); transform-origin: bottom right; opacity: 0; transition: transform .34s cubic-bezier(.34,1.56,.64,1) .18s, opacity .2s .18s; pointer-events: none; }
-.wheel-fab[data-open="1"] .wheel-today { transform: none; opacity: 1; pointer-events: auto; }
-.wheel-today p { margin: 0 4px 8px; font-size: 10.5px; letter-spacing: .3em; color: #b53b6c; }
-.wheel-today a { display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-radius: 12px; text-decoration: none; color: #1a1a1c; font-size: 14px; }
-.wheel-today a:active { background: #f6f3ef; }
-.wheel-today a i { width: 20px; height: 20px; flex: none; border-radius: 50%; border: 1.5px solid #e2dcd6; display: grid; place-items: center; font-style: normal; font-size: 11px; color: #fff; }
-.wheel-today a[data-done="1"] i { background: #f2789f; border-color: #f2789f; }
-.wheel-today a[data-done="1"] span { color: #9aa0a8; text-decoration: line-through; }
-.wheel-today a small { margin-left: auto; font-size: 11.5px; color: #9aa0a8; }
 
 /* 아래 띠(.hip-mala)는 화면 폭 전체를 덮는 틀이라, 띠 밖 빈 자리가 법륜 단추를 가렸다(형: 「법륜 눌러도 아무 일 안 일어남」).
    틀은 손길을 안 받고, 띠 알맹이만 받는다 */
 .hip-mala { pointer-events: none; }
 .hip-mala > * { pointer-events: auto; }
-.wheel-fab { z-index: 75; }
-.wheel-scrim { z-index: 74; }
 
 /* 간직하기 — 글자 없이 책갈피 하나, 옆에 붙는다 */
 .sentence-keep { justify-content: flex-end; gap: 0; margin-top: 2px; }
@@ -1724,25 +1695,49 @@ body:has(.hasim-solo) .hip-room-body { padding: 0 !important; }
 body:has(.mung-sit) :is(.hip-daybar, .wheel-fab) { display: none !important; }
 
 /* ── 아래 띠 「C · 가운데 솟은 단추」 ──
-   형: 「C로 하되 다 한자·한글로, 지금처럼 가운데는 인연」.
-   떠 있던 알약 대신 바닥에 붙은 흰 띠. 한자 밑에 한글 이름, 지금 칸은 먹색·나머지는 회색.
-   가운데 緣 은 띠 위로 솟은 분홍 동그라미 — 켜져 있든 아니든 늘 분홍이고, 켜지면 이름이 진해진다 */
-nav.hip-mala { left: 0; right: 0; bottom: 0; height: auto; padding: 0; justify-content: stretch; }
-nav.hip-mala .hip-mala-track { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; padding: 6px 4px calc(env(safe-area-inset-bottom, 0px) + 6px); border-radius: 0; background: rgba(255, 255, 255, 0.97); box-shadow: 0 -4px 20px rgba(26, 23, 20, 0.06); max-width: none; }
-nav.hip-mala button, nav.hip-mala button[data-on="1"] { width: auto; min-width: 0; height: 50px; border-radius: 12px; background: transparent; box-shadow: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #b3b0aa; }
-nav.hip-mala button b, nav.hip-mala button[data-on="1"] b { font-family: var(--font-serif); font-size: 20px; line-height: 1; color: #b3b0aa; }
-nav.hip-mala button span { font-size: 10.5px; line-height: 1; letter-spacing: -0.02em; color: #b3b0aa; }
+   형: 「C로 하되 다 한자·한글로, 지금처럼 가운데는 인연」 → 「불교적으로 우리 디자인으로, 가장 효율적으로」(시안 v5).
+   바닥에 붙은 흰 띠, 한자 밑에 한글 이름. 켜진 칸은 칠하지 않고 먹 글씨 + 위에 금 점 하나(백호처럼).
+   가운데 緣 은 로고와 같은 옷 — 먹 바탕에 금빛 글자. 누르면 법륜 판(DharmaSheet)이 오른다 */
+nav.hip-mala { left: 0; right: 0; bottom: 0; height: auto; padding: 0; justify-content: stretch; z-index: 80; }
+nav.hip-mala .hip-mala-track { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; padding: 6px 4px calc(env(safe-area-inset-bottom, 0px) + 6px); border-radius: 0; background: rgba(255, 255, 255, 0.98); border-top: 1px solid rgba(26, 23, 20, 0.07); box-shadow: none; max-width: none; }
+nav.hip-mala button, nav.hip-mala button[data-on="1"] { position: relative; width: auto; min-width: 0; height: 52px; border-radius: 12px; background: transparent; box-shadow: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #a3a8af; }
+nav.hip-mala button b, nav.hip-mala button[data-on="1"] b { font-family: var(--font-serif); font-weight: 400; font-size: 21px; line-height: 1; color: #a3a8af; }
+nav.hip-mala button span { font-size: 11px; line-height: 1; letter-spacing: -0.02em; color: #a3a8af; }
 nav.hip-mala button[data-on="1"] b, nav.hip-mala button[data-on="1"] span { color: #1a1a1c; }
 nav.hip-mala button[data-on="1"] span { font-weight: 700; }
+nav.hip-mala button[data-on="1"]::before { content: ""; position: absolute; top: 2px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: #dda01c; }
 nav.hip-mala button:active, nav.hip-mala button[data-on="1"]:active { background: rgba(26, 23, 20, 0.04); }
-/* 가운데 緣 — 솟은 분홍 단추 */
-nav.hip-mala button[data-mid="1"] { position: relative; justify-content: flex-end; }
+/* 가운데 緣 — 먹 바탕 금빛, 띠 위로 솟는다 */
+nav.hip-mala button[data-mid="1"] { justify-content: flex-end; padding-bottom: 4px; }
+nav.hip-mala button[data-mid="1"]::before { display: none; }
 nav.hip-mala button[data-mid="1"]:active { background: transparent; }
-nav.hip-mala button[data-mid="1"] b { position: absolute; top: -26px; left: 50%; width: 56px; height: 56px; margin-left: -28px; border-radius: 50%; display: grid; place-items: center; font-size: 23px; color: #fff; background: linear-gradient(160deg, #f6a9c2, #e57399); border: 4px solid #fff; box-shadow: 0 6px 16px rgba(229, 115, 153, 0.42); transition: transform 0.15s; }
+nav.hip-mala button[data-mid="1"] b { position: absolute; top: -28px; left: 50%; width: 60px; height: 60px; margin-left: -30px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; color: #e9c46f; background: radial-gradient(circle at 50% 38%, #3a322b, #14110e 72%); border: 3px solid #fff; box-shadow: 0 6px 18px rgba(20, 17, 14, 0.28), inset 0 0 0 1px rgba(243, 213, 138, 0.35); transition: transform 0.15s; }
 nav.hip-mala button[data-mid="1"]:active b { transform: scale(0.94); }
-nav.hip-mala button[data-mid="1"] span { color: #d6537f; }
-nav.hip-mala button[data-mid="1"][data-on="1"] span { color: #d6537f; }
+nav.hip-mala button[data-mid="1"] span, nav.hip-mala button[data-mid="1"][data-on="1"] span { color: #b07d26; font-weight: 700; }
+nav.hip-mala[data-sheet="1"] button[data-mid="1"] b { font-family: inherit; font-size: 22px; }
 @media (max-width: 400px) { nav.hip-mala { padding-left: 0; } }
-/* 법륜은 띠 오른쪽 위로 올린다 — 띠가 바닥 폭 전체를 쓰니 옆자리가 없다 */
-.wheel-fab { right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 76px); }
-@media (max-width: 400px) { .wheel-fab { right: 12px; } }
+
+/* ── 법륜 판 — 緣 을 누르면 아래서 오른다(components/DharmaSheet) ── */
+.dharma-scrim { position: fixed; inset: 0; z-index: 78; border: 0; padding: 0; background: rgba(20, 17, 14, 0.46); opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+.dharma-scrim[data-open="1"] { opacity: 1; pointer-events: auto; }
+.dharma-sheet { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); z-index: 79; max-width: 520px; margin: 0 auto; padding: 8px 16px 40px; background: #fff; border-radius: 28px 28px 0 0; box-shadow: 0 -10px 30px rgba(20, 17, 14, 0.18); transform: translateY(110%); transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1); touch-action: pan-x; }
+.dharma-sheet::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; border-radius: 28px 28px 0 0; background: linear-gradient(90deg, transparent, rgba(221, 160, 28, 0.55), transparent); }
+.dharma-sheet[data-open="1"] { transform: none; }
+.dharma-grip { display: block; width: 36px; height: 4px; border-radius: 2px; background: #e3e0da; margin: 4px auto 14px; }
+.dharma-yeon { display: flex; align-items: center; gap: 12px; padding: 15px 16px; border-radius: 18px; background: linear-gradient(150deg, #2a241f, #14110e); color: #fff; text-decoration: none; margin-bottom: 12px; }
+.dharma-yeon svg { width: 26px; height: 26px; flex: none; }
+.dharma-yeon b { flex: 1; font-size: 15.5px; }
+.dharma-yeon span { color: #8f8576; font-size: 22px; line-height: 1; }
+.dharma-today { display: flex; gap: 6px; margin-bottom: 18px; }
+.dharma-today a { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 4px; border-radius: 14px; background: #f7f4ef; color: #1a1a1c; font-size: 12px; text-decoration: none; text-align: center; }
+.dharma-today a i { width: 18px; height: 18px; border-radius: 50%; border: 1.6px solid #ddd6cb; display: grid; place-items: center; font-style: normal; font-size: 10px; color: #fff; }
+.dharma-today a[data-done="1"] { color: #9aa0a8; }
+.dharma-today a[data-done="1"] i { background: #f2789f; border-color: #f2789f; }
+.dharma-today a span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.dharma-today a small { font-size: 10.5px; color: #9aa0a8; }
+.dharma-rooms { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.dharma-rooms a { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: #5a6068; text-decoration: none; letter-spacing: -0.03em; white-space: nowrap; }
+.dharma-rooms a span { width: 46px; height: 46px; border-radius: 15px; background: #faf6ee; box-shadow: inset 0 0 0 1px #f0e6d2; display: grid; place-items: center; }
+.dharma-rooms a:active span { transform: scale(0.94); }
+.dharma-rooms svg { width: 24px; height: 24px; }
+@media (prefers-reduced-motion: reduce) { .dharma-sheet, .dharma-scrim { transition: none; } }
