@@ -6,7 +6,7 @@ const seedTones = ['honey', 'chestnut', 'amber'];
 export const JADE_DRAGON = {
   id: 'jade-dragon',
   count: 21,
-  bead: '/obj/jade-dragon-mala-v1/jade-lotus.webp',
+  bead: '/obj/jade-dragon-mala-v1/jade-plain.webp',
   master: '/obj/jade-dragon-mala-v1/gold-dragon.webp',
 };
 export const NEW_MALA_SKINS = [
