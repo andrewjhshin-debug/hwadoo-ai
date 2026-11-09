@@ -26,7 +26,7 @@ import HipMoktak from "./HipMoktak";
 import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
-import { JADE_DRAGON, NEW_MALA_SKINS, isNewMala, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
+import { JADE_DRAGON, NEW_MALA_SKINS, isNewMala, jadeDragonBeadPose, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -298,6 +298,8 @@ export default function MoktakPage() {
   // 올 때 알 반쪽(≈10%)이 통 밖으로 나가 스크롤 통(.hip-screen-mid)에 잘렸다.
   // 가로 반지름 42 + 10 = 102%. 39 로 두면 99% — 어느 폭에서도 안 잘린다
   const 고리폭 = 39;
+  const 고리높이 = 23;
+  const 염주원근 = 3.5;
   /** 가로형 살갗의 알 한 장·불 켜진 알·빛깔 돌림 — 살갗마다 다르다 */
   const beadOne = (SKINS.bead as readonly { id: string; one?: string; lit?: string; hues?: number[] }[]).find((k) => k.id === skin.bead);
   const beadOneSrc = 그림(beadOne?.one ?? "/obj/bead-paw-one.png");
@@ -711,8 +713,6 @@ export default function MoktakPage() {
     const slot = index === 0 ? 0 : index + 0.5;
     return 180 + slot * 360 / JADE_DRAGON.count + angle;
   };
-  // 타원 옆에서는 금룡도 시야에서 살짝 좁아지고, 판 밖으로 잘리지 않는다.
-  const dragonWidth = (width: number, x: number) => Math.min(width * 1.9, 2 * Math.min(x, 100 - x));
   // 물든 만큼만 금빛 겹을 보여 준다 — 위 가운데의 표시점에서 반시계로.
   // 바깥 고리와 같은 출발점·방향이어야, 금빛이 갑자기 아래쪽에 덧칠된 듯 보이지 않는다.
   const f = pos / BEADS;
@@ -893,12 +893,11 @@ export default function MoktakPage() {
               const 자리 = Array.from({ length: ringBeadCount }, (_, i) => {
                 const deg = beadDegrees(i);
                 const t = deg * (Math.PI / 180);
-                const 멂 = 3.5;
-                const 가까움 = 멂 / (멂 + Math.cos(t));
+                const 가까움 = 염주원근 / (염주원근 + Math.cos(t));
                 return {
                   t,
                   x: 50 + 고리폭 * Math.sin(t) * 가까움,
-                  y: 50 - 23 * Math.cos(t) * 가까움,
+                  y: 50 - 고리높이 * Math.cos(t) * 가까움,
                 };
               });
               /** 옆 알까지 — 판이 정사각이라 %끼리 바로 잰다.
@@ -965,12 +964,13 @@ export default function MoktakPage() {
                       // 형: 「염주 원래 모양대로 해. 알 더 줄이고」
                       // 알이 서로 닿아 도넛처럼 보였다. 염주는 **알과
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
-                      width: `${dragonMaster ? dragonWidth(폭, x) : 폭}%`,
+                      width: `${폭}%`,
                       transform: "translate(-50%, -50%)",
+                      ...(dragonMaster ? jadeDragonBeadPose(deg, x, 폭, 고리폭, 고리높이, 염주원근) : {}),
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
                       transition:
-                        "left .16s linear, top .16s linear, width .16s linear",
+                        "left .16s linear, top .16s linear, width .16s linear, transform .16s linear",
                     }}
                   >
                     {stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
@@ -1858,7 +1858,8 @@ export default function MoktakPage() {
                 <div ref={malaElastic.expandedRef} aria-hidden className="pointer-events-none absolute inset-0">
                   {Array.from({ length: ringBeadCount }, (_, i) => {
                     // 0 = 맨 위(뒤) · 180 = 맨 아래(앞)
-                    const t = beadDegrees(i) * (Math.PI / 180);
+                    const deg = beadDegrees(i);
+                    const t = deg * (Math.PI / 180);
                     const front = (1 - Math.cos(t)) / 2; // 0 뒤 · 1 앞
                     const dragonMaster = jadeDragon && i === 0;
                     const sc = 0.62 + 0.52 * front;
@@ -1891,12 +1892,13 @@ export default function MoktakPage() {
                         className="absolute block"
                         style={{
                           left: `${x}%`,
-                          top: `${50 - 23 * Math.cos(t)}%`,
+                          top: `${50 - 고리높이 * Math.cos(t)}%`,
                           // 뒤쪽 알은 원근 탓에 그림 안의 여백까지 같이 작아져
                           // 서로 멀어 보였다. 앞쪽 크기는 그대로 두고, 뒤쪽만
                           // 조금 키워 고리의 간격이 끊기지 않게 한다.
-                          width: `${dragonMaster ? dragonWidth(width, x) : width}%`,
+                          width: `${width}%`,
                           transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
+                          ...(dragonMaster ? jadeDragonBeadPose(deg, x, width, 고리폭 - 2, 고리높이) : {}),
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: goldTint && lit && !dragonMaster

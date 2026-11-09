@@ -50,8 +50,23 @@ export function malaGoldFilter(id: string) {
   return 'hip-wood-gold';
 }
 
-// 옥알이 금룡 뒤를 지나갈 때만 실루엣 속으로 사라진다.
-export function jadeDragonBeadOpacity(degrees: number) {
-  const distanceFromDragon = Math.abs(((degrees % 360) + 360) % 360 - 180);
-  return Math.max(0, Math.min(1, (distanceFromDragon - 7) / 10));
+export function jadeDragonBeadPose(
+  degrees: number,
+  x: number,
+  beadWidth: number,
+  radiusX: number,
+  radiusY: number,
+  perspective = 0,
+) {
+  const t = degrees * Math.PI / 180;
+  // 타원 접선에 용의 양 끝을 맞춘다. 앞쪽에서는 얼굴이 오른쪽을 향한다.
+  const dx = -radiusX * (Math.cos(t) + (perspective ? 1 / perspective : 0));
+  const dy = -radiusY * Math.sin(t);
+  const tangent = Math.atan2(dy, dx);
+  const raw = tangent * 180 / Math.PI;
+  // atan2의 ±180° 경계를 넘을 때도 반대 방향으로 감기지 않는다.
+  const rotation = raw + 360 * Math.round((degrees - 180 - raw) / 360);
+  const footprint = Math.abs(Math.cos(tangent)) + (244 / 448) * Math.abs(Math.sin(tangent));
+  const width = Math.min(beadWidth * 1.9, 2 * Math.min(x, 100 - x) / footprint);
+  return { width: `${width}%`, transform: `translate(-50%, -50%) rotate(${rotation}deg)` };
 }
