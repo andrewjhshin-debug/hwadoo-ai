@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 
 // ─────────────────────────────────────────────────────────────
 // 숨은 고양이 — 형: 「랜덤으로 고양이 한 마리를 앱 전반에 히든으로. 나왔다가 좀 걸어 다니다가 다양한 모습」
-// 화면을 열면 가끔 바로 찾아오고, 앱을 보고 있는 동안 2~4분마다 다시 기회를 잡는다. 하루 최대 여덟 번.
+// 앱을 보고 있는 동안 8~14분마다 다시 기회를 잡는다. 하루 최대 세 번.
 // 누르면 소리 없이 깜짝 놀라 다른 자리로 총총 옮겨 간다(형: 「야옹 소리 지우고 눌리면 그냥 움직이는 걸로」). 화면을 옮기면 사라지고, 스크롤하면 올라선 자리와 함께 움직인다.
 // 그림: motions-v2.webp. 윗줄은 왼쪽을 향해 걷는 여섯 장, 아랫줄은 휴식 동작 여섯 장.
 // 시험: 주소 뒤에 ?cat=1 이면 확률·하루 횟수 없이 곧바로 나온다
@@ -20,12 +20,12 @@ const MOTIONS: Record<Pose, readonly number[]> = {
   sleep: [11],
 };
 const SPEED = 42; // px/초
-const CHANCE = 0.35; // 앱을 열었을 때 첫 방문이 빨리 올 확률
-const PER_DAY = 8;
+const PER_DAY = 3;
 const DAY_KEY = "hwadu.cat.day.v1";
-const 다음간격 = () => (2 + Math.random() * 2) * 60_000;
+const 다음간격 = () => (8 + Math.random() * 6) * 60_000;
 
-type Step = { pose: Pose | "walk"; dur: number; x0: number; x1: number };
+type Point = { x: number; y: number };
+type Step = { pose: Pose | "walk" | "hop"; dur: number; from: Point; to: Point };
 type Perch = { el: HTMLElement; kind: "counter" | "ledge" | "open"; height?: number };
 type Track = { l: number; r: number; floor: number };
 
@@ -85,21 +85,26 @@ function 자리찾기(): (Perch & Track) | null {
   return 후보[Math.floor(Math.random() * 후보.length)] ?? null;
 }
 
-// 걷다 — 쉬다 — 걷다 … 끝은 다시 가장자리로 걸어 나간다
-function 각본(l: number, r: number): Step[] {
+function 걷기(from: Point, to: Point): Step {
+  return { pose: "walk", dur: Math.max(0.6, Math.hypot(to.x - from.x, to.y - from.y) / SPEED), from, to };
+}
+
+// 화면 가장자리에서 비스듬히 들어와 한 번 쉬고, 다른 높이로 옮겨 간다.
+function 각본({ l, r, floor }: Track): Step[] {
   const 쉼: [Pose, number][] = [["sit", 2.2], ["groom", 2.6], ["stretch", 1.7], ["sleep", 4]];
   const 시작왼쪽 = Math.random() < 0.5;
-  let x = 시작왼쪽 ? l : r;
-  const steps: Step[] = [];
-  const 걷기 = (to: number) => { steps.push({ pose: "walk", dur: Math.max(0.6, Math.abs(to - x) / SPEED), x0: x, x1: to }); x = to; };
-  const 몇번 = 2 + Math.floor(Math.random() * 2);
-  for (let i = 0; i < 몇번; i++) {
-    걷기(l + (r - l) * (0.2 + Math.random() * 0.6));
+  const 위 = Math.max(-48, 90 - floor);
+  const 아래 = Math.min(48, innerHeight - 100 - floor);
+  const 위에서 = 아래 < 28 || (위 <= -28 && Math.random() < 0.5);
+  const 시작 = { x: 시작왼쪽 ? l : r, y: 위에서 ? 위 : 아래 };
+  const 첫쉼 = { x: l + (r - l) * (시작왼쪽 ? 0.32 : 0.68), y: 0 };
+  const 둘째쉼 = { x: l + (r - l) * (시작왼쪽 ? 0.7 : 0.3), y: 위에서 ? 아래 : 위 };
+  const 끝 = { x: 시작왼쪽 ? r : l, y: 둘째쉼.y * 0.4 };
+  const 쉬기 = (at: Point): Step => {
     const [[pose, dur]] = 쉼.splice(Math.floor(Math.random() * 쉼.length), 1);
-    steps.push({ pose, dur: dur * (0.8 + Math.random() * 0.4), x0: x, x1: x });
-  }
-  걷기(시작왼쪽 ? r : l);
-  return steps;
+    return { pose, dur, from: at, to: at };
+  };
+  return [걷기(시작, 첫쉼), 쉬기(첫쉼), 걷기(첫쉼, 둘째쉼), 쉬기(둘째쉼), 걷기(둘째쉼, 끝)];
 }
 
 export default function HiddenCat() {
@@ -113,22 +118,22 @@ function CatScene({ 다음등장 }: { 다음등장: { current: number | null } }
   const [run, setRun] = useState<(Perch & Track & { steps: Step[]; 이어서?: boolean }) | null>(null);
   const button = useRef<HTMLButtonElement>(null);
   const sprite = useRef<HTMLSpanElement>(null);
-  const 지금x = useRef(0);
+  const 지금 = useRef<Point>({ x: 0, y: 0 });
 
   // 화면을 옮겨도 다음 등장 시각은 이어진다.
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const 시험 = new URLSearchParams(location.search).get("cat") === "1";
-    const 첫간격 = () => Math.random() < CHANCE ? 4000 + Math.random() * 8000 : 다음간격();
-    다음등장.current ??= Date.now() + 첫간격();
+    다음등장.current ??= Date.now() + 다음간격();
     let t = 0, 남은 = 3;
     const 둘러보기 = () => {
       if (document.visibilityState === "visible" && (시험 || 오늘횟수() < PER_DAY)) {
         const 자리 = 자리찾기();
         if (자리) {
-          지금x.current = 자리.l;
+          const steps = 각본(자리);
+          지금.current = steps[0].from;
           if (!시험) 횟수더하기();
-          setRun({ ...자리, steps: 각본(자리.l, 자리.r) });
+          setRun({ ...자리, steps });
         } else if (--남은 > 0) {
           t = window.setTimeout(둘러보기, 3000);
           return;
@@ -159,19 +164,24 @@ function CatScene({ 다음등장 }: { 다음등장: { current: number | null } }
       let 앞 = 0, s = run.steps[run.steps.length - 1];
       for (const q of run.steps) { if (t < 앞 + q.dur) { s = q; break; } 앞 += q.dur; }
       const k = (t - 앞) / s.dur;
-      const x = s.x0 + (s.x1 - s.x0) * k;
-      지금x.current = x;
-      const 걷는중 = s.pose === "walk";
+      const x = s.from.x + (s.to.x - s.from.x) * k;
+      const 뛰는중 = s.pose === "hop";
+      const y = s.from.y + (s.to.y - s.from.y) * k - (뛰는중 ? 24 * 4 * k * (1 - k) : 0);
+      const 발높이 = Math.max(90, Math.min(innerHeight - 100, 자리.floor + y));
+      지금.current = { x, y: 발높이 - 자리.floor };
+      const 움직이는중 = s.pose === "walk" || 뛰는중;
       const 동작시간 = t - 앞;
-      const frames = s.pose === "walk" ? null : MOTIONS[s.pose];
-      const frame = frames
-        ? frames[Math.floor(동작시간 / 0.28) % frames.length]
-        : Math.floor(동작시간 / (run.이어서 && 앞 === 0 ? 0.07 : 0.12)) % SPRITE_COLUMNS;
-      const 왼쪽봄 = 걷는중 ? s.x1 < s.x0 : (el.dataset.left === "1");
+      const frames = s.pose === "walk" || s.pose === "hop" ? null : MOTIONS[s.pose];
+      const frame = 뛰는중 && k > 0.2 && k < 0.72
+        ? 10
+        : frames
+          ? frames[Math.floor(동작시간 / 0.28) % frames.length]
+          : Math.floor(동작시간 / (뛰는중 ? 0.07 : 0.12)) % SPRITE_COLUMNS;
+      const 왼쪽봄 = 움직이는중 ? s.to.x < s.from.x : el.dataset.left === "1";
       el.dataset.left = 왼쪽봄 ? "1" : "0";
       그림.style.backgroundPosition = `-${frame % SPRITE_COLUMNS * SPRITE_SIZE}px -${Math.floor(frame / SPRITE_COLUMNS) * SPRITE_SIZE}px`;
       const 화면x = 자리.l + (x - run.l) / (run.r - run.l) * (자리.r - 자리.l);
-      el.style.transform = `translate(${화면x - SPRITE_SIZE / 2}px, ${자리.floor - SPRITE_SIZE}px) scaleX(${왼쪽봄 ? 1 : -1})`;
+      el.style.transform = `translate(${화면x - SPRITE_SIZE / 2}px, ${발높이 - SPRITE_SIZE}px) scaleX(${왼쪽봄 ? 1 : -1})`;
       el.style.opacity = String(Math.min(1, run.이어서 ? 1 : t / 0.4, (전체 - t) / 0.4));
       raf = requestAnimationFrame(그리기);
     };
@@ -179,14 +189,16 @@ function CatScene({ 다음등장 }: { 다음등장: { current: number | null } }
     return () => cancelAnimationFrame(raf);
   }, [run]);
 
-  // 누르면 — 지금 자리에서 멀찍이 떨어진 곳으로 빠르게 걸어가 잠깐 쉬다가 가장자리로 나간다
+  // 누르면 현재 높이에서 반대편으로 폴짝 뛰고, 착지한 뒤 걸어서 나간다.
   const 놀람 = () => {
     if (!run) return;
-    const x = 지금x.current, { l, r } = run;
-    const 갈곳 = x - l > r - x ? l + (x - l) * 0.25 : r - (r - x) * 0.25;
-    const 뛰기: Step = { pose: "walk", dur: Math.max(0.35, Math.abs(갈곳 - x) / (SPEED * 3)), x0: x, x1: 갈곳 };
-    const 나머지 = 각본(l, r).slice(-2).map((s, i) => (i === 0 ? { ...s, x0: 갈곳, x1: 갈곳 } : { ...s, x0: 갈곳, dur: Math.max(0.6, Math.abs(s.x1 - 갈곳) / SPEED) }));
-    setRun({ ...run, steps: [뛰기, ...나머지], 이어서: true });
+    const from = 지금.current, { l, r } = run;
+    const 왼쪽 = from.x - l > r - from.x;
+    const to = { x: l + (r - l) * (왼쪽 ? 0.18 : 0.82), y: from.y < 0 ? 46 : -46 };
+    const 이동시간 = Math.hypot(to.x - from.x, to.y - from.y) / (SPEED * 3);
+    const 뛰기: Step = { pose: "hop", dur: Math.max(0.42, Math.min(1.05, 이동시간)), from, to };
+    const 착지: Step = { pose: "sit", dur: 1.25, from: to, to };
+    setRun({ ...run, steps: [뛰기, 착지, 걷기(to, { x: 왼쪽 ? l : r, y: 0 })], 이어서: true });
   };
 
   if (!run) return null;
