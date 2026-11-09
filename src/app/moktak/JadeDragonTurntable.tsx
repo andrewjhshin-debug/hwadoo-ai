@@ -5,8 +5,8 @@ import { JADE_DRAGON } from "@/lib/practice-collection";
 
 const FRAME_WIDTH = 256;
 const FRAME_HEIGHT = 192;
-const COLUMNS = 4;
-const VIEWS = 12;
+const COLUMNS = 12;
+const VIEWS = 108;
 
 type Point = { x: number; y: number };
 
@@ -35,7 +35,7 @@ export function JadeDragonLinks({
   });
 }
 
-// Show one crisp view at a time while the same 108-step angle moves the strand.
+// Each count has its own frame. Draw only the nearest view, without a crossfade.
 export default function JadeDragonTurntable({ angle, duration = 160 }: { angle: number; duration?: number }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const atlas = useRef<HTMLImageElement | null>(null);

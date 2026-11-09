@@ -572,8 +572,6 @@ export default function MoktakPage() {
         }
       }
     }
-    const dragonImage = new window.Image();
-    dragonImage.src = JADE_DRAGON.turntable;
   }, []);
 
   // 한 타 — 소리 · 글자 · 박자

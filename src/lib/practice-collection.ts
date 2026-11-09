@@ -7,7 +7,7 @@ export const JADE_DRAGON = {
   id: 'jade-dragon',
   count: 21,
   bead: '/obj/jade-dragon-mala-v1/jade-plain.webp',
-  turntable: '/obj/jade-dragon-mala-v1/gold-dragon-turntable.webp',
+  turntable: '/obj/jade-dragon-mala-v1/gold-dragon-108.webp',
 };
 export const NEW_MALA_SKINS = [
   { id: 'ebony', name: '흑단', dot: '#30231f' },
