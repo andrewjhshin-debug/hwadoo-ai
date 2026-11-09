@@ -966,7 +966,13 @@ export default function MoktakPage() {
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
                       width: `${폭}%`,
                       transform: "translate(-50%, -50%)",
-                      ...(dragonMaster ? jadeDragonBeadPose(deg, x, 폭, 고리폭, 고리높이, 염주원근) : {}),
+                      // 금룡은 제 자리 간격(반 칸 벌어진)으로 재면 옆에서 옥알보다 작아졌다 — 이웃 옥알 중 큰 쪽 키에 맞춘다
+                      ...(dragonMaster ? (() => {
+                        const 이웃 = [1, ringBeadCount - 1].map((o) => ({ ...자리[o], w: (사이(o) / 0.872) * 1.12 }));
+                        // 양옆 옥알 사이 빈 길이 — 알 그림의 실제 알(87%) 반지름씩 뺀다
+                        const 틈 = Math.hypot(이웃[0].x - 이웃[1].x, 이웃[0].y - 이웃[1].y) - (이웃[0].w + 이웃[1].w) * 0.872 / 2;
+                        return jadeDragonBeadPose(deg, x, Math.max(폭, 이웃[0].w, 이웃[1].w), 고리폭, 고리높이, 염주원근, Math.max(0, 틈) * 1.1);
+                      })() : {}),
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
                       transition:
@@ -1898,7 +1904,15 @@ export default function MoktakPage() {
                           // 조금 키워 고리의 간격이 끊기지 않게 한다.
                           width: `${width}%`,
                           transform: `translate(-50%, -50%) scale(${atMarker ? 1.07 : 1})`,
-                          ...(dragonMaster ? jadeDragonBeadPose(deg, x, width, 고리폭 - 2, 고리높이) : {}),
+                          ...(dragonMaster ? (() => {
+                            // 양옆 옥알 사이 빈 길이 — 짧아진 용이 그 틈은 메우게(위 세로형과 같은 셈)
+                            const 이웃 = [1, ringBeadCount - 1].map((o) => {
+                              const tt = beadDegrees(o) * (Math.PI / 180), fr = (1 - Math.cos(tt)) / 2;
+                              return { x: 50 + (고리폭 - 2) * Math.sin(tt), y: 50 - 고리높이 * Math.cos(tt), w: (13 * (0.62 + 0.52 * fr) + (1 - fr) * 3) * malaBeadScale(skin.bead, o) };
+                            });
+                            const 틈 = Math.hypot(이웃[0].x - 이웃[1].x, 이웃[0].y - 이웃[1].y) - (이웃[0].w + 이웃[1].w) / 2;
+                            return jadeDragonBeadPose(deg, x, Math.max(width, 이웃[0].w, 이웃[1].w), 고리폭 - 2, 고리높이, 0, Math.max(0, 틈) * 1.1);
+                          })() : {}),
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: goldTint && lit && !dragonMaster
