@@ -51,12 +51,7 @@ export default function HipTop({
       <button type="button" className="hip-top-ico hip-walking-toggle" aria-label={walking.on ? "포행 끄기" : "포행 켜기"} aria-pressed={walking.on} onClick={toggleWalking} title={walking.on ? `포행 켜짐 · ${walking.steps}걸음` : "포행 켜기"}>
         <span>포행</span><small>{walking.on ? "ON" : "OFF"}</small>
       </button>
-      {/* 불심투자 — 형: 「법륜 말고 포행이랑 오색실 사이에」「오색실처럼 퀄리티 높게, 딱 보면 알아먹게」.
-          금빛 포대화상이 오르는 동전 탑(차트) 위에서 웃는다(public/obj/bulsim-budai.webp, 제미나이) */}
-      <Link href="/tamjinchi" aria-label="불심투자" className="hip-top-ico hip-bulsim">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/obj/bulsim-budai.webp" alt="" draggable={false} />
-      </Link>
+      {/* 불심투자 단추는 걷었다 — 형: 「오색실 왼쪽에 있는 거 지우고」. 내 도량(我) 칸에서 들어간다 */}
       {/* 형: 「포행 OFF 랑 연잎 사이」 — 출석할수록 헤지는 오색실. 눌리면 팝업 */}
       <SilTop />
       {/* 머리 연꽃(오늘의 수행)은 걷었다 — 형: 「밤티다, 없애. 법륜 누르면 튀어나오게」 */}
