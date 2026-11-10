@@ -71,6 +71,10 @@ export function dragonSpanPerHeight(angle: number, dx: number, dy: number) {
 
 /** 용이 양옆 옥알을 파고드는 길이(판 폭 %, 양쪽 합) — 닿은 자리에 머리카락만 한 틈도 안 비치게 */
 export const DRAGON_TUCK = 0.9;
+/** 파고드는 길이 — 머리 정면 그림은 갈기 끝이 가늘어, 끝끼리 닿아도 떠 보인다(형: 「전반적으로 이런 거」). 동그란 그림일수록 더 깊이 */
+export function dragonTuck(angle: number) {
+  return DRAGON_TUCK + 2.2 * (1 - elongationOf(viewAt(angle)));
+}
 /** 용 키 ÷ 옆 옥알 지름 — 형: 「옥 대비 넘 작아지는데」. 0.95 → 1.25 (진짜 금룡 장식은 옥알보다 굵다) */
 export const DRAGON_HEIGHT = 1.25;
 /** 용 키 배율 — 머리 정면 그림은 폭이 좁아(키의 2/3) 같은 키여도 작아 보인다. 동그란 그림일수록 25% 더 키운다 */
@@ -80,6 +84,7 @@ export function dragonKeyFactor(angle: number) {
 
 export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalWidth: number, angle: number) {
   const [first, last] = neighbors;
+  const tuck = dragonTuck(angle);
   const dx = last.x - first.x, dy = last.y - first.y;
   const distance = Math.hypot(dx, dy);
   const { frame, leanDeg, lean, radiusAt, axis, near, far } = pose(angle, dx, dy);
@@ -91,7 +96,7 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   // 형: 「과도하게 작아지는 거」는 머리 정면 그림이 폭이 좁아 생긴 것 — dragonKeyFactor 가 그 몫을 키운다
   const bead = (first.width + last.width) / 2 * 0.88;
   // 형: 「뜨는 거 아예 없이」 — 옥알 그림의 알은 상자의 87.1%(재 봤다). 반지름 0.435.
-  // 틈을 0 에 맞추면 안티에일리어싱 한 줄이 비쳐 떠 보인다 — 양쪽 합쳐 한 뼘(DRAGON_TUCK) 파고들게 한다
+  // 틈을 0 에 맞추면 안티에일리어싱 한 줄이 비쳐 떠 보인다 — 양쪽 합쳐 한 뼘(tuck) 파고들게 한다
   const firstEdge = first.width * 0.435;
   const lastEdge = distance - last.width * 0.435;
   // nominalWidth(page 의 dragonWidth)는 가장자리에서 미리 깎여 와 옆자리 용을 쪼그라뜨렸다 — 키는 옥알로만 정한다
@@ -106,8 +111,8 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   //    나머지는 줄 위 가운데·옥알 키로 둔다. 그 몫의 맞닿음은 칸(용반칸)이 맡는다.
   const e = elongationOf(frame);
   const ux = dx / distance, uy = dy / distance;
-  const T1 = { x: first.x + ux * (first.width * 0.435 - DRAGON_TUCK / 2), y: first.y + uy * (first.width * 0.435 - DRAGON_TUCK / 2) };
-  const T2 = { x: last.x - ux * (last.width * 0.435 - DRAGON_TUCK / 2), y: last.y - uy * (last.width * 0.435 - DRAGON_TUCK / 2) };
+  const T1 = { x: first.x + ux * (first.width * 0.435 - tuck / 2), y: first.y + uy * (first.width * 0.435 - tuck / 2) };
+  const T2 = { x: last.x - ux * (last.width * 0.435 - tuck / 2), y: last.y - uy * (last.width * 0.435 - tuck / 2) };
   const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
   const target = Math.atan2(T2.y - T1.y, T2.x - T1.x);
   const [L, R] = CAPS[frame];
@@ -128,7 +133,22 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   const w0 = scale * FRAME_WIDTH;
   const along = (firstEdge + lastEdge + (near - far) * w0) / 2;
   const across = (radiusAt(axis - Math.PI / 2) - radiusAt(axis + Math.PI / 2)) / 2 * w0;
-  const mid = { x: first.x + ux * along - uy * across, y: first.y + uy * along + ux * across };
+  let mid = { x: first.x + ux * along - uy * across, y: first.y + uy * along + ux * across };
+  // 형: 「바깥쪽으로 빼도 돼, 옥과 맞닿게」 — 머리 정면 그림은 줄 위에 두면 짧아서 한쪽 옥알과 떴다.
+  // 양옆 옥알 둘 다에 닿는 자리는 두 원(옥알 반지름 + 그쪽 용 반지름)이 만나는 점이다. 그중 고리 **바깥쪽** 점을 쓴다
+  // 자리를 옮기면 옥알 쪽 방향이 바뀌고 그쪽 용 반지름도 바뀐다 — 몇 번 되풀어 맞춘다
+  for (let round = 0; round < 5; round++) {
+    const toward = (b: Point) => Math.atan2(b.y - mid.y, b.x - mid.x);
+    const R1 = first.width * 0.435 + radiusAt(round ? toward(first) : axis + Math.PI) * w0 - tuck / 2;
+    const R2 = last.width * 0.435 + radiusAt(round ? toward(last) : axis) * w0 - tuck / 2;
+    if (R1 + R2 <= distance) break;
+    const a = (R1 * R1 - R2 * R2 + distance * distance) / (2 * distance);
+    const h = Math.sqrt(Math.max(0, R1 * R1 - a * a));
+    const bx = first.x + ux * a, by = first.y + uy * a;
+    const p1 = { x: bx - uy * h, y: by + ux * h }, p2 = { x: bx + uy * h, y: by - ux * h };
+    const out = (q: Point) => Math.hypot(q.x - 50, (q.y - 50) * 1.7);
+    mid = out(p1) >= out(p2) ? p1 : p2;
+  }
   return {
     x: mid.x + (capAt.x - mid.x) * e,
     y: mid.y + (capAt.y - mid.y) * e,
