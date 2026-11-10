@@ -27,7 +27,7 @@ import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
 import { JADE_DRAGON, NEW_MALA_SKINS, isNewMala, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
-import JadeDragonTurntable, { fitJadeDragon, JadeDragonLinks } from "./JadeDragonTurntable";
+import JadeDragonTurntable, { dragonSpanPerHeight, fitJadeDragon, JadeDragonLinks } from "./JadeDragonTurntable";
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -707,10 +707,36 @@ export default function MoktakPage() {
   const pos = total % BEADS;
   const rounds = Math.floor(total / BEADS);
   const angle = -total * STEP;
+  // 형: 「용대가리 끼고 있는 사이 옥에 어떤 각도로 돌든 맞닿게」 「이런 어긋남이 ㅈ같다」.
+  // 용 키는 옆 옥알 키에 맞추고, 용 양옆 칸(반 칸 h)은 **화면에서 잰 틈이 용 길이와 같아지도록** 푼다.
+  // 칸을 각도로 고정하면, 고리가 납작하게 보이는 옆자리에서 틈이 확 줄거나 늘어 용이 쪼그라들거나 떴다.
+  // 세로형(hip) 고리 셈(염주원근)으로 잰다 — 폰에서 보이는 그 고리다. 이분법 열네 번.
+  const 용반칸 = !jadeDragon ? 1 : (() => {
+    const 자리of = (deg: number) => {
+      const t = deg * Math.PI / 180, g = 염주원근 / (염주원근 + Math.cos(t));
+      return { x: 50 + 고리폭 * Math.sin(t) * g, y: 50 - 고리높이 * Math.cos(t) * g };
+    };
+    const d = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
+    const 틈차 = (h: number) => {
+      const u = 360 / (ringBeadCount - 2 + 2 * h), d0 = 180 + angle;
+      const n1 = 자리of(d0 + h * u), n2 = 자리of(d0 - h * u);
+      const w1 = d(n1, 자리of(d0 + (h + 1) * u)) / 0.872 * 1.12, w2 = d(n2, 자리of(d0 - (h + 1) * u)) / 0.872 * 1.12;
+      const 키 = (w1 + w2) / 2 * 0.88 * 0.95;
+      // 용이 그 줄을 따라 실제로 뻗는 길이(그림의 실루엣으로 잰다) — 옆자리에선 가로가 아니라 키 쪽이 줄을 따른다
+      const 길이 = 키 * dragonSpanPerHeight(-angle, n2.x - n1.x, n2.y - n1.y);
+      return d(n1, n2) - (w1 + w2) * 0.44 - 길이 - 0.3;
+    };
+    let lo = 0.4, hi = 3;
+    for (let k = 0; k < 14; k++) { const mid = (lo + hi) / 2; if (틈차(mid) < 0) lo = mid; else hi = mid; }
+    return (lo + hi) / 2;
+  })();
   const beadDegrees = (index: number) => {
     if (!jadeDragon) return index * 360 / ringBeadCount + angle;
-    const slot = index === 0 ? 0 : index + 0.5;
-    return 180 + slot * 360 / JADE_DRAGON.count + angle;
+    // 금룡 양옆 칸은 용의 지금 길이만큼만 — 짧게 보이는 자리에선 옥알이 다가와 맞닿는다(용반칸)
+    const h = 용반칸;
+    const unit = 360 / (ringBeadCount - 2 + 2 * h);
+    const slot = index === 0 ? 0 : h + index - 1;
+    return 180 + slot * unit + angle;
   };
   const dragonWidth = (beadWidth: number, x: number, t: number) => {
     const silhouette = 0.44 + 0.48 * Math.abs(Math.cos(t));
@@ -932,7 +958,9 @@ export default function MoktakPage() {
                   const j = (i + offset + ringBeadCount) % ringBeadCount;
                   const b = 자리[j];
                   // 금룡 때문에 벌어진 반 칸이 옆 옥알의 크기까지 키우지 않게 한다.
-                  const slots = jadeDragon && (i === 0 || j === 0) ? 1.5 : 1;
+                  // 옥알은 용 쪽 거리를 재지 않는다(용 칸은 용 길이에 따라 늘었다 줄었다 한다) — 반대쪽 옥알로만 잰다
+                  if (jadeDragon && j === 0) return 0;
+                  const slots = jadeDragon && i === 0 ? 용반칸 : 1;
                   return Math.hypot(a.x - b.x, a.y - b.y) / slots;
                 };
                 return Math.max(거리(1), 거리(-1));
@@ -1001,7 +1029,7 @@ export default function MoktakPage() {
                         "left .16s linear, top .16s linear, width .16s linear, transform .16s linear",
                     }}
                   >
-                    {dragonMaster ? <JadeDragonTurntable angle={180 - deg} /> : stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
+                    {dragonMaster ? <JadeDragonTurntable angle={180 - deg} lean={용자리?.lean} /> : stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={malaBeadImage(skin.bead, i, beadOneSrc)}
@@ -1943,7 +1971,7 @@ export default function MoktakPage() {
                         }}
                       >
                         {dragonMaster
-                          ? <JadeDragonTurntable angle={180 - deg} />
+                          ? <JadeDragonTurntable angle={180 - deg} lean={expandedDragon?.lean} />
                           // eslint-disable-next-line @next/next/no-img-element
                           : <img src={malaBeadImage(skin.bead, i, skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc)} alt="" draggable={false} className="block w-full" />}
                         {malaCharmImage(skin.bead, i) && <img src={malaCharmImage(skin.bead, i)!} alt="" draggable={false} className="pointer-events-none absolute left-[5%] top-[72%] w-[90%]" />}

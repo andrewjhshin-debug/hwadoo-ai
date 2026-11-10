@@ -6,6 +6,7 @@ const ROWS = 3;
 const VIEWS = COLUMNS * ROWS;
 // Outermost visible pixel of each original view, in atlas order.
 const HALF_WIDTH = [117, 103, 80, 54, 70, 88, 114, 93, 67, 53, 75, 97];
+const HALF_HEIGHT = [63, 65, 69, 74, 66, 65, 61, 69, 75, 79, 76, 73];
 // Gold silhouette radii sampled from the 12 original sprites every 15°,
 // clockwise from the right. Measurements exclude the transparent padding.
 const OUTLINE = [
@@ -31,32 +32,71 @@ function viewAt(angle: number) {
   return (index % VIEWS + VIEWS) % VIEWS;
 }
 
-export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalWidth: number, angle: number) {
-  const [first, last] = neighbors;
-  const dx = last.x - first.x, dy = last.y - first.y;
-  const distance = Math.hypot(dx, dy);
+/** 용 그림 한 장의 자세 — 줄(dx,dy)을 따라 얼마나 기우는지와, 어느 쪽으로 얼마나 뻗는지(상자 폭 1 기준) */
+function pose(angle: number, dx: number, dy: number) {
   const frame = viewAt(angle);
+  // 형: 「용대가리 각도가 어색하다. 끼고 있는 사이 옥에 어떤 각도로 돌든 맞닿게」.
+  // 손으로 고른 다섯 자리에서만 기울이던 것을 걷는다 — 양옆 옥알을 잇는 줄을 그대로 따라 기운다.
+  // 돌림판 그림은 세로축으로 돈 것이라 용의 긴 축이 늘 그림의 가로다. 그래서 그 가로를 줄에 맞추면
+  // 머리와 꼬리가 언제나 양옆 옥알 쪽을 향한다. 줄을 ±90° 안으로 접어 용은 거꾸로 서지 않는다.
+  let leanDeg = Math.atan2(dy, dx) * 180 / Math.PI;
+  if (leanDeg > 90) leanDeg -= 180;
+  if (leanDeg < -90) leanDeg += 180;
+  // 단, 머리를 정면으로 보는 그림(가로≈세로, 동그란 실루엣)은 돌릴수록 「서 있는 조각」처럼 보인다.
+  // 길게 누운 그림일수록 줄을 따르고, 동그란 그림은 거의 안 돌린다 — 닿는 건 크기 맞춤이 맡는다
+  const elongation = Math.max(0, Math.min(1, (HALF_WIDTH[frame] / HALF_HEIGHT[frame] - 1) / 0.8));
+  leanDeg *= elongation;
+  const lean = leanDeg * Math.PI / 180;
   const radii = OUTLINE[frame];
   const radiusAt = (direction: number) => {
-    const index = (direction / (2 * Math.PI) * radii.length + radii.length) % radii.length;
+    const index = ((direction - lean) / (2 * Math.PI) * radii.length + radii.length * 2) % radii.length;
     const a = Math.floor(index);
     return (radii[a] + (radii[(a + 1) % radii.length] - radii[a]) * (index - a)) / FRAME_WIDTH;
   };
   const axis = Math.atan2(dy, dx);
-  const near = radiusAt(axis + Math.PI), far = radiusAt(axis);
-  // The jade artwork fills 88% of its image box. Leave just a thread of air.
+  return { frame, leanDeg, lean, radiusAt, axis, near: radiusAt(axis + Math.PI), far: radiusAt(axis), tall: 2 * HALF_HEIGHT[frame] / FRAME_WIDTH };
+}
+
+/** 용 키를 1 로 둘 때 줄을 따라 몇만큼 뻗나 — 고리에서 용 칸을 푸는 데 쓴다(page.tsx 용반칸) */
+export function dragonSpanPerHeight(angle: number, dx: number, dy: number) {
+  const g = pose(angle, dx, dy);
+  return (g.near + g.far) / g.tall;
+}
+
+export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalWidth: number, angle: number) {
+  const [first, last] = neighbors;
+  const dx = last.x - first.x, dy = last.y - first.y;
+  const distance = Math.hypot(dx, dy);
+  const { frame, leanDeg, lean, radiusAt, axis, near, far } = pose(angle, dx, dy);
+  // 형: 「이런 어긋남이 ㅈ같다고! 99 는 크기 차이도 넘 많잖아」.
+  // ① 크기 — 틈을 다 메우려고 늘리니 앞쪽에서 옥알보다 훨씬 커졌다. 이제 **키를 옆 옥알 키에 맞춘다**
+  //    (옥알 그림은 상자의 88% 가 알). 남는 틈은 아래 금 고리(JadeDragonLinks)가 잇는다.
+  //    다만 양옆 옥알을 파고들 만큼 길면 그만큼 줄인다.
+  const bead = (first.width + last.width) / 2 * 0.88;
   const firstEdge = first.width * 0.44;
   const lastEdge = distance - last.width * 0.44;
-  const fitted = (lastEdge - firstEdge - 0.2) / (near + far);
-  const width = Math.min(nominalWidth * 1.32, Math.max(nominalWidth * 0.84, fitted));
-  const center = (firstEdge + lastEdge + (near - far) * width) / 2;
-  const x = first.x + dx * center / distance;
-  const inset = width * HALF_WIDTH[frame] / FRAME_WIDTH + 0.9;
-  return {
-    x: Math.min(100 - inset, Math.max(inset, x)),
-    y: first.y + dy * center / distance,
-    width,
+  const room = Math.max(0.1, lastEdge - firstEdge - 0.2);
+  // nominalWidth(page 의 dragonWidth)는 가장자리에서 미리 깎여 와 옆자리 용을 쪼그라뜨렸다 — 키는 옥알로만 정한다
+  void nominalWidth;
+  let width = Math.min(bead * 0.95 * FRAME_WIDTH / (2 * HALF_HEIGHT[frame]), room / (near + far));
+  // ② 자리 — 가장자리에서 판 밖으로 나갈까 x 만 안쪽으로 밀었더니 용이 염주 줄에서 옆으로 비껴났다.
+  //    이제는 줄 위에서 벗어나지 않는다. 판에 안 들어가면 **밀지 않고 줄인다.**
+  const extent = HALF_WIDTH[frame] * Math.abs(Math.cos(lean)) + HALF_HEIGHT[frame] * Math.abs(Math.sin(lean));
+  const place = (w: number) => {
+    const along = (firstEdge + lastEdge + (near - far) * w) / 2;
+    // 줄과 직각 쪽으로도 실루엣 가운데를 줄에 얹는다 — 그림 속 용이 상자 한가운데 있지 않다
+    const across = (radiusAt(axis - Math.PI / 2) - radiusAt(axis + Math.PI / 2)) / 2 * w;
+    const nx = -dy / distance, ny = dx / distance;
+    return { x: first.x + dx * along / distance + nx * across, y: first.y + dy * along / distance + ny * across };
   };
+  let at = place(width);
+  // 옆 옥알도 판 가장자리에 반쯤 걸친다 — 용도 그만큼은 걸쳐도 된다(줄이는 건 그 너머부터)
+  const roomX = Math.min(at.x, 100 - at.x) + bead / 2;
+  if (width * extent / FRAME_WIDTH > roomX) {
+    width = Math.max(0.1, roomX) * FRAME_WIDTH / extent;
+    at = place(width);
+  }
+  return { x: at.x, y: at.y, width, lean: leanDeg };
 }
 
 // Gold links sit underneath the dragon and its neighbors, covering only the
@@ -85,7 +125,7 @@ export function JadeDragonLinks({
 }
 
 // Pick one of the original drawings on the same render as the count.
-export default function JadeDragonTurntable({ angle }: { angle: number }) {
+export default function JadeDragonTurntable({ angle, lean = 0 }: { angle: number; lean?: number }) {
   const frame = viewAt(angle);
   return (
     <span
@@ -93,6 +133,7 @@ export default function JadeDragonTurntable({ angle }: { angle: number }) {
       data-dragon-view={frame}
       className="block aspect-[4/3] w-full bg-no-repeat"
       style={{
+        transform: lean ? `rotate(${lean.toFixed(2)}deg)` : undefined,
         backgroundImage: `url("${JADE_DRAGON.turntable}")`,
         backgroundSize: `${COLUMNS * 100}% ${ROWS * 100}%`,
         backgroundPosition: `${(frame % COLUMNS) * 100 / (COLUMNS - 1)}% ${Math.floor(frame / COLUMNS) * 100 / (ROWS - 1)}%`,
