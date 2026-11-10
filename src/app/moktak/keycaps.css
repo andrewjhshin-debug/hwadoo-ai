@@ -22,11 +22,7 @@
   clip-path:inset(0 0 0 0 round 0);transition:transform .14s cubic-bezier(.3,1.4,.5,1),clip-path .14s cubic-bezier(.3,1.4,.5,1),filter .14s ease-out}
 .square-key[data-part='1'] img,.square-key[data-part='3'] img {left:-100%}
 .square-key[data-part='2'] img,.square-key[data-part='3'] img {top:-100%}
-.square-key-well {position:absolute;top:-100%;left:0;width:200%;height:200%;pointer-events:none;background:var(--well);
-  -webkit-mask:var(--sprite) 0 0/100% 100% no-repeat;mask:var(--sprite) 0 0/100% 100% no-repeat}
-.square-key[data-part='3'] .square-key-well {left:-100%}
-.square-key[data-part='2'] {--well:#e3c79e} /* 위 키(부처, 크림)의 앞 옆면 빛 */
-.square-key[data-part='3'] {--well:#c9a2c8} /* 위 키(연꽃, 보라)의 앞 옆면 빛 */
+.square-key img.square-key-well {transform:none!important;clip-path:none!important;transition:none}
 /* 형: 「더 자연스럽게, 진짜 눌려지듯」 — 키를 찌그러뜨리지 않는다. 진짜 키캡처럼
    윗면은 모양 그대로 **통째로 내려가고**(translate), 바닥 끝은 제자리라 **앞 옆면만 그만큼 짧아진다**
    (내린 만큼 바닥을 잘라 낸다 — 잘라 낸 뒤 내리면 바닥 끝이 원래 자리에 온다). 빛은 아주 조금만 죽는다 */

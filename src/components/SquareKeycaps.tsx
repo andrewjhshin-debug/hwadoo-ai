@@ -48,7 +48,9 @@ export default function SquareKeycaps({ press, release }: {
         {/* 아래 줄 키가 내려앉으면 비는 윗자리엔 **바로 위 키의 앞 옆면**이 보여야 한다(진짜로 그 뒤에 있다).
             형: 「회색 부분 ㅈ같다, 아래 둘은 위 키캡 색으로 칠하면 안 보이잖아」 — 그 키 모양 그대로, 위 키 색으로 깐다.
             위 줄 키는 뒤에 아무것도 없으니 깔지 않는다 */}
-        {i >= 2 && <span className="square-key-well" aria-hidden="true" style={{ '--sprite': `url(${SPRITE(i)})` } as React.CSSProperties} />}
+        {/* 마스크(CSS mask)는 폰마다 안 먹어 통째로 색 판이 뜰 수 있다(형: 「왜 깨지냐」) — 색을 입힌 그림을 따로 구워 쓴다 */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {i >= 2 && <img className="square-key-well" src={`/obj/practice-collection-v1/square-keycap-well-${i}.webp`} alt="" draggable={false} />}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="square-key-cap" src={SPRITE(i)} alt="" draggable={false} />
       </button>)}
