@@ -73,6 +73,10 @@ export function dragonSpanPerHeight(angle: number, dx: number, dy: number) {
 export const DRAGON_TUCK = 0.9;
 /** 용 키 ÷ 옆 옥알 지름 — 형: 「옥 대비 넘 작아지는데」. 0.95 → 1.25 (진짜 금룡 장식은 옥알보다 굵다) */
 export const DRAGON_HEIGHT = 1.25;
+/** 용 키 배율 — 머리 정면 그림은 폭이 좁아(키의 2/3) 같은 키여도 작아 보인다. 동그란 그림일수록 25% 더 키운다 */
+export function dragonKeyFactor(angle: number) {
+  return DRAGON_HEIGHT * (1 + 0.25 * (1 - elongationOf(viewAt(angle))));
+}
 
 export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalWidth: number, angle: number) {
   const [first, last] = neighbors;
@@ -83,6 +87,8 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   // ① 크기 — 틈을 다 메우려고 늘리니 앞쪽에서 옥알보다 훨씬 커졌다. 이제 **키를 옆 옥알 키에 맞춘다**
   //    (옥알 그림은 상자의 88% 가 알). 남는 틈은 아래 금 고리(JadeDragonLinks)가 잇는다.
   //    다만 양옆 옥알을 파고들 만큼 길면 그만큼 줄인다.
+  // 용 자리의 원근 크기 = 양옆 옥알의 평균. (큰 쪽에 맞추면 앞 옆자리에서 용이 부풀었다)
+  // 형: 「과도하게 작아지는 거」는 머리 정면 그림이 폭이 좁아 생긴 것 — dragonKeyFactor 가 그 몫을 키운다
   const bead = (first.width + last.width) / 2 * 0.88;
   // 형: 「뜨는 거 아예 없이」 — 옥알 그림의 알은 상자의 87.1%(재 봤다). 반지름 0.435.
   // 틈을 0 에 맞추면 안티에일리어싱 한 줄이 비쳐 떠 보인다 — 양쪽 합쳐 한 뼘(DRAGON_TUCK) 파고들게 한다
@@ -91,7 +97,7 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   // nominalWidth(page 의 dragonWidth)는 가장자리에서 미리 깎여 와 옆자리 용을 쪼그라뜨렸다 — 키는 옥알로만 정한다
   void nominalWidth;
   // 키는 옆 옥알에 맞추되, 칸 셈과 그림 실루엣의 작은 어긋남은 **용이 늘어 메운다**(±20% 안) — 틈이 남지 않게
-  const 키맞춤 = bead * DRAGON_HEIGHT * FRAME_WIDTH / (2 * HALF_HEIGHT[frame]);
+  const 키맞춤 = bead * dragonKeyFactor(angle) * FRAME_WIDTH / (2 * HALF_HEIGHT[frame]);
   void leanDeg; void lean;
   // ③ 줄은 용 양 끝 금마개로 꿰인다 — 형: 「뜨는 거 아예 없이」.
   //    실루엣 반지름으로 대충 재면 옥알이 용 머리 위·옆에 비껴 붙어 몇 px 씩 떴다(가파른 자리에서).

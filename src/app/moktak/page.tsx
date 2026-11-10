@@ -27,7 +27,7 @@ import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
 import { JADE_DRAGON, NEW_MALA_SKINS, isNewMala, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
-import JadeDragonTurntable, { DRAGON_HEIGHT, DRAGON_TUCK, dragonSpanPerHeight, fitJadeDragon, JadeDragonLinks } from "./JadeDragonTurntable";
+import JadeDragonTurntable, { dragonKeyFactor, DRAGON_TUCK, dragonSpanPerHeight, fitJadeDragon, JadeDragonLinks } from "./JadeDragonTurntable";
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -301,6 +301,8 @@ export default function MoktakPage() {
   const 고리폭 = 39;
   const 고리높이 = 23;
   const 염주원근 = 3.5;
+/** 청옥 옥알 빛 — 청록을 초록 쪽 옥색으로(형: 「초반처럼 좀 더 옥색」) */
+const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
   /** 가로형 살갗의 알 한 장·불 켜진 알·빛깔 돌림 — 살갗마다 다르다 */
   const beadOne = (SKINS.bead as readonly { id: string; one?: string; lit?: string; hues?: number[] }[]).find((k) => k.id === skin.bead);
   const beadOneSrc = 그림(beadOne?.one ?? "/obj/bead-paw-one.png");
@@ -721,7 +723,7 @@ export default function MoktakPage() {
       const u = 360 / (ringBeadCount - 2 + 2 * h), d0 = 180 + angle;
       const n1 = 자리of(d0 + h * u), n2 = 자리of(d0 - h * u);
       const w1 = d(n1, 자리of(d0 + (h + 1) * u)) / 0.872 * 1.12, w2 = d(n2, 자리of(d0 - (h + 1) * u)) / 0.872 * 1.12;
-      const 키 = (w1 + w2) / 2 * 0.88 * DRAGON_HEIGHT;
+      const 키 = (w1 + w2) / 2 * 0.88 * dragonKeyFactor(-angle);
       // 용이 그 줄을 따라 실제로 뻗는 길이(그림의 실루엣으로 잰다) — 옆자리에선 가로가 아니라 키 쪽이 줄을 따른다
       const 길이 = 키 * dragonSpanPerHeight(-angle, n2.x - n1.x, n2.y - n1.y);
       return d(n1, n2) - (w1 + w2) * 0.435 - 길이 + DRAGON_TUCK;
@@ -1005,7 +1007,9 @@ export default function MoktakPage() {
                   pos === 0
                     ? 0
                     : Math.max(0, Math.min(1, (물결 - (표시에서 - 칸)) / 칸));
-                const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})${beadHue(i)}`;
+                // 형: 「옥색 말이야, 초반처럼 좀 더 옥색」 — 지금 옥알 그림은 청록(파랑 쪽)으로 기울었다. 초록 쪽으로 한 뼘 돌린다
+                const 옥결 = jadeDragon && i !== 0 ? JADE_TONE : "";
+                const 분홍결 = `brightness(${(1.0 + 0.06 * front).toFixed(2)})${beadHue(i)}${옥결}`;
                 const 금결 = `${goldTint}brightness(${(1 + .07 * front).toFixed(2)})`;
                 return (
                   <span
@@ -1965,7 +1969,7 @@ export default function MoktakPage() {
                           filter: goldTint && lit && !dragonMaster
                             ? `${goldTint}brightness(${(0.94 + .10 * front).toFixed(2)})`
                             : isNewMala(skin.bead)
-                            ? `brightness(${(0.84 + .16 * front).toFixed(2)})`
+                            ? `brightness(${(0.84 + .16 * front).toFixed(2)})${jadeDragon && !dragonMaster ? JADE_TONE : ""}`
                             : lit
                             ? `sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(${(1.06 + .22 * front).toFixed(2)}) drop-shadow(0 0 10px rgba(217,180,91,.5))`
                             : `brightness(${(0.68 + 0.32 * front).toFixed(2)}) drop-shadow(0 ${(2 + 6 * front).toFixed(0)}px ${(6 + 10 * front).toFixed(0)}px rgba(0,0,0,.45))${beadHue(i)}`,
