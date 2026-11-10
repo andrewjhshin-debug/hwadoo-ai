@@ -45,9 +45,10 @@ export default function SquareKeycaps({ press, release }: {
         onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); start(i); } }}
         onKeyUp={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); stop(i); } }}
         onClick={e => { if (e.detail === 0 && !held.current.has(i)) { start(i); stop(i); } }}>
-        {/* 키 우물 — 같은 키를 어둡게 깔아 둔다. 키가 내려앉으면 비는 윗자리에 하얀 틈 대신 그늘진 구멍이 보인다 */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="square-key-well" src={SPRITE(i)} alt="" draggable={false} />
+        {/* 아래 줄 키가 내려앉으면 비는 윗자리엔 **바로 위 키의 앞 옆면**이 보여야 한다(진짜로 그 뒤에 있다).
+            형: 「회색 부분 ㅈ같다, 아래 둘은 위 키캡 색으로 칠하면 안 보이잖아」 — 그 키 모양 그대로, 위 키 색으로 깐다.
+            위 줄 키는 뒤에 아무것도 없으니 깔지 않는다 */}
+        {i >= 2 && <span className="square-key-well" aria-hidden="true" style={{ '--sprite': `url(${SPRITE(i)})` } as React.CSSProperties} />}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="square-key-cap" src={SPRITE(i)} alt="" draggable={false} />
       </button>)}

@@ -13,18 +13,24 @@
 .square-key {position:absolute;width:50%;height:50%;top:0;left:0;padding:0;border:0;background:none;touch-action:none;-webkit-tap-highlight-color:transparent;cursor:pointer;z-index:1}
 .square-key[data-part='1'],.square-key[data-part='3'] {left:50%}
 .square-key[data-part='2'],.square-key[data-part='3'] {top:50%;z-index:2}
-.square-key {--kb:51%;--d:1.4%}
+.square-key {--kb:51%;--d:1.4%;--cl:0%;--cr:0%}
+/* 아래 키 잘라 낼 때 좌우를 키 바닥 끝에 붙이고 모서리를 둥글린다 — 둥근 바닥 모서리가 평평해지지 않게(형: 「거슬리고」) */
+.square-key[data-part='2'] {--cl:6%;--cr:50%}
+.square-key[data-part='3'] {--cl:50%;--cr:6.6%}
 .square-key[data-part='2'],.square-key[data-part='3'] {--kb:88.5%}
 .square-key img {position:absolute;top:0;left:0;display:block;width:200%;height:200%;max-width:none;max-height:none;pointer-events:none;
-  clip-path:inset(0 0 0 0);transition:transform .14s cubic-bezier(.3,1.4,.5,1),clip-path .14s cubic-bezier(.3,1.4,.5,1),filter .14s ease-out}
+  clip-path:inset(0 0 0 0 round 0);transition:transform .14s cubic-bezier(.3,1.4,.5,1),clip-path .14s cubic-bezier(.3,1.4,.5,1),filter .14s ease-out}
 .square-key[data-part='1'] img,.square-key[data-part='3'] img {left:-100%}
 .square-key[data-part='2'] img,.square-key[data-part='3'] img {top:-100%}
-/* 키 우물 — 내려앉은 키 위로 비는 한 줄에 보이는 그늘. 진하지 않게(형: 「키캡 티 안 나게」) */
-.square-key img.square-key-well {filter:brightness(.62) saturate(.8);transform:none!important;clip-path:none!important;transition:none}
+.square-key-well {position:absolute;top:-100%;left:0;width:200%;height:200%;pointer-events:none;background:var(--well);
+  -webkit-mask:var(--sprite) 0 0/100% 100% no-repeat;mask:var(--sprite) 0 0/100% 100% no-repeat}
+.square-key[data-part='3'] .square-key-well {left:-100%}
+.square-key[data-part='2'] {--well:#e3c79e} /* 위 키(부처, 크림)의 앞 옆면 빛 */
+.square-key[data-part='3'] {--well:#c9a2c8} /* 위 키(연꽃, 보라)의 앞 옆면 빛 */
 /* 형: 「더 자연스럽게, 진짜 눌려지듯」 — 키를 찌그러뜨리지 않는다. 진짜 키캡처럼
    윗면은 모양 그대로 **통째로 내려가고**(translate), 바닥 끝은 제자리라 **앞 옆면만 그만큼 짧아진다**
    (내린 만큼 바닥을 잘라 낸다 — 잘라 낸 뒤 내리면 바닥 끝이 원래 자리에 온다). 빛은 아주 조금만 죽는다 */
-.square-key[data-down='1'] img.square-key-cap {transform:translateY(var(--d));clip-path:inset(0 0 calc(100% - var(--kb) + var(--d)) 0);filter:brightness(.965);
+.square-key[data-down='1'] img.square-key-cap {transform:translateY(var(--d));clip-path:inset(0 var(--cr) calc(100% - var(--kb) + var(--d)) var(--cl) round 0 0 4% 4%);filter:brightness(.965);
   transition:transform .045s ease-out,clip-path .045s ease-out,filter .045s ease-out}
 .square-key:focus-visible {outline:none}
 .square-key:focus-visible img.square-key-cap {filter:drop-shadow(0 0 3px #ef86b0)}
