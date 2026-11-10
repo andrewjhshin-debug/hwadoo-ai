@@ -73,7 +73,7 @@ export function dragonSpanPerHeight(angle: number, dx: number, dy: number) {
 export const DRAGON_TUCK = 0.9;
 /** 파고드는 길이 — 머리 정면 그림은 갈기 끝이 가늘어, 끝끼리 닿아도 떠 보인다(형: 「전반적으로 이런 거」). 동그란 그림일수록 더 깊이 */
 export function dragonTuck(angle: number) {
-  return DRAGON_TUCK + 2.2 * (1 - elongationOf(viewAt(angle)));
+  return DRAGON_TUCK + 3.6 * (1 - elongationOf(viewAt(angle)));
 }
 /** 용 키 ÷ 옆 옥알 지름 — 형: 「옥 대비 넘 작아지는데」. 0.95 → 1.25 (진짜 금룡 장식은 옥알보다 굵다) */
 export const DRAGON_HEIGHT = 1.25;
