@@ -33,19 +33,22 @@ function viewAt(angle: number) {
 }
 
 /** 용 그림 한 장의 자세 — 줄(dx,dy)을 따라 얼마나 기우는지와, 어느 쪽으로 얼마나 뻗는지(상자 폭 1 기준) */
+// 용 양 끝 금마개(줄이 꿰이는 자리)의 가운데 — 그림 가운데 기준 px(폭 256). 아틀라스 알파에서 재었다
+const CAPS: readonly (readonly [readonly [number, number], readonly [number, number]])[] = [
+  [[-113, 18], [112, 19]], [[-99, 25], [98, 1]], [[-76, 34], [75, -14]], [[-49, -1], [49, 2]],
+  [[-65, -18], [65, 30]], [[-83, -10], [83, 29]], [[-110, 15], [109, 17]], [[-88, 31], [88, -2]],
+  [[-62, 34], [62, -6]], [[-49, -2], [48, -1]], [[-70, -4], [70, 39]], [[-92, 0], [92, 33]],
+];
+/** 그림이 얼마나 길게 누웠나(0 = 머리 정면·동그람, 1 = 옆모습) */
+const elongationOf = (frame: number) => Math.max(0, Math.min(1, (HALF_WIDTH[frame] / HALF_HEIGHT[frame] - 1) / 0.8));
+
 function pose(angle: number, dx: number, dy: number) {
   const frame = viewAt(angle);
-  // 형: 「용대가리 각도가 어색하다. 끼고 있는 사이 옥에 어떤 각도로 돌든 맞닿게」.
-  // 손으로 고른 다섯 자리에서만 기울이던 것을 걷는다 — 양옆 옥알을 잇는 줄을 그대로 따라 기운다.
-  // 돌림판 그림은 세로축으로 돈 것이라 용의 긴 축이 늘 그림의 가로다. 그래서 그 가로를 줄에 맞추면
-  // 머리와 꼬리가 언제나 양옆 옥알 쪽을 향한다. 줄을 ±90° 안으로 접어 용은 거꾸로 서지 않는다.
-  let leanDeg = Math.atan2(dy, dx) * 180 / Math.PI;
-  if (leanDeg > 90) leanDeg -= 180;
-  if (leanDeg < -90) leanDeg += 180;
-  // 단, 머리를 정면으로 보는 그림(가로≈세로, 동그란 실루엣)은 돌릴수록 「서 있는 조각」처럼 보인다.
-  // 길게 누운 그림일수록 줄을 따르고, 동그란 그림은 거의 안 돌린다 — 닿는 건 크기 맞춤이 맡는다
-  const elongation = Math.max(0, Math.min(1, (HALF_WIDTH[frame] / HALF_HEIGHT[frame] - 1) / 0.8));
-  leanDeg *= elongation;
+  // 형: 「존나 어색한데」. 줄을 따라 그림을 **2D 로 기울인** 것이 어색함의 뿌리였다.
+  // 이 열두 장은 용을 세로축으로 돌려 가며 위에서 비스듬히 본 그림이다 — 고리가 돌며 용이 향하는
+  // 쪽이 바뀌는 것과 **같은 움직임**이 이미 그림 안에 들어 있다. 거기에 다시 기울이면 두 번 돈 셈이라
+  // 바닥에 박힌 조각처럼 서거나 비뚤어 보였다. 기울이지 않는다. 맞닿음은 칸(용반칸)과 크기가 맡는다.
+  const leanDeg = 0;
   const lean = leanDeg * Math.PI / 180;
   const radii = OUTLINE[frame];
   const radiusAt = (direction: number) => {
@@ -60,8 +63,14 @@ function pose(angle: number, dx: number, dy: number) {
 /** 용 키를 1 로 둘 때 줄을 따라 몇만큼 뻗나 — 고리에서 용 칸을 푸는 데 쓴다(page.tsx 용반칸) */
 export function dragonSpanPerHeight(angle: number, dx: number, dy: number) {
   const g = pose(angle, dx, dy);
-  return (g.near + g.far) / g.tall;
+  const e = elongationOf(g.frame);
+  const [L, R] = CAPS[g.frame];
+  const capLen = Math.hypot(R[0] - L[0], R[1] - L[1]) / FRAME_WIDTH;
+  return (capLen * e + (g.near + g.far) * (1 - e)) / g.tall;
 }
+
+/** 용이 양옆 옥알을 파고드는 길이(판 폭 %, 양쪽 합) — 닿은 자리에 머리카락만 한 틈도 안 비치게 */
+export const DRAGON_TUCK = 0.9;
 
 export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalWidth: number, angle: number) {
   const [first, last] = neighbors;
@@ -73,30 +82,51 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   //    (옥알 그림은 상자의 88% 가 알). 남는 틈은 아래 금 고리(JadeDragonLinks)가 잇는다.
   //    다만 양옆 옥알을 파고들 만큼 길면 그만큼 줄인다.
   const bead = (first.width + last.width) / 2 * 0.88;
-  const firstEdge = first.width * 0.44;
-  const lastEdge = distance - last.width * 0.44;
-  const room = Math.max(0.1, lastEdge - firstEdge - 0.2);
+  // 형: 「뜨는 거 아예 없이」 — 옥알 그림의 알은 상자의 87.1%(재 봤다). 반지름 0.435.
+  // 틈을 0 에 맞추면 안티에일리어싱 한 줄이 비쳐 떠 보인다 — 양쪽 합쳐 한 뼘(DRAGON_TUCK) 파고들게 한다
+  const firstEdge = first.width * 0.435;
+  const lastEdge = distance - last.width * 0.435;
   // nominalWidth(page 의 dragonWidth)는 가장자리에서 미리 깎여 와 옆자리 용을 쪼그라뜨렸다 — 키는 옥알로만 정한다
   void nominalWidth;
-  let width = Math.min(bead * 0.95 * FRAME_WIDTH / (2 * HALF_HEIGHT[frame]), room / (near + far));
-  // ② 자리 — 가장자리에서 판 밖으로 나갈까 x 만 안쪽으로 밀었더니 용이 염주 줄에서 옆으로 비껴났다.
-  //    이제는 줄 위에서 벗어나지 않는다. 판에 안 들어가면 **밀지 않고 줄인다.**
-  const extent = HALF_WIDTH[frame] * Math.abs(Math.cos(lean)) + HALF_HEIGHT[frame] * Math.abs(Math.sin(lean));
-  const place = (w: number) => {
-    const along = (firstEdge + lastEdge + (near - far) * w) / 2;
-    // 줄과 직각 쪽으로도 실루엣 가운데를 줄에 얹는다 — 그림 속 용이 상자 한가운데 있지 않다
-    const across = (radiusAt(axis - Math.PI / 2) - radiusAt(axis + Math.PI / 2)) / 2 * w;
-    const nx = -dy / distance, ny = dx / distance;
-    return { x: first.x + dx * along / distance + nx * across, y: first.y + dy * along / distance + ny * across };
+  // 키는 옆 옥알에 맞추되, 칸 셈과 그림 실루엣의 작은 어긋남은 **용이 늘어 메운다**(±20% 안) — 틈이 남지 않게
+  const 키맞춤 = bead * 0.95 * FRAME_WIDTH / (2 * HALF_HEIGHT[frame]);
+  void leanDeg; void lean;
+  // ③ 줄은 용 양 끝 금마개로 꿰인다 — 형: 「뜨는 거 아예 없이」.
+  //    실루엣 반지름으로 대충 재면 옥알이 용 머리 위·옆에 비껴 붙어 몇 px 씩 떴다(가파른 자리에서).
+  //    진짜 팔찌처럼 **금마개 두 점을 양옆 옥알의 가장자리 두 점에 그대로 맞춘다**(두 점 맞추기 = 돌림·크기·자리가 한 번에 정해진다).
+  //    단 머리 정면 그림(동그란 것)은 금마개가 겹쳐 보여 맞출 축이 없다 — 길게 누운 정도(e)만큼만 따르고,
+  //    나머지는 줄 위 가운데·옥알 키로 둔다. 그 몫의 맞닿음은 칸(용반칸)이 맡는다.
+  const e = elongationOf(frame);
+  const ux = dx / distance, uy = dy / distance;
+  const T1 = { x: first.x + ux * (first.width * 0.435 - DRAGON_TUCK / 2), y: first.y + uy * (first.width * 0.435 - DRAGON_TUCK / 2) };
+  const T2 = { x: last.x - ux * (last.width * 0.435 - DRAGON_TUCK / 2), y: last.y - uy * (last.width * 0.435 - DRAGON_TUCK / 2) };
+  const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+  const target = Math.atan2(T2.y - T1.y, T2.x - T1.x);
+  const [L, R] = CAPS[frame];
+  // 어느 마개를 어느 옥알에 — 덜 돌리는 쪽으로(용은 거꾸로 서지 않는다)
+  const fits = ([A, B]: readonly [readonly [number, number], readonly [number, number]]) => {
+    const vAng = Math.atan2(B[1] - A[1], B[0] - A[0]);
+    return { A, B, turn: wrap(target - vAng), vLen: Math.hypot(B[0] - A[0], B[1] - A[1]) };
   };
-  let at = place(width);
-  // 옆 옥알도 판 가장자리에 반쯤 걸친다 — 용도 그만큼은 걸쳐도 된다(줄이는 건 그 너머부터)
-  const roomX = Math.min(at.x, 100 - at.x) + bead / 2;
-  if (width * extent / FRAME_WIDTH > roomX) {
-    width = Math.max(0.1, roomX) * FRAME_WIDTH / extent;
-    at = place(width);
-  }
-  return { x: at.x, y: at.y, width, lean: leanDeg };
+  const one = fits([L, R]), two = fits([R, L]);
+  const pick = Math.abs(one.turn) <= Math.abs(two.turn) ? one : two;
+  const capScale = Math.hypot(T2.x - T1.x, T2.y - T1.y) / pick.vLen; // % per px
+  const hScale = 키맞춤 / FRAME_WIDTH;
+  const scale = Math.min(hScale * 1.25, Math.max(hScale * 0.8, hScale + (capScale - hScale) * e));
+  const turn = pick.turn * e;
+  const cos = Math.cos(turn), sin = Math.sin(turn);
+  const capAt = { x: T1.x - (pick.A[0] * cos - pick.A[1] * sin) * scale, y: T1.y - (pick.A[0] * sin + pick.A[1] * cos) * scale };
+  // 동그란 그림 몫 — 줄 위, 양옆 사이 가운데(실루엣 반지름으로)
+  const w0 = scale * FRAME_WIDTH;
+  const along = (firstEdge + lastEdge + (near - far) * w0) / 2;
+  const across = (radiusAt(axis - Math.PI / 2) - radiusAt(axis + Math.PI / 2)) / 2 * w0;
+  const mid = { x: first.x + ux * along - uy * across, y: first.y + uy * along + ux * across };
+  return {
+    x: mid.x + (capAt.x - mid.x) * e,
+    y: mid.y + (capAt.y - mid.y) * e,
+    width: w0,
+    lean: turn * 180 / Math.PI,
+  };
 }
 
 // Gold links sit underneath the dragon and its neighbors, covering only the

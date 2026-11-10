@@ -27,7 +27,7 @@ import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
 import { JADE_DRAGON, NEW_MALA_SKINS, isNewMala, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
-import JadeDragonTurntable, { dragonSpanPerHeight, fitJadeDragon, JadeDragonLinks } from "./JadeDragonTurntable";
+import JadeDragonTurntable, { DRAGON_TUCK, dragonSpanPerHeight, fitJadeDragon, JadeDragonLinks } from "./JadeDragonTurntable";
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -724,7 +724,7 @@ export default function MoktakPage() {
       const 키 = (w1 + w2) / 2 * 0.88 * 0.95;
       // 용이 그 줄을 따라 실제로 뻗는 길이(그림의 실루엣으로 잰다) — 옆자리에선 가로가 아니라 키 쪽이 줄을 따른다
       const 길이 = 키 * dragonSpanPerHeight(-angle, n2.x - n1.x, n2.y - n1.y);
-      return d(n1, n2) - (w1 + w2) * 0.44 - 길이 - 0.3;
+      return d(n1, n2) - (w1 + w2) * 0.435 - 길이 + DRAGON_TUCK;
     };
     let lo = 0.4, hi = 3;
     for (let k = 0; k < 14; k++) { const mid = (lo + hi) / 2; if (틈차(mid) < 0) lo = mid; else hi = mid; }
@@ -1010,6 +1010,7 @@ export default function MoktakPage() {
                 return (
                   <span
                     key={i}
+                    data-mala-i={i}
                     className="absolute block"
                     style={{
                       // 형: 「알 더 작게, 더 크게. 원 튀어나가도 됨」
