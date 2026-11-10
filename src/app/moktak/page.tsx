@@ -317,7 +317,7 @@ export default function MoktakPage() {
     const symbols = skin.bead === "zodiac" ? ZODIAC_MALA_SYMBOLS : STONE_MALA_SYMBOLS;
     symbols.forEach(({ src }) => { const img = new window.Image(); img.src = src; });
   }, [skin.bead, stoneMala]);
-  const malaElastic = useMalaElastic(tab === "yeomju" && beadWide);
+  const malaElastic = useMalaElastic(tab === "yeomju" && beadWide && !jadeDragon);
   const beadHue = (i: number) => (beadOne?.hues ? ` hue-rotate(${beadOne.hues[i % beadOne.hues.length]}deg)` : "");
 
   const pickSkin = (kind: SkinKind) => (id: string) => {
@@ -990,7 +990,7 @@ export default function MoktakPage() {
                       transform: "translate(-50%, -50%)",
                       zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
-                      transition:
+                      transition: jadeDragon ? "none" :
                         "left .16s linear, top .16s linear, width .16s linear, transform .16s linear",
                     }}
                   >
@@ -1017,7 +1017,7 @@ export default function MoktakPage() {
                         style={{
                           filter: 금결,
                           opacity: 채움,
-                          transition: "opacity .16s ease-out",
+                          transition: jadeDragon ? "none" : "opacity .16s ease-out",
                         }}
                       />
                     )}
@@ -1883,7 +1883,7 @@ export default function MoktakPage() {
                 <div ref={malaElastic.expandedRef} aria-hidden className="pointer-events-none absolute inset-0">
                   {expandedDragon && (() => {
                     const point = (index: number) => expandedBeadPosition(beadDegrees(index) * Math.PI / 180);
-                    return <JadeDragonLinks head={expandedDragon} neighbors={[point(1), point(ringBeadCount - 1)]} transition=".14s ease-out" />;
+                    return <JadeDragonLinks head={expandedDragon} neighbors={[point(1), point(ringBeadCount - 1)]} />;
                   })()}
                   {Array.from({ length: ringBeadCount }, (_, i) => {
                     // 0 = 맨 위(뒤) · 180 = 맨 아래(앞)
@@ -1928,7 +1928,7 @@ export default function MoktakPage() {
                           width: `${dragonMaster && expandedDragon ? expandedDragon.width : width}%`,
                           transform: `translate(-50%, -50%) scale(${atMarker && !dragonMaster ? 1.07 : 1})`,
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
-                          transition: "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
+                          transition: jadeDragon ? "none" : "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: goldTint && lit && !dragonMaster
                             ? `${goldTint}brightness(${(0.94 + .10 * front).toFixed(2)})`
                             : isNewMala(skin.bead)
@@ -1939,7 +1939,7 @@ export default function MoktakPage() {
                         }}
                       >
                         {dragonMaster
-                          ? <JadeDragonTurntable angle={180 - deg} duration={140} />
+                          ? <JadeDragonTurntable angle={180 - deg} />
                           // eslint-disable-next-line @next/next/no-img-element
                           : <img src={malaBeadImage(skin.bead, i, skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc)} alt="" draggable={false} className="block w-full" />}
                         {malaCharmImage(skin.bead, i) && <img src={malaCharmImage(skin.bead, i)!} alt="" draggable={false} className="pointer-events-none absolute left-[5%] top-[72%] w-[90%]" />}
