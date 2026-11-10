@@ -71,6 +71,8 @@ export function dragonSpanPerHeight(angle: number, dx: number, dy: number) {
 
 /** 용이 양옆 옥알을 파고드는 길이(판 폭 %, 양쪽 합) — 닿은 자리에 머리카락만 한 틈도 안 비치게 */
 export const DRAGON_TUCK = 0.9;
+/** 용 키 ÷ 옆 옥알 지름 — 형: 「옥 대비 넘 작아지는데」. 0.95 → 1.25 (진짜 금룡 장식은 옥알보다 굵다) */
+export const DRAGON_HEIGHT = 1.25;
 
 export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalWidth: number, angle: number) {
   const [first, last] = neighbors;
@@ -89,7 +91,7 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   // nominalWidth(page 의 dragonWidth)는 가장자리에서 미리 깎여 와 옆자리 용을 쪼그라뜨렸다 — 키는 옥알로만 정한다
   void nominalWidth;
   // 키는 옆 옥알에 맞추되, 칸 셈과 그림 실루엣의 작은 어긋남은 **용이 늘어 메운다**(±20% 안) — 틈이 남지 않게
-  const 키맞춤 = bead * 0.95 * FRAME_WIDTH / (2 * HALF_HEIGHT[frame]);
+  const 키맞춤 = bead * DRAGON_HEIGHT * FRAME_WIDTH / (2 * HALF_HEIGHT[frame]);
   void leanDeg; void lean;
   // ③ 줄은 용 양 끝 금마개로 꿰인다 — 형: 「뜨는 거 아예 없이」.
   //    실루엣 반지름으로 대충 재면 옥알이 용 머리 위·옆에 비껴 붙어 몇 px 씩 떴다(가파른 자리에서).
