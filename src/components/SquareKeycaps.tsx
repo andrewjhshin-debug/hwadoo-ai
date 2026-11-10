@@ -1,20 +1,21 @@
 'use client';
 
-// 사각 키캡 네 개 — 형: 「키캡 좆같다, 눌려지는 거 다시」.
-// 전에는 한 장짜리 그림 위에서 윗면만 흐린 타원으로 오려 살짝 내렸다. 키는 그대로인데 가운데만
-// 번지듯 움직여 「눌린다」가 아니라 「얼룩이 진다」로 읽혔다.
-// 이제 그림을 **키 네 장으로 갈랐다**(public/obj/practice-collection-v1/square-keycap-0..3.webp,
-// 위·아래 키 사이 그늘진 틈과 좌우 솔기를 따라 잘랐다). 누르면 **그 키 하나가 통째로** 바닥 쪽으로
-// 내려앉는다 — 윗면이 내려가고 옆면이 짧아지고(아래 끝을 축으로 세로를 줄인다) 살짝 어두워진다.
-// 아래 줄 키가 위 줄 키의 앞을 덮고 있어서, 위 키가 내려가면 진짜처럼 아래 키 뒤로 들어간다.
+// 사각 키캡 네 개 — 형: 「키캡 좆같다, 눌려지는 거 다시」 「이음새 약간 이런 거 아예 없이」.
+//
+// 평소엔 **원본 그림 한 장**만 보인다 — 자른 데가 없으니 이음새도 없다.
+// 누르는 동안만 「그 키만 뺀 원본」(square-keycap-without-N) 위아래로 「그 키 한 장」(square-keycap-N)을 끼워
+// 그 키 하나만 내려앉힌다. 두 장은 같은 경계에서 서로 메우게 구웠다(합치면 원본).
+//   쌓는 순서: 위 키 색 판(아래 줄 키 뒤) → 눌린 위 줄 키 → 바탕(그 키만 뺀 원본) → 눌린 아래 줄 키
+//   위 줄 키는 아래 줄 키 **밑으로** 들어가고, 아래 줄 키가 내려가 비는 윗자리엔 위 키의 앞 옆면 색이 보인다.
+// 키는 찌그러뜨리지 않는다 — 윗면은 통째로 내려가고 바닥 끝은 제자리라 앞 옆면만 짧아진다(keycaps.css).
 
 import { useRef, useState } from 'react';
 
 const keys = ['부처', '연꽃', '인연', '법륜'];
-const SPRITE = (i: number) => `/obj/practice-collection-v1/square-keycap-${i}.webp`;
+const DIR = '/obj/practice-collection-v1/';
 
-export default function SquareKeycaps({ press, release }: {
-  src?: string; press: () => void; release: () => void;
+export default function SquareKeycaps({ src, press, release }: {
+  src: string; press: () => void; release: () => void;
 }) {
   const held = useRef(new Set<number>());
   const [down, setDown] = useState<number[]>([]);
@@ -29,10 +30,24 @@ export default function SquareKeycaps({ press, release }: {
     setDown([...held.current]);
     release();
   };
+  // ponytail: 동시에 여럿 누르면 첫 키만 내려앉는다 — 필요해지면 키별 바탕을 겹겹이 구워 쌓는다
+  const k = down.length ? down[0] : -1;
+  const top = k === 0 || k === 1, bottom = k === 2 || k === 3;
+  /* eslint-disable @next/next/no-img-element */
   return <div className="hip-keycap square-keycaps" role="group" aria-label="사각 키캡 네 개">
     <div className="square-keycaps-art">
+      {bottom && <img className="sq-layer" src={`${DIR}square-keycap-well-${k}.webp`} alt="" draggable={false} />}
+      {top && <img className="sq-layer sq-cap" data-part={k} src={`${DIR}square-keycap-${k}.webp`} alt="" draggable={false} />}
+      <img className="sq-layer" src={k < 0 ? src : `${DIR}square-keycap-without-${k}.webp`} alt="" draggable={false} />
+      {bottom && <img className="sq-layer sq-cap" data-part={k} src={`${DIR}square-keycap-${k}.webp`} alt="" draggable={false} />}
+      {/* 미리 받아 둔다 — 첫 누름에 그림이 늦게 와 깜빡이지 않게 */}
+      <span hidden>
+        {[0, 1, 2, 3].map((n) => <img key={`b${n}`} src={`${DIR}square-keycap-without-${n}.webp`} alt="" />)}
+        {[0, 1, 2, 3].map((n) => <img key={`c${n}`} src={`${DIR}square-keycap-${n}.webp`} alt="" />)}
+        {[2, 3].map((n) => <img key={`w${n}`} src={`${DIR}square-keycap-well-${n}.webp`} alt="" />)}
+      </span>
       {keys.map((name, i) => <button key={name} type="button"
-        className="square-key" data-part={i} data-down={down.includes(i) ? '1' : '0'}
+        className="square-key" data-part={i}
         aria-label={`${name} 키캡 누르기`}
         onPointerDown={e => {
           if (e.button !== 0) return;
@@ -44,16 +59,8 @@ export default function SquareKeycaps({ press, release }: {
         onLostPointerCapture={() => stop(i)} onBlur={() => stop(i)}
         onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); start(i); } }}
         onKeyUp={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); stop(i); } }}
-        onClick={e => { if (e.detail === 0 && !held.current.has(i)) { start(i); stop(i); } }}>
-        {/* 아래 줄 키가 내려앉으면 비는 윗자리엔 **바로 위 키의 앞 옆면**이 보여야 한다(진짜로 그 뒤에 있다).
-            형: 「회색 부분 ㅈ같다, 아래 둘은 위 키캡 색으로 칠하면 안 보이잖아」 — 그 키 모양 그대로, 위 키 색으로 깐다.
-            위 줄 키는 뒤에 아무것도 없으니 깔지 않는다 */}
-        {/* 마스크(CSS mask)는 폰마다 안 먹어 통째로 색 판이 뜰 수 있다(형: 「왜 깨지냐」) — 색을 입힌 그림을 따로 구워 쓴다 */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        {i >= 2 && <img className="square-key-well" src={`/obj/practice-collection-v1/square-keycap-well-${i}.webp`} alt="" draggable={false} />}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="square-key-cap" src={SPRITE(i)} alt="" draggable={false} />
-      </button>)}
+        onClick={e => { if (e.detail === 0 && !held.current.has(i)) { start(i); stop(i); } }} />)}
     </div>
   </div>;
+  /* eslint-enable @next/next/no-img-element */
 }
