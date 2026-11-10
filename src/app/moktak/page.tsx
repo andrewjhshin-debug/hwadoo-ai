@@ -723,10 +723,10 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
       const u = 360 / (ringBeadCount - 2 + 2 * h), d0 = 180 + angle;
       const n1 = 자리of(d0 + h * u), n2 = 자리of(d0 - h * u);
       const w1 = d(n1, 자리of(d0 + (h + 1) * u)) / 0.872 * 1.12, w2 = d(n2, 자리of(d0 - (h + 1) * u)) / 0.872 * 1.12;
-      const 키 = (w1 + w2) / 2 * 0.88 * dragonKeyFactor(-angle);
+      const 키 = (w1 + w2) / 2 * 0.88 * dragonKeyFactor(-angle, n2.x - n1.x, n2.y - n1.y);
       // 용이 그 줄을 따라 실제로 뻗는 길이(그림의 실루엣으로 잰다) — 옆자리에선 가로가 아니라 키 쪽이 줄을 따른다
       const 길이 = 키 * dragonSpanPerHeight(-angle, n2.x - n1.x, n2.y - n1.y);
-      return d(n1, n2) - (w1 + w2) * 0.435 - 길이 + dragonTuck(-angle);
+      return d(n1, n2) - (w1 + w2) * 0.435 - 길이 + dragonTuck(-angle, n2.x - n1.x, n2.y - n1.y);
     };
     let lo = 0.4, hi = 3;
     for (let k = 0; k < 14; k++) { const mid = (lo + hi) / 2; if (틈차(mid) < 0) lo = mid; else hi = mid; }
@@ -759,7 +759,8 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
   const expandedDragonNeighbors = jadeDragon ? [expandedJadeBead(1), expandedJadeBead(ringBeadCount - 1)] as const : null;
   const expandedDragon = expandedDragonNeighbors ? (() => {
     const { t, x, width } = expandedJadeBead(0);
-    return fitJadeDragon(expandedDragonNeighbors, dragonWidth(width, x, t), 180 - beadDegrees(0));
+    const { y } = expandedJadeBead(0);
+    return fitJadeDragon(expandedDragonNeighbors, dragonWidth(width, x, t), 180 - beadDegrees(0), { x, y });
   })() : null;
   // 물든 만큼만 금빛 겹을 보여 준다 — 위 가운데의 표시점에서 반시계로.
   // 바깥 고리와 같은 출발점·방향이어야, 금빛이 갑자기 아래쪽에 덧칠된 듯 보이지 않는다.
@@ -975,7 +976,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
               const 용자리 = 용이웃 ? (() => {
                 const { x, t } = 자리[0];
                 const width = dragonWidth((사이(0) / 0.872) * 1.12, x, t);
-                return fitJadeDragon(용이웃, width, 180 - beadDegrees(0));
+                return fitJadeDragon(용이웃, width, 180 - beadDegrees(0), { x, y: 자리[0].y });
               })() : null;
               const 알들 = 자리.map(({ t, x, y }, i) => {
                 const deg = beadDegrees(i);
@@ -1034,7 +1035,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
                         "left .16s linear, top .16s linear, width .16s linear, transform .16s linear",
                     }}
                   >
-                    {dragonMaster ? <JadeDragonTurntable angle={180 - deg} lean={용자리?.lean} /> : stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
+                    {dragonMaster ? <JadeDragonTurntable angle={180 - deg} lean={용자리?.lean} frame={용자리?.frame} /> : stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={malaBeadImage(skin.bead, i, beadOneSrc)}
@@ -1976,7 +1977,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
                         }}
                       >
                         {dragonMaster
-                          ? <JadeDragonTurntable angle={180 - deg} lean={expandedDragon?.lean} />
+                          ? <JadeDragonTurntable angle={180 - deg} lean={expandedDragon?.lean} frame={expandedDragon?.frame} />
                           // eslint-disable-next-line @next/next/no-img-element
                           : <img src={malaBeadImage(skin.bead, i, skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc)} alt="" draggable={false} className="block w-full" />}
                         {malaCharmImage(skin.bead, i) && <img src={malaCharmImage(skin.bead, i)!} alt="" draggable={false} className="pointer-events-none absolute left-[5%] top-[72%] w-[90%]" />}

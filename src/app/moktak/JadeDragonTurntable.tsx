@@ -41,9 +41,33 @@ const CAPS: readonly (readonly [readonly [number, number], readonly [number, num
 ];
 /** 그림이 얼마나 길게 누웠나(0 = 머리 정면·동그람, 1 = 옆모습) */
 const elongationOf = (frame: number) => Math.max(0, Math.min(1, (HALF_WIDTH[frame] / HALF_HEIGHT[frame] - 1) / 0.8));
+/** 형: 「매끄럽게, 왼쪽 반원 돌 때 이상」 — 그림은 아홉 칸마다 바뀌지만 크기·파고듦·칸 셈까지 그때 **툭** 바뀌면
+    옥알이 튀고 용이 커졌다 작아졌다 한다. 이 셋은 각도에 따라 이웃 그림 둘 사이를 **이어서** 쓴다 */
+function elongationAt(angle: number) {
+  const f = ((angle * VIEWS / 360) % VIEWS + VIEWS) % VIEWS;
+  const a = Math.floor(f) % VIEWS, b = (a + 1) % VIEWS, k = f - Math.floor(f);
+  const t = k * k * (3 - 2 * k);
+  return elongationOf(a) * (1 - t) + elongationOf(b) * t;
+}
+
+/** 그림 열두 장은 **낮게(약 14°)** 내려다보고 찍었고, 화면의 고리는 **높게(약 36°)** 내려다본다.
+    고리 각도로만 그림을 고르면 옆자리에서 고리 줄은 가파른데 용은 납작 누운 그림이 나와 엇나갔다
+    (형: 「왼쪽 반원 돌 때 전부 이상해」). 그래서 **화면 위 양옆 옥알을 잇는 줄의 기울기**로 그림을 고른다 —
+    그림 속 용 축이 그 줄과 같은 기울기로 보이는 방위각을 거꾸로 푼다. 머리 방향은 고리 각도 쪽을 따른다. */
+const IMAGE_TILT = 0.24; // 그림의 sin(내려다본 각) — CAPS 의 30°·60°·330° 그림 기울기에서 잼
+function viewAngle(angle: number, dx: number, dy: number) {
+  const phi0 = -angle * Math.PI / 180; // 고리 각도로 본 방위(그림 f ↔ −30f°)
+  let phi = Math.atan2(dy / IMAGE_TILT, dx);
+  const diff = Math.atan2(Math.sin(phi - phi0), Math.cos(phi - phi0));
+  if (Math.abs(diff) > Math.PI / 2) phi += Math.PI;
+  return -phi * 180 / Math.PI; // viewAt 이 받는 「각도」 꼴로
+}
+export function dragonView(angle: number, dx: number, dy: number) {
+  return viewAt(viewAngle(angle, dx, dy));
+}
 
 function pose(angle: number, dx: number, dy: number) {
-  const frame = viewAt(angle);
+  const frame = dragonView(angle, dx, dy);
   // 형: 「존나 어색한데」. 줄을 따라 그림을 **2D 로 기울인** 것이 어색함의 뿌리였다.
   // 이 열두 장은 용을 세로축으로 돌려 가며 위에서 비스듬히 본 그림이다 — 고리가 돌며 용이 향하는
   // 쪽이 바뀌는 것과 **같은 움직임**이 이미 그림 안에 들어 있다. 거기에 다시 기울이면 두 번 돈 셈이라
@@ -63,7 +87,7 @@ function pose(angle: number, dx: number, dy: number) {
 /** 용 키를 1 로 둘 때 줄을 따라 몇만큼 뻗나 — 고리에서 용 칸을 푸는 데 쓴다(page.tsx 용반칸) */
 export function dragonSpanPerHeight(angle: number, dx: number, dy: number) {
   const g = pose(angle, dx, dy);
-  const e = elongationOf(g.frame);
+  const e = elongationAt(viewAngle(angle, dx, dy));
   const [L, R] = CAPS[g.frame];
   const capLen = Math.hypot(R[0] - L[0], R[1] - L[1]) / FRAME_WIDTH;
   return (capLen * e + (g.near + g.far) * (1 - e)) / g.tall;
@@ -72,19 +96,19 @@ export function dragonSpanPerHeight(angle: number, dx: number, dy: number) {
 /** 용이 양옆 옥알을 파고드는 길이(판 폭 %, 양쪽 합) — 닿은 자리에 머리카락만 한 틈도 안 비치게 */
 export const DRAGON_TUCK = 0.9;
 /** 파고드는 길이 — 머리 정면 그림은 갈기 끝이 가늘어, 끝끼리 닿아도 떠 보인다(형: 「전반적으로 이런 거」). 동그란 그림일수록 더 깊이 */
-export function dragonTuck(angle: number) {
-  return DRAGON_TUCK + 3.6 * (1 - elongationOf(viewAt(angle)));
+export function dragonTuck(angle: number, dx = 0, dy = 0) {
+  return DRAGON_TUCK + 3.6 * (1 - elongationAt(dx || dy ? viewAngle(angle, dx, dy) : angle));
 }
 /** 용 키 ÷ 옆 옥알 지름 — 형: 「옥 대비 넘 작아지는데」. 0.95 → 1.25 (진짜 금룡 장식은 옥알보다 굵다) */
 export const DRAGON_HEIGHT = 1.25;
 /** 용 키 배율 — 머리 정면 그림은 폭이 좁아(키의 2/3) 같은 키여도 작아 보인다. 동그란 그림일수록 25% 더 키운다 */
-export function dragonKeyFactor(angle: number) {
-  return DRAGON_HEIGHT * (1 + 0.25 * (1 - elongationOf(viewAt(angle))));
+export function dragonKeyFactor(angle: number, dx = 0, dy = 0) {
+  return DRAGON_HEIGHT * (1 + 0.25 * (1 - elongationAt(dx || dy ? viewAngle(angle, dx, dy) : angle)));
 }
 
-export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalWidth: number, angle: number) {
+export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalWidth: number, angle: number, own?: Point) {
   const [first, last] = neighbors;
-  const tuck = dragonTuck(angle);
+  const tuck = dragonTuck(angle, last.x - first.x, last.y - first.y);
   const dx = last.x - first.x, dy = last.y - first.y;
   const distance = Math.hypot(dx, dy);
   const { frame, leanDeg, lean, radiusAt, axis, near, far } = pose(angle, dx, dy);
@@ -102,14 +126,15 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   // nominalWidth(page 의 dragonWidth)는 가장자리에서 미리 깎여 와 옆자리 용을 쪼그라뜨렸다 — 키는 옥알로만 정한다
   void nominalWidth;
   // 키는 옆 옥알에 맞추되, 칸 셈과 그림 실루엣의 작은 어긋남은 **용이 늘어 메운다**(±20% 안) — 틈이 남지 않게
-  const 키맞춤 = bead * dragonKeyFactor(angle) * FRAME_WIDTH / (2 * HALF_HEIGHT[frame]);
+  const 키맞춤 = bead * dragonKeyFactor(angle, dx, dy) * FRAME_WIDTH / (2 * HALF_HEIGHT[frame]);
   void leanDeg; void lean;
   // ③ 줄은 용 양 끝 금마개로 꿰인다 — 형: 「뜨는 거 아예 없이」.
   //    실루엣 반지름으로 대충 재면 옥알이 용 머리 위·옆에 비껴 붙어 몇 px 씩 떴다(가파른 자리에서).
   //    진짜 팔찌처럼 **금마개 두 점을 양옆 옥알의 가장자리 두 점에 그대로 맞춘다**(두 점 맞추기 = 돌림·크기·자리가 한 번에 정해진다).
   //    단 머리 정면 그림(동그란 것)은 금마개가 겹쳐 보여 맞출 축이 없다 — 길게 누운 정도(e)만큼만 따르고,
   //    나머지는 줄 위 가운데·옥알 키로 둔다. 그 몫의 맞닿음은 칸(용반칸)이 맡는다.
-  const e = elongationOf(frame);
+  // 반쯤 누운 그림도 금마개가 보이면 마개로 꿴다 — 길이의 0.6 만 넘으면 다 따른다(형: 「왼쪽 반원 이상」)
+  const e = Math.min(1, elongationAt(viewAngle(angle, dx, dy)) / 0.6);
   const ux = dx / distance, uy = dy / distance;
   const T1 = { x: first.x + ux * (first.width * 0.435 - tuck / 2), y: first.y + uy * (first.width * 0.435 - tuck / 2) };
   const T2 = { x: last.x - ux * (last.width * 0.435 - tuck / 2), y: last.y - uy * (last.width * 0.435 - tuck / 2) };
@@ -149,12 +174,16 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
     const out = (q: Point) => Math.hypot(q.x - 50, (q.y - 50) * 1.7);
     mid = out(p1) >= out(p2) ? p1 : p2;
   }
-  return {
-    x: mid.x + (capAt.x - mid.x) * e,
-    y: mid.y + (capAt.y - mid.y) * e,
-    width: w0,
-    lean: turn * 180 / Math.PI,
-  };
+  // 형: 「왜 용대가리 위치가 위아래로 움직이냐, 옥구슬 따라 안정적으로」.
+  // 머리 정면 그림 몫(바깥으로 빼기)이 그림마다 용을 고리 안팎으로 들쑥날쑥 옮겼다. 그 몫의 고리 안팎(줄과 직각)
+  // 자리는 **제 고리 자리(own)** 에 못박고, 줄 따라 앞뒤로만 맞춘다 — 옥알과 똑같이 고리를 타고 돈다.
+  // (금마개 몫은 그대로 — 마개가 그림 가운데보다 아래 있어 그 어긋남이 곧 바른 자리다)
+  if (own) {
+    const along = (mid.x - own.x) * ux + (mid.y - own.y) * uy;
+    mid = { x: own.x + ux * along, y: own.y + uy * along };
+  }
+  const at = { x: mid.x + (capAt.x - mid.x) * e, y: mid.y + (capAt.y - mid.y) * e };
+  return { x: at.x, y: at.y, width: w0, lean: turn * 180 / Math.PI, frame };
 }
 
 // Gold links sit underneath the dragon and its neighbors, covering only the
@@ -183,8 +212,8 @@ export function JadeDragonLinks({
 }
 
 // Pick one of the original drawings on the same render as the count.
-export default function JadeDragonTurntable({ angle, lean = 0 }: { angle: number; lean?: number }) {
-  const frame = viewAt(angle);
+export default function JadeDragonTurntable({ angle, lean = 0, frame: chosen }: { angle: number; lean?: number; frame?: number }) {
+  const frame = chosen ?? viewAt(angle);
   return (
     <span
       aria-hidden
