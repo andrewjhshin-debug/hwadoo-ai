@@ -27,7 +27,7 @@ import { KEYCAP_SKINS } from "@/lib/keycap-skins";
 import Dudu from "@/components/Dudu";
 import StoneMalaBead, { STONE_MALA_SYMBOLS, ZODIAC_MALA_SYMBOLS } from "@/components/StoneMalaBead";
 import { JADE_DRAGON, NEW_MALA_SKINS, isNewMala, malaBeadImage, malaBeadScale, malaCharmImage, malaGoldFilter } from '@/lib/practice-collection';
-import JadeDragonTurntable, { fitJadeDragonX, JadeDragonLinks } from "./JadeDragonTurntable";
+import JadeDragonTurntable, { fitJadeDragon, JadeDragonLinks } from "./JadeDragonTurntable";
 import useMalaElastic from "@/components/useMalaElastic";
 import { addMerit, inRound, loadMerit, ROUND, stageOf } from "@/lib/merit";
 import { loadDaily } from "@/lib/daily";
@@ -722,13 +722,16 @@ export default function MoktakPage() {
     x: 50 + (고리폭 - 2) * Math.sin(t),
     y: 50 - 고리높이 * Math.cos(t),
   });
-  const expandedDragon = jadeDragon ? (() => {
-    const deg = beadDegrees(0);
-    const t = deg * Math.PI / 180;
+  const expandedJadeBead = (index: number) => {
+    const t = beadDegrees(index) * Math.PI / 180;
     const front = (1 - Math.cos(t)) / 2;
-    const point = expandedBeadPosition(t);
-    const width = dragonWidth(13 * (0.62 + 0.52 * front) + (1 - front) * 3, point.x, t);
-    return { x: fitJadeDragonX(point.x, width, 180 - deg), y: point.y, width };
+    const width = 13 * (0.62 + 0.52 * front) + (1 - front) * 3;
+    return { ...expandedBeadPosition(t), t, width };
+  };
+  const expandedDragonNeighbors = jadeDragon ? [expandedJadeBead(1), expandedJadeBead(ringBeadCount - 1)] as const : null;
+  const expandedDragon = expandedDragonNeighbors ? (() => {
+    const { t, x, width } = expandedJadeBead(0);
+    return fitJadeDragon(expandedDragonNeighbors, dragonWidth(width, x, t), 180 - beadDegrees(0));
   })() : null;
   // 물든 만큼만 금빛 겹을 보여 준다 — 위 가운데의 표시점에서 반시계로.
   // 바깥 고리와 같은 출발점·방향이어야, 금빛이 갑자기 아래쪽에 덧칠된 듯 보이지 않는다.
@@ -935,10 +938,14 @@ export default function MoktakPage() {
                 return Math.max(거리(1), 거리(-1));
               };
 
-              const 용자리 = jadeDragon ? (() => {
-                const { x, y, t } = 자리[0];
+              const 용이웃 = jadeDragon ? [
+                { ...자리[1], width: (사이(1) / 0.872) * 1.12 },
+                { ...자리[ringBeadCount - 1], width: (사이(ringBeadCount - 1) / 0.872) * 1.12 },
+              ] as const : null;
+              const 용자리 = 용이웃 ? (() => {
+                const { x, t } = 자리[0];
                 const width = dragonWidth((사이(0) / 0.872) * 1.12, x, t);
-                return { x: fitJadeDragonX(x, width, 180 - beadDegrees(0)), y, width };
+                return fitJadeDragon(용이웃, width, 180 - beadDegrees(0));
               })() : null;
               const 알들 = 자리.map(({ t, x, y }, i) => {
                 const deg = beadDegrees(i);
@@ -981,7 +988,7 @@ export default function MoktakPage() {
                       // 고리를 키운다 — 금 테두리 밖으로 나가도 좋다.
                       // 염주는 울타리 안에 든 물건이 아니라 손에 쥐는 것이다
                       left: `${dragonMaster && 용자리 ? 용자리.x : x}%`,
-                      top: `${y}%`,
+                      top: `${dragonMaster && 용자리 ? 용자리.y : y}%`,
                       // 형: 「동그라미 울타리 튀어나와도 되니까 알 더 크게」
                       // 형: 「염주 원래 모양대로 해. 알 더 줄이고」
                       // 알이 서로 닿아 도넛처럼 보였다. 염주는 **알과
@@ -1030,7 +1037,7 @@ export default function MoktakPage() {
                 );
               });
               return <>
-                {용자리 && <JadeDragonLinks head={용자리} neighbors={[자리[1], 자리[ringBeadCount - 1]]} />}
+                {용자리 && 용이웃 && <JadeDragonLinks head={용자리} neighbors={용이웃} />}
                 {알들}
               </>;
             })()}
@@ -1881,10 +1888,7 @@ export default function MoktakPage() {
                   넘긴 만큼 금빛으로 물든다. 세로형이 하던 그 일을 그대로. */}
               {beadWide && (
                 <div ref={malaElastic.expandedRef} aria-hidden className="pointer-events-none absolute inset-0">
-                  {expandedDragon && (() => {
-                    const point = (index: number) => expandedBeadPosition(beadDegrees(index) * Math.PI / 180);
-                    return <JadeDragonLinks head={expandedDragon} neighbors={[point(1), point(ringBeadCount - 1)]} />;
-                  })()}
+                  {expandedDragon && expandedDragonNeighbors && <JadeDragonLinks head={expandedDragon} neighbors={expandedDragonNeighbors} />}
                   {Array.from({ length: ringBeadCount }, (_, i) => {
                     // 0 = 맨 위(뒤) · 180 = 맨 아래(앞)
                     const deg = beadDegrees(i);
@@ -1921,12 +1925,12 @@ export default function MoktakPage() {
                         className="absolute block"
                         style={{
                           left: `${dragonMaster && expandedDragon ? expandedDragon.x : x}%`,
-                          top: `${y}%`,
+                          top: `${dragonMaster && expandedDragon ? expandedDragon.y : y}%`,
                           // 뒤쪽 알은 원근 탓에 그림 안의 여백까지 같이 작아져
                           // 서로 멀어 보였다. 앞쪽 크기는 그대로 두고, 뒤쪽만
                           // 조금 키워 고리의 간격이 끊기지 않게 한다.
                           width: `${dragonMaster && expandedDragon ? expandedDragon.width : width}%`,
-                          transform: `translate(-50%, -50%) scale(${atMarker && !dragonMaster ? 1.07 : 1})`,
+                          transform: `translate(-50%, -50%) scale(${atMarker && !jadeDragon ? 1.07 : 1})`,
                           zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: jadeDragon ? "none" : "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: goldTint && lit && !dragonMaster
