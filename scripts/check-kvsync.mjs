@@ -50,4 +50,12 @@ laptop.ls.setItem("hwadu.skin.v1", '{"bead":"ebony"}');
 await laptop.kv.kvFlush();
 phone.kv.kvAdopt(cloud.kv);
 assert.equal(phone.ls.getItem("hwadu.skin.v1"), '{"bead":"ebony"}', "노트북의 새 선택이 폰에 온다");
+// 남의 기기에서 로그인 — 앞사람 칸은 비우고 올리지 않는다
+const shared = device();
+shared.ls.setItem("hwadu.tamjinchi.v1", "앞사람 기록");
+shared.kv.kvAdopt(cloud.kv, false); shared.kv.kvStart({});
+await shared.kv.kvFlush();
+assert.equal(shared.ls.getItem("hwadu.tamjinchi.v1"), null, "앞사람 칸은 지운다");
+assert.equal(cloud.kv["hwadu~tamjinchi~v1"], undefined, "앞사람 칸은 이 계정으로 안 오른다");
+assert.equal(shared.ls.getItem("hwadu.skin.v1"), '{"bead":"ebony"}', "계정 것은 받는다");
 console.log("kvSync ok");

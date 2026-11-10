@@ -36,7 +36,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
-import { kvAdopt, kvFlush, kvStart, kvStop } from "./kvSync";
+import { kvAdopt, kvClear, kvFlush, kvStart, kvStop } from "./kvSync";
 import { flowEvent } from "./flow-events";
 import { mergeSavedSentences, normalizeSavedSentences } from "./savedSentences";
 import {
@@ -252,7 +252,7 @@ async function startSync(uid: string) {
   if (합친실) 실쓰기(합친실);
 
   // 1-1-1) 나머지 서랍 — 염주 살갗·돌탑·만다라·경·불심투자… 고르지 않고 화두 칸 전부(kvSync.ts)
-  kvAdopt(snap.exists() ? snap.data().kv : null);
+  kvAdopt(snap.exists() ? snap.data().kv : null, mine);
   kvStart(ref);
 
   // 1-2) 법명과 얼굴 — 앞사람의 브라우저면 이 기기의 이름은 물려받지 않는다
@@ -670,6 +670,7 @@ export async function logout() {
     resetVisits(); // 발자국 장부도 함께 — 다음 사람에게 넘어가지 않도록
     resetMeditations(); // 명상 장부도 함께
     resetMe(); // 법명도 — 계정에 올려 뒀으니 다시 들어오면 그대로 돌아온다
+    kvClear(); // 나머지 서랍도 — 다음 사람 계정으로 새지 않게(계정 것은 구름에 있다)
   }
   // 공덕·하루 장부는 **지우지 않는다.** 계정 칸에 그대로 두고 바탕 칸으로
   // 돌아설 뿐이다 — 다시 들어오면 제 것이 그대로 있다.

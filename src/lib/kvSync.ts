@@ -100,9 +100,11 @@ async function push(): Promise<void> {
 }
 
 /** 구름의 칸과 이 기기의 칸을 맞춘다 — 늦게 쓴 쪽이 이긴다. 이 기기 쪽이 이긴 칸은 올릴 것으로 남긴다 */
-export function kvAdopt(raw: unknown) {
+export function kvAdopt(raw: unknown, mine = true) {
   if (typeof window === "undefined") return;
   patch();
+  // 앞사람의 기기다 — 그 사람 칸을 이 계정으로 올리면 안 된다. 비우고 구름 것만 받는다
+  if (!mine) kvClear();
   const cloud = (raw && typeof raw === "object" ? raw : {}) as Cloud;
   const s = stamps();
   const changed: string[] = [];
@@ -128,6 +130,19 @@ export function kvAdopt(raw: unknown) {
   for (const k of changed) {
     try { window.dispatchEvent(new StorageEvent("storage", { key: k, storageArea: window.localStorage })); } catch { /* 지나간다 */ }
   }
+}
+
+/** 화두 칸과 「언제 썼나」를 이 기기에서 비운다 — 로그아웃·남의 기기에서 로그인할 때(계정 것은 구름에 남는다) */
+export function kvClear() {
+  if (typeof window === "undefined") return;
+  const keys: string[] = [];
+  for (let i = 0; i < window.localStorage.length; i++) {
+    const k = window.localStorage.key(i);
+    if (k && kvSynced(k)) keys.push(k);
+  }
+  keys.forEach((k) => (origRemove ? origRemove(k) : window.localStorage.removeItem(k)));
+  (origRemove ?? ((k: string) => window.localStorage.removeItem(k)))(STAMP_KEY);
+  dirty = new Set();
 }
 
 export function kvStart(r: DocumentReference) {
