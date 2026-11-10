@@ -36,6 +36,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { kvAdopt, kvFlush, kvStart, kvStop } from "./kvSync";
 import { flowEvent } from "./flow-events";
 import { mergeSavedSentences, normalizeSavedSentences } from "./savedSentences";
 import {
@@ -249,6 +250,10 @@ async function startSync(uid: string) {
   // 오색실도 같은 길로 — 한 달 기른 실이 폰을 바꾼다고 날아갈 수는 없다
   const 합친실 = mergeSil(실읽기(), 구름장부?.sil ?? null);
   if (합친실) 실쓰기(합친실);
+
+  // 1-1-1) 나머지 서랍 — 염주 살갗·돌탑·만다라·경·불심투자… 고르지 않고 화두 칸 전부(kvSync.ts)
+  kvAdopt(snap.exists() ? snap.data().kv : null);
+  kvStart(ref);
 
   // 1-2) 법명과 얼굴 — 앞사람의 브라우저면 이 기기의 이름은 물려받지 않는다
   if (!mine) resetMe();
@@ -473,6 +478,9 @@ async function startSync(uid: string) {
       }
     }
 
+    // 나머지 서랍 — 칸마다 늦게 쓴 쪽이 이긴다(잠금 없이)
+    kvAdopt(data?.kv);
+
     if (pendingLocal) return; // 내 변화가 아직 안 올라감 — 덮어쓰지 않는다
     const remote = normalize(data ? (data.store as Store) : null);
     if (!remote) return;
@@ -499,6 +507,7 @@ async function startSync(uid: string) {
     window.removeEventListener(DAILY_EVENT, ledHandler);
     window.removeEventListener(SIL_EVENT, ledHandler);
     unsubscribeSnapshot();
+    kvStop();
   };
   flushPush = async () => {
     // 디바운스 대기 중이든 재시도 대기 중이든 — 못 올라간 변화가 있으면 지금 올린다
@@ -511,6 +520,7 @@ async function startSync(uid: string) {
     if (inFlight) await inFlight;
     if (meInFlight) await meInFlight;
     if (ledInFlight) await ledInFlight;
+    await kvFlush();
   };
 }
 
