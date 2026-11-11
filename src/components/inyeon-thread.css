@@ -13,7 +13,12 @@
 .silk-match-badge > b {margin-left:4px;font:500 9.5px/1 sans-serif;color:#8a7a62;letter-spacing:0}
 
 /* ── 신비로운 하늘 — 위 새벽 파랑, 아래 해질 녘 분홍(「너의 이름은」 포스터) ── */
-.inyeon-silk-sky.inyeon-silk-day { position:relative; padding:14px 18px 14px; border:0; background:linear-gradient(180deg,#dfe9f6 0%,#eef0f8 40%,#f8eef3 72%,#fbe6ec 100%); box-shadow:0 6px 24px rgba(120,110,160,.10); color:#6c6470; }
+/* 형: 「대비 잘되게 뒤에 좀 어두운 톤으로」 — 연한 하늘이라 청·홍 끈이 묻혔다. 위는 짙은 밤 남색, 아래로 갈수록 해질 녘 분홍 */
+.inyeon-silk-sky.inyeon-silk-day { position:relative; padding:14px 18px 14px; border:0; background:linear-gradient(180deg,#26305e 0%,#47508c 34%,#9c86b4 66%,#efbccb 100%); box-shadow:0 8px 26px rgba(38,48,94,.28); color:#3a2e3c; }
+.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-say { color:rgba(255,255,255,.88); }
+.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-names { color:#3a2e3c; }
+/* 어두운 하늘에선 가운데 빛이 매듭을 덮어 하얗게 바랬다 — 끈을 빛 위로 */
+.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-draw { position:relative; z-index:1; }
 .inyeon-silk-say { margin:0 0 2px; text-align:center; font:400 11.5px/1.4 var(--font-serif,serif); letter-spacing:.32em; color:#7b6f86; opacity:0; animation:silk-say 1.2s ease .9s forwards; }
 .inyeon-silk-stage { position:relative; }
 .inyeon-silk-draw { clip-path:inset(0 50% 0 50%); animation:silk-draw 1.4s cubic-bezier(.3,.7,.2,1) .15s forwards; }
