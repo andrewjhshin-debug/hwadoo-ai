@@ -5,7 +5,7 @@ export const KEYCAP_SKINS = [
   { id: "mireuk", name: "미륵", dot: "#cfa03c" },
 ].map(skin => ({
   ...skin,
-  cup: `/obj/keycaps-v5/${skin.id}-front-v4.webp`, // 좌우 옆벽(뒤꽃잎 바깥 몫)도 몸 앞으로 — 소매가 그릇 밖에 걸쳐 보이지 않게(형: 「오른쪽 왼쪽 받침이 문제」). 앞꽃잎 윗가장자리 알파를 녹이고, 꽃잎 사이 홈 아래엔 뒤꽃잎을 채웠다(형: 「이음새 허접」 — 홈으로 흐린 무릎이 비쳤다)
+  cup: `/obj/keycaps-v5/${skin.id}-front-v5.webp`, // 앞꽃잎 테두리 계단만 얕게 녹였다. 홈 채우기·옆벽 옮기기는 반투명 번짐·세로 경계가 생겨 걷었다(포대는 몸을 새로 구워 받침 안에 든다)(형: 「번지거나 그런 거 없이」)
   back: `/obj/keycaps-v5/${skin.id}-back.webp`,
   // 포대는 몸을 새로 구웠다(형: 「포대 키캡 아예 새로」) — 좁고 또렷하게, 받침 안에 들어앉게
   body: skin.id === 'podae' ? '/obj/keycaps-v5/podae-body-v2.webp' : `/obj/keycaps-v5/${skin.id}-body.webp`,
