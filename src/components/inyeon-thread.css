@@ -19,6 +19,11 @@
 .inyeon-silk-sky.inyeon-silk-day .inyeon-silk-names { color:#3a2e3c; }
 /* 어두운 하늘에선 가운데 빛이 매듭을 덮어 하얗게 바랬다 — 끈을 빛 위로 */
 .inyeon-silk-sky.inyeon-silk-day .inyeon-silk-draw { position:relative; z-index:1; }
+/* 형: 「너무 가운데가 밝고 동그래서 밤티, 은은 자연스럽게」 — 동그란 빛 대신 가로로 넓게 퍼지는 옅은 노을빛, 티끌도 작고 흐리게 */
+.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-glow { width:78%; height:90%; background:radial-gradient(closest-side,rgba(255,226,214,.32),rgba(255,206,222,.12) 55%,rgba(255,206,222,0)); filter:blur(6px); animation:silk-glow-soft 1.6s ease 1.2s forwards, silk-breathe-soft 5s ease-in-out 2.8s infinite; }
+.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-mote { width:2px; height:2px; box-shadow:0 0 4px 1px rgba(255,236,210,.45); }
+@keyframes silk-glow-soft { 0% { opacity:0; transform:translate(-50%,-50%) scale(.6); } 100% { opacity:1; transform:translate(-50%,-50%) scale(1); } }
+@keyframes silk-breathe-soft { 0%,100% { opacity:.75; } 50% { opacity:1; } }
 .inyeon-silk-say { margin:0 0 2px; text-align:center; font:400 11.5px/1.4 var(--font-serif,serif); letter-spacing:.32em; color:#7b6f86; opacity:0; animation:silk-say 1.2s ease .9s forwards; }
 .inyeon-silk-stage { position:relative; }
 .inyeon-silk-draw { clip-path:inset(0 50% 0 50%); animation:silk-draw 1.4s cubic-bezier(.3,.7,.2,1) .15s forwards; }
