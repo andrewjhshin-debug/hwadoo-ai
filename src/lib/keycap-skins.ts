@@ -13,6 +13,6 @@ export const KEYCAP_SKINS = [
   id: 'square', name: '사각 키캡', dot: '#c6acd9',
   cup: '/obj/practice-collection-v1/blank.webp',
   back: '/obj/practice-collection-v1/blank.webp',
-  body: '/obj/practice-collection-v1/square-keycap.webp',
+  body: '/obj/practice-collection-v1/square-keycap-v2.webp', // 위 키 앞 옆면 그늘을 키 색으로 녹였다(형: 「이 부분 아예 같은 색으로」)
   ar: 1, dip: '4%', bodyScale: 1, bowlFit: 1,
 }]);
