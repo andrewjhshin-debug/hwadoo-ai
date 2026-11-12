@@ -564,7 +564,7 @@ export default function TryPage() {
               {/* 기간 바꾸기 — 사유 단계에서만 */}
               {step === "pondering" && (
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-                  {[1, 3, 7, 21, 108].map((d) => (
+                  {[1, 3, 7, 21, 49, 108].map((d) => (
                     <button
                       key={d}
                       onClick={() => setDays(d)}

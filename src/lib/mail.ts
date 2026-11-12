@@ -130,6 +130,7 @@ function durationLabel(days: number): string {
   if (days === 5) return "닷새";
   if (days === 7) return "이레";
   if (days === 21) return "삼칠일";
+  if (days === 49) return "사십구일";
   if (days === 108) return "백팔일";
   return `${days}일`;
 }
