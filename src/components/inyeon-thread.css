@@ -13,23 +13,21 @@
 .silk-match-badge > b {margin-left:4px;font:500 9.5px/1 sans-serif;color:#8a7a62;letter-spacing:0}
 
 /* ── 신비로운 하늘 — 위 새벽 파랑, 아래 해질 녘 분홍(「너의 이름은」 포스터) ── */
-/* 형: 「대비 잘되게 뒤에 좀 어두운 톤으로」 — 연한 하늘이라 청·홍 끈이 묻혔다. 위는 짙은 밤 남색, 아래로 갈수록 해질 녘 분홍 */
-.inyeon-silk-sky.inyeon-silk-day { position:relative; padding:14px 18px 14px; border:0; background:linear-gradient(180deg,#26305e 0%,#47508c 34%,#9c86b4 66%,#efbccb 100%); box-shadow:0 8px 26px rgba(38,48,94,.28); color:#3a2e3c; }
-.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-say { color:rgba(255,255,255,.88); }
-.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-names { color:#3a2e3c; }
-/* 어두운 하늘에선 가운데 빛이 매듭을 덮어 하얗게 바랬다 — 끈을 빛 위로 */
-.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-draw { position:relative; z-index:1; }
-/* 형: 「너무 가운데가 밝고 동그래서 밤티, 은은 자연스럽게」 — 동그란 빛 대신 가로로 넓게 퍼지는 옅은 노을빛, 티끌도 작고 흐리게 */
-.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-glow { width:78%; height:90%; background:radial-gradient(closest-side,rgba(255,226,214,.32),rgba(255,206,222,.12) 55%,rgba(255,206,222,0)); filter:blur(6px); animation:silk-glow-soft 1.6s ease 1.2s forwards, silk-breathe-soft 5s ease-in-out 2.8s infinite; }
-.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-mote { width:2px; height:2px; box-shadow:0 0 4px 1px rgba(255,236,210,.45); }
+/* 형: 「어두운 톤이 이상하다 … 어두운 배경 말고 청실홍실이 더 눈에 띄게, 자연스럽게」 — 바탕은 앱 낮 팔레트의 옅은 새벽빛, 대비는 바탕이 아니라 끈 밑 그림자로 낸다 */
+.inyeon-silk-sky.inyeon-silk-day { position:relative; padding:14px 18px 14px; border:1px solid rgba(190,170,180,.22); background:linear-gradient(180deg,#f3f5fc 0%,#faf5f8 52%,#fdeef1 100%); box-shadow:0 6px 20px rgba(120,96,110,.10); color:#4a3f48; }
+.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-say { color:#8a6f7c; }
+.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-names { color:#4a3f48; }
+.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-draw { position:relative; z-index:1; filter:drop-shadow(0 5px 6px rgba(70,48,66,.22)) drop-shadow(0 1px 1px rgba(70,48,66,.18)); }
+.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-glow { width:70%; height:90%; background:radial-gradient(closest-side,rgba(255,214,190,.38),rgba(255,206,222,.14) 55%,rgba(255,206,222,0)); filter:blur(6px); animation:silk-glow-soft 1.6s ease 1.2s forwards, silk-breathe-soft 5s ease-in-out 2.8s infinite; }
+.inyeon-silk-sky.inyeon-silk-day .inyeon-silk-mote { width:2px; height:2px; background:#f1c56b; box-shadow:0 0 4px 1px rgba(231,180,90,.5); }
 @keyframes silk-glow-soft { 0% { opacity:0; transform:translate(-50%,-50%) scale(.6); } 100% { opacity:1; transform:translate(-50%,-50%) scale(1); } }
 @keyframes silk-breathe-soft { 0%,100% { opacity:.75; } 50% { opacity:1; } }
 .inyeon-silk-say { margin:0 0 2px; text-align:center; font:400 11.5px/1.4 var(--font-serif,serif); letter-spacing:.32em; color:#7b6f86; opacity:0; animation:silk-say 1.2s ease .9s forwards; }
 .inyeon-silk-stage { position:relative; }
-.inyeon-silk-draw { clip-path:inset(0 50% 0 50%); animation:silk-draw 1.4s cubic-bezier(.3,.7,.2,1) .15s forwards; }
+.inyeon-silk-draw { clip-path:inset(-24px 50% -24px 50%); animation:silk-draw 1.4s cubic-bezier(.3,.7,.2,1) .15s forwards; }
 .inyeon-silk-glow { position:absolute; left:50%; top:50%; width:120px; height:60px; transform:translate(-50%,-50%) scale(.3); border-radius:50%; background:radial-gradient(closest-side,rgba(255,250,236,.95),rgba(255,214,226,.55) 45%,rgba(196,214,255,0)); opacity:0; animation:silk-glow 1.2s ease 1.2s forwards, silk-breathe 4.2s ease-in-out 2.4s infinite; pointer-events:none; }
 .inyeon-silk-mote { position:absolute; left:calc(50% + (var(--k) - 4) * 9px); top:55%; width:3px; height:3px; border-radius:50%; background:#fffbe9; box-shadow:0 0 6px 2px rgba(255,236,200,.75); opacity:0; animation:silk-mote 3.6s ease-out calc(1.4s + var(--k) * .38s) infinite; pointer-events:none; }
-@keyframes silk-draw { to { clip-path:inset(0 0 0 0); } }
+@keyframes silk-draw { to { clip-path:inset(-24px 0 -24px 0); } }
 @keyframes silk-glow { 0% { opacity:0; transform:translate(-50%,-50%) scale(.3); } 45% { opacity:1; transform:translate(-50%,-50%) scale(1.25); } 100% { opacity:.7; transform:translate(-50%,-50%) scale(1); } }
 @keyframes silk-breathe { 0%,100% { opacity:.55; } 50% { opacity:.95; } }
 @keyframes silk-mote { 0% { opacity:0; transform:translate(0,0); } 20% { opacity:.95; } 100% { opacity:0; transform:translate(calc((var(--k) - 4) * 2px), -38px); } }

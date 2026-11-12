@@ -25,6 +25,7 @@
 // 쥐고 있고 여기는 받아 그린다 — 통째로 지워도 앱은 예전대로 돈다.
 // ─────────────────────────────────────────────────────────────
 
+import TodayStrip from "@/components/TodayStrip";
 import { useEffect, useRef } from "react";
 import { strikeBell } from "@/lib/sound";
 import HwaduBrand from "@/components/HwaduBrand";
@@ -236,6 +237,8 @@ export function HipGardenEmpty({
         {/* 뜰에는 소리가 **한 줄도** 없었다. 들어와서 맨 처음 누르는
             자리가 이것인데 아무 소리도 안 나니, 형에게는 앱 전체가
             벙어리로 읽혔다. 물음이 건너오는 순간에 경쇠 한 번. */}
+        {/* 형: 「적용해」 — 오늘의 수행 세 칸을 첫 화면에. 들어오자마자 오늘 할 일이 보인다 */}
+        <div className="hip-garden-today"><TodayStrip /></div>
         <button
           onClick={() => {
             strikeBell(0.45);

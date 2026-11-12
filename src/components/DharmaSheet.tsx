@@ -12,7 +12,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { DAILY_EVENT, doneOf, loadDaily, missionsOf, type DailyBook } from "@/lib/daily";
+import TodayStrip from "./TodayStrip";
 
 /** 금빛 선 아이콘 — 로고(public/brand/hwadu-mark-gold.svg)와 같은 결 */
 const 선 = {
@@ -46,22 +46,17 @@ function Ico({ k }: { k: keyof typeof 선 }) {
 }
 
 export default function DharmaSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [장부, 장부잡기] = useState<DailyBook | null>(null);
   useEffect(() => {
     if (!open) return;
-    const 읽기 = () => 장부잡기(loadDaily());
-    읽기();
-    window.addEventListener(DAILY_EVENT, 읽기);
     const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", esc);
-    return () => { window.removeEventListener(DAILY_EVENT, 읽기); window.removeEventListener("keydown", esc); };
+    return () => window.removeEventListener("keydown", esc);
   }, [open, onClose]);
 
   // 아래로 쓸어 닫기 — 60px 넘게 끌면 닫는다
   const 끌기 = useRef<number | null>(null);
   const [dy, dySet] = useState(0);
 
-  const 오늘셋 = missionsOf(장부?.day);
   return (
     <>
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
@@ -85,19 +80,7 @@ export default function DharmaSheet({ open, onClose }: { open: boolean; onClose:
           <b>인연</b>
           <span aria-hidden>›</span>
         </Link>
-        <div className="dharma-today" aria-label="오늘의 수행">
-          {오늘셋.map((m) => {
-            const 한것 = 장부 ? doneOf(m, 장부) : 0;
-            const 끝 = 한것 >= m.need;
-            return (
-              <Link key={m.id} href={m.href} data-done={끝 ? "1" : undefined} tabIndex={open ? 0 : -1}>
-                <i aria-hidden>{끝 ? "✓" : ""}</i>
-                <span>{m.label}</span>
-                {!끝 && m.need > 1 && <small>{한것}/{m.need}</small>}
-              </Link>
-            );
-          })}
-        </div>
+        <TodayStrip tabbable={open} />
         <div className="dharma-rooms">
           {방.map((r) => (
             <Link key={r.href} href={r.href} tabIndex={open ? 0 : -1}>

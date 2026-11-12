@@ -1750,3 +1750,12 @@ nav.hip-mala[data-sheet="1"] button[data-mid="1"] b { font-family: inherit; font
 @media (min-width: 0px) {
   .hip-screen[data-lane="yeomju"] { --hip-obj-w: max(190px, min(calc(100vw - 22px), calc(100svh - 476px), 420px)); }
 }
+
+/* 홈의 오늘의 수행 세 칸 — 흰 카드(낮 팔레트). 법륜 판의 것과 같은 칸 */
+.hip-garden-today { width: 100%; }
+.hip-garden-today .dharma-today { margin-bottom: 12px; min-height: 62px; }
+.hip-garden-today .dharma-today a { background: #fff; box-shadow: 0 2px 10px rgba(26,23,20,.06); }
+/* 오늘의 공덕 이름표 옆 숫자·며칠째 */
+.hip-daybar-label b { font-weight: 600; color: #e03a78; }
+.hip-daybar-label em { font-style: normal; margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: #fff; color: #b07d26; box-shadow: 0 0 0 1px rgba(176,125,38,.25); }
+body:has(main.desk) .hip-daybar { display: none !important; }

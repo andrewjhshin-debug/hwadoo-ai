@@ -253,6 +253,8 @@ export default function LettersPage() {
             ? "아직 열리지 않은 방입니다."
             : "로그인하면 쪽지를 주고받을 수 있어요"}
         </p>
+        {/* 막다른 길이었다 — 글만 있고 누를 데가 없었다. 로그인은 「나」 화면에 있다 */}
+        {visible && <Link href="/settings" className="mt-8 inline-flex h-12 items-center rounded-full bg-[#1a1a1c] px-8 text-[14px] tracking-[0.2em] text-white">로그인하러 가기</Link>}
       </div>
     );
   }
