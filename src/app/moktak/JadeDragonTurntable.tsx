@@ -63,7 +63,13 @@ function viewAngle(angle: number, dx: number, dy: number) {
   return -phi * 180 / Math.PI; // viewAt 이 받는 「각도」 꼴로
 }
 export function dragonView(angle: number, dx: number, dy: number) {
-  return viewAt(viewAngle(angle, dx, dy));
+  const frame = viewAt(viewAngle(angle, dx, dy));
+  const step = ((Math.round(angle * 108 / 360) % 108) + 108) % 108;
+  // Keep the front view at the middle of the left turn, with a three-quarter
+  // view on each shoulder so the dragon does not face forward for all three.
+  if (frame === 9 && step >= 75 && step <= 77) return 8;
+  if (frame === 9 && step >= 87 && step <= 89) return 10;
+  return frame;
 }
 
 function pose(angle: number, dx: number, dy: number) {
