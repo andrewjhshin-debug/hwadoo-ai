@@ -1722,6 +1722,8 @@ nav.hip-mala[data-sheet="1"] button[data-mid="1"] b { font-family: inherit; font
 .dharma-sheet { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); z-index: 79; max-width: 520px; margin: 0 auto; padding: 8px 16px 40px; background: #fff; border-radius: 28px 28px 0 0; box-shadow: 0 -10px 30px rgba(20, 17, 14, 0.18); transform: translateY(110%); transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1); touch-action: pan-x; }
 .dharma-sheet::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; border-radius: 28px 28px 0 0; background: linear-gradient(90deg, transparent, rgba(221, 160, 28, 0.55), transparent); }
 .dharma-sheet[data-open="1"] { transform: none; }
+/* 화두 집중 화면에서는 하단 탭과 함께 법륜 판도 숨긴다. */
+body:has(.hip-only) :is(.dharma-sheet, .dharma-scrim) { display: none; }
 .dharma-grip { display: block; width: 36px; height: 4px; border-radius: 2px; background: #e3e0da; margin: 4px auto 14px; }
 .dharma-yeon { display: flex; align-items: center; gap: 12px; padding: 15px 16px; border-radius: 18px; background: linear-gradient(150deg, #2a241f, #14110e); color: #fff; text-decoration: none; margin-bottom: 12px; }
 .dharma-yeon svg { width: 26px; height: 26px; flex: none; }
