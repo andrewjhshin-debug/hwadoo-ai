@@ -1,5 +1,6 @@
 /* One coordinate plane keeps the artwork, live seats and offering targets aligned. */
 .hip-hall-sky.hip-hall-interior {
+  --hall-people-space: 62px;
   container-type: size;
   background: transparent;
   border-color: transparent;
@@ -21,7 +22,7 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: min(100%, calc(100cqh * 857 / 1836));
+  width: min(100%, calc((100cqh - var(--hall-people-space)) * 857 / 1836));
   aspect-ratio: 857 / 1836;
 }
 .hip-hall-interior .hip-hall-stage {
@@ -110,10 +111,14 @@
 .hip-ceiling-lantern[data-mine='1'] span { box-shadow: 0 0 3px #ffebbb; }
 .hip-hall-sky.hip-hall-interior .hip-hall-acts {
   top: 40% !important;
-  right: max(10px, calc((100% - 100cqh * 857 / 1836) / 2 + 10px));
+  right: max(10px, calc((100% - (100cqh - var(--hall-people-space)) * 857 / 1836) / 2 + 10px));
 }
 .hip-hall-interior .hip-rail-btn b { color: #fff7e9 !important; text-shadow: 0 1px 4px #5e382d; }
-.hip-hall-interior .hip-people-pill { background: rgba(255, 249, 238, .94); color: #655043; }
+.hip-hall-interior .hip-people-pill {
+  bottom: -30px;
+  background: rgba(255, 249, 238, .94);
+  color: #655043;
+}
 .hip-hall-interior .hip-hall-say {
   position: absolute;
   top: 16%;
