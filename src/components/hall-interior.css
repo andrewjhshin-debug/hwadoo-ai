@@ -131,3 +131,34 @@
   font-size: 11px;
 }
 
+
+/* 형: 「법당 화면 여백 없이 … 넓히면 비율 틀어지니까」 → 시안 C.
+   그림은 자르지도 늘리지도 않는다 — 화면 키에 맞춰 세우고, 양옆에 남는 얇은 틈은
+   같은 법당 그림을 흐리게 깔아 메운다. 아래 띠 자리는 그대로 비운다(띠 밑은 안 밟는다). */
+.hip-hall:has(.hip-hall-interior) {
+  max-width: none;
+  gap: 0;
+  padding: 0 0 calc(env(safe-area-inset-bottom, 0px) + 66px);
+}
+.hip-hall:has(.hip-hall-interior) .hip-hall-top { display: none; }
+.hip-hall-sky.hip-hall-interior {
+  --hall-people-space: 0px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+}
+.hip-hall-sky.hip-hall-interior::before {
+  content: "";
+  position: absolute;
+  inset: -30px;
+  background: url(/obj/hall-interior-lanterns-v3.webp) center / cover;
+  filter: blur(16px) brightness(.96);
+}
+.hip-hall-interior .hip-hall-stage > .hip-hall-scene { border-radius: 0; }
+/* 가운데 아래는 인연 단추 자리 — 사람 수는 맨 아랫줄 좌복 밑 왼쪽으로 */
+.hip-hall-interior .hip-people-pill {
+  bottom: 1.5%;
+  left: 3%;
+  transform: none;
+}
