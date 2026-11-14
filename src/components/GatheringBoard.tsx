@@ -1165,7 +1165,7 @@ export default function GatheringBoard({
     const childrenOf = (id: string) => all.filter((c) => c.parentId === id);
 
     return (
-      <div className="hip-post-detail px-4 pb-28 sm:px-0 md:pb-0">
+      <div className="hip-post-detail px-4 sm:px-0">
         <div className="flex items-start justify-between gap-3">
           <button
             onClick={goBack}
@@ -1323,11 +1323,7 @@ export default function GatheringBoard({
 
         </div>
 
-        {/* 댓글 쓰기 — 모바일은 아래 탭 바로 위에 고정 (내려진 글은 닫힘).
-            오른쪽에 떠 있는 도량 단추가 「남기기」를 덮고 있었다. 단추 자리만큼
-            오른쪽을 비운다(단추 48 + 좌우 여유). 넓은 화면에서는 단추가
-            바닥 구석에 있으니 그대로 둔다. */}
-        <div className="hip-cmt-bar fixed inset-x-0 bottom-[76px] z-[45] border-t border-ink-3 bg-ink-2/95 py-2.5 pl-4 pr-[74px] backdrop-blur md:static md:z-auto md:mt-5 md:border-0 md:bg-transparent md:p-0">
+        <div className="hip-comment-composer">
           {c탈 && <p className="mb-1.5 text-center text-[12px] text-vermilion" role="status">{c탈}</p>}
           {p.deleted ? (
             <p className="break-keep text-center text-[11px] leading-5 text-hanji-faint md:text-left">
@@ -1344,7 +1340,7 @@ export default function GatheringBoard({
                   if (e.key === "Enter" && !e.nativeEvent.isComposing)
                     void submitComment(p, cBody);
                 }}
-                className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-3 text-[15px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
+                className="min-w-0 flex-1 rounded-[10px] border border-ink-3 bg-transparent px-3.5 py-3 text-[16px] text-hanji outline-none transition-colors placeholder:text-hanji-faint focus:border-gold/40"
               />
               <button
                 onClick={() => submitComment(p, cBody)}

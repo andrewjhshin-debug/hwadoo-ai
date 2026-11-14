@@ -1348,11 +1348,7 @@ h1:has(.hip-hall-n) { letter-spacing: .02em !important; font-size: 14px !importa
 .hip-board-bar { top: calc(env(safe-area-inset-top) + 98px) !important; padding: 6px 16px !important; border-top: 1px solid #f0eced; }
 .hip-cat-pick select { font-size: 13.5px !important; color: #1a1a1c !important; font-weight: 600; }
 
-/* 글 보기 — 댓글 줄이 아래 메뉴와 겹쳤다. 폰에서는 글을 보는 동안 아래 메뉴를 걷고 댓글 줄을 바닥에 붙인다 */
-@media (max-width: 767px) {
-  body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .hip-install) { display: none !important; }
-  .hip-cmt-bar { bottom: 0 !important; padding-right: 16px !important; padding-bottom: calc(env(safe-area-inset-bottom) + 10px) !important; background: #fff !important; }
-}
+
 /* 서비스 소개·약관·사업자 정보 줄은 내 도량에만 — 형: 「다른 데선 빼, 공간 차지하고 프로답지 못하다」 */
 body:not(:has(.hip-me-head)) .site-foot { display: none; }
 .hip-write-btn {
@@ -1438,17 +1434,9 @@ body:has(.hip-yh, .hip-yeon-deck, .hip-yeon-head) .hip-bloom { display: none !im
 .hip-cat-menu button { width: auto !important; padding: 7px 13px !important; border-radius: 999px !important; background: #f4f2ef; font-size: 13px !important; gap: 4px; }
 .hip-cat-menu button[aria-selected="true"] { background: #1a1a1c !important; color: #fff !important; font-weight: 500 !important; }
 .hip-cat-menu button svg { display: none; }
-/* 형: 「인연 게시판에선 바 메뉴를 치웠다가 눌리면 튀어나오든」 — 판 아래 염주 줄을 걷는다. 오른쪽 아래 법륜 단추가 모든 방을 연다 */
-/* 형: 「법륜은 인연에선 안 뜨게」 「메뉴바 위까지로 게시물을 끊든」 — 인연에선 법륜을 걷고, 아래 염주 줄은 두되 그 뒤로 글이 비치지 않게 바닥을 깐다 */
-/* 형: 「바퀴륜(법륜) 인연에 다시 넣어 줘」 — 인연에서도 법륜을 띄운다. 댓글 줄이 열렸을 때만 걷는다(겹친다) */
-body:has(.hip-cmt-bar) :is(.doryang-fab, .wheel-fab) { display: none !important; }
 @media (max-width: 767px) {
   body:has(.hip-yh) .hip-mala::before { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: calc(env(safe-area-inset-bottom) + 96px); background: linear-gradient(180deg, rgba(250,248,245,0), #faf8f5 26%); z-index: -1; pointer-events: none; }
 }
-/* 댓글 칸 — 가로로 끝까지 */
-.hip-cmt-bar { padding-right: 16px !important; }
-.hip-cmt-bar > div { width: 100%; }
-.hip-cmt-bar input { flex: 1 1 auto; min-width: 0; }
 /* 검색·더 보기 */
 .hip-find-btn { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; color: #1a1a1c; }
 .hip-find-btn[aria-pressed="true"] { background: #f4f2ef; }
@@ -1679,8 +1667,22 @@ html[data-focus="1"] :is(.hip-daybar, .wheel-fab, .doryang-fab) { display: none 
 .hip-me-back { display: flex; justify-content: center; gap: 8px; }
 .hip-me-back .hip-me-desk { background: #fff !important; border: 1px solid rgba(26,23,20,.12) !important; color: #3a3632 !important; border-radius: 999px !important; padding: 9px 18px !important; box-shadow: 0 2px 8px rgba(26,23,20,.05); letter-spacing: .1em; }
 .hip-me-back .hip-me-desk span { margin-left: 6px; padding: 0 6px; border-radius: 999px; background: #1a1a1c; color: #fff !important; font-size: 11px; }
-/* 글 보기 — 넓은 화면에서도 아래 염주 줄이 본문·댓글을 덮었다. 글을 읽는 동안엔 폭과 상관없이 걷는다 */
-body:has(.hip-cmt-bar) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab) { display: none !important; }
+body:has(.hip-post-detail) :is(.hip-mala, .mobile-tabbar, .doryang-fab, .wheel-fab, .hip-install) {
+  display: none !important;
+}
+.hip-comment-composer { margin-top: 20px; }
+@media (max-width: 767px) {
+  .hip-post-detail { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 105px); }
+  .hip-comment-composer {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 45;
+    margin: 0;
+    padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 10px);
+    border-top: 1px solid var(--color-ink-3);
+    background: #fff;
+  }
+}
 
 /* 손잡고 절로 — 이어진 둘 사이의 한 걸음 */
 .hip-match-names { margin: 0 0 2px; font-size: 14px; color: #6e6862; }
