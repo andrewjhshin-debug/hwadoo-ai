@@ -2,7 +2,7 @@
 
 // ─────────────────────────────────────────────────────────────
 // 모임 게시판 (/gathering) — 설명 없이 게시판이 화면 전체를 쓴다.
-// · 목록: 제목 한 줄씩(최신순). 오른쪽 위 연꽃 잔고 칩(/lotus)과 [글 쓰기].
+// · 목록: 제목 한 줄씩(최신순). 오른쪽 아래 연필로 글쓰기.
 // · 글: 제목(굵게, 오른쪽 위 ⋯ 메뉴=고치기·내리기) → 글쓴이+연꽃 ·
 //   조회 수 · 쓴 날짜 → 내용 → (있으면) 약속 절·날짜·시간 →
 //   합장(공감, 토글)·[함께하기] → 댓글들 → 댓글 쓰기(모바일: 아래 탭 바로 위 고정).
@@ -1565,20 +1565,21 @@ export default function GatheringBoard({
         <button type="button" className="hip-find-btn" aria-label="검색" aria-pressed={찾기열림} onClick={() => { 찾기열기(!찾기열림); if (찾기열림) 찾을말잡기(""); }}>
           <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
         </button>
-        <button
-          onClick={() => {
-            resetForm();
-            setOpen(true);
-            pushLayer();
-          }}
-          className="hip-write-btn"
-        >
-          {/* 형: 「글쓰기 버튼 위치 ㅈㄴ 이상하다, 글쓰기로 버튼 주든」 — 떠 있는 펜을 걷고 「전체」 줄 오른쪽에 글자로 */}
-          <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" /></svg>
-          글쓰기
-        </button>
         </div>
       </div>
+
+      <button
+        type="button"
+        aria-label="글쓰기"
+        onClick={() => {
+          resetForm();
+          setOpen(true);
+          pushLayer();
+        }}
+        className="hip-write-btn"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" /></svg>
+      </button>
 
       <div className="flex items-center justify-end gap-2 px-4 pb-2 sm:px-0">
         {/* 서랍 사본으로 버티는 중 — 이 말이 없으면 「왜 새 글이 없지」 한다 */}
