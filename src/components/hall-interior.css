@@ -1,35 +1,28 @@
-.hip-hall:has(> .hip-hall-interior) {
-  height: auto;
-  min-height: 100dvh;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
-}
-
-@media (max-width: 699px) {
-  .hip-hall:has(> .hip-hall-interior) { padding-inline: 0; }
-  .hip-hall-sky.hip-hall-interior { border-inline-width: 0; border-radius: 0; }
-}
-
 /* One coordinate plane keeps the artwork, live seats and offering targets aligned. */
 .hip-hall-sky.hip-hall-interior {
-  flex: 0 0 auto;
-  container-type: inline-size;
+  --hall-people-space: 62px;
+  container-type: size;
   background: transparent;
   border-color: transparent;
 }
 .hip-hall-interior .hip-hall-ceil {
-  position: relative;
-  display: block;
+  position: absolute;
+  inset: 0;
   padding: 0;
 }
 .hip-hall-interior .hip-hall-shrine {
-  position: relative;
-  inset: auto;
+  position: absolute;
+  inset: 0;
   display: block;
-  container-type: normal;
+  container-type: size;
   background: none;
 }
 .hip-hall-interior .hip-hall-artboard {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, calc((100cqh - var(--hall-people-space)) * 857 / 1836));
   aspect-ratio: 857 / 1836;
 }
 .hip-hall-interior .hip-hall-stage {
@@ -42,7 +35,7 @@
   object-fit: contain;
   object-position: center;
   background: none;
-  border-radius: inherit;
+  border-radius: 18px;
 }
 .hip-hall-cushion-art {
   position: absolute;
@@ -50,7 +43,6 @@
   left: 0;
   width: 100%;
   height: 29.79%;
-  object-fit: fill;
   pointer-events: none;
 }
 .hip-hall-interior .hip-hall-floor {
@@ -78,7 +70,7 @@
   top: 13.4%;
   left: 50%;
   right: auto;
-  width: 100%;
+  width: min(100%, calc(100cqh * 857 / 1836));
   height: 1.6% !important;
   aspect-ratio: auto !important;
   transform: translateX(-50%);
@@ -119,10 +111,10 @@
 .hip-ceiling-lantern[data-mine='1'] span { box-shadow: 0 0 3px #ffebbb; }
 .hip-hall-sky.hip-hall-interior .hip-hall-acts {
   top: 40% !important;
-  right: 8px;
+  right: max(10px, calc((100% - (100cqh - var(--hall-people-space)) * 857 / 1836) / 2 + 10px));
 }
 .hip-hall-interior .hip-people-pill {
-  bottom: 20px;
+  bottom: -30px;
   background: rgba(255, 249, 238, .94);
   color: #655043;
 }
