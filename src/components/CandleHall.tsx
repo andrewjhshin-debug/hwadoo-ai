@@ -1148,7 +1148,6 @@ export default function CandleHall() {
     Math.max(0, 기와들.length - 자리.giwa);
   // 오른쪽 공양 단추도 막연한 분홍 하나로 두지 않는다. 마지막으로 올린
   // 공양의 결을 바로 보여 준다 — 연등은 연꽃빛, 초는 불빛, 쌀은 사기빛.
-  const 공양대표색 = 다걸린것[0]?.gift ?? "deung";
 
   return <div className="hip-hall">
     {/* 머리띠 없음 — 형: 「법당이랑 인연에는 위에 메뉴바 없어도 되겠다」. 그 자리를 법당이 쓴다 */}
@@ -1251,17 +1250,16 @@ export default function CandleHall() {
         <button
           className="hip-rail-btn"
           onClick={() => { 층쌓기(); 사연판잡기(true); }}
-          aria-label="사연 보러가기"
         >
           <i>
             <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20.5 12.2c0 3.8-3.8 6.9-8.5 6.9-1 0-2-.15-2.9-.4L4 20.5l1.5-3.3A6.6 6.6 0 0 1 3.5 12.2c0-3.8 3.8-6.9 8.5-6.9s8.5 3.1 8.5 6.9Z" />
             </svg>
           </i>
-          <b>{다걸린것.length || "사연"}</b>
+          <b>사연 보기</b>
         </button>
 
-        <button className="hip-rail-btn" onClick={나누기} aria-label="공유">
+        <button className="hip-rail-btn" onClick={나누기}>
           <i>
             <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 12v7a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-7" />
@@ -1269,24 +1267,12 @@ export default function CandleHall() {
               <path d="m7.8 8 4.2-4.2L16.2 8" />
             </svg>
           </i>
-          <b>{나눔됨 ? "됐다" : "공유"}</b>
+          <b>{나눔됨 ? "공유했어요" : "공유하기"}</b>
         </button>
-        <button className="hip-rail-btn hip-rail-offer" data-kind={공양대표색} onClick={start} aria-label="공양 올리기">
-          <i>
-            {/* 형: 「법당에 공양 그 연꽃을 없애고 이거를 적용시켜」
-                브랜드 PNG 는 굵은 자줏빛 테두리라, 옆의 흰 선 아이콘 둘
-                사이에서 혼자 스티커처럼 떴다. 머리 오른쪽이 이미 쓰는
-                연꽃으로 맞춘다 — 두 자리가 같은 꽃이어야 「연꽃」이
-                한 번만 설명된다. */}
-            {/* 형: 「공양을 떠올릴 수 있도록」 — 향로에 향 세 대, 연기 한 줄. 옆 두 단추와 같은 흰 선 */}
-            <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4.5 14.5h15c-.4 3.1-3.6 5.5-7.5 5.5s-7.1-2.4-7.5-5.5Z" />
-              <path d="M8.5 20.6 7.6 22M15.5 20.6l.9 1.4" />
-              <path d="M9.5 14.5V9M12 14.5V7.5M14.5 14.5V9" />
-              <path d="M12 5.5c-1-.9-.2-1.8.4-2.4.6-.7.4-1.4-.2-1.8" />
-            </svg>
-          </i>
-          <b>공양</b>
+        <button type="button" className="hip-rail-btn hip-rail-offer" onClick={start}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/obj/gong-hyang-hall.webp" alt="" />
+          <b>공양 올리기</b>
         </button>
       </div>
     </div>

@@ -374,12 +374,8 @@ export function HipGardenHolding({
               머리 오른쪽에는 이미 넷(연꽃·음소거·쪽지·我)이 서 있어서
               ○ 가 다섯째로 묻혔다. 「물음만 보기」는 **물음에 딸린 일**이니
               물음 밑에 두는 것이 맞다 — 손도 거기서 가깝다. */}
-          {/* 화두만 보기 — 선종의 엔소. 한 획을 얹으면 무슨 숫자나 기호처럼
-              읽혀서 뺐다. 비어 있는 원 자체가, 주변을 걷고 물음 하나만
-              남긴다는 뜻이다. */}
-          <button onClick={onFocus} aria-label="물음만 보기" className="hip-only-go">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="hip-only-enso" src="/images/hwadu-focus-enso.png" alt="" />
+          <button type="button" onClick={onFocus} className="hip-only-go">
+            집중하기
           </button>
           <KeepSentence text={saveText ?? question} source={source} />
         </div>

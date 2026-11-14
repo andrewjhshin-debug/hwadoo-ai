@@ -113,7 +113,6 @@
   top: 40% !important;
   right: max(10px, calc((100% - (100cqh - var(--hall-people-space)) * 857 / 1836) / 2 + 10px));
 }
-.hip-hall-interior .hip-rail-btn b { color: #fff7e9 !important; text-shadow: 0 1px 4px #5e382d; }
 .hip-hall-interior .hip-people-pill {
   bottom: -30px;
   background: rgba(255, 249, 238, .94);

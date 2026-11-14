@@ -3337,22 +3337,32 @@ html[data-theme="light"] {
     flex: 0 0 auto;
     align-self: center;
     margin-top: 28px;
-    width: 42px;
-    height: 42px;
+    width: 82px;
+    height: 82px;
+    border: 0;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    border: 1.5px solid rgba(234, 126, 164, 0.58);
-    background: rgba(255, 255, 255, 0.54);
-    color: rgba(30, 27, 24, 0.68);
+    background: rgba(255, 251, 246, .64);
+    color: #674d40;
+    font-size: 13px;
+    font-weight: 600;
   }
+  .hip-only-go::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    pointer-events: none;
+    background: linear-gradient(145deg, #a77a50, #dfbc85 52%, #926643);
+    mask: url("/images/hwadu-focus-enso.png") center / contain no-repeat;
+  }
+  .hip-only-go:active { transform: scale(.96); }
   .hip-only-enso {
     width: 31px;
     height: 31px;
     object-fit: contain;
     transition: transform 0.18s ease;
   }
-  .hip-only-go:active .hip-only-enso { transform: scale(0.86); }
 }
 
 /* 닫힌 서랍은 아예 안 보이게 — 넓은 화면에서 오른쪽 끝에 금빛 테가
@@ -3578,7 +3588,6 @@ html[data-theme="light"] {
    세로 flex 안에서 너비가 늘어나는 것을 align-items 로 막고 있었는데,
    판마다 정렬이 달라 새는 자리가 있었다. **크기를 못박는다.** */
 @media (min-width: 0px) {
-  .hip-only-go,
   .hip-back {
     width: 42px !important;
     min-width: 42px;
