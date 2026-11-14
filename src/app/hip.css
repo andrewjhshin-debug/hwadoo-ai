@@ -3333,28 +3333,23 @@ html[data-theme="light"] {
   /* 물음만 보기 — 선종의 엔소. 가로가 늘어나던 까닭은 세로 flex의
      자식이라서였다. `flex: 0 0 auto`로 터치 자리만 고정한다. */
   .hip-only-go {
-    position: relative;
     flex: 0 0 auto;
     align-self: center;
     margin-top: 28px;
-    width: 82px;
-    height: 82px;
-    border: 0;
+    box-sizing: border-box;
+    width: 88px;
+    height: 88px;
+    padding: 0;
+    border: 1px solid rgba(234, 126, 164, .42);
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: rgba(255, 251, 246, .64);
-    color: #674d40;
+    background: rgba(255, 255, 255, .54) url("/images/hwadu-focus-enso.png") center / 80px 80px no-repeat;
+    color: #1e1b18;
     font-size: 13px;
     font-weight: 600;
-  }
-  .hip-only-go::before {
-    content: "";
-    position: absolute;
-    inset: 2px;
-    pointer-events: none;
-    background: linear-gradient(145deg, #a77a50, #dfbc85 52%, #926643);
-    mask: url("/images/hwadu-focus-enso.png") center / contain no-repeat;
+    line-height: 1;
+    white-space: nowrap;
   }
   .hip-only-go:active { transform: scale(.96); }
   .hip-only-enso {

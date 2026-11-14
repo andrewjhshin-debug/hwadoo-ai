@@ -1,3 +1,9 @@
+.hip-hall:has(> .hip-hall-interior) {
+  height: auto;
+  min-height: 100dvh;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+}
+
 @media (max-width: 699px) {
   .hip-hall:has(> .hip-hall-interior) { padding-inline: 0; }
   .hip-hall-sky.hip-hall-interior { border-inline-width: 0; border-radius: 0; }
@@ -5,26 +11,26 @@
 
 /* One coordinate plane keeps the artwork, live seats and offering targets aligned. */
 .hip-hall-sky.hip-hall-interior {
-  --hall-people-space: 12px;
-  container-type: size;
+  flex: 0 0 auto;
+  container-type: inline-size;
   background: transparent;
   border-color: transparent;
 }
 .hip-hall-interior .hip-hall-ceil {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  display: block;
   padding: 0;
 }
 .hip-hall-interior .hip-hall-shrine {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  inset: auto;
   display: block;
-  container-type: size;
+  container-type: normal;
   background: none;
 }
 .hip-hall-interior .hip-hall-artboard {
-  position: absolute;
-  inset: 0 0 var(--hall-people-space);
+  position: relative;
+  aspect-ratio: 857 / 1836;
 }
 .hip-hall-interior .hip-hall-stage {
   position: absolute;
@@ -33,7 +39,7 @@
 .hip-hall-interior .hip-hall-stage > .hip-hall-scene {
   width: 100%;
   height: 100%;
-  object-fit: fill;
+  object-fit: contain;
   object-position: center;
   background: none;
   border-radius: inherit;
@@ -69,7 +75,7 @@
 .hip-hall-interior .hip-hall-item-link[data-kind='plate'] { left: 68%; right: auto; top: 56%; bottom: auto; width: 17%; height: 5%; }
 /* Tile dedications remain on the interior beam; the exterior eave is replaced. */
 .hip-hall-sky.hip-hall-interior .hip-hall-roof {
-  top: calc((100cqh - var(--hall-people-space)) * .134);
+  top: 13.4%;
   left: 50%;
   right: auto;
   width: 100%;
