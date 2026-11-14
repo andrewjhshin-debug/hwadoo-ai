@@ -1490,29 +1490,27 @@ html body .hip-screen.hip-room.hip-room { padding-bottom: 0 !important; }
 .hip-hall-many { text-shadow: none !important; padding-bottom: 8px !important; }
 .hip-hall-many > span { display: inline-block; padding: 4px 12px; border-radius: 999px; background: rgba(255,255,255,.72); font-size: 12px; font-weight: 400; letter-spacing: 0; color: #5c554e; }
 .hip-hall-many > span > b { color: #3d7be0; font-weight: 600; }
-.hip-hall-sky .hip-hall-acts { gap: 7px; align-items: flex-end; }
+.hip-hall-sky .hip-hall-acts { gap: 5px; align-items: flex-end; }
 .hip-hall-sky .hip-rail-btn {
   box-sizing: border-box;
-  width: 110px;
-  min-height: 44px;
+  width: 86px;
+  min-height: 34px;
   flex-direction: row;
-  gap: 5px;
-  padding: 4px 7px;
+  gap: 4px;
+  padding: 3px 6px;
   border: 1px solid #d9b58c;
   border-radius: 999px;
   background: #fff3e5;
   color: #604233;
   box-shadow: 0 2px 7px #4c291a36;
 }
-.hip-hall-sky .hip-rail-btn::after { content: "›" / ""; margin-inline-start: auto; color: #8e6447; }
 .hip-hall-sky .hip-rail-btn i,
-.hip-hall-sky .hip-rail-btn img { flex: none; width: 19px; height: 22px; }
+.hip-hall-sky .hip-rail-btn img { flex: none; width: 15px; height: 17px; }
 .hip-hall-sky .hip-rail-btn i { background: transparent; color: inherit; backdrop-filter: none; }
-.hip-hall-sky .hip-rail-btn i svg { width: 17px; height: 17px; }
+.hip-hall-sky .hip-rail-btn i svg { width: 15px; height: 15px; }
 .hip-hall-sky .hip-rail-btn img { object-fit: contain; }
-.hip-hall-sky .hip-rail-btn b { font-size: 11px; font-weight: 600; color: inherit; text-shadow: none; white-space: nowrap; }
+.hip-hall-sky .hip-rail-btn b { font-size: 10.5px; font-weight: 600; color: inherit; text-shadow: none; white-space: nowrap; }
 .hip-hall-sky .hip-rail-offer { background: #3c2922; color: #fff0da; }
-.hip-hall-sky .hip-rail-offer::after { color: #e2b481; }
 
 
 /* ── 호감 · 청실홍실 · 번호 열기 — 먹·금, 음양만 빛깔 ── */
