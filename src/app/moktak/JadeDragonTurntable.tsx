@@ -139,7 +139,7 @@ export function dragonTuck(angle: number, dx = 0, dy = 0) {
 }
 /** 용 키 ÷ 옆 옥알 지름 — 형: 「옥 대비 넘 작아지는데」. 0.95 → 1.25 (진짜 금룡 장식은 옥알보다 굵다) */
 // 형: 「크기도」 — 1.25 → 1.35. 금마개를 지워 끝이 옥알 속으로 들어가니 한 뼘 키워도 어색하지 않다
-export const DRAGON_HEIGHT = 1.35;
+export const DRAGON_HEIGHT = 1.28;
 /** 용 키 배율 — 머리 정면 그림은 폭이 좁아(키의 2/3) 같은 키여도 작아 보인다. 동그란 그림일수록 25% 더 키운다 */
 export function dragonKeyFactor(angle: number, dx = 0, dy = 0) {
   return DRAGON_HEIGHT * (1 + 0.25 * (1 - elongationAt(dx || dy ? viewAngle(angle, dx, dy) : angle)));

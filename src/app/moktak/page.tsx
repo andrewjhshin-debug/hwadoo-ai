@@ -298,7 +298,8 @@ export default function MoktakPage() {
   // 형: 「고양이 가로 염주 왜 오른쪽 왼쪽 잘리냐」 — 알이 가장자리(±90°)에
   // 올 때 알 반쪽(≈10%)이 통 밖으로 나가 스크롤 통(.hip-screen-mid)에 잘렸다.
   // 가로 반지름 42 + 10 = 102%. 39 로 두면 99% — 어느 폭에서도 안 잘린다
-  const 고리폭 = 39;
+  // 청옥 금룡은 한 뼘 안쪽 — 용(옥알 두 칸 폭)이 고리 오른쪽에 서면 화면 끝 밖으로 19px 나갔다
+  const 고리폭 = skin.bead === JADE_DRAGON.id ? 36.5 : 39;
   const 고리높이 = 23;
   const 염주원근 = 3.5;
 /** 청옥 옥알 빛 — 청록을 초록 쪽 옥색으로(형: 「초반처럼 좀 더 옥색」) */
@@ -1933,7 +1934,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
                     const dragonMaster = jadeDragon && i === 0;
                     const sc = 0.62 + 0.52 * front;
                     const { x, y } = expandedBeadPosition(t);
-                    const width = ((jadeDragon ? 13 : 17) * sc + (1 - front) * 3) * malaBeadScale(skin.bead, i);
+                    const width = ((jadeDragon ? 15 : 17) * sc + (1 - front) * 3) * malaBeadScale(skin.bead, i);
                     // 금빛은 위 가운데의 표시점에서 시작해 바깥 고리와 같은
                     // 반시계 방향으로 돈다. 전에는 알의 번호만 기준으로 잡아
                     // 염주가 돌 때마다 금빛 덩어리도 아래쪽으로 미끄러져 보였다.

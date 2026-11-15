@@ -218,3 +218,5 @@
 }
 .hip-hall-sky.hip-hall-interior::before { background-image: url(/obj/hall-interior-wide-v1.webp); }
 /* 좌복 판은 바닥까지 그려진 그림이었다 — 넓힌 법당 바닥 위에서 네모 테두리가 비쳐 바닥을 빼고 좌복만 남긴 판(v2)을 쓴다 */
+/* 형: 「좀 더 오른쪽으로 붙여」 — 넓힌 법당이라 좌표판 끝이 아니라 화면 끝에 붙인다 */
+.hip-hall-sky.hip-hall-interior .hip-hall-acts { right: 10px !important; }
