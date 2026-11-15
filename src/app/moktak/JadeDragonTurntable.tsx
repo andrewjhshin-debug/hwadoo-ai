@@ -192,9 +192,9 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   const capScale = Math.hypot(T2.x - T1.x, T2.y - T1.y) / pick.vLen; // % per px
   const hScale = 키맞춤 / FRAME_WIDTH;
   const scale = Math.min(hScale * 1.25, Math.max(hScale * 0.8, hScale + (capScale - hScale) * e));
-  // 형: 「여기가 너무 밤티」 — 금마개를 옥알 쪽으로 맞추느라 그림을 돌렸더니 고리 오른쪽에서 용이 비스듬히 들려 고리 밖으로 삐져나왔다.
-  // 그림은 돌리지 않는다(각도는 그림 고르기가 맡는다). 자리·크기만 맞춘다
-  const turn = 0;
+  // 형: 「양 끝이 옥구슬에 붙어 있다고 생각하고 각도 다시」 — 그림은 고리 자리로 한 방향으로만 고르되(오락가락 없음),
+  // 고른 그림을 양옆 옥알을 잇는 줄에 맞춰 **조금만** 돌려(±26°) 두 끝이 두 옥알에 닿게 한다. 크게 돌리면 들려 보였다(밤티)
+  const turn = Math.max(-0.45, Math.min(0.45, pick.turn)) * e;
   const cos = Math.cos(turn), sin = Math.sin(turn);
   const capAt = { x: T1.x - (pick.A[0] * cos - pick.A[1] * sin) * scale, y: T1.y - (pick.A[0] * sin + pick.A[1] * cos) * scale };
   // 동그란 그림 몫 — 줄 위, 양옆 사이 가운데(실루엣 반지름으로)
@@ -225,10 +225,8 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
     const along = (mid.x - own.x) * ux + (mid.y - own.y) * uy;
     mid = { x: own.x + ux * along, y: own.y + uy * along };
   }
-  // 형: 「꺾이는 거기가 이상해」 — 그림을 안 돌리게 된 뒤로 금마개 자리로 끌어당기면 용이 고리 밖으로 빠져 줄이 꺾여 보였다.
-  // 용은 늘 제 고리 자리(mid — 줄 위, 양옆 옥알 사이)에 앉힌다. 금마개 맞대기는 크기(scale)에만 남긴다
-  void capAt;
-  const at = mid;
+  // 끝(금마개 자리)을 첫 옥알에 대고, 늘인 만큼 둘째 옥알에 닿는다. 머리 정면처럼 끝이 안 보이는 그림(e 작음)은 줄 위 제자리
+  const at = { x: mid.x + (capAt.x - mid.x) * e, y: mid.y + (capAt.y - mid.y) * e };
   return { x: at.x, y: at.y, width: w0, lean: turn * 180 / Math.PI, frame, blend: dragonBlend(angle, dx, dy, frame) };
 }
 
