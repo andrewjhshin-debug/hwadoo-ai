@@ -77,7 +77,8 @@ function viewAngle(angle: number, _dx?: number, _dy?: number) {
   void _dx; void _dy;
   const t = -angle * Math.PI / 180;
   const phi = Math.atan2(Math.sin(t) * VIEW_EASE, Math.cos(t));
-  return -phi * 180 / Math.PI; // viewAt 이 받는 「각도」 꼴로
+  // 형: 「여기서부터 이미 왼쪽으로 틀라고」 — 고리 오른쪽으로 갈 때 얼굴이 이쪽으로 돌아 나왔다. 실물은 머리가 고리 안쪽(뒤)으로 꺾여 들어간다 — 도는 쪽을 뒤집는다
+  return phi * 180 / Math.PI; // viewAt 이 받는 「각도」 꼴로
 }
 /** 형: 「각도를 좀만 더 잘게」 — 그림은 30°마다 한 장이라 바뀔 때 툭 넘어간다. 바뀌는 문턱 가까이에서만
     다음 그림을 살짝 겹쳐(마지막 4분의 1 구간, 최대 반) 넘어가는 순간을 녹인다. 나머지 구간은 한 장 그대로 — 겹친 티가 안 나게 */
