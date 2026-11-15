@@ -9,6 +9,7 @@ import MobileTabBar from "@/components/MobileTabBar";
 import HipMala from "@/components/HipMala";
 import DoryangMenu from "@/components/DoryangMenu";
 import HipDayBar from "@/components/HipDayBar";
+import GlobalHeader from "@/components/GlobalHeader";
 import SecureScreen from "@/components/SecureScreen";
 import MeritToast from "@/components/MeritToast";
 import DailyLotusReward from "@/components/DailyLotusReward";
@@ -156,7 +157,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ScrollTop />
         <SecureScreen />
         <HipDayBar />
-        <div id="hip-header-layer" />
+        <div id="hip-header-layer"><GlobalHeader /></div>
         <Sidebar />
         {/* 스크롤 통에는 여백을 주지 않는다.
             min-h-full 은 통의 **안쪽 상자(content box)** 높이를 기준으로 재므로,
