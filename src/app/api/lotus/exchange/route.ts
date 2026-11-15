@@ -11,7 +11,7 @@
 //
 // 인증: Authorization: Bearer <파이어베이스 ID 토큰>
 // 몸통: { lotus: 1, kind?: "mission" }
-//   kind 없음 = 공덕 하루치, "mission" = 오늘의 수행 셋 다 — 각각 하루 한 송이(장부가 따로).
+//   공덕 하루치를 채우면 하루 한 송이. ("mission" 갈래는 걷었다 — 오늘의 수행은 공덕으로만)
 //   형: 「공덕 하루치 쌓으면 연꽃 하나, 오늘의 수행도 다 하면 연꽃 하나」
 // ─────────────────────────────────────────────────────────────
 
@@ -56,7 +56,9 @@ export async function POST(req: Request) {
     const body = await req.json() as { lotus?: unknown; day?: unknown; kind?: unknown };
     want = body.lotus;
     requestedDay = body.day;
-    if (body.kind === "mission") 갈래 = "_m";
+    // 형: 「세 개 다 하면 연꽃 1개 주고 하루 공덕 다해도 1개, 총 2개 — 이럼 안 되는데」 → 연꽃은 하루 한 송이(공덕 하루치)뿐.
+    // 오늘의 수행 셋은 공덕(4,320)으로만 갚는다. 옛 앱이 「mission」 으로 불러도 연꽃은 안 준다
+    if (body.kind === "mission") return Response.json({ error: "mission-lotus-retired" }, { status: 410 });
   } catch {
     return Response.json({ error: "bad-body" }, { status: 400 });
   }

@@ -10,6 +10,8 @@ import { DAILY_EVENT, doneOf, loadDaily, missionsOf, type DailyBook } from "@/li
 
 export default function TodayStrip({ tabbable = true }: { tabbable?: boolean }) {
   const [장부, 장부잡기] = useState<DailyBook | null>(null);
+  // 형: 「다 하면 뭘 주지?」 → 「동그라미 i 로 작게」. 누르면 한 줄, 다시 누르면 닫힌다
+  const [말, 말잡기] = useState(false);
   useEffect(() => {
     const 읽기 = () => 장부잡기(loadDaily());
     읽기();
@@ -17,6 +19,9 @@ export default function TodayStrip({ tabbable = true }: { tabbable?: boolean }) 
     return () => window.removeEventListener(DAILY_EVENT, 읽기);
   }, []);
   return (
+    <div className="today-strip">
+    <button type="button" className="today-i" aria-label="오늘의 수행 보상" aria-expanded={말} onClick={() => 말잡기((v) => !v)}>i</button>
+    {말 && <p className="today-i-say" role="status">셋 다 하면 오늘의 공덕이 한 번에 다 차요</p>}
     <div className="dharma-today" aria-label="오늘의 수행">
       {장부 && missionsOf(장부.day).map((m) => {
         const 한것 = doneOf(m, 장부);
@@ -29,6 +34,7 @@ export default function TodayStrip({ tabbable = true }: { tabbable?: boolean }) 
           </Link>
         );
       })}
+    </div>
     </div>
   );
 }

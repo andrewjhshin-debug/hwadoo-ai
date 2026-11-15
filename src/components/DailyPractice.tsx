@@ -16,7 +16,7 @@ import Dudu from "@/components/Dudu";
 import { FACE_BY_ID, loadMe, ME_EVENT, NAME_MAX, setName } from "@/lib/me";
 import { nextRealm, realmOf, realmProgress } from "@/lib/realm";
 import {
-  addMerit,
+  fillToday,
   loadMerit,
   MERIT_EVENT,
   MERIT_VALUE,
@@ -101,7 +101,7 @@ export default function DailyPractice() {
     // 상의 값은 공덕 장부가 쥔다(MERIT_VALUE.daily). 화면에는 **실제로
     // 붙은 값**을 그대로 적는다 — 천장에 걸려 0 이면 0 이라고 말한다.
     if (!claimDaily()) return;
-    addMerit("daily");
+    fillToday(); // 셋 다 하면 남은 하루치를 통째로
     refresh(); // 붙은 값은 장부에서 다시 읽는다 — 화면 상태로 들고 있지 않는다
   };
 
@@ -335,7 +335,7 @@ export default function DailyPractice() {
                 onClick={claim}
                 className="rounded-full border border-gold/60 px-5 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/15"
               >
-                공덕 {MERIT_VALUE.daily} 받기
+                오늘의 공덕 채우기
               </button>
             )}
           </div>

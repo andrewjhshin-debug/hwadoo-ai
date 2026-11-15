@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { auth } from "@/lib/firebase";
 import { watchAuth } from "@/lib/sync";
-import { DAILY_TOTAL_CAP, MERIT_EVENT, todayRoom } from "@/lib/merit";
-import { DAILY_EVENT, allDone } from "@/lib/daily";
+import { DAILY_TOTAL_CAP, MERIT_EVENT, fillToday, todayRoom } from "@/lib/merit";
+import { DAILY_EVENT, allDone, claimDaily } from "@/lib/daily";
 import { pingLotus } from "@/components/LotusCount";
 import { Yeonkkot } from "@/components/icons";
 import "./DailyLotusReward.css";
@@ -47,10 +47,12 @@ export default function DailyLotusReward() {
       if (alive.current && auth.currentUser?.uid === user.uid) setStatus("retry");
     } finally { pending.current.delete(key); }
   }, []);
-  // 두 갈래 — 공덕 하루치(""), 오늘의 수행 셋 다("_m"). 각각 하루 한 송이
+  // 연꽃은 공덕 하루치를 채웠을 때 하루 한 송이
   const check = useCallback(async (force = false) => {
     if (!alive.current) return;
-    const 찬것 = [todayRoom().earned >= DAILY_TOTAL_CAP ? "" : null, allDone() ? "_m" : null].filter((k): k is string => k !== null);
+    // 오늘의 수행 셋 다 — 남은 하루치 공덕을 통째로 채운다. 하루치가 차면 아래에서 연꽃 한 송이(하루 한 송이뿐)
+    if (allDone() && claimDaily()) fillToday();
+    const 찬것 = [todayRoom().earned >= DAILY_TOTAL_CAP ? "" : null].filter((k): k is string => k !== null);
     if (!찬것.length) { setStatus("idle"); return; }
     for (const 갈래 of 찬것) await claim(갈래, force);
   }, [claim]);

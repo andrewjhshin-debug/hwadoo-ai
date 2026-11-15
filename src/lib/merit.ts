@@ -244,7 +244,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
 
   // ── 곁다리는 막는다 ── 하루에 몇 번 없는 일이고, 열어 두면
   // 수행 대신 그것만 눌러 채우는 길이 된다
-  daily: 4320, // 하루 한 번뿐
+  daily: DAILY_TOTAL_CAP, // 오늘의 수행 셋을 다 하면 남은 하루치를 통째로 채운다(fillToday) — 하루 한 번
   temple: 4320, // 다섯 곳
   moment: 4320, // 열 장
   inyeon: 2160, // 닿는 일이 하루 다섯 번 있을 리 없다
@@ -516,6 +516,25 @@ function save(l: MeritLedger, shout = true) {
  * 공덕을 쌓는다. 쌓기 전후로 한 바퀴(108)를 넘었으면 그 사실을 알려 준다 —
  * 화면이 축하를 띄울 수 있게.
  */
+/**
+ * 형: 「3개 다 하면 오늘의 공덕이 한 방에 다 차는 걸로 — 그럼 하루에 연꽃 1개만」
+ * 오늘 남은 공덕을 통째로 채운다(염주·목탁으로 얼마를 쌓았든). 공덕 하루치가 차면 연꽃 한 송이가 피니,
+ * 미션을 해도 안 해도 연꽃은 하루 한 송이뿐이다. 돌려주는 값 = 실제로 붙은 공덕
+ */
+export function fillToday(): number {
+  const gained = todayRoom().left;
+  if (gained <= 0) return 0;
+  const l = loadMerit();
+  l.total += gained;
+  l.by.daily = (l.by.daily ?? 0) + gained;
+  l.day = visitDayKey();
+  l.lastFade = 0;
+  l.lastGap = 0;
+  save(l);
+  noteDaily("daily", 1, gained);
+  return gained;
+}
+
 export function addMerit(
   source: MeritSource,
   times = 1,
