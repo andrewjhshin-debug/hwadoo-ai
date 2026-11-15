@@ -1029,8 +1029,9 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
                       width: `${dragonMaster && 용자리 ? 용자리.width : 폭}%`,
                       transform: "translate(-50%, -50%)",
-                      // 형: 「이어지는 거 끝이 안 보이게」 — 용은 늘 양옆 옥알 **뒤로**. 금마개 끝이 옥알 앞에 얹혀 보였다
-                      zIndex: Math.round(front * 100) - (dragonMaster ? 20 : 0),
+                      // 형: 「물리적으로 불가능한 짓 하지 말라」 — 용을 늘 옥알 뒤로 보내니 먼 쪽 옥알이 용 앞에 얹혔다.
+                      // 실물처럼 깊이 순서 그대로: 가까운 옥알 뒤, 먼 옥알 앞. (끝 금마개는 그림에서 지웠다)
+                      zIndex: Math.round(front * 100),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
                       transition: jadeDragon ? "none" :
                         "left .16s linear, top .16s linear, width .16s linear, transform .16s linear",
@@ -1966,8 +1967,8 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
                           // 조금 키워 고리의 간격이 끊기지 않게 한다.
                           width: `${dragonMaster && expandedDragon ? expandedDragon.width : width}%`,
                           transform: `translate(-50%, -50%) scale(${atMarker && !jadeDragon ? 1.07 : 1})`,
-                          // 금룡은 늘 양옆 옥알 뒤로(끝 금마개가 옥알 앞에 얹혀 보이지 않게) — 표시점 위에서도
-                          zIndex: dragonMaster ? Math.round(front * 100) - 20 : Math.round(front * 100) + (atMarker ? 101 : 0),
+                          // 금룡은 깊이 순서 그대로(표시점 덤도 없이) — 가까운 옥알 뒤, 먼 옥알 앞
+                          zIndex: Math.round(front * 100) + (atMarker && !dragonMaster ? 101 : 0),
                           transition: jadeDragon ? "none" : "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: goldTint && lit && !dragonMaster
                             ? `${goldTint}brightness(${(0.94 + .10 * front).toFixed(2)})`
