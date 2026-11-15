@@ -11,7 +11,7 @@
 // 장부는 이 브라우저에 적는다. 계정 동기화는 store 와 같은 결로 뒤에 잇는다.
 // ─────────────────────────────────────────────────────────────
 
-import { loadDaily, noteDaily } from "./daily";
+import { loadDaily, noteDaily, peekYesterday, type DailyBook } from "./daily";
 import { visitDayKey } from "@/components/VisitLedger";
 import { meritMultiplier } from "./charmPower";
 
@@ -268,8 +268,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
  * 이제 daily.got(붙은 값)을 그대로 합산한다. 옛 장부에는 got 이 없으니
  * 그때만 예전 셈으로 받쳐 준다(오늘 하루치라 다음 날이면 사라진다).
  */
-function earnedToday(): { by: Partial<Record<MeritSource, number>>; sum: number } {
-  const book = loadDaily();
+function earnedToday(book: DailyBook = loadDaily()): { by: Partial<Record<MeritSource, number>>; sum: number } {
   const by: Partial<Record<MeritSource, number>> = {};
   let sum = 0;
   for (const [k, times] of Object.entries(book.by)) {
@@ -287,6 +286,13 @@ function earnedToday(): { by: Partial<Record<MeritSource, number>>; sum: number 
   // 오늘 몫은 천장을 넘을 수 없다 — 넘은 수가 화면에 찍히면
   // 「6,642 / 6,480」 같은 말이 안 되는 줄이 된다.
   return { by, sum: Math.min(DAILY_TOTAL_CAP, sum) };
+}
+
+/** 어제 하루치를 얼마나 채웠나(0~1) — 오늘 띠가 0 으로 돌아간 아침에 한 줄 남긴다. 어제 장부가 없으면 null */
+export function yesterdayShare(): number | null {
+  const b = peekYesterday();
+  if (!b) return null;
+  return earnedToday(b).sum / DAILY_TOTAL_CAP;
 }
 
 /** 지금 이 갈래로 더 쌓을 수 있는 공덕 */

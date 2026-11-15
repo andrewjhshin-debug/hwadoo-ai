@@ -155,6 +155,18 @@ export function loadDaily(): DailyBook {
   }
 }
 
+/** 어제 하루치 — 자정이 지나도 장부는 오늘 첫 획 전까지 어제 것으로 남아 있다. 없으면 null */
+export function peekYesterday(): DailyBook | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const p = JSON.parse(window.localStorage.getItem(dailyKey()) || "null") as Partial<DailyBook> | null;
+    if (!p || p.day !== dayBefore(visitDayKey())) return null;
+    return { day: p.day, by: p.by ?? {}, got: p.got ?? {}, claimed: p.claimed === true };
+  } catch {
+    return null;
+  }
+}
+
 function save(b: DailyBook) {
   try {
     window.localStorage.setItem(dailyKey(), JSON.stringify(b));

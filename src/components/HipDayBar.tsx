@@ -15,14 +15,14 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
-import { MERIT_EVENT, todayRoom } from "@/lib/merit";
+import { MERIT_EVENT, todayRoom, yesterdayShare } from "@/lib/merit";
 import { DAILY_EVENT, streakOf } from "@/lib/daily";
 import MeritLotus from "./MeritLotus";
 
 export default function HipDayBar() {
   const [찬만큼, 찬만큼잡기] = useState(0);
   // 형: 「적용해」(얼마 했고 얼마 남았는지 숫자, 며칠째) — 줄은 그대로 두고 이름표 옆에 작게 적는다
-  const [셈, 셈잡기] = useState<{ earned: number; cap: number; days: number } | null>(null);
+  const [셈, 셈잡기] = useState<{ earned: number; cap: number; days: number; yday: number | null } | null>(null);
   // 방금 쌓였다 — 잠깐 밝아진다. 한 타에 0.003% 라 색만으로는 안 보인다
   const [막쌓임, 막쌓임잡기] = useState(false);
   const 앞값 = useRef(0);
@@ -37,7 +37,7 @@ export default function HipDayBar() {
         if (timer !== undefined) window.clearTimeout(timer);
         timer = window.setTimeout(() => 막쌓임잡기(false), 420);
       }
-      셈잡기({ earned, cap, days: streakOf() });
+      셈잡기({ earned, cap, days: streakOf(), yday: earned > 0 ? null : yesterdayShare() });
       앞값.current = v;
       찬만큼잡기(v);
     };
@@ -58,6 +58,8 @@ export default function HipDayBar() {
       <span className="hip-daybar-label">
         오늘의 공덕
         {셈 && 셈.cap > 0 && <> <b>{Math.floor(셈.earned).toLocaleString()}</b> / {셈.cap.toLocaleString()}</>}
+        {/* 하루치는 자정에 0 으로 돌아간다(하루 한 송이). 오늘 첫 획 전엔 어제 얼마나 채웠는지 한 마디 */}
+        {셈 && 셈.yday !== null && 셈.yday > 0 && <small> · 어제 {Math.round(셈.yday * 100)}%</small>}
         {셈 && 셈.days > 1 && <em>{셈.days}일째</em>}
       </span>
       <div className="hip-daybar-row">

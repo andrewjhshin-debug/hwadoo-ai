@@ -100,11 +100,12 @@ export function dragonSpanPerHeight(angle: number, dx: number, dy: number) {
 }
 
 /** 용이 양옆 옥알을 파고드는 길이(판 폭 %, 양쪽 합) — 닿은 자리에 머리카락만 한 틈도 안 비치게 */
-// 형: 「끝이 안 보이게」 — 용을 옥알 뒤로 보내고, 금마개 끝이 옥알 그림자 속까지 들어가게 더 깊이(0.9 → 5.5)
-export const DRAGON_TUCK = 5.5;
+export const DRAGON_TUCK = 0.9;
 /** 파고드는 길이 — 머리 정면 그림은 갈기 끝이 가늘어, 끝끼리 닿아도 떠 보인다(형: 「전반적으로 이런 거」). 동그란 그림일수록 더 깊이 */
 export function dragonTuck(angle: number, dx = 0, dy = 0) {
-  return DRAGON_TUCK + 3.6 * (1 - elongationAt(dx || dy ? viewAngle(angle, dx, dy) : angle));
+  // 형: 「오버레이 짜치다」 — 깊이 파고들기는 **옆모습(금마개가 보이는 그림)** 에만. 머리 정면 그림까지 깊이 넣으니 옥알이 용을 덮었다
+  const e = elongationAt(dx || dy ? viewAngle(angle, dx, dy) : angle);
+  return DRAGON_TUCK + 3.6 * (1 - e) + 4.6 * e;
 }
 /** 용 키 ÷ 옆 옥알 지름 — 형: 「옥 대비 넘 작아지는데」. 0.95 → 1.25 (진짜 금룡 장식은 옥알보다 굵다) */
 export const DRAGON_HEIGHT = 1.25;

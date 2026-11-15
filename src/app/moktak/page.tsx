@@ -1966,7 +1966,8 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
                           // 조금 키워 고리의 간격이 끊기지 않게 한다.
                           width: `${dragonMaster && expandedDragon ? expandedDragon.width : width}%`,
                           transform: `translate(-50%, -50%) scale(${atMarker && !jadeDragon ? 1.07 : 1})`,
-                          zIndex: Math.round(front * 100) + (atMarker ? 101 : 0),
+                          // 금룡은 늘 양옆 옥알 뒤로(끝 금마개가 옥알 앞에 얹혀 보이지 않게) — 표시점 위에서도
+                          zIndex: dragonMaster ? Math.round(front * 100) - 20 : Math.round(front * 100) + (atMarker ? 101 : 0),
                           transition: jadeDragon ? "none" : "left .14s ease-out, top .14s ease-out, width .14s ease-out, transform .14s ease-out",
                           filter: goldTint && lit && !dragonMaster
                             ? `${goldTint}brightness(${(0.94 + .10 * front).toFixed(2)})`
