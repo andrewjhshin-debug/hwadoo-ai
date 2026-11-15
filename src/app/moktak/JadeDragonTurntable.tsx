@@ -68,12 +68,15 @@ function elongationAt(angle: number) {
     고리 각도로만 그림을 고르면 옆자리에서 고리 줄은 가파른데 용은 납작 누운 그림이 나와 엇나갔다
     (형: 「왼쪽 반원 돌 때 전부 이상해」). 그래서 **화면 위 양옆 옥알을 잇는 줄의 기울기**로 그림을 고른다 —
     그림 속 용 축이 그 줄과 같은 기울기로 보이는 방위각을 거꾸로 푼다. 머리 방향은 고리 각도 쪽을 따른다. */
-const IMAGE_TILT = 0.4; // 형: 「여기까지는 일단 직선 유지」 — 0.24 면 고리 옆에서 너무 일찍 머리 정면으로 돌았다. 옆모습을 더 오래 끈다 // 그림의 sin(내려다본 각) — CAPS 의 30°·60°·330° 그림 기울기에서 잼
-function viewAngle(angle: number, dx: number, dy: number) {
-  const phi0 = -angle * Math.PI / 180; // 고리 각도로 본 방위(그림 f ↔ −30f°)
-  let phi = Math.atan2(dy / IMAGE_TILT, dx);
-  const diff = Math.atan2(Math.sin(phi - phi0), Math.cos(phi - phi0));
-  if (Math.abs(diff) > Math.PI / 2) phi += Math.PI;
+/** 형: 「뒤에서 오른쪽으로 꺾었다가 다시 직선 되니까 어색」 — 양옆 옥알 줄 기울기로 고르니, 옥알 자리가 한 칸씩 툭툭 움직일 때마다
+    그림이 앞뒤로 오락가락했다(꺾였다 → 다시 직선). 실물 용은 고리를 따라 **한 방향으로만** 돈다.
+    그래서 고리 각도 하나로 고르되, 앞·뒤(옆모습)에선 천천히, 양옆(머리·꼬리가 눈을 향하는 자리)에선 빨리 지나가게 휜다.
+    VIEW_EASE 가 작을수록 옆모습을 오래 끈다(1 이면 고르게). 늘 한쪽으로만 도니 꺾였다 펴지는 일이 없다 */
+const VIEW_EASE = 0.5;
+function viewAngle(angle: number, _dx?: number, _dy?: number) {
+  void _dx; void _dy;
+  const t = -angle * Math.PI / 180;
+  const phi = Math.atan2(Math.sin(t) * VIEW_EASE, Math.cos(t));
   return -phi * 180 / Math.PI; // viewAt 이 받는 「각도」 꼴로
 }
 /** 형: 「각도를 좀만 더 잘게」 — 그림은 30°마다 한 장이라 바뀔 때 툭 넘어간다. 바뀌는 문턱 가까이에서만
@@ -94,11 +97,6 @@ export function dragonBlend(angle: number, dx: number, dy: number, frame: number
 
 export function dragonView(angle: number, dx: number, dy: number) {
   const frame = viewAt(viewAngle(angle, dx, dy));
-  const step = ((Math.round(angle * 108 / 360) % 108) + 108) % 108;
-  // Keep the front view at the middle of the left turn, with a three-quarter
-  // view on each shoulder so the dragon does not face forward for all three.
-  if (frame === 9 && step >= 75 && step <= 77) return 8;
-  if (frame === 9 && step >= 87 && step <= 89) return 10;
   return frame;
 }
 
