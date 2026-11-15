@@ -162,3 +162,43 @@
   left: 3%;
   transform: none;
 }
+
+/* 형: 「공양하기 저쪽이 조금 어색」 — 가로 알약 셋이 꽃병을 덮고 오른쪽 끝이 잘렸다.
+   오른쪽 기둥 자리에 동그라미 셋을 세로로, 이름은 그 밑에 작게(손에 익은 자리). */
+.hip-hall-sky.hip-hall-interior .hip-hall-acts {
+  top: 23% !important;
+  bottom: auto;
+  right: max(8px, calc((100% - 100cqh * 857 / 1836) / 2 + 8px));
+  gap: 12px;
+  align-items: center;
+}
+.hip-hall-sky.hip-hall-interior .hip-rail-btn {
+  flex-direction: column;
+  gap: 4px;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.hip-hall-sky.hip-hall-interior .hip-rail-btn i,
+.hip-hall-sky.hip-hall-interior .hip-rail-btn img {
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 250, 241, .92);
+  color: #4a3528;
+  box-shadow: 0 3px 10px rgba(60, 30, 10, .28);
+}
+.hip-hall-sky.hip-hall-interior .hip-rail-btn i svg { width: 21px; height: 21px; }
+.hip-hall-sky.hip-hall-interior .hip-rail-offer img { padding: 5px; background: #3c2922; object-fit: contain; }
+.hip-hall-sky.hip-hall-interior .hip-rail-btn b {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(40, 20, 5, .8), 0 0 6px rgba(40, 20, 5, .5);
+}
+.hip-hall-sky.hip-hall-interior .hip-rail-btn:active i,
+.hip-hall-sky.hip-hall-interior .hip-rail-btn:active img { transform: scale(.92); }

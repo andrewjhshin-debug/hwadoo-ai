@@ -26,13 +26,6 @@ export default function HipDayBar() {
   // 방금 쌓였다 — 잠깐 밝아진다. 한 타에 0.003% 라 색만으로는 안 보인다
   const [막쌓임, 막쌓임잡기] = useState(false);
   const 앞값 = useRef(0);
-  // 연꽃을 누르면 한 줄 — 형: 「i 마냥, 찼든 안 찼든 간략히」
-  const [말, 말잡기] = useState(false);
-  useEffect(() => {
-    if (!말) return;
-    const t = window.setTimeout(() => 말잡기(false), 2600);
-    return () => window.clearTimeout(t);
-  }, [말]);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -77,15 +70,11 @@ export default function HipDayBar() {
       <i style={{ transform: `scaleX(${찬만큼 > 0 ? Math.max(0.018, 찬만큼) : 0})` }} />
       </span>
       {/* 연꽃 — 찬 만큼 꽃잎이 벌어진다. 다 차면 활짝. 누르면 한 줄 */}
-      <button type="button" className="hip-daybar-lotus" style={{ ["--open" as string]: 찬만큼 }} aria-label="오늘의 공덕이란" onClick={() => 말잡기((v) => !v)}>
+      {/* 형: 「연꽃 다 차면… 밤티 같은 문구 아예 없고」 — 누르면 뜨던 한 줄을 걷었다. 숫자는 이름표에 이미 있다 */}
+      <span className="hip-daybar-lotus" style={{ ["--open" as string]: 찬만큼 }} aria-hidden>
         <MeritLotus progress={찬만큼} />
-      </button>
+      </span>
       </div>
-      {말 && (
-        <p className="hip-daybar-tip" role="status">
-          {찬만큼 >= 1 ? "오늘 한 송이 피었어요" : `다 차면 연꽃 한 송이 · ${Math.round(찬만큼 * 100)}%`}
-        </p>
-      )}
     </div>
   );
 }

@@ -3337,18 +3337,20 @@ html[data-theme="light"] {
     align-self: center;
     margin-top: 28px;
     box-sizing: border-box;
-    width: 88px;
-    height: 88px;
-    padding: 0;
-    border: 1px solid rgba(234, 126, 164, .42);
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: rgba(255, 255, 255, .54) url("/images/hwadu-focus-enso.png") center / 80px 80px no-repeat;
-    color: #1e1b18;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1;
+    /* 형: 「집중하기 밤티」 — 굵은 글자가 붓 원을 덮었다. 원은 원대로 두고 이름은 그 밑에 작게 */
+    width: 76px;
+    height: auto;
+    padding: 66px 0 0;
+    border: 0;
+    border-radius: 0;
+    display: block;
+    text-align: center;
+    background: url("/images/hwadu-focus-enso.png") center top / 58px 58px no-repeat;
+    color: #8a7f76;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: .14em;
+    line-height: 1.2;
     white-space: nowrap;
   }
   .hip-only-go:active { transform: scale(.96); }
