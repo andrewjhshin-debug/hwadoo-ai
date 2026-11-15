@@ -203,3 +203,18 @@
 }
 .hip-hall-sky.hip-hall-interior .hip-rail-btn:active i,
 .hip-hall-sky.hip-hall-interior .hip-rail-btn:active img { transform: scale(.92); }
+
+/* 형: 「법당 옆 여백 … 꽉 찬 화면」 — 같은 법당을 양옆으로 넓혀 그린 판(제미나이로 바깥만 이어 그리고, 가운데는
+   원래 그림 자리에 맞춰 재단 — 원래 857 폭이 넓힌 판 1102 폭의 가운데 122px 안쪽에 그대로 든다).
+   좌표판(artboard)은 원래 그림 크기 그대로라 방석·공양·연등 자리는 한 치도 안 바뀐다. 그림만 양옆으로 삐져나간다. */
+.hip-hall-interior .hip-hall-stage > .hip-hall-scene {
+  position: absolute;
+  top: 0;
+  left: calc(-122.5 / 857 * 100%);
+  width: calc(1102 / 857 * 100%);
+  max-width: none;
+  height: 100%;
+  object-fit: fill;
+}
+.hip-hall-sky.hip-hall-interior::before { background-image: url(/obj/hall-interior-wide-v1.webp); }
+/* 좌복 판은 바닥까지 그려진 그림이었다 — 넓힌 법당 바닥 위에서 네모 테두리가 비쳐 바닥을 빼고 좌복만 남긴 판(v2)을 쓴다 */

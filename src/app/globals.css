@@ -1800,3 +1800,10 @@ body:has(main.desk) .hip-daybar { display: none !important; }
 .hip-global-header:has(~ .hip-app-header) { display: none !important; }
 body:is(:has(.hip-hall), :has(.hip-gather-page), :has(.hip-masters), :has(.hip-alerts), :has(.try-page), :has(.hasim-solo), :has(.mung-sit), :has(main.desk)) .hip-global-header,
 html[data-focus="1"] .hip-global-header { display: none !important; }
+/* 청옥 금룡 — 용이 고리 오른쪽 끝에 서면 폭이 고리 밖으로 49px 나가 화면 판(hip-screen-mid) 끝에서 잘렸다.
+   용이 든 염주만 고리를 한 뼘 줄여, 용이 어느 자리에 서도 판 안에 든다 */
+.hip-bead-wrap:has([data-dragon-view]) .hip-obj-sq { width: calc(var(--hip-obj-w) * .76) !important; height: auto; aspect-ratio: 1; }
+/* 닫힌 법륜 판이 아래 띠 높이(64px)만큼 덜 내려가 띠가 없는 화면(인연 글 보기)에서 댓글 입력 위로 손잡이가 비쳤다.
+   닫히면 띠 자리까지 다 내려가고, 다 내려간 뒤엔 아예 숨는다 */
+.dharma-sheet { transform: translateY(calc(100% + 64px + env(safe-area-inset-bottom, 0px) + 24px)); visibility: hidden; transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1), visibility 0s linear 0.32s; }
+.dharma-sheet[data-open="1"] { transform: none; visibility: visible; transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1), visibility 0s; }

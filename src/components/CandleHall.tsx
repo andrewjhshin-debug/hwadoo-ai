@@ -108,9 +108,9 @@ function 법당중앙({ children }: { children?: React.ReactNode }) {
       {/* 그림·공양 터치 영역·좌복을 같은 비율의 좌표계에 둔다. */}
       <div className="hip-hall-stage">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="hip-hall-scene" src="/obj/hall-interior-lanterns-v3.webp" width={857} height={1836} alt="" draggable={false} fetchPriority="high" />
+        <img className="hip-hall-scene" src="/obj/hall-interior-wide-v1.webp" width={1102} height={1836} alt="" draggable={false} fetchPriority="high" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="hip-hall-cushion-art" src="/obj/hall-cushion-floor-v1.webp" width={764} height={482} alt="" draggable={false} />
+        <img className="hip-hall-cushion-art" src="/obj/hall-cushion-floor-v2.webp" width={764} height={482} alt="" draggable={false} />
         {children}
       </div>
       <법당마루 />
