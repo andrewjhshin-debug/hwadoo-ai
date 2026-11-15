@@ -28,8 +28,12 @@ type Point = { x: number; y: number };
 type Neighbor = Point & { width: number };
 
 function viewAt(angle: number) {
-  const index = Math.round(angle * VIEWS / 360);
-  return (index % VIEWS + VIEWS) % VIEWS;
+  const f = angle * VIEWS / 360;
+  const index = ((Math.round(f) % VIEWS) + VIEWS) % VIEWS;
+  // 형: 「이어지는 끝이 안 보이게」 — 3번 그림은 꼬리가 눈을 향해 금마개 원판이 통째로 보인다.
+  // 그 자리에선 옆 그림(2·4번)을 쓴다 — 금마개가 옆으로 나 옥알이 덮을 수 있다
+  if (index === 3) return f - Math.floor(f) < 0.5 || ((Math.floor(f) % VIEWS) + VIEWS) % VIEWS === 3 ? 4 : 2;
+  return index;
 }
 
 /** 용 그림 한 장의 자세 — 줄(dx,dy)을 따라 얼마나 기우는지와, 어느 쪽으로 얼마나 뻗는지(상자 폭 1 기준) */
@@ -142,7 +146,7 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   //    단 머리 정면 그림(동그란 것)은 금마개가 겹쳐 보여 맞출 축이 없다 — 길게 누운 정도(e)만큼만 따르고,
   //    나머지는 줄 위 가운데·옥알 키로 둔다. 그 몫의 맞닿음은 칸(용반칸)이 맡는다.
   // 반쯤 누운 그림도 금마개가 보이면 마개로 꿴다 — 길이의 0.6 만 넘으면 다 따른다(형: 「왼쪽 반원 이상」)
-  const e = Math.min(1, elongationAt(viewAngle(angle, dx, dy)) / 0.6);
+  const e = Math.min(1, elongationAt(viewAngle(angle, dx, dy)) / 0.35); // 금마개 맞대기를 더 일찍부터 — 반쯤 돈 그림도 끝이 옥알에 묻히게
   const ux = dx / distance, uy = dy / distance;
   const T1 = { x: first.x + ux * (first.width * 0.435 - tuck / 2), y: first.y + uy * (first.width * 0.435 - tuck / 2) };
   const T2 = { x: last.x - ux * (last.width * 0.435 - tuck / 2), y: last.y - uy * (last.width * 0.435 - tuck / 2) };
