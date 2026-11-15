@@ -1,0 +1,56 @@
+/* 인연 게시판 — 시안 A 「한지 차분」. 형: 「너무 밝은 건지 조잡한 건지… 베스트 시안」 → 「A ㄱ」
+   한지빛 바탕 한 장, 먹 글씨, 금빛은 갈래 이름·날짜에만. 분홍·민트·태극을 걷었다. */
+.hip-gather-page { --yA-paper: #f6f1ea; --yA-ink: #2a2420; --yA-dim: #9a8e82; --yA-line: #e6ddd2; --yA-gold: #b07d26; background: var(--yA-paper); min-height: 100%; }
+body:has(.hip-gather-page) #scroll-box { background: #f6f1ea; }
+
+/* 머리 — 제목 · 내 프로필 / 밑줄 탭 넷 */
+.hip-gather-page .hip-yh { height: auto !important; padding: calc(env(safe-area-inset-top) + 14px) 20px 0 !important; background: var(--yA-paper) !important; border-bottom: 1px solid var(--yA-line); }
+.hip-gather-page .hip-yh-top h1 { font-family: var(--font-serif, serif); font-size: 24px !important; font-weight: 600 !important; letter-spacing: .02em !important; color: var(--yA-ink) !important; }
+.hip-gather-page .hip-yh-top h1 small { margin-left: 8px; font-family: inherit; font-size: 12px; font-weight: 400; letter-spacing: .2em; color: var(--yA-dim); }
+.hip-gather-page .yA-me { font-size: 12px; color: #8a7d70; text-decoration: none; }
+.hip-gather-page .hip-yh-lotus { background: #fff; color: var(--yA-gold); }
+.yA-tabs { display: flex; gap: 22px; margin-top: 10px; }
+.yA-tabs a { position: relative; padding: 10px 0 12px; font-size: 14px; color: var(--yA-dim); text-decoration: none; }
+.yA-tabs a[aria-current="page"] { color: var(--yA-ink); font-weight: 600; }
+.yA-tabs a[aria-current="page"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--yA-ink); }
+
+/* 갈래 칩 + 찾기 */
+.hip-gather-page .hip-board-bar { top: calc(env(safe-area-inset-top) + 98px) !important; gap: 8px; padding: 12px 16px 6px 20px !important; background: var(--yA-paper) !important; border: 0 !important; box-shadow: none !important; }
+.yA-chips { display: flex; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.yA-chips::-webkit-scrollbar { display: none; }
+.yA-chips button { flex: none; padding: 6px 12px; border-radius: 999px; border: 1px solid #e8dfd4; background: #fff; font-size: 12.5px; color: #6f645a; white-space: nowrap; }
+.yA-chips button[aria-pressed="true"] { background: var(--yA-ink); border-color: var(--yA-ink); color: var(--yA-paper); }
+.hip-gather-page .hip-find-btn { color: var(--yA-ink); }
+
+/* 목록 — 줄은 한지 위 가는 금, 갈래 이름은 제목 위에 작게 */
+.hip-gather-page ul.divide-y { border: 0 !important; }
+.hip-gather-page ul.divide-y > * { border-color: #ece4d9 !important; }
+.yA-sec { padding: 18px 20px 8px; font-size: 11.5px; letter-spacing: .24em; color: #a8957f; border: 0 !important; }
+.hip-gather-page .hip-go-post { padding: 0 16px 10px; border: 0 !important; }
+.hip-gather-page .hip-go-box { padding: 0 !important; border: 0 !important; border-radius: 18px !important; background: #fff !important; box-shadow: 0 1px 0 #ece4d9 !important; }
+.yA-go { flex-direction: row !important; align-items: center !important; gap: 14px !important; width: 100%; padding: 14px 16px !important; text-align: left; }
+.yA-date { flex: none; width: 56px; display: flex; flex-direction: column; align-items: center; padding-right: 12px; border-right: 1px solid #eee5da; }
+.yA-date b { font-family: var(--font-serif, serif); font-size: 24px; font-weight: 600; line-height: 1; color: var(--yA-ink); }
+.yA-date span { margin-top: 5px; font-size: 11px; color: var(--yA-gold); white-space: nowrap; }
+.yA-go-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.hip-gather-page .yA-go .hip-go-box-title { font-size: 15px !important; font-weight: 500 !important; color: var(--yA-ink); white-space: normal; line-height: 1.4; }
+.yA-go-sub { font-size: 12px; color: var(--yA-dim); }
+.yA-seat { flex: none; padding: 4px 9px; border: 1px solid #e9d3a8; border-radius: 999px; font-size: 11.5px; color: var(--yA-gold); }
+
+.hip-gather-page .yA-feed > button { padding: 15px 20px !important; }
+.hip-gather-page .yA-feed .hip-feed-main { gap: 5px; }
+.yA-cat { font-style: normal; font-size: 11.5px; letter-spacing: .06em; color: var(--yA-gold); }
+.hip-gather-page .yA-feed .hip-feed-title { font-size: 16px !important; font-weight: 500 !important; color: var(--yA-ink) !important; white-space: normal; line-height: 1.45; }
+.hip-gather-page .yA-feed .hip-feed-meta { gap: 6px !important; margin-top: 3px; font-size: 12px !important; color: #a39789 !important; }
+.yA-av { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #8a6f4a; color: #fff !important; font-style: normal; font-family: var(--font-serif, serif); font-size: 11px; font-weight: 700; line-height: 1; }
+.yA-av[data-g="m"] { background: #4d5f9c; }
+.yA-av[data-g="f"] { background: #c9586e; }
+.hip-gather-page .yA-feed .hip-post-face { border-radius: 50%; }
+
+/* 글쓰기 — 먹빛 알약, 글자까지 */
+body:has(.hip-gather-page) .hip-write-btn { width: auto !important; height: auto !important; gap: 6px; padding: 13px 18px !important; border-radius: 999px !important; background: var(--yA-ink) !important; color: var(--yA-paper) !important; font-size: 14px; box-shadow: 0 8px 20px rgba(42, 36, 32, .25) !important; display: inline-flex !important; align-items: center; }
+body:has(.hip-gather-page) .hip-write-btn svg { width: 16px; height: 16px; }
+.hip-gather-page .hip-board-bar { flex-wrap: nowrap !important; }
+.hip-gather-page .yA-chips { flex: 1; }
+/* 글 보기도 같은 결 — 갈래 이름 금빛 */
+.hip-gather-page .hip-post-detail { background: transparent; }

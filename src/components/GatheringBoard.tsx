@@ -18,6 +18,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import type { User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { anonName } from "@/lib/anonName";
@@ -75,13 +76,6 @@ function EyeIcon({ className = "h-[13px] w-[13px]" }: { className?: string }) {
 }
 
 // 말풍선 — 댓글 수. 가는 선으로 옅게.
-function CommentIcon({ className = "h-[13px] w-[13px]" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="M20 11.6c0 3.9-3.6 7-8 7-1 0-2-.15-2.9-.44L4.5 19.5l1.2-3.2A6.6 6.6 0 0 1 4 11.6c0-3.9 3.6-7 8-7s8 3.1 8 7Z" />
-    </svg>
-  );
-}
 
 // 음양 프로필 — 쪽지 단추와 같은 태극 문양.
 // 남(양) = 금빛 반쪽이 찬 원, 여(음) = 같은 문양을 선으로만, 미표시 = 빈 원.
@@ -171,39 +165,6 @@ function PostFace({ p, className = "h-9 w-9" }: { p: Pick<Post, "avatar" | "auth
   );
 }
 
-/** 갈래 고르기 — 「전체 ∨」 를 누르면 아래로 작은 판이 열린다 */
-function CatPick({ value, onChange }: { value: string; onChange: (k: string) => void }) {
-  const [열림, 열기] = useState(false);
-  const 갈래 = [{ key: "all", label: "전체" }, ...GATHERING_CATEGORIES];
-  const 지금 = 갈래.find((c) => c.key === value)?.label ?? "전체";
-  useEffect(() => {
-    if (!열림) return;
-    const 닫 = () => 열기(false);
-    window.addEventListener("pointerdown", 닫);
-    return () => window.removeEventListener("pointerdown", 닫);
-  }, [열림]);
-  return (
-    <div className="hip-cat" onPointerDown={(e) => e.stopPropagation()}>
-      <button type="button" className="hip-cat-btn" aria-expanded={열림} onClick={() => 열기(!열림)}>
-        {지금}
-        <svg viewBox="0 0 10 6" aria-hidden><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.4" /></svg>
-      </button>
-      {열림 && (
-        <ul className="hip-cat-menu" role="listbox">
-          {갈래.map((c) => (
-            <li key={c.key}>
-              <button type="button" role="option" aria-selected={c.key === value} onClick={() => { onChange(c.key); 열기(false); }}>
-                {c.label}
-                {c.key === value && <svg viewBox="0 0 12 10" aria-hidden><path d="M1 5l3.5 3.5L11 1.5" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg>}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 /** 「같이 가요」 글 박스 — 목록에서는 정보만. 누르면 글로 들어간다 */
 type 가는사람 = { name: string; at: number; sex?: string };
 const 요일 = ["일", "월", "화", "수", "목", "금", "토"];
@@ -237,14 +198,19 @@ function GoPostBox({ p, open }: { p: Post; open: () => void }) {
   const 수 = Math.max(1, 줄.length);
   return (
     <div className="hip-go-box">
-      {/* 형: 「같이 가요 버튼도 없애, 그냥 클릭하면 게시물 들어가지는 거로」 */}
-      <button type="button" className="hip-go-box-main" onClick={open}>
-        <span className="hip-go-box-when">{[날말(p.meetDate), p.meetTime ? timeLabel(p.meetTime) : "", p.templeName].filter(Boolean).join(" · ")}</span>
-        <span className="hip-go-box-title">{p.title}</span>
-        <span className="hip-go-box-faces">
-          {(줄.length ? 줄 : [[p.authorUid, { name: p.authorName, at: 0 }] as [string, 가는사람]]).slice(0, 3).map(([id, x]) => <GoFace key={id} uid={id} name={x.name} sex={x.sex} />)}
-          <small>{p.capacity ? `${수}/${p.capacity}명` : `${수}명`}</small>
+      {/* 형: 「같이 가요 버튼도 없애, 그냥 클릭하면 게시물 들어가지는 거로」 · 「A ㄱ」 — 왼쪽에 날짜를 크게, 오른쪽에 남은 자리 */}
+      <button type="button" className="hip-go-box-main yA-go" onClick={open}>
+        {p.meetDate && (
+          <span className="yA-date">
+            <b>{Number(p.meetDate.split("-")[2])}</b>
+            <span>{날말(p.meetDate).split(" ")[1]}{p.meetTime ? ` ${p.meetTime}` : ""}</span>
+          </span>
+        )}
+        <span className="yA-go-body">
+          <span className="hip-go-box-title">{p.title}</span>
+          <span className="yA-go-sub">{[p.templeName, p.capacity ? `${수}/${p.capacity}명` : `${수}명`].filter(Boolean).join(" · ")}</span>
         </span>
+        {!!p.capacity && p.capacity > 수 && <span className="yA-seat">자리 {p.capacity - 수}</span>}
       </button>
     </div>
   );
@@ -526,6 +492,9 @@ export default function GatheringBoard({
   const [likeHint, setLikeHint] = useState(false);
 
   // 갈래 보기 필터 — 동행/도반 찾기/울력·봉사 중 골라 보기
+  // 글쓰기 단추를 body 에 달 때 — 서버 그림과 어긋나지 않게(#418) 뜬 뒤에만
+  const [떴다, 떴다잡기] = useState(false);
+  useEffect(() => 떴다잡기(true), []);
   const [categoryFilter, setCategoryFilter] = useState<
     "all" | GatheringCategory
   >("all");
@@ -1553,7 +1522,14 @@ export default function GatheringBoard({
       <div className="hip-board-bar">
         {/* 골스처럼 — 「전체 ∨」 작게 하나. 갈래 줄이 자리를 너무 먹었다 */}
         {/* 형: 「엑셀이냐 ㅡㅡ」 — 기본 select 를 걷고 작은 판으로 */}
-        <CatPick value={categoryFilter} onChange={(k) => setCategoryFilter(k as typeof categoryFilter)} />
+        {/* 형: 「A ㄱ」(한지 차분 시안) — 「전체 ∨」 판 대신 갈래를 칩으로 한 줄. 누르면 바로 걸린다 */}
+        {!찾기열림 && (
+          <div className="yA-chips">
+            {[{ key: "all", label: "전체" }, ...GATHERING_CATEGORIES].map((c) => (
+              <button key={c.key} type="button" aria-pressed={categoryFilter === c.key} onClick={() => setCategoryFilter(c.key as typeof categoryFilter)}>{c.label}</button>
+            ))}
+          </div>
+        )}
         {찾기열림 && (
           <input className="hip-find" autoFocus value={찾을말} onChange={(e) => 찾을말잡기(e.target.value)} placeholder="제목·내용·절 이름" enterKeyHint="search" />
         )}
@@ -1564,18 +1540,24 @@ export default function GatheringBoard({
         </div>
       </div>
 
-      <button
-        type="button"
-        aria-label="글쓰기"
-        onClick={() => {
-          resetForm();
-          setOpen(true);
-          pushLayer();
-        }}
-        className="hip-write-btn"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" /></svg>
-      </button>
+      {/* 글쓰기 단추는 몸(body)에 바로 단다 — 당겨서 새로고침 껍데기가 transform 을 쥐고 있어
+          fixed 가 화면이 아니라 그 껍데기 기준이 됐다(목록 맨 끝 3,400px 아래로 가 안 보였다) */}
+      {떴다 && createPortal(
+        <button
+          type="button"
+          aria-label="글쓰기"
+          onClick={() => {
+            resetForm();
+            setOpen(true);
+            pushLayer();
+          }}
+          className="hip-write-btn"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" /></svg>
+          <span>글쓰기</span>
+        </button>,
+        document.body,
+      )}
 
       <div className="flex items-center justify-end gap-2 px-4 pb-2 sm:px-0">
         {/* 서랍 사본으로 버티는 중 — 이 말이 없으면 「왜 새 글이 없지」 한다 */}
@@ -1643,40 +1625,31 @@ export default function GatheringBoard({
             </p>
           </li>
         ) : (
-          sorted.map((p) => {
-            // 「같이 가요」 글은 박스 — 날짜(작게) · 제목 · 같이 가는 얼굴 · 단추. 형이 고른 그 모양
-            const 같이 = !p.deleted && (p.category ?? "together") === "together" && !!(p.templeName || p.meetDate);
-            if (같이) return (
-              <li key={p.id} className="hip-go-post">
-                <GoPostBox p={p} open={() => { 목록자리.current = document.getElementById("scroll-box")?.scrollTop ?? 0; setSelectedId(p.id); pushLayer(); }} />
-              </li>
-            );
-            // 골스 게시판처럼 — 얼굴·이름·때, 굵은 제목, 본문 두 줄, 아래 갈래·조회·댓글
-            return (
-            <li key={p.id} className="hip-feed">
-              <button
-                onClick={() => {
-                  목록자리.current = document.getElementById("scroll-box")?.scrollTop ?? 0;
-                  setSelectedId(p.id);
-                  pushLayer();
-                }}
-              >
-                <PostFace p={p} className="h-9 w-9" />
-                <span className="hip-feed-main">
-                  <span className="hip-feed-title" data-gone={p.deleted ? "1" : undefined}>
-                    {!p.deleted && p.category && p.category !== "free" && <em>{categoryLabel(p.category)}</em>}
-                    {p.title}
-                  </span>
-                  <span className="hip-feed-meta">
-                    {matchedPosts.includes(p.id) && !p.deleted && p.category !== "together" && <InyeonThreadBadge />}
-                    {p.authorName || "이름 없는 이"} · {stamp(p.createdAt)} · <EyeIcon />{p.views ?? 0} · <CommentIcon />{p.commentCount}
-                    {(p.templeName || p.meetDate) && <i> · {[p.templeName, p.meetDate ? legacyDate(p.meetDate) : null].filter(Boolean).join(" ")}</i>}
-                  </span>
-                </span>
-              </button>
-            </li>
-            );
-          })
+          (() => {
+            const 열기 = (p: Post) => { 목록자리.current = document.getElementById("scroll-box")?.scrollTop ?? 0; setSelectedId(p.id); pushLayer(); };
+            const 같이인가 = (p: Post) => !p.deleted && (p.category ?? "together") === "together" && !!(p.templeName || p.meetDate);
+            const 같이들 = sorted.filter(같이인가), 이야기 = sorted.filter((p) => !같이인가(p));
+            return <>
+              {같이들.length > 0 && 이야기.length > 0 && <li className="yA-sec">같이 가요</li>}
+              {같이들.map((p) => <li key={p.id} className="hip-go-post"><GoPostBox p={p} open={() => 열기(p)} /></li>)}
+              {같이들.length > 0 && 이야기.length > 0 && <li className="yA-sec">이야기</li>}
+              {이야기.map((p) => (
+                <li key={p.id} className="hip-feed yA-feed">
+                  <button onClick={() => 열기(p)}>
+                    <span className="hip-feed-main">
+                      {!p.deleted && p.category && p.category !== "free" && <em className="yA-cat">{categoryLabel(p.category)}</em>}
+                      <span className="hip-feed-title" data-gone={p.deleted ? "1" : undefined}>{p.title}</span>
+                      <span className="hip-feed-meta">
+                        {p.avatar ? <PostFace p={p} className="h-5 w-5" /> : <b className="yA-av" data-g={p.gender ?? undefined}>{(p.authorName || "이").slice(0, 1)}</b>}
+                        {matchedPosts.includes(p.id) && !p.deleted && p.category !== "together" && <InyeonThreadBadge />}
+                        {p.authorName || "이름 없는 이"} · {stamp(p.createdAt)} · 조회 {p.views ?? 0} · 댓글 {p.commentCount}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </>;
+          })()
         )}
       </ul>
       {찾을말.trim() && sorted.length === 0 && <p className="hip-find-none">「{찾을말.trim()}」 글이 없어요{더있음 ? " · 더 오래된 글에서 찾으려면 아래 「더 보기」" : ""}</p>}

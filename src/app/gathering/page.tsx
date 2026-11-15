@@ -15,7 +15,7 @@
 import Link from "next/link";
 import LotusCount from "@/components/LotusCount";
 import AlertBell from "@/components/AlertBell";
-import InyeonNav from "@/components/InyeonNav";
+import "@/components/gathering-a.css";
 import HipShell from "@/components/HipShell";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -57,14 +57,20 @@ function GatheringInner() {
           {/* 형: 「검게 하란 말이 아니야, 구성을 제대로」 — 윗단 한 덩이: 제목·연꽃 / 문 둘 반반 */}
           <header className="hip-yh">
             <div className="hip-yh-top">
-              <h1>因緣<small> · 손잡고 절로</small></h1>
+              <h1>인연<small>因緣</small></h1>
               <span className="hip-yh-right">
-                <Link href="/gathering/me" className="text-[11px] text-hanji-faint">내 프로필</Link>
+                <Link href="/gathering/me" className="yA-me">내 프로필 ›</Link>
                 <AlertBell />
                 <Link href="/lotus" className="hip-yh-lotus" aria-label="연꽃"><LotusCount look="line" /></Link>
               </span>
             </div>
-            <InyeonNav secondary={false} />
+            {/* 형: 「A ㄱ」 — 게시판도 탭 하나로. 밑줄 탭 넷 */}
+            <nav className="yA-tabs" aria-label="인연 메뉴">
+              <Link href="/gathering" aria-current="page">게시판</Link>
+              <Link href="/gathering/yeon">새 인연</Link>
+              <Link href="/gathering/likes">받은 호감</Link>
+              <Link href="/letters">쪽지</Link>
+            </nav>
           </header>
 
         </>
