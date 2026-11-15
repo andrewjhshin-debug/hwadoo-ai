@@ -75,7 +75,7 @@ function elongationAt(angle: number) {
 const VIEW_EASE = 1;
 /** 양옆에선 도는 쪽으로 한 발 먼저 — 형: 「여기(고리 오른쪽)서부터 이미 왼쪽으로 틀라고」.
     고리 오른쪽에 닿기 전부터 머리가 안쪽(뒤 왼쪽)으로 꺾여 들어가 있어야 실물처럼 보였다. 앞·뒤(옆모습)에선 0, 양옆에서 가장 크다 */
-const VIEW_LEAD = 32;
+const VIEW_LEAD = 0; // 실물 그대로: 용 축은 늘 고리 접선 — 고리 각도 = 그림 방위. 앞당기지 않는다
 function viewAngle(angle: number, _dx?: number, _dy?: number) {
   void _dx; void _dy;
   const t = -angle * Math.PI / 180;
@@ -194,7 +194,7 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   const scale = Math.min(hScale * 1.25, Math.max(hScale * 0.8, hScale + (capScale - hScale) * e));
   // 형: 「양 끝이 옥구슬에 붙어 있다고 생각하고 각도 다시」 — 그림은 고리 자리로 한 방향으로만 고르되(오락가락 없음),
   // 고른 그림을 양옆 옥알을 잇는 줄에 맞춰 **조금만** 돌려(±15°) 두 끝이 두 옥알에 닿게 한다. 크게 돌리면 들려 보였다(밤티)
-  const turn = Math.max(-0.26, Math.min(0.26, pick.turn)) * e;
+  const turn = Math.max(-0.5, Math.min(0.5, pick.turn)) * e; // 그림은 14°로, 고리는 39°로 내려다본다 — 그 차이만큼(최대 약 27°) 기울여야 양 끝이 고리 줄에 놓인다
   const cos = Math.cos(turn), sin = Math.sin(turn);
   const capAt = { x: T1.x - (pick.A[0] * cos - pick.A[1] * sin) * scale, y: T1.y - (pick.A[0] * sin + pick.A[1] * cos) * scale };
   // 동그란 그림 몫 — 줄 위, 양옆 사이 가운데(실루엣 반지름으로)
