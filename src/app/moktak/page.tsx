@@ -1029,7 +1029,8 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
                       // 알 사이가 보여야** 염주다 — 한 뼘씩 줄인다
                       width: `${dragonMaster && 용자리 ? 용자리.width : 폭}%`,
                       transform: "translate(-50%, -50%)",
-                      zIndex: Math.round(front * 100),
+                      // 형: 「이어지는 거 끝이 안 보이게」 — 용은 늘 양옆 옥알 **뒤로**. 금마개 끝이 옥알 앞에 얹혀 보였다
+                      zIndex: Math.round(front * 100) - (dragonMaster ? 20 : 0),
                       // 자리도 크기도 **한 박자**로. 하나만 미끄러지면 어긋난다
                       transition: jadeDragon ? "none" :
                         "left .16s linear, top .16s linear, width .16s linear, transform .16s linear",
