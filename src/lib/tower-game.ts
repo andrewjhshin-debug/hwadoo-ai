@@ -30,11 +30,10 @@ export function stoneSpec(depth: number, seed: number): Omit<GameStone, "x" | "y
   const r = random(seed ^ Math.imul(depth + 1, 2654435761));
   const art = depth === 0 ? 0 : depth < 3 ? [1, 2][depth - 1] : 1 + Math.floor(r * 8);
   const source = TOWER_STONES[art];
-  // Broad foundation tapering to the smaller rounded stones in the approved mockup.
+  // Taper the stack while preserving each stone’s original proportions.
   const widths = [210, 190, 174, 158, 144, 132, 122, 114, 108];
   const width = widths[depth] ?? 108 + Math.round(random(seed ^ (depth + 71) * 829) * 24);
-  const proportions = [.48, .38, .42, .40, .40, .44, .36, .44, .42];
-  return { depth, art, width, height: proportions[art] * width,
+  return { depth, art, width, height: source.crop[3] / source.crop[2] * width,
     angle: depth === 0 ? 0 : depth < 3 ? source.tilt * .4 : source.tilt * .65 + (r - .5) * 5,
     support: depth < 3 ? .34 : Math.max(.135, source.support + .02 - Math.min(.055, (depth - 3) * .004)),
     offset: source.offset * .65, massOffset: source.massOffset,

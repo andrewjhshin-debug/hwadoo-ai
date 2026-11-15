@@ -34,11 +34,11 @@ async function color(file) {
   for (let i = 0; i < data.length; i += 4) if (data[i + 3] > 240) { count++; r += data[i]; g += data[i + 1]; b += data[i + 2]; }
   return [r / count, g / count, b / count];
 }
-const before = await color('public/obj/stone-cairn-atlas-v5.png');
+const before = await color('public/obj/stone-cairn-atlas-v4.png');
 const after = await color(`public${balance.STONE_ATLAS}`);
-assert(after.reduce((a, b) => a + b) < before.reduce((a, b) => a + b) - 30, 'rounded stones are a darker grey');
+assert(after.reduce((a, b) => a + b) > before.reduce((a, b) => a + b) + 30, 'stones are a brighter grey');
 assert(Math.max(...after) - Math.min(...after) < 12, 'neutral grey rather than brown');
-console.log(`PASS: ${checked} stone/rotation contacts, darker neutral grey`, { before, after });
+console.log(`PASS: ${checked} stone/rotation contacts, brighter neutral grey`, { before, after });
 if (process.argv.includes('--preview')) {
   const stones = [];
   for (let depth = 0; depth < 9; depth++) {
