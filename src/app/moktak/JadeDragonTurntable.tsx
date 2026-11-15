@@ -68,7 +68,7 @@ function elongationAt(angle: number) {
     고리 각도로만 그림을 고르면 옆자리에서 고리 줄은 가파른데 용은 납작 누운 그림이 나와 엇나갔다
     (형: 「왼쪽 반원 돌 때 전부 이상해」). 그래서 **화면 위 양옆 옥알을 잇는 줄의 기울기**로 그림을 고른다 —
     그림 속 용 축이 그 줄과 같은 기울기로 보이는 방위각을 거꾸로 푼다. 머리 방향은 고리 각도 쪽을 따른다. */
-const IMAGE_TILT = 0.24; // 그림의 sin(내려다본 각) — CAPS 의 30°·60°·330° 그림 기울기에서 잼
+const IMAGE_TILT = 0.4; // 형: 「여기까지는 일단 직선 유지」 — 0.24 면 고리 옆에서 너무 일찍 머리 정면으로 돌았다. 옆모습을 더 오래 끈다 // 그림의 sin(내려다본 각) — CAPS 의 30°·60°·330° 그림 기울기에서 잼
 function viewAngle(angle: number, dx: number, dy: number) {
   const phi0 = -angle * Math.PI / 180; // 고리 각도로 본 방위(그림 f ↔ −30f°)
   let phi = Math.atan2(dy / IMAGE_TILT, dx);
@@ -223,7 +223,10 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
     const along = (mid.x - own.x) * ux + (mid.y - own.y) * uy;
     mid = { x: own.x + ux * along, y: own.y + uy * along };
   }
-  const at = { x: mid.x + (capAt.x - mid.x) * e, y: mid.y + (capAt.y - mid.y) * e };
+  // 형: 「꺾이는 거기가 이상해」 — 그림을 안 돌리게 된 뒤로 금마개 자리로 끌어당기면 용이 고리 밖으로 빠져 줄이 꺾여 보였다.
+  // 용은 늘 제 고리 자리(mid — 줄 위, 양옆 옥알 사이)에 앉힌다. 금마개 맞대기는 크기(scale)에만 남긴다
+  void capAt;
+  const at = mid;
   return { x: at.x, y: at.y, width: w0, lean: turn * 180 / Math.PI, frame, blend: dragonBlend(angle, dx, dy, frame) };
 }
 
