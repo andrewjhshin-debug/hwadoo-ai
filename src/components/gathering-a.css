@@ -65,3 +65,17 @@ body:has(.hip-gather-page) .hip-write-btn svg { width: 16px; height: 16px; }
 .yA-chips button { font-size: 12px; padding: 5px 11px; }
 .yA-tabs a { font-size: 13.5px; }
 .hip-gather-page .hip-yh-top h1 { font-size: 22px !important; }
+/* 형: 「폰트 쫌만 더 작아도 되겠고, 글 사이사이 위아래 여백 적게」 */
+.hip-gather-page .yA-feed .hip-feed-title { font-size: 13.5px !important; line-height: 1.35 !important; }
+.hip-gather-page .yA-feed .hip-feed-meta { font-size: 11px !important; margin-top: 1px !important; }
+.hip-gather-page .yA-cat { font-size: 10.5px; }
+.hip-gather-page .yA-feed .hip-feed-main { gap: 2px !important; }
+.hip-gather-page .yA-feed > button { padding: 9px 20px !important; }
+.hip-gather-page .yA-go .hip-go-box-title { font-size: 13.5px !important; line-height: 1.35 !important; }
+.hip-gather-page .yA-go-sub { font-size: 11px; }
+.hip-gather-page .yA-go-body { gap: 2px; }
+.hip-gather-page .yA-go { padding: 10px 14px !important; gap: 12px !important; }
+.hip-gather-page .yA-date { width: 48px; padding-right: 10px; }
+.hip-gather-page .yA-date b { font-size: 19px; }
+.hip-gather-page .hip-go-post { padding: 0 16px 6px !important; }
+.hip-gather-page ul.divide-y > .hip-go-post:first-child { padding-top: 6px !important; }
