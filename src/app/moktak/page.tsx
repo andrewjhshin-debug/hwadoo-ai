@@ -1036,7 +1036,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
                         "left .16s linear, top .16s linear, width .16s linear, transform .16s linear",
                     }}
                   >
-                    {dragonMaster ? <JadeDragonTurntable angle={180 - deg} lean={용자리?.lean} frame={용자리?.frame} /> : stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
+                    {dragonMaster ? <JadeDragonTurntable angle={180 - deg} lean={용자리?.lean} frame={용자리?.frame} blend={용자리?.blend} /> : stoneMala ? <StoneMalaBead base={beadOneSrc} gold={beadLitSrc} fill={채움} index={i} zodiac={skin.bead === "zodiac"} baseFilter={분홍결} goldFilter={금결} /> : <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={malaBeadImage(skin.bead, i, beadOneSrc)}
@@ -1979,7 +1979,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
                         }}
                       >
                         {dragonMaster
-                          ? <JadeDragonTurntable angle={180 - deg} lean={expandedDragon?.lean} frame={expandedDragon?.frame} />
+                          ? <JadeDragonTurntable angle={180 - deg} lean={expandedDragon?.lean} frame={expandedDragon?.frame} blend={expandedDragon?.blend} />
                           // eslint-disable-next-line @next/next/no-img-element
                           : <img src={malaBeadImage(skin.bead, i, skin.bead === "sandalwood" && lit ? beadLitSrc : beadOneSrc)} alt="" draggable={false} className="block w-full" />}
                         {malaCharmImage(skin.bead, i) && <img src={malaCharmImage(skin.bead, i)!} alt="" draggable={false} className="pointer-events-none absolute left-[5%] top-[72%] w-[90%]" />}

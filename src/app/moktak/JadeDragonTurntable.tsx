@@ -76,6 +76,22 @@ function viewAngle(angle: number, dx: number, dy: number) {
   if (Math.abs(diff) > Math.PI / 2) phi += Math.PI;
   return -phi * 180 / Math.PI; // viewAt 이 받는 「각도」 꼴로
 }
+/** 형: 「각도를 좀만 더 잘게」 — 그림은 30°마다 한 장이라 바뀔 때 툭 넘어간다. 바뀌는 문턱 가까이에서만
+    다음 그림을 살짝 겹쳐(마지막 4분의 1 구간, 최대 반) 넘어가는 순간을 녹인다. 나머지 구간은 한 장 그대로 — 겹친 티가 안 나게 */
+export function dragonBlend(angle: number, dx: number, dy: number, frame: number): { other: number; alpha: number } | null {
+  const f = ((viewAngle(angle, dx, dy) * VIEWS / 360) % VIEWS + VIEWS) % VIEWS;
+  const near = ((Math.round(f) % VIEWS) + VIEWS) % VIEWS;
+  const base = near === 3 ? (f - Math.floor(f) < 0.5 || Math.floor(f) % VIEWS === 3 ? 4 : 2) : near;
+  if (base !== frame) return null; // 머리 정면 몫처럼 따로 고른 자리는 겹치지 않는다
+  const w = Math.abs(f - Math.round(f)); // 0(그림 한가운데) ~ 0.5(문턱)
+  let other = ((Math.round(f) + (f > Math.round(f) ? 1 : -1)) % VIEWS + VIEWS) % VIEWS;
+  if (other === 3) other = frame === 2 ? 4 : 2;
+  if (other === frame) return null;
+  const k = Math.max(0, Math.min(1, (w - 0.25) / 0.25));
+  const alpha = 0.5 * k * k * (3 - 2 * k);
+  return alpha > 0.01 ? { other, alpha } : null;
+}
+
 export function dragonView(angle: number, dx: number, dy: number) {
   const frame = viewAt(viewAngle(angle, dx, dy));
   const step = ((Math.round(angle * 108 / 360) % 108) + 108) % 108;
@@ -122,7 +138,8 @@ export function dragonTuck(angle: number, dx = 0, dy = 0) {
   return DRAGON_TUCK + 3.6 * (1 - e) + 4.6 * e;
 }
 /** 용 키 ÷ 옆 옥알 지름 — 형: 「옥 대비 넘 작아지는데」. 0.95 → 1.25 (진짜 금룡 장식은 옥알보다 굵다) */
-export const DRAGON_HEIGHT = 1.25;
+// 형: 「크기도」 — 1.25 → 1.35. 금마개를 지워 끝이 옥알 속으로 들어가니 한 뼘 키워도 어색하지 않다
+export const DRAGON_HEIGHT = 1.35;
 /** 용 키 배율 — 머리 정면 그림은 폭이 좁아(키의 2/3) 같은 키여도 작아 보인다. 동그란 그림일수록 25% 더 키운다 */
 export function dragonKeyFactor(angle: number, dx = 0, dy = 0) {
   return DRAGON_HEIGHT * (1 + 0.25 * (1 - elongationAt(dx || dy ? viewAngle(angle, dx, dy) : angle)));
@@ -205,7 +222,7 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
     mid = { x: own.x + ux * along, y: own.y + uy * along };
   }
   const at = { x: mid.x + (capAt.x - mid.x) * e, y: mid.y + (capAt.y - mid.y) * e };
-  return { x: at.x, y: at.y, width: w0, lean: turn * 180 / Math.PI, frame };
+  return { x: at.x, y: at.y, width: w0, lean: turn * 180 / Math.PI, frame, blend: dragonBlend(angle, dx, dy, frame) };
 }
 
 // Gold links sit underneath the dragon and its neighbors, covering only the
@@ -234,19 +251,28 @@ export function JadeDragonLinks({
 }
 
 // Pick one of the original drawings on the same render as the count.
-export default function JadeDragonTurntable({ angle, lean = 0, frame: chosen }: { angle: number; lean?: number; frame?: number }) {
+export default function JadeDragonTurntable({ angle, lean = 0, frame: chosen, blend }: { angle: number; lean?: number; frame?: number; blend?: { other: number; alpha: number } | null }) {
   const frame = chosen ?? viewAt(angle);
+  const cell = (f: number) => ({
+    backgroundImage: `url("${JADE_DRAGON.turntable}")`,
+    backgroundSize: `${COLUMNS * 100}% ${ROWS * 100}%`,
+    backgroundPosition: `${(f % COLUMNS) * 100 / (COLUMNS - 1)}% ${Math.floor(f / COLUMNS) * 100 / (ROWS - 1)}%`,
+  });
   return (
     <span
       aria-hidden
       data-dragon-view={frame}
-      className="block aspect-[4/3] w-full bg-no-repeat"
-      style={{
-        transform: lean ? `rotate(${lean.toFixed(2)}deg)` : undefined,
-        backgroundImage: `url("${JADE_DRAGON.turntable}")`,
-        backgroundSize: `${COLUMNS * 100}% ${ROWS * 100}%`,
-        backgroundPosition: `${(frame % COLUMNS) * 100 / (COLUMNS - 1)}% ${Math.floor(frame / COLUMNS) * 100 / (ROWS - 1)}%`,
-      }}
-    />
+      className="relative block aspect-[4/3] w-full bg-no-repeat"
+      style={{ transform: lean ? `rotate(${lean.toFixed(2)}deg)` : undefined, ...cell(frame) }}
+    >
+      {/* 다음 그림은 **지금 그림의 윤곽 안에서만** 비친다 — 윤곽 밖으로 새면 옅은 유령 금빛이 떴다 */}
+      {blend && <span className="absolute inset-0 bg-no-repeat" style={{
+        ...cell(blend.other), opacity: blend.alpha,
+        WebkitMaskImage: `url("${JADE_DRAGON.turntable}")`, maskImage: `url("${JADE_DRAGON.turntable}")`,
+        WebkitMaskSize: `${COLUMNS * 100}% ${ROWS * 100}%`, maskSize: `${COLUMNS * 100}% ${ROWS * 100}%`,
+        WebkitMaskPosition: cell(frame).backgroundPosition, maskPosition: cell(frame).backgroundPosition,
+        WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat",
+      }} />}
+    </span>
   );
 }
