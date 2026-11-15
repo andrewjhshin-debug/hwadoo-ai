@@ -1628,12 +1628,9 @@ export default function GatheringBoard({
           (() => {
             const 열기 = (p: Post) => { 목록자리.current = document.getElementById("scroll-box")?.scrollTop ?? 0; setSelectedId(p.id); pushLayer(); };
             const 같이인가 = (p: Post) => !p.deleted && (p.category ?? "together") === "together" && !!(p.templeName || p.meetDate);
-            const 같이들 = sorted.filter(같이인가), 이야기 = sorted.filter((p) => !같이인가(p));
+            // 형: 「순번은 같이 … 섞어」 — 같이 가요와 이야기를 갈라 모으지 않고 올라온 차례 그대로 섞는다
             return <>
-              {같이들.length > 0 && 이야기.length > 0 && <li className="yA-sec">같이 가요</li>}
-              {같이들.map((p) => <li key={p.id} className="hip-go-post"><GoPostBox p={p} open={() => 열기(p)} /></li>)}
-              {같이들.length > 0 && 이야기.length > 0 && <li className="yA-sec">이야기</li>}
-              {이야기.map((p) => (
+              {sorted.map((p) => 같이인가(p) ? <li key={p.id} className="hip-go-post"><GoPostBox p={p} open={() => 열기(p)} /></li> : (
                 <li key={p.id} className="hip-feed yA-feed">
                   <button onClick={() => 열기(p)}>
                     <span className="hip-feed-main">

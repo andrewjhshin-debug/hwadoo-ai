@@ -6,7 +6,7 @@ body:has(.hip-gather-page) #scroll-box { background: #f6f1ea; }
 /* 머리 — 제목 · 내 프로필 / 밑줄 탭 넷 */
 .hip-gather-page .hip-yh { height: auto !important; padding: calc(env(safe-area-inset-top) + 14px) 20px 0 !important; background: var(--yA-paper) !important; border-bottom: 1px solid var(--yA-line); }
 .hip-gather-page .hip-yh-top h1 { font-family: var(--font-serif, serif); font-size: 24px !important; font-weight: 600 !important; letter-spacing: .02em !important; color: var(--yA-ink) !important; }
-.hip-gather-page .hip-yh-top h1 small { margin-left: 8px; font-family: inherit; font-size: 12px; font-weight: 400; letter-spacing: .2em; color: var(--yA-dim); }
+.hip-gather-page .hip-yh-top h1 small { margin-left: 2px; font-family: inherit; font-size: 13px; font-weight: 400; letter-spacing: .04em; color: var(--yA-dim); }
 .hip-gather-page .yA-me { font-size: 12px; color: #8a7d70; text-decoration: none; }
 .hip-gather-page .hip-yh-lotus { background: #fff; color: var(--yA-gold); }
 .yA-tabs { display: flex; gap: 22px; margin-top: 10px; }
@@ -45,7 +45,7 @@ body:has(.hip-gather-page) #scroll-box { background: #f6f1ea; }
 .hip-gather-page .yA-feed .hip-post-face { border-radius: 50%; }
 
 /* 글쓰기 — 먹빛 알약, 글자까지 */
-body:has(.hip-gather-page) .hip-write-btn { width: auto !important; height: auto !important; gap: 6px; padding: 13px 18px !important; border-radius: 999px !important; background: var(--yA-ink) !important; color: var(--yA-paper) !important; font-size: 14px; box-shadow: 0 8px 20px rgba(42, 36, 32, .25) !important; display: inline-flex !important; align-items: center; }
+body:has(.hip-gather-page) .hip-write-btn { width: auto !important; height: auto !important; gap: 6px; padding: 13px 18px !important; border-radius: 999px !important; background: #2a2420 !important; color: #f6f1ea !important; font-size: 14px; box-shadow: 0 8px 20px rgba(42, 36, 32, .25) !important; display: inline-flex !important; align-items: center; }
 body:has(.hip-gather-page) .hip-write-btn svg { width: 16px; height: 16px; }
 .hip-gather-page .hip-board-bar { flex-wrap: nowrap !important; }
 .hip-gather-page .yA-chips { flex: 1; }
