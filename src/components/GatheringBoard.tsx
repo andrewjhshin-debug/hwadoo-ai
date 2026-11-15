@@ -1640,7 +1640,7 @@ export default function GatheringBoard({
                       {!p.deleted && p.category && p.category !== "free" && <em className="yA-cat">{categoryLabel(p.category)}</em>}
                       <span className="hip-feed-title" data-gone={p.deleted ? "1" : undefined}>{p.title}</span>
                       <span className="hip-feed-meta">
-                        {p.avatar ? <PostFace p={p} className="h-5 w-5" /> : <b className="yA-av" data-g={p.gender ?? undefined}>{(p.authorName || "이").slice(0, 1)}</b>}
+                        {/* 형: 「음양은 유지」 */}<PostFace p={p} className="h-5 w-5 shrink-0" />
                         {matchedPosts.includes(p.id) && !p.deleted && p.category !== "together" && <InyeonThreadBadge />}
                         {p.authorName || "이름 없는 이"} · {stamp(p.createdAt)} · 조회 {p.views ?? 0} · 댓글 {p.commentCount}
                       </span>

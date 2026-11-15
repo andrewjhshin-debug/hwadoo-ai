@@ -42,9 +42,6 @@ body:has(.hip-gather-page) #scroll-box { background: #f6f1ea; }
 .yA-cat { font-style: normal; font-size: 11.5px; letter-spacing: .06em; color: var(--yA-gold); }
 .hip-gather-page .yA-feed .hip-feed-title { font-size: 16px !important; font-weight: 500 !important; color: var(--yA-ink) !important; white-space: normal; line-height: 1.45; }
 .hip-gather-page .yA-feed .hip-feed-meta { gap: 6px !important; margin-top: 3px; font-size: 12px !important; color: #a39789 !important; }
-.yA-av { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #8a6f4a; color: #fff !important; font-style: normal; font-family: var(--font-serif, serif); font-size: 11px; font-weight: 700; line-height: 1; }
-.yA-av[data-g="m"] { background: #4d5f9c; }
-.yA-av[data-g="f"] { background: #c9586e; }
 .hip-gather-page .yA-feed .hip-post-face { border-radius: 50%; }
 
 /* 글쓰기 — 먹빛 알약, 글자까지 */
