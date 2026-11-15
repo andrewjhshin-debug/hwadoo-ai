@@ -51,3 +51,17 @@ body:has(.hip-gather-page) .hip-write-btn svg { width: 16px; height: 16px; }
 .hip-gather-page .yA-chips { flex: 1; }
 /* 글 보기도 같은 결 — 갈래 이름 금빛 */
 .hip-gather-page .hip-post-detail { background: transparent; }
+
+/* 형: 「모바일 기준 인연 게시판 글자 크기 좀 줄여」 */
+.hip-gather-page .yA-feed .hip-feed-title { font-size: 14.5px !important; }
+.hip-gather-page .yA-feed .hip-feed-meta { font-size: 11.5px !important; }
+.hip-gather-page .yA-cat { font-size: 11px; }
+.hip-gather-page .yA-go .hip-go-box-title { font-size: 14px !important; }
+.hip-gather-page .yA-go-sub { font-size: 11.5px; }
+.hip-gather-page .yA-date b { font-size: 21px; }
+.hip-gather-page .yA-date span { font-size: 10.5px; }
+.hip-gather-page .yA-seat { font-size: 11px; }
+.hip-gather-page .yA-feed > button { padding: 13px 20px !important; }
+.yA-chips button { font-size: 12px; padding: 5px 11px; }
+.yA-tabs a { font-size: 13.5px; }
+.hip-gather-page .hip-yh-top h1 { font-size: 22px !important; }
