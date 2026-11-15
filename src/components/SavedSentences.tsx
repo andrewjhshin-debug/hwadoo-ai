@@ -25,14 +25,14 @@ function Bookmark({ filled = false }: { filled?: boolean }) {
 export function KeepSentence({ text, source }: { text: string; source?: string | null }) {
   const items = useSavedSentences(), [error, setError] = useState("");
   const saved = items.some(item => item.key === sentenceKey(text) && !item.removed);
-  return <div className="sentence-keep">
+  return <span className="sentence-keep">
     <button type="button" aria-pressed={saved} onClick={() => {
       const current = loadStore();
       const ok = saveStore({ ...current, savedSentences: changeSavedSentence(current.savedSentences, text, source) });
       setError(ok ? "" : "저장하지 못했어요. 다시 눌러주세요.");
     }} aria-label={saved ? "간직한 문장 — 다시 누르면 취소" : "이 문장 간직하기"}><Bookmark filled={saved} /></button>
     {error && <span role="status" className="sentence-error">{error}</span>}
-  </div>;
+  </span>;
 }
 
 export function SavedSentenceList() {

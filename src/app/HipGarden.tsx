@@ -61,7 +61,7 @@ function qSize(q: string): "a" | "b" | "c" {
  *  짧은 물음은 여전히 크다. 글꼴이 늦게 와서 줄 수가 바뀌어도
  *  (document.fonts.ready) 다시 잰다.
  */
-function Q({ question, source }: { question: string; source?: string | null }) {
+function Q({ question, source, tail }: { question: string; source?: string | null; tail?: React.ReactNode }) {
   const 자 = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
@@ -94,6 +94,8 @@ function Q({ question, source }: { question: string; source?: string | null }) {
     <>
       <p ref={자} className={`hip-q hip-q-${qSize(question)}`}>
         {question}
+        {/* 형: 「이거 글 옆으로」 — 간직하기 표는 물음 끝에 붙는다 */}
+        {tail}
       </p>
       {source && <p className="hip-q-by">{source}</p>}
     </>
@@ -369,7 +371,7 @@ export function HipGardenHolding({
 
         <div className="hip-screen-mid">
           {/* 큰 것 하나 — 오브제가 아니라 **물음**이다 */}
-          <Q question={question} source={source} />
+          <Q question={question} source={source} tail={<KeepSentence text={saveText ?? question} source={source} />} />
           {/* 형: 「내려」 — ○ 를 머리에서 물음 바로 아래로.
               머리 오른쪽에는 이미 넷(연꽃·음소거·쪽지·我)이 서 있어서
               ○ 가 다섯째로 묻혔다. 「물음만 보기」는 **물음에 딸린 일**이니
@@ -377,7 +379,6 @@ export function HipGardenHolding({
           <button type="button" onClick={onFocus} className="hip-only-go">
             집중하기
           </button>
-          <KeepSentence text={saveText ?? question} source={source} />
         </div>
 
         {/* ── 바닥 ──

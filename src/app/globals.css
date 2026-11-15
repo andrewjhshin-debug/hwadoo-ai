@@ -1807,3 +1807,9 @@ html[data-focus="1"] .hip-global-header { display: none !important; }
    닫히면 띠 자리까지 다 내려가고, 다 내려간 뒤엔 아예 숨는다 */
 .dharma-sheet { transform: translateY(calc(100% + 64px + env(safe-area-inset-bottom, 0px) + 24px)); visibility: hidden; transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1), visibility 0s linear 0.32s; }
 .dharma-sheet[data-open="1"] { transform: none; visibility: visible; transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1), visibility 0s; }
+
+/* 물음 끝에 붙은 간직하기 표 — 글 한 줄에 얹혀 같이 흐른다 */
+.hip-q .sentence-keep { display: inline-flex !important; vertical-align: middle; margin: 0 0 0 4px !important; gap: 0; }
+.hip-q .sentence-keep > button { padding: 4px !important; }
+.hip-q .sentence-error { font-size: 12px; }
+.hip-q .sentence-keep > button svg { width: 17px !important; height: 21px !important; flex-basis: 17px !important; }
