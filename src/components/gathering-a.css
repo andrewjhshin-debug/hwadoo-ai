@@ -4,11 +4,11 @@
 body:has(.hip-gather-page) #scroll-box { background: #f6f1ea; }
 
 /* 머리 — 제목 · 내 프로필 / 밑줄 탭 넷 */
-.hip-gather-page .hip-yh { height: auto !important; padding: calc(env(safe-area-inset-top) + 14px) 20px 0 !important; background: var(--yA-paper) !important; border-bottom: 1px solid var(--yA-line); }
-.hip-gather-page .hip-yh-top h1 { font-family: var(--font-serif, serif); font-size: 24px !important; font-weight: 600 !important; letter-spacing: .02em !important; color: var(--yA-ink) !important; }
-.hip-gather-page .hip-yh-top h1 small { margin-left: 2px; font-family: inherit; font-size: 13px; font-weight: 400; letter-spacing: .04em; color: var(--yA-dim); }
-.hip-gather-page .yA-me { font-size: 12px; color: #8a7d70; text-decoration: none; }
-.hip-gather-page .hip-yh-lotus { background: #fff; color: var(--yA-gold); }
+.yA-head.hip-yh { height: auto !important; padding: calc(env(safe-area-inset-top) + 14px) 20px 0 !important; background: var(--yA-paper) !important; border-bottom: 1px solid var(--yA-line); }
+.yA-head .hip-yh-top h1 { font-family: var(--font-serif, serif); font-size: 24px !important; font-weight: 600 !important; letter-spacing: .02em !important; color: var(--yA-ink) !important; }
+.yA-head .hip-yh-top h1 small { margin-left: 2px; font-family: inherit; font-size: 13px; font-weight: 400; letter-spacing: .04em; color: var(--yA-dim); }
+.yA-head .yA-me { font-size: 12px; color: #8a7d70; text-decoration: none; }
+.yA-head .hip-yh-lotus { background: #fff; color: var(--yA-gold); }
 .yA-tabs { display: flex; gap: 22px; margin-top: 10px; }
 .yA-tabs a { position: relative; padding: 10px 0 12px; font-size: 14px; color: var(--yA-dim); text-decoration: none; }
 .yA-tabs a[aria-current="page"] { color: var(--yA-ink); font-weight: 600; }
@@ -64,7 +64,7 @@ body:has(.hip-gather-page) .hip-write-btn svg { width: 16px; height: 16px; }
 .hip-gather-page .yA-feed > button { padding: 13px 20px !important; }
 .yA-chips button { font-size: 12px; padding: 5px 11px; }
 .yA-tabs a { font-size: 13.5px; }
-.hip-gather-page .hip-yh-top h1 { font-size: 22px !important; }
+.yA-head .hip-yh-top h1 { font-size: 22px !important; }
 /* 형: 「폰트 쫌만 더 작아도 되겠고, 글 사이사이 위아래 여백 적게」 */
 .hip-gather-page .yA-feed .hip-feed-title { font-size: 13.5px !important; line-height: 1.35 !important; }
 .hip-gather-page .yA-feed .hip-feed-meta { font-size: 11px !important; margin-top: 1px !important; }
@@ -79,3 +79,18 @@ body:has(.hip-gather-page) .hip-write-btn svg { width: 16px; height: 16px; }
 .hip-gather-page .yA-date b { font-size: 19px; }
 .hip-gather-page .hip-go-post { padding: 0 16px 6px !important; }
 .hip-gather-page ul.divide-y > .hip-go-post:first-child { padding-top: 6px !important; }
+
+/* 인연 네 방 공통 — 머리는 한 장(InyeonNav), 화면 꼭대기 층에 고정. 탭을 옮겨도 같은 자리, 아래 내용만 바뀐다 */
+.yA-head.hip-yh { position: fixed !important; top: 0 !important; left: 0; right: 0; z-index: 60 !important; display: block !important; margin: 0 !important; width: 100%; box-sizing: border-box; height: auto !important; padding: calc(env(safe-area-inset-top) + 14px) 20px 0 !important; background: #f6f1ea !important; border-bottom: 1px solid #e6ddd2; color: #2a2420; }
+.yA-head-slot { display: block; height: calc(env(safe-area-inset-top) + 96px); flex: none; width: 100%; }
+.yA-head { --yA-paper: #f6f1ea; --yA-ink: #2a2420; --yA-dim: #9a8e82; --yA-line: #e6ddd2; --yA-gold: #b07d26; }
+.yA-head .hip-yh-top { display: flex; align-items: center; justify-content: space-between; }
+.yA-head .hip-yh-right { display: flex; align-items: center; gap: 10px; }
+.yA-head .yA-tabs a { color: #9a8e82; }
+.yA-head .yA-tabs a[aria-current="page"] { color: #2a2420; }
+body:has(.yA-head-slot) :is(.hip-app-header, .hip-header-slot, .hip-daybar) { display: none !important; }
+body:has(.yA-head-slot) #scroll-box, body:has(.yA-head-slot) .hip-screen { background: #f6f1ea !important; }
+body:has(.yA-head-slot) .hip-screen { padding-top: 0 !important; }
+body:has(.yA-head-slot) .hip-bloom { display: none; }
+/* 게시판의 칩 줄은 고정 머리 바로 밑에 붙는다 */
+.hip-gather-page .hip-board-bar { top: calc(env(safe-area-inset-top) + 96px) !important; }
