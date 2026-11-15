@@ -193,8 +193,8 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   const hScale = 키맞춤 / FRAME_WIDTH;
   const scale = Math.min(hScale * 1.25, Math.max(hScale * 0.8, hScale + (capScale - hScale) * e));
   // 형: 「양 끝이 옥구슬에 붙어 있다고 생각하고 각도 다시」 — 그림은 고리 자리로 한 방향으로만 고르되(오락가락 없음),
-  // 고른 그림을 양옆 옥알을 잇는 줄에 맞춰 **조금만** 돌려(±26°) 두 끝이 두 옥알에 닿게 한다. 크게 돌리면 들려 보였다(밤티)
-  const turn = Math.max(-0.45, Math.min(0.45, pick.turn)) * e;
+  // 고른 그림을 양옆 옥알을 잇는 줄에 맞춰 **조금만** 돌려(±15°) 두 끝이 두 옥알에 닿게 한다. 크게 돌리면 들려 보였다(밤티)
+  const turn = Math.max(-0.26, Math.min(0.26, pick.turn)) * e;
   const cos = Math.cos(turn), sin = Math.sin(turn);
   const capAt = { x: T1.x - (pick.A[0] * cos - pick.A[1] * sin) * scale, y: T1.y - (pick.A[0] * sin + pick.A[1] * cos) * scale };
   // 동그란 그림 몫 — 줄 위, 양옆 사이 가운데(실루엣 반지름으로)
@@ -227,6 +227,17 @@ export function fitJadeDragon(neighbors: readonly [Neighbor, Neighbor], nominalW
   }
   // 끝(금마개 자리)을 첫 옥알에 대고, 늘인 만큼 둘째 옥알에 닿는다. 머리 정면처럼 끝이 안 보이는 그림(e 작음)은 줄 위 제자리
   const at = { x: mid.x + (capAt.x - mid.x) * e, y: mid.y + (capAt.y - mid.y) * e };
+  // 형: 「맘에 걸리면 완벽하게」 — 고리 왼쪽 앞에서 얼굴 그림이 아래 옥알과 떠서 금 고리 줄이 비쳤다.
+  // 마지막으로 두 옥알 각각과 실루엣 사이 틈을 재서, 틈이 있으면 그쪽으로 그만큼 옮긴다(두 번 되풀어 양쪽 다 닿게)
+  for (let round = 0; round < 3; round++) {
+    for (const b of [first, last]) {
+      const dirx = b.x - at.x, diry = b.y - at.y, dist = Math.hypot(dirx, diry);
+      if (dist < 1e-6) continue;
+      const reach = b.width * 0.435 + radiusAt(Math.atan2(diry, dirx) - turn) * w0 - tuck / 2;
+      const gap = dist - reach;
+      if (gap > 0) { at.x += dirx / dist * gap; at.y += diry / dist * gap; }
+    }
+  }
   return { x: at.x, y: at.y, width: w0, lean: turn * 180 / Math.PI, frame, blend: dragonBlend(angle, dx, dy, frame) };
 }
 
