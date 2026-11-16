@@ -67,15 +67,15 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     statusBarStyle: "black-translucent",
   },
-  // 형: 「로고 없이 그라데이션만으로」 — 분홍(연꽃잎)→민트(연잎) 바탕에 흰 꽃잎 셋을 여백처럼 옅게. 판 이름을 바꿔 옛 아이콘 캐시를 피한다
+  // 형: 「로고 없이 그라데이션만으로」 — 분홍(연꽃잎)→민트(연잎) 그라데이션 그대로(「이거로 하라고」). 판 이름을 바꿔 옛 아이콘 캐시를 피한다
   icons: {
     icon: [
-      { url: "/brand/lotus-grad-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/brand/lotus-grad-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/brand/lotus-grad-v1/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/brand/grad-plain-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/grad-plain-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/brand/grad-plain-v1/icon-192.png", type: "image/png", sizes: "192x192" },
     ],
-    shortcut: "/brand/lotus-grad-v1/favicon-32.png",
-    apple: "/brand/lotus-grad-v1/apple-touch-icon.png",
+    shortcut: "/brand/grad-plain-v1/favicon-32.png",
+    apple: "/brand/grad-plain-v1/apple-touch-icon.png",
   },
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",
