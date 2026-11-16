@@ -67,15 +67,15 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     statusBarStyle: "black-translucent",
   },
-  // 형: 「로고 없이 그라데이션만으로」 — 분홍(연꽃잎)→민트(연잎) 그라데이션(「이거로 하라고」) — 멀리서 작게 보면 흐려 채도만 올렸다(「작을 때 잘 안 보인다」). 판 이름을 바꿔 옛 아이콘 캐시를 피한다
+  // 형: 「전부 차지하라는 의미를 모르니? 저 부분을 다 앱 사각 끝까지」 — 통통한 연꽃잎 하나가 판 끝까지(아래 반은 민트), 한지는 위 귀퉁이에만
   icons: {
     icon: [
-      { url: "/brand/grad-plain-v2/favicon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/brand/grad-plain-v2/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/brand/grad-plain-v2/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/brand/petal-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/petal-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/brand/petal-v1/icon-192.png", type: "image/png", sizes: "192x192" },
     ],
-    shortcut: "/brand/grad-plain-v2/favicon-32.png",
-    apple: "/brand/grad-plain-v2/apple-touch-icon.png",
+    shortcut: "/brand/petal-v1/favicon-32.png",
+    apple: "/brand/petal-v1/apple-touch-icon.png",
   },
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",
