@@ -67,15 +67,14 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     statusBarStyle: "black-translucent",
   },
-  // 형: 「이거로 가자」 — 한지 위 먹 원상과 분홍 연꽃(제미나이). 판 이름을 바꿔 옛 아이콘 캐시를 피한다
   icons: {
     icon: [
-      { url: "/brand/enso-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/brand/enso-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/brand/enso-v1/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/brand/pink-mint-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/pink-mint-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/brand/pink-mint-v1/icon-192.png", type: "image/png", sizes: "192x192" },
     ],
-    shortcut: "/brand/enso-v1/favicon-32.png",
-    apple: "/brand/enso-v1/apple-touch-icon.png",
+    shortcut: "/brand/pink-mint-v1/favicon-32.png",
+    apple: "/brand/pink-mint-v1/apple-touch-icon.png",
   },
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",

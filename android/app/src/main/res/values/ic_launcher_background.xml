@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 적응형 아이콘 바탕 — 한지빛. 앞장(원상·연꽃 그림)이 종이째 덮는다 -->
-    <color name="ic_launcher_background">#D9C4A9</color>
+    <!-- 적응형 아이콘 바탕 — 분홍→민트 연꽃빛. 앞장(그라데이션 그림)이 통째로 덮는다 -->
+    <color name="ic_launcher_background">#EEE3E6</color>
 </resources>
