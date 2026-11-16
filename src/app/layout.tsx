@@ -67,15 +67,15 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     statusBarStyle: "black-translucent",
   },
-  // 형: 「전부 차지하라는 의미를 모르니? 저 부분을 다 앱 사각 끝까지」 — 통통한 연꽃잎 하나가 판 끝까지(아래 반은 민트), 한지는 위 귀퉁이에만
+  // 형: 「전부 차지하라는 의미를 모르니? 저 부분을 다 앱 사각 끝까지」 — 통통한 연꽃잎 하나가 판 끝까지(아래 3할만 민트 — 「민트 비율 3」), 한지는 위 귀퉁이에만
   icons: {
     icon: [
-      { url: "/brand/petal-v1/favicon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/brand/petal-v1/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/brand/petal-v1/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/brand/petal-v2/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/petal-v2/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/brand/petal-v2/icon-192.png", type: "image/png", sizes: "192x192" },
     ],
-    shortcut: "/brand/petal-v1/favicon-32.png",
-    apple: "/brand/petal-v1/apple-touch-icon.png",
+    shortcut: "/brand/petal-v2/favicon-32.png",
+    apple: "/brand/petal-v2/apple-touch-icon.png",
   },
   verification: {
     google: "BqX1kBAkQqF6iJWIwqDm2U--7OKwpybmbGP3cOpVufk",
