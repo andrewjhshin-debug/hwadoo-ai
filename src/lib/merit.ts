@@ -844,15 +844,18 @@ export function rankByNeed(need: number): Rank {
 let owner = false;
 
 /** 로그인 흐름(sync.ts watchAuth)이 한 번 켜 준다 */
+// 형: 「나 관리자인데 왜 동자냐」 — 깃발을 이 모듈 안 변수에만 두면, 화면 조각이 merit.ts 를 따로 싣는 순간
+// 한쪽은 깃발을 못 본다. 창(globalThis)에 같이 꽂아 어느 조각에서 읽어도 같은 값이 나오게 한다
 export function setOwner(v: boolean) {
   owner = v;
+  (globalThis as { __hwaduOwner?: boolean }).__hwaduOwner = v;
 }
 export function isOwner(): boolean {
-  return owner;
+  return owner || (globalThis as { __hwaduOwner?: boolean }).__hwaduOwner === true;
 }
 
 export function rankOf(total: number): Rank {
-  if (owner) return RANKS[RANKS.length - 1];
+  if (isOwner()) return RANKS[RANKS.length - 1];
   let r: Rank = RANKS[0];
   for (const x of RANKS) if (total >= x.need) r = x;
   return r;
@@ -860,7 +863,7 @@ export function rankOf(total: number): Rank {
 
 /** 지금 자리의 번호 — 0(동자) ~ 5(부처). 그림을 고를 때 쓴다 */
 export function stageOf(total: number): number {
-  if (owner) return RANKS.length - 1;
+  if (isOwner()) return RANKS.length - 1;
   let i = 0;
   RANKS.forEach((x, k) => {
     if (total >= x.need) i = k;

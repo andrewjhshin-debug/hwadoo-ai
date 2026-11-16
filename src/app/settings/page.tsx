@@ -57,6 +57,7 @@ import {
   MERIT_EVENT,
   MERIT_VALUE,
   rankByNeed,
+  RANKS,
   inRound,
   loadMerit,
   nextRank,
@@ -750,8 +751,10 @@ export default function SettingsPage() {
   );
 
   // ── 폰 판에 올릴 것만 추려 둔다 ──
-  const meRank = rankByNeed(realmOf(merit.total, journalCount).need);
-  const meUp = nextRealm(merit.total, journalCount);
+  // 관리자는 늘 꼭대기 — 깃발을 기다리지 않고 지금 로그인한 계정으로 바로 본다
+  const meOwner = isAdminAccount(user);
+  const meRank = meOwner ? RANKS[RANKS.length - 1] : rankByNeed(realmOf(merit.total, journalCount).need);
+  const meUp = meOwner ? null : nextRealm(merit.total, journalCount);
   // 서비스 전부 — 형: 「서비스 다 넣어주고」.
   // 폰 판은 그림 대신 **한자 한 글자**다. 스물넷을 동그라미로 깔면
   // 그림은 다 달라도 알아보기 어렵고, 한 글자는 작아도 또렷하다.
@@ -803,7 +806,7 @@ export default function SettingsPage() {
         pendingCount={pendingCount}
         name={me?.name ?? "나무"}
         rank={{ hanja: meRank.hanja, name: meRank.name }}
-        pct={Math.round(realmProgress(merit.total, journalCount) * 100)}
+        pct={meOwner ? 100 : Math.round(realmProgress(merit.total, journalCount) * 100)}
         next={
           meUp
             ? {
