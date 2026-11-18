@@ -52,6 +52,7 @@ const EVERY = Object.keys({
   keycap: 1,
   jing: 1,
   drum: 1,
+  mani: 1,
   tower: 1,
   walking: 1,
   inyeon: 1,

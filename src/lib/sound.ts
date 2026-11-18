@@ -557,6 +557,15 @@ export function warmPercussion(kind: "jing" | "drum") {
   if (typeof window !== "undefined") 엘리먼트묶음(타악[kind]);
 }
 
+// 풍경 — 마니차가 한 바퀴 넘을 때 처마 끝에서 한 번. .cmp/pung/pung.cjs 로 구웠다(작은 청동 종 배음 합성)
+let 풍경차례 = 0;
+export function strikePunggyeong(vol: number) {
+  엘리먼트치기(`/sfx/punggyeong-${풍경차례++ % 2}.wav`, vol * 0.7);
+}
+export function warmPunggyeong() {
+  if (typeof window !== "undefined") { 엘리먼트묶음("/sfx/punggyeong-0.wav"); 엘리먼트묶음("/sfx/punggyeong-1.wav"); }
+}
+
 export type MoktakVoice = "gongyu" | "hyung";
 const MOKTAK_URL: Record<MoktakVoice, string> = {
   gongyu: "/sfx/moktak.wav",

@@ -41,6 +41,7 @@ import HipTop from "@/components/HipTop";
 import HipHeader from "@/components/HipHeader";
 import HwaduBrand from "@/components/HwaduBrand";
 import { ROUND } from "@/lib/merit";
+import ManiWheel from "./ManiWheel";
 
 /** 갈래 이름은 HipLanes 가 쥔다 — 여기서는 옛 이름으로 다시 내보낸다 */
 export type HipTab = LaneTab;
@@ -54,6 +55,8 @@ export type HipMoktakProps = {
   merit: number;
   beadHits: number;
   bowlHits: number;
+  maniHits: number;
+  onManiSpin: () => void;
   percussionHits: { jing: number; drum: number };
   onPercussionHit: (kind: "jing" | "drum") => void;
   jingSrc: string;
@@ -103,6 +106,8 @@ export default function HipMoktak({
   merit,
   beadHits,
   bowlHits,
+  maniHits,
+  onManiSpin,
   percussionHits,
   onPercussionHit,
   jingSrc,
@@ -130,6 +135,7 @@ export default function HipMoktak({
     tab === "moktak" ? hits
     : tab === "yeomju" ? beadHits
     : tab === "keycap" ? keyHits
+    : tab === "mani" ? maniHits
     : percussion ? percussionHits[percussion] : bowlHits;
   const inRound = (tab === "yeomju" ? pos : hits) % ROUND;
   const left = ROUND - inRound;
@@ -229,6 +235,7 @@ export default function HipMoktak({
               onPointerUp 이 이미 처리한다(8px 미만이면 한 알). */}
           {tab === "yeomju" && bead}
           {tab === "bowl" && bowl}
+          {tab === "mani" && <ManiWheel onSpin={onManiSpin} />}
           {percussion && (
             <button
               type="button"

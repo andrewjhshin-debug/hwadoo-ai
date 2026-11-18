@@ -42,6 +42,8 @@ import {
   setMoktakVoice,
   strikeMoktak,
   strikePercussion,
+  strikePunggyeong,
+  warmPunggyeong,
   warmPercussion,
   warmMoktak,
   type BowlTone,
@@ -357,7 +359,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
   // 공덕
   const [merit, setMerit] = useState(0);
   const [round, setRound] = useState<number | null>(null);
-  const earn = (src: "moktak" | "bead" | "bowl" | "keycap" | "jing" | "drum") => {
+  const earn = (src: "moktak" | "bead" | "bowl" | "keycap" | "jing" | "drum" | "mani") => {
     const r = addMerit(src);
     setMerit(r.total);
     if (r.crossed) {
@@ -382,6 +384,13 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
   // ── 싱잉볼 ────────────────────────────────────────────────
   const [tone, setTone] = useState<BowlTone>("mid");
   const [bowlHits, setBowlHits] = useState(0);
+  const [maniHits, setManiHits] = useState(0);
+  const spinMani = () => {
+    buzz(8);
+    strikePunggyeong(vol);
+    earn("mani");
+    setManiHits(loadDaily().by.mani ?? 0);
+  };
   const [percussionHits, setPercussionHits] = useState({ jing: 0, drum: 0 });
   const hitPercussion = (kind: "jing" | "drum") => {
     strikePercussion(kind, vol);
@@ -409,6 +418,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
   // 징·북 탭에 들어서면 음원을 미리 받아 둔다 — 첫 타부터 바로 운다
   useEffect(() => {
     if (tab === "jing" || tab === "drum") warmPercussion(tab);
+    if (tab === "mani") warmPunggyeong();
   }, [tab]);
   const [percCombo, setPercCombo] = useState(0);
   const percBeats = useRef<number[]>([]);
@@ -555,6 +565,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
     setTotal(b.by.bead ?? 0);
     setBowlHits(b.by.bowl ?? 0);
     setPercussionHits({ jing: b.by.jing ?? 0, drum: b.by.drum ?? 0 });
+    setManiHits(b.by.mani ?? 0);
     setKeyHits(b.by.keycap ?? 0);
 
     // 살갗 그림을 미리 다 받아 둔다.
@@ -818,7 +829,9 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
         ? `오늘 염주 ${total.toLocaleString("ko-KR")}번 · 이번 바퀴 ${pos}/108 · 화두`
         : tab === "jing" || tab === "drum"
           ? `오늘 ${percussionLabel} ${percussionHits[tab].toLocaleString("ko-KR")}번 · 화두`
-        : `오늘 싱잉볼 ${bowlHits.toLocaleString("ko-KR")}번 · 화두`;
+        : tab === "mani"
+          ? "오늘 마니차 " + maniHits.toLocaleString("ko-KR") + "번 · 화두"
+          : `오늘 싱잉볼 ${bowlHits.toLocaleString("ko-KR")}번 · 화두`;
 
   // ── 염주 · 싱잉볼 — **원본 그대로** 폰 판으로 ──
   // 형: 「염주 디자인은 원래 있던 거 다 적용」 「싱잉볼 염주 전부 기존 거
@@ -1368,6 +1381,8 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
           merit={merit}
           beadHits={total}
           bowlHits={bowlHits}
+          maniHits={maniHits}
+          onManiSpin={spinMani}
           percussionHits={percussionHits}
           onPercussionHit={hitPercussion}
           jingSrc={skinSrc("jing")}
@@ -1558,7 +1573,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
           </button>
         ))}
       </div>
-      <ShareButton title={`${percussionLabel ?? (tab === "yeomju" ? "염주" : tab === "moktak" ? "목탁" : "싱잉볼")} 기록 공유`} text={shareText} />
+      <ShareButton title={`${percussionLabel ?? (tab === "yeomju" ? "염주" : tab === "moktak" ? "목탁" : tab === "mani" ? "마니차" : "싱잉볼")} 기록 공유`} text={shareText} />
       </div>
 
       {tab === "moktak" ? (

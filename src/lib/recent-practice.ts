@@ -1,7 +1,7 @@
 const KEY = "hwadu.recent-practice.v1";
 const rooms = new Set(["/tower", "/bae", "/mung", "/breath", "/mandala", "/sambae", "/hasim", "/walking"]);
 export function validPracticePath(value: string): boolean {
-  return rooms.has(value) || /^\/moktak\?lane=(bowl|moktak|yeomju|keycap|jing|drum)$/.test(value);
+  return rooms.has(value) || /^\/moktak\?lane=(bowl|moktak|yeomju|keycap|jing|drum|mani)$/.test(value);
 }
 export function rememberPractice(value: string) {
   if (!validPracticePath(value)) return;
