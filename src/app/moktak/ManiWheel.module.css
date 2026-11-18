@@ -1,19 +1,16 @@
 .practice {
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 
 .control {
   display: grid;
   place-items: center;
-  width: min(76vw, 310px);
-  height: min(68vw, 290px, 42svh);
-  min-height: 180px;
   appearance: none;
   border: 0;
-  border-radius: 22px;
-  background: radial-gradient(ellipse at 50% 64%, #dfbe8245, transparent 67%);
+  padding: 0;
+  background: none;
   cursor: grab;
   touch-action: pan-y;
   user-select: none;
@@ -21,114 +18,34 @@
 }
 
 .control:active { cursor: grabbing; }
-.control:focus-visible { outline: 2px solid #8b6030; outline-offset: 3px; }
+.control:focus-visible { outline: 2px solid #8b6030; outline-offset: 3px; border-radius: 16px; }
 
+/* 사진(310×910) 중 위 700 만 — 손잡이 아래는 잘라 흐리게 놓아 통이 크게 보이게.
+   가운데 판(.hip-screen-mid)이 넘치면 자르니 그 키 안에 든다 */
 .object {
   position: relative;
   display: block;
-  width: min(48vw, 160px);
-  height: 82%;
-  max-height: 220px;
-}
-
-.finial,
-.crown,
-.rim,
-.stem,
-.base,
-.camera {
-  position: absolute;
-  display: block;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.finial {
-  top: 0;
-  width: 12%;
-  height: 10%;
-  border-radius: 55% 55% 34% 34%;
-  background: linear-gradient(105deg, #835027, #f7d792 40%, #ac7134 75%, #663d20);
-}
-
-.crown {
-  top: 7%;
-  z-index: 3;
-  width: 100%;
-  height: 19%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 42% 38%, #f1d99c 8%, #bc8949 39%, #d3aa62 53%, #885327 74%);
-  box-shadow: inset 0 -2px 0 #634022a0, inset 0 2px 0 #fae3a3;
-}
-
-.camera {
-  top: 19%;
-  z-index: 2;
-  width: 100%;
-  height: 51%;
-  perspective: 440px;
-  container-type: inline-size;
+  height: min(300px, 44svh);
+  aspect-ratio: 310 / 700;
   overflow: hidden;
 }
 
-.drum {
+.body,
+.part,
+.band {
   position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-}
-
-
-.face {
-  position: absolute;
-  inset: 0 auto 0 50%;
-  display: grid;
-  place-items: center;
-  width: 25.4%;
-  margin-left: -12.7%;
-  transform: rotateY(var(--face)) translateZ(46cqw);
-  backface-visibility: hidden;
-  background:
-    repeating-linear-gradient(100deg, #fff2ce09 0 2px, #43221109 3px 5px),
-    linear-gradient(#714422 0%, #9d6d36 19%, #ac793f 66%, #88562b 100%);
-  color: #ffe0a2;
-  text-shadow: 0 2px #533317;
-  border-block: 5px double #e2ab60;
-  font: 700 clamp(15px, 5vw, 23px) var(--font-serif, serif);
-}
-
-.camera::after {
-  content: "";
-  position: absolute;
-  inset: 0;
+  display: block;
   pointer-events: none;
-  background: linear-gradient(90deg, #2720128a, transparent 31%, #fff1be30 51%, transparent 65%, #282016aa);
 }
 
-.rim {
-  top: 62%;
-  z-index: 3;
-  width: 100%;
-  height: 12%;
-  border-radius: 0 0 50% 50%;
-  background: linear-gradient(90deg, #684123, #d6a55d 28%, #f2ce83 49%, #a26d37 77%, #583722);
-  box-shadow: inset 0 -2px 0 #633b21, inset 0 3px 0 #efc684;
+.body {
+  left: 0; top: 0; width: 100%; height: auto; z-index: 1;
+  /* 910 중 560~700 에서 사라진다 */
+  -webkit-mask-image: linear-gradient(#000 61%, transparent 76%);
+  mask-image: linear-gradient(#000 61%, transparent 76%);
 }
-
-.stem {
-  top: 69%;
-  width: 13%;
-  height: 18%;
-  background: linear-gradient(90deg, #613a20, #d4a260 50%, #724424);
-}
-
-.base {
-  bottom: 6%;
-  width: 61%;
-  height: 12%;
-  border-radius: 50% 50% 37% 37%;
-  background: linear-gradient(160deg, #e2ba74, #a8743e 61%, #643e26);
-  box-shadow: 0 8px 10px #482c1b36, inset 0 -3px 0 #583720aa;
-}
+.band { z-index: 2; }
+.part { height: auto; z-index: 0; will-change: transform; }
 
 .instructions {
   margin: 0;
@@ -136,4 +53,3 @@
   font-size: 13px;
   letter-spacing: -.02em;
 }
-
