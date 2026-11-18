@@ -10,5 +10,5 @@ export function HwaduLotusMark({ className }: { className?: string }) {
 }
 
 export default function HwaduBrand() {
-  return <Link href="/" aria-label="화두 홈" className="hip-home hwadu-brand">{/* eslint-disable-next-line @next/next/no-img-element */}<img className="hwadu-brand-ico" src="/brand/petal-v2/icon-192.png" alt="" /><b>화두</b></Link>;
+  return <Link href="/" aria-label="화두 홈" className="hip-home hwadu-brand">{/* eslint-disable-next-line @next/next/no-img-element */}<img className="hwadu-brand-ico" src="/brand/pink-mint-v1/icon-192.png" alt="" /><b>화두</b></Link>;
 }
