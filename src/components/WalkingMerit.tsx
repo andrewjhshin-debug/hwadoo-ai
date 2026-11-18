@@ -1,8 +1,12 @@
 "use client";
 import { useWalking } from "./WalkingRuntime";
 import { hasNativeSteps, toggleWalking } from "@/lib/walking";
+import { useEffect } from "react";
+import { startAmbient } from "@/lib/sound";
 export default function WalkingMerit() {
   const walk = useWalking();
+  // 포행 방에서 걷는 동안 계곡물이 낮게 흐른다 — 방을 나가거나 끄면 멎는다(다른 화면에선 안 튼다)
+  useEffect(() => (walk.on ? startAmbient("/sfx/amb-stream.mp3", 0.8) : undefined), [walk.on]);
   const sensor = { off: "꺼짐", waiting: "신호 기다리는 중", live: "신호 수신 중", denied: "권한 거부됨", silent: "신호 없음", unavailable: "지원하지 않는 기기" }[walk.motion];
   return <section className="walking-merit walking-merit-page" aria-label="포행">
     <p className="walking-merit-kicker">經行 · 포행</p>

@@ -31,7 +31,7 @@ import {
 } from "@/lib/breathLoop";
 import { loadDaily } from "@/lib/daily";
 import { MERIT_VALUE } from "@/lib/merit";
-import { breatheIn, breatheOut, wakeBreath } from "@/lib/sound";
+import { breatheIn, breatheOut, startAmbient, wakeBreath } from "@/lib/sound";
 import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
 
 const INHALE_MS = 4000; // 들숨 4초
@@ -137,6 +137,14 @@ export default function BreathPage() {
   // 음원 한 바퀴로 돌고 있나 — 이러면 화면이 꺼져도 소리가 이어진다
   const [onFile, setOnFile] = useState(false);
   const startRef = useRef(0);
+  // 숨 쉬는 동안 계곡물이 낮게 깔린다 — 숨 박자를 귀로 따라가게. 판이 끝나면 멎는다
+  const ambRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    if (stage === "breathing" && soundOn && !globallyMuted) return;
+    ambRef.current?.();
+    ambRef.current = null;
+  }, [stage, soundOn, globallyMuted]);
+  useEffect(() => () => ambRef.current?.(), []);
   // ── 음향 손잡이 둘 ──
   // audioRef: 빚는 소리를 내는 오디오 문
   // hushRef : 지금 흐르는 숨소리를 거두는 손잡이 (마디가 바뀌거나 판을 마칠 때)
@@ -270,6 +278,7 @@ export default function BreathPage() {
     setPhase("in");
     setSeconds(0);
     setStage("breathing");
+    if (soundActive) { ambRef.current?.(); ambRef.current = startAmbient("/sfx/amb-stream.mp3", 0.7); }
     // 음원 한 바퀴를 튼다. 이게 되면 폰을 잠가도 소리가 이어지고,
     // 잠금화면에 「화두 · 호흡 명상」과 멈춤 단추가 뜬다.
     // 소리를 꺼 둔 사람이거나 자동재생이 막힌 자리면 false — 그때는
