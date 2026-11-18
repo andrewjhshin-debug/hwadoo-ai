@@ -8520,3 +8520,24 @@ html[data-theme="light"] {
   .hip-app-header > .hip-seg { flex-shrink: 1; min-width: 0; }
   .hip-app-header .hip-seg button { padding: 0 5px; font-size: 10px; letter-spacing: 0; white-space: nowrap; }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   프로 정리(2026-11-18) — 형: 「지금 버전에서 살짝 바꾸면서도 프로답고
+   상업적이게, 좀 쳐내도 돼」. 지우지 않고 **덮어서** 거둔다 — 되돌리기 쉽게.
+   · 머리는 소리·쪽지·我 셋만. 포행 스위치·오색실은 각자 방에서.
+   · 한글에 0.3em 넘는 자간은 손글씨 간판처럼 보인다 — 단추는 0.04em.
+   · 첫 화면은 물음 하나: 話頭 워터마크·성인/어린이·(i) 를 걷고, 연꽃을 줄여
+     「오늘의 물음을 받으시겠습니까」가 카드에 가리지 않게.
+   ───────────────────────────────────────────────────────────── */
+.hip-top-right .hip-walking-toggle,
+.hip-top-right .hip-sil-top { display: none !important; }
+.hip-screen .hip-strike,
+.hip-strike { letter-spacing: 0.04em !important; font-weight: 600; }
+.hip-mark,
+.hip-audience,
+.today-strip .today-i { display: none !important; }
+.hip-screen .hip-seat { width: 30%; max-width: 116px; }
+.hip-screen .hip-ask { margin-top: 10px; font-size: 24px; line-height: 1.45; }
+/* 첫 화면 가운데 판은 아래에 카드·단추가 따로 서 있으니 염주 몫(120px)을 비울 까닭이 없다.
+   그 120 때문에 「오늘의 물음을 받으시겠습니까」가 카드 밑으로 굴러 들어가 있었다 */
+.hip-screen:has(.hip-garden-today) .hip-screen-mid { padding-bottom: 8px; }
