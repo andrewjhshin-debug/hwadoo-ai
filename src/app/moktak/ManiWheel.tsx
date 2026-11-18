@@ -118,7 +118,6 @@ export default function ManiWheel({ onSpin, onTick }: { onSpin: () => void; onTi
         type="button"
         className={styles.control}
         aria-label="마니차 돌리기"
-        aria-describedby="mani-wheel-instructions"
         onClick={(e) => { if (e.detail === 0) kick(TAP_KICK); }}
         onPointerDown={(e) => {
           if (!e.isPrimary || e.button !== 0) return;
@@ -183,9 +182,6 @@ export default function ManiWheel({ onSpin, onTick }: { onSpin: () => void; onTi
           />
         </span>
       </button>
-      <p id="mani-wheel-instructions" className={styles.instructions}>
-        좌우로 쓸어 돌리기 · 한 바퀴에 경 한 번
-      </p>
     </div>
   );
 }

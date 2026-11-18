@@ -47,9 +47,3 @@
 .band { z-index: 2; }
 .part { height: auto; z-index: 0; will-change: transform; }
 
-.instructions {
-  margin: 0;
-  color: var(--color-hanji-dim, #68564a);
-  font-size: 13px;
-  letter-spacing: -.02em;
-}
