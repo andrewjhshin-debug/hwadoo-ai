@@ -363,6 +363,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
   const earn = (src: "moktak" | "bead" | "bowl" | "keycap" | "jing" | "drum" | "mani") => {
     const r = addMerit(src);
     setMerit(r.total);
+    return r.gained;
     if (r.crossed) {
       setRound(r.round);
       window.setTimeout(() => setRound(null), 2800);
@@ -389,8 +390,9 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
   const spinMani = () => {
     buzz(8);
     strikeManiThunk(vol);
-    earn("mani");
+    const gained = earn("mani");
     setManiHits(loadDaily().by.mani ?? 0);
+    return gained;
   };
   const [percussionHits, setPercussionHits] = useState({ jing: 0, drum: 0 });
   const hitPercussion = (kind: "jing" | "drum") => {

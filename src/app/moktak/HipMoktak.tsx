@@ -56,7 +56,7 @@ export type HipMoktakProps = {
   beadHits: number;
   bowlHits: number;
   maniHits: number;
-  onManiSpin: () => void;
+  onManiSpin: () => number;
   onManiTick: () => void;
   percussionHits: { jing: number; drum: number };
   onPercussionHit: (kind: "jing" | "drum") => void;

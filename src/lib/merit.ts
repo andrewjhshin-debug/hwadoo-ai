@@ -158,7 +158,7 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   keycap: 10, // 1회 1초 → 분당 300
   jing: 10,
   drum: 10,
-  mani: 10,
+  mani: 36, // 한 바퀴 = 경 한 번 읽은 셈. 형: 「마니차 공덕 더 줘」(2026-11-18) — 10 → 36
 
   // 아무것도 안 하는 것 — 한 시간 십오 분
   mung: 576, // 1분 → 분당 288

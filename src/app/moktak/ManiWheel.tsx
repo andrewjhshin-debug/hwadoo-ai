@@ -8,7 +8,7 @@
 // 손으로 밀면 그 세기만큼 돌다가 마찰로 서서히 선다.
 // 공덕은 「한 바퀴 다 돌았을 때」만 붙는다(한 바퀴 = 경 한 번 읽은 셈). 반 바퀴 흔들기는 셈하지 않는다.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./ManiWheel.module.css";
 
 const FRICTION = 1.6; // 1초에 속도가 e^-1.6 ≈ 20% 로 준다
@@ -26,7 +26,15 @@ const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
 const TICK_DEG = 30, TICK_GAP = 55; // 한 바퀴 열두 번 드륵, 초당 열여덟 번까지
 
-export default function ManiWheel({ onSpin, onTick }: { onSpin: () => void; onTick?: () => void }) {
+export default function ManiWheel({ onSpin, onTick }: { onSpin: () => number | void; onTick?: () => void }) {
+  // 한 바퀴마다 붙은 공덕이 통 위로 떠오른다(목탁 글자와 같은 결)
+  const [pops, setPops] = useState<{ id: number; v: number; dx: number }[]>([]);
+  const popId = useRef(0);
+  const pop = (v: number) => {
+    const id = ++popId.current;
+    setPops((p) => [...p.slice(-4), { id, v, dx: (Math.random() - 0.5) * 40 }]);
+    window.setTimeout(() => setPops((p) => p.filter((x) => x.id !== id)), 1000);
+  };
   const tickRef = useRef(onTick);
   tickRef.current = onTick;
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -77,7 +85,7 @@ export default function ManiWheel({ onSpin, onTick }: { onSpin: () => void; onTi
     }
     // 처음 자리에서 어느 쪽으로든 한 바퀴를 넘을 때마다 하나
     const turns = Math.trunc(Math.abs(st.angle) / 360);
-    while (st.counted < turns) { st.counted++; spinRef.current(); }
+    while (st.counted < turns) { st.counted++; const g = spinRef.current(); if (g) pop(g); }
     if (turns < st.counted) st.counted = turns; // 되감기면 다시 넘어야 센다
   };
 
@@ -100,7 +108,7 @@ export default function ManiWheel({ onSpin, onTick }: { onSpin: () => void; onTi
 
   useEffect(() => {
     const load = (src: string) => { const i = new Image(); i.onload = () => paint(); i.src = src; return i; };
-    imgs.current = { band: load("/obj/mani-v1/band.webp"), shade: load("/obj/mani-v1/shade.png") };
+    imgs.current = { band: load("/obj/mani-v1/band2.webp"), shade: load("/obj/mani-v1/shade.png") };
     paint();
     return () => cancelAnimationFrame(raf.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -180,6 +188,11 @@ export default function ManiWheel({ onSpin, onTick }: { onSpin: () => void; onTi
             height={BAND_H * SS}
             style={{ left: pct(CX - R, BW), top: pct(BAND_TOP, BH), width: pct(2 * R, BW), height: pct(BAND_H, BH) }}
           />
+        </span>
+        <span aria-hidden className="hip-pops" style={{ top: "14%", left: "78%" }}>
+          {pops.map((p) => (
+            <span key={p.id} style={{ left: p.dx, animation: "mk-pop 1s cubic-bezier(.2,.7,.3,1) forwards" }}>+{p.v}</span>
+          ))}
         </span>
       </button>
     </div>
