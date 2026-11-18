@@ -26,7 +26,7 @@
 .object {
   position: relative;
   display: block;
-  height: min(280px, 41svh);
+  height: min(300px, 44svh);
   aspect-ratio: 310 / 700;
   /* 위아래만 자른다 — 빨리 돌 때 사슬·추가 옆으로 들려도 양옆이 잘리지 않게 */
   clip-path: inset(0 -80%);

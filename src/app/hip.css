@@ -8557,9 +8557,4 @@ html[data-theme="light"] {
 .hip-home.hwadu-brand { gap: 8px; }
 .hip-home.hwadu-brand .hwadu-brand-ico { width: 24px; height: 24px; border-radius: 7px; display: block; box-shadow: 0 0 0 1px rgba(26, 23, 20, 0.06); }
 .hip-home.hwadu-brand b { font-weight: 600; letter-spacing: 0.02em; font-size: 17px; }
-/* 단청 띠 — 「오늘의 공덕」 막대 바로 밑 한 줄, 모든 판에. 머리 자리(.hip-header-slot)를
-   그만큼 늘려 띠가 판 내용을 덮지 않게 한다. 막대가 없는 판(법당·인연)은 띠도 없다. */
-.hip-daybar::after { content: ""; position: absolute; left: 0; right: 0; top: 38px; height: 14px; border-radius: 2px;
-  background: url(/brand/dancheong-band-v1.webp) left center / auto 100% repeat-x; box-shadow: 0 1px 0 rgba(26,23,20,.06); }
-.hip-header-slot { height: calc(var(--hip-header-height) + 58px) !important; flex-basis: calc(var(--hip-header-height) + 58px) !important; }
-.hip-screen .hip-seat { width: 26%; max-width: 96px; }
+/* 단청 띠는 걷었다 — 형: 「단청 일단 빼」(2026-11-18). 띠 그림은 public/brand/dancheong-band-v1.webp 에 남겨 둔다 */
