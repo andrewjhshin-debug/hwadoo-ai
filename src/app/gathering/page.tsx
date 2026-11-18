@@ -44,17 +44,13 @@ function GatheringInner() {
 
   const 알맹이 = (
     <div className="hip-gather-page mx-auto flex w-full max-w-2xl flex-1 flex-col px-0 pb-16 pt-3 sm:px-6 md:pt-6">
-      {/* 머리띠 없음 — 형: 「법당이랑 인연에는 위에 메뉴바 없어도 되겠다」 */}
       {view === "list" && (
         <>
-          {/* 문은 둘. 설명은 안 붙인다 — 형: 「개 같은 멘트 넣지 말라고 했다」
-              형: 「인연에서 내 프로필처럼 새 인연 찾기 이렇게 탭 주고,
-                   매일매일 카드 눌리면 보이게」 */}
-          {/* 문 둘 — 한 줄 두 칸, 스크롤해도 위에 붙어 있다. 형: 「공간을 많이 잡아먹어, 고정되도록」 */}
-          {/* 골스 윗단처럼 — 검은 띠로 메뉴를 가른다. 스크롤해도 붙어 있다 */}
-          {/* 형: 「검게 하란 말이 아니야, 구성을 제대로」 — 윗단 한 덩이: 제목·연꽃 / 문 둘 반반 */}
           <InyeonNav active="board" />
-
+          <div className="yA-lantern-hero">
+            <p className="yA-lantern-name">인연</p>
+            <p className="yA-lantern-title">손잡고 절로</p>
+          </div>
         </>
       )}
       <section className={view === "list" ? "rise rise-d1" : ""}>
