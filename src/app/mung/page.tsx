@@ -22,7 +22,16 @@ import {
   sayDuration,
   type MungBook,
 } from "@/lib/mung";
-import { buzz } from "@/lib/sound";
+import { buzz, startAmbient } from "@/lib/sound";
+
+// 깔리는 소리 — 아무것도 안 하는 방이라 소리가 곧 방이다. 고른 것은 기억해 둔다
+const AMBIENT = [
+  { id: "none", label: "고요", src: "" },
+  { id: "rain", label: "처마 비", src: "/sfx/amb-rain.mp3" },
+  { id: "stream", label: "계곡물", src: "/sfx/amb-stream.mp3" },
+] as const;
+type AmbientId = (typeof AMBIENT)[number]["id"];
+const AMBIENT_KEY = "hwadu-mung-sound";
 
 const CSS = `
 /* 점 하나 — 스무 초에 한 번 숨 쉰다. 따라 쉬라는 것이 아니라,
@@ -51,6 +60,16 @@ export default function MungPage() {
   const [book, setBook] = useState<MungBook | null>(null);
   const [last, setLast] = useState({ sec: 0, gained: 0, record: false });
   const startRef = useRef(0);
+  const [amb, setAmb] = useState<AmbientId>("none");
+  const stopAmb = useRef<() => void>(() => {});
+  useEffect(() => {
+    try { const v = localStorage.getItem(AMBIENT_KEY); if (AMBIENT.some((a) => a.id === v)) setAmb(v as AmbientId); } catch {}
+    return () => stopAmb.current();
+  }, []);
+  const pickAmb = (id: AmbientId) => {
+    setAmb(id);
+    try { localStorage.setItem(AMBIENT_KEY, id); } catch {}
+  };
   const stageRef = useRef<Stage>("ready");
   stageRef.current = stage;
 
@@ -60,6 +79,7 @@ export default function MungPage() {
     if (stageRef.current !== "sitting") return;
     // 시계는 벽시계로 잰다. 화면이 꺼져 있던 동안에도 시간은 흘렀고,
     // 그 시간이야말로 이 방이 재려는 것이다.
+    stopAmb.current();
     const sec = (Date.now() - startRef.current) / 1000;
     const { gained, record } = endMung(sec);
     setLast({ sec: Math.floor(sec), gained, record });
@@ -85,6 +105,9 @@ export default function MungPage() {
 
   const begin = () => {
     startRef.current = Date.now();
+    const src = AMBIENT.find((a) => a.id === amb)?.src;
+    stopAmb.current();
+    stopAmb.current = src ? startAmbient(src, 1) : () => {};
     setStage("sitting");
   };
 
@@ -180,9 +203,22 @@ export default function MungPage() {
           </>
         ) : (
           <>
+            <div role="radiogroup" aria-label="깔리는 소리" className="rise rise-d2 mt-9 flex gap-2">
+              {AMBIENT.map((a) => (
+                <button
+                  key={a.id}
+                  role="radio"
+                  aria-checked={amb === a.id}
+                  onClick={() => pickAmb(a.id)}
+                  className={`rounded-full border px-3.5 py-1.5 text-[12px] transition-colors ${amb === a.id ? "border-gold/70 text-gold" : "border-ink-3 text-hanji-faint hover:text-hanji-dim"}`}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
             <button
               onClick={begin}
-              className="rise rise-d2 mt-9 w-full max-w-[280px] rounded-full border border-gold/55 bg-gold/[0.07] px-6 py-4 text-[14px] tracking-[0.18em] text-gold-soft transition-colors hover:border-gold/75 hover:bg-gold/15 hover:text-gold"
+              className="rise rise-d2 mt-5 w-full max-w-[280px] rounded-full border border-gold/55 bg-gold/[0.07] px-6 py-4 text-[14px] tracking-[0.18em] text-gold-soft transition-colors hover:border-gold/75 hover:bg-gold/15 hover:text-gold"
             >
               시작
             </button>

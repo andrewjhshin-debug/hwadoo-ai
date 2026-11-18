@@ -567,6 +567,42 @@ export function strikeManiTick(vol: number) {
 export function strikeManiThunk(vol: number) {
   엘리먼트치기("/sfx/mani-thunk.wav", vol * 0.9);
 }
+/**
+ * 깔리는 소리(비·계곡물) — 멍 방 같은 데서 끝없이 흐른다.
+ * <audio loop> 는 mp3 끝의 빈 틈 때문에 한 바퀴마다 「툭」 끊긴다.
+ * 그래서 둘을 번갈아 틀어 끝나기 FADE 초 전에 다음 것을 겹쳐 시작한다.
+ * (아이폰은 volume 을 못 바꿔 겹침이 그냥 포개지는데, 빗소리라 티가 안 난다)
+ * 반환값을 부르면 멈춘다.
+ */
+export function startAmbient(src: string, vol: number): () => void {
+  if (typeof window === "undefined" || isSoundMuted()) return () => {};
+  const FADE = 3;
+  const pair = [new Audio(src), new Audio(src)];
+  pair.forEach((a) => { a.preload = "auto"; (a as HTMLAudioElement & { playsInline?: boolean }).playsInline = true; a.volume = 0; });
+  let cur = 0, alive = true;
+  const target = Math.max(0, Math.min(1, vol * 0.45)); // 치는 소리를 덮지 않게 낮게
+  const play = (a: HTMLAudioElement) => { a.currentTime = 0; void a.play().catch(() => {}); };
+  play(pair[0]);
+  const t = window.setInterval(() => {
+    if (!alive) return;
+    const a = pair[cur], b = pair[1 - cur];
+    const left = (a.duration || 60) - a.currentTime;
+    if (left <= FADE && b.paused) play(b);
+    if (!b.paused && left <= FADE) {
+      const k = Math.max(0, left / FADE);
+      a.volume = target * k; b.volume = target * (1 - k);
+    } else if (a.volume < target) a.volume = Math.min(target, a.volume + target / 20); // 들어설 때 2초에 걸쳐 켠다
+    if (a.ended || left <= 0.05) { a.pause(); cur = 1 - cur; }
+  }, 100);
+  return () => { alive = false; window.clearInterval(t); pair.forEach((a) => { a.pause(); a.src = ""; }); };
+}
+
+// 풍경 — 처마 끝 작은 종(.cmp/pung/pung.cjs). 법당에 공양이 올라설 때 경쇠 뒤에 바람처럼 한 번
+let 풍경차례 = 0;
+export function strikePunggyeong(vol: number) {
+  엘리먼트치기(`/sfx/punggyeong-${풍경차례++ % 2}.wav`, vol * 0.7);
+}
+
 export function warmMani() {
   if (typeof window !== "undefined") ["mani-tick-0", "mani-tick-1", "mani-tick-2", "mani-thunk"].forEach((n) => 엘리먼트묶음(`/sfx/${n}.wav`));
 }

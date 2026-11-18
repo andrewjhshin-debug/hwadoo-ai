@@ -13,7 +13,7 @@ import { Yeonkkot } from "@/components/icons";
 import { watchOnlineCount } from "@/lib/presence";
 import { onValue, ref, remove, serverTimestamp, set } from "firebase/database";
 import { rtdb } from "@/lib/firebase";
-import { strikeBell } from "@/lib/sound";
+import { strikeBell, strikePunggyeong } from "@/lib/sound";
 import { loadMe } from "@/lib/me";
 import { loadStore } from "@/lib/store";
 import { auth, db } from "@/lib/firebase";
@@ -401,6 +401,7 @@ function CandleForm({ 갈래, onClose, onDone }: { 갈래: 공양갈래; onClose
       // 법당에는 소리가 한 줄도 없었다 — 공양을 올려도 아무 일도 안
       // 일어난 것처럼 조용했다. 올라선 그 순간에만 경쇠 한 번.
       strikeBell(0.5);
+      window.setTimeout(() => strikePunggyeong(0.5), 900); // 뒤이어 처마 풍경
       pingLotus();
     }
     catch { setError(갈래 === "giwa" ? "기와를 올리지 못했습니다. 잠시 뒤 다시 해 주세요." : "공양을 올리지 못했습니다. 잠시 뒤 다시 해 주세요."); } finally { setBusy(false); }
