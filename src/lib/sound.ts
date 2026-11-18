@@ -558,12 +558,17 @@ export function warmPercussion(kind: "jing" | "drum") {
 }
 
 // 풍경 — 마니차가 한 바퀴 넘을 때 처마 끝에서 한 번. .cmp/pung/pung.cjs 로 구웠다(작은 청동 종 배음 합성)
-let 풍경차례 = 0;
-export function strikePunggyeong(vol: number) {
-  엘리먼트치기(`/sfx/punggyeong-${풍경차례++ % 2}.wav`, vol * 0.7);
+let 드륵차례 = 0;
+// 마니차 — 도는 동안 통이 굴대에 「드륵드륵」(tick 셋을 돌려 쓴다), 한 바퀴마다 추가 「뚝」.
+// 형: 「신비로운 소리보다 들뚝 드륵드륵 이런 게 나아야」 (굽는 틀 .cmp/mani/sfx.cjs)
+export function strikeManiTick(vol: number) {
+  엘리먼트치기(`/sfx/mani-tick-${드륵차례++ % 3}.wav`, vol);
 }
-export function warmPunggyeong() {
-  if (typeof window !== "undefined") { 엘리먼트묶음("/sfx/punggyeong-0.wav"); 엘리먼트묶음("/sfx/punggyeong-1.wav"); }
+export function strikeManiThunk(vol: number) {
+  엘리먼트치기("/sfx/mani-thunk.wav", vol * 0.9);
+}
+export function warmMani() {
+  if (typeof window !== "undefined") ["mani-tick-0", "mani-tick-1", "mani-tick-2", "mani-thunk"].forEach((n) => 엘리먼트묶음(`/sfx/${n}.wav`));
 }
 
 export type MoktakVoice = "gongyu" | "hyung";

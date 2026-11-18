@@ -57,6 +57,7 @@ export type HipMoktakProps = {
   bowlHits: number;
   maniHits: number;
   onManiSpin: () => void;
+  onManiTick: () => void;
   percussionHits: { jing: number; drum: number };
   onPercussionHit: (kind: "jing" | "drum") => void;
   jingSrc: string;
@@ -108,6 +109,7 @@ export default function HipMoktak({
   bowlHits,
   maniHits,
   onManiSpin,
+  onManiTick,
   percussionHits,
   onPercussionHit,
   jingSrc,
@@ -235,7 +237,7 @@ export default function HipMoktak({
               onPointerUp 이 이미 처리한다(8px 미만이면 한 알). */}
           {tab === "yeomju" && bead}
           {tab === "bowl" && bowl}
-          {tab === "mani" && <ManiWheel onSpin={onManiSpin} />}
+          {tab === "mani" && <ManiWheel onSpin={onManiSpin} onTick={onManiTick} />}
           {percussion && (
             <button
               type="button"

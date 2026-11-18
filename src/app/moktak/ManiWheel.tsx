@@ -24,12 +24,16 @@ const CHAIN = { x: 243, y: 255, w: 64, h: 355, ringX: 22, ringY: 17 }; // 사슬
 const RING_OUT = 20; // 통 겉면에서 고리까지
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
-export default function ManiWheel({ onSpin }: { onSpin: () => void }) {
+const TICK_DEG = 30, TICK_GAP = 55; // 한 바퀴 열두 번 드륵, 초당 열여덟 번까지
+
+export default function ManiWheel({ onSpin, onTick }: { onSpin: () => void; onTick?: () => void }) {
+  const tickRef = useRef(onTick);
+  tickRef.current = onTick;
   const canvas = useRef<HTMLCanvasElement>(null);
   const knob = useRef<HTMLImageElement>(null);
   const chain = useRef<HTMLImageElement>(null);
   const imgs = useRef<{ band?: HTMLImageElement; shade?: HTMLImageElement }>({});
-  const s = useRef({ angle: 0, vel: 0, counted: 0, drag: null as null | { id: number; x: number; a: number; t: number; vx: number; moved: boolean } });
+  const s = useRef({ angle: 0, vel: 0, counted: 0, tickAt: 0, tickT: 0, drag: null as null | { id: number; x: number; a: number; t: number; vx: number; moved: boolean } });
   const raf = useRef(0);
   const spinRef = useRef(onSpin);
   spinRef.current = onSpin;
@@ -64,6 +68,12 @@ export default function ManiWheel({ onSpin }: { onSpin: () => void }) {
       const dx = CX + (R + RING_OUT) * sx - (CHAIN.x + CHAIN.ringX);
       chain.current.style.transform = `translateX(${pct(dx, CHAIN.w)}) rotate(${-lift * sx}deg)`;
       chain.current.style.zIndex = front ? "3" : "0";
+    }
+    // 드륵 — 통이 TICK_DEG 돌 때마다 굴대에 한 번 덜걱인다(너무 빠르면 TICK_GAP 로 솎는다)
+    const now = performance.now();
+    if (Math.abs(st.angle - st.tickAt) >= TICK_DEG) {
+      st.tickAt = st.angle;
+      if (now - st.tickT >= TICK_GAP) { st.tickT = now; tickRef.current?.(); }
     }
     // 처음 자리에서 어느 쪽으로든 한 바퀴를 넘을 때마다 하나
     const turns = Math.trunc(Math.abs(st.angle) / 360);

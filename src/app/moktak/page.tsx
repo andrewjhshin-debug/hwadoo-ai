@@ -42,8 +42,9 @@ import {
   setMoktakVoice,
   strikeMoktak,
   strikePercussion,
-  strikePunggyeong,
-  warmPunggyeong,
+  strikeManiTick,
+  strikeManiThunk,
+  warmMani,
   warmPercussion,
   warmMoktak,
   type BowlTone,
@@ -387,7 +388,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
   const [maniHits, setManiHits] = useState(0);
   const spinMani = () => {
     buzz(8);
-    strikePunggyeong(vol);
+    strikeManiThunk(vol);
     earn("mani");
     setManiHits(loadDaily().by.mani ?? 0);
   };
@@ -418,7 +419,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
   // 징·북 탭에 들어서면 음원을 미리 받아 둔다 — 첫 타부터 바로 운다
   useEffect(() => {
     if (tab === "jing" || tab === "drum") warmPercussion(tab);
-    if (tab === "mani") warmPunggyeong();
+    if (tab === "mani") warmMani();
   }, [tab]);
   const [percCombo, setPercCombo] = useState(0);
   const percBeats = useRef<number[]>([]);
@@ -1383,6 +1384,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
           bowlHits={bowlHits}
           maniHits={maniHits}
           onManiSpin={spinMani}
+          onManiTick={() => strikeManiTick(vol)}
           percussionHits={percussionHits}
           onPercussionHit={hitPercussion}
           jingSrc={skinSrc("jing")}
