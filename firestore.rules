@@ -113,6 +113,9 @@ service cloud.firestore {
         && request.resource.data.get('body', '').size() <= 4000
         && request.resource.data.get('templeName', '') is string
         && request.resource.data.get('templeName', '').size() <= 80
+        // 배웅 사진 — 기기에서 줄인 JPEG 한 장(dataURL)만, 40k 글자까지
+        && request.resource.data.get('photo', '') is string
+        && request.resource.data.get('photo', '').size() <= 40000
         // 끌어올림은 값을 치르고 서버만 단다(/api/post-bump)
         && !('bumpUntil' in request.resource.data);
       allow update: if isAdmin()

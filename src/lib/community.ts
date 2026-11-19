@@ -30,7 +30,7 @@ import { 내프로필 } from "./yeon";
 import { 알림울리기 } from "./alerts";
 
 // 게시판 종류 — 연지원(community, 기본) / 차담회(gathering)
-export type Board = "community" | "gathering" | "pet"; // pet = 배웅(떠난 아이에게 남긴 편지를 나눈 것)
+export type Board = "community" | "gathering" | "pet" | "petvow"; // petvow = 배웅 오재의 「생명에게 회향」 다짐 한 줄(셈에만 쓴다) // pet = 배웅(떠난 아이에게 남긴 편지를 나눈 것)
 
 // 인연 글의 갈래 — 동행(기본, 절에 함께 가는 인연) · 도반 찾기(연애와 무관한
 // 수행 동무) · 울력·봉사(절 일손 모집). 옛 글(category 없음)은 '동행'으로 본다.
@@ -78,6 +78,7 @@ export type Post = {
   openChatUrl?: string | null; // 오픈채팅 링크 — open.kakao.com 만 허용
   lantern?: boolean; // 연등 — 연꽃 한 송이로 목록 맨 위에 밝힌 글
   bumpUntil?: number; // 끌어올림 — 🪷3 로 하루 맨 위(서버만 쓴다)
+  photo?: string | null; // 배웅 — 떠난 아이 사진(기기에서 줄인 JPEG dataURL, 25k 글자 안)
   avatar?: boolean; // 글쓴이가 「글에 내 사진」을 켰다 — /api/avatar/{uid}
 };
 
@@ -198,7 +199,7 @@ async function sweepLegacy(board: Board, found: Post[]): Promise<Post[]> {
   return out;
 }
 
-export async function createPost(title: string, body: string, board: Board = "community") {
+export async function createPost(title: string, body: string, board: Board = "community", extra: { photo?: string | null } = {}) {
   const u = auth.currentUser;
   if (!u) throw new Error("로그인이 필요합니다");
   return addDoc(collection(db, "posts"), {
@@ -209,8 +210,14 @@ export async function createPost(title: string, body: string, board: Board = "co
     hapjang: 0,
     commentCount: 0,
     board,
+    ...(extra.photo ? { photo: extra.photo } : {}),
     createdAt: serverTimestamp(),
   });
+}
+
+/** 내 글을 아주 지운다(사진까지) — 배웅처럼 사진이 실린 글은 자리만 남기는 deletePost 로는 사진이 남는다 */
+export async function removePost(id: string) {
+  await deleteDoc(doc(db, "posts", id));
 }
 
 export async function bowToPost(id: string) {

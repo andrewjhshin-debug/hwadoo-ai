@@ -1,6 +1,6 @@
 /* 배웅 · 사십구재 — 먹 · 한지 · 촛불 금빛 셋. 모서리는 작게, 글자는 명조, 자간은 넓게.
    형: 「49재를 지내 줄 거면 더 엄숙하고 진중하게」 — 발자국·살구 하늘·분홍은 걷었다 */
-.page { width: 100%; max-width: 420px; margin: 0 auto; padding: 0 0 28px; display: flex; flex-direction: column; gap: 20px; text-align: left; font-family: var(--font-serif); }
+.page { width: 100%; max-width: 420px; margin: 0 auto auto; margin-top: 0 !important; padding: 0 0 28px; display: flex; flex-direction: column; gap: 20px; text-align: left; font-family: var(--font-serif); }
 
 /* 영단 — 제미나이가 그린 영단 한 장(촛불 둘·향로·흰 연꽃·국화) 위에 영정을 건다 */
 .altar { position: relative; aspect-ratio: 900 / 1085; margin: 0 -4px; border-radius: 4px; overflow: hidden; background: #110f0d; box-shadow: 0 24px 50px -30px rgba(0, 0, 0, 0.8); }
@@ -53,7 +53,9 @@
 .rites button { display: flex; align-items: center; width: 100%; height: 48px; padding: 0 6px; border: 0; background: none; font-family: inherit; font-size: 15px; color: #8f8576; text-align: left; cursor: pointer; }
 .rites button:disabled { cursor: default; }
 .rites b { width: 58px; font-weight: 500; color: #17140f; }
-.rites span { flex: 1; font-size: 13px; letter-spacing: 0.05em; }
+.rites span { width: 62px; font-size: 13px; letter-spacing: 0.05em; }
+.rites i { flex: 1; font-style: normal; font-size: 12.5px; color: #a39a8f; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.rites button[data-now="1"] i { color: rgba(239, 230, 212, 0.7); }
 .rites em { font-style: normal; font-size: 12px; }
 .rites button[data-d="1"], .rites button[data-d="1"] em { color: #17140f; }
 .rites button[data-now="1"] { background: #1c1a17; color: #efe6d4; padding: 0 12px; }
@@ -68,7 +70,9 @@
 /* 함께 올린 편지 */
 .feed { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 .feedHead { text-align: center; font-size: 13px; letter-spacing: 0.12em; color: #8f8576; margin-bottom: 4px; }
-.post { padding: 18px 18px 14px; border-radius: 2px; background: #fff; border: 1px solid #e8e2d8; }
+.post { border-radius: 2px; background: #fff; border: 1px solid #e8e2d8; overflow: hidden; }
+.postIn { padding: 18px 18px 14px; }
+.postPic { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; filter: saturate(0.9); }
 .postWho { display: flex; align-items: center; font-size: 13px; letter-spacing: 0.1em; color: #6e665c; }
 .postWho em { margin-left: auto; font-style: normal; font-size: 12px; color: #b5ab9f; }
 .postBody { margin-top: 8px; font-size: 15.5px; line-height: 1.75; color: #17140f; white-space: pre-wrap; word-break: keep-all; }
@@ -76,3 +80,33 @@
 .hands[aria-pressed="true"] { background: #1c1a17; border-color: #1c1a17; color: #e7bf62; }
 
 .reset { align-self: center; margin-top: 8px; border: 0; background: none; font-family: inherit; font-size: 12px; letter-spacing: 0.2em; color: #b5ab9f; cursor: pointer; }
+
+/* 두 칸 — 함께 / 내 아이 */
+.tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #ddd6cb; }
+.tabs button { height: 46px; border: 0; background: none; font-family: inherit; font-size: 15px; letter-spacing: 0.15em; color: #a39a8f; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button[aria-selected="true"] { color: #17140f; font-weight: 500; border-bottom-color: #1c1a17; }
+
+/* 이번 주 회향 */
+.vowBand { display: flex; align-items: center; gap: 16px; padding: 18px 20px; border-radius: 4px; background: linear-gradient(180deg, #1d1a17, #121010); color: #d8cfc0; }
+.vowBand span { flex: none; width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid rgba(201, 170, 110, 0.45); font-size: 22px; color: #e7bf62; }
+.vowBand p { font-size: 13.5px; line-height: 1.65; letter-spacing: 0.04em; }
+.vowBand b { font-weight: 600; font-size: 17px; color: #e7bf62; margin: 0 2px; }
+
+.compose { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.chips, .vows { display: flex; flex-wrap: wrap; gap: 8px; }
+.vows { justify-content: center; margin: 4px 0 6px; }
+.chip { height: 34px; padding: 0 14px; border: 1px solid #cfc6b9; border-radius: 2px; background: transparent; font-family: inherit; font-size: 13.5px; color: #4a443d; cursor: pointer; }
+.chip[aria-pressed="true"] { background: #1c1a17; border-color: #1c1a17; color: #efe6d4; }
+.acts { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+.acts .hands { margin-top: 0; }
+.down { margin-left: auto; border: 0; background: none; font-family: inherit; font-size: 12px; color: #b5ab9f; cursor: pointer; }
+.comfort { margin-top: 12px; padding-top: 12px; border-top: 1px solid #efe9df; display: flex; flex-direction: column; gap: 10px; }
+.said { font-size: 13px; line-height: 1.7; color: #6e665c; }
+
+.hint { text-align: center; font-size: 13.5px; letter-spacing: 0.15em; color: #8f8576; }
+.ask { margin-top: 6px; font-size: 16px; font-weight: 500; letter-spacing: 0.04em; color: #17140f; text-align: center; word-break: keep-all; }
+.moment { width: 100%; aspect-ratio: 4 / 3; border: 1px dashed #c9bfb0; border-radius: 2px; background: #fff; overflow: hidden; cursor: pointer; font-family: inherit; font-size: 13px; letter-spacing: 0.3em; color: #a39a8f; padding: 0; }
+.moment img, .momentPic { width: 100%; height: 100%; object-fit: cover; display: block; }
+.momentPic { aspect-ratio: 4 / 3; border-radius: 2px; }
+.vowDo { align-self: center; height: 40px; padding: 0 18px; border: 1px solid #1c1a17; border-radius: 2px; background: #fff; font-family: inherit; font-size: 13.5px; color: #17140f; cursor: pointer; }
+.card { width: 100%; border-radius: 2px; box-shadow: 0 16px 36px -20px rgba(0, 0, 0, 0.6); }
