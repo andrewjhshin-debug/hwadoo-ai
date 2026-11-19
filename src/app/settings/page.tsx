@@ -766,14 +766,14 @@ export default function SettingsPage() {
     "/community": "池", "/archive": "庫", "/sutra": "經", "/draw": "占",
     "/rank": "進", "/tea": "茶", "/goods": "物", "/tamjinchi": "投", "/saju": "山", "/archive#saved-sentences": "藏",
     "/hasim": "下", "/letters": "信", "/moment": "時", "/try": "試",
-    "/card": "證", "/wish": "願", "/unryeok": "力", "/pet": "齋",
+    "/card": "證", "/wish": "願", "/unryeok": "力", "/pet": "送",
   };
   const meServices = [
     // 형(2026-11-18): 신도증·소원·운력·무지개 연등 — 내 것이라 맨 앞에
     { href: "/card", label: "신도증" },
     { href: "/wish", label: "소원" },
     { href: "/unryeok", label: "운력" },
-    { href: "/pet", label: "반려 49재" },
+    { href: "/pet", label: "배웅" },
     // 하심도 공덕 판 갈래로 갔다 — 여기서는 열지 않는다
     ...SERVICES.filter((v) => v.href && !v.soon).map((v) => ({
       href: v.href as string,
@@ -893,7 +893,7 @@ export default function SettingsPage() {
             name: r.name,
             need: seat.need,
             got: isAdminAccount(user) || merit.total >= seat.need,
-            here: myRealm.id === seat.id,
+            here: isAdminAccount(user) ? seat.id === REALMS[REALMS.length - 1].id : myRealm.id === seat.id,
           };
         })}
         charms={

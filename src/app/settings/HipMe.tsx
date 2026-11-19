@@ -218,7 +218,8 @@ export default function HipMe({
             떠 있던 여섯 자리 · 「沙 21,600 · 話 1」 · 큰 공덕 숫자 셋을 **카드 한 장**으로 묶었다.
             지금 자리(빛깔 배지) · 다음 자리까지 · 쌓은 공덕. 여섯 자리는 카드를 누르면 펼친다. */}
         {(() => {
-          const here = seats.find((r) => r.here) ?? seats[0];
+          // 지금 자리는 부모가 준 rank 를 믿는다 — 뒷방 주인(佛)도 거기서 이미 가려져 온다
+          const here = seats.find((r) => r.hanja === rank.hanja) ?? seats.find((r) => r.here) ?? seats[0];
           const upName = next ? seats.find((r) => r.hanja === next.hanja)?.name : null;
           return (
             <button type="button" className="hip-rankcard" aria-expanded={openSeats} onClick={() => setOpenSeats((v) => !v)}>

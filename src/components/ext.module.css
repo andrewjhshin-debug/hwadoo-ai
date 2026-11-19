@@ -52,19 +52,3 @@
 .big b { font-weight: 300; font-size: 56px; line-height: 1; letter-spacing: -0.02em; color: #17140f; }
 .big span { font-size: 14px; color: #9a9287; }
 .k { width: 40px; height: 40px; border-radius: 12px; background: #f6f1ea; display: grid; place-items: center; font-family: var(--font-serif); font-size: 17px; flex: none; color: #4a443d; }
-
-/* 반려 49재 */
-.rites { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; }
-.rite { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 10.5px; color: #9a9287; }
-.rite i { display: grid; place-items: center; width: 100%; aspect-ratio: 1; border-radius: 12px; background: #f6f1ea; font-style: normal; font-family: var(--font-serif); font-size: 15px; color: #c3bab0; }
-.rite[data-d="1"] i { background: #1c1a17; color: #f1ddb0; }
-.rite[data-now="1"] i { background: #fff; color: #17140f; box-shadow: inset 0 0 0 1.5px #1c1a17; }
-.rite[data-now="1"] { color: #17140f; font-weight: 700; }
-.verse { font-family: var(--font-serif); font-size: 18px; line-height: 1.6; color: #17140f; word-break: keep-all; }
-.verseFrom { margin-top: 6px; font-size: 11.5px; color: #9a9287; }
-.step { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid rgba(26, 23, 20, 0.07); font-size: 14.5px; color: #17140f; width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; cursor: pointer; }
-.step:last-child { border-bottom: 0; }
-.step em { margin-left: auto; font-style: normal; font-size: 12px; color: #9a9287; }
-.letter { font-family: var(--font-serif); font-size: 14.5px; line-height: 1.65; color: #4a443d; white-space: pre-wrap; padding: 12px 0; border-bottom: 1px solid rgba(26, 23, 20, 0.07); }
-.letter:last-child { border-bottom: 0; }
-.letter small { display: block; font-family: var(--font-sans, inherit); font-size: 11px; color: #9a9287; margin-bottom: 4px; }

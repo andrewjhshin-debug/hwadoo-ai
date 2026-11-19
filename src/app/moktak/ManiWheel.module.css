@@ -26,10 +26,13 @@
 .object {
   position: relative;
   display: block;
+  /* 옛 웹뷰는 svh 를 모른다 — vh 로 먼저 깔고 덮는다. 폭도 따로 적어 둔다(aspect-ratio 만 믿지 않게) */
+  height: min(300px, 44vh);
+  width: calc(min(300px, 44vh) * 310 / 700);
   height: min(300px, 44svh);
-  aspect-ratio: 310 / 700;
-  /* 위아래만 자른다 — 빨리 돌 때 사슬·추가 옆으로 들려도 양옆이 잘리지 않게 */
-  clip-path: inset(0 -80%);
+  width: calc(min(300px, 44svh) * 310 / 700);
+  /* 자르지 않는다. 손잡이 아래는 .body 의 mask 로 이미 사라진다.
+     clip-path: inset(0 -80%) 를 썼더니 형 폰(웹뷰)에서 마니차가 통째로 안 보였다 */
 }
 
 .body,
@@ -41,10 +44,11 @@
 }
 
 .body {
-  left: 0; top: 0; width: 100%; height: auto; z-index: 1;
-  /* 910 중 560~700 에서 사라진다 */
-  -webkit-mask-image: linear-gradient(#000 61%, transparent 76%);
-  mask-image: linear-gradient(#000 61%, transparent 76%);
+  /* 판 키(위 700)에 맞춰 그림을 위쪽 기준으로 잘라 그린다 — 넘치는 것이 없어 바깥을 자를 일이 없다 */
+  left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; z-index: 1;
+  /* 910 중 560~690 에서 사라진다(= 판 700 의 79%~99%) */
+  -webkit-mask-image: linear-gradient(#000 79%, transparent 99%);
+  mask-image: linear-gradient(#000 79%, transparent 99%);
 }
 .band { z-index: 2; }
 .part { height: auto; z-index: 0; will-change: transform; }
