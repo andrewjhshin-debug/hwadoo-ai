@@ -240,7 +240,7 @@ export default function PetPage() {
   const toggleComfort = (p: Post) => {
     if (openPost === p.id) { setOpenPost(null); return; }
     setOpenPost(p.id);
-    if (!comforts[p.id]) fetchComments(p.id).then((cs) => setComforts((m) => ({ ...m, [p.id]: cs.filter((c) => !c.deleted).map((c) => c.body) }))).catch(() => {});
+    if (!comforts[p.id]) fetchComments(p.id).then((cs) => setComforts((m) => ({ ...m, [p.id]: cs.filter((c) => !c.deleted && COMFORT.includes(c.body)).map((c) => c.body) }))).catch(() => {});
   };
   const comfort = async (p: Post, phrase: string) => {
     if (!auth.currentUser) { setNeedLogin(true); return; }
@@ -296,7 +296,7 @@ export default function PetPage() {
             <section className={s.feed}>
               {live.map((p) => (
                 <article key={p.id} className={s.post}>
-                  {p.photo && <img className={s.postPic} src={p.photo} alt="" />}
+                  {p.photo?.startsWith("data:image/jpeg;base64,") && <img className={s.postPic} src={p.photo} alt="" />}
                   <div className={s.postIn}>
                     <p className={s.postWho}>{p.title.replace(/ · .*$/, " 영가")}<em>{ago(p.createdAt?.seconds)}</em></p>
                     <p className={s.postBody}>{p.body}</p>

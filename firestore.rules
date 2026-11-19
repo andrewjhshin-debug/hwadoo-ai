@@ -116,6 +116,9 @@ service cloud.firestore {
         // 배웅 사진 — 기기에서 줄인 JPEG 한 장(dataURL)만, 40k 글자까지
         && request.resource.data.get('photo', '') is string
         && request.resource.data.get('photo', '').size() <= 40000
+        // 사진은 기기에서 구운 JPEG dataURL 만 — 바깥 주소(추적 픽셀)는 못 싣는다
+        && (request.resource.data.get('photo', '') == ''
+            || request.resource.data.photo.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$'))
         // 끌어올림은 값을 치르고 서버만 단다(/api/post-bump)
         && !('bumpUntil' in request.resource.data);
       allow update: if isAdmin()
@@ -155,7 +158,10 @@ service cloud.firestore {
           && request.resource.data.authorUid == request.auth.uid
           && request.resource.data.get('body', '') is string
           && request.resource.data.get('body', '').size() > 0
-          && request.resource.data.get('body', '').size() <= 1000;
+          && request.resource.data.get('body', '').size() <= 1000
+          // 배웅 사연엔 정해진 위로 한마디만 — 슬픈 사람에게 자유 댓글(악플)이 닿지 않게
+          && (get(/databases/$(database)/documents/posts/$(postId)).data.get('board', '') != 'pet'
+              || request.resource.data.body in ['함께 기억할게요', '고생 많으셨어요', '좋은 곳에 갔을 거예요', '그 마음 알아요']);
         // 좋아요·싫어요 셈(로그인) 또는
         // 작성자·뒷방의 소프트 삭제('삭제된 댓글입니다'로 바꾸기)
         allow update: if (request.auth != null
