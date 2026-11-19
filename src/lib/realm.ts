@@ -40,6 +40,7 @@
 // 물음이지 두드리기가 아니다.
 // ─────────────────────────────────────────────────────────────
 
+import { loadUnryeok } from "./unryeok";
 import { isOwner } from "./merit";
 
 export type RealmId =
@@ -200,6 +201,25 @@ export const REALM_BY_ID: Record<RealmId, Realm> = Object.fromEntries(
  * returned 를 안 주면 화두 조건은 묻지 않는다(옛 부름과 표 뽑기용).
  */
 export function realmOf(merit: number, returned = Infinity): Realm {
+  return realmAt(withUnryeok(merit), returned);
+}
+
+/**
+ * 운력도 자리에 든다 — 형(2026-11-19): 「운력도 계급에 반영해」.
+ * 운력 한 시간 = 공덕 2,160(하루치의 열에 하나)로 **자리 셈에만** 얹는다(쌓인 공덕 수는 그대로).
+ * 스스로 적는 장부라 하루 8시간·모두 200시간까지만 센다 — 운력만으로는 수좌까지, 선사부터는 수행이 있어야 한다.
+ */
+export const UNRYEOK_PER_HOUR = 2160;
+function withUnryeok(merit: number): number {
+  // 서버 그림에는 운력 장부가 없다 — 첫 그림이 어긋나지 않게 앱이 뜬 뒤(HipDayBar 가 켠다)에만 얹는다
+  if (typeof window === "undefined" || !(window as { __hwaduLive?: boolean }).__hwaduLive) return merit;
+  const byDay = new Map<string, number>();
+  for (const u of loadUnryeok()) byDay.set(u.day, Math.min(8, (byDay.get(u.day) ?? 0) + u.hours));
+  const hours = Math.min(200, [...byDay.values()].reduce((a, b) => a + b, 0));
+  return merit + hours * UNRYEOK_PER_HOUR;
+}
+
+function realmAt(merit: number, returned = Infinity): Realm {
   // 뒷방 주인은 늘 꼭대기 — merit.ts setOwner 가 켠다
   if (isOwner()) return REALMS[REALMS.length - 1];
   let here = REALMS[0];
@@ -215,7 +235,8 @@ export function nextRealm(
   merit: number,
   returned = Infinity
 ): { to: Realm; left: number; needMore: number } | null {
-  const here = realmOf(merit, returned);
+  merit = withUnryeok(merit);
+  const here = realmAt(merit, returned);
   const i = REALMS.findIndex((r) => r.id === here.id);
   const to = REALMS[i + 1];
   if (!to) return null;
@@ -229,8 +250,9 @@ export function nextRealm(
 
 /** 이 자리에서 다음 자리까지 얼마나 왔는가 (0~1) */
 export function realmProgress(merit: number, returned = Infinity): number {
-  const here = realmOf(merit, returned);
   const up = nextRealm(merit, returned);
+  merit = withUnryeok(merit);
+  const here = realmAt(merit, returned);
   if (!up) return 1;
   const span = up.to.need - here.need;
   return span > 0 ? Math.min(1, Math.max(0, (merit - here.need) / span)) : 1;

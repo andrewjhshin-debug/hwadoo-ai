@@ -83,6 +83,12 @@ export type HipMeProps = {
       고르면 법명 글자 수가 따라 바뀐다(陽 두 자 · 陰 세 자) */
 };
 
+/** 계급 여섯 빛깔 — 신도증(/card)과 같다 */
+const RANK_COLOR = ["#CFC8BD", "#C9CED8", "#9DB4D6", "#9CCFBF", "#F0B3BE", "#EBCB86"];
+/** 접혔을 때 보일 여덟 — 내 것부터 */
+const PRIMARY = ["/card", "/wish", "/unryeok", "/rainbow", "/archive", "/archive#saved-sentences", "/letters", "/lotus"];
+const roomOrder = (href: string) => { const i = PRIMARY.indexOf(href); return i < 0 ? 99 : i; };
+
 export default function HipMe({
   name,
   rank,
@@ -111,8 +117,10 @@ export default function HipMe({
   // 법명 고치기 — 그 자리에서 편다. 화면을 옮기지 않는다
   /** 공덕 ⓘ 서랍 */
   const [openInfo, setOpenInfo] = useState(false);
-  /** 눌러서 수를 펴 본 자리 — 하나씩만 */
-  const [본자리, 본자리잡기] = useState<string | null>(null);
+  /** 여섯 자리 — 접힌 것이 기본, 자리 카드를 누르면 편다 */
+  const [openSeats, setOpenSeats] = useState(false);
+  /** 서비스 격자 — 여덟만 보이고 나머지는 접는다 */
+  const [openRooms, setOpenRooms] = useState(false);
   /** 공덕 알약 — 접힌 것이 기본. 형: 「동그라미들 접었다 펼치기 기능 둬」 */
   const [openHits, setOpenHits] = useState(false);
   /** 접었을 때 보일 것 — 형: 「이거 3개까지만 나오고 나머진 접고」.
@@ -206,82 +214,35 @@ export default function HipMe({
         {/* 손님이면 여기 — 이름 바로 아래. 들어온 뒤에는 맨 아래로 내린다 */}
         {guest && <div className="hip-account hip-account-top">{account}</div>}
 
-        {/* ── 자리 — 가로로 ──
-            형: 「자리는 가로 형태로 두고」. 여섯 자리를 한 줄에 늘어놓고
-            지나온 곳은 물들이고, 지금 자리만 크게. 한자 여섯이면 족하다 */}
-        {/* 형: 「법명 바로 아래 동자 이딴 거 넣지 말고, 법명 아래 바로
-            계급도 죽죽죽 부처까지 나오고, 그 아래 동자 사미 … 부처
-            이렇게 적어주자 한글로」
-            「그 공덕 아래 얼마가 쌓여야 부처가 되는지도 숫자로 써주자」.
-            지금 자리를 한 번 더 적던 줄(童 동자)을 걷었다 — 아래 여섯 자리에
-            이미 켜져 있는데 위에 또 적으니 같은 말이 두 번이었다. */}
-        <div className="hip-seats">
-          {/* 형: 「계급 밑에 숫자 자체는 지우고 클릭하면 띄우든 하자」
-              여섯 자리 밑에 여섯 수가 늘 깔려 있었다. 2,073,600 같은 수는
-              사람이 가늠하는 수가 아니라, 읽히지도 않으면서 자리만 먹었다.
-              **궁금한 자리만 눌러서 본다.** 칸은 비워 두되 높이는 남겨
-              둔다 — 뜰 때마다 아래가 들썩이면 그게 더 거슬린다. */}
-          {seats.map((r) => (
-            <i
-              key={r.hanja}
-              role="button"
-              tabIndex={0}
-              aria-label={`${r.name} · 공덕 ${r.need.toLocaleString("ko-KR")}`}
-              data-got={r.got ? "1" : undefined}
-              data-here={r.here ? "1" : undefined}
-              onClick={() => 본자리잡기((v) => (v === r.hanja ? null : r.hanja))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  본자리잡기((v) => (v === r.hanja ? null : r.hanja));
-                }
-              }}
-            >
-              <b>{r.hanja}</b>
-              <em>{r.name}</em>
-              <u>{본자리 === r.hanja ? (r.need > 0 ? r.need.toLocaleString("ko-KR") : "시작") : ""}</u>
-            </i>
-          ))}
-        </div>
-        <div className="hip-me-bar">
-          <i style={{ width: `${pct}%` }} />
-        </div>
-        {next && (
-          <p className="hip-me-next">
-            <b>{next.hanja}</b> {next.left.toLocaleString("ko-KR")}
-            {next.need > 0 && (
-              <>
-                {" · "}
-                <b>話</b> {next.need}
-              </>
-            )}
-          </p>
+        {/* ── 자리 카드 — 형(2026-11-19): 「계급이 막 떠 있고 어수선해, 접든 숨기든 다듬어」.
+            떠 있던 여섯 자리 · 「沙 21,600 · 話 1」 · 큰 공덕 숫자 셋을 **카드 한 장**으로 묶었다.
+            지금 자리(빛깔 배지) · 다음 자리까지 · 쌓은 공덕. 여섯 자리는 카드를 누르면 펼친다. */}
+        {(() => {
+          const here = seats.find((r) => r.here) ?? seats[0];
+          const upName = next ? seats.find((r) => r.hanja === next.hanja)?.name : null;
+          return (
+            <button type="button" className="hip-rankcard" aria-expanded={openSeats} onClick={() => setOpenSeats((v) => !v)}>
+              <b className="hip-rankcard-badge" style={{ background: RANK_COLOR[seats.indexOf(here)] }}>{here?.hanja}</b>
+              <span className="hip-rankcard-mid">
+                <strong>{here?.name}</strong>
+                <small>{next && upName ? `${upName}까지 공덕 ${next.left.toLocaleString("ko-KR")}${next.need > 0 ? ` · 화두 ${next.need}` : ""}` : "가장 높은 자리"}</small>
+                <span className="hip-rankcard-bar"><i style={{ width: `${pct}%` }} /></span>
+              </span>
+              <span className="hip-rankcard-merit"><b>{merit.toLocaleString("ko-KR")}</b><small>功德</small></span>
+            </button>
+          );
+        })()}
+        {openSeats && (
+          <div className="hip-seats">
+            {seats.map((r) => (
+              <i key={r.hanja} data-got={r.got ? "1" : undefined} data-here={r.here ? "1" : undefined}>
+                <b>{r.hanja}</b>
+                <em>{r.name}</em>
+                <u>{r.need > 0 ? r.need.toLocaleString("ko-KR") : "시작"}</u>
+              </i>
+            ))}
+          </div>
         )}
-
-        {/* 쌓은 것 — 이 화면의 큰 것 하나 */}
-        <p className="hip-me-merit">{merit.toLocaleString("ko-KR")}</p>
-        {/* <p> 가 아니라 <div> 다 — 안에 ⓘ 서랍(details>div)이 들어간다.
-            HTML 은 <p> 안에 <div> 를 못 넣는다(브라우저가 <p> 를 먼저
-            닫아 버려서 서버·클라이언트 그림이 어긋난다) */}
-        <div className="hip-me-merit-k">
-          功 德
-          {/* 형: 「공덕 시스템 유지하고 ⓘ로 어딘가에 표시. 하루 내내 공덕
-              쌓으면 연꽃 하나 주고, 이걸로 인연에서 쪽지 보내거나
-              초공양할 수 있다고」. 세 줄이면 족하다 */}
-          {/* 형: 「아니지 않나. 공덕은 부처까지 가는 거고 하루에 한 송이
-              주는 거잖아. 그걸 더 ⓘ에 친절하게 설명해 봐. 지금처럼 허접하게
-              펼쳐지는 것도 좀 고치고」
-
-              길을 하나로 그려 놨더니 **공덕이 연꽃으로 바뀌는 것**처럼
-              읽혔다. 아니다 — 둘은 갈래가 다르다.
-                · 공덕은 **쌓이기만** 한다. 줄지 않고, 끝은 부처다
-                · 연꽃은 **하루에 한 송이**. 그날 치를 다 채운 날 한 송이 핀다
-              그래서 두 줄로 갈라 적는다. 그림 한 줄, 말 한 줄씩.
-
-              <details> 는 열릴 때 툭 튀어나온다(높이가 0에서 제값으로
-              한 칸에 간다). grid 의 0fr → 1fr 로 바꾸면 높이를 모르고도
-              스르르 열린다. 그래서 서랍을 직접 짠다. */}
-        </div>
 
         {/* 공덕 ⓘ 서랍은 걷었다 — 형: 「공덕 숫자 밑에 이거 지워, 필요 없다」 */}
 
@@ -326,13 +287,16 @@ export default function HipMe({
             끄면서 ☰ 서랍까지 사라졌으니 여기가 유일한 문이다.
             글자는 한 줄, 그림은 한자 한 글자. */}
         <div className="hip-rooms">
-          {services.map((r) => (
+          {(openRooms ? services : [...services].sort((x, y) => roomOrder(x.href) - roomOrder(y.href)).slice(0, 8)).map((r) => (
             <Link key={r.href} href={r.href} aria-label={r.label}>
               <i>{r.mark}</i>
               <span>{r.label}</span>
             </Link>
           ))}
         </div>
+        <button type="button" className="hip-rooms-more" aria-expanded={openRooms} onClick={() => setOpenRooms((v) => !v)}>
+          {openRooms ? "접기" : `전체 보기 · ${services.length}`}
+        </button>
 
         {/* ── 계정 ──
             형: 「왜 로그인 기능이 없냐 어디서 로그인해」 「로그인 기능

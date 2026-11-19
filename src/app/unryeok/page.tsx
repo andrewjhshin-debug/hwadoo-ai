@@ -41,7 +41,7 @@ export default function UnryeokPage() {
 
         <div className={s.card}>
           <div className={s.big}><b>{total}</b><span>시간 · {list.length}번</span></div>
-          <p className={s.lead} style={{ marginTop: 8 }}>신도증에 그대로 실려요.</p>
+          <p className={s.lead} style={{ marginTop: 8 }}>신도증에 실리고, 계급에도 들어요. 한 시간이 공덕 2,160만큼이에요(하루 8시간까지).</p>
         </div>
 
         {open ? (

@@ -8569,3 +8569,18 @@ html[data-theme="light"] {
 .hip-seats i[data-got="1"] b { background: var(--rk) !important; border-color: transparent !important; color: #17140f !important; }
 .hip-seats i[data-here="1"] b { background: var(--rk) !important; color: #17140f !important; box-shadow: 0 0 0 2px #fbf8f1, 0 0 0 3.5px #17140f; transform: scale(1.08); }
 .hip-seats i[data-here="1"] em { font-weight: 700 !important; color: #17140f !important; }
+
+/* 나 — 자리 카드(2026-11-19). 떠 있던 여섯 자리·다음 자리 수·큰 공덕을 한 장으로 */
+.hip-rankcard { display: flex; align-items: center; gap: 14px; width: 100%; margin-top: 18px; padding: 16px; border: 0; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px rgba(26,23,20,.06), 0 10px 24px -18px rgba(60,40,20,.35); text-align: left; cursor: pointer; color: #17140f; }
+.hip-rankcard-badge { flex: none; display: grid; place-items: center; width: 50px; height: 50px; border-radius: 15px; font-family: var(--font-serif); font-weight: 400; font-size: 24px; color: #17140f; }
+.hip-rankcard-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.hip-rankcard-mid strong { font-size: 17px; font-weight: 700; }
+.hip-rankcard-mid small { font-size: 11.5px; color: #8f877d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hip-rankcard-bar { display: block; height: 5px; margin-top: 3px; border-radius: 3px; background: rgba(26,23,20,.07); overflow: hidden; }
+.hip-rankcard-bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #f3a5c0, #8fd3c0); }
+.hip-rankcard-merit { flex: none; text-align: right; }
+.hip-rankcard-merit b { display: block; font-weight: 300; font-size: 26px; line-height: 1; letter-spacing: -.02em; }
+.hip-rankcard-merit small { font-family: var(--font-serif); font-size: 10.5px; color: #9a9287; letter-spacing: .2em; }
+.hip-rankcard + .hip-seats { margin-top: 12px; }
+.hip-rankcard ~ .hip-me-bar, .hip-rankcard ~ .hip-me-next, .hip-rankcard ~ .hip-me-merit, .hip-rankcard ~ .hip-me-merit-k { display: none !important; }
+.hip-rooms-more { display: block; margin: 6px auto 0; height: 34px; padding: 0 16px; border-radius: 17px; border: 1px solid rgba(26,23,20,.12); background: #fff; font-size: 12.5px; color: #4a443d; cursor: pointer; }

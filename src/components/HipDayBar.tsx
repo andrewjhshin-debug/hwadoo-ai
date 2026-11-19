@@ -28,6 +28,8 @@ export default function HipDayBar() {
   const 앞값 = useRef(0);
 
   useEffect(() => {
+    // 앱이 떴다 — realm.ts 가 이제 운력을 계급 셈에 얹어도 첫 그림과 안 어긋난다
+    (window as { __hwaduLive?: boolean }).__hwaduLive = true;
     let timer: number | undefined;
     const 읽기 = () => {
       const { earned, cap } = todayRoom();
