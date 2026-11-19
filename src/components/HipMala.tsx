@@ -57,7 +57,7 @@ export const BEADS: Bead[] = [
     // 읽어 주는 이름만 바로잡는다
     name: "나",
     href: "/settings",
-    also: ["/rank", "/empty", "/tamjinchi", "/tamjinchi/records", "/lotus", "/settings/preferences", "/about", "/terms", "/privacy", "/youth", "/card", "/wish", "/unryeok", "/rainbow"],
+    also: ["/rank", "/empty", "/tamjinchi", "/tamjinchi/records", "/lotus", "/settings/preferences", "/about", "/terms", "/privacy", "/youth", "/card", "/wish", "/unryeok", "/pet"],
   },
 ];
 

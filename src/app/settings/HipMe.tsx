@@ -86,7 +86,7 @@ export type HipMeProps = {
 /** 계급 여섯 빛깔 — 신도증(/card)과 같다 */
 const RANK_COLOR = ["#CFC8BD", "#C9CED8", "#9DB4D6", "#9CCFBF", "#F0B3BE", "#EBCB86"];
 /** 접혔을 때 보일 여덟 — 내 것부터 */
-const PRIMARY = ["/card", "/wish", "/unryeok", "/rainbow", "/archive", "/archive#saved-sentences", "/letters", "/lotus"];
+const PRIMARY = ["/card", "/wish", "/unryeok", "/pet", "/archive", "/archive#saved-sentences", "/letters", "/lotus"];
 const roomOrder = (href: string) => { const i = PRIMARY.indexOf(href); return i < 0 ? 99 : i; };
 
 export default function HipMe({

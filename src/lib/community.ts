@@ -30,7 +30,7 @@ import { 내프로필 } from "./yeon";
 import { 알림울리기 } from "./alerts";
 
 // 게시판 종류 — 연지원(community, 기본) / 차담회(gathering)
-export type Board = "community" | "gathering" | "rainbow"; // rainbow = 무지개 연등(떠난 반려동물에게 남기는 사연)
+export type Board = "community" | "gathering";
 
 // 인연 글의 갈래 — 동행(기본, 절에 함께 가는 인연) · 도반 찾기(연애와 무관한
 // 수행 동무) · 울력·봉사(절 일손 모집). 옛 글(category 없음)은 '동행'으로 본다.

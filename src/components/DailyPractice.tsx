@@ -178,7 +178,7 @@ export default function DailyPractice() {
                     ? `${rankByNeed(up.to.need).name}까지 화두 ${up.needMore}개`
                     : `${rankByNeed(up.to.need).name}까지 공덕 ${up.left.toLocaleString("ko-KR")}` +
                       (up.needMore > 0 ? ` · 화두 ${up.needMore}개` : "")
-                  : "가장 높은 자리"}
+                  : ""}
               </span>
               <Info title="자리">
                 자리는 <b className="text-hanji">공덕</b>과 <b className="text-hanji">회향한 화두 수</b>,
