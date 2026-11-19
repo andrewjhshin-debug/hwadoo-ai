@@ -20,7 +20,6 @@ import { grantCharm } from "@/lib/charm";
 import { buzz, clickBead, strikeMoktak } from "@/lib/sound";
 import { auth } from "@/lib/firebase";
 import {
-  letterCount,
   loadSutra,
   markLotusTaken,
   markSutra,
@@ -83,69 +82,51 @@ function Picker({
 
   return (
     <>
-      <p className="rise text-[12px] tracking-[0.35em] text-hanji-faint">誦 · 외우기</p>
+      <p className="rise font-serif text-[15px] text-hanji-faint">誦</p>
       <p className="rise rise-d1 mt-1 font-serif text-[68px] font-light leading-none text-hanji">
         {done}
         <span className="ml-1 align-middle text-[20px] text-hanji-faint">/ {SUTRAS.length}</span>
       </p>
+      {/* 형(2026-11-19): 「눈에 넘 안 들어와 선이 많아서인가」 — 테두리·설명 줄·자간을 걷고, 판은 흰 칸 하나, 단추는 면으로 */}
       <ul className="rise rise-d2 mt-7 flex w-full flex-col gap-3">
         {SUTRAS.map((s) => {
           const r = book[s.id] ?? {};
           return (
-            <li
-              key={s.id}
-              className="rounded-[14px] border border-ink-3 bg-ink-2/50 px-5 py-4"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="flex items-baseline gap-2">
-                    <span className="font-serif text-[18px] leading-none text-hanji">
-                      {s.name}
-                    </span>
-                    <span className="text-[11.5px] text-gold-soft">{s.hanja}</span>
-                  </p>
-                  <p className="mt-1.5 break-keep text-[12px] leading-5 text-hanji-faint">
-                    {s.say}
-                  </p>
-                </div>
+            <li key={s.id} className="rounded-[22px] bg-white px-5 pb-4 pt-5 shadow-[0_6px_20px_-12px_rgba(60,40,20,0.25)]">
+              <div className="flex items-center gap-2">
+                <span className="font-serif text-[21px] leading-none text-hanji">{s.name}</span>
+                <span className="text-[12px] text-gold-soft">{s.hanja}</span>
                 {r.memo && (
                   <span
-                    className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full bg-gold font-serif text-[13px] leading-none text-ink"
+                    className="ml-auto grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full bg-gold font-serif text-[13px] leading-none text-ink"
                     title={r.clean ? "도움 없이 외웠습니다" : "외웠습니다"}
                   >
                     誦
                   </span>
                 )}
               </div>
-
-              <p className="mt-3 text-[11px] tracking-wide text-hanji-faint">
-                {letterCount(s)}자 · {s.lines.length}구 · 공덕 {s.merit}
-                {r.best !== undefined && ` · 최고 ${fmt(r.best)}`}
-                {r.clean && " · 무해(無解)"}
+              <p className="mt-2 text-[12px] text-hanji-faint">
+                {s.lines.length}구 · 공덕 {s.merit}
+                {r.best !== undefined && ` · ${fmt(r.best)}`}
               </p>
-
-              <div className="mt-3 flex gap-2">
+              <div className="mt-4 grid grid-cols-[1fr_1.4fr] gap-2">
                 <button
                   onClick={() => onPick(s.id, "read")}
-                  className="flex-1 rounded-full border border-ink-3 py-2 text-[12.5px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
+                  className="h-11 rounded-full bg-[#f4efe7] text-[14px] text-hanji-dim active:scale-[0.98]"
                 >
-                  보고 치기{r.read && " ✓"}
+                  보고{r.read && " ✓"}
                 </button>
                 <button
                   onClick={() => onPick(s.id, "memo")}
-                  className="flex-1 rounded-full border border-gold/50 py-2 text-[12.5px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
+                  className="h-11 rounded-full bg-[#1c1a17] text-[14px] font-semibold text-white active:scale-[0.98]"
                 >
-                  안 보고 치기
+                  안 보고
                 </button>
               </div>
             </li>
           );
         })}
       </ul>
-
-      <p className="rise rise-d3 mt-6 break-keep text-center text-[11.5px] leading-5 text-hanji-faint">
-        안 보고 끝까지 치면 연꽃 한 송이 — 경전마다 한 번만.
-      </p>
     </>
   );
 }
