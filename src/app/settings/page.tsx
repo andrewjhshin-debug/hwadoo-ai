@@ -774,7 +774,7 @@ export default function SettingsPage() {
     { href: "/wish", label: "소원" },
     { href: "/unryeok", label: "운력" },
     { href: "/pet", label: "배웅" },
-    { href: "/learn", label: "배움" },
+    { href: "/learn", label: "불교 공부" },
     // 하심도 공덕 판 갈래로 갔다 — 여기서는 열지 않는다
     ...SERVICES.filter((v) => v.href && !v.soon).map((v) => ({
       href: v.href as string,

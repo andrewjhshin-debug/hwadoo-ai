@@ -27,14 +27,17 @@ const 선 = {
   stock: <><path d="M3.5 20h17" /><path d="m4 15.5 5-5 4 3 6.5-6.5" /><path d="M14.5 7h5v5" /></>,
   // 배움 — 펼친 두루마리 위 붓 한 획
   learn: <><path d="M5 4h14v16H5z" /><path d="M5 4c-1.2 0-2 .8-2 2s.8 2 2 2M19 16c1.2 0 2 .8 2 2s-.8 2-2 2" /><path d="M9 9h6M9 12.5h6M9 16h3.5" /></>,
+  // 사유의 방 — 턱을 괸 반가사유상의 머리와 손 하나
+  think: <><circle cx="12" cy="6.5" r="3" /><path d="M7 21c0-5 2-8.5 5-8.5s5 3.5 5 8.5" /><path d="M14.6 9.2 16.5 13" /></>,
   sprout: <><path d="M12 21v-9" /><path d="M12 12C12 7.5 9 5 4.5 5c0 4.5 3 7 7.5 7Z" /><path d="M12 14c0-3.6 2.4-5.6 6.5-5.6 0 3.6-2.4 5.6-6.5 5.6Z" /></>,
 };
 const 방: { href: string; name: string; ico: keyof typeof 선 }[] = [
+  // 형(2026-11-19): 선지식 빼고 불심투자·사유의 방, 배움은 「불교 공부」로
   { href: "/ganhwaseon", name: "간화선", ico: "enso" },
-  { href: "/masters", name: "선지식", ico: "staff" },
   { href: "/sutra", name: "외우기", ico: "sutra" },
-  // 형(2026-11-19): 교육관 — 운세 자리를 배움에 내줬다(운세는 나 페이지에)
-  { href: "/learn", name: "배움", ico: "learn" },
+  { href: "/learn", name: "불교 공부", ico: "learn" },
+  { href: "/tamjinchi", name: "불심투자", ico: "stock" },
+  { href: "/room", name: "사유의 방", ico: "think" },
 ];
 
 function Ico({ k }: { k: keyof typeof 선 }) {
