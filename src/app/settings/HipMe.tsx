@@ -225,8 +225,12 @@ export default function HipMe({
               <b className="hip-rankcard-badge" style={{ background: RANK_COLOR[seats.indexOf(here)] }}>{here?.hanja}</b>
               <span className="hip-rankcard-mid">
                 <strong>{here?.name}</strong>
-                <small>{next && upName ? `${upName}까지 공덕 ${next.left.toLocaleString("ko-KR")}${next.need > 0 ? ` · 화두 ${next.need}` : ""}` : "가장 높은 자리"}</small>
-                <span className="hip-rankcard-bar"><i style={{ width: `${pct}%` }} /></span>
+                {next && upName && (
+                  <>
+                    <small>{`${upName}까지 공덕 ${next.left.toLocaleString("ko-KR")}${next.need > 0 ? ` · 화두 ${next.need}` : ""}`}</small>
+                    <span className="hip-rankcard-bar"><i style={{ width: `${pct}%` }} /></span>
+                  </>
+                )}
               </span>
               <span className="hip-rankcard-merit"><b>{merit.toLocaleString("ko-KR")}</b><small>功德</small></span>
             </button>
