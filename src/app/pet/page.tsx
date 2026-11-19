@@ -2,6 +2,7 @@
 
 // ─────────────────────────────────────────────────────────────
 // 배웅(送) — 떠난 아이를 위한 사십구재.
+// 영단 그림은 제미나이(유료) 한 장 — public/obj/pet/altar-v1.webp. 형: 「너무 초보적, 제미나이 쓰든지」
 // 형(2026-11-19): 「펫로스를 연등 말고 다른 방식으로」 「서로 사연 공유하도록 생명존중 의미 담아」
 //                 「사진을 넣고 추모할 수 있도록, 저장해서」
 //                 「49재를 지내 줄 거면 더 엄숙하고 진중하게」 → 먹빛 영단 · 위패 · 촛불 둘 · 향로.
@@ -69,24 +70,6 @@ async function shrink(file: File): Promise<string> {
   } finally { URL.revokeObjectURL(url); }
 }
 
-/** 촛불 하나 */
-const Candle = () => <span className={s.candle} aria-hidden><i /><b /><em /></span>;
-/** 향로 — lit 이면 향 한 대가 꽂혀 연기가 오른다 */
-const Burner = ({ lit }: { lit: boolean }) => (
-  <svg viewBox="0 0 44 56" width="46" height="58" fill="none" aria-hidden>
-    {lit ? (
-      <>
-        <path className={s.smoke} d="M22 15c-4-3 4-6 0-9s4-5 0-8" stroke="#a89c88" strokeWidth="1" />
-        <path d="M22 16v18" stroke="#cbbfa9" strokeWidth="1.2" />
-        <circle cx="22" cy="16" r="1.5" fill="#f2a65a" />
-      </>
-    ) : (
-      <path d="M16 12v22M22 10v24M28 12v22" stroke="#5e554b" strokeWidth="1" />
-    )}
-    <path d="M6 34h32l-3 12a3 3 0 0 1-3 2H12a3 3 0 0 1-3-2Z" fill="#3a332c" stroke="#8c7a5e" />
-    <path d="M4 34h36" stroke="#8c7a5e" />
-  </svg>
-);
 /** 합장 */
 const Hands = () => (
   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -169,18 +152,14 @@ export default function PetPage() {
 
         {/* 영단 — 영정 · 위패 · 촛불 둘 · 향로 */}
         <section className={s.altar} aria-label="영단">
+          <img className={s.bg} src="/obj/pet/altar-v1.webp" alt="" aria-hidden />
           <button className={s.frame} onClick={() => fileRef.current?.click()} aria-label={photo ? "사진 바꾸기" : "사진 모시기"}>
             {photo ? <img src={photo} alt="" /> : <span className={s.blank}>사진</span>}
             {pet && <><i className={s.ribL} /><i className={s.ribR} /></>}
           </button>
           <p className={s.tablet}>{pet ? `${pet.name} 靈駕` : "靈駕"}</p>
-          <div className={s.offer}>
-            <Candle />
-            <button className={s.burner} data-call={canLight ? "1" : undefined} disabled={!canLight} onClick={() => { strikeBell(0.5); update(at, { hyang: true }); }} aria-label="향 올리기">
-              <Burner lit={lit} />
-            </button>
-            <Candle />
-          </div>
+          {lit && <i className={s.ember} aria-hidden />}
+          <button className={s.burner} data-call={canLight ? "1" : undefined} disabled={!canLight} onClick={() => { strikeBell(0.5); update(at, { hyang: true }); }} aria-label="향 올리기" />
           {pet && <p className={s.ord}>{current === -1 ? "四十九齋 圓滿" : ORD[at]}</p>}
         </section>
 
