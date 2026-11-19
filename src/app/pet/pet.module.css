@@ -1,11 +1,20 @@
 /* 배웅 — 말은 적게, 여백은 넉넉히. 먹 · 한지 · 향빛(살구) 한 점 */
 .page { width: 100%; max-width: 420px; margin: 0 auto; padding: 0 0 28px; display: flex; flex-direction: column; gap: 18px; text-align: left; }
 
-.hero { position: relative; padding: 18px 4px 6px; }
-.mark { position: absolute; right: -6px; top: -14px; font-family: var(--font-serif); font-size: 120px; line-height: 1; color: rgba(26, 23, 20, 0.05); pointer-events: none; }
-.kick { font-size: 11.5px; letter-spacing: 0.12em; color: #a39a8f; }
-.name { margin-top: 8px; font-family: var(--font-serif); font-weight: 500; font-size: 40px; line-height: 1.1; color: #17140f; }
-.day { margin-top: 10px; font-size: 13px; color: #b0805a; }
+/* 머리 — 해 질 녘 하늘 한 장(살구 → 연보라 → 연잎), 送 한 자, 걸어간 발자국 셋 */
+.hero { position: relative; overflow: hidden; padding: 26px 24px 24px; border-radius: 28px;
+  background: radial-gradient(120% 90% at 85% 0%, rgba(255, 226, 196, 0.9), transparent 60%),
+    radial-gradient(90% 80% at 0% 100%, rgba(214, 236, 226, 0.75), transparent 62%),
+    linear-gradient(160deg, #fdf1e6 0%, #f4ecf4 55%, #eef4ef 100%);
+  box-shadow: 0 0 0 1px rgba(26, 23, 20, 0.04), 0 18px 36px -28px rgba(120, 80, 50, 0.45); }
+.hero::after { content: ""; position: absolute; left: 24px; right: 24px; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(184, 137, 92, 0.35), transparent); }
+.mark { position: absolute; right: 8px; top: -6px; font-family: var(--font-serif); font-size: 124px; line-height: 1; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 0 rgba(184, 137, 92, 0.12); pointer-events: none; }
+.prints { position: absolute; right: 26px; bottom: 18px; display: flex; gap: 10px; color: rgba(184, 137, 92, 0.32); transform: rotate(-14deg); }
+.prints svg:nth-child(2) { transform: translateY(-7px); opacity: 0.75; }
+.prints svg:nth-child(3) { transform: translateY(-14px); opacity: 0.5; }
+.kick { position: relative; font-size: 11.5px; letter-spacing: 0.14em; color: #a08a74; }
+.name { position: relative; margin-top: 10px; font-family: var(--font-serif); font-weight: 500; font-size: 42px; line-height: 1.1; color: #17140f; }
+.day { position: relative; display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; height: 28px; padding: 0 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.7); font-size: 12.5px; color: #8a5a2e; }
 
 .form { display: flex; flex-direction: column; gap: 10px; }
 .input { height: 52px; border-radius: 14px; border: 1px solid rgba(26, 23, 20, 0.1); background: #fff; padding: 0 16px; font-size: 16px; color: #17140f; outline: none; width: 100%; }
@@ -21,24 +30,29 @@
 
 /* 일곱 재 — 한 줄의 길 */
 .path { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); position: relative; }
-.path::before { content: ""; position: absolute; left: 7%; right: 7%; top: 13px; height: 1px; background: rgba(26, 23, 20, 0.12); }
+.path::before { content: ""; position: absolute; left: 7%; right: 7%; top: 15px; height: 0; border-top: 1.5px dotted rgba(184, 137, 92, 0.45); }
 .path button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; border: 0; background: none; padding: 0; cursor: pointer; color: #c2b9ae; font-family: var(--font-serif); font-size: 13px; }
 .path button:disabled { cursor: default; }
-.path i { display: block; width: 26px; height: 26px; border-radius: 50%; background: #fbf8f1; box-shadow: inset 0 0 0 1px rgba(26, 23, 20, 0.15); }
+/* 디딤돌 일곱 — 지난 재엔 발자국이 찍힌다 */
+.path i { display: grid; place-items: center; width: 30px; height: 26px; border-radius: 48% 52% 46% 54% / 56% 50% 50% 44%; background: #f3ece3; box-shadow: inset 0 -2px 0 rgba(26, 23, 20, 0.06); color: #f1ddb0; }
 .path button[data-d="1"] { color: #17140f; }
-.path button[data-d="1"] i { background: #17140f; box-shadow: none; }
-.path button[data-now="1"] { color: #17140f; font-weight: 600; }
-.path button[data-now="1"] i { background: radial-gradient(circle, #ffd9b0 0 30%, #fbf8f1 34%); box-shadow: inset 0 0 0 1.5px #17140f; }
+.path button[data-d="1"] i { background: #2a231d; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25); }
+.path button[data-now="1"] { color: #8a5a2e; font-weight: 600; }
+.path button[data-now="1"] i { background: radial-gradient(circle at 50% 45%, #ffe2bf, #f6c79a); box-shadow: 0 0 0 4px rgba(246, 199, 154, 0.28), 0 0 16px rgba(246, 170, 100, 0.45); animation: breathe 2.8s ease-in-out infinite; }
+@keyframes breathe { 50% { box-shadow: 0 0 0 7px rgba(246, 199, 154, 0.12), 0 0 22px rgba(246, 170, 100, 0.3); } }
 
 /* 지금 재 */
 .rite { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 28px 22px 24px; border-radius: 24px; background: #fff; box-shadow: 0 0 0 1px rgba(26, 23, 20, 0.05), 0 16px 34px -26px rgba(60, 40, 20, 0.4); text-align: center; }
 .riteName { font-size: 12px; letter-spacing: 0.1em; color: #a39a8f; }
-.incense { display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%; border: 0; background: radial-gradient(circle at 50% 40%, #fff4e6, #f6e7d6); color: #6b4d33; cursor: pointer; box-shadow: 0 0 0 8px rgba(246, 231, 214, 0.35); animation: glow 3.2s ease-in-out infinite; }
+.smoke { stroke: #b9a690; stroke-dasharray: 4 3; animation: rise 3.6s linear infinite; }
+@keyframes rise { to { stroke-dashoffset: -42; } }
+.incense { display: grid; place-items: center; width: 108px; height: 108px; border-radius: 50%; border: 0; background: radial-gradient(circle at 50% 40%, #fff4e6, #f6e7d6); color: #6b4d33; cursor: pointer; box-shadow: 0 0 0 8px rgba(246, 231, 214, 0.35); animation: glow 3.2s ease-in-out infinite; }
 .incense:active { transform: scale(0.96); }
 @keyframes glow { 50% { box-shadow: 0 0 0 14px rgba(246, 231, 214, 0.15); } }
-@media (prefers-reduced-motion: reduce) { .incense { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .incense, .smoke, .path button[data-now="1"] i { animation: none; } }
+.rule { display: block; width: 28px; height: 1px; margin: 2px 0 6px; background: #c9a56c; }
 .verse { font-family: var(--font-serif); font-size: 21px; line-height: 1.6; color: #17140f; white-space: pre-line; word-break: keep-all; }
-.from { margin-top: -8px; font-family: var(--font-serif); font-size: 12px; letter-spacing: 0.12em; color: #b0a594; }
+.from { margin-top: -14px; font-family: var(--font-serif); font-size: 12px; letter-spacing: 0.12em; color: #b0a594; }
 .area { width: 100%; min-height: 110px; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(26, 23, 20, 0.1); background: #fbf8f1; font-family: var(--font-serif); font-size: 16px; line-height: 1.6; color: #17140f; outline: none; resize: none; text-align: left; }
 .area:focus { border-color: #17140f; background: #fff; }
 .rite .two { width: 100%; }
@@ -53,13 +67,14 @@
 
 /* 함께 */
 .feed { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-.feedHead { font-size: 12px; letter-spacing: 0.12em; color: #a39a8f; }
+.feedHead { display: flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: 0.12em; color: #a39a8f; }
 .feedHead b { color: #17140f; font-weight: 600; margin-left: 4px; }
 .post { padding: 18px 18px 14px; border-radius: 20px; background: #fff; box-shadow: 0 0 0 1px rgba(26, 23, 20, 0.05); }
-.postWho { display: flex; justify-content: space-between; font-size: 12.5px; color: #8f877d; }
-.postWho em { font-style: normal; color: #c2b9ae; }
+.postWho { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #8f877d; }
+.postWho em { margin-left: auto; font-style: normal; color: #c2b9ae; }
+.postPaw { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(150deg, #fdf1e6, #f4ecf4); color: #b8895c; }
 .postBody { margin-top: 8px; font-family: var(--font-serif); font-size: 16px; line-height: 1.65; color: #17140f; white-space: pre-wrap; word-break: keep-all; }
-.hands { margin-top: 12px; height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(26, 23, 20, 0.1); background: #fff; font-size: 13px; color: #6e665c; cursor: pointer; }
+.hands { display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(26, 23, 20, 0.1); background: #fff; font-size: 13px; color: #6e665c; cursor: pointer; }
 .hands[aria-pressed="true"] { background: #fff4e6; border-color: #f0d9bd; color: #8a5a2e; font-weight: 600; }
 
 .reset { align-self: center; border: 0; background: none; font-size: 18px; color: #c9c1b5; cursor: pointer; }

@@ -44,12 +44,31 @@ const addDays = (d: string, n: number) => new Date(Date.parse(d) + n * 86_400_00
 const md = (d: string) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}`;
 const ago = (sec?: number) => { if (!sec) return ""; const m = Math.floor((Date.now() / 1000 - sec) / 60); return m < 60 ? `${Math.max(1, m)}분` : m < 1440 ? `${Math.floor(m / 60)}시간` : `${Math.floor(m / 1440)}일`; };
 
-/** 향 한 대 — 피어오르는 연기 */
+/** 향 한 대 — 향로 위로 연기가 피어오른다(연기는 CSS 로 흐른다) */
 const Incense = () => (
-  <svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden>
-    <path d="M20 37V20" />
-    <path d="M14 37h12" />
-    <path d="M20 17c-3-3 3-5 0-8s3-5 0-7" opacity=".55" />
+  <svg viewBox="0 0 56 64" width="56" height="64" fill="none" stroke="currentColor" strokeLinecap="round" aria-hidden>
+    <path className={s.smoke} d="M28 30c-5-4 5-7 0-12s5-8 0-13" strokeWidth="1.3" />
+    <path d="M28 46V31" strokeWidth="1.6" />
+    <circle cx="28" cy="30.5" r="1.6" fill="#f2a65a" stroke="none" />
+    <path d="M14 48h28l-3 9a3 3 0 0 1-3 2H20a3 3 0 0 1-3-2Z" fill="#e9d2b3" stroke="#b8895c" strokeWidth="1.2" />
+    <path d="M12 48h32" stroke="#b8895c" strokeWidth="1.2" />
+  </svg>
+);
+/** 발자국 — 떠난 아이가 남긴 자리 */
+const Paw = ({ size = 14 }: { size?: number }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" aria-hidden>
+    <ellipse cx="12" cy="16" rx="5" ry="4.2" />
+    <ellipse cx="5.2" cy="10" rx="2.1" ry="2.6" />
+    <ellipse cx="9.3" cy="6.3" rx="2.1" ry="2.7" />
+    <ellipse cx="14.7" cy="6.3" rx="2.1" ry="2.7" />
+    <ellipse cx="18.8" cy="10" rx="2.1" ry="2.6" />
+  </svg>
+);
+/** 합장 */
+const Hands = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M12 21V8.5c0-1.7-.8-3.3-2-4.5L8.6 2.8a1 1 0 0 0-1.6.6L6 11l-2.3 3.5a2 2 0 0 0 .3 2.5L8 21" />
+    <path d="M12 21V8.5c0-1.7.8-3.3 2-4.5l1.4-1.2a1 1 0 0 1 1.6.6L18 11l2.3 3.5a2 2 0 0 1-.3 2.5L16 21" />
   </svg>
 );
 
@@ -117,9 +136,10 @@ export default function PetPage() {
         {/* 머리 — 이름 하나와 送 */}
         <div className={s.hero}>
           <span className={s.mark} aria-hidden>送</span>
+          <span className={s.prints} aria-hidden><Paw size={12} /><Paw size={12} /><Paw size={12} /></span>
           <p className={s.kick}>배웅 · 一切衆生</p>
           <h1 className={s.name}>{pet ? pet.name : "배웅"}</h1>
-          {pet && <p className={s.day}>{day}일째{current === -1 ? " · 往生極樂" : ""}</p>}
+          {pet && <p className={s.day}><Paw size={12} />{kindLabel(pet.kind)} · {day}일째{current === -1 ? " · 往生極樂" : ""}</p>}
         </div>
 
         {ready && !pet && (
@@ -138,7 +158,7 @@ export default function PetPage() {
               {NAMES.map((n, i) => (
                 <li key={n}>
                   <button data-d={isDone(i) ? "1" : undefined} data-now={i === at && !isDone(i) ? "1" : undefined} disabled={!open(i)} onClick={() => setPick(i)} aria-label={`${n} ${md(riteDay(i))}`}>
-                    <i />
+                    <i>{isDone(i) ? <Paw size={11} /> : null}</i>
                     <span>{n.slice(0, 1)}</span>
                   </button>
                 </li>
@@ -155,6 +175,7 @@ export default function PetPage() {
                 ) : (
                   <>
                     <p className={s.verse}>{VERSES[at][0]}</p>
+                    <span className={s.rule} aria-hidden />
                     <p className={s.from}>{VERSES[at][1]}</p>
                     {!pet.done[at]?.letter && (
                       <>
@@ -183,12 +204,12 @@ export default function PetPage() {
         {/* 함께 — 서로의 사연 */}
         {live.length > 0 && (
           <section className={s.feed}>
-            <p className={s.feedHead}>함께 <b>{live.length}</b></p>
+            <p className={s.feedHead}><Paw size={12} /> 함께 <b>{live.length}</b></p>
             {live.map((p) => (
               <article key={p.id} className={s.post}>
-                <p className={s.postWho}>{p.title}<em>{ago(p.createdAt?.seconds)}</em></p>
+                <p className={s.postWho}><span className={s.postPaw}><Paw size={13} /></span>{p.title}<em>{ago(p.createdAt?.seconds)}</em></p>
                 <p className={s.postBody}>{p.body}</p>
-                <button className={s.hands} aria-pressed={hands.includes(p.id)} aria-label="손 모으기" onClick={() => fold(p)}>🙏 {p.hapjang ?? 0}</button>
+                <button className={s.hands} aria-pressed={hands.includes(p.id)} aria-label="손 모으기" onClick={() => fold(p)}><Hands /> {p.hapjang ?? 0}</button>
               </article>
             ))}
           </section>
