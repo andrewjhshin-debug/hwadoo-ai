@@ -194,10 +194,10 @@ export default function MungPage() {
                 한 번 더
               </button>
               <Link
-                href="/"
+                href="/moktak"
                 className="rounded-full border border-ink-3 px-6 py-2.5 text-[11.5px] tracking-[0.25em] text-hanji-faint transition-colors hover:text-hanji"
               >
-                뜰로
+                돌아가기
               </Link>
             </div>
           </>

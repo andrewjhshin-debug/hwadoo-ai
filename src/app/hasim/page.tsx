@@ -240,7 +240,7 @@ export default function HasimPage() {
             하심은 흰 종이에 먹글씨 하나다. 고를 것이 없으면 고민도 없다. */}
         <div className="sticky top-3 z-20 float-right mr-3 flex items-center gap-2">
           <Link
-            href="/"
+            href="/moktak"
             className="rounded-full px-3.5 py-1.5 text-[11px] tracking-[0.25em] backdrop-blur transition-opacity hover:opacity-100"
             style={{
               color: skin.dim,
@@ -405,7 +405,7 @@ export default function HasimPage() {
                       없다. 형: 「하심 끝나고 되돌아가면 다시 메뉴로」 */}
                   <div className="mt-9 pb-2">
                     <Link
-                      href="/"
+                      href="/moktak"
                       className="inline-block rounded-full px-6 py-2.5 text-[11.5px] tracking-[0.3em] transition-opacity hover:opacity-100"
                       style={{ color: skin.dim, border: `1px solid ${skin.line}`, opacity: 0.85 }}
                     >
