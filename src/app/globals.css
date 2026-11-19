@@ -1838,3 +1838,12 @@ html :is(button, a)[class*="border-gold"][class*="text-gold"] { color: #2a2420 !
    한지색 반투명 유리로: 뒤 장면이 비쳐 이어지고, 위 금은 그림자 한 겹으로만. */
 nav.hip-mala .hip-mala-track { background: rgba(251, 248, 241, 0.72) !important; -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); border-top: 0 !important; box-shadow: 0 -1px 0 rgba(26, 23, 20, 0.05); }
 nav.hip-mala button[data-mid="1"] b { border-color: rgba(251, 248, 241, 0.9) !important; }
+
+/* 법륜 판 — 흰 판과 아래 띠(한지 유리, 어두운 막 위에선 회색)가 색이 갈려 어색했다(형 2026-11-19).
+   판도 띠도 같은 한지색 한 장으로 잇고, 판 안 칸은 흰 칸으로 띄운다. 숨은 방은 넷만 */
+.dharma-sheet { background: #fbf8f1; padding-bottom: 30px; bottom: calc(env(safe-area-inset-bottom, 0px) + 62px); }
+body:has(.dharma-sheet[data-open="1"]) nav.hip-mala .hip-mala-track { background: #fbf8f1 !important; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+.dharma-sheet .dharma-today a { background: #fff; box-shadow: 0 1px 6px rgba(26, 23, 20, 0.05); }
+.dharma-rooms { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.dharma-rooms a { font-size: 12px; color: #4a443d; }
+.dharma-rooms a span { width: 52px; height: 52px; border-radius: 17px; background: #fff; box-shadow: 0 1px 6px rgba(26, 23, 20, 0.05), inset 0 0 0 1px #f0e6d2; }

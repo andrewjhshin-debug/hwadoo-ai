@@ -31,10 +31,7 @@ const 방: { href: string; name: string; ico: keyof typeof 선 }[] = [
   { href: "/ganhwaseon", name: "간화선", ico: "enso" },
   { href: "/masters", name: "선지식", ico: "staff" },
   { href: "/sutra", name: "외우기", ico: "sutra" },
-  { href: "/empty", name: "비움", ico: "bowl" },
   { href: "/draw", name: "운세", ico: "lots" },
-  { href: "/tamjinchi", name: "불심투자", ico: "stock" },
-  { href: "/try", name: "체험하기", ico: "sprout" },
 ];
 
 function Ico({ k }: { k: keyof typeof 선 }) {
