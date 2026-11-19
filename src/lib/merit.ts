@@ -83,6 +83,7 @@ export type MeritSource =
   | "candle" // 초 공양 — 남의 초에 같이 빌어 줌
   | "mandala" // 만다라 — 한 장을 끝까지 칠함
   | "fortune" // 오늘의 운세 — 하루 한 장
+  | "learn" // 배움 — 한 걸음(개념 카드 + 물음) 끝
   | "mung" // 멍 — 아무것도 안 하고 가만히
   | "hasim" // 하심 — 획을 끝까지 내려감
   | "keycap" // 키캡 — 한 번 누름. 형: 「목탁 염주 싱잉볼 옆에 키캡도 하나」
@@ -172,6 +173,7 @@ export const MERIT_VALUE: Record<MeritSource, number> = {
   gathering: 168, // 인연에 글·댓글
   candle: 72, // 남의 초에 손 모음
   fortune: 840, // 오늘의 운세 — 하루 한 장
+  learn: 864, // 배움 한 걸음 — 3~4분
 };
 
 
@@ -254,6 +256,7 @@ export const DAILY_CAP: Record<MeritSource, number> = {
   gathering: 3360, // 스무 줄
   candle: 1440, // 스무 번
   fortune: 840, // 패는 하루 한 장
+  learn: 4320, // 하루 다섯 걸음
 };
 
 
@@ -913,6 +916,7 @@ export const SOURCE_LABEL: Record<MeritSource, string> = {
   bowl: "싱잉볼",
   candle: "초 공양",
   fortune: "오늘의 운세",
+  learn: "배움",
   mung: "멍",
   hasim: "하심",
   keycap: "키캡",

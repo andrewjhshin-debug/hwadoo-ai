@@ -25,13 +25,16 @@ const 선 = {
   lots: <><path d="M6.5 11h11l-1.2 9a1.2 1.2 0 0 1-1.2 1H8.9a1.2 1.2 0 0 1-1.2-1Z" /><path d="M9.6 11 7.6 3.6M12 11V3M14.4 11l2-7.4" /></>,
   // 불심투자 — 오르는 선 하나. 형: 「위 말고 요기 넣자, 어울리게」
   stock: <><path d="M3.5 20h17" /><path d="m4 15.5 5-5 4 3 6.5-6.5" /><path d="M14.5 7h5v5" /></>,
+  // 배움 — 펼친 두루마리 위 붓 한 획
+  learn: <><path d="M5 4h14v16H5z" /><path d="M5 4c-1.2 0-2 .8-2 2s.8 2 2 2M19 16c1.2 0 2 .8 2 2s-.8 2-2 2" /><path d="M9 9h6M9 12.5h6M9 16h3.5" /></>,
   sprout: <><path d="M12 21v-9" /><path d="M12 12C12 7.5 9 5 4.5 5c0 4.5 3 7 7.5 7Z" /><path d="M12 14c0-3.6 2.4-5.6 6.5-5.6 0 3.6-2.4 5.6-6.5 5.6Z" /></>,
 };
 const 방: { href: string; name: string; ico: keyof typeof 선 }[] = [
   { href: "/ganhwaseon", name: "간화선", ico: "enso" },
   { href: "/masters", name: "선지식", ico: "staff" },
   { href: "/sutra", name: "외우기", ico: "sutra" },
-  { href: "/draw", name: "운세", ico: "lots" },
+  // 형(2026-11-19): 교육관 — 운세 자리를 배움에 내줬다(운세는 나 페이지에)
+  { href: "/learn", name: "배움", ico: "learn" },
 ];
 
 function Ico({ k }: { k: keyof typeof 선 }) {

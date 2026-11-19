@@ -47,6 +47,7 @@ const EVERY = Object.keys({
   candle: 1,
   mandala: 1,
   fortune: 1,
+  learn: 1,
   mung: 1,
   hasim: 1,
   keycap: 1,
