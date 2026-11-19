@@ -9,6 +9,9 @@ import s from "./learn.module.css";
 import { LESSONS, loadLearned, markLearned, type Lesson } from "@/lib/learn";
 import { addMerit } from "@/lib/merit";
 
+// **굵게** 표시만 읽는다
+const bold = (t: string) => t.split("**").map((x, i) => (i % 2 ? <strong key={i}>{x}</strong> : x));
+
 export default function LearnPage() {
   const [done, setDone] = useState<string[]>([]);
   const [open, setOpen] = useState<Lesson | null>(null);
@@ -70,13 +73,13 @@ export default function LearnPage() {
             <button className={s.back} onClick={() => setOpen(null)}>‹ 열두 걸음</button>
             <article className={s.card}>
               <h1>{open.name}<small>{open.hanja}</small></h1>
-              <p className={s.def}>{open.def}</p>
+              <p className={s.def}>{bold(open.def)}</p>
               <ol className={s.items}>
                 {open.items.map(([h, t], i) => (
                   <li key={h}><b>{i + 1}</b><span><strong>{h}</strong> — {t}</span></li>
                 ))}
               </ol>
-              <p className={s.tip}>{open.tip}</p>
+              <p className={s.tip}>{bold(open.tip)}</p>
             </article>
             <button className={s.btn} onClick={() => setStep("quiz")}>확인 물음</button>
           </>
@@ -91,7 +94,7 @@ export default function LearnPage() {
             </div>
             {pick !== null && (
               <>
-                <p className={s.why}>{open.quiz.why}</p>
+                <p className={s.why}>{bold(open.quiz.why)}</p>
                 {gain > 0 && <p className={s.gain}>+{gain.toLocaleString()}<small>공덕</small></p>}
                 {next && done.includes(open.id) ? (
                   <button className={s.btn} onClick={() => go(next)}>다음 걸음 · {next.name}</button>
