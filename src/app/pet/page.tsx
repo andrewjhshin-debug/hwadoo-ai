@@ -9,9 +9,12 @@
 // · 편지는 「간직」(나만) 또는 「나누기」(모두가 읽는 판 — posts board "pet").
 // · 남의 사연엔 🙏 하나. 一切衆生 — 모든 생명이 같이 보낸다.
 // 말은 거의 없다. 누르면 안다.
+// 형(2026-11-19): 「사진을 넣고 추모할 수 있도록, 저장해서」 — 사진은 이 기기에서 줄여(긴 변 640·JPEG)
+//   hwadu.pet49.photo.v1 한 칸에 담는다. kvSync 가 계정에 올려 다른 폰에서도 보인다(칸 한도 60k 안으로 줄임).
+//   나누기 판에는 사진을 안 올린다 — 사연만.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import HipRoom from "@/components/HipRoom";
 import s from "./pet.module.css";
@@ -22,6 +25,28 @@ import { visitDayKey } from "@/components/VisitLedger";
 
 const KEY = "hwadu.pet49.v1";
 const HANDS = "hwadu.pet49.hands.v1";
+const PHOTO = "hwadu.pet49.photo.v1";
+
+/** 사진 한 장을 영정 크기로 — 긴 변 640부터 줄여 가며 55k 글자 안으로(kvSync 한 칸 60k) */
+async function shrink(file: File): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
+    for (const side of [640, 520, 420, 340]) {
+      const k = Math.min(1, side / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      const g = c.getContext("2d")!;
+      g.fillStyle = "#f3ece3"; g.fillRect(0, 0, c.width, c.height); // 투명 PNG 가 검게 굳지 않게
+      g.drawImage(img, 0, 0, c.width, c.height);
+      for (const q of [0.82, 0.7, 0.58]) {
+        const d = c.toDataURL("image/jpeg", q);
+        if (d.length < 55_000) return d;
+      }
+    }
+    throw new Error("too big");
+  } finally { URL.revokeObjectURL(url); }
+}
 const NAMES = ["초재", "이재", "삼재", "사재", "오재", "육재", "막재"];
 const VERSES: [string, string][] = [
   ["만난 것은 헤어지고,\n떠난 것은 다시 돌아온다.", "會者定離 去者必返"],
@@ -84,10 +109,18 @@ export default function PetPage() {
   const [hands, setHands] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [needLogin, setNeedLogin] = useState(false);
+  const [photo, setPhoto] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const pickPhoto = async (f?: File) => {
+    if (!f) return;
+    try { const d = await shrink(f); setPhoto(d); try { localStorage.setItem(PHOTO, d); } catch {} }
+    catch { alert("이 사진은 열 수 없어요"); }
+  };
 
   useEffect(() => {
     setPet(read<Pet | null>(KEY, null));
     setHands(read<string[]>(HANDS, []));
+    try { setPhoto(localStorage.getItem(PHOTO) || ""); } catch {}
     setPassed(visitDayKey());
     setFeed(cachedPosts("pet"));
     setReady(true);
@@ -135,15 +168,22 @@ export default function PetPage() {
       <div className={s.page}>
         {/* 머리 — 이름 하나와 送 */}
         <div className={s.hero}>
-          <span className={s.mark} aria-hidden>送</span>
+          {photo && pet ? (
+            <button className={s.portrait} onClick={() => fileRef.current?.click()} aria-label="사진 바꾸기"><img src={photo} alt="" /></button>
+          ) : <span className={s.mark} aria-hidden>送</span>}
           <span className={s.prints} aria-hidden><Paw size={12} /><Paw size={12} /><Paw size={12} /></span>
           <p className={s.kick}>배웅 · 一切衆生</p>
           <h1 className={s.name}>{pet ? pet.name : "배웅"}</h1>
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { pickPhoto(e.target.files?.[0]); e.target.value = ""; }} />
+          {pet && !photo && <button className={s.addPhoto} onClick={() => fileRef.current?.click()}>＋ 사진</button>}
           {pet && <p className={s.day}><Paw size={12} />{kindLabel(pet.kind)} · {day}일째{current === -1 ? " · 往生極樂" : ""}</p>}
         </div>
 
         {ready && !pet && (
           <section className={s.form}>
+            <button className={s.slot} onClick={() => fileRef.current?.click()} aria-label="사진 넣기">
+              {photo ? <img src={photo} alt="" /> : <><Paw size={22} /><span>사진</span></>}
+            </button>
             <input className={s.input} value={name} maxLength={10} placeholder="이름" onChange={(e) => setName(e.target.value)} />
             <div className={s.seg}>{KINDS.map(([k, l]) => <button key={k} aria-pressed={kind === k} onClick={() => setKind(k)}>{l}</button>)}</div>
             <input className={s.input} type="date" value={passed} max={today} onChange={(e) => setPassed(e.target.value)} aria-label="떠난 날" />
@@ -168,6 +208,7 @@ export default function PetPage() {
             {current !== -1 && open(at) && (
               <section className={s.rite}>
                 <p className={s.riteName}>{NAMES[at]} · {md(riteDay(at))}</p>
+                {photo && <div className={s.altar}><img src={photo} alt={pet.name} /></div>}
                 {!pet.done[at]?.hyang ? (
                   <button className={s.incense} onClick={() => { strikeBell(0.5); update(at, { hyang: true }); }} aria-label="향 올리기">
                     <Incense />
@@ -191,7 +232,20 @@ export default function PetPage() {
                 )}
               </section>
             )}
-            {current !== -1 && !open(at) && <p className={s.wait}>{NAMES[at]} · {md(riteDay(at))}</p>}
+            {current === -1 && photo && (
+              <section className={s.rite}>
+                <div className={s.altar}><img src={photo} alt={pet.name} /></div>
+                <p className={s.verse}>{VERSES[6][0]}</p>
+                <span className={s.rule} aria-hidden />
+                <p className={s.from}>{VERSES[6][1]}</p>
+              </section>
+            )}
+            {current !== -1 && !open(at) && (
+              <>
+                {photo && <div className={s.altar} style={{ alignSelf: "center" }}><img src={photo} alt={pet.name} /></div>}
+                <p className={s.wait}>{NAMES[at]} · {md(riteDay(at))}</p>
+              </>
+            )}
 
             {Object.values(pet.done).some((d) => d.letter) && (
               <section className={s.mine}>
@@ -215,7 +269,7 @@ export default function PetPage() {
           </section>
         )}
 
-        {pet && <button className={s.reset} aria-label="처음부터 다시" onClick={() => { if (confirm("처음부터?")) { write(KEY, null); setPet(null); } }}>↺</button>}
+        {pet && <button className={s.reset} aria-label="처음부터 다시" onClick={() => { if (confirm("처음부터?")) { write(KEY, null); setPet(null); setPhoto(""); try { localStorage.removeItem(PHOTO); } catch {} } }}>↺</button>}
       </div>
     </HipRoom>
   );
