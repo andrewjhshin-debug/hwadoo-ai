@@ -1,0 +1,70 @@
+/* 새 방(신도증·소원·운력·무지개 연등)이 같이 쓰는 결 — 한지 바탕 위 흰 판, 먹 단추 */
+.wrap { width: 100%; max-width: 420px; margin: 0 auto; padding: 4px 0 24px; display: flex; flex-direction: column; gap: 14px; text-align: left; }
+.kicker { font-size: 12px; color: #9a9287; letter-spacing: 0.02em; }
+.title { margin-top: 4px; font-family: var(--font-serif); font-weight: 600; font-size: 26px; line-height: 1.35; color: #17140f; word-break: keep-all; }
+.lead { font-size: 13px; line-height: 1.7; color: #6e665c; word-break: keep-all; }
+.card { background: #fff; border-radius: 18px; box-shadow: 0 0 0 1px rgba(26, 23, 20, 0.06), 0 10px 24px -18px rgba(60, 40, 20, 0.35); padding: 18px; }
+.rows { background: #fff; border-radius: 18px; box-shadow: 0 0 0 1px rgba(26, 23, 20, 0.06); padding: 2px 16px; }
+.row { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgba(26, 23, 20, 0.07); font-size: 14.5px; color: #17140f; }
+.row:last-child { border-bottom: 0; }
+.row em { margin-left: auto; font-style: normal; font-size: 12.5px; color: #9a9287; white-space: nowrap; }
+.mark { font-family: var(--font-serif); font-size: 16px; width: 22px; text-align: center; flex: none; color: #b07d26; }
+.sub { display: block; margin-top: 2px; font-size: 11.5px; color: #9a9287; }
+.btn { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; border: 0; border-radius: 26px; background: #1c1a17; color: #fff; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; }
+.btn:disabled { opacity: 0.4; }
+.btnw { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; border-radius: 26px; background: #fff; color: #17140f; border: 1px solid rgba(26, 23, 20, 0.12); font-size: 15px; font-weight: 500; cursor: pointer; }
+.two { display: grid; grid-template-columns: 1fr 1.3fr; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #6e665c; }
+.input { height: 46px; border-radius: 12px; border: 1px solid rgba(26, 23, 20, 0.12); background: #fff; padding: 0 14px; font-size: 15px; color: #17140f; outline: none; }
+.input:focus { border-color: #1c1a17; }
+.area { min-height: 96px; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(26, 23, 20, 0.12); background: #fff; font-size: 15px; line-height: 1.6; color: #17140f; outline: none; resize: none; font-family: inherit; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { height: 34px; padding: 0 14px; border-radius: 17px; background: #fff; border: 1px solid rgba(26, 23, 20, 0.12); font-size: 13px; color: #4a443d; cursor: pointer; }
+.chip[aria-pressed="true"] { background: #1c1a17; border-color: #1c1a17; color: #fff; }
+.bad { font-size: 12.5px; color: #c0453f; }
+.ok { color: #2f8a6b; font-weight: 600; }
+.link { color: inherit; text-decoration: none; display: contents; }
+.x { margin-left: 8px; border: 0; background: none; color: #c3bab0; font-size: 16px; cursor: pointer; }
+
+/* 신도증 */
+.id { position: relative; border-radius: 22px; background: linear-gradient(155deg, #29221c, #13100d); color: #efe3cb; padding: 22px; overflow: hidden; min-height: 210px; }
+.idHz { position: absolute; right: 10px; top: -10px; font-family: var(--font-serif); font-size: 150px; line-height: 1; color: rgba(233, 203, 140, 0.1); pointer-events: none; }
+.idOrg { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.08em; color: #a9997f; }
+.idName { margin-top: 18px; font-family: var(--font-serif); font-size: 30px; color: #f6e6bf; }
+.idMeta { margin-top: 12px; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 12.5px; }
+.idMeta dt { color: #8f826d; }
+.idMeta dd { color: #e7d9be; }
+.idRank { display: inline-flex; align-items: center; gap: 6px; margin-top: 18px; height: 30px; padding: 0 13px; border-radius: 15px; font-size: 13px; font-weight: 700; color: #17140f; }
+.idQr { position: absolute; right: 20px; bottom: 20px; padding: 7px; border-radius: 12px; background: #fff; line-height: 0; }
+
+/* 소원 */
+.dots { display: grid; grid-template-columns: repeat(7, 1fr); gap: 9px; margin-top: 16px; }
+.dots i { aspect-ratio: 1; border-radius: 50%; background: #f3ece6; }
+.dots i[data-f="1"] { background: linear-gradient(135deg, #f3a5c0, #e97fa4); }
+.dots i[data-t="1"] { background: #fff; box-shadow: inset 0 0 0 2px #ee8fb0; }
+.meta { display: flex; justify-content: space-between; margin-top: 12px; font-size: 12px; color: #6e665c; }
+.wishText { margin-top: 8px; font-family: var(--font-serif); font-size: 21px; line-height: 1.5; color: #17140f; word-break: keep-all; }
+.check { width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px #c9c1b5; flex: none; display: grid; place-items: center; color: #f1ddb0; font-size: 13px; }
+.check[data-d="1"] { background: #1c1a17; box-shadow: none; }
+
+/* 운력 */
+.big { display: flex; align-items: baseline; gap: 6px; }
+.big b { font-weight: 300; font-size: 56px; line-height: 1; letter-spacing: -0.02em; color: #17140f; }
+.big span { font-size: 14px; color: #9a9287; }
+.k { width: 40px; height: 40px; border-radius: 12px; background: #f6f1ea; display: grid; place-items: center; font-family: var(--font-serif); font-size: 17px; flex: none; color: #4a443d; }
+
+/* 무지개 연등 */
+.night { border-radius: 22px; background: radial-gradient(120% 90% at 50% 0%, #2a3352, #151b2c 70%); color: #ede6d8; padding: 22px 18px 18px; text-align: center; }
+.lanterns { display: flex; justify-content: center; align-items: flex-end; gap: 14px; min-height: 120px; margin-top: 8px; }
+.lan { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: #c9c3b6; }
+.lan i { display: block; border-radius: 46%; background: radial-gradient(circle at 50% 45%, #fff1cf, #f5b38a 55%, #c97a62); box-shadow: 0 0 24px rgba(255, 190, 120, 0.55); }
+.lan[data-me="1"] { color: #fff; font-weight: 700; }
+.nightTitle { margin-top: 14px; font-family: var(--font-serif); font-size: 18px; line-height: 1.5; }
+.nightSub { margin-top: 4px; font-size: 12px; color: #9aa0b2; }
+.story { padding: 14px 0; border-bottom: 1px solid rgba(26, 23, 20, 0.07); }
+.story:last-child { border-bottom: 0; }
+.story h5 { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 600; color: #17140f; }
+.story h5 em { font-style: normal; font-weight: 400; font-size: 11.5px; color: #9a9287; }
+.story p { margin-top: 6px; font-family: var(--font-serif); font-size: 14.5px; line-height: 1.65; color: #4a443d; white-space: pre-wrap; word-break: keep-all; }
+.hands { margin-top: 8px; border: 0; background: none; padding: 0; font-size: 12px; color: #b5803a; cursor: pointer; }
+.hands[aria-pressed="true"] { font-weight: 700; }

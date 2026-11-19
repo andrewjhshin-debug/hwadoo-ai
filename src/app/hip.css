@@ -8558,3 +8558,14 @@ html[data-theme="light"] {
 .hip-home.hwadu-brand .hwadu-brand-ico { width: 24px; height: 24px; border-radius: 7px; display: block; box-shadow: 0 0 0 1px rgba(26, 23, 20, 0.06); }
 .hip-home.hwadu-brand b { font-weight: 600; letter-spacing: 0.02em; font-size: 17px; }
 /* 단청 띠는 걷었다 — 형: 「단청 일단 빼」(2026-11-18). 띠 그림은 public/brand/dancheong-band-v1.webp 에 남겨 둔다 */
+
+/* 계급을 더 선명하게 — 형(2026-11-18): 「계급 좀더 선명하게」.
+   여섯 자리에 제 빛깔(신도증과 같은 RANK_COLOR). 지나온 자리는 물들고,
+   지금 자리는 크게 + 먹 테, 갈 자리는 빈 동그라미. */
+.hip-seats i b { width: 42px !important; height: 42px !important; font-size: 17px !important; border-radius: 13px !important; }
+.hip-seats i:nth-child(1) { --rk: #CFC8BD; } .hip-seats i:nth-child(2) { --rk: #C9CED8; }
+.hip-seats i:nth-child(3) { --rk: #9DB4D6; } .hip-seats i:nth-child(4) { --rk: #9CCFBF; }
+.hip-seats i:nth-child(5) { --rk: #F0B3BE; } .hip-seats i:nth-child(6) { --rk: #EBCB86; }
+.hip-seats i[data-got="1"] b { background: var(--rk) !important; border-color: transparent !important; color: #17140f !important; }
+.hip-seats i[data-here="1"] b { background: var(--rk) !important; color: #17140f !important; box-shadow: 0 0 0 2px #fbf8f1, 0 0 0 3.5px #17140f; transform: scale(1.08); }
+.hip-seats i[data-here="1"] em { font-weight: 700 !important; color: #17140f !important; }
