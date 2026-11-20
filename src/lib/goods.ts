@@ -256,6 +256,14 @@ export const SHELVES: Shelf[] = [
     href: "/sutra",
     items: [
       {
+        id: "book-buddhism-helps",
+        tag: "책",
+        name: "불교는 인생에 확실히 도움이 된다",
+        note: "뇔케 무호. 인생이라는 게임을 바꾸기 위한 붓다의 가르침.",
+        img: "https://t5c.coupangcdn.com/thumbnails/remote/492x492ex/image/retail-product-api/A00077021/455327172/480702007/main/9791169852258_L.jpg",
+        url: "https://link.coupang.com/a/iOWcaIfTSS",
+      },
+      {
         id: "book-buddha-words",
         tag: "책",
         name: "초역 부처의 말",
