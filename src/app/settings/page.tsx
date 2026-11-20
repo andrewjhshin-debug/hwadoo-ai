@@ -246,7 +246,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/draw", label: "오늘의 운세", Icon: Enso },
   { href: "/rank", label: "랭킹", Icon: Moment },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
-  { href: "/goods", label: "굿즈", Icon: Bojagi },
+  { href: "/goods", label: "서고", Icon: Bojagi },
   { href: "/tamjinchi", label: "불심 투자", Icon: Jeoul },
 ];
 
@@ -764,7 +764,7 @@ export default function SettingsPage() {
     "/moktak": "功", "/sambae": "歸", "/bae": "拜", "/breath": "息",
     "/mung": "無", "/empty": "空", "/candle": "燈", "/lotus": "蓮",
     "/community": "池", "/archive": "庫", "/sutra": "經", "/draw": "占",
-    "/rank": "進", "/tea": "茶", "/goods": "物", "/tamjinchi": "投", "/saju": "山", "/archive#saved-sentences": "藏",
+    "/rank": "進", "/tea": "茶", "/goods": "書", "/tamjinchi": "投", "/saju": "山", "/archive#saved-sentences": "藏",
     "/hasim": "下", "/letters": "信", "/moment": "時", "/try": "試",
     "/card": "證", "/wish": "願", "/unryeok": "力", "/pet": "送", "/learn": "學",
   };

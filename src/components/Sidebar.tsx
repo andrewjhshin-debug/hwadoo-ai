@@ -120,7 +120,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/my-hwadu", label: "내가 던지는 화두", Icon: Nohda },
       { href: "/tea", label: "차 한 잔", Icon: Teacup },
-      { href: "/goods", label: "굿즈", Icon: Bojagi },
+      { href: "/goods", label: "서고", Icon: Bojagi },
     ],
   },
 ];

@@ -25,11 +25,11 @@ import { goodsCount, liveItems, liveShelves, type Goods } from "@/lib/goods";
 // ─────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: "굿즈 — 화두",
+  title: "서고 — 화두",
   description: "수행 곁에 둘 만한 물건들 — 하나씩 골라 둡니다.",
   alternates: { canonical: "/goods" },
   openGraph: {
-    title: "굿즈 — 화두",
+    title: "서고 — 화두",
     description: "수행 곁에 둘 만한 물건들 — 하나씩 골라 둡니다.",
     url: "/goods",
   },
@@ -129,10 +129,10 @@ export default function GoodsPage() {
       <header className="rise flex items-end justify-between gap-4">
         <div>
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gold/40 font-serif text-[15px] leading-none text-gold">
-            褓
+            書
           </span>
           <h1 className="mt-3 font-serif text-[30px] font-light leading-tight text-hanji">
-            굿즈
+            서고
           </h1>
         </div>
         <p className="shrink-0 text-right leading-none">
