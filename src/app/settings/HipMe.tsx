@@ -119,8 +119,6 @@ export default function HipMe({
   const [openInfo, setOpenInfo] = useState(false);
   /** 여섯 자리 — 접힌 것이 기본, 자리 카드를 누르면 편다 */
   const [openSeats, setOpenSeats] = useState(false);
-  /** 서비스 격자 — 여덟만 보이고 나머지는 접는다 */
-  const [openRooms, setOpenRooms] = useState(false);
   /** 공덕 알약 — 접힌 것이 기본. 형: 「동그라미들 접었다 펼치기 기능 둬」 */
   const [openHits, setOpenHits] = useState(false);
   /** 접었을 때 보일 것 — 형: 「이거 3개까지만 나오고 나머진 접고」.
@@ -292,16 +290,14 @@ export default function HipMe({
             끄면서 ☰ 서랍까지 사라졌으니 여기가 유일한 문이다.
             글자는 한 줄, 그림은 한자 한 글자. */}
         <div className="hip-rooms">
-          {(openRooms ? services : [...services].sort((x, y) => roomOrder(x.href) - roomOrder(y.href)).slice(0, 8)).map((r) => (
+          {/* 형(2026-11-24) ☰ 전체 메뉴가 방 전부를 맡는다 — 여기는 내 것 여덟만, 「전체 보기」는 걷었다 */}
+          {[...services].sort((x, y) => roomOrder(x.href) - roomOrder(y.href)).slice(0, 8).map((r) => (
             <Link key={r.href} href={r.href} aria-label={r.label}>
               <i>{r.mark}</i>
               <span>{r.label}</span>
             </Link>
           ))}
         </div>
-        <button type="button" className="hip-rooms-more" aria-expanded={openRooms} onClick={() => setOpenRooms((v) => !v)}>
-          {openRooms ? "접기" : `전체 보기 · ${services.length}`}
-        </button>
 
         {/* ── 계정 ──
             형: 「왜 로그인 기능이 없냐 어디서 로그인해」 「로그인 기능

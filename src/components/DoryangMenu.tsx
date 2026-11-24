@@ -1,336 +1,155 @@
 "use client";
 
 // ────────────────────────────────────────────────────────────────
-// 도량 한눈에 — 오른쪽 아래에 늘 떠 있는 단추, 그리고 그 단추가 여는 방.
+// ☰ 전체 메뉴 — 머리 오른쪽 세 줄을 누르면 앱의 방 전부가 한 판에 깔린다.
 //
-// 왼쪽 탭을 펼치는 것으로는 부족하다. 도량에 들어서면 마당이 한눈에
-// 보이듯, 이 앱이 가진 방 전부가 한 화면에 깔려야 한다.
-// 그래서 서랍이 아니라 **판**을 연다 — 격자로 깔고, 굵게 세우고,
-// 지금 공덕과 이어 온 날을 맨 위에 한 줄로 얹는다.
+// 형(2026-11-24): 「오른쪽 위 세줄 메뉴 같은거 충분히 활용」
+//                「디자인 변경 너무 말고 일단 구성만 바꿔」
 //
-// 손안에서도 뜬다(아래 띠 위로). 사유의 방은 이 판 안의 한 칸이 된다.
+// 머리의 我 는 아래 띠의 我 와 같은 길(/settings)이라 두 번 서 있었다.
+// 그 자리에 ☰ 를 세우고, 흩어져 있던 방(내 도량 「전체 보기」, 緣 판,
+// 功 줄)으로 가는 길을 여기 한 판에 모은다. 아래 띠 다섯 칸의 첫 화면
+// (뜰·법당·공덕·내 도량)은 띠에 있으니 여기 다시 적지 않는다.
+//
+// 생김새는 새로 짓지 않는다 — 緣 판(DharmaSheet)의 한지색 판과 흰 칸
+// (.dharma-rooms)을 그대로 쓰고, 그림 대신 내 도량과 같은 한자 한 글자.
+//
+// 옛 「도량 한눈에」(오른쪽 아래 떠 있는 단추 + 먹빛 판)는 폰에서
+// 늘 꺼져 있었다(hip.css). 그 자리를 이 판이 잇는다.
 // ────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import NotesDrawer from "@/components/NotesDrawer";
-import {
-  Banga,
-  Jeol,
-  Jeol108,
-  Bojagi,
-  Book,
-  Breath,
-  Hasim,
-  Ilwonsang,
-  Dharmachakra,
-  Iljumun,
-  Nohda,
-  Letter,
-  Lotus,
-  LotusMark,
-  LotusPond,
-  Moment,
-  Mandala,
-  YeonMun,
-  BodhiLeaf,
-  Yeomju,
-  Person,
-  SeonMaster,
-  Seogo,
-  Teacup,
-  YeonkkotGold,
-  Baru,
-  Chotbul,
-} from "./icons";
-import { inRound, loadMerit, rankByNeed, ROUND } from "@/lib/merit";
-import { realmOf } from "@/lib/realm";
-import { loadStore } from "@/lib/store";
-import { streakOf } from "@/lib/daily";
-import { watchOnlineCount } from "@/lib/presence";
 
-type Door = {
-  href?: string;
-  label: string;
-  say: string;
-  Icon: React.ComponentType<{ className?: string; stroke?: string }>;
-  /** 화면이 아니라 그 자리에서 열리는 방 */
-  act?: "notes";
-};
+/** 머리의 ☰ 단추가 쏘는 신호 — 판은 layout 에 한 번만 놓인다 */
+export const MENU_EVENT = "hwadu-menu";
+export const openMenu = () => window.dispatchEvent(new Event(MENU_EVENT));
 
-const YARDS: { title: string; hanja: string; doors: Door[] }[] = [
-  {
-    title: "오늘",
-    hanja: "今",
-    doors: [
-      { href: "/", label: "뜰", say: "화두를 받는 자리", Icon: YeonMun },
-      { label: "사유의 방", say: "떠오르는 것을 적다", Icon: Banga, act: "notes" },
-      // 형: 「손잡고 절로랑 인연을 오늘로 옮겨. 그게 참 중요한 기능이니까
-      //      바로 보이게 위에서」 — 「함께」 맨 아래에 있어 판을 굴려야
-      //      닿았다. 절에 가는 일과 같이 갈 사람을 찾는 일은 이 앱에서
-      //      제일 바깥으로 나가는 일이다. 첫 칸에 둔다.
-      { href: "/pilgrimage", label: "손잡고 절로", say: "가까운 절", Icon: Iljumun },
-      { href: "/gathering", label: "인연", say: "함께 갈 이", Icon: Person },
-      { href: "/draw", label: "오늘의 운세", say: "한 장을 뒤집다", Icon: BodhiLeaf },
-      { href: "/rank", label: "랭킹", say: "어제의 자리", Icon: Dharmachakra },
-    ],
-  },
+/** [길, 이름, 한자] — 이름·한자는 내 도량(settings ME_MARK·SERVICES)과 같게 */
+const GROUPS: { title: string; rooms: [string, string, string][] }[] = [
   {
     title: "수행",
-    hanja: "行",
-    doors: [
-      { href: "/moktak", label: "목탁·염주·싱잉볼", say: "손끝으로 세다", Icon: Yeomju },
-      { href: "/sambae", label: "삼귀의", say: "세 번 귀의하다", Icon: Jeol },
-      { href: "/bae", label: "백팔배", say: "백여덟 번 굽히다", Icon: Jeol108 },
-      { href: "/breath", label: "호흡 명상", say: "들이쉬고 내쉬다", Icon: Breath },
-      { href: "/mung", label: "멍 때리기", say: "아무것도 안 하기", Icon: Ilwonsang },
-      // 웹 서랍에만 있고 폰 차림표에 빠져 있었다 — 형: 「모바일앱에선
-      // 하심 왜 안 뜸?」. 모든 방은 두 곳 다에 있어야 한다.
-      { href: "/hasim", label: "下心", say: "끝없이 내려가기", Icon: Hasim },
-      { href: "/sutra", label: "경전 외우기", say: "입에 붙이다", Icon: Book },
-      { href: "/mandala", label: "만다라", say: "색을 앉히다", Icon: Mandala },
-      { href: "/empty", label: "비움", say: "쓰지 않은 하루", Icon: Baru },
-      { href: "/archive", label: "서고", say: "지난 화두", Icon: Seogo },
+    rooms: [
+      ["/bae", "백팔배", "拜"],
+      ["/sambae", "삼귀의", "歸"],
+      ["/breath", "호흡", "息"],
+      ["/mung", "멍", "無"],
+      ["/hasim", "하심", "下"],
+      ["/mandala", "만다라", "曼"],
+      ["/walking", "포행", "步"],
+      ["/tower", "돌탑", "塔"],
+      ["/sutra", "외우기", "經"],
+      ["/empty", "비움", "空"],
     ],
   },
   {
-    title: "말씀",
-    hanja: "說",
-    doors: [
-      { href: "/ganhwaseon", label: "간화선이란?", say: "물음을 드는 법", Icon: Dharmachakra },
-      { href: "/masters", label: "선지식의 한마디", say: "옛 어른의 말", Icon: SeonMaster },
+    title: "공부",
+    rooms: [
+      ["/ganhwaseon", "간화선", "禪"],
+      ["/masters", "선지식", "師"],
+      ["/learn", "불교 공부", "學"],
+      ["/room", "사유의 방", "思"],
+      ["/my-hwadu", "화두 던지기", "問"],
+      ["/archive", "지난 화두", "庫"],
+      ["/goods", "서고", "書"],
     ],
   },
   {
     title: "함께",
-    hanja: "同",
-    doors: [
-      // 법당이 여기 없어서 폰에서는 초를 켤 길이 아예 없었다.
-      // 공덕이 가 닿는 끝자리라 「함께」의 맨 앞에 세운다.
-      { href: "/candle", label: "법당 — 초 공양", say: "초 한 자루", Icon: Chotbul },
-      { href: "/moment", label: "시절인연", say: "절에 다녀온 한 장", Icon: Moment },
-      { href: "/my-hwadu", label: "내가 던지는 화두", say: "물음을 놓다", Icon: Nohda },
-      { href: "/letters", label: "쪽지함", say: "주고받은 말", Icon: Letter },
-      { href: "/tea", label: "차 한 잔", say: "잠깐 쉬다", Icon: Teacup },
+    rooms: [
+      ["/gathering", "인연", "緣"],
+      ["/pilgrimage", "손잡고 절로", "寺"],
+      ["/moment", "시절인연", "時"],
+      ["/pet", "배웅", "送"],
+      ["/tea", "차 한 잔", "茶"],
+      ["/letters", "쪽지", "信"],
     ],
   },
   {
     title: "나",
-    hanja: "我",
-    doors: [
-      { href: "/settings", label: "내 도량", say: "공덕과 부적", Icon: Person },
-      { href: "/lotus", label: "연꽃", say: "등을 밝히다", Icon: YeonkkotGold },
-      { href: "/goods", label: "서고", say: "불교용품", Icon: Bojagi },
+    rooms: [
+      ["/card", "신도증", "證"],
+      ["/wish", "소원", "願"],
+      ["/unryeok", "운력", "力"],
+      ["/lotus", "연꽃", "蓮"],
+      ["/archive#saved-sentences", "간직한 문장", "藏"],
+      ["/rank", "랭킹", "進"],
+      ["/draw", "오늘의 운세", "占"],
+      ["/saju", "산신각", "山"],
+      ["/tamjinchi", "불심투자", "投"],
+      ["/settings/preferences", "설정", "設"],
     ],
   },
 ];
 
 export default function DoryangMenu() {
   const [open, setOpen] = useState(false);
-  const [notes, setNotes] = useState(false);
-  const [merit, setMerit] = useState(0);
-  const [days, setDays] = useState(0);
-  const [returned, setReturned] = useState(0); // 회향한 화두 — 자리에 같이 든다
-  // 지금 도량에 몇이 있나 — 단추에 얹는다.
-  // 뜰 한복판에 「도량에 3명」이라고 적어 두었더니 낯간지러웠다.
-  // 수를 없앨 것은 아니고(혼자가 아니라는 건 봐야 한다) 자리를 옮긴 것이다 —
-  // 늘 떠 있는 단추 어깨에 작게 붙으면 눈에 걸리지 않고 언제든 보인다.
-  const [online, setOnline] = useState<number | null>(null);
   const here = usePathname();
 
-  useEffect(() => watchOnlineCount(setOnline), []);
-
-  // 판을 열 때마다 셈을 다시 읽는다 — 열자마자 오늘 것이 보여야 한다
+  // ── 뒤로가기는 판만 닫는다 ──
+  // 법당·인연 판과 같은 결(hwadooLayer): 열 때 층을 하나 쌓고, popstate 가 접는다.
+  // ✕·Esc 도 뒤로가기를 불러 쌓은 층을 같이 걷는다. 판 안의 길은 replace 로
+  // 그 층 자리를 갈아 끼운다 — 새 방에서 뒤로 가면 판을 연 그 방으로 한 번에.
   useEffect(() => {
-    if (!open) return;
-    setMerit(loadMerit().total);
-    setReturned(loadStore().history.length);
-    setDays(streakOf());
-  }, [open]);
-
-  // 길이 바뀌면 판은 스스로 닫힌다
-  useEffect(() => setOpen(false), [here]);
-
-  // 왼쪽 서랍이 열려 있으면 이 단추는 비킨다 — 두 판이 겹치면 엉킨다.
-  // 서랍은 문서에 `data-drawer` 표를 남긴다(Sidebar 참고).
-  const [drawer, setDrawer] = useState(false);
-  useEffect(() => {
-    const el = document.documentElement;
-    const read = () => setDrawer(el.hasAttribute("data-drawer"));
-    read();
-    const mo = new MutationObserver(read);
-    mo.observe(el, { attributes: true, attributeFilter: ["data-drawer"] });
-    return () => mo.disconnect();
+    const onMenu = () => {
+      if (document.querySelector(".hip-menu")) return;
+      try {
+        window.history.pushState({ ...window.history.state, hwadooLayer: true }, "");
+      } catch {
+        /* 못 쌓아도 판은 열린다 */
+      }
+      setOpen(true);
+    };
+    const onPop = () => setOpen(false);
+    window.addEventListener(MENU_EVENT, onMenu);
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener(MENU_EVENT, onMenu);
+      window.removeEventListener("popstate", onPop);
+    };
   }, []);
 
-  // 서랍이 열리면 이 판도 같이 닫는다 — 뒤에 열린 채 남아 있으면
-  // 서랍을 닫는 순간 판이 불쑥 나타난다
-  useEffect(() => {
-    if (drawer) setOpen(false);
-  }, [drawer]);
-
-  // 판이 열린 동안 뒤가 밀리지 않게
   useEffect(() => {
     if (!open) return;
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && window.history.back();
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, [open]);
 
-  // 자리는 공덕만으로 안 오른다 — 뜰·내 도량과 같은 셈을 쓴다.
-  // 여기만 rankOf(공덕) 였어서, 카드에는 「사미」 카드를 닫으면 뜰에는
-  // 「동자」가 떴다. 한 번의 탭으로 두 이름이 번갈아 보였다.
-  const rank = rankByNeed(realmOf(merit, returned).need);
+  // 닫혀 있을 땐 아예 그리지 않는다 — [role=dialog] 가 문서에 있기만 해도
+  // 아래 띠를 끄는 규칙(globals.css)이 걸린다
+  if (!open) return null;
 
+  const close = () => window.history.back();
   return (
-    <>
-      <style>{`
-        @keyframes dm-in { from { opacity:0; transform: translateY(14px) } to { opacity:1; transform:none } }
-        .dm-card { animation: dm-in .34s cubic-bezier(.2,.8,.3,1) both }
-      `}</style>
-
-      {/* 늘 떠 있는 단추 — 손안에서는 아래 띠 위로 올라선다.
-          왼쪽 서랍이 열려 있는 동안은 숨고, 손길도 안 받는다. */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        tabIndex={drawer ? -1 : undefined}
-        aria-hidden={drawer || undefined}
-        aria-label={open ? "닫기" : "도량 한눈에"}
-        title={
-          open
-            ? "닫기"
-            : online && online > 0
-              ? `도량 한눈에 · 지금 ${online}명이 들어와 있습니다`
-              : "도량 한눈에"
-        }
-        aria-expanded={open}
-        className="doryang-fab notes-fab fixed right-4 z-50 bottom-[calc(76px+env(safe-area-inset-bottom,0px)+18px)] flex h-12 w-12 items-center justify-center rounded-full border border-gold/40 bg-ink-2/95 shadow-[0_12px_34px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/70 active:scale-95 md:bottom-8 md:right-8 md:h-14 md:w-14"
-      >
-        <span
-          aria-hidden
-          className="relative block h-[15px] w-[19px]"
-          style={{ transition: "transform .3s", transform: open ? "rotate(90deg)" : "none" }}
-        >
-          {[0, 6, 12].map((y, i) => (
-            <span
-              key={y}
-              className="absolute left-0 block h-[1.6px] w-full rounded-full bg-gold"
-              style={{
-                top: open ? 6 : y,
-                opacity: open && i === 1 ? 0 : 1,
-                transform: open ? `rotate(${i === 0 ? 45 : i === 2 ? -45 : 0}deg)` : "none",
-                transition: "top .3s, transform .3s, opacity .2s",
-              }}
-            />
-          ))}
-        </span>
-        {/* 접속자 수는 여기 안 적는다 — 단추 어깨에 숫자만 있으면
-            무슨 수인지 알 길이 없다. 「손잡고 절로」 머리로 옮겼다. */}
-      </button>
-
-      {/* ── 판 ── */}
-      {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="도량 한눈에"
-          className="fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-ink/95 backdrop-blur-xl"
-          onClick={(e) => e.target === e.currentTarget && setOpen(false)}
-        >
-          <div className="mx-auto w-full max-w-3xl px-6 pb-[150px] pt-9 md:pb-24">
-            {/* 머리 — 지금 내 자리 한 줄 */}
-            <div className="dm-card flex items-baseline justify-between">
-              <p className="text-[11px] tracking-[0.42em] text-hanji-faint">道場 · 도량</p>
+    <div className="hip-menu" role="dialog" aria-modal="true" aria-label="전체 메뉴">
+      <div className="hip-menu-top">
+        <button type="button" className="hip-top-ico" aria-label="닫기" onClick={close}>
+          <svg viewBox="0 0 24 24" aria-hidden>
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+      {GROUPS.map((g) => (
+        <section key={g.title}>
+          <p className="hip-menu-sec">{g.title}</p>
+          <div className="dharma-rooms">
+            {g.rooms.map(([href, label, mark]) => (
               <Link
-                href="/settings"
+                key={href}
+                href={href}
+                replace
                 onClick={() => setOpen(false)}
-                className="text-[11.5px] tracking-wide text-gold-soft transition-colors hover:text-gold"
+                aria-current={href === here ? "page" : undefined}
               >
-                {rank.name} · {merit.toLocaleString("ko-KR")} 공덕
-                {days > 0 && <span className="text-hanji-faint"> · {days}일째</span>}
+                <span>{mark}</span>
+                {label}
               </Link>
-            </div>
-            <div className="dm-card mt-2.5 h-[3px] overflow-hidden rounded-full bg-ink-3">
-              <div
-                className="h-full rounded-full bg-gold transition-[width] duration-500"
-                style={{ width: `${(inRound(merit) / ROUND) * 100}%` }}
-              />
-            </div>
-
-            {/* 단추 어깨에 붙은 수가 무엇인지 — 여기서 말해 준다.
-                손안에서는 툴팁이 안 뜨니 숫자만 덩그러니 남아 있었다. */}
-            {online !== null && online > 0 && (
-              <p className="dm-card mt-2.5 text-[11.5px] text-hanji-faint">
-                지금 도량에{" "}
-                <span className="tabular-nums text-gold-soft">
-                  {online.toLocaleString("ko-KR")}
-                </span>
-                명이 들어와 있습니다
-              </p>
-            )}
-
-            {YARDS.map((yard, yi) => (
-              <section key={yard.title} className="mt-9">
-                <p
-                  className="dm-card text-[11px] tracking-[0.34em] text-hanji-faint"
-                  style={{ animationDelay: `${yi * 40}ms` }}
-                >
-                  <span className="mr-2 font-serif text-gold-soft">{yard.hanja}</span>
-                  {yard.title}
-                </p>
-                <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-                  {yard.doors.map((d, di) => {
-                    const on = d.href === here;
-                    const body = (
-                      <>
-                        <d.Icon
-                          className={`h-[26px] w-[26px] shrink-0 ${on ? "text-gold" : "text-gold-soft"}`}
-                        />
-                        <span className="mt-2.5 block break-keep text-[13.5px] leading-tight text-hanji">
-                          {d.label}
-                        </span>
-                        <span className="mt-1 block break-keep text-[11px] leading-4 text-hanji-faint">
-                          {d.say}
-                        </span>
-                      </>
-                    );
-                    const shell = `dm-card flex flex-col rounded-[15px] border px-3.5 py-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/55 hover:bg-gold/[0.06] ${
-                      on ? "border-gold/55 bg-gold/10" : "border-ink-3 bg-ink-2/45"
-                    }`;
-                    const delay = { animationDelay: `${yi * 40 + di * 26}ms` };
-                    return d.act === "notes" ? (
-                      <button
-                        key={d.label}
-                        onClick={() => {
-                          setOpen(false);
-                          setNotes(true);
-                        }}
-                        className={shell}
-                        style={delay}
-                      >
-                        {body}
-                      </button>
-                    ) : (
-                      <Link
-                        key={d.label}
-                        href={d.href ?? "/"}
-                        onClick={() => setOpen(false)}
-                        className={shell}
-                        style={delay}
-                      >
-                        {body}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </section>
             ))}
           </div>
-        </div>
-      )}
-
-      <NotesDrawer open={notes} onClose={() => setNotes(false)} />
-    </>
+        </section>
+      ))}
+    </div>
   );
 }

@@ -1851,3 +1851,30 @@ body:has(.dharma-sheet[data-open="1"]) nav.hip-mala .hip-mala-track { background
 .dharma-rooms { grid-template-columns: repeat(5, 1fr); gap: 4px; }
 .dharma-rooms a { font-size: 11.5px; letter-spacing: -0.04em; }
 .dharma-rooms a span { width: 50px; height: 50px; }
+
+/* ── 구성 정리(2026-11-24) — 형: 「디자인 변경 너무 말고 구성만」 「아래 메뉴 작게」 「오른쪽 위 세줄 메뉴 충분히 활용」 ──
+   ① 아래 띠: 64 → 52. 글자·동전만 한 치수씩 줄이고 생김새(한지 유리·먹 동전·금 점)는 그대로.
+   ② ☰ 전체 메뉴(DoryangMenu): 緣 판의 한지색 판 + 흰 칸(.dharma-rooms)을 그대로 쓴다. ✕ 는 ☰ 자리에. */
+nav.hip-mala .hip-mala-track { padding: 4px 4px calc(env(safe-area-inset-bottom, 0px) + 4px); }
+nav.hip-mala button, nav.hip-mala button[data-on="1"] { height: 44px; gap: 3px; }
+nav.hip-mala button b, nav.hip-mala button[data-on="1"] b { font-size: 18px; }
+nav.hip-mala button span { font-size: 10px; }
+nav.hip-mala button[data-mid="1"] b { top: -24px; width: 50px; height: 50px; margin-left: -25px; font-size: 22px; }
+nav.hip-mala[data-sheet="1"] button[data-mid="1"] b { font-size: 19px; }
+.dharma-sheet { bottom: calc(env(safe-area-inset-bottom, 0px) + 50px); }
+@media (min-width: 0px) { .hip-hall { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 50px); } }
+
+.hip-menu { position: fixed; inset: 0; z-index: 90; overflow-y: auto; overscroll-behavior: contain; background: #fbf8f1; padding: var(--hip-header-top, 18px) 20px calc(env(safe-area-inset-bottom, 0px) + 36px); animation: hip-menu-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1); }
+.hip-menu > * { max-width: 460px; margin-left: auto; margin-right: auto; }
+.hip-menu-top { height: var(--hip-header-height, 40px); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+.hip-menu-top .hip-top-ico { border: 0; background: none; cursor: pointer; color: #6e6455; }
+.hip-menu-sec { margin: 20px 4px 10px; font-size: 12px; color: #9a9186; letter-spacing: 0.04em; }
+.hip-menu section:first-of-type .hip-menu-sec { margin-top: 6px; }
+.hip-menu .dharma-rooms { row-gap: 14px; }
+.hip-menu .dharma-rooms span { font-family: var(--font-serif); font-size: 19px; line-height: 1; color: #6e6455; }
+.hip-menu .dharma-rooms a[aria-current="page"] span { color: #1a1714; box-shadow: 0 1px 6px rgba(26, 23, 20, 0.05), inset 0 0 0 1.5px #b07d26; }
+.hip-menu-btn { border: 0; background: none; cursor: pointer; }
+@keyframes hip-menu-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hip-menu { animation: none; } }
+/* 판 바닥이 비워 두던 띠 자리(--hip-rail, 96) — 띠가 낮아진 만큼(동전 윗끝 72 + 10) 줄인다 */
+:root { --hip-rail: 82px; }

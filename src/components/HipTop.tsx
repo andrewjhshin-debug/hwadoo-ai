@@ -19,7 +19,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { openMenu } from "@/components/DoryangMenu";
 import SilTop from "@/components/SilTop";
 import SoundMuteToggle from "@/components/SoundMuteToggle";
 import { useWalking } from "@/components/WalkingRuntime";
@@ -38,9 +38,7 @@ export default function HipTop({
   // 줄이 셋이 되면서 **나머지 셋이 통째로 오른쪽으로 밀렸다.** 판을
   // 넘길 때마다 연꽃 셈이 자리를 옮기니 눈이 그것을 따라다녔다.
   // 자리는 고정이 먼저다. 지금 있는 자리는 지우는 대신 **채워서** 알린다.
-  const path = usePathname();
   const walking = useWalking();
-  const here = path === "/settings";
   return (
     <div className="hip-top-right">
       {/* 형: 「앱 전반에 이거는 뜨지 않고, 연꽃이 실제 쓰이는 데만」
@@ -61,15 +59,13 @@ export default function HipTop({
           <path d="M3.6 7l8.4 6 8.4-6" />
         </svg>
       </Link>
-      {here ? (
-        <span className="hip-top-ico" data-on="1" aria-current="page">
-          <b>我</b>
-        </span>
-      ) : (
-        <Link href="/settings" aria-label="내 도량" className="hip-top-ico">
-          <b>我</b>
-        </Link>
-      )}
+      {/* 형(2026-11-24): 「오른쪽 위 세줄 메뉴 같은거 충분히 활용」.
+          我 는 아래 띠 我 와 같은 길이라 겹쳤다 — 그 자리에 ☰(전체 메뉴, DoryangMenu) */}
+      <button type="button" className="hip-top-ico hip-menu-btn" aria-label="전체 메뉴" aria-haspopup="dialog" onClick={openMenu}>
+        <svg viewBox="0 0 24 24" aria-hidden>
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
       {children}
     </div>
   );

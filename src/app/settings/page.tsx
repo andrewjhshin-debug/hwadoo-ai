@@ -247,7 +247,7 @@ const SERVICES: ServiceItem[] = [
   { href: "/rank", label: "랭킹", Icon: Moment },
   { href: "/tea", label: "차 한 잔", Icon: Teacup },
   { href: "/goods", label: "서고", Icon: Bojagi },
-  { href: "/tamjinchi", label: "불심 투자", Icon: Jeoul },
+  { href: "/tamjinchi", label: "불심투자", Icon: Jeoul },
 ];
 
 // 이 달의 흐름 — 여러 갈래를 한 그래프에 선으로 겹쳐 그린다.
