@@ -6,6 +6,9 @@ import { isSoundMuted, setSoundMuted, SOUND_MUTE_EVENT, isVibeOff, setVibeOff } 
 import { wakeSound } from "@/lib/sound";
 import { getWalking, subscribeWalking, toggleWalking, WALKING_EMPTY } from "@/lib/walking";
 import { pushState, enablePush, disablePush, type PushState } from "@/lib/push";
+import { watchAuth } from "@/lib/sync";
+import { CONTACT_EMAIL } from "@/lib/config";
+import { 초대하기 } from "@/components/InviteCatch";
 import "./preferences.css";
 
 function PreferenceIcon({ kind }: { kind: string }) {
@@ -19,6 +22,9 @@ export default function PreferencesPage() {
   const [sound, setSound] = useState(true), [vibe, setVibe] = useState(true);
   const [push, setPush] = useState<PushState | "loading">("loading"), [busy, setBusy] = useState(false), [notice, setNotice] = useState("");
   const walking = useSyncExternalStore(subscribeWalking, getWalking, () => WALKING_EMPTY);
+  // 검수(2026-11-24): 친구 초대는 내 도량 SetRows 에만 있었는데 HipMe 가 그걸 안 그려 폰에선 닿을 길이 없었다 — 여기로 옮긴다
+  const [uid, setUid] = useState<string | null>(null);
+  useEffect(() => watchAuth((u) => setUid(u?.uid ?? null)), []);
   useEffect(() => {
     const sync = () => { setSound(!isSoundMuted()); setVibe(!isVibeOff()); };
     const refresh = () => { sync(); void pushState().then(setPush).catch(() => setPush("off")); };
@@ -47,8 +53,12 @@ export default function PreferencesPage() {
       <Toggle icon="vibe" label="진동" on={vibe} click={() => { setVibeOff(vibe); setVibe(!vibe); }}/>
       <Toggle icon="walking" label="포행" on={walking.on} disabled={walking.starting} click={toggleWalking}/>
     </section>
-    <section aria-label="알림 설정" className="preference-card preference-separated"><Toggle icon="bell" label="알림" on={push === "on"} disabled={busy || push === "loading" || push === "unsupported"} click={() => void notification()}/></section>
-    {(notice || push === "unsupported") && <p role="status" className="preference-notice">{notice || "이 기기에서는 알림을 지원하지 않아요."}</p>}
-    <nav aria-label="이용 안내" className="preference-card preference-separated"><a className="preference-row" href="mailto:admin@ibod.co.kr"><span className="preference-icon preference-han" aria-hidden>問</span>문의<span className="preference-chevron">›</span></a><Link className="preference-row" href="/about"><span className="preference-icon preference-han" aria-hidden>案</span>이용 안내<span className="preference-chevron">›</span></Link></nav>
+    {/* 검수(2026-11-24): 앱(WebView)은 푸시를 못 받는다 — 잠긴 토글·안내 줄 대신 칸째 걷는다. 살피는 동안도 안 띄운다 */}
+    {push !== "loading" && push !== "unsupported" && <>
+      <section aria-label="알림 설정" className="preference-card preference-separated"><Toggle icon="bell" label="알림" on={push === "on"} disabled={busy} click={() => void notification()}/></section>
+      {notice && <p role="status" className="preference-notice">{notice}</p>}
+    </>}
+    {/* 검수(2026-11-24): 다른 곳과 같이 「서비스 소개」, 메일은 config 의 CONTACT_EMAIL 한 곳에서 */}
+    <nav aria-label="이용 안내" className="preference-card preference-separated">{uid && <button className="preference-row" type="button" onClick={() => void 초대하기(uid)}><span className="preference-icon preference-han" aria-hidden>招</span>친구 초대<span className="preference-chevron">›</span></button>}<a className="preference-row" href={`mailto:${CONTACT_EMAIL}`}><span className="preference-icon preference-han" aria-hidden>問</span>문의<span className="preference-chevron">›</span></a><Link className="preference-row" href="/about"><span className="preference-icon preference-han" aria-hidden>案</span>서비스 소개<span className="preference-chevron">›</span></Link></nav>
   </main></HipRoom>;
 }

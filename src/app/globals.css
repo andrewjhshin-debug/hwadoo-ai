@@ -1307,11 +1307,11 @@ body:has(.hip-masters) .hip-daybar { display: none; }
 h1:has(.hip-hall-n) { letter-spacing: .02em !important; font-size: 14px !important; }
 /* 같이 가요 단체방 — 아래서 올라오는 판 */
 .hip-room-veil { position: fixed; inset: 0; z-index: 90; display: flex; align-items: flex-end; background: rgba(20,20,20,.45); }
-.hip-room { display: flex; flex-direction: column; width: 100%; height: 86dvh; border-radius: 22px 22px 0 0; background: #fff; padding-bottom: env(safe-area-inset-bottom); }
-.hip-room header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 10px; border-bottom: 1px solid #f1eef0; }
-.hip-room header b { display: block; font-size: 16px; color: #141414; }
-.hip-room header small { font-size: 12px; color: #e0567f; }
-.hip-room header button { width: 34px; height: 34px; border-radius: 50%; background: #f4f2f3; color: #555; }
+.hip-room-veil > .hip-room { display: flex; flex-direction: column; width: 100%; height: 86dvh; border-radius: 22px 22px 0 0; background: #fff; padding-bottom: env(safe-area-inset-bottom); }
+.hip-room-veil .hip-room header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 10px; border-bottom: 1px solid #f1eef0; }
+.hip-room-veil .hip-room header b { display: block; font-size: 16px; color: #141414; }
+.hip-room-veil .hip-room header small { font-size: 12px; color: #e0567f; }
+.hip-room-veil .hip-room header button { width: 34px; height: 34px; border-radius: 50%; background: #f4f2f3; color: #555; }
 .hip-room-faces { display: flex; gap: 12px; overflow-x: auto; padding: 10px 18px; border-bottom: 1px solid #f1eef0; }
 .hip-room-faces span { flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .hip-room-faces .hip-go-face { width: 36px; height: 36px; margin: 0; font-size: 13px; }
@@ -1399,7 +1399,7 @@ body:has(.hip-yh, .hip-yeon-deck, .hip-yeon-head) .hip-bloom { display: none !im
 .hip-yeon-deck li > span { text-shadow: none !important; }
 .hip-yeon-deck li > span:empty::before { content: ""; display: block; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(201,162,104,.75); box-shadow: 0 0 0 6px rgba(201,162,104,.12); }
 .hip-room-msgs p[data-me="1"] span { background: #1a1a1c !important; }
-.hip-room header small { color: #a8804a !important; }
+.hip-room-veil .hip-room header small { color: #a8804a !important; }
 .hip-yeon-avatar-on input { accent-color: #1a1a1c !important; }
 .hip-seat-go { background: #f4f1ec !important; color: #6e5a3e !important; }
 
@@ -1640,7 +1640,10 @@ textarea[data-short="1"] + .hip-qa-min { display: block; }
 /* 머리띠(HipHeader) 없는 옛 판 — 「오늘의 공덕」 띠가 제목 위에 얹혔다(굿즈·비움·간화선·순례·외우기·약관…).
    띠가 보이는 판이면 그만큼 본문을 내린다. 띠를 숨기는 판(법당·인연·선지식·알림)은 빼고 */
 @media (max-width: 767px) {
-  body:not(:has(.hip-room, .hip-hall, .hip-gather-page, .hip-masters, .hip-alerts)) #scroll-box > div { padding-top: calc(env(safe-area-inset-top, 0px) + 84px) !important; }
+  /* 본문을 내리는 대신 **굴림 통을 머리 아래에서 시작**시킨다 — 본문만 내리면 굴리는 순간 글이 투명한 머리·공덕 띠 밑으로
+     흘러 들어가 글자끼리 포개졌다(약관·순례·차 한 잔·랭킹·서고…). 시작선은 HipRoom 판의 머리 자리(.hip-header-slot)와 같다.
+     머리와 띠를 둘 다 걷는 판(체험하기·대시보드·제 머리를 따로 세우는 쪽지)은 뺀다 */
+  body:not(:has(.hip-room, .hip-hall, .hip-gather-page, .hip-masters, .hip-alerts, .try-page, main.desk, .yA-head-slot)) #scroll-box { margin-top: calc(var(--hip-header-top, 18px) + var(--hip-header-height, 40px) + 38px); }
 }
 /* 알림 — 제 머리(← 알림)가 있으니 공덕 띠를 걷고, 폭을 끝까지 */
 body:has(.hip-alerts) .hip-daybar { display: none !important; }
@@ -1862,7 +1865,6 @@ nav.hip-mala button span { font-size: 10px; }
 nav.hip-mala button[data-mid="1"] b { top: -24px; width: 50px; height: 50px; margin-left: -25px; font-size: 22px; }
 nav.hip-mala[data-sheet="1"] button[data-mid="1"] b { font-size: 19px; }
 .dharma-sheet { bottom: calc(env(safe-area-inset-bottom, 0px) + 50px); }
-@media (min-width: 0px) { .hip-hall { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 50px); } }
 
 .hip-menu { position: fixed; inset: 0; z-index: 90; overflow-y: auto; overscroll-behavior: contain; background: #fbf8f1; padding: var(--hip-header-top, 18px) 20px calc(env(safe-area-inset-bottom, 0px) + 36px); animation: hip-menu-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1); }
 .hip-menu > * { max-width: 460px; margin-left: auto; margin-right: auto; }
@@ -1878,3 +1880,23 @@ nav.hip-mala[data-sheet="1"] button[data-mid="1"] b { font-size: 19px; }
 @media (prefers-reduced-motion: reduce) { .hip-menu { animation: none; } }
 /* 판 바닥이 비워 두던 띠 자리(--hip-rail, 96) — 띠가 낮아진 만큼(동전 윗끝 72 + 10) 줄인다 */
 :root { --hip-rail: 82px; }
+/* .hip-room 이란 이름을 두 곳이 같이 쓴다 — 같이 가요 단체방(아래서 오르는 86% 판, GatheringBoard)과 공덕 방 화면(HipRoom).
+   판 규칙(높이 86dvh·위 둥근 모서리·머리 줄)이 방 화면에 새어 들어와 백팔배·멍·호흡·만다라·삼귀의·포행·돌탑이 화면 86% 에서
+   잘리고 그 밑에 바탕 띠가 비어 남았다(돌탑 ‖ 단추도 회색 판이 됐다). 판 규칙은 .hip-room-veil 안으로 가뒀고,
+   방 화면은 온 화면 — 띠 자리는 굴림 통 안쪽 바닥이 비운다 */
+.hip-screen.hip-room .hip-screen-mid { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail)) !important; }
+/* 하심 홀로 화면은 아래 띠가 없다 — 띠 자리를 비우면 흰 판이 바닥 앞에서 끊긴다 */
+.hip-screen.hip-room:has(.hasim-solo) .hip-screen-mid { padding-bottom: 0 !important; }
+
+/* ── 검수(2026-11-24) — 판 위에 머리가 얹히던 것들 ──
+   머리(.hip-app-header)와 공덕 띠는 #scroll-box 바깥(뿌리)에 떠 있어서, 통 안의 판은 z 로 그 위를 못 덮는다.
+   판이 떠 있는 동안은 머리를 걷는다 — 사유의 방 서랍(✕ 를 누르면 밑의 머리 단추가 눌렸다)·답 쓰는 판·돌탑 기록 나누기 */
+body:has(.notes-panel[aria-hidden="false"]) :is(.hip-app-header, .hip-daybar) { display: none !important; }
+body[data-writing] :is(.hip-app-header, .hip-daybar) { display: none !important; }
+body:has(.tower-share-veil) :is(.hip-app-header, .hip-daybar, .hip-lanes-wrap, .hip-mala) { visibility: hidden !important; }
+/* 법당 — 옛 판 바닥 여백(main 92px)이 판 키(100dvh)에 더해져 법당이 92px 위로 밀려 올라갔다. 그림은 띠 위까지 */
+#scroll-box > div > main:has(.hip-hall) { padding-bottom: 0 !important; }
+/* 계정 삭제 — 로그아웃 밑 옅은 한 줄(구글 플레이: 앱 안에서 지우는 길) */
+.hip-acc-erase { display: block; margin: 14px auto 0; padding: 4px 0; font-size: 11px; color: #b4ac9f; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; }
+/* 설치 띠(웹에서만 뜬다)가 떠 있으면 방 화면 굴림 통도 띠 높이만큼 더 비운다 — 위 !important 가 hip.css 의 띠 규칙을 눌러 만다라 색·돌탑 나누기가 띠에 덮였다 */
+body:has(.install-banner-on) .hip-screen.hip-room:not(:has(.hasim-solo)) .hip-screen-mid { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--hip-rail) + 76px) !important; }

@@ -76,8 +76,9 @@ const DRAW_CSS = `
   );
   animation: draw-spread 1300ms 340ms ease-out both;
 }
+/* 검수(2026-11-24): 굴림 통(#scroll-box)은 이제 머리 아래서 시작한다 — 통에도 같은 빛깔을 칠하면 그 자리에서 다시 시작해 가로 금이 생겼다. 바탕(body)만 칠한다 */
 /* 법당 빛깔 — 형: 「운세니까 핑크 민트 빼고 법당처럼」. 바탕은 등불 받은 한지, 패 뒷면은 단청 옻칠, 앞면은 한지에 주홍 도장 */
-html:has(.draw-hall), body:has(.draw-hall), body:has(.draw-hall) .hip-screen, body:has(.draw-hall) #scroll-box { background: radial-gradient(120% 60% at 50% 0%, #fdf6e8, #f1e3c9 58%, #e6d2ae) !important; }
+html:has(.draw-hall), body:has(.draw-hall), body:has(.draw-hall) .hip-screen { background: radial-gradient(120% 60% at 50% 0%, #fdf6e8, #f1e3c9 58%, #e6d2ae) !important; }
 body:has(.draw-hall) .hip-bloom, body:has(.draw-hall) #scroll-box::before { display: none !important; }
 .draw-hall { --color-gold: #a8771f; --color-gold-soft: #8a6328; --color-hanji: #2b1d13; --color-hanji-dim: #5b4532; --color-hanji-faint: #8c7458; --color-ink-3: rgba(138, 99, 40, 0.22); color: var(--color-hanji); }
 .draw-hall .draw-saeil { background: rgba(160, 52, 36, 0.08); color: #8e2e20; box-shadow: inset 0 0 0 1px rgba(160, 52, 36, 0.22); }
@@ -194,9 +195,7 @@ export default function DrawPage() {
             {Number(book.day.slice(8))}
             <span className="ml-1 align-middle text-[20px] text-hanji-faint">일</span>
           </p>
-          <p className="rise rise-d1 mt-2.5 text-[12.5px] text-hanji-faint">
-            패를 누르면 오늘이 열려요
-          </p>
+          {/* 검수(2026-11-24): 안내 줄 「패를 누르면 오늘이 열려요」를 뗐다 — 문구는 최소로 */}
         </>
       )}
 

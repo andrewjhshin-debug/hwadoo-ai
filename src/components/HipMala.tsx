@@ -49,7 +49,8 @@ export const BEADS: Bead[] = [
     also: ["/pilgrimage", "/gathering/yeon", "/gathering/me", "/gathering/me/view", "/gathering/alerts", "/gathering/likes", "/letters", "/go", "/moment"],
   },
   // 형: 「호흡은 왜 我로 표기되지」 — 功 줄(HipLanes)의 방은 전부 功 안이다. 목록을 손으로 따로 적지 않고 그 줄에서 읽는다
-  { mark: "功", name: "공덕", href: "/moktak", also: [...ROOM_LANES.map((r) => r.href), "/tower/challenge"] },
+  // 검수(2026-11-24): 외우기도 수행(☰ 「수행」 칸) — 어느 알에도 없어 다섯 알이 다 꺼진 채였다
+  { mark: "功", name: "공덕", href: "/moktak", also: [...ROOM_LANES.map((r) => r.href), "/tower/challenge", "/sutra"] },
   {
     mark: "我",
     // 형: 「아래탭 맨 오른쪽 앱은 연꽃공양 말고 내 도량으로」.
@@ -57,7 +58,8 @@ export const BEADS: Bead[] = [
     // 읽어 주는 이름만 바로잡는다
     name: "나",
     href: "/settings",
-    also: ["/rank", "/empty", "/tamjinchi", "/tamjinchi/records", "/lotus", "/settings/preferences", "/about", "/terms", "/privacy", "/youth", "/card", "/wish", "/unryeok", "/pet", "/learn"],
+    // 검수(2026-11-24): 서고·차 한 잔·운세·산신각·체험하기가 어느 알에도 없어 그 방에선 다섯 알이 다 꺼졌다
+    also: ["/rank", "/empty", "/tamjinchi", "/tamjinchi/records", "/lotus", "/settings/preferences", "/about", "/terms", "/privacy", "/youth", "/card", "/wish", "/unryeok", "/pet", "/learn", "/goods", "/tea", "/draw", "/saju", "/try"],
   },
 ];
 

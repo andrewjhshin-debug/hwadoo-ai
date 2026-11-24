@@ -138,7 +138,8 @@
 .hip-hall:has(.hip-hall-interior) {
   max-width: none;
   gap: 0;
-  padding: 0 0 calc(env(safe-area-inset-bottom, 0px) + 66px);
+  /* 검수(2026-11-24): 아래 띠가 52 로 낮아졌다 — 그림이 띠 바로 위까지(띠 밑은 안 밟는다) */
+  padding: 0 0 calc(env(safe-area-inset-bottom, 0px) + 52px);
 }
 .hip-hall:has(.hip-hall-interior) .hip-hall-top { display: none; }
 .hip-hall-sky.hip-hall-interior {

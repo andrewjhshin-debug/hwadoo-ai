@@ -13,8 +13,8 @@
 //
 // 화면을 다시 짠 까닭 —
 // 여기는 읽는 자리가 아니라 앉는 자리다. 눈을 감기 직전에 보는 것이
-// 설명문이면 몸에 남는 게 없다. 그래서 안내는 한 문장도 버리지 않고
-// <details> 안으로 접었고, 한가운데에는 큰 숫자 하나만 남겼다.
+// 설명문이면 몸에 남는 게 없다. 그래서 안내는 걷었고(검수(2026-11-24):
+// 접어 두었던 <details> 까지), 한가운데에는 큰 숫자 하나만 남겼다.
 // 그 숫자 하나가 판마다 뜻을 바꾼다 —
 //   시작 전: 오늘 몇 판 · 숨 쉬는 중: 지금까지 몇 식 · 마친 뒤: 이번에 쉰 숨.
 // 오늘치는 하루 장부(daily)에서 읽는다 — 어제 앉은 것이 오늘로 넘어오지 않게.
@@ -30,7 +30,6 @@ import {
   warmLoop,
 } from "@/lib/breathLoop";
 import { loadDaily } from "@/lib/daily";
-import { MERIT_VALUE } from "@/lib/merit";
 import { breatheIn, breatheOut, startAmbient, wakeBreath } from "@/lib/sound";
 import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
 
@@ -409,17 +408,15 @@ export default function BreathPage() {
         {/* 클라이언트 페이지라 metadata 는 못 내보낸다 — 만다라와 같은 관례 */}
         <style>{BREATH_CSS}</style>
 
-        {/* 머리는 두 겹까지 — 한자 한 줄과 제목 한 줄.
-            나머지 안내는 아래 접힌 자리에 그대로 들어 있다 */}
+        {/* 머리는 한자 한 줄.
+            검수(2026-11-24): 비어 있던 h1 을 걷고 그 여백(mt-2)은 원에 얹었다(mt-4→mt-6) — 원 자리 그대로 */}
         <p className="rise text-[11px] tracking-[0.5em] text-gold-soft">
           息 · 호흡
         </p>
-        <h1 className="rise rise-d1 mt-2 break-keep font-serif text-lg font-light text-hanji">
-        </h1>
 
         {/* 원은 transform 으로만 커지므로 자리는 흔들리지 않는다 */}
         <div
-          className="rise rise-d2 relative mt-4 flex items-center justify-center"
+          className="rise rise-d2 relative mt-6 flex items-center justify-center"
           style={{ width: RING_BOX, height: RING_BOX }}
         >
           <svg
@@ -504,9 +501,7 @@ export default function BreathPage() {
         <div className="flex min-h-[212px] w-full flex-col items-center">
         {stage === "ready" && (
           <div className="rise rise-d3 flex w-full max-w-[300px] flex-col items-center">
-            <p className="mt-4 break-keep text-[13px] leading-6 text-hanji-dim">
-              눈을 감고 하면 더 효과적입니다.
-            </p>
+            {/* 검수(2026-11-24): 「눈을 감고 하면 더 효과적입니다」 줄 걷음 — 형: 「어디든 문구는 최소화해」 */}
             <div className="mt-4 flex items-center gap-3">
               <button
                 type="button"
@@ -520,7 +515,6 @@ export default function BreathPage() {
 
           </div>
         )}
-        </div>
 
         {stage === "breathing" && (
           <div className="flex flex-col items-center">
@@ -577,32 +571,11 @@ export default function BreathPage() {
             </div>
           </div>
         )}
+        {/* 검수(2026-11-24): 이 칸이 「시작」 판만 감싸고 닫혀 있어서, 숨 쉬는 판·마친 판은 칸 밖에 붙었다 —
+            시작을 누르면 키가 늘어 가운데 정렬된 원이 50px 위로 튀었다. 세 판을 다 이 칸 안에 둔다 */}
+        </div>
 
-        {/* 안내는 지우지 않고 접었다 — 처음 앉는 사람만 펴 보면 된다.
-            한 판을 마쳤다고 사라지지 않는다. 한 판은 삼 분이고, 그 사이에
-            안내를 다 외우는 사람은 없다. 숨 쉬는 동안만 비운다. */}
-        {/* 「처음이신가요」는 **늘 둔다.** 한 판이 끝나면 사라지게 했더니,
-            정작 두 번째 판에서 궁금해진 사람이 찾을 데가 없었다.
-            접혀 있으니 자리도 안 먹는다. */}
-        <details className="rise rise-d3 mt-5 w-full max-w-[300px] rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3 text-left">
-            <summary className="cursor-pointer list-none text-[12.5px] text-hanji-dim marker:hidden">
-              <span className="text-gold-soft">＋</span> 처음이신가요
-            </summary>
-            <div className="mt-3 space-y-2.5 border-t border-ink-3 pt-3">
-              <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
-                날숨을 들숨보다 길게 — 몸이 스스로 가라앉습니다. 넷을 세며
-                천천히 들이쉬고, 여섯을 세며 길게 내쉽니다.
-              </p>
-              <p className="break-keep text-[12.5px] leading-6 text-hanji-dim">
-                화면을 보지 않아도 됩니다. 숨소리가 차오르면 들숨, 잦아들면
-                날숨입니다.
-              </p>
-              <p className="break-keep text-[12px] leading-6 text-hanji-faint">
-                열 번을 세는 동안이 한 식(息)입니다. 한 식마다 공덕{" "}
-                {MERIT_VALUE.breath} — 오래 앉을수록 더 쌓입니다.
-              </p>
-            </div>
-        </details>
+        {/* 검수(2026-11-24): 「＋ 처음이신가요」 설명 접이 걷음 — 형: 「어디든 문구는 최소화해」 */}
       </div>
     </HipRoom>
   );

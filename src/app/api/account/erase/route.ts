@@ -69,6 +69,18 @@ export async function POST(req: Request) {
   ownTokens.docs.forEach((doc) => batch.delete(doc.ref));
   await batch.commit();
 
+  // 검수(2026-11-24): 순위 줄 — 이제 앱 전체가 공덕을 순위에 올린다(VisitLedger → startRankSync).
+  // 지운 사람이 그날 판과 사람 수에 남지 않게 함께 걷는다
+  for (;;) {
+    const ownRank = await db.collection("rank-daily").where("uid", "==", uid).limit(400).get();
+    if (ownRank.empty) break;
+    const rb = db.batch();
+    ownRank.docs.forEach((d) => rb.delete(d.ref));
+    await rb.commit();
+    if (ownRank.size < 400) break;
+  }
+  await db.doc(`rank-sutra/${uid}`).delete().catch(() => {});
+
   await getAuth(app).deleteUser(uid);
   return Response.json({ ok: true });
 }

@@ -88,8 +88,9 @@ export default function CardPage() {
     <HipRoom here="/card" lanes={false} rail="/settings">
       <div className={s.wrap}>
         <div>
-          <p className={s.kicker}>證 · 화두 신도증</p>
-          <h1 className={s.title}>절에 갈 때 꺼내는 한 장</h1>
+          {/* 검수(2026-11-24): 안내 줄 「절에 갈 때 꺼내는 한 장」 → 방 이름 한 낱말. 소원·운력과 같은 머리(한자 어깨글 + 이름) */}
+          <p className={s.kicker}>證</p>
+          <h1 className={s.title}>신도증</h1>
         </div>
 
         <div className={s.id}>
@@ -107,7 +108,8 @@ export default function CardPage() {
         </div>
 
         {/* 계급 — 여섯 자리를 빛깔로. 지금 자리만 굵게 테를 두른다 */}
-        <div className="card-ranks" style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6 }}>
+        {/* 검수(2026-11-24): 양끝 칸의 테(3.5px)가 굴림통 가장자리에서 잘렸다 — 좌우 안쪽 여백 4 */}
+        <div className="card-ranks" style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6, paddingInline: 4 }}>
           {RANKS.map((r) => {
             const here = r.hanja === rank.hanja;
             const got = r.need <= rank.need;

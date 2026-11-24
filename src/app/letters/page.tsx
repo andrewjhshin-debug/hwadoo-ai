@@ -247,12 +247,8 @@ export default function LettersPage() {
     return (
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-6 py-14 text-center">
         <InyeonNav active="letters" />
-        <p className="text-sm tracking-[0.5em] text-gold-soft">쪽지</p>
-        <p className="mt-6 break-keep text-[14px] leading-7 text-hanji-dim">
-          {!visible
-            ? "아직 열리지 않은 방입니다."
-            : "로그인하면 쪽지를 주고받을 수 있어요"}
-        </p>
+        {/* 검수(2026-11-24): 위 탭과 겹치던 「쪽지」 머리와 안내 줄 「로그인하면 …」을 뗐다 — 단추만 둔다 */}
+        {!visible && <p className="mt-6 break-keep text-[14px] leading-7 text-hanji-dim">아직 열리지 않은 방입니다.</p>}
         {/* 막다른 길이었다 — 글만 있고 누를 데가 없었다. 로그인은 「나」 화면에 있다 */}
         {visible && <Link href="/settings" className="mt-8 inline-flex h-12 items-center rounded-full bg-[#1a1a1c] px-8 text-[14px] tracking-[0.2em] text-white">로그인하러 가기</Link>}
       </div>

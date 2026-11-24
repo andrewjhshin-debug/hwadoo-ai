@@ -303,7 +303,9 @@ export default function BaePage() {
                       : count === 0
                         ? senseOn
                           ? "절하면 세어져요"
-                          : "눌러서 시작"
+                          : // 검수(2026-11-24): 폰에선 눌러도 안 센다(193줄) — 「눌러서」는 넓은 화면에만.
+                            // hidden 이 아니라 invisible — 줄 키가 남아야 숫자가 안 튄다
+                            <span className="max-md:invisible">눌러서 시작</span>
                         : `${left} 남음`}
                 </span>
               </>
@@ -325,8 +327,9 @@ export default function BaePage() {
               >
                 한 번 더
               </button>
+              {/* 검수(2026-11-24): 회향은 법당(/candle)에서만 돌린다 — 설정엔 돌릴 자리가 없다(settings 405줄) */}
               <Link
-                href="/settings"
+                href="/candle"
                 className="rounded-[10px] border border-gold/50 px-4 py-2 text-[12px] tracking-[0.15em] text-gold transition-colors hover:bg-gold/10"
               >
                 회향하러 가기
@@ -374,11 +377,12 @@ export default function BaePage() {
                 </div>
               )}
 
+              {/* 검수(2026-11-24): 폰에선 눌러도 안 센다(193줄) — 「눌러서 세어도」는 넓은 화면에만 */}
               <p className="mt-2 break-keep text-[11.5px] leading-5 text-hanji-faint">
                 {!senseWanted
-                  ? "눌러서 세어도 됩니다."
+                  ? <span className="max-md:hidden">눌러서 세어도 됩니다.</span>
                   : sense === "denied"
-                    ? "움직임을 쓰려면 권한이 필요해요. 눌러서 세어도 됩니다."
+                    ? <>움직임을 쓰려면 권한이 필요해요.<span className="max-md:hidden"> 눌러서 세어도 됩니다.</span></>
                     : sense === "unsupported"
                       ? // 「이 기기에서는 기울기를 못 읽어요」는 기계 설명이었다.
                         // 형: 「웹은 움직임을 못 읽어요. 눌러서 세어도 됩니다.

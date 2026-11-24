@@ -51,6 +51,8 @@ const GROUPS: { title: string; rooms: [string, string, string][] }[] = [
       ["/learn", "불교 공부", "學"],
       ["/room", "사유의 방", "思"],
       ["/my-hwadu", "화두 던지기", "問"],
+      // 형: 「버튼 중에 체험하기 하나 넣고 되살리자」 — 내 도량 「전체 보기」를 걷으며 길이 끊겼던 것을 여기로
+      ["/try", "체험하기", "試"],
       ["/archive", "지난 화두", "庫"],
       ["/goods", "서고", "書"],
     ],
@@ -141,7 +143,8 @@ export default function DoryangMenu() {
                 href={href}
                 replace
                 onClick={() => setOpen(false)}
-                aria-current={href === here ? "page" : undefined}
+                // 판은 열렸을 때만 그려지니 주소의 # 를 읽어도 된다 — 지난 화두와 간직한 문장(#saved-sentences)을 가른다
+                aria-current={href === here + window.location.hash ? "page" : undefined}
               >
                 <span>{mark}</span>
                 {label}

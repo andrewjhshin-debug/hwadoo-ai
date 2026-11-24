@@ -1,7 +1,7 @@
 "use client";
 
 // 기록 — 회향을 마친 화두들의 서고(書庫). 답은 고쳐 쓰거나 지울 수 있다.
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { flatQuestion, getHwadu, sessionQuestion, sessionTitle } from "@/lib/hwadu";
 import { parseThoughts, whenLabel } from "@/lib/thoughts";
@@ -17,6 +17,21 @@ import { useConfirm } from "@/components/Confirm";
 import { SavedSentenceList } from "@/components/SavedSentences";
 
 const MAX_ANSWER = 500;
+
+// 검수(2026-11-24): 「지난 화두」(/archive)·「간직한 문장」(#saved-sentences)이 한 화면 맨 위로 같이 열렸다 — # 로 갈라 한쪽만 그린다.
+// Link 는 pushState 라 hashchange 가 안 울린다 — navigation 의 currententrychange 도 듣고, Next 가 그리는 도중에 주소를 바꾸니 한 박자 미룬다.
+function subscribeHash(onChange: () => void) {
+  const nav = (window as Window & { navigation?: EventTarget }).navigation;
+  const later = () => queueMicrotask(onChange);
+  window.addEventListener("hashchange", later);
+  nav?.addEventListener("currententrychange", later);
+  return () => {
+    window.removeEventListener("hashchange", later);
+    nav?.removeEventListener("currententrychange", later);
+  };
+}
+const readHash = () => window.location.hash;
+const serverHash = () => "";
 
 // 서고를 두 갈래로만 나눈다 — 갈래가 늘면 서고가 아니라 서랍장이 된다
 const TABS = [
@@ -56,10 +71,16 @@ export default function ArchivePage() {
   const [editKey, setEditKey] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("all");
+  const saved = useSyncExternalStore(subscribeHash, readHash, serverHash) === "#saved-sentences";
 
   useEffect(() => {
     setHistory(loadStore().history);
   }, []);
+
+  // 검수(2026-11-24): # 만 바뀌면 길이 같아 ScrollTop 이 안 돈다 — 갈래를 바꾸면 맨 위부터
+  useEffect(() => {
+    document.getElementById("scroll-box")?.scrollTo(0, 0);
+  }, [saved]);
 
   // 답을 고쳐 쓴다
   const saveEdit = (s: Session) => {
@@ -88,6 +109,15 @@ export default function ArchivePage() {
     setHistory(next);
   };
 
+  // 검수(2026-11-24): 「간직한 문장」으로 왔으면 그것만 — 닻(id)은 SavedSentenceList 가 지닌다
+  if (saved) {
+    return (
+      <div className="mx-auto w-full max-w-xl flex-1 px-6 py-14">
+        <SavedSentenceList />
+      </div>
+    );
+  }
+
   if (!history) return null;
 
   // 목록을 그리는 동안 '지금'을 한 번만 고정한다 — 카드마다 날수가 달라지지 않게
@@ -99,10 +129,10 @@ export default function ArchivePage() {
 
   return (
     <div className="mx-auto w-full max-w-xl flex-1 px-6 py-14">
-      <SavedSentenceList />
       {/* 머리는 두 겹까지 — 한자 눈금과 큰 숫자. 설명문은 두지 않는다 */}
       <header className="rise">
-        <p className="text-[11px] tracking-[0.5em] text-gold-soft">書庫</p>
+        {/* 검수(2026-11-24): 書庫 → 庫 — 서고(書)는 이제 /goods 이름이라 메뉴의 「지난 화두」 庫 와 맞춘다 */}
+        <p className="text-[11px] tracking-[0.5em] text-gold-soft">庫</p>
         {history.length > 0 && (
           <div className="mt-3 flex items-baseline gap-3">
             <span className="font-serif text-[68px] font-light leading-none text-hanji">
@@ -129,8 +159,9 @@ export default function ArchivePage() {
             <rect x="5" y="8" width="30" height="24" rx="2" />
             <path d="M5 20h30" />
           </svg>
+          {/* 검수(2026-11-24): 「서고」는 이제 /goods 이름 — 이 방은 「지난 화두」 */}
           <p className="mt-6 font-serif text-[19px] font-light text-hanji-dim">
-            서고가 비어 있어요.
+            지난 화두가 없어요.
           </p>
           <Link
             href="/"

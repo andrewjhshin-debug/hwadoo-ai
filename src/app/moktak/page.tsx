@@ -1296,10 +1296,11 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
           <i />
         </button>
       </div>
+      {/* 검수(2026-11-24): .hip-sheet-range span 은 flex 양끝 맞춤이라 숫자와 단위가 양 끝으로 갈라졌다 — 한 덩이로 */}
       {auto && (
         <label className="hip-sheet-range">
           <span>
-            <b>{bpm}</b> 회/분
+            <b>{bpm} 회/분</b>
           </span>
           <input
             type="range"
@@ -1314,7 +1315,7 @@ const JADE_TONE = " hue-rotate(-8deg) saturate(0.96) brightness(1.04)";
       )}
       <label className="hip-sheet-range">
         <span>
-          <b>{Math.round(vol * 100)}</b>%
+          <b>{Math.round(vol * 100)}%</b>
         </span>
         <input
           type="range"

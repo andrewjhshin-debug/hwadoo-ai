@@ -18,11 +18,11 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import HipRoom from "@/components/HipRoom";
 import s from "./pet.module.css";
 import { strikeBell } from "@/lib/sound";
 import { auth } from "@/lib/firebase";
+import { loginWithGoogle } from "@/lib/sync";
 import { addComment, bowToPost, cachedPosts, createPost, fetchComments, fetchPosts, removePost, type Post } from "@/lib/community";
 import { visitDayKey } from "@/components/VisitLedger";
 
@@ -136,7 +136,6 @@ export default function PetPage() {
   const [vows, setVows] = useState<Post[]>([]);
   const [hands, setHands] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const [needLogin, setNeedLogin] = useState(false);
   const [photo, setPhoto] = useState("");
   const [moment, setMoment] = useState("");
   const [withPhoto, setWithPhoto] = useState(false);
@@ -163,8 +162,22 @@ export default function PetPage() {
     setPhoto(raw(PHOTO)); setMoment(raw(MOMENT));
     setPassed(visitDayKey());
     setFeed(cachedPosts("pet"));
+    setVows(cachedPosts("petvow")); // 검수(2026-11-24): 띠가 0명일 땐 숨으니 — 늦게 떠서 아래를 밀지 않게 지난 목록부터
     setReady(true);
     reload();
+  }, []);
+
+  // 검수(2026-11-24): 로그인하면 계정 서랍이 내려와 이 칸들을 바꾼다(kvAdopt → storage 사건) — 화면이 한 번만 읽고 말면
+  //   손님 때 값으로 다음 합장·배웅이 계정 것을 덮었다. 바뀌면 다시 읽는다
+  useEffect(() => {
+    const on = (e: StorageEvent) => {
+      if (e.key === HANDS) setHands(read<string[]>(HANDS, []));
+      else if (e.key === KEY) setPet(read<Pet | null>(KEY, null));
+      else if (e.key === PHOTO) setPhoto(raw(PHOTO));
+      else if (e.key === MOMENT) setMoment(raw(MOMENT));
+    };
+    window.addEventListener("storage", on);
+    return () => window.removeEventListener("storage", on);
   }, []);
 
   const pickPhoto = async (f: File | undefined, key: string, set: (v: string) => void) => {
@@ -188,9 +201,13 @@ export default function PetPage() {
   const save = (next: Pet) => { write(KEY, next); setPet(next); };
   const update = (i: number, patch: Rite) => { if (pet) save({ ...pet, done: { ...pet.done, [i]: { ...pet.done[i], ...patch } } }); };
 
+  // 검수(2026-11-24): 손님은 다 쓰고 눌러야 「로그인 후」가 떴고, 설정으로 가면 쓴 글이 날아갔다 —
+  //   그 자리에서 로그인한다(CandleForm 결). 앱은 네이티브 계정 고르기라 화면이 그대로라 글이 남는다.
   const share = async (title: string, text: string, pic: string) => {
-    if (!auth.currentUser) { setNeedLogin(true); return false; }
     setBusy(true);
+    // 검수(2026-11-24): 로그인한 그 자리에서 바로 올리지 않는다 — 계정 서랍(배웅 기록·합장 목록)이 아직 안 내려와
+    //   손님 때 것으로 계정 것을 덮어썼다. 로그인만 하고 돌아선다(쓴 글은 그대로, 한 번 더 누르면 올라간다)
+    if (!auth.currentUser) { try { await loginWithGoogle(); } catch { /* 그만두면 글은 그대로 */ } setBusy(false); return false; }
     try { await createPost(title, text, "pet", { photo: pic ? await thumb(pic) : null }); }
     catch { setBusy(false); return false; }
     setBusy(false); reload(); return true;
@@ -210,7 +227,7 @@ export default function PetPage() {
       if (!(await share(`${pet.name} 영가`, text, pic))) return;
     }
     update(at, { letter: text, shared: toAll });
-    setDraft(""); setPick(null); setNeedLogin(false); setWithPhoto(false);
+    setDraft(""); setPick(null); setWithPhoto(false);
   };
   const addNote = () => {
     if (!pet || !draft.trim()) return;
@@ -230,8 +247,10 @@ export default function PetPage() {
     const a = document.createElement("a"); a.href = cardUrl; a.download = `${pet.name}.jpg`; a.click();
   };
 
-  const fold = (p: Post) => {
+  const fold = async (p: Post) => {
     if (hands.includes(p.id)) return;
+    // 검수(2026-11-24): 손님 합장은 규칙(로그인 필수)에 막혀 조용히 사라지고 단추만 눌려 있었다 — 그 자리에서 로그인
+    if (!auth.currentUser) { try { await loginWithGoogle(); } catch { /* 그만둠 */ } return; } // 로그인만 — 계정 합장 목록이 내려온 뒤 다시 누른다
     const next = [...hands, p.id].slice(-300);
     setHands(next); write(HANDS, next);
     setFeed((l) => l.map((x) => (x.id === p.id ? { ...x, hapjang: (x.hapjang ?? 0) + 1 } : x)));
@@ -243,15 +262,33 @@ export default function PetPage() {
     if (!comforts[p.id]) fetchComments(p.id).then((cs) => setComforts((m) => ({ ...m, [p.id]: cs.filter((c) => !c.deleted && COMFORT.includes(c.body)).map((c) => c.body) }))).catch(() => {});
   };
   const comfort = async (p: Post, phrase: string) => {
-    if (!auth.currentUser) { setNeedLogin(true); return; }
+    // 검수(2026-11-24): 위로도 그 자리에서 로그인(설정으로 보내지 않는다)
+    if (!auth.currentUser) { try { await loginWithGoogle(); } catch { /* 그만둠 */ } if (!auth.currentUser) return; }
     setComforts((m) => ({ ...m, [p.id]: [...(m[p.id] ?? []), phrase] }));
     setFeed((l) => l.map((x) => (x.id === p.id ? { ...x, commentCount: (x.commentCount ?? 0) + 1 } : x)));
     addComment(p.id, phrase).catch(() => {});
   };
+  // 검수(2026-11-24): 폰 뒤로가기가 쓰던 사연째 배웅을 떠났다 — 쓰기 판을 열 때 층 하나(DoryangMenu 결),
+  //   뒤로가기·「그만」은 판만 닫는다.
+  const composeOpen = useRef(false);
+  useEffect(() => { composeOpen.current = compose; }, [compose]);
+  //   층마다 제 표(petLayer) — ☰ 판이 위에 얹혔다 닫혀도 쓰던 판은 그대로 둔다
+  const layer = useRef(0);
+  useEffect(() => {
+    const onPop = () => { if (window.history.state?.petLayer !== layer.current) setCompose(false); };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  const openCompose = () => {
+    layer.current = Date.now();
+    try { window.history.pushState({ ...window.history.state, hwadooLayer: true, petLayer: layer.current }, ""); } catch { /* 못 쌓아도 판은 열린다 */ }
+    setCName(pet?.name ?? ""); setCompose(true);
+  };
   const postStory = async () => {
     if (!cText.trim() || !cName.trim()) return;
     if (await share(`${cName.trim().slice(0, 10)} 영가`, cText.trim().slice(0, 1000), withPhoto ? photo : "")) {
-      setCompose(false); setCText(""); setWithPhoto(false);
+      setCText(""); setWithPhoto(false);
+      if (composeOpen.current) window.history.back(); // 쌓은 층을 같이 걷으며 닫는다(올리는 사이 이미 뒤로 갔으면 그대로)
     }
   };
 
@@ -268,16 +305,19 @@ export default function PetPage() {
 
         <div className={s.tabs} role="tablist">
           <button role="tab" aria-selected={tab === "together"} onClick={() => setTab("together")}>함께</button>
-          <button role="tab" aria-selected={tab === "mine"} onClick={() => setTab("mine")}>{pet ? pet.name : "내 아이"}</button>
+          {/* 쓰기 판이 열린 채 옮기면 판은 안 보이는데 층만 남아 다음 뒤로가기가 헛돈다 — 층째 걷는다 */}
+          <button role="tab" aria-selected={tab === "mine"} onClick={() => { if (compose) window.history.back(); setTab("mine"); }}>{pet ? pet.name : "내 아이"}</button>
         </div>
-        {needLogin && <p className={s.bad}><Link href="/settings">로그인</Link> 후 나눌 수 있어요</p>}
 
         {tab === "together" ? (
           <>
-            <div className={s.vowBand}>
-              <span>生</span>
-              <p>이번 주 <b>{vowCount}</b>명이 떠난 아이 이름으로<br />다른 생명에게 회향했어요</p>
-            </div>
+            {/* 검수(2026-11-24): 「이번 주 0명이」는 쓸쓸한 빈 띠 — 한 명이라도 있을 때만 */}
+            {vowCount > 0 && (
+              <div className={s.vowBand}>
+                <span>生</span>
+                <p>이번 주 <b>{vowCount}</b>명이 떠난 아이 이름으로<br />다른 생명에게 회향했어요</p>
+              </div>
+            )}
 
             {compose ? (
               <section className={s.compose}>
@@ -285,12 +325,12 @@ export default function PetPage() {
                 <textarea className={s.paper} value={cText} maxLength={1000} placeholder="사연" onChange={(e) => setCText(e.target.value)} />
                 {photo && <button className={s.chip} aria-pressed={withPhoto} onClick={() => setWithPhoto(!withPhoto)}>사진 함께</button>}
                 <div className={s.two}>
-                  <button className={s.btnw} onClick={() => setCompose(false)}>그만</button>
+                  <button className={s.btnw} onClick={() => window.history.back()}>그만</button>
                   <button className={s.btn} disabled={!cText.trim() || !cName.trim() || busy} onClick={postStory}>올리기</button>
                 </div>
               </section>
             ) : (
-              <button className={s.btn} onClick={() => { setCName(pet?.name ?? ""); setCompose(true); }}>사연 올리기</button>
+              <button className={s.btn} onClick={openCompose}>사연 올리기</button>
             )}
 
             <section className={s.feed}>

@@ -56,9 +56,9 @@ export type HipMeProps = {
   };
   /** 접었다 펴는 두 자리 — 안에 들어갈 것은 부모가 그려 준다 */
   charms: React.ReactNode;
+  /** 검수(2026-11-24): 푸시를 못 받는 기기(앱 WebView)면 null — 鐘 접이를 안 그린다.
+      settings 칸은 걷었다 — 여기서 그린 적이 없는 죽은 칸이었다(설정은 /settings/preferences) */
   bells: React.ReactNode;
-  /** 설정 — 소리·진동·포행·문의·이용안내. 형: 「설정한 다음에 접었다 펼쳤다」 */
-  settings: React.ReactNode;
   /** 계정 — 로그인·로그아웃. **접지 않는다.**
       폰에서 계정 칸이 영구히 숨겨져 있어서 형이 「로그인 기능 빵났다」고
       했다. 옛 머리띠(☰)까지 끄면서 마지막 길도 막혔었다.
@@ -312,12 +312,15 @@ export default function HipMe({
 
         <div className="hip-folds">
           {/* 부적은 걷었다 — 형: 「부적 기능도 일단은 삭제」 */}
-          <details>
-            <summary>
-              <b>鐘</b> 알림
-            </summary>
-            <div>{bells}</div>
-          </details>
+          {/* 검수(2026-11-24): 울릴 수 없는 기기면 부모가 null 을 준다 — 안 울리는 시각 알만 남기지 않는다 */}
+          {bells && (
+            <details>
+              <summary>
+                <b>鐘</b> 알림
+              </summary>
+              <div>{bells}</div>
+            </details>
+          )}
           <Link href="/settings/preferences" className="hip-preferences-entry"><span>設</span> 설정 <span aria-hidden>›</span></Link>
         </div>
 

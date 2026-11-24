@@ -11,6 +11,7 @@
 import { useEffect } from "react";
 import { initPushForeground } from "@/lib/push";
 import { captureInstallPrompt } from "@/lib/install";
+import { startRankSync } from "@/lib/rank";
 
 export const VISITS_KEY = "hwadu.visits.v1";
 // 최대 400일치 — 넘치면 오래된 것부터 버린다
@@ -65,5 +66,7 @@ export default function VisitLedger() {
     // 포그라운드 문안 수신 — 실패는 안에서 삼킨다
     void initPushForeground();
   }, []);
+  // 검수(2026-11-24): 순위 올림을 앱 전체에 한 번 건다 — 순위판을 연 사람만 올라가 판이 늘 비어 있었다
+  useEffect(() => startRankSync(), []);
   return null;
 }

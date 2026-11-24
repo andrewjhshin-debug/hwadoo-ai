@@ -10,7 +10,7 @@ import { goodsCount, liveItems, liveShelves, type Goods } from "@/lib/goods";
 //   「제휴 링크 세 개」로만 읽혔다. 물건은 물건끼리 놓으면 광고가 되고,
 //   **하는 일 곁에 놓으면 준비물**이 된다. 그래서 선반을 앱의 방에 맞췄다 —
 //   절하는 자리 · 소리 내는 것 · 손에 쥐는 것 · 사르는 것 · 읽고 쓰는 것 ·
-//   방에 두는 것. 선반마다 「왜 여기 있는지」 한 줄과 그 방으로 가는 문을 단다.
+//   방에 두는 것. 선반마다 그 방으로 가는 문을 단다.
 //
 // ■ 목록은 여기 없다
 //   물건은 src/lib/goods.ts 에 있다. 링크가 빈 물건은 그리지 않는다 —
@@ -143,7 +143,7 @@ export default function GoodsPage() {
         </p>
       </header>
 
-      {/* 선반마다 한 칸 — 이름·까닭 한 줄·그 방으로 가는 문, 그리고 격자 */}
+      {/* 선반마다 한 칸 — 이름·그 방으로 가는 문, 그리고 격자 */}
       {shelves.map((s, i) => (
         <section key={s.id} className={`rise rise-d${Math.min(i + 1, 3)} mt-12`}>
           <div className="flex items-baseline justify-between gap-3 border-b border-ink-3 pb-2.5">
@@ -164,9 +164,7 @@ export default function GoodsPage() {
               </Link>
             )}
           </div>
-          <p className="mt-2.5 break-keep text-[12px] leading-[19px] text-hanji-dim">
-            {s.why}
-          </p>
+          {/* 검수(2026-11-24): 선반마다 붙던 까닭 한 줄(s.why)을 뗐다 — 설명 문단 금지 */}
 
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {liveItems(s).map((g) => (
@@ -187,15 +185,7 @@ export default function GoodsPage() {
           제공받습니다.
         </p>
       </div>
-
-      <div className="mt-8 text-center">
-        <Link
-          href="/"
-          className="text-xs tracking-[0.2em] text-hanji-faint transition-colors hover:text-hanji-dim"
-        >
-          ← 화두로 돌아가기
-        </Link>
-      </div>
+      {/* 검수(2026-11-24): 「← 화두로 돌아가기」를 뗐다 — 아래 염주 띠(話)가 그 길이다 */}
     </div>
   );
 }

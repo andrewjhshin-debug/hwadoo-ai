@@ -1,10 +1,15 @@
 "use client";
 import { useWalking } from "./WalkingRuntime";
 import { hasNativeSteps, toggleWalking } from "@/lib/walking";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { startAmbient } from "@/lib/sound";
+import { watchAuth } from "@/lib/sync";
+import { isAdminAccount } from "@/lib/config";
 export default function WalkingMerit() {
   const walk = useWalking();
+  // 검수(2026-11-24): 걸음 센서·위치 보정 진단 줄은 점검용이다 — 관리자 계정에서만 보인다(형이 직접 포행을 점검한다)
+  const [점검, 점검잡기] = useState(false);
+  useEffect(() => watchAuth((u) => 점검잡기(!!u && isAdminAccount(u))), []);
   // 포행 방에서 걷는 동안 계곡물이 낮게 흐른다 — 방을 나가거나 끄면 멎는다(다른 화면에선 안 튼다)
   useEffect(() => (walk.on ? startAmbient("/sfx/amb-stream.mp3", 0.8) : undefined), [walk.on]);
   const sensor = { off: "꺼짐", waiting: "신호 기다리는 중", live: "신호 수신 중", denied: "권한 거부됨", silent: "신호 없음", unavailable: "지원하지 않는 기기" }[walk.motion];
@@ -15,8 +20,9 @@ export default function WalkingMerit() {
     <div className="walking-merit-track" aria-hidden>{[1, 2, 3, 4, 5].map(n => <i key={n} data-lit={walk.on && walk.level >= n ? "1" : undefined} />)}</div>
     <button type="button" onClick={toggleWalking} aria-label={walk.on ? "포행 끄기" : "포행 켜기"} title={walk.on ? "포행 끄기" : "포행 켜기"} aria-pressed={walk.on} className="walking-merit-toggle">{walk.on ? "포행 ON" : "포행 OFF"}</button>
     <p className="walking-merit-notice" role="status">{walk.hidden && walk.on && !hasNativeSteps() ? "화면이 가려져 감지가 쉬고 있어요. 돌아오면 다시 셉니다." : walk.notice}</p>
-    <dl className="walking-diagnostics"><div><dt>걸음 센서</dt><dd>{sensor}</dd></div><div><dt>위치 보정</dt><dd>{walk.gps === "live" ? "위치 수신 중" : walk.gps === "denied" ? "사용 불가" : walk.gps === "waiting" ? "위치 기다리는 중" : "꺼짐"}</dd></div></dl>
-    {walk.motion === "silent" && <p className="walking-merit-guide">Chrome 사이트 설정에서 ‘동작 센서’를 허용해 주세요. 실내에서는 위치 보정도 어려울 수 있어요.</p>}
+    {점검 && <dl className="walking-diagnostics"><div><dt>걸음 센서</dt><dd>{sensor}</dd></div><div><dt>위치 보정</dt><dd>{walk.gps === "live" ? "위치 수신 중" : walk.gps === "denied" ? "사용 불가" : walk.gps === "waiting" ? "위치 기다리는 중" : "꺼짐"}</dd></div></dl>}
+    {/* 검수(2026-11-24): 크롬 사이트 설정 안내는 웹에서만 — 설치 앱은 크롬이 아니다 */}
+    {walk.motion === "silent" && !hasNativeSteps() && <p className="walking-merit-guide">Chrome 사이트 설정에서 ‘동작 센서’를 허용해 주세요. 실내에서는 위치 보정도 어려울 수 있어요.</p>}
     {walk.motion === "denied" && <p className="walking-merit-guide">동작 센서 권한을 허용한 뒤 OFF → ON으로 다시 시작해 주세요.</p>}
   </section>;
 }

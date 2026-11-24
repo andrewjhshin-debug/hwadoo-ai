@@ -173,9 +173,9 @@ export default function AboutPage() {
         </div>
       </details>
 
+      {/* 검수(2026-11-24): 「기록은 내 브라우저에만 남습니다」를 뗐다 — 로그인하면 계정에 남는다(약관 4조) */}
       <p className="rise rise-d3 mt-10 text-center text-xs leading-7 text-hanji-faint">
-        기록은 내 브라우저에만 남습니다.
-        <br />이 도량은 특정 종단과 무관합니다.
+        이 도량은 특정 종단과 무관합니다.
       </p>
 
       <p className="rise rise-d3 mt-4 text-center text-xs text-hanji-faint">

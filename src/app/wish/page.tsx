@@ -39,13 +39,14 @@ export default function WishPage() {
     <HipRoom here="/wish" lanes={false} rail="/settings">
       <div className={s.wrap}>
         <div>
-          <p className={s.kicker}>願 · 소원</p>
-          <h1 className={s.title}>{wish ? "스무하루 기도" : "소원 하나를 적어요"}</h1>
+          {/* 검수(2026-11-24): 「소원 하나를 적어요」 안내 → 방 이름 한 낱말. 신도증·운력과 같은 머리(빈 칸 글씨가 무엇을 적는지 이미 말한다) */}
+          <p className={s.kicker}>願</p>
+          <h1 className={s.title}>{wish ? "스무하루 기도" : "소원"}</h1>
         </div>
 
         {ready && !wish && (
           <div className={s.card} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <p className={s.lead}>날마다 수행 세 가지를 하면 동그라미가 하나씩 찹니다. 스물하나가 다 차면 회향해요.</p>
+            {/* 검수(2026-11-24): 안내 줄 「날마다 수행 세 가지를 하면 …」을 뗐다 — 문구는 최소로 */}
             <textarea className={s.area} value={draft} maxLength={WISH_TEXT_MAX} placeholder="예: 엄마가 수술 잘 받고 건강히 퇴원하시기를" onChange={(e) => setDraft(e.target.value)} />
             <button className={s.btn} disabled={!draft.trim()} onClick={() => setWish(startWish(draft))}>기도 시작하기</button>
           </div>

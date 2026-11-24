@@ -35,13 +35,14 @@ export default function UnryeokPage() {
     <HipRoom here="/unryeok" lanes={false} rail="/settings">
       <div className={s.wrap}>
         <div>
-          <p className={s.kicker}>力 · 운력</p>
-          <h1 className={s.title}>몸으로 한 일은<br />시간으로 남아요</h1>
+          {/* 검수(2026-11-24): 안내 줄 「몸으로 한 일은 시간으로 남아요」 → 방 이름 한 낱말. 신도증·소원과 같은 머리 */}
+          <p className={s.kicker}>力</p>
+          <h1 className={s.title}>운력</h1>
         </div>
 
         <div className={s.card}>
           <div className={s.big}><b>{total}</b><span>시간 · {list.length}번</span></div>
-          <p className={s.lead} style={{ marginTop: 8 }}>신도증에 실리고, 계급에도 들어요. 한 시간이 공덕 2,160만큼이에요(하루 8시간까지).</p>
+          {/* 검수(2026-11-24): 셈 설명 줄 「신도증에 실리고 …」를 뗐다 — 문구는 최소로 */}
         </div>
 
         {open ? (

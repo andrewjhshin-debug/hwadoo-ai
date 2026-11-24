@@ -282,6 +282,11 @@ export default function Home() {
     document.documentElement.dataset.focus = focusMode ? "1" : "";
     if (focusMode) window.localStorage.setItem("hwadoo-focus", "1");
     else window.localStorage.removeItem("hwadoo-focus");
+    // 검수(2026-11-24): 뜰을 떠나면(안드로이드 뒤로) 표를 걷는다 — 남으면 다른 화면의 머리·공덕 띠가 숨는다.
+    // 저장된 표는 두니 / 로 돌아오면 화두만 보기가 다시 이어진다
+    return () => {
+      delete document.documentElement.dataset.focus;
+    };
   }, [focusMode]);
 
   // 지금 도량에 몇이 있는지는 **떠 있는 단추(DoryangMenu)**가 센다 —

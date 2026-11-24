@@ -109,7 +109,8 @@ export default function MomentBoard() {
       <header className="mb-6">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] tracking-[0.42em] text-gold-soft">moment</p>
+            {/* 검수(2026-11-24): 남아 있던 영문 머리말(m o m e n t)을 한자로 */}
+            <p className="text-[11px] tracking-[0.42em] text-gold-soft">時節因緣</p>
             <h1 className="mt-2 font-serif text-2xl font-light tracking-tight text-hanji">
               절에 다녀온 한 장
             </h1>

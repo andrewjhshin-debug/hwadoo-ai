@@ -32,6 +32,22 @@ export default function LearnPage() {
   }, [view]);
 
   const go = (l: Lesson) => { setOpen(l); setStep("card"); setPick(null); setGain(0); };
+  // 검수(2026-11-24): 폰 뒤로가기가 배움을 통째로 떠났다 — 목록에서 걸음을 열 때 층 하나(DoryangMenu 결),
+  //   뒤로가기·「‹ 열두 걸음」은 그 층을 걷는다. 다음 걸음은 같은 층 안에서 바꿔 낀다(쌓지 않는다).
+  //   층마다 제 표(learnLayer)를 단다 — ☰ 판이 그 위에 층을 얹었다 닫혀도(같은 popstate) 걸음은 그대로 둔다.
+  const layer = useRef(0);
+  const enter = (l: Lesson) => {
+    // eslint-disable-next-line react-hooks/purity -- 누를 때만 도는 손잡이다(그리는 중엔 안 부른다)
+    layer.current = Date.now();
+    try { window.history.pushState({ ...window.history.state, hwadooLayer: true, learnLayer: layer.current }, ""); } catch { /* 못 쌓아도 걸음은 열린다 */ }
+    go(l);
+  };
+  const leave = () => window.history.back();
+  useEffect(() => {
+    const onPop = () => { if (window.history.state?.learnLayer !== layer.current) setOpen(null); };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
   const answer = (i: number) => {
     if (pick !== null || !open) return;
     setPick(i);
@@ -58,7 +74,7 @@ export default function LearnPage() {
                 const lock = !d && !now;
                 return (
                   <li key={l.id}>
-                    <button className={s.st} data-d={d ? "1" : undefined} data-now={now ? "1" : undefined} disabled={lock} onClick={() => go(l)}>
+                    <button className={s.st} data-d={d ? "1" : undefined} data-now={now ? "1" : undefined} disabled={lock} onClick={() => enter(l)}>
                       <span className={s.n}>{l.hz}</span>
                       <span className={s.tx}><b>{l.name}</b><small>{l.line}</small></span>
                       <em>{d ? "✓" : now ? "오늘" : i + 1}</em>
@@ -70,7 +86,7 @@ export default function LearnPage() {
           </>
         ) : step === "card" ? (
           <>
-            <button className={s.back} onClick={() => setOpen(null)}>‹ 열두 걸음</button>
+            <button className={s.back} onClick={leave}>‹ 열두 걸음</button>
             <article className={s.card}>
               <h1>{open.name}<small>{open.hanja}</small></h1>
               <p className={s.def}>{bold(open.def)}</p>
@@ -99,7 +115,7 @@ export default function LearnPage() {
                 {next && done.includes(open.id) ? (
                   <button className={s.btn} onClick={() => go(next)}>다음 걸음 · {next.name}</button>
                 ) : (
-                  <button className={s.btn} onClick={() => setOpen(null)}>열두 걸음으로</button>
+                  <button className={s.btn} onClick={leave}>열두 걸음으로</button>
                 )}
               </>
             )}

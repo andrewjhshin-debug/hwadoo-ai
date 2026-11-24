@@ -24,6 +24,9 @@ export default function NotesDrawer({
   useEffect(() => {
     closeRef.current = onClose;
   });
+  // 검수(2026-11-24): 방(/room)으로 건너갈 땐 층을 되감지 않는다 — back() 이 push 를 무르고
+  // 뜰에 주저앉혔다. 층 자리는 replace 로 갈아 끼우니, 방에서 뒤로 가면 곧장 뜰이다
+  const leaving = useRef(false);
   useEffect(() => {
     if (!open) return;
     window.history.pushState({ notes: true }, "");
@@ -31,7 +34,8 @@ export default function NotesDrawer({
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
-      if (window.history.state?.notes) window.history.back();
+      if (!leaving.current && window.history.state?.notes) window.history.back();
+      leaving.current = false;
     };
   }, [open]);
 
@@ -57,8 +61,9 @@ export default function NotesDrawer({
         <header className="flex shrink-0 items-start justify-between border-b border-ink-3 px-5 py-4">
           <button
             onClick={() => {
+              leaving.current = true;
               onClose();
-              router.push("/room");
+              router.replace("/room");
             }}
             aria-label="사유의 방 크게 보기"
             className="flex items-center gap-3 transition-opacity hover:opacity-80"

@@ -118,6 +118,17 @@ export default function PilgrimagePage() {
     setEvents(upcomingEvents(8));
   }, []);
 
+  // 검수(2026-11-24): 같이 가요 링크(/go → ?go=날짜)가 받는 곳이 없었다 — 그 날 카드를 펴서 가운데로.
+  // 카드는 events 가 들어온 뒤에야 그려지고, 맨 위로 미는 ScrollTop(rAF)보다 뒤에 굴러야 해서 한 박자 늦춘다
+  useEffect(() => {
+    const go = new URLSearchParams(location.search).get("go");
+    const card = go ? document.getElementById(`go-${go}`) : null;
+    if (!card) return;
+    card.closest("details")?.setAttribute("open", "");
+    const id = requestAnimationFrame(() => card.scrollIntoView({ block: "center" }));
+    return () => cancelAnimationFrame(id);
+  }, [events]);
+
   // 지역 필터 AND 템플스테이 필터
   const temples = useMemo(
     () =>
@@ -147,6 +158,7 @@ export default function PilgrimagePage() {
   const dayCard = (ev: PilgrimEvent) => (
     <article
       key={`${ev.name}-${ev.date.getTime()}`}
+      id={`go-${toDateStr(ev.date)}`}
       className="grid grid-cols-[54px_1fr] gap-x-4 gap-y-3 rounded-[14px] border border-ink-3 bg-ink-2/50 px-4 py-3.5 [&>.hip-go]:col-span-2"
     >
       {/* D-몇 — 카드에서 가장 먼저 읽히는 자리 */}
@@ -310,7 +322,10 @@ export default function PilgrimagePage() {
         ) : (
           <>
             {/* 가장 가까운 하루 — D-몇을 크게 */}
-            <article className="mt-4 rounded-[14px] border border-ink-3 bg-ink-2/50 p-5">
+            <article
+              id={`go-${toDateStr(first.date)}`}
+              className="mt-4 rounded-[14px] border border-ink-3 bg-ink-2/50 p-5"
+            >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-[12px] tracking-[0.18em] text-hanji-faint">
@@ -352,13 +367,11 @@ export default function PilgrimagePage() {
               <p className="mt-3 break-keep text-[14px] leading-7 text-hanji-dim">
                 {first.note}
               </p>
-              <button
-                onClick={() => openGathering({ date: toDateStr(first.date) })}
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-ink-3 py-3 text-[13.5px] tracking-[0.15em] text-hanji-dim transition-colors hover:border-gold/40 hover:text-hanji"
-              >
-                이 날 함께 가기
-                <Arrow className="h-4 w-4" />
-              </button>
+              {/* 검수(2026-11-24): 가장 가까운 날에만 같이 가요가 빠져 있었다(공유받은 /go 링크가 닿는 카드인데).
+                  다른 날 카드처럼(aa14f27 「함께 가기」 → 같이 가요) 한 단추로 */}
+              <div className="mt-4">
+                <GoTogether date={toDateStr(first.date)} eventName={first.name} />
+              </div>
             </article>
 
             {/* 그다음 둘 */}

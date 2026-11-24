@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { MY_TEMPLE_EVENT, myTempleName } from "@/lib/myTemple";
+import { loginWithGoogle } from "@/lib/sync";
 import { CHARM_BY_ID, GRADE } from "@/lib/charm";
 import {
   daysAgoLabel,
@@ -80,7 +81,12 @@ export default function TempleProof({
   }, [here, beat]);
 
   const prove = async () => {
-    if (busy || !user) return;
+    if (busy) return;
+    // 검수(2026-11-24): 손님에겐 눌러도 아무 일 없는 단추였다 — 누르면 로그인부터
+    if (!user) {
+      await loginWithGoogle().catch(() => {});
+      return;
+    }
     setBusy(true);
     setSaid(null);
     try {
@@ -101,7 +107,7 @@ export default function TempleProof({
   const label = busy
     ? "여기가 어딘지 보는 중"
     : !user
-      ? "로그인하면 남길 수 있어요"
+      ? "로그인"
       : done
         ? "오늘은 다녀왔어요"
         : "절에 왔어요 — 인증하기";
@@ -121,7 +127,7 @@ export default function TempleProof({
       <button
         type="button"
         onClick={prove}
-        disabled={busy || !user || done}
+        disabled={busy || done}
         className="btn-obang mt-3.5 w-full rounded-full px-4 py-2.5 text-[13px] tracking-[0.06em] text-hanji transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-45"
       >
         {label}

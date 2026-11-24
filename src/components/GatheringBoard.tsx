@@ -56,6 +56,7 @@ import {
   reportComment,
 } from "@/lib/dm";
 import { TEMPLES } from "@/lib/pilgrimage";
+import { visitDayKey } from "@/components/VisitLedger";
 
 /** 목록에 있는 절 이름 — 고른 것인지 직접 적은 것인지 가르는 데 쓴다 */
 const TEMPLE_NAMES: string[] = TEMPLES.map((t) => t.name);
@@ -196,8 +197,10 @@ function GoPostBox({ p, open }: { p: Post; open: () => void }) {
   const { 판 } = useGo(p.id);
   const 줄 = Object.entries(판?.people ?? {}).sort((a, b) => a[1].at - b[1].at);
   const 수 = Math.max(1, 줄.length);
+  // 검수(2026-11-24): 지난 약속이 남은 자리까지 달고 다가오는 날처럼 보였다 — 흐리게, 자리 알약은 뗀다
+  const 지남 = !!p.meetDate && p.meetDate < visitDayKey();
   return (
-    <div className="hip-go-box">
+    <div className="hip-go-box" data-past={지남 ? "1" : undefined} style={지남 ? { opacity: 0.5 } : undefined}>
       {/* 형: 「같이 가요 버튼도 없애, 그냥 클릭하면 게시물 들어가지는 거로」 · 「A ㄱ」 — 왼쪽에 날짜를 크게, 오른쪽에 남은 자리 */}
       <button type="button" className="hip-go-box-main yA-go" onClick={open}>
         {p.meetDate && (
@@ -210,7 +213,7 @@ function GoPostBox({ p, open }: { p: Post; open: () => void }) {
           <span className="hip-go-box-title">{p.title}</span>
           <span className="yA-go-sub">{[p.templeName, p.capacity ? `${수}/${p.capacity}명` : `${수}명`].filter(Boolean).join(" · ")}</span>
         </span>
-        {!!p.capacity && p.capacity > 수 && <span className="yA-seat">자리 {p.capacity - 수}</span>}
+        {!지남 && !!p.capacity && p.capacity > 수 && <span className="yA-seat">자리 {p.capacity - 수}</span>}
       </button>
     </div>
   );
@@ -626,6 +629,8 @@ export default function GatheringBoard({
   useEffect(() => {
     if (initialTemple) setTemple(initialTemple);
     if (initialDate) setDate(initialDate);
+    // 검수(2026-11-24): 절·날짜 칸은 「같이 가요」에서만 보인다 — 기본(도반 찾기)이면 채운 값이 숨은 채 올라갔다
+    if (initialTemple || initialDate) setCategory("together");
     if (autoOpen || initialTemple || initialDate) {
       setOpen(true);
       pushLayer();
@@ -1324,6 +1329,15 @@ export default function GatheringBoard({
               {!user
                 ? "댓글은 로그인한 분만 쓸 수 있습니다."
                 : "댓글은 화두 하나를 회향한 뒤에 쓸 수 있습니다."}
+              {/* 검수(2026-11-24): 글 안에선 아래 띠가 숨어 손님이 로그인할 길이 없었다 — 글쓰기 칸과 같은 단추 */}
+              {!user && (
+                <button
+                  onClick={() => loginWithGoogle().catch(() => {})}
+                  className="ml-2 rounded-full border border-gold/45 px-2.5 py-1 text-[11px] text-gold transition-colors hover:bg-gold/10"
+                >
+                  로그인
+                </button>
+              )}
             </p>
           )}
         </div>
@@ -1348,11 +1362,30 @@ export default function GatheringBoard({
           ← 뒤로
         </button>
         {!qualified ? (
-          <p className="mt-4 break-keep text-[13px] leading-7 text-hanji-dim">
-            {!user
-              ? "로그인하면 글을 쓸 수 있어요"
-              : "화두 하나를 회향한 뒤에 글을 쓸 수 있습니다."}
-          </p>
+          <div className="mt-4 flex flex-col items-start gap-2.5">
+            <p className="break-keep text-[13px] leading-7 text-hanji-dim">
+              {!user
+                ? "로그인하면 글을 쓸 수 있어요"
+                : "화두 하나를 회향한 뒤에 글을 쓸 수 있습니다."}
+            </p>
+            {/* 검수(2026-11-24): 말만 있고 갈 길이 없었다(손잡고 절로 「함께 가기」도 여기로 온다).
+                로그인은 새로고침 없이 끝나 채워 둔 절·날짜가 그대로 남는다 */}
+            {!user ? (
+              <button
+                onClick={() => loginWithGoogle().catch(() => {})}
+                className="rounded-full border border-gold/45 px-4 py-2 text-[12px] text-gold transition-colors hover:bg-gold/10"
+              >
+                로그인
+              </button>
+            ) : (
+              <Link
+                href="/"
+                className="rounded-full border border-gold/45 px-4 py-2 text-[12px] text-gold transition-colors hover:bg-gold/10"
+              >
+                화두 받으러 가기
+              </Link>
+            )}
+          </div>
         ) : (
           <div className="mt-4 flex flex-col gap-3">
             <p className="text-[11px] tracking-[0.25em] text-gold-soft">

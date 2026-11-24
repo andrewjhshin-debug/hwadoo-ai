@@ -198,7 +198,7 @@ export default function TryPage() {
     "cursor-default rounded-full border border-ink-3 px-4 py-1.5 text-[11px] tracking-[0.12em] text-hanji-faint opacity-60";
 
   return (
-    <div className="try-page relative flex flex-1 flex-col items-center px-6 pb-16 pt-5 text-center md:pb-10 md:pt-10">
+    <div className="try-page relative flex flex-1 flex-col items-center px-6 pb-16 pt-[calc(env(safe-area-inset-top,0px)+20px)] text-center md:pb-10 md:pt-10">
       {/* 형: 「여기엔 공덕 바 필요 없고, 스크롤 없이 한 화면에」 — try-page 가 있으면 공덕 바를 걷는다(globals.css) */}
       {/* ── 늘 위에 있는 진행 고리 — 네 걸음 중 몇째인지 한눈에 ── */}
       <header className="w-full max-w-md">

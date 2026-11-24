@@ -10,7 +10,6 @@
 // 순위 때문에 목탁 소리가 끊기면 안 된다.
 // ─────────────────────────────────────────────────────────────
 
-import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import { MERIT_EVENT, todayRoom } from "./merit";
 import { loadSutra } from "./sutra";
@@ -87,6 +86,7 @@ export async function pushMyRank(): Promise<boolean> {
 
     const res = await fetch("/api/rank", {
       method: "POST",
+      keepalive: true, // 검수(2026-11-24): 창을 닫으며 쏜 것도 끝까지 가게
       headers: {
         "content-type": "application/json",
         authorization: `Bearer ${await u.getIdToken()}`,
@@ -110,27 +110,49 @@ export function startRankSync(): () => void {
   if (typeof window === "undefined") return () => {};
   let last = 0;
   let timer = 0;
+  // 검수(2026-11-24): 한 번에 한 통만 — 앞엣것이 아직 날고 있으면 내려앉은 뒤에 다시
+  let flying = false;
+  let again = false;
 
   const beat = () => {
     window.clearTimeout(timer);
-    timer = window.setTimeout(
-      () => {
-        last = Date.now();
-        void pushMyRank();
-      },
-      Math.max(0, GAP - (Date.now() - last))
-    );
+    timer = window.setTimeout(() => void fire(), Math.max(0, GAP - (Date.now() - last)));
+  };
+
+  const fire = async () => {
+    window.clearTimeout(timer);
+    timer = 0;
+    if (flying) {
+      again = true;
+      return;
+    }
+    // 검수(2026-11-24): 손님이거나 오늘 쌓은 게 없으면 헛걸음 — 그 헛걸음이 1분을 먹어
+    // 막 친 목탁이 1분 뒤로 밀렸다
+    if (!auth.currentUser || todayMerit() <= 0) return;
+    flying = true;
+    last = Date.now();
+    await pushMyRank(); // 실패는 안에서 삼킨다
+    flying = false;
+    if (again) {
+      again = false;
+      beat();
+    }
+  };
+
+  // 검수(2026-11-24): 앱을 내리면 기다리던 몫을 곧바로 — 1분 안에 닫으면 끝내 안 올라갔다
+  const hide = () => {
+    if (document.visibilityState === "hidden" && timer) void fire();
   };
 
   window.addEventListener(MERIT_EVENT, beat);
-  // 들어온 순간엔 아직 로그인이 안 풀려 있을 수 있다 — 풀리면 그때 한 번 더
-  const stop = onAuthStateChanged(auth, (u) => {
-    if (u) beat();
-  });
+  document.addEventListener("visibilitychange", hide);
+  // 검수(2026-11-24): 로그인이 풀리는 순간 올리던 한 번은 뗐다 — 그때 장부는 아직
+  // 바탕 칸(로그인 전 것)이다. sync.ts 가 계정 칸으로 옮기며 MERIT_EVENT 를 쏘니 그때 오른다.
   return () => {
     window.clearTimeout(timer);
+    again = false;
     window.removeEventListener(MERIT_EVENT, beat);
-    stop();
+    document.removeEventListener("visibilitychange", hide);
   };
 }
 

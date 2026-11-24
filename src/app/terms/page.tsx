@@ -77,6 +77,7 @@ export default function TermsPage() {
 
         <section>
           <h2 className="text-[15px] text-gold-soft">7. 연꽃(유료 디지털 재화)</h2>
+          {/* 검수(2026-11-24): 「연꽃 공양 화면」→「연꽃 화면」 — 결제 화면은 「공양」이라 부르지 않는다(lotus 머리글) */}
           <p className="mt-3">
             연꽃은 인연 게시판에서 쪽지를 청할 때 쓰는 유료 디지털 재화입니다.
             결제와 동시에 이용자 계정에 지급되며, 유효기간의 제한 없이
@@ -90,7 +91,7 @@ export default function TermsPage() {
             >
               {CONTACT_EMAIL}
             </a>
-            로 받습니다. 상품·가격은 연꽃 공양 화면에 표시된 바를 따릅니다.
+            로 받습니다. 상품·가격은 연꽃 화면에 표시된 바를 따릅니다.
           </p>
           <p className="mt-3">
             다만 <span className="text-hanji">무상으로 지급된 연꽃</span>—

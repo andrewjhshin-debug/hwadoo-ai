@@ -83,10 +83,11 @@ export default function MyHwaduPage() {
             />
           </div>
           <div className="rise rise-d3 mt-8 flex items-center justify-between">
+            {/* 검수(2026-11-24): 늘 떠 있던 「짧을수록 좋습니다」 뺐다(안내 줄 금지). 자리는 실패 알림용으로 둔다 */}
             <p className="text-[11px] leading-5 text-hanji-faint">
               {error
                 ? "던지지 못했습니다 — 잠시 후 다시 시도해 주세요"
-                : "짧을수록 좋습니다"}
+                : ""}
             </p>
             <button
               onClick={toss}

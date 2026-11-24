@@ -34,6 +34,7 @@ export default function SambaePage() {
   const [total, setTotal] = useState(0);
   const [merit, setMerit] = useState(0);
   const [done, setDone] = useState(false);
+  const [gained, setGained] = useState(0); // 방금 판에 실제로 붙은 공덕
   const [glow, setGlow] = useState(0); // 방금 절한 표시
 
   const nRef = useRef(0);
@@ -79,6 +80,7 @@ export default function SambaePage() {
       // 한 판 — 공덕은 절 세 번 몫
       const r = addMerit("bow", BOWS, 1); // 세 배를 한꺼번에 — 세는 단위는 「한 판」
       setMerit(r.total);
+      setGained(r.gained);
       const rd = finishSambae();
       setRounds(rd);
       setTotal(loadSambae().total);
@@ -197,8 +199,15 @@ export default function SambaePage() {
            아래 염주 자리에 깔렸다. 염주 자리는 성역이라 그만큼 비운다
            (hip-write-foot 이 --hip-rail 만큼 여백을 준다) */
         <div className="rise hip-write-foot mt-6 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 pt-4 text-center">
-          <p className="font-serif text-[26px] leading-none text-gold">+9</p>
-          <p className="mt-1.5 text-[11.5px] tracking-[0.2em] text-hanji-faint">공덕</p>
+          {/* 검수(2026-11-24): 「+9」는 박아 둔 옛 값이었다 — 실제로 붙은 값을 적고, 하루 몫이 차 0 이면 안 띄운다 */}
+          {gained > 0 && (
+            <>
+              <p className="font-serif text-[26px] leading-none text-gold">
+                +{gained.toLocaleString("ko-KR")}
+              </p>
+              <p className="mt-1.5 text-[11.5px] tracking-[0.2em] text-hanji-faint">공덕</p>
+            </>
+          )}
           <p className="mt-3 break-keep text-[12.5px] leading-6 text-hanji-dim">
             오늘 {rounds}번째 삼귀의예요.
           </p>

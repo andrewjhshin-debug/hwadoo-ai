@@ -24,6 +24,8 @@ import {
   signInWithRedirect,
   getRedirectResult,
   getAdditionalUserInfo,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
   signOut,
   type User,
   type UserCredential,
@@ -650,6 +652,23 @@ export async function loginWithGoogle() {
   }
 }
 
+/** 계정 지우기 직전 한 번 더 — 서버(/api/account/erase)는 10분 안의 로그인만 받는다.
+    검수(2026-11-24): 팝업으로만 다시 묻고 있었는데 설치 앱(WebView)은 구글이 팝업을 막는다 —
+    앱에서는 계정을 끝내 못 지웠다. 로그인과 같은 네이티브 다리로 묻는다 */
+export async function reauthGoogle() {
+  const u = auth.currentUser;
+  if (!u) throw new Error("로그인이 필요해요");
+  const 다리 = 앱다리();
+  if (다리) {
+    const r = await 다리.signInWithGoogle({ skipNativeAuth: true });
+    const idToken = r.credential?.idToken;
+    if (!idToken) throw new Error("구글 계정 고르기가 끝나지 않았어요");
+    await reauthenticateWithCredential(u, GoogleAuthProvider.credential(idToken, r.credential?.accessToken ?? undefined));
+    return;
+  }
+  await reauthenticateWithPopup(u, new GoogleAuthProvider());
+}
+
 /** 구글에 다녀온 뒤 — 앱이 처음 뜰 때 한 번 물어본다.
     실패해도 조용히 지나간다(다녀온 적이 없으면 null 이 온다) */
 export function resumeRedirectLogin() {
@@ -658,8 +677,10 @@ export function resumeRedirectLogin() {
   });
 }
 
-export async function logout() {
-  await flushPush?.(); // 아직 못 올린 마지막 글을 먼저 올린다
+export async function logout(flush = true) {
+  // 검수(2026-11-24): 계정을 지운 직후엔 올리지 않는다 — 서버가 users/{uid} 를 지운 순간 동기화가 「구름이 비었다」며
+  // 서랍 전부를 올릴 것으로 표시해, 여기서 올리면 지운 문서(배웅 편지·사진·소원…)가 그대로 되살아났다
+  if (flush) await flushPush?.(); // 아직 못 올린 마지막 글을 먼저 올린다
   stopSync();
   // 계정에 모인 기록은 이 기기에서 비운다 — 다음 사람에게 넘어가지 않도록.
   // (로그인 전에 쓰던 기록은 주인이 없으므로 그대로 둔다)

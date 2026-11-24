@@ -7,16 +7,13 @@
 // 각 구획은 균질한 간격으로, 로그인 정보는 맨 아래.
 // ────────────────────────────────────────────────────────────────
 
-import { useEffect, useState, useSyncExternalStore, type ComponentType } from "react";
-import { isSoundMuted, isVibeOff, setSoundMuted, setVibeOff, SOUND_MUTE_EVENT } from "@/lib/soundPreference";
-import { wakeSound } from "@/lib/sound";
-import { 초대하기 } from "@/components/InviteCatch";
-import { getWalking, subscribeWalking, toggleWalking, WALKING_EMPTY } from "@/lib/walking";
+import { useEffect, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import { GoogleAuthProvider, reauthenticateWithPopup, type User } from "firebase/auth";
+import { type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { loginWithGoogle, logout, watchAuth } from "@/lib/sync";
+import { loginWithGoogle, logout, reauthGoogle, watchAuth } from "@/lib/sync";
+import { useConfirm } from "@/components/Confirm";
 import {
   BIZ_ADDRESS,
   BIZ_MAIL_ORDER_NO,
@@ -39,7 +36,7 @@ import {
 } from "@/lib/push";
 import { BELLS, loadBellsLocal, saveBellsLocal } from "@/lib/bells";
 import { formatDate, loadStore, saveStore, type Session } from "@/lib/store";
-import { markAllSeen, unseenNotices, type Notice } from "@/lib/notices";
+import { unseenNotices, type Notice } from "@/lib/notices";
 import { flatQuestion, sessionQuestion } from "@/lib/hwadu";
 import { dongja } from "@/lib/dongja";
 import DailyPractice from "@/components/DailyPractice";
@@ -292,6 +289,7 @@ export default function SettingsPage() {
   }, []);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const confirm = useConfirm();
   const [report, setReport] = useState<MonthReport | null>(null);
   const [chart, setChart] = useState<MonthChart | null>(null);
   const [yearReport, setYearReport] = useState<YearReport | null>(null);
@@ -358,15 +356,15 @@ export default function SettingsPage() {
     };
   }, [user]);
 
-  // 새 소식 — 나열한 뒤 잠시 두었다가 본 것으로 적는다.
-  // 타이머를 걷지 않는다 — 금방 떠나도 장부에는 적혀 점이 꺼진다.
+  // 새 소식 — 아직 보지 않은 것만 담아 둔다.
+  // 검수(2026-11-24): 이 목록이 사는 옛 판은 HipMe(.hip-screen — 전 너비 fixed)에 늘 가려 어느 폭에서도 안 보인다.
+  // 안 보인 소식을 본 것으로 적지 않는다 — markAllSeen 은 소식을 그리는 자리가 생기면 거기서 부른다
   useEffect(() => {
     let alive = true;
     unseenNotices()
       .then((list) => {
         if (!alive || list.length === 0) return;
         setNotices(list);
-        window.setTimeout(() => markAllSeen(list), 1500);
       })
       .catch(() => {});
     return () => {
@@ -659,18 +657,25 @@ export default function SettingsPage() {
 
   const eraseAccount = async () => {
     const u = auth.currentUser;
-    if (!u || !window.confirm("계정을 삭제하면 프로필·사진·수행 기록을 되돌릴 수 없습니다. 계속할까요?")) return;
+    if (!u || !(await confirm("계정을 삭제할까요?", "프로필·사진·수행 기록은 되돌릴 수 없습니다.", { confirm: "삭제", cancel: "그만" }))) return;
+    setLoginError("");
     const send = async (fresh = false) => fetch("/api/account/erase", {
       method: "POST",
       headers: { authorization: `Bearer ${await u.getIdToken(fresh)}` },
     });
     let result = await send();
     if (result.status === 403) {
-      await reauthenticateWithPopup(u, new GoogleAuthProvider());
+      // 검수(2026-11-24): 앱에서도 되도록 네이티브를 아는 재인증으로(lib/sync reauthGoogle)
+      try {
+        await reauthGoogle();
+      } catch (e) {
+        const code = (e as { code?: string })?.code ?? "";
+        throw new Error(code === "auth/user-mismatch" ? "같은 구글 계정을 골라 주세요." : "확인이 끝나지 않았어요. 다시 눌러 주세요.");
+      }
       result = await send(true);
     }
     if (!result.ok) throw new Error("계정을 삭제하지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
-    await logout();
+    await logout(false); // 지운 뒤에 올리면 지운 문서가 되살아난다(lib/sync logout)
     window.location.assign("/");
   };
 
@@ -795,7 +800,10 @@ export default function SettingsPage() {
   //      표현해서 올려둬」
   // 한 것만 보이면 **무엇을 하면 공덕이 붙는지** 알 수가 없다.
   // 갈래 전부를 깔고, 한 것부터 앞에 세운다 — 0 도 자리를 지킨다.
+  // 검수(2026-11-24): 화두 회향·초 공양·운세는 addMerit 부르는 곳이 없다(형: 「운세는 공덕 주지마」) —
+  // 영영 0번인 알약이라 뺀다. 다시 공덕을 주게 되면 여기서 지운다
   const meHits = (Object.keys(MERIT_VALUE) as MeritSource[])
+    .filter((k) => !["hwadu", "candle", "fortune"].includes(k))
     .map((k) => [k, merit.hits?.[k] ?? 0] as [MeritSource, number])
     .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
     // 형: 「내가 쌓은 공덕은 … 몇 번 쳤는지를 내 도량에서 보여주고」.
@@ -827,7 +835,7 @@ export default function SettingsPage() {
         hits={meHits}
         services={meServices}
         guest={user === null}
-        settings={<SetRows />}
+        /* 검수(2026-11-24): settings={<SetRows />} 는 HipMe 가 안 그리는 죽은 칸이라 걷었다 — 친구 초대는 /settings/preferences 로 */
         law={{
           links: [
             { href: "/about", label: "서비스 소개" },
@@ -863,6 +871,15 @@ export default function SettingsPage() {
               >
                 로그아웃
               </button>
+              {/* 검수(2026-11-24): 계정 삭제는 옛 넓은 판에만 있어서 폰에서는 길이 없었다 —
+                  구글 플레이는 앱 안에서 지우는 길을 요구한다. 로그아웃 밑에 옅게 한 줄 */}
+              <button
+                onClick={() => void eraseAccount().catch((e) => setLoginError(e instanceof Error ? e.message : "계정을 삭제하지 못했습니다."))}
+                className="hip-acc-erase"
+              >
+                계정 삭제
+              </button>
+              {loginError && <p className="hip-acc-bad">{loginError}</p>}
             </>
           ) : (
             <>
@@ -909,18 +926,22 @@ export default function SettingsPage() {
             ))}
           </div>
         }
+        /* 검수(2026-11-24): 푸시를 못 받는 기기(앱 WebView)면 종이 울릴 길이 없다 — null 로 접이째 걷는다.
+           살피는 동안(loading)도 null 이라야 앱에서 떴다가 사라지지 않는다 */
         bells={
-          <div className="hip-bells">
-            {BELLS.map((b) => (
-              <button
-                key={b.id}
-                onClick={() => toggleBell(b.id)}
-                data-on={bells.includes(b.id) ? "1" : undefined}
-              >
-                {b.time}
-              </button>
-            ))}
-          </div>
+          pushUi === "loading" || pushUi === "unsupported" ? null : (
+            <div className="hip-bells">
+              {BELLS.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => toggleBell(b.id)}
+                  data-on={bells.includes(b.id) ? "1" : undefined}
+                >
+                  {b.time}
+                </button>
+              ))}
+            </div>
+          )
         }
       />
     )}
@@ -1870,35 +1891,5 @@ export default function SettingsPage() {
       </div>
     </div>
     </>
-  );
-}
-
-/** 설정 — 켜고 끄는 줄 셋 + 문의 · 이용안내 */
-function SetRows() {
-  const [소리, 소리잡기] = useState(true);
-  const [진동, 진동잡기] = useState(true);
-  const 걸음 = useSyncExternalStore(subscribeWalking, getWalking, () => WALKING_EMPTY);
-  useEffect(() => {
-    const sync = () => 소리잡기(!isSoundMuted());
-    sync();
-    진동잡기(!isVibeOff());
-    window.addEventListener(SOUND_MUTE_EVENT, sync);
-    return () => window.removeEventListener(SOUND_MUTE_EVENT, sync);
-  }, []);
-  const 줄 = (이름: string, 켬: boolean, 바꿈: () => void) => (
-    <button type="button" onClick={바꿈} aria-pressed={켬} className="hip-set-row">
-      <span>{이름}</span>
-      <i data-on={켬 ? "1" : undefined} />
-    </button>
-  );
-  return (
-    <div className="hip-set">
-      {줄("소리", 소리, () => { setSoundMuted(소리); if (!소리) wakeSound(); })}
-      {줄("진동", 진동, () => { setVibeOff(진동); 진동잡기(!진동); })}
-      {줄("포행", 걸음.on, () => toggleWalking())}
-      {auth.currentUser && <button type="button" className="hip-set-row" onClick={() => void 초대하기(auth.currentUser!.uid)}><span>친구 초대 · 둘 다 <Yeonkkot className="inline-block h-4 w-4 align-middle" />+1</span><b>›</b></button>}
-      <a href={`mailto:${CONTACT_EMAIL}`} className="hip-set-row"><span>문의</span><b>›</b></a>
-      <Link href="/about" className="hip-set-row"><span>이용안내</span><b>›</b></Link>
-    </div>
   );
 }

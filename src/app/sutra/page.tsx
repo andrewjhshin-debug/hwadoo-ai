@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Dudu from "@/components/Dudu";
-import { addMerit, loadMerit, stageOf } from "@/lib/merit";
+import { addMerit, loadMerit, MERIT_VALUE, stageOf } from "@/lib/merit";
 import { grantCharm } from "@/lib/charm";
 import { buzz, clickBead, strikeMoktak } from "@/lib/sound";
 import { auth } from "@/lib/firebase";
@@ -105,8 +105,9 @@ function Picker({
                   </span>
                 )}
               </div>
+              {/* 검수(2026-11-24): s.merit 는 옛 값이라 실제와 달랐다 — 마칠 때 붙는 셈(finish 의 addMerit)을 그대로 적는다 */}
               <p className="mt-2 text-[12px] text-hanji-faint">
-                {s.lines.length}구 · 공덕 {s.merit}
+                {s.lines.length}구 · 공덕 {(MERIT_VALUE.sutra * Math.round(s.merit / 21)).toLocaleString("ko-KR")}
                 {r.best !== undefined && ` · ${fmt(r.best)}`}
               </p>
               <div className="mt-4 grid grid-cols-[1fr_1.4fr] gap-2">
@@ -235,7 +236,7 @@ function Board({
         </p>
 
         <div className="mt-6 w-full max-w-sm rounded-[14px] border border-gold/40 bg-gold/10 px-5 py-5 text-center">
-          <p className="font-serif text-[30px] leading-none text-gold">+{done.merit}</p>
+          <p className="font-serif text-[30px] leading-none text-gold">+{done.merit.toLocaleString("ko-KR")}</p>
           <p className="mt-1.5 text-[11.5px] tracking-[0.2em] text-hanji-faint">공덕</p>
           {done.clean ? (
             <p className="mt-3 break-keep text-[12.5px] leading-6 text-hanji">

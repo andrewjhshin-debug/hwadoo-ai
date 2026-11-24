@@ -78,6 +78,8 @@ export default function DharmaSheet({ open, onClose }: { open: boolean; onClose:
         onPointerMove={(e) => { if (끌기.current !== null) dySet(Math.max(0, e.clientY - 끌기.current)); }}
         onPointerUp={() => { if (dy > 60) onClose(); 끌기.current = null; dySet(0); }}
         onPointerCancel={() => { 끌기.current = null; dySet(0); }}
+        // 검수(2026-11-24): 판은 길이 바뀔 때만 접혔다 — 지금 있는 방(인연 판에서 「인연」 등)을 누르면 길이 같아 판이 그대로 떠 있었다
+        onClickCapture={(e) => { if ((e.target as Element).closest("a")) onClose(); }}
       >
         <span className="dharma-grip" aria-hidden />
         <Link href="/gathering" className="dharma-yeon" tabIndex={open ? 0 : -1}>
