@@ -52,6 +52,8 @@ export default function UnryeokPage() {
             </label>
             <div className={s.field}>무엇을
               <div className={s.chips}>{WHAT.map((w) => <button key={w} className={s.chip} aria-pressed={what === w} onClick={() => setWhat(w)}>{w}</button>)}</div>
+              {/* 형(2026-11-26): 「무엇을에 주관식도 쓰게」 — 고른 칸이 없으면 직접 적은 말이 들어간다 */}
+              <input className={s.input} style={{ marginTop: 8 }} maxLength={20} placeholder="직접 쓰기" value={WHAT.includes(what) ? "" : what} onChange={(e) => setWhat(e.target.value)} />
             </div>
             <div className={s.two}>
               <label className={s.field}>언제<input className={s.input} type="date" value={day} max={visitDayKey()} onChange={(e) => setDay(e.target.value)} /></label>
