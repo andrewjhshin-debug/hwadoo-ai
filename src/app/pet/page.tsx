@@ -358,17 +358,20 @@ export default function PetPage() {
           </>
         ) : (
           <>
-            {/* 영단 */}
-            <section className={s.altar} aria-label="영단">
-              <img className={s.bg} src="/obj/pet/altar-v1.webp" alt="" aria-hidden />
-              <button className={s.frame} onClick={() => fileRef.current?.click()} aria-label={photo ? "사진 바꾸기" : "사진 모시기"}>
-                {photo ? <img src={photo} alt="" /> : <span className={s.blank}>사진</span>}
-                {pet && <><i className={s.ribL} /><i className={s.ribR} /></>}
-              </button>
-              <p className={s.tablet}>{pet ? `${pet.name} 靈駕` : "靈駕"}</p>
-              {(lit || memorial || finished) && <i className={s.ember} aria-hidden />}
-              <button className={s.burner} data-call={canLight ? "1" : undefined} disabled={!canLight} onClick={() => { strikeBell(0.5); update(at, { hyang: true }); }} aria-label="향 올리기" />
-              {pet && <p className={s.ord}>{memorial ? `忌日 · D-${anniv}` : finished ? "四十九齋 圓滿" : ORD[at]}</p>}
+            {/* 영단 — 형(2026-11-26): 「A로 가」. 제미나이 3D 점토 위패(앱 그림 결) 작게 + 이름·재·향 단추 한 줄 카드 */}
+            <section className={s.wcard} aria-label="영단">
+              <div className={s.wart}>
+                <img src="/obj/pet/wipae-v1.webp" alt="" aria-hidden />
+                {pet && <span className={s.wname}>{pet.name} 영가</span>}
+                {(lit || memorial || finished) && <i className={s.wsmoke} aria-hidden />}
+              </div>
+              <div className={s.winfo}>
+                {pet && <p className={s.wk}>{memorial ? `忌日 · D-${anniv}` : finished ? "四十九齋 圓滿" : ORD[at]}</p>}
+                <p className={s.wn}>{pet ? pet.name : "모시기"}</p>
+                {pet && <p className={s.wd}>{pet.passed.replace(/-/g, ". ")} · {daysBetween(pet.passed, today) + 1}일째</p>}
+                {canLight && <button className={s.wgo} onClick={() => { strikeBell(0.5); update(at, { hyang: true }); }}>향 올리기</button>}
+                {pet && <button className={s.wpic} onClick={() => fileRef.current?.click()}>{photo ? "사진 바꾸기" : "사진"}</button>}
+              </div>
             </section>
 
             {ready && !pet && (
@@ -381,7 +384,6 @@ export default function PetPage() {
 
             {pet && !memorial && (
               <>
-                {current !== -1 && open(at) && !lit && <p className={s.hint}>향로를 눌러 향을 올려요</p>}
                 {current !== -1 && open(at) && lit && (
                   <section className={s.rite}>
                     <p className={s.verse}>{RITES[at].verse}</p>
